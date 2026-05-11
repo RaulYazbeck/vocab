@@ -15,6 +15,7 @@
 // ── CONSTANTS ────────────────────────────────
 const STORAGE_KEY   = APP_CONFIG.storageKey;
 const ALL_GROUPS    = APP_CONFIG.allGroups;
+const WORD_KEY      = APP_CONFIG.targetProp;
 const UNLOCK_STEP   = 5;
 const UNLOCK_INITIAL = 12;
 
@@ -47,7 +48,7 @@ let activeMode  = "classic";
 let activeWords = [];
 let currentWord = null;
 let answered    = false;
-let deVoice     = null;
+let targetVoice = null;
 
 let sessionCorrect = 0;
 let sessionConsecutive = 0;
@@ -171,7 +172,7 @@ function initVoice() {
   const load = () => {
     const v = speechSynthesis.getVoices();
     const lang = APP_CONFIG.speechLang;
-    deVoice = v.find(x => x.lang === lang) || v.find(x => x.lang.startsWith(lang.slice(0,2))) || null;
+    targetVoice = v.find(x => x.lang === lang) || v.find(x => x.lang.startsWith(lang.slice(0,2))) || null;
   };
   load();
   speechSynthesis.onvoiceschanged = load;
@@ -182,12 +183,12 @@ function speak(text) {
   const u = new SpeechSynthesisUtterance(text);
   u.lang = APP_CONFIG.speechLang;
   u.rate = 0.85;
-  if (deVoice) u.voice = deVoice;
+  if (targetVoice) u.voice = targetVoice;
   speechSynthesis.speak(u);
 }
 
 // ── ANSWER CHECK ──────────────────────────────
-function stripAccents(s) { return s.normalize("NFD").replace(/[\u0300-\u036f]/g,""); }
+function stripAccents(s) { return s.normalize("NFD").replace(/[̀-ͯ]/g,""); }
 function normalize(s)     { return stripAccents(s.trim().toLowerCase()).replace(/\s+/g," "); }
 function isCorrect(input, answer) {
   if (!input.trim()) return false;
@@ -276,7 +277,7 @@ function showUnlockModal() {
       <div class="modal-word-list">
         ${stagedWords.map(w=>`<div class="modal-word">
           <span class="modal-word-en">${w.en}</span>
-          <span class="modal-word-de">${w.de}</span>
+          <span class="modal-word-de">${w[WORD_KEY]}</span>
         </div>`).join("")}
       </div>
       <button class="modal-add-more" id="modal-add-more-btn" onclick="stageMore()" ${!canAddMore?"disabled":""}>
@@ -657,7 +658,7 @@ function checkDrill() {
   if (!input || !currentWord) return;
   if (!input.value.trim()) { dontKnow(); return; }
   answered = true;
-  const correct = isCorrect(input.value, currentWord.de);
+  const correct = isCorrect(input.value, currentWord[WORD_KEY]);
   const ws      = getWS(currentWord.deckId, currentWord.idx);
   const isNew   = ws.correct === 0 && ws.wrong === 0;
   if (correct) {
@@ -683,7 +684,7 @@ function dontKnow() {
   const ws    = getWS(currentWord.deckId, currentWord.idx);
   ws.wrong++; ws.streak = 0; sessionConsecutive = 0;
   const input = document.getElementById("german-input");
-  if (input) { input.value = currentWord.de; input.classList.add("wrong"); }
+  if (input) { input.value = currentWord[WORD_KEY]; input.classList.add("wrong"); }
   saveState();
   showDrillFeedback(false, ws);
 }
@@ -692,21 +693,21 @@ function showDrillFeedback(correct, ws) {
   const icon = correct ? "✓" : "✗";
   document.getElementById("feedback").innerHTML = `
     <div class="feedback-left">
-      <div class="feedback-text ${cls}">${icon} ${correct?"Correct!":"Answer:"} <strong>${currentWord.de}</strong></div>
+      <div class="feedback-text ${cls}">${icon} ${correct?"Correct!":"Answer:"} <strong>${currentWord[WORD_KEY]}</strong></div>
       ${currentWord.pl ? `<div class="plural-text">plural: ${currentWord.pl}</div>` : ""}
     </div>
     <div class="feedback-right">
-      <button class="audio-btn" onclick="speak('${currentWord.de.replace(/'/g,"\\'")}')">🔊</button>
+      <button class="audio-btn" onclick="speak('${currentWord[WORD_KEY].replace(/'/g,"\\'")}')">🔊</button>
       <button class="next-btn"  onclick="nextDrillWord()">Next →</button>
     </div>`;
-  speak(currentWord.de);
+  speak(currentWord[WORD_KEY]);
   if (currentWord.examples && currentWord.examples.length) {
     document.getElementById("examples-area").innerHTML = `
       <div class="examples-wrap">
         <div class="examples-title">Examples</div>
         ${currentWord.examples.map(ex => `
           <div class="example-row">
-            <div class="example-de">${ex.de}</div>
+            <div class="example-de">${ex[WORD_KEY]}</div>
             <div class="example-en">${ex.en}</div>
           </div>`).join("")}
       </div>`;
@@ -807,7 +808,7 @@ function handleVoiceTimerResult(correct, heard, isSkip=false) {
       const insertAt = timerWordsDone + 1 + Math.floor(Math.random() * remaining);
       timerQueue.splice(insertAt, 0, {...currentWord});
     } else { timerQueue.push({...currentWord}); }
-    const skippedAnswer = currentWord.de;
+    const skippedAnswer = currentWord[WORD_KEY];
     timerWordsDone++;
     const wordEl = document.getElementById("timer-word-display");
     if (wordEl) wordEl.style.opacity = "0.3";
@@ -838,7 +839,7 @@ function initVoiceRecognition() {
   try {
     const SGL = window.SpeechGrammarList || window.webkitSpeechGrammarList;
     if (SGL && currentWord) {
-      const grammar = `#JSGF V1.0; grammar answer; public <answer> = ${currentWord.de};`;
+      const grammar = `#JSGF V1.0; grammar answer; public <answer> = ${currentWord[WORD_KEY]};`;
       const list = new SGL();
       list.addFromString(grammar, 1);
       recognition.grammars = list;
@@ -859,12 +860,12 @@ function initVoiceRecognition() {
       return;
     }
     if (VOICE_PARAMS.repeatPhrases.some(p => transcript.includes(p))) {
-      speak(currentWord.de); startListening(); return;
+      speak(currentWord[WORD_KEY]); startListening(); return;
     }
     if (confidence < VOICE_PARAMS.minConfidence && confidence > 0) {
       setVoiceStatus("Didn't catch that — try again"); startListening(); return;
     }
-    const anyMatch = results.some(r => voiceIsCorrect(r.transcript.trim().toLowerCase(), currentWord.de));
+    const anyMatch = results.some(r => voiceIsCorrect(r.transcript.trim().toLowerCase(), currentWord[WORD_KEY]));
     if (isTV) handleVoiceTimerResult(anyMatch, best.transcript.trim());
     else      handleVoiceResult(anyMatch, best.transcript.trim());
   };
@@ -916,7 +917,7 @@ function handleVoiceResult(correct, heard, isSkip=false) {
   }
   saveState();
   if (correct) playSuccess(); else playFailure();
-  speak(currentWord.de);
+  speak(currentWord[WORD_KEY]);
   showVoiceFeedback(correct, heard, isSkip);
   const delay = correct ? VOICE_PARAMS.correctShowTime : VOICE_PARAMS.wrongShowTime;
   setTimeout(() => {
@@ -972,7 +973,7 @@ function showVoiceFeedback(correct, heard, isSkip) {
   const heardHtml = heard && !isSkip ? `<div class="voice-feedback-heard">you said: "${heard}"</div>` : "";
   const skipHtml  = isSkip ? `<div class="voice-feedback-heard">skipped</div>` : "";
   el.innerHTML = `<div class="voice-feedback ${cls}">
-    <div class="voice-feedback-answer">${icon} ${currentWord.de}</div>
+    <div class="voice-feedback-answer">${icon} ${currentWord[WORD_KEY]}</div>
     ${heardHtml}${skipHtml}
     ${currentWord.pl ? `<div style="font-size:12px;color:#888;margin-top:2px;">plural: ${currentWord.pl}</div>` : ""}
   </div>
@@ -980,7 +981,7 @@ function showVoiceFeedback(correct, heard, isSkip) {
     <div class="examples-wrap">
       <div class="examples-title">Example</div>
       <div class="example-row">
-        <div class="example-de">${currentWord.examples[0].de}</div>
+        <div class="example-de">${currentWord.examples[0][WORD_KEY]}</div>
         <div class="example-en">${currentWord.examples[0].en}</div>
       </div>
     </div>` : ""}`;
@@ -1055,15 +1056,15 @@ function renderLearnCard() {
     <div class="learn-progress">${learnQueue.length - learnIndex} cards left in queue</div>
     <div class="learn-card">
       <div class="learn-en">${w.en}</div>
-      <div class="learn-de">${w.de}</div>
+      <div class="learn-de">${w[WORD_KEY]}</div>
       ${w.pl ? `<div class="learn-hint">plural: ${w.pl}</div>` : ""}
       <div class="learn-hint">${w.hint}</div>
       ${w.examples && w.examples.length ? `<div class="examples-wrap" style="text-align:left;margin-top:12px">
         <div class="examples-title">Examples</div>
-        ${w.examples.map(ex=>`<div class="example-row"><div class="example-de">${ex.de}</div><div class="example-en">${ex.en}</div></div>`).join("")}
+        ${w.examples.map(ex=>`<div class="example-row"><div class="example-de">${ex[WORD_KEY]}</div><div class="example-en">${ex.en}</div></div>`).join("")}
       </div>` : ""}
     </div>
-    <button class="audio-btn" style="display:block;margin:0 auto 1rem;" onclick="speak('${w.de.replace(/'/g,"\\'")}')">🔊 Listen</button>
+    <button class="audio-btn" style="display:block;margin:0 auto 1rem;" onclick="speak('${w[WORD_KEY].replace(/'/g,"\\'")}')">🔊 Listen</button>
     <div class="learn-actions">
       <button class="learn-btn not-yet" onclick="learnNotYet()">Not yet</button>
       <button class="learn-btn got-it"  onclick="learnGotIt()">Got it ✓</button>
@@ -1090,7 +1091,7 @@ function learnNotYet() {
     const actionsEl = el.querySelector(".learn-actions");
     if (actionsEl) actionsEl.parentNode.insertBefore(banner, actionsEl);
   }
-  banner.textContent = `✗ ${w.de}`;
+  banner.textContent = `✗ ${w[WORD_KEY]}`;
   setTimeout(() => { renderLearnCard(); }, 0);
 }
 function finishLearnStartDrill() { activeMode = "classic"; startDrill(); }
@@ -1163,7 +1164,7 @@ function checkTimer() {
   if (!input) return;
   const val = input.value;
   if (!val.trim()) { skipTimer(); return; }
-  const correct = isCorrect(val, currentWord.de);
+  const correct = isCorrect(val, currentWord[WORD_KEY]);
   const fb = document.getElementById("timer-feedback");
   S.totalCorrect += correct ? 1 : 0;
   saveState();
@@ -1192,7 +1193,7 @@ function checkTimer() {
     if (wordEl) wordEl.style.opacity = "0.3";
     if (input) input.value = "";
     const typed = val.trim();
-    if (fb) fb.innerHTML = `<span style="color:#993C1D;font-weight:700;font-size:16px;text-decoration:line-through;">${typed}</span><span style="color:#993C1D;font-weight:400;font-size:16px;"> → </span><span style="color:#993C1D;font-weight:700;font-size:22px;">${currentWord.de}</span>`;
+    if (fb) fb.innerHTML = `<span style="color:#993C1D;font-weight:700;font-size:16px;text-decoration:line-through;">${typed}</span><span style="color:#993C1D;font-weight:400;font-size:16px;"> → </span><span style="color:#993C1D;font-weight:700;font-size:22px;">${currentWord[WORD_KEY]}</span>`;
     document.getElementById("t-correct").textContent = timerCorrect;
     document.getElementById("t-wrong").textContent   = timerWrong;
     setTimeout(() => {
@@ -1221,7 +1222,7 @@ function skipTimer() {
   const input = document.getElementById("timer-input");
   if (input) input.value = "";
   const fb = document.getElementById("timer-feedback");
-  if (fb) fb.innerHTML = `<span style="color:#993C1D;font-weight:700;font-size:22px;">✗ ${skipped.de}</span>`;
+  if (fb) fb.innerHTML = `<span style="color:#993C1D;font-weight:700;font-size:22px;">✗ ${skipped[WORD_KEY]}</span>`;
   document.getElementById("t-wrong").textContent = timerWrong;
   setTimeout(() => {
     if (timerFinished) return;
@@ -1273,7 +1274,7 @@ function renderStatsScreen() {
           : ws.streak > 0
             ? `<span class="streak-badge">${ws.streak}</span>`
             : `<span style="color:#bbb">new</span>`;
-        html += `<tr><td>${w.en}</td><td style="color:#555">${w.de}</td><td style="color:#aaa">${w.pl||"—"}</td><td>${ws.correct}</td><td>${ws.wrong}</td><td>${st}</td></tr>`;
+        html += `<tr><td>${w.en}</td><td style="color:#555">${w[WORD_KEY]}</td><td style="color:#aaa">${w.pl||"—"}</td><td>${ws.correct}</td><td>${ws.wrong}</td><td>${st}</td></tr>`;
       });
       html += `</tbody></table></div>`;
     });
