@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>German Vocabulary</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" type="image/png" href="icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<!-- Add new level: 1) create german_decks_aX.js, 2) add script tag here, 3) add to APP_CONFIG.allGroups -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAFJuGreU9sqf6TUSsyfggPNTZkf3YuCuY",
+  authDomain: "german-vocab-a.firebaseapp.com",
+  projectId: "german-vocab-a",
+  storageBucket: "german-vocab-a.firebasestorage.app",
+  messagingSenderId: "1006513229357",
+  appId: "1:1006513229357:web:dc345b52533cc502df32a4",
+  measurementId: "G-JZDZ713FYD"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+</script>
+<script src="german_decks_a1.js"></script>
+<script src="german_decks_a2.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f5f3;color:#1a1a1a;min-height:100vh;}
+.app{max-width:720px;margin:0 auto;padding:1.5rem 1rem;}
+
+/* HEADER */
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;}
+h1{font-size:20px;font-weight:700;}
+.header-right{display:flex;gap:8px;align-items:center;}
+.hdr-btn{font-size:13px;padding:6px 12px;border:1px solid #ddd;border-radius:8px;background:white;cursor:pointer;color:#555;}
+.hdr-btn:hover{background:#f0f0f0;}
+
+/* EXP BAR */
+.exp-bar-wrap{background:white;border:1px solid #e0e0e0;border-radius:10px;padding:10px 14px;margin-bottom:1rem;display:flex;align-items:center;gap:12px;}
+.exp-level{font-size:13px;font-weight:700;color:#1D9E75;white-space:nowrap;}
+.exp-track{flex:1;height:6px;background:#eee;border-radius:3px;overflow:hidden;}
+.exp-fill{height:100%;background:linear-gradient(90deg,#1D9E75,#34c896);border-radius:3px;transition:width 0.4s;}
+.exp-label{font-size:12px;color:#aaa;white-space:nowrap;}
+
+/* GROUPS */
+.group{margin-bottom:1rem;}
+.group-header{display:flex;align-items:center;gap:10px;padding:10px 14px;background:white;border:1px solid #e0e0e0;border-radius:10px;cursor:pointer;user-select:none;margin-bottom:6px;}
+.group-header:hover{background:#f9f9f9;}
+.group-icon{font-size:18px;}
+.group-name{font-size:14px;font-weight:600;flex:1;}
+.group-meta{font-size:12px;color:#aaa;}
+.group-chevron{font-size:11px;color:#aaa;transition:transform 0.2s;display:inline-block;}
+.group-chevron.open{transform:rotate(90deg);}
+.group-decks{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;padding-left:8px;}
+.group-decks.collapsed{display:none;}
+
+/* DECK CARD */
+.folder-card{background:white;border:1.5px solid #e0e0e0;border-radius:12px;padding:1rem;cursor:pointer;position:relative;user-select:none;transition:border-color 0.15s;}
+.folder-card:hover{border-color:#aaa;}
+.folder-card.selected{border:2px solid #1D9E75;background:#f0faf6;}
+.folder-check{position:absolute;top:10px;right:10px;width:18px;height:18px;border-radius:50%;border:1.5px solid #ccc;background:white;display:flex;align-items:center;justify-content:center;font-size:10px;color:transparent;}
+.folder-card.selected .folder-check{background:#1D9E75;border-color:#1D9E75;color:white;}
+.folder-icon{font-size:20px;margin-bottom:8px;}
+.folder-name{font-size:13px;font-weight:600;margin-bottom:3px;padding-right:22px;}
+.folder-meta{font-size:11px;color:#888;}
+.folder-unlock{font-size:11px;color:#1D9E75;margin-top:3px;font-weight:500;}
+.progress-bar{height:3px;background:#eee;border-radius:2px;margin-top:8px;overflow:hidden;}
+.progress-fill{height:100%;background:#1D9E75;border-radius:2px;}
+
+/* START BAR */
+.start-bar{background:white;border:1px solid #e0e0e0;border-radius:10px;padding:12px 14px;margin-bottom:1rem;}
+.start-bar-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+.start-bar-left{font-size:13px;color:#555;}
+.start-bar-left strong{color:#1a1a1a;}
+.mode-row{display:flex;gap:6px;flex-wrap:wrap;}
+.mode-pill{font-size:12px;padding:6px 14px;border:1.5px solid #ddd;border-radius:20px;background:white;cursor:pointer;color:#888;font-weight:500;transition:all 0.15s;}
+.mode-pill.active{border-color:#1D9E75;background:#f0faf6;color:#0F6E56;font-weight:600;}
+.start-btn{font-size:13px;font-weight:600;padding:8px 22px;background:#1D9E75;color:white;border:none;border-radius:8px;cursor:pointer;margin-top:10px;width:100%;}
+.start-btn:hover{background:#0F6E56;}
+
+/* SCREEN */
+.screen{background:white;border:1px solid #e0e0e0;border-radius:14px;padding:1.5rem;}
+.screen-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;}
+.screen-label{font-size:12px;color:#888;}
+.back-btn{font-size:13px;padding:5px 12px;border:1px solid #ddd;border-radius:8px;background:white;cursor:pointer;color:#555;}
+.back-btn:hover{background:#f0f0f0;}
+.word-display{text-align:center;margin-bottom:1.75rem;}
+.english-word{font-size:28px;font-weight:700;margin-bottom:6px;line-height:1.2;}
+.word-hint{font-size:13px;color:#888;}
+.streak-badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:6px;background:#e6f7f2;color:#0F6E56;font-weight:600;}
+.mastered-badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:6px;background:#eeecfd;color:#3C3489;font-weight:600;}
+.german-input{width:100%;height:44px;padding:0 14px;font-size:16px;border:1.5px solid #ddd;border-radius:10px;background:white;color:#1a1a1a;outline:none;margin-bottom:10px;}
+.german-input:focus{border-color:#1D9E75;box-shadow:0 0 0 3px rgba(29,158,117,0.12);}
+.german-input.correct{border-color:#1D9E75;background:#f0faf6;}
+.german-input.wrong{border-color:#E24B4A;background:#fff5f5;}
+.action-row{display:flex;gap:8px;margin-bottom:1rem;}
+.check-btn{flex:1;height:40px;font-size:14px;border:1.5px solid #ddd;border-radius:10px;background:white;cursor:pointer;font-weight:500;}
+.check-btn:hover{background:#f5f5f3;}
+.dontknow-btn{height:40px;padding:0 14px;font-size:13px;border:1.5px solid #ddd;border-radius:10px;background:transparent;color:#888;cursor:pointer;white-space:nowrap;}
+.dontknow-btn:hover{background:#f5f5f3;color:#1a1a1a;}
+.feedback{min-height:52px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:0.75rem;}
+.feedback-left{display:flex;flex-direction:column;gap:4px;}
+.feedback-text{font-size:14px;font-weight:500;}
+.feedback-text.correct{color:#0F6E56;}
+.feedback-text.wrong{color:#993C1D;}
+.plural-text{font-size:12px;color:#888;}
+.feedback-right{display:flex;gap:8px;align-items:center;flex-shrink:0;}
+.next-btn{font-size:13px;padding:7px 14px;border:1.5px solid #ddd;border-radius:8px;background:white;cursor:pointer;}
+.next-btn:hover{background:#f5f5f3;}
+.audio-btn{font-size:16px;padding:6px 10px;border:1.5px solid #ddd;border-radius:8px;background:white;cursor:pointer;}
+.audio-btn:hover{background:#f5f5f3;}
+.examples-wrap{background:#f9f9f9;border-radius:8px;padding:10px 12px;margin-bottom:0.75rem;}
+.examples-title{font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+.example-row{margin-bottom:6px;}
+.example-de{font-size:13px;color:#1a1a1a;font-style:italic;}
+.example-en{font-size:12px;color:#888;}
+.stats-row{display:flex;gap:6px;padding-top:0.75rem;border-top:1px solid #eee;}
+.mini-stat{flex:1;background:#f5f5f3;border-radius:8px;padding:7px 8px;}
+.mini-label{font-size:10px;color:#888;margin-bottom:2px;}
+.mini-val{font-size:16px;font-weight:700;}
+
+/* UNLOCK ROW */
+.unlock-row{display:flex;align-items:center;justify-content:space-between;background:#f0faf6;border-radius:8px;padding:8px 12px;margin-bottom:1rem;}
+.unlock-info{font-size:13px;color:#0F6E56;font-weight:500;}
+.unlock-btn{font-size:12px;padding:5px 12px;border:1.5px solid #1D9E75;border-radius:8px;background:white;color:#1D9E75;cursor:pointer;font-weight:600;}
+.unlock-btn:hover{background:#f0faf6;}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;display:flex;align-items:flex-end;justify-content:center;}
+.modal-sheet{background:white;border-radius:16px 16px 0 0;padding:1.5rem;width:100%;max-width:720px;max-height:80vh;overflow-y:auto;}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:4px;}
+.modal-sub{font-size:13px;color:#888;margin-bottom:1rem;}
+.modal-word-list{display:flex;flex-direction:column;gap:6px;margin-bottom:1.25rem;}
+.modal-word{display:flex;justify-content:space-between;padding:8px 10px;background:#f9f9f9;border-radius:8px;font-size:13px;}
+.modal-word-en{color:#888;}
+.modal-word-de{font-weight:600;}
+.modal-actions{display:flex;gap:8px;}
+.modal-btn{flex:1;height:40px;font-size:14px;font-weight:600;border-radius:10px;border:none;cursor:pointer;}
+.modal-btn.primary{background:#1D9E75;color:white;}
+.modal-btn.primary:hover{background:#0F6E56;}
+.modal-btn.secondary{background:#f5f5f3;color:#555;border:1.5px solid #ddd;}
+.modal-btn.secondary:hover{background:#eee;}
+.modal-add-more{width:100%;margin-bottom:1rem;padding:8px;font-size:13px;font-weight:600;border:1.5px dashed #1D9E75;border-radius:8px;background:transparent;color:#1D9E75;cursor:pointer;}
+.modal-add-more:hover{background:#f0faf6;}
+.modal-add-more:disabled{border-color:#ccc;color:#ccc;cursor:not-allowed;}
+
+/* LEARNING MODE */
+.learn-card{text-align:center;padding:1rem 0;}
+.learn-de{font-size:36px;font-weight:700;margin-bottom:8px;}
+.learn-en{font-size:18px;color:#555;margin-bottom:4px;}
+.learn-hint{font-size:13px;color:#aaa;margin-bottom:16px;}
+.learn-actions{display:flex;gap:10px;justify-content:center;margin-top:1rem;}
+.learn-btn{flex:1;max-width:160px;height:44px;font-size:14px;font-weight:600;border-radius:10px;border:none;cursor:pointer;}
+.learn-btn.got-it{background:#1D9E75;color:white;}
+.learn-btn.not-yet{background:#f5f5f3;color:#555;border:1.5px solid #ddd;}
+.learn-progress{font-size:12px;color:#aaa;text-align:center;margin-bottom:1rem;}
+
+/* TIMER MODE */
+.timer-display{text-align:center;margin-bottom:1rem;}
+.timer-clock{font-size:42px;font-weight:700;font-variant-numeric:tabular-nums;color:#1a1a1a;}
+.timer-clock.urgent{color:#E24B4A;}
+.timer-bar-wrap{height:6px;background:#eee;border-radius:3px;overflow:hidden;margin-bottom:1.5rem;}
+.timer-bar-fill{height:100%;background:#1D9E75;border-radius:3px;transition:width 0.1s linear;}
+.timer-bar-fill.urgent{background:#E24B4A;}
+.timer-score{text-align:center;font-size:14px;color:#888;margin-bottom:1rem;}
+.timer-score strong{color:#1a1a1a;}
+.result-screen{text-align:center;padding:2rem 0;}
+.result-emoji{font-size:56px;margin-bottom:12px;}
+.result-title{font-size:22px;font-weight:700;margin-bottom:6px;}
+.result-sub{font-size:14px;color:#888;margin-bottom:1.5rem;}
+.result-stat{display:inline-block;background:#f5f5f3;border-radius:8px;padding:8px 16px;margin:4px;font-size:13px;}
+.result-stat strong{display:block;font-size:20px;font-weight:700;color:#1D9E75;}
+.result-btn{margin-top:1.5rem;padding:10px 28px;background:#1D9E75;color:white;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;}
+
+/* STATS & BADGES */
+.stats-section{margin-bottom:1.5rem;}
+.stats-section-title{font-size:13px;font-weight:600;margin-bottom:8px;color:#555;}
+table{width:100%;font-size:13px;border-collapse:collapse;}
+th{text-align:left;font-weight:600;color:#888;padding:6px 8px;border-bottom:1px solid #eee;}
+td{padding:6px 8px;border-bottom:1px solid #f0f0f0;}
+tr:last-child td{border-bottom:none;}
+.badges-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;}
+.badge-card{background:#f9f9f9;border:1px solid #eee;border-radius:10px;padding:10px;text-align:center;}
+.badge-card.earned{background:#f0faf6;border-color:#b2e8d4;}
+.badge-card.locked{opacity:0.4;}
+.badge-icon{font-size:28px;margin-bottom:4px;}
+.badge-name{font-size:12px;font-weight:600;color:#1a1a1a;margin-bottom:2px;}
+.badge-desc{font-size:11px;color:#888;}
+
+/* FOCUS MODE notice */
+.focus-notice{background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:8px 12px;font-size:12px;color:#856404;margin-bottom:1rem;text-align:center;}
+
+/* VOICE MODE */
+.voice-indicator{text-align:center;margin-bottom:1.5rem;}
+.mic-btn{width:80px;height:80px;border-radius:50%;border:2px solid #ddd;font-size:32px;cursor:pointer;transition:all 0.2s;background:#f5f5f3;}
+.mic-btn.listening{background:#fff0f0;border-color:#E24B4A;animation:pulse 1s infinite;}
+.mic-btn.processing{background:#f0faf6;border-color:#1D9E75;}
+@keyframes pulse{0%{transform:scale(1);box-shadow:0 0 0 0 rgba(226,75,74,0.4);}70%{transform:scale(1.05);box-shadow:0 0 0 10px rgba(226,75,74,0);}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(226,75,74,0);}}
+.voice-status{font-size:13px;color:#888;margin-top:8px;}
+.voice-feedback{text-align:center;padding:16px;border-radius:10px;margin-bottom:1rem;min-height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;}
+.voice-feedback.correct{background:#f0faf6;border:1px solid #1D9E75;}
+.voice-feedback.wrong{background:#fff5f5;border:1px solid #E24B4A;}
+.voice-feedback-answer{font-size:22px;font-weight:700;}
+.voice-feedback-heard{font-size:13px;color:#888;}
+.voice-feedback.correct .voice-feedback-answer{color:#0F6E56;}
+.voice-feedback.wrong .voice-feedback-answer{color:#993C1D;}
+
+@media(max-width:480px){
+  .app{padding:1rem 0.75rem;}
+  .english-word{font-size:24px;}
+  .learn-de{font-size:28px;}
+  .timer-clock{font-size:32px;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>🇩🇪 German Vocabulary</h1>
+    <div class="header-right">
+      <button class="hdr-btn" onclick="showScreen('badges')">🏆</button>
+      <button class="hdr-btn" onclick="showScreen('stats')">Stats</button>
+      <button class="hdr-btn" id="auth-btn" onclick="handleAuth()">Sign in</button>
+    </div>
+  </div>
+  <div id="sync-status" style="font-size:11px;color:#aaa;text-align:right;margin-bottom:8px;margin-top:-8px;"></div>
+  <div id="exp-bar"></div>
+  <div id="groups-container"></div>
+  <div id="start-bar" style="display:none"></div>
+  <div id="main-screen" style="display:none"></div>
+</div>
+<script>
+const APP_CONFIG = {
+  title: "🇩🇪 German Vocabulary",
+  speechLang: "de-DE",
+  storageKey: "gv5_de",
+  allGroups: [DECKS_A1, DECKS_A2],
+};
+</script>
+<script src="../core.js"></script>
+</body>
+</html>
