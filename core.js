@@ -1146,6 +1146,7 @@ function renderTimerScreen() {
       <div class="english-word">${currentWord.en}</div>
       <div class="word-hint">${currentWord.hint}</div>
     </div>
+    <div id="timer-feedback" style="min-height:44px;font-size:18px;font-weight:700;text-align:center;padding:6px 0 2px;"></div>
     <input type="text" class="german-input" id="timer-input" placeholder="type the answer…"
       autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
       onkeydown="handleTimerKey(event)"/>
@@ -1153,7 +1154,6 @@ function renderTimerScreen() {
       <button class="check-btn"    onclick="checkTimer()">Check</button>
       <button class="dontknow-btn" onclick="skipTimer()">Skip</button>
     </div>
-    <div id="timer-feedback" style="min-height:32px;font-size:14px;text-align:center;padding-top:4px;"></div>
   </div>`;
   focusInput();
 }
