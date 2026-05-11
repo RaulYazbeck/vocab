@@ -724,7 +724,7 @@ function startVoiceSession() {
   if (!navigator.onLine) { alert("No internet. Switching to Classic."); activeMode="classic"; startDrill(); return; }
   voiceSessionRunning = true;
   answered    = false;
-  currentWord = pickNext(false);
+  currentWord = pickNext(activeMode === "focus");
   renderVoiceDrill();
   document.getElementById("main-screen").style.display = "block";
   document.getElementById("groups-container").style.display = "none";
@@ -914,7 +914,7 @@ function handleVoiceResult(correct, heard, isSkip=false) {
   setTimeout(() => {
     if (!voiceSessionRunning) return;
     answered    = false;
-    currentWord = pickNext(false);
+    currentWord = pickNext(activeMode === "focus");
     renderVoiceDrill();
     setTimeout(() => startListening(), 400);
   }, delay);
