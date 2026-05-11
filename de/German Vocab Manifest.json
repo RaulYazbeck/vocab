@@ -1,0 +1,16 @@
+{
+  "name": "German Vocab",
+  "short_name": "Deutsch",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f5f5f3",
+  "theme_color": "#1D9E75",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
