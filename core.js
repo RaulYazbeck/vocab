@@ -836,15 +836,6 @@ function initVoiceRecognition() {
   recognition.continuous      = false;
   recognition.interimResults  = false;
   recognition.maxAlternatives = 3;
-  try {
-    const SGL = window.SpeechGrammarList || window.webkitSpeechGrammarList;
-    if (SGL && currentWord) {
-      const grammar = `#JSGF V1.0; grammar answer; public <answer> = ${currentWord[WORD_KEY]};`;
-      const list = new SGL();
-      list.addFromString(grammar, 1);
-      recognition.grammars = list;
-    }
-  } catch(e) {}
 
   recognition.onresult = event => {
     clearTimeout(voiceSilenceTimer);
