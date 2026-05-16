@@ -16,7 +16,7 @@
 const STORAGE_KEY   = APP_CONFIG.storageKey;
 const ALL_GROUPS    = APP_CONFIG.allGroups;
 const WORD_KEY      = APP_CONFIG.targetProp;
-const UNLOCK_STEP   = 5;
+const UNLOCK_STEP   = 10;
 const UNLOCK_INITIAL = 12;
 
 const EXP_BASE = 100, EXP_RATIO = 1.4;
@@ -189,12 +189,12 @@ function speak(text) {
 
 // ── ANSWER CHECK ──────────────────────────────
 function stripAccents(s) { return s.normalize("NFD").replace(/[̀-ͯ]/g,""); }
-function normalize(s)     { return stripAccents(s.trim().toLowerCase()).replace(/\s+/g," "); }
+function normalizeChars(s) { return s.replace(/['\-]/g, " ").replace(/\s+/g, " "); }
+function normalize(s) { return normalizeChars(stripAccents(s.trim().toLowerCase())); }
 function isCorrect(input, answer) {
   if (!input.trim()) return false;
   const ni = normalize(input);
-  if (ni === normalize(answer)) return true;
-  return answer.split("/").map(p => normalize(p.trim())).some(p => ni === p);
+  return answer.split("/").map(p => normalize(p.trim())).some(p => p.length > 0 && ni.includes(p));
 }
 
 // ── EXP & LEVELS ──────────────────────────────
@@ -500,35 +500,40 @@ function renderGroups() {
 
 // ── START BAR ─────────────────────────────────
 function renderStartBar() {
-  const bar = document.getElementById("start-bar");
-  if (selectedIds.size === 0) { bar.style.display = "none"; return; }
-  const totalWords = [...selectedIds].reduce((s,id) => { const d = getDeck(id); return s + (d ? getUnlocked(id) : 0); }, 0);
+  let island = document.getElementById("floating-island");
+  if (selectedIds.size === 0) {
+    if (island) island.remove();
+    return;
+  }
+  if (!island) {
+    island = document.createElement("div");
+    island.id = "floating-island";
+    document.body.appendChild(island);
+  }
+  const totalWords = [...selectedIds].reduce((s, id) => {
+    const d = getDeck(id); return s + (d ? getUnlocked(id) : 0);
+  }, 0);
   const names = [...selectedIds].map(id => getDeck(id)?.name).filter(Boolean).join(", ");
-  bar.style.display = "block";
-  bar.innerHTML = `
-    <div class="start-bar-top">
-      <div class="start-bar-left">
-        <strong>${selectedIds.size}</strong> deck${selectedIds.size!==1?"s":""} · <strong>${totalWords}</strong> words unlocked<br>
-        <span style="font-size:11px;color:#aaa">${names}</span>
-      </div>
+  const modeLabels = { learn:"👁 Learn", classic:"📖 Classic", focus:"🎯 Focus", timer:"⏱ Timer" };
+  island.innerHTML = `
+    <div class="fi-summary">
+      <span class="fi-count"><strong>${selectedIds.size}</strong> deck${selectedIds.size !== 1 ? "s" : ""} · <strong>${totalWords}</strong> words</span>
+      <span class="fi-names">${names}</span>
     </div>
-    <div class="mode-row">
+    <div class="fi-modes">
       ${["learn","classic","focus","timer"].map(m =>
-        `<button class="mode-pill ${activeMode===m?"active":""}" onclick="setMode('${m}')">
-          ${{learn:"👁 Learn",classic:"📖 Classic",focus:"🎯 Focus",timer:"⏱ Timer"}[m]}
-        </button>`
+        `<button class="fi-pill ${activeMode === m ? "active" : ""}" onclick="setMode('${m}')">${modeLabels[m]}</button>`
       ).join("")}
+      ${activeMode !== "learn" ? `<button class="fi-pill ${voiceEnabled ? "active" : ""}" onclick="toggleVoice()">🎙️ Voice</button>` : ""}
     </div>
-    ${activeMode !== "learn" ? `<div class="mode-row" style="margin-top:6px;">
-      <button class="mode-pill ${voiceEnabled?"active":""}" onclick="toggleVoice()">🎙️ Voice ${voiceEnabled?"ON":"OFF"}</button>
-    </div>` : ""}
-    ${activeMode === "timer" ? `<div class="mode-row" style="margin-top:6px;">
-      <span style="font-size:12px;color:#888;align-self:center;">Words:</span>
+    ${activeMode === "timer" ? `
+    <div class="fi-modes" style="margin-top:6px;">
+      <span style="font-size:11px;color:#888;align-self:center;">Words:</span>
       ${[10,25,50].map(n =>
-        `<button class="mode-pill ${timerWordCount===n?"active":""}" onclick="setTimerCount(${n})">${n}</button>`
+        `<button class="fi-pill ${timerWordCount === n ? "active" : ""}" onclick="setTimerCount(${n})">${n}</button>`
       ).join("")}
     </div>` : ""}
-    <button class="start-btn" onclick="startSession()">Start ▶</button>`;
+    <button class="fi-start" onclick="startSession()">Start ▶</button>`;
 }
 function setMode(m)       { activeMode = m; renderStartBar(); }
 function toggleVoice()    { voiceEnabled = !voiceEnabled; renderStartBar(); }
@@ -636,11 +641,13 @@ function renderUnlockRow(containerId) {
     const deck = getDeck(id);
     if (!deck) return;
     const u = getUnlocked(id);
-    if (u < deck.words.length)
+    if (u < deck.words.length) {
+      const toUnlock = Math.min(UNLOCK_STEP, deck.words.length - u);
       rows.push(`<div class="unlock-row">
-        <div class="unlock-info">${deck.name}: ${u}/${deck.words.length} unlocked</div>
-        <button class="unlock-btn" onclick="unlockMore('${id}')">+${Math.min(UNLOCK_STEP,deck.words.length-u)} more</button>
+        <div class="unlock-info">🔒 ${deck.name}: ${u} of ${deck.words.length} words unlocked</div>
+        <button class="unlock-btn" onclick="unlockMore('${id}')">+ Unlock ${toUnlock} words</button>
       </div>`);
+    }
   });
   container.innerHTML = rows.join("");
 }
@@ -776,9 +783,11 @@ function renderVoiceTimerScreen() {
       <button class="mic-btn" id="voice-mic-btn" onclick="toggleMic()">🎤</button>
       <div class="voice-status" id="voice-status">Listening…</div>
     </div>
+    <div id="unlock-row-voice-timer"></div>
     <div id="timer-feedback" style="min-height:40px;text-align:center;padding-top:4px;"></div>
   </div>`;
 }
+renderUnlockRow("unlock-row-voice-timer");
 
 function handleVoiceTimerResult(correct, heard, isSkip=false) {
   if (timerFinished) return;
@@ -1010,10 +1019,12 @@ function renderVoiceDrill() {
         <button class="mic-btn" id="voice-mic-btn" onclick="toggleMic()">🎤</button>
         <div class="voice-status" id="voice-status">Tap the mic to start</div>
       </div>
+      <div id="unlock-row-voice"></div>
       <div id="voice-feedback-area"></div>
       <div class="stats-row">${miniStats(ws)}</div>
     </div>`;
 }
+renderUnlockRow("unlock-row-voice");
 
 // ── LEARN MODE ────────────────────────────────
 function startLearn() {
@@ -1146,6 +1157,7 @@ function renderTimerScreen() {
       <div class="english-word">${currentWord.en}</div>
       <div class="word-hint">${currentWord.hint}</div>
     </div>
+    <div id="unlock-row-timer"></div>
     <div id="timer-feedback" style="min-height:44px;font-size:18px;font-weight:700;text-align:center;padding:6px 0 2px;"></div>
     <input type="text" class="german-input" id="timer-input" placeholder="type the answer…"
       autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
@@ -1155,6 +1167,7 @@ function renderTimerScreen() {
       <button class="dontknow-btn" onclick="skipTimer()">Skip</button>
     </div>
   </div>`;
+  renderUnlockRow("unlock-row-timer");
   focusInput();
 }
 function handleTimerKey(e) { if (e.key === "Enter") checkTimer(); }
