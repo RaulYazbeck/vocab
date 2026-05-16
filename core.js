@@ -503,12 +503,20 @@ function renderStartBar() {
   let island = document.getElementById("floating-island");
   if (selectedIds.size === 0) {
     if (island) island.remove();
+    const spacer = document.getElementById("island-spacer");
+    if (spacer) spacer.remove();
     return;
   }
   if (!island) {
     island = document.createElement("div");
     island.id = "floating-island";
     document.body.appendChild(island);
+    let spacer = document.getElementById("island-spacer");
+    if (!spacer) {
+      spacer = document.createElement("div");
+      spacer.id = "island-spacer";
+      document.querySelector(".app").appendChild(spacer);
+    }
   }
   const totalWords = [...selectedIds].reduce((s, id) => {
     const d = getDeck(id); return s + (d ? getUnlocked(id) : 0);
@@ -534,6 +542,10 @@ function renderStartBar() {
       ).join("")}
     </div>` : ""}
     <button class="fi-start" onclick="startSession()">Start ▶</button>`;
+    requestAnimationFrame(() => {
+    const spacer = document.getElementById("island-spacer");
+    if (spacer) spacer.style.height = (island.offsetHeight + 32) + "px";
+  });
 }
 function setMode(m)       { activeMode = m; renderStartBar(); }
 function toggleVoice()    { voiceEnabled = !voiceEnabled; renderStartBar(); }
