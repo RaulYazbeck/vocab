@@ -553,6 +553,8 @@ function buildActiveWords() {
 function startSession() {
   buildActiveWords();
   if (!activeWords.length) return;
+  const island = document.getElementById("floating-island");
+  if (island) island.remove();
   sessionCorrect = 0; sessionConsecutive = 0;
   if (activeMode === "learn")       startLearn();
   else if (activeMode === "timer")  { if (voiceEnabled) startVoiceTimer(); else startTimer(); }
@@ -571,6 +573,8 @@ function showScreen(name) {
 function backToMenu() {
   clearInterval(timerInterval);
   stopVoiceSession();
+  const island = document.getElementById("floating-island");
+  if (island) island.remove();
   document.getElementById("main-screen").style.display = "none";
   document.getElementById("groups-container").style.display = "block";
   document.getElementById("exp-bar").style.display = "block";
@@ -1157,7 +1161,6 @@ function renderTimerScreen() {
       <div class="english-word">${currentWord.en}</div>
       <div class="word-hint">${currentWord.hint}</div>
     </div>
-    <div id="unlock-row-timer"></div>
     <div id="timer-feedback" style="min-height:44px;font-size:18px;font-weight:700;text-align:center;padding:6px 0 2px;"></div>
     <input type="text" class="german-input" id="timer-input" placeholder="type the answer…"
       autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
@@ -1167,7 +1170,6 @@ function renderTimerScreen() {
       <button class="dontknow-btn" onclick="skipTimer()">Skip</button>
     </div>
   </div>`;
-  renderUnlockRow("unlock-row-timer");
   focusInput();
 }
 function handleTimerKey(e) { if (e.key === "Enter") checkTimer(); }
