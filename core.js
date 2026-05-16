@@ -193,7 +193,7 @@ function speak(text) {
 
 // ── ANSWER CHECK ──────────────────────────────
 function stripAccents(s) { return s.normalize("NFD").replace(/[̀-ͯ]/g,""); }
-function normalizeChars(s) { return s.replace(/['\-]/g, " ").replace(/\s+/g, " "); }
+function normalizeChars(s) { return s.replace(/ß/g, "ss").replace(/['\-]/g, " ").replace(/\s+/g, " "); }
 function normalize(s) { return normalizeChars(stripAccents(s.trim().toLowerCase())); }
 function isCorrect(input, answer) {
   if (!input.trim()) return false;
