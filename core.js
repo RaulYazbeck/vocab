@@ -97,6 +97,10 @@ function migrate() {
   if (!S.loginDates)    S.loginDates = [];
   if (!S.totalCorrect)  S.totalCorrect = 0;
   if (!S.lastLoginDate) S.lastLoginDate = "";
+  Object.keys(S.words).forEach(key => {
+    const ws = S.words[key];
+    if (!ws.mastered && ws.streak >= 5) ws.mastered = true;
+  });
 }
 
 // ── FIREBASE AUTH & SYNC ──────────────────────
@@ -350,7 +354,7 @@ function getWeight(w, focusMode=false) {
 }
 function pickNext(focusMode=false) {
   let pool = focusMode
-    ? activeWords.filter(w => getWS(w.deckId, w.idx).streak < 5)
+    ? activeWords.filter(w => !isMastered(getWS(w.deckId, w.idx)))
     : activeWords;
   if (!pool.length) pool = activeWords;
   if (!pool.length) return null;
@@ -948,7 +952,7 @@ function handleVoiceResult(correct, heard, isSkip=false) {
     sessionCorrect++; sessionConsecutive++;
     S.totalCorrect++;
     addExp(isNew ? 20 : 5);
-    if (ws.streak === 5) addExp(50);
+    if (!ws.mastered && isMastered(ws)) { ws.mastered = true; addExp(50); }
     checkAllBadges();
   } else {
     ws.wrong++; ws.streak = 0; sessionConsecutive = 0;
@@ -1030,8 +1034,8 @@ function renderVoiceDrill() {
   if (!currentWord) return;
   const ws = getWS(currentWord.deckId, currentWord.idx);
   const badges = [
-    ws.streak >= 5 ? `<span class="mastered-badge">✓ mastered</span>` : "",
-    ws.streak > 0 && ws.streak < 5 ? `<span class="streak-badge">🔥 ${ws.streak}</span>` : ""
+    isMastered(ws) ? `<span class="mastered-badge">✓ mastered</span>` : "",
+    ws.streak > 0 && !isMastered(ws) ? `<span class="streak-badge">🔥 ${ws.streak}</span>` : ""
   ].join(" ");
   const deckNames = [...selectedIds].map(id => getDeck(id)?.name).filter(Boolean).join(" + ");
   el.innerHTML = `
