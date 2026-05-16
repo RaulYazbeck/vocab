@@ -324,14 +324,27 @@ function getWS(deckId, idx) {
   if (!S.words[key]) S.words[key] = { correct:0, wrong:0, streak:0 };
   return S.words[key];
 }
+function wilsonLower(correct, total) {
+  if (total === 0) return 0;
+  const z = 1.281; // 80% confidence
+  const p = correct / total;
+  return (p + z*z/(2*total) - z*Math.sqrt((p*(1-p)+z*z/(4*total))/total)) / (1 + z*z/total);
+}
+function isMastered(ws) {
+  if (ws.mastered) return true;
+  const total = ws.correct + ws.wrong;
+  if (ws.streak >= 6) return true;
+  if (total >= 5 && wilsonLower(ws.correct, total) >= 0.72) return true;
+  return false;
+}
 function getWeight(w, focusMode=false) {
   const ws = getWS(w.deckId, w.idx);
   if (focusMode) {
-    if (ws.streak >= 5) return 0;
+    if (isMastered(ws)) return 0;
     if (ws.wrong > ws.correct && ws.wrong > 0) return 10 + ws.wrong * 3;
     return 5;
   }
-  if (ws.streak >= 5) return Math.max(1, 8 - ws.streak);
+  if (isMastered(ws)) return 1;
   if (ws.wrong > ws.correct && ws.wrong > 0) return 10 + ws.wrong * 2;
   return 5;
 }
@@ -359,8 +372,8 @@ function getDeck(deckId) {
   return null;
 }
 function deckProgress(deck) {
-  const words   = unlockedWords(deck);
-  const mastered = words.filter((_,i) => getWS(deck.id, i).streak >= 5).length;
+  const words    = unlockedWords(deck);
+  const mastered = words.filter((_,i) => isMastered(getWS(deck.id, i))).length;
   return { mastered, total:words.length, all:deck.words.length };
 }
 function resetDeck(deckId) {
@@ -417,7 +430,7 @@ function checkBadge(id) {
   if (id === "polyglot")      earned = ALL_GROUPS.some(g => g.decks.some(d => getUnlocked(d.id) >= d.words.length));
   if (id === "graduate")      earned = ALL_GROUPS.some(g => g.decks.some(d => {
     const u = getUnlocked(d.id);
-    return u > 0 && d.words.slice(0,u).every((_,i) => getWS(d.id,i).streak >= 5);
+    return u > 0 && d.words.slice(0,u).every((_,i) => isMastered(getWS(d.id,i)));
   }));
   if (earned) { S.badges.push(id); addExp(100); saveState(); }
 }
@@ -427,7 +440,7 @@ function checkAllBadges() {
 function countMastered() {
   let n = 0;
   ALL_GROUPS.forEach(g => g.decks.forEach(d => d.words.forEach((_,i) => {
-    if (getWS(d.id, i).streak >= 5) n++;
+    if (isMastered(getWS(d.id, i))) n++;
   })));
   return n;
 }
@@ -610,15 +623,15 @@ function miniStats(ws) {
   return `<div class="mini-stat"><div class="mini-label">correct</div><div class="mini-val">${ws.correct}</div></div>
     <div class="mini-stat"><div class="mini-label">wrong</div><div class="mini-val">${ws.wrong}</div></div>
     <div class="mini-stat"><div class="mini-label">streak</div><div class="mini-val">${ws.streak}</div></div>
-    <div class="mini-stat"><div class="mini-label">mastered</div><div class="mini-val">${ws.streak>=5?"✓":"—"}</div></div>`;
+    <div class="mini-stat"><div class="mini-label">mastered</div><div class="mini-val">${isMastered(ws)?"✓":"—"}</div></div>`;
 }
 function renderDrill() {
   const el = document.getElementById("main-screen");
   if (!currentWord) return;
   const ws = getWS(currentWord.deckId, currentWord.idx);
   const badges = [
-    ws.streak >= 5 ? `<span class="mastered-badge">✓ mastered</span>` : "",
-    ws.streak > 0 && ws.streak < 5 ? `<span class="streak-badge">🔥 ${ws.streak}</span>` : ""
+    isMastered(ws) ? `<span class="mastered-badge">✓ mastered</span>` : "",
+    ws.streak > 0 && !isMastered(ws) ? `<span class="streak-badge">🔥 ${ws.streak}</span>` : ""
   ].join(" ");
   const deckNames   = [...selectedIds].map(id => getDeck(id)?.name).filter(Boolean).join(" + ");
   const focusNotice = activeMode === "focus"
@@ -689,7 +702,7 @@ function checkDrill() {
     sessionCorrect++; sessionConsecutive++;
     S.totalCorrect++;
     addExp(isNew ? 20 : 5);
-    if (ws.streak === 5) addExp(50);
+    if (!ws.mastered && isMastered(ws)) { ws.mastered = true; addExp(50); }
     input.classList.add("correct");
     playSuccess();
     checkAllBadges();
@@ -1298,7 +1311,7 @@ function renderStatsScreen() {
         <table><thead><tr><th>English</th><th>Target</th><th>Plural</th><th>✓</th><th>✗</th><th>Streak</th></tr></thead><tbody>`;
       unlockedWords(deck).forEach((w,i) => {
         const ws = getWS(deck.id, i);
-        const st = ws.streak >= 5
+        const st = isMastered(ws)
           ? `<span class="mastered-badge">mastered</span>`
           : ws.streak > 0
             ? `<span class="streak-badge">${ws.streak}</span>`
