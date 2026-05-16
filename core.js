@@ -1080,12 +1080,14 @@ function renderLearnCard() {
       </div>` : ""}
     </div>
     <button class="audio-btn" style="display:block;margin:0 auto 1rem;" onclick="speak('${w[WORD_KEY].replace(/'/g,"\\'")}')">🔊 Listen</button>
+    <div id="unlock-row-learn"></div>
     <div class="learn-actions">
       <button class="learn-btn not-yet" onclick="learnNotYet()">Not yet</button>
       <button class="learn-btn got-it"  onclick="learnGotIt()">Got it ✓</button>
     </div>
   </div>`;
 }
+renderUnlockRow("unlock-row-learn");
 function learnGotIt()  { learnIndex++; addExp(5); saveState(); renderLearnCard(); }
 function learnNotYet() {
   const w = learnQueue[learnIndex];
