@@ -101,6 +101,7 @@ function migrate() {
     const ws = S.words[key];
     if (!ws.mastered && ws.streak >= 5) ws.mastered = true;
   });
+  S.loginDates = [...new Set(S.loginDates)].sort();
 }
 
 // ── FIREBASE AUTH & SYNC ──────────────────────
@@ -213,17 +214,15 @@ function currentLevel() {
   return lv;
 }
 function getDailyStreak() {
+  const today = new Date().toISOString().slice(0,10);
   const dates = [...new Set(S.loginDates)].sort();
   if (!dates.length) return 0;
+  const last = dates[dates.length - 1];
+  const diffFromToday = (new Date(today) - new Date(last)) / (1000*60*60*24);
+  if (diffFromToday > 1) return 0;
   let streak = 1;
-  const today = new Date().toISOString().slice(0,10);
-  const last  = dates[dates.length - 1];
-  if (last !== today) {
-    const diff = (new Date(today) - new Date(last)) / (1000*60*60*24);
-    if (diff > 1) return 0;
-  }
   for (let i = dates.length - 1; i > 0; i--) {
-    const diff = (new Date(dates[i]) - new Date(dates[i-1])) / (1000*60*60*24);
+    const diff = Math.round((new Date(dates[i]) - new Date(dates[i-1])) / (1000*60*60*24));
     if (diff === 1) streak++;
     else break;
   }
@@ -404,7 +403,7 @@ function resetAll() {
 function recordLogin() {
   const today = new Date().toISOString().slice(0,10);
   if (S.lastLoginDate === today) return;
-  S.loginDates.push(today);
+  if (!S.loginDates.includes(today)) S.loginDates.push(today);
   S.lastLoginDate = today;
   const dates = S.loginDates.slice().sort();
   let streak = 1, maxStreak = 1;
