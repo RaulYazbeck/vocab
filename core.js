@@ -338,7 +338,7 @@ function isMastered(ws) {
   if (ws.mastered) return true;
   const total = ws.correct + ws.wrong;
   if (ws.streak >= 6) return true;
-  if (total >= 5 && wilsonLower(ws.correct, total) >= 0.72) return true;
+  if (total >= 6 && wilsonLower(ws.correct, total) >= 0.724) return true;
   return false;
 }
 function getWeight(w, focusMode=false) {
