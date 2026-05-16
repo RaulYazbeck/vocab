@@ -199,7 +199,11 @@ function normalize(s) { return normalizeChars(stripAccents(s.trim().toLowerCase(
 function isCorrect(input, answer) {
   if (!input.trim()) return false;
   const ni = normalize(input);
-  return answer.split("/").map(p => normalize(p.trim())).some(p => p.length > 0 && ni.includes(p));
+  return answer.split("/").map(p => normalize(p.trim())).some(p => {
+    if (!p.length) return false;
+    const escaped = p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp("(?<![a-zäöüß])" + escaped + "(?![a-zäöüß])", "i").test(ni);
+  });
 }
 
 // ── EXP & LEVELS ──────────────────────────────
