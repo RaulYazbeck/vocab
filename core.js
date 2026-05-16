@@ -99,7 +99,7 @@ function migrate() {
   if (!S.lastLoginDate) S.lastLoginDate = "";
   Object.keys(S.words).forEach(key => {
     const ws = S.words[key];
-    if (!ws.mastered && ws.streak >= 5) ws.mastered = true;
+    if (!ws.mastered && ws.streak >= 6) ws.mastered = true;
   });
   S.loginDates = [...new Set(S.loginDates)].sort();
 }
