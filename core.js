@@ -477,7 +477,7 @@ function buildAnkiQueue() {
   selectedIds.forEach(id => {
     const deck = getDeck(id);
     if (!deck) return;
-    unlockedWords(deck).forEach((w, i) => {
+    deck.words.forEach((w, i) => {
       const ws = getWS(id, i);
       if (!ws.anki) return;
       const a = ws.anki;
@@ -512,7 +512,7 @@ function ankiDueCount() {
   selectedIds.forEach(id => {
     const deck = getDeck(id);
     if (!deck) return;
-    unlockedWords(deck).forEach((w, i) => {
+    deck.words.forEach((w, i) => {
       const ws = getWS(id, i);
       if (!ws.anki) return;
       const a = ws.anki;
@@ -560,6 +560,12 @@ function ankiRate(rating) {
 
   // Apply SM-2
   ws.anki = sm2(ws.anki, rating);
+
+  // Unlock this word for Classic/Focus/Timer if not already unlocked
+  const currentUnlocked = S.unlocked[word.deckId] || 0;
+  if (word.idx >= currentUnlocked) {
+    S.unlocked[word.deckId] = word.idx + 1;
+  }
 
   // Track session stats
   const labels = ["again", "hard", "good", "easy"];
@@ -1833,6 +1839,9 @@ function renderAnkiStatsScreen() {
         <div class="screen-label">🃏 Anki Stats</div>
         <button class="back-btn" onclick="renderStatsChoice()">← Back</button>
       </div>
+      <div style="text-align:right;margin-bottom:1rem;">
+        <button onclick="resetAnkiProgress()" style="font-size:12px;padding:5px 12px;border:1px solid #7C5CBF;border-radius:6px;background:white;color:#7C5CBF;cursor:pointer;">Reset Anki progress</button>
+      </div>
       <div class="anki-stats-summary">
         <div class="anki-stats-pill new">📦 ${totalNew} new</div>
         <div class="anki-stats-pill learning">🔄 ${totalLearning} learning</div>
@@ -1853,6 +1862,21 @@ function renderAnkiStatsScreen() {
         <tbody>${wordRows}</tbody>
       </table>` : `<div style="text-align:center;color:#aaa;margin-top:2rem;font-size:13px;">No Anki reviews yet — start a session first.</div>`}
     </div>`;
+}
+function resetAnkiProgress() {
+  if (!confirm("Reset all Anki progress? SM-2 intervals and phases will be cleared. Classic progress is untouched.")) return;
+  Object.keys(S.words).forEach(key => {
+    S.words[key].anki = {
+      phase: "new",
+      interval: 0,
+      easeFactor: 2.5,
+      dueDate: null,
+      learningStep: 0,
+      lapses: 0,
+    };
+  });
+  saveState();
+  renderAnkiStatsScreen();
 }
 // ── BADGES SCREEN ─────────────────────────────
 function renderBadgesScreen() {
