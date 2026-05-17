@@ -939,7 +939,13 @@ function renderStartBar() {
     }
   }
   const totalWords = [...selectedIds].reduce((s, id) => {
-    const d = getDeck(id); return s + (d ? getUnlocked(id) : 0);
+    const d = getDeck(id);
+    if (!d) return s;
+    if (activeMode === "focus") {
+      const unmastered = unlockedWords(d).filter((w, i) => !isMastered(getWS(id, i))).length;
+      return s + (unmastered > 0 ? unmastered : getUnlocked(id));
+    }
+    return s + getUnlocked(id);
   }, 0);
   const names = [...selectedIds].map(id => getDeck(id)?.name).filter(Boolean).join(", ");
   const modeLabels = { learn:"👁 Learn", classic:"📖 Classic", focus:"🎯 Focus", timer:"⏱ Timer", anki:"🃏 Anki" };
