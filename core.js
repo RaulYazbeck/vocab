@@ -143,16 +143,17 @@ let bgSyncInterval = null;
 // Enable Firestore offline persistence (queues writes when offline,
 // flushes automatically on reconnect). Must be called before any
 // Firestore operation. Fails silently if already enabled (multi-tab).
-db.enablePersistence({ synchronizeTabs: true })
-  .catch(err => {
-    if (err.code === "failed-precondition") {
-      // Multiple tabs open — persistence available in one tab only.
-      console.warn("Firestore persistence unavailable: multiple tabs open.");
-    } else if (err.code === "unimplemented") {
-      // Browser does not support persistence (e.g. Firefox private mode).
-      console.warn("Firestore persistence not supported in this browser.");
-    }
-  });
+const isIOSPWA = navigator.standalone === true;
+if (!isIOSPWA) {
+  db.enablePersistence({ synchronizeTabs: true })
+    .catch(err => {
+      if (err.code === "failed-precondition") {
+        console.warn("Firestore persistence unavailable: multiple tabs open.");
+      } else if (err.code === "unimplemented") {
+        console.warn("Firestore persistence not supported in this browser.");
+      }
+    });
+}
 
 // ── AUTH ──────────────────────────────────────
 
