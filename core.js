@@ -366,6 +366,7 @@ function sm2(anki, rating) {
   let { interval, easeFactor, phase, learningStep, lapses } = anki;
 
   if (phase === "new" || phase === "learning") {
+    phase = "learning"; // mark as seen immediately
     if (rating === 0) {
       // Again: full reset, re-insert in session
       learningStep = 0;
