@@ -100,6 +100,21 @@ function migrate() {
   Object.keys(S.words).forEach(key => {
     const ws = S.words[key];
     if (!ws.mastered && ws.streak >= 6) ws.mastered = true;
+    const total = ws.correct + ws.wrong;
+    if (ws.mastered && ws.streak < 6 && !(total >= 6 && wilsonLower(ws.correct, total) >= 0.724)) {
+      delete ws.mastered;
+    }
+    // Anki initialization
+    if (!ws.anki) {
+      ws.anki = {
+        phase: "new",
+        interval: 0,
+        easeFactor: 2.5,
+        dueDate: null,
+        learningStep: 0,
+        lapses: 0,
+      };
+    }
   });
   S.loginDates = [...new Set(S.loginDates)].sort();
 }
@@ -330,6 +345,81 @@ function getWS(deckId, idx) {
   const key = deckId + "_" + idx;
   if (!S.words[key]) S.words[key] = { correct:0, wrong:0, streak:0 };
   return S.words[key];
+}
+// ── ANKI HELPERS ─────────────────────────────
+function todayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+function daysBetween(a, b) {
+  return Math.round((new Date(b) - new Date(a)) / (1000 * 60 * 60 * 24));
+}
+function addDays(date, n) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+// ── SM-2 ALGORITHM ────────────────────────────
+// rating: 0=Again, 1=Hard, 2=Good, 3=Easy
+function sm2(anki, rating) {
+  const today = todayISO();
+  let { interval, easeFactor, phase, learningStep, lapses } = anki;
+
+  if (phase === "new" || phase === "learning") {
+    if (rating === 0) {
+      // Again: full reset, re-insert in session
+      learningStep = 0;
+      interval = 1;
+    } else if (rating === 1) {
+      // Hard: stay on current step, ease penalty
+      easeFactor = Math.max(1.3, easeFactor - 0.15);
+      interval = 1;
+    } else if (rating === 2) {
+      // Good: advance step, graduate at step 2
+      learningStep++;
+      if (learningStep >= 2) {
+        phase = "review";
+        interval = 1;
+        learningStep = 0;
+      }
+    } else {
+      // Easy: graduate immediately with bonus interval
+      phase = "review";
+      interval = 4;
+      easeFactor = Math.min(2.5, easeFactor + 0.15);
+      learningStep = 0;
+    }
+  } else {
+    // Review phase
+    const daysSinceDue = anki.dueDate ? daysBetween(anki.dueDate, today) : 0;
+    // Overdue correction: cap effective interval to avoid inflation
+    const effectiveInterval = daysSinceDue > 1
+      ? Math.min(anki.interval, daysSinceDue)
+      : anki.interval;
+
+    if (rating === 0) {
+      // Again: lapse — back to learning, ease penalty
+      lapses++;
+      phase = "learning";
+      learningStep = 0;
+      interval = 1;
+      easeFactor = Math.max(1.3, easeFactor - 0.2);
+    } else if (rating === 1) {
+      // Hard: slow growth, ease penalty
+      interval = Math.max(1, Math.round(effectiveInterval * 1.2));
+      easeFactor = Math.max(1.3, easeFactor - 0.15);
+    } else if (rating === 2) {
+      // Good: standard SM-2
+      interval = Math.max(1, Math.round(effectiveInterval * easeFactor));
+    } else {
+      // Easy: accelerated growth + ease boost
+      interval = Math.max(1, Math.round(effectiveInterval * easeFactor * 1.3));
+      easeFactor = Math.min(2.5, easeFactor + 0.15);
+    }
+  }
+
+  const dueDate = addDays(today, interval);
+  return { interval, easeFactor, phase, learningStep, lapses, dueDate };
 }
 function wilsonLower(correct, total) {
   if (total === 0) return 0;
