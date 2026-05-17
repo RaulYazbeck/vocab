@@ -191,33 +191,39 @@ function handleAuth() {
 function loadFromCloud() {
   if (!currentUser) return;
   setStatus("☁️ Syncing…");
+  const ref = db.collection("users").doc(currentUser.uid).collection("apps");
 
-  db.collection("users").doc(currentUser.uid)
-    .collection("apps").doc(STORAGE_KEY)
-    .get()
-    .then(doc => {
-      if (doc.exists) {
-        const cloud = doc.data();
-        const cloudTime = cloud.savedAt  || 0;
-        const localTime = S.savedAt      || 0;
+  ref.get().then(snapshot => {
+    let meta = null;
+    const allWords = {};
 
-        if (cloudTime >= localTime) {
-          // Cloud is newer (or equal) — take it unconditionally.
-          S = { ...cloud };
-          migrate();
-          saveLocalOnly();   // update localStorage cache
-          renderExpBar();
-          renderGroups();
-        }
-        // else: local is newer — keep local, do nothing.
-        // (This happens when offline writes haven't flushed yet.)
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      if (doc.id === STORAGE_KEY) {
+        meta = data;
+      } else if (doc.id.startsWith(STORAGE_KEY + "_words_")) {
+        Object.assign(allWords, data.words || {});
       }
-      setStatus("☁️ Synced", 3000);
-    })
-    .catch(e => {
-      console.error("Cloud load failed:", e);
-      setStatus("☁️ Sync failed");
     });
+
+    if (!meta) { setStatus("☁️ Synced", 3000); return; }
+
+    const cloudTime = meta.savedAt || 0;
+    const localTime = S.savedAt || 0;
+
+    if (cloudTime >= localTime) {
+      S = { ...meta, words: allWords };
+      migrate();
+      saveLocalOnly();
+      renderExpBar();
+      renderGroups();
+    }
+
+    setStatus("☁️ Synced", 3000);
+  }).catch(e => {
+    console.error("Cloud load failed:", e);
+    setStatus("☁️ Sync failed");
+  });
 }
 
 // ── SAVE TO CLOUD ─────────────────────────────
@@ -239,15 +245,28 @@ function saveToCloud() {
 // Write to Firestore immediately — used by beforeunload and background sync.
 function commitToFirestore() {
   if (!currentUser) return;
+  const ref = db.collection("users").doc(currentUser.uid).collection("apps");
+  
+  // Split words by deck
+  const wordsByDeck = {};
+  Object.keys(S.words).forEach(key => {
+    const deckId = key.substring(0, key.lastIndexOf("_"));
+    if (!wordsByDeck[deckId]) wordsByDeck[deckId] = {};
+    wordsByDeck[deckId][key] = S.words[key];
+  });
 
-  db.collection("users").doc(currentUser.uid)
-    .collection("apps").doc(STORAGE_KEY)
-    .set(S)
+  // Save metadata (no words)
+  const { words, ...meta } = S;
+  const saves = [ref.doc(STORAGE_KEY).set(meta)];
+
+  // Save one doc per deck
+  Object.entries(wordsByDeck).forEach(([deckId, deckWords]) => {
+    saves.push(ref.doc(STORAGE_KEY + "_words_" + deckId).set({ words: deckWords }));
+  });
+
+  Promise.all(saves)
     .then(() => setStatus("☁️ Saved", 2000))
-    .catch(e => {
-      console.error("Cloud save failed:", e);
-      // Firestore persistence will retry automatically when back online.
-    });
+    .catch(e => console.error("Cloud save failed:", e));
 }
 
 // Write to localStorage only — no Firestore, no debounce.
