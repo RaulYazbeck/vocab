@@ -919,17 +919,21 @@ function renderStartBar() {
     const d = getDeck(id); return s + (d ? getUnlocked(id) : 0);
   }, 0);
   const names = [...selectedIds].map(id => getDeck(id)?.name).filter(Boolean).join(", ");
-  const modeLabels = { learn:"👁 Learn", classic:"📖 Classic", focus:"🎯 Focus", timer:"⏱ Timer" };
+  const modeLabels = { learn:"👁 Learn", classic:"📖 Classic", focus:"🎯 Focus", timer:"⏱ Timer", anki:"🃏 Anki" };
+  const { due, newCount } = ankiDueCount();
+  const ankiSubtitle = activeMode === "anki"
+    ? `<div style="font-size:11px;color:#7C5CBF;font-weight:500;margin-bottom:8px;">${due} due today · ${Math.min(newCount,20)} new available</div>`
+    : "";
   island.innerHTML = `
     <div class="fi-summary">
       <span class="fi-count"><strong>${selectedIds.size}</strong> deck${selectedIds.size !== 1 ? "s" : ""} · <strong>${totalWords}</strong> words</span>
       <span class="fi-names">${names}</span>
     </div>
     <div class="fi-modes">
-      ${["learn","classic","focus","timer"].map(m =>
+      ${["learn","classic","focus","timer","anki"].map(m =>
         `<button class="fi-pill ${activeMode === m ? "active" : ""}" onclick="setMode('${m}')">${modeLabels[m]}</button>`
       ).join("")}
-      ${activeMode !== "learn" ? `<button class="fi-pill ${voiceEnabled ? "active" : ""}" onclick="toggleVoice()">🎙️ Voice</button>` : ""}
+      ${activeMode !== "learn" && activeMode !== "anki" ? `<button class="fi-pill ${voiceEnabled ? "active" : ""}" onclick="toggleVoice()">🎙️ Voice</button>` : ""}
     </div>
     ${activeMode === "timer" ? `
     <div class="fi-modes" style="margin-top:6px;">
@@ -938,6 +942,7 @@ function renderStartBar() {
         `<button class="fi-pill ${timerWordCount === n ? "active" : ""}" onclick="setTimerCount(${n})">${n}</button>`
       ).join("")}
     </div>` : ""}
+    ${ankiSubtitle}
     <button class="fi-start" onclick="startSession()">Start ▶</button>`;
     requestAnimationFrame(() => {
     const spacer = document.getElementById("island-spacer");
