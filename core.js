@@ -422,6 +422,60 @@ function sm2(anki, rating) {
   const dueDate = addDays(today, interval);
   return { interval, easeFactor, phase, learningStep, lapses, dueDate };
 }
+// ── ANKI STATE ────────────────────────────────
+let ankiQueue = [];
+let ankiIndex = 0;
+let ankiShowingAnswer = false;
+let ankiSessionStats = { again:0, hard:0, good:0, easy:0 };
+
+// ── ANKI QUEUE BUILDER ────────────────────────
+function buildAnkiQueue() {
+  const today = todayISO();
+  let newCards = [], learningCards = [], reviewCards = [];
+
+  selectedIds.forEach(id => {
+    const deck = getDeck(id);
+    if (!deck) return;
+    unlockedWords(deck).forEach((w, i) => {
+      const ws = getWS(id, i);
+      if (!ws.anki) return;
+      const a = ws.anki;
+      const word = { ...w, deckId: id, deckName: deck.name, idx: i };
+      if (a.phase === "new" && !a.dueDate) {
+        newCards.push(word);
+      } else if (a.phase === "learning" && a.dueDate <= today) {
+        learningCards.push(word);
+      } else if (a.phase === "review" && a.dueDate <= today) {
+        reviewCards.push(word);
+      }
+    });
+  });
+
+  const shuffle = arr => arr.sort(() => Math.random() - 0.5);
+  shuffle(learningCards);
+  shuffle(reviewCards);
+  shuffle(newCards);
+  newCards = newCards.slice(0, 20);
+
+  return [...learningCards, ...reviewCards, ...newCards];
+}
+
+function ankiDueCount() {
+  const today = todayISO();
+  let due = 0, newCount = 0;
+  selectedIds.forEach(id => {
+    const deck = getDeck(id);
+    if (!deck) return;
+    unlockedWords(deck).forEach((w, i) => {
+      const ws = getWS(id, i);
+      if (!ws.anki) return;
+      const a = ws.anki;
+      if (a.phase === "new" && !a.dueDate) newCount++;
+      else if (a.dueDate <= today) due++;
+    });
+  });
+  return { due, newCount };
+}
 function wilsonLower(correct, total) {
   if (total === 0) return 0;
   const z = 1.281; // 80% confidence
