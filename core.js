@@ -563,9 +563,10 @@ function ankiRate(rating) {
   ws.anki = sm2(ws.anki, rating);
 
   // Unlock this word for Classic/Focus/Timer if not already unlocked
+  // Only extend the boundary sequentially — never jump ahead
   const currentUnlocked = S.unlocked[word.deckId] || 0;
-  if (word.idx >= currentUnlocked) {
-    S.unlocked[word.deckId] = word.idx + 1;
+  if (word.idx === currentUnlocked) {
+    S.unlocked[word.deckId] = currentUnlocked + 1;
   }
 
   // Track session stats
