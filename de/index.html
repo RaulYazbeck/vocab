@@ -279,46 +279,51 @@ tr:last-child td{border-bottom:none;}
 .anki-chart-label{font-size:10px;color:#aaa;}
   
 /* MOBILE STATS TABLE */
+.stats-table-wrap { padding:0 4px; }
 @media(max-width:600px){
-  /* Replace table with card-style rows on mobile */
-  .stats-table-wrap { padding: 0 8px; }
+  .stats-table-wrap table thead { display:none; }
   .stats-table-wrap table tbody tr {
-    display:flex;
-    flex-wrap:wrap;
-    padding:8px 0;
+    display:grid;
+    grid-template-columns:1fr auto;
+    grid-template-rows:auto auto;
+    padding:8px 4px;
     border-bottom:1px solid #f0f0f0;
-    gap:4px;
+    column-gap:8px;
+    row-gap:2px;
   }
   .stats-table-wrap table tbody tr:last-child { border-bottom:none; }
-  .stats-table-wrap table td {
-    display:inline;
-    padding:0;
-    border:none;
-    font-size:12px;
-  }
-  /* English word — full row */
+  /* Hide plural column — rarely useful on mobile */
+  .stats-table-wrap table td:nth-child(3) { display:none; }
+  /* English — top left, full width */
   .stats-table-wrap table td:nth-child(1) {
-    width:100%;
-    font-weight:600;
-    font-size:13px;
-    color:#1a1a1a;
+    grid-column:1;grid-row:1;
+    font-weight:600;font-size:13px;color:#1a1a1a;
+    padding:0;border:none;
   }
-  /* Target word */
+  /* Target word — bottom left */
   .stats-table-wrap table td:nth-child(2) {
-    color:#555;
-    font-style:italic;
+    grid-column:1;grid-row:2;
+    font-size:12px;color:#555;font-style:italic;
+    padding:0;border:none;
   }
-  .stats-table-wrap table td:nth-child(2)::after { content:" ·"; color:#ccc; }
-  /* Plural — hide if — */
-  .stats-table-wrap table td:nth-child(3) { color:#aaa; }
-  .stats-table-wrap table td:nth-child(3)::after { content:" ·"; color:#ccc; }
-  /* ✓ correct */
-  .stats-table-wrap table td:nth-child(4)::before { content:"✓ "; color:#1D9E75; font-size:11px; }
-  /* ✗ wrong */
-  .stats-table-wrap table td:nth-child(5)::before { content:"✗ "; color:#E24B4A; font-size:11px; }
-  .stats-table-wrap table td:nth-child(5)::after { content:" ·"; color:#ccc; }
-  /* Streak badge */
-  .stats-table-wrap table td:nth-child(6) { }
+  /* ✓ correct — top right */
+  .stats-table-wrap table td:nth-child(4) {
+    grid-column:2;grid-row:1;
+    font-size:12px;color:#1D9E75;font-weight:600;
+    padding:0;border:none;text-align:right;
+    white-space:nowrap;
+  }
+  .stats-table-wrap table td:nth-child(4)::before { content:"✓ "; }
+  /* ✗ wrong + streak — bottom right, same cell row */
+  .stats-table-wrap table td:nth-child(5) {
+    grid-column:2;grid-row:2;
+    font-size:12px;color:#E24B4A;font-weight:600;
+    padding:0;border:none;text-align:right;
+    white-space:nowrap;
+  }
+  .stats-table-wrap table td:nth-child(5)::before { content:"✗ "; }
+  /* Streak badge — hidden, info already in ✓/✗ */
+  .stats-table-wrap table td:nth-child(6) { display:none; }
 }
 </style>
 </head>
