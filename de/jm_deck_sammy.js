@@ -1,4 +1,8 @@
-const germanWithSammyDecks = [
+const germanWithSammyDecks = {
+  id: "sammy",
+  name: "With Sammy",
+  icon: "🧑‍🏫",
+  decks: [
   // ── MODULE 1 (──────────────────────────────────────────────────
   {
     id: "module_1", name: "Module 1", icon: "📘",
@@ -1066,4 +1070,5 @@ const germanWithSammyDecks = [
       { en:"dry", de:"trocken", hint:"adjective", examples:[{de:"Mein Mund ist trocken.",en:"My mouth is dry."}] },
     ]
   },
-];
+]
+};
