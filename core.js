@@ -982,7 +982,7 @@ function showScreen(name) {
   document.getElementById("groups-container").style.display = "none";
   document.getElementById("start-bar").style.display = "none";
   document.getElementById("exp-bar").style.display = "none";
-  if (name === "stats")   renderStatsScreen();
+  if (name === "stats")       renderStatsChoice();
   else if (name === "badges") renderBadgesScreen();
 }
 function backToMenu() {
@@ -1685,7 +1685,7 @@ function endTimer(won) {
 // ── STATS SCREEN ──────────────────────────────
 function renderStatsScreen() {
   let html = `<div class="screen">
-    <div class="screen-top"><div class="screen-label">Progress</div><button class="back-btn" onclick="backToMenu()">← Back</button></div>
+    <div class="screen-top"><div class="screen-label">Progress</div><button class="back-btn" onclick="renderStatsChoice()">← Back</button></div>
     <div style="text-align:right;margin-bottom:1rem;">
       <button onclick="resetAll()" style="font-size:12px;padding:5px 12px;border:1px solid #E24B4A;border-radius:6px;background:white;color:#E24B4A;cursor:pointer;">Reset all progress</button>
     </div>`;
@@ -1715,7 +1715,140 @@ function renderStatsScreen() {
   html += `</div>`;
   document.getElementById("main-screen").innerHTML = html;
 }
+// ── STATS CHOICE ──────────────────────────────
+function renderStatsChoice() {
+  document.getElementById("main-screen").innerHTML = `
+    <div class="screen">
+      <div class="screen-top">
+        <div class="screen-label">Statistics</div>
+        <button class="back-btn" onclick="backToMenu()">← Back</button>
+      </div>
+      <div class="stats-choice-row">
+        <button class="stats-choice-btn" onclick="renderStatsScreen()">
+          <div class="stats-choice-icon">📖</div>
+          <div class="stats-choice-label">Classic Stats</div>
+          <div class="stats-choice-sub">Mastery · streaks · correct/wrong</div>
+        </button>
+        <button class="stats-choice-btn" onclick="renderAnkiStatsScreen()">
+          <div class="stats-choice-icon">🃏</div>
+          <div class="stats-choice-label">Anki Stats</div>
+          <div class="stats-choice-sub">Intervals · due dates · phases</div>
+        </button>
+      </div>
+    </div>`;
+}
 
+// ── ANKI STATS SCREEN ─────────────────────────
+function renderAnkiStatsScreen() {
+  const today = todayISO();
+
+  // Build upcoming due chart data (next 7 days)
+  const dueBuckets = {};
+  for (let i = 1; i <= 7; i++) {
+    dueBuckets[addDays(today, i)] = 0;
+  }
+  let totalNew = 0, totalLearning = 0, totalReview = 0, totalOverdue = 0;
+
+  ALL_GROUPS.forEach(g => g.decks.forEach(d => {
+    unlockedWords(d).forEach((w, i) => {
+      const ws = getWS(d.id, i);
+      if (!ws.anki) return;
+      const a = ws.anki;
+      if (a.phase === "new" && !a.dueDate) { totalNew++; return; }
+      if (a.phase === "learning") totalLearning++;
+      else if (a.phase === "review") totalReview++;
+      if (a.dueDate && a.dueDate <= today) { totalOverdue++; return; }
+      if (a.dueDate && dueBuckets[a.dueDate] !== undefined) dueBuckets[a.dueDate]++;
+    });
+  }));
+
+  const maxBucket = Math.max(...Object.values(dueBuckets), 1);
+  const chartBars = Object.entries(dueBuckets).map(([date, count]) => {
+    const pct = Math.round((count / maxBucket) * 100);
+    const label = daysBetween(today, date) === 1 ? "tmr" : `+${daysBetween(today, date)}d`;
+    return `<div class="anki-chart-col">
+      <div class="anki-chart-bar-wrap">
+        <div class="anki-chart-bar" style="height:${pct}%"></div>
+      </div>
+      <div class="anki-chart-count">${count}</div>
+      <div class="anki-chart-label">${label}</div>
+    </div>`;
+  }).join("");
+
+  // Per-deck table
+  let deckRows = "";
+  ALL_GROUPS.forEach(g => g.decks.forEach(d => {
+    let dNew = 0, dLearning = 0, dReview = 0, dDue = 0;
+    unlockedWords(d).forEach((w, i) => {
+      const ws = getWS(d.id, i);
+      if (!ws.anki) return;
+      const a = ws.anki;
+      if (a.phase === "new" && !a.dueDate) dNew++;
+      else if (a.phase === "learning") dLearning++;
+      else if (a.phase === "review") dReview++;
+      if (a.dueDate && a.dueDate <= today) dDue++;
+    });
+    deckRows += `<tr>
+      <td>${d.icon} ${d.name}</td>
+      <td><span class="anki-badge new">${dNew}</span></td>
+      <td><span class="anki-badge learning">${dLearning}</span></td>
+      <td><span class="anki-badge review">${dReview}</span></td>
+      <td style="font-weight:600;color:${dDue>0?"#c62828":"#888"}">${dDue}</td>
+    </tr>`;
+  }));
+
+  // Per-word detail (all reviewed words only — skip pure new)
+  let wordRows = "";
+  ALL_GROUPS.forEach(g => g.decks.forEach(d => {
+    unlockedWords(d).forEach((w, i) => {
+      const ws = getWS(d.id, i);
+      if (!ws.anki || ws.anki.phase === "new") return;
+      const a = ws.anki;
+      const phaseBadge = a.phase === "review"
+        ? `<span class="anki-badge review">review</span>`
+        : `<span class="anki-badge learning">learning</span>`;
+      const dueLabel = !a.dueDate ? "—"
+        : a.dueDate <= today ? `<span style="color:#c62828;font-weight:600;">overdue</span>`
+        : daysBetween(today, a.dueDate) === 1 ? "tomorrow"
+        : `in ${daysBetween(today, a.dueDate)}d`;
+      wordRows += `<tr>
+        <td>${w.en}</td>
+        <td style="color:#555">${w[WORD_KEY]}</td>
+        <td>${phaseBadge}</td>
+        <td>${a.interval}d</td>
+        <td>${dueLabel}</td>
+        <td>${a.lapses}</td>
+      </tr>`;
+    });
+  }));
+
+  document.getElementById("main-screen").innerHTML = `
+    <div class="screen">
+      <div class="screen-top">
+        <div class="screen-label">🃏 Anki Stats</div>
+        <button class="back-btn" onclick="renderStatsChoice()">← Back</button>
+      </div>
+      <div class="anki-stats-summary">
+        <div class="anki-stats-pill new">📦 ${totalNew} new</div>
+        <div class="anki-stats-pill learning">🔄 ${totalLearning} learning</div>
+        <div class="anki-stats-pill review">✅ ${totalReview} review</div>
+        <div class="anki-stats-pill overdue">🔴 ${totalOverdue} due</div>
+      </div>
+      <div class="anki-chart-title">Due in the next 7 days</div>
+      <div class="anki-chart">${chartBars}</div>
+      <div class="stats-section-title" style="margin-top:1.5rem;">By deck</div>
+      <table>
+        <thead><tr><th>Deck</th><th>New</th><th>Learning</th><th>Review</th><th>Due</th></tr></thead>
+        <tbody>${deckRows}</tbody>
+      </table>
+      ${wordRows ? `
+      <div class="stats-section-title" style="margin-top:1.5rem;">Word detail</div>
+      <table>
+        <thead><tr><th>English</th><th>Target</th><th>Phase</th><th>Interval</th><th>Due</th><th>Lapses</th></tr></thead>
+        <tbody>${wordRows}</tbody>
+      </table>` : `<div style="text-align:center;color:#aaa;margin-top:2rem;font-size:13px;">No Anki reviews yet — start a session first.</div>`}
+    </div>`;
+}
 // ── BADGES SCREEN ─────────────────────────────
 function renderBadgesScreen() {
   document.getElementById("main-screen").innerHTML = `<div class="screen">
