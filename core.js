@@ -346,6 +346,47 @@ function getWS(deckId, idx) {
   if (!S.words[key]) S.words[key] = { correct:0, wrong:0, streak:0 };
   return S.words[key];
 }
+function wilsonLower(correct, total) {
+  if (total === 0) return 0;
+  const z = 1.281; // 80% confidence
+  const p = correct / total;
+  return (p + z*z/(2*total) - z*Math.sqrt((p*(1-p)+z*z/(4*total))/total)) / (1 + z*z/total);
+}
+function isMastered(ws) {
+  if (ws.mastered) return true;
+  const total = ws.correct + ws.wrong;
+  if (ws.streak >= 6) return true;
+  if (total >= 6 && wilsonLower(ws.correct, total) >= 0.724) return true;
+  return false;
+}
+function getWeight(w, focusMode=false) {
+  const ws = getWS(w.deckId, w.idx);
+  if (focusMode) {
+    if (isMastered(ws)) return 0;
+    if (ws.wrong > ws.correct && ws.wrong > 0) return 10 + ws.wrong * 3;
+    return 5;
+  }
+  if (isMastered(ws)) return 1;
+  if (ws.wrong > ws.correct && ws.wrong > 0) return 10 + ws.wrong * 2;
+  return 5;
+}
+function pickNext(focusMode=false) {
+  let pool = focusMode
+    ? activeWords.filter(w => !isMastered(getWS(w.deckId, w.idx)))
+    : activeWords;
+  if (!pool.length) pool = activeWords;
+  if (!pool.length) return null;
+  const filtered = pool.length > 1 && currentWord
+    ? pool.filter(w => !(w.deckId === currentWord.deckId && w.idx === currentWord.idx))
+    : pool;
+  const candidates = filtered.length ? filtered : pool;
+  const weights = candidates.map(w => Math.max(focusMode ? 0 : 1, getWeight(w, focusMode)));
+  const total   = weights.reduce((a,b) => a+b, 0);
+  if (total === 0) return candidates[Math.floor(Math.random() * candidates.length)];
+  let r = Math.random() * total;
+  for (let i = 0; i < candidates.length; i++) { r -= weights[i]; if (r <= 0) return candidates[i]; }
+  return candidates[candidates.length - 1];
+}
 // ── ANKI HELPERS ─────────────────────────────
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -476,46 +517,78 @@ function ankiDueCount() {
   });
   return { due, newCount };
 }
-function wilsonLower(correct, total) {
-  if (total === 0) return 0;
-  const z = 1.281; // 80% confidence
-  const p = correct / total;
-  return (p + z*z/(2*total) - z*Math.sqrt((p*(1-p)+z*z/(4*total))/total)) / (1 + z*z/total);
-}
-function isMastered(ws) {
-  if (ws.mastered) return true;
-  const total = ws.correct + ws.wrong;
-  if (ws.streak >= 6) return true;
-  if (total >= 6 && wilsonLower(ws.correct, total) >= 0.724) return true;
-  return false;
-}
-function getWeight(w, focusMode=false) {
-  const ws = getWS(w.deckId, w.idx);
-  if (focusMode) {
-    if (isMastered(ws)) return 0;
-    if (ws.wrong > ws.correct && ws.wrong > 0) return 10 + ws.wrong * 3;
-    return 5;
+// ── ANKI SESSION ──────────────────────────────
+function startAnki() {
+  ankiQueue = buildAnkiQueue();
+  if (ankiQueue.length === 0) {
+    // Nothing due — redirect to Learn mode
+    buildActiveWords();
+    if (!activeWords.length) { backToMenu(); return; }
+    activeMode = "learn";
+    startLearn();
+    return;
   }
-  if (isMastered(ws)) return 1;
-  if (ws.wrong > ws.correct && ws.wrong > 0) return 10 + ws.wrong * 2;
-  return 5;
+  ankiIndex = 0;
+  ankiShowingAnswer = false;
+  ankiSessionStats = { again:0, hard:0, good:0, easy:0 };
+  showGameScreen();
+  renderAnkiQuestion();
 }
-function pickNext(focusMode=false) {
-  let pool = focusMode
-    ? activeWords.filter(w => !isMastered(getWS(w.deckId, w.idx)))
-    : activeWords;
-  if (!pool.length) pool = activeWords;
-  if (!pool.length) return null;
-  const filtered = pool.length > 1 && currentWord
-    ? pool.filter(w => !(w.deckId === currentWord.deckId && w.idx === currentWord.idx))
-    : pool;
-  const candidates = filtered.length ? filtered : pool;
-  const weights = candidates.map(w => Math.max(focusMode ? 0 : 1, getWeight(w, focusMode)));
-  const total   = weights.reduce((a,b) => a+b, 0);
-  if (total === 0) return candidates[Math.floor(Math.random() * candidates.length)];
-  let r = Math.random() * total;
-  for (let i = 0; i < candidates.length; i++) { r -= weights[i]; if (r <= 0) return candidates[i]; }
-  return candidates[candidates.length - 1];
+
+function showGameScreen() {
+  document.getElementById("main-screen").style.display = "block";
+  document.getElementById("groups-container").style.display = "none";
+  document.getElementById("start-bar").style.display = "none";
+  document.getElementById("exp-bar").style.display = "none";
+}
+
+function ankiReveal() {
+  ankiShowingAnswer = true;
+  const word = ankiQueue[ankiIndex];
+  speak(word[WORD_KEY]);
+  renderAnkiAnswer();
+}
+
+function ankiRate(rating) {
+  const word = ankiQueue[ankiIndex];
+  const ws = getWS(word.deckId, word.idx);
+
+  // Apply SM-2
+  ws.anki = sm2(ws.anki, rating);
+
+  // Track session stats
+  const labels = ["again", "hard", "good", "easy"];
+  ankiSessionStats[labels[rating]]++;
+
+  // XP
+  const xpMap = [0, 3, 8, 12];
+  if (xpMap[rating] > 0) addExp(xpMap[rating]);
+
+  // Again in learning: re-insert 3 cards ahead so user sees it soon
+  if (rating === 0) {
+    const insertAt = Math.min(ankiIndex + 3, ankiQueue.length);
+    ankiQueue.splice(insertAt, 0, { ...word });
+  }
+
+  saveState();
+  ankiIndex++;
+
+  if (ankiIndex >= ankiQueue.length) {
+    renderAnkiSummary();
+  } else {
+    ankiShowingAnswer = false;
+    renderAnkiQuestion();
+  }
+}
+
+function ankiPreviewInterval(word, rating) {
+  const ws = getWS(word.deckId, word.idx);
+  const result = sm2({ ...ws.anki }, rating);
+  const n = result.interval;
+  if (n === 1) return "1d";
+  if (n < 30) return `${n}d`;
+  if (n < 365) return `${Math.round(n/30)}mo`;
+  return `${Math.round(n/365)}yr`;
 }
 
 // ── DECK HELPERS ──────────────────────────────
@@ -728,10 +801,11 @@ function buildActiveWords() {
 
 // ── START SESSION ─────────────────────────────
 function startSession() {
-  buildActiveWords();
-  if (!activeWords.length) return;
   const island = document.getElementById("floating-island");
   if (island) island.remove();
+  if (activeMode === "anki") { buildActiveWords(); startAnki(); return; }
+  buildActiveWords();
+  if (!activeWords.length) return;
   sessionCorrect = 0; sessionConsecutive = 0;
   if (activeMode === "learn")       startLearn();
   else if (activeMode === "timer")  { if (voiceEnabled) startVoiceTimer(); else startTimer(); }
