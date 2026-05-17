@@ -594,9 +594,19 @@ function ankiRate(rating) {
 
 function ankiPreviewInterval(word, rating) {
   const ws = getWS(word.deckId, word.idx);
-  const result = sm2({ ...ws.anki }, rating);
+  const current = ws.anki;
+  const result = sm2({ ...current }, rating);
+
+  // Again on learning card: comes back within this session
+  if (rating === 0 && (current.phase === "new" || current.phase === "learning")) {
+    return "soon";
+  }
+  // Still in learning after this rating: comes back tomorrow
+  if (result.phase === "learning") {
+    return "1d";
+  }
+  // Graduated to review
   const n = result.interval;
-  if (n === 1) return "1d";
   if (n < 30) return `${n}d`;
   if (n < 365) return `${Math.round(n/30)}mo`;
   return `${Math.round(n/365)}yr`;
