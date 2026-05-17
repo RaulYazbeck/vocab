@@ -496,7 +496,12 @@ function buildAnkiQueue() {
   shuffle(learningCards);
   shuffle(reviewCards);
   shuffle(newCards);
-  newCards = newCards.slice(0, 20);
+
+  // Cap total session size: due/learning cards always included, new cards fill remaining slots up to 20
+  const MAX_SESSION = 20;
+  const dueCount = learningCards.length + reviewCards.length;
+  const newSlots = Math.max(0, MAX_SESSION - dueCount);
+  newCards = newCards.slice(0, newSlots);
 
   return [...learningCards, ...reviewCards, ...newCards];
 }
