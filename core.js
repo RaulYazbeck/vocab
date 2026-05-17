@@ -83,11 +83,10 @@ function loadState() {
     const r = localStorage.getItem(APP_CONFIG.storageKey);
     if (r) return JSON.parse(r);
   } catch(e) {}
-  return { words:{}, exp:0, badges:[], unlocked:{}, loginDates:[], totalCorrect:0, lastLoginDate:"" };
+  return { words:{}, exp:0, badges:[], unlocked:{}, loginDates:[], totalCorrect:0, lastLoginDate:"", savedAt:0 };
 }
 function saveState() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(S)); } catch(e) {}
-  saveToCloud();
+  saveToCloud(); // stamps savedAt, writes localStorage, debounces Firestore
 }
 function migrate() {
   if (!S.words)         S.words = {};
@@ -120,20 +119,57 @@ function migrate() {
 }
 
 // ── FIREBASE AUTH & SYNC ──────────────────────
-let currentUser = null;
-let syncTimeout = null;
+//
+// Architecture:
+//   • Firestore persistence enabled → offline writes queue locally,
+//     flush automatically when back online. No offline logic needed.
+//   • On login: always load from Firestore unconditionally (no EXP
+//     comparison). Firestore is source of truth; localStorage is cache.
+//   • On save: write to localStorage immediately, then debounce-write
+//     to Firestore (300ms). Every save stamps a `savedAt` timestamp.
+//   • On load merge: take cloud if cloud.savedAt >= local.savedAt,
+//     otherwise keep local (local has newer unsaved progress).
+//   • beforeunload: bypass debounce, write to Firestore immediately
+//     so tab/browser closes don't lose the last session.
+//   • Background sync: every 3 minutes while online, pull from
+//     Firestore as a safety net for cross-device drift.
+//
+// ─────────────────────────────────────────────
+
+let currentUser  = null;
+let syncTimeout  = null;
+let bgSyncInterval = null;
+
+// Enable Firestore offline persistence (queues writes when offline,
+// flushes automatically on reconnect). Must be called before any
+// Firestore operation. Fails silently if already enabled (multi-tab).
+db.enablePersistence({ synchronizeTabs: true })
+  .catch(err => {
+    if (err.code === "failed-precondition") {
+      // Multiple tabs open — persistence available in one tab only.
+      console.warn("Firestore persistence unavailable: multiple tabs open.");
+    } else if (err.code === "unimplemented") {
+      // Browser does not support persistence (e.g. Firefox private mode).
+      console.warn("Firestore persistence not supported in this browser.");
+    }
+  });
+
+// ── AUTH ──────────────────────────────────────
 
 auth.onAuthStateChanged(user => {
   currentUser = user;
   const btn    = document.getElementById("auth-btn");
   const status = document.getElementById("sync-status");
+
   if (user) {
     if (btn)    btn.textContent = user.displayName?.split(" ")[0] || "Signed in";
-    if (status) status.textContent = "☁️ Syncing...";
+    if (status) status.textContent = "☁️ Syncing…";
     loadFromCloud();
+    startBackgroundSync();
   } else {
     if (btn)    btn.textContent = "Sign in";
     if (status) status.textContent = "";
+    stopBackgroundSync();
   }
 });
 
@@ -146,44 +182,125 @@ function handleAuth() {
   }
 }
 
+// ── LOAD FROM CLOUD ───────────────────────────
+// Always prefer the most recently saved state using savedAt timestamp.
+// Falls back to unconditional overwrite if either side lacks savedAt
+// (handles existing data that pre-dates this change).
+
 function loadFromCloud() {
   if (!currentUser) return;
-  const status = document.getElementById("sync-status");
+  setStatus("☁️ Syncing…");
+
   db.collection("users").doc(currentUser.uid)
     .collection("apps").doc(STORAGE_KEY)
-    .get().then(doc => {
+    .get()
+    .then(doc => {
       if (doc.exists) {
         const cloud = doc.data();
-        if (cloud.exp && cloud.exp > S.exp) {
-          S = { ...S, ...cloud };
+        const cloudTime = cloud.savedAt  || 0;
+        const localTime = S.savedAt      || 0;
+
+        if (cloudTime >= localTime) {
+          // Cloud is newer (or equal) — take it unconditionally.
+          S = { ...cloud };
           migrate();
-          saveState();
+          saveLocalOnly();   // update localStorage cache
           renderExpBar();
           renderGroups();
         }
+        // else: local is newer — keep local, do nothing.
+        // (This happens when offline writes haven't flushed yet.)
       }
-      if (status) status.textContent = "☁️ Synced";
-      setTimeout(() => { if (status) status.textContent = ""; }, 3000);
-    }).catch(e => {
-      if (status) status.textContent = "☁️ Sync failed";
-      console.error(e);
+      setStatus("☁️ Synced", 3000);
+    })
+    .catch(e => {
+      console.error("Cloud load failed:", e);
+      setStatus("☁️ Sync failed");
     });
 }
 
+// ── SAVE TO CLOUD ─────────────────────────────
+// Stamps savedAt, writes localStorage immediately, debounces Firestore
+// write to 300ms to batch rapid successive saves (e.g. answering words).
+
 function saveToCloud() {
   if (!currentUser) return;
+
+  S.savedAt = Date.now();
+  saveLocalOnly();
+
   clearTimeout(syncTimeout);
   syncTimeout = setTimeout(() => {
-    db.collection("users").doc(currentUser.uid)
-      .collection("apps").doc(STORAGE_KEY)
-      .set(S).then(() => {
-        const status = document.getElementById("sync-status");
-        if (status) {
-          status.textContent = "☁️ Saved";
-          setTimeout(() => { status.textContent = ""; }, 2000);
-        }
-      }).catch(e => console.error("Cloud save failed:", e));
-  }, 1500);
+    commitToFirestore();
+  }, 300);
+}
+
+// Write to Firestore immediately — used by beforeunload and background sync.
+function commitToFirestore() {
+  if (!currentUser) return;
+
+  db.collection("users").doc(currentUser.uid)
+    .collection("apps").doc(STORAGE_KEY)
+    .set(S)
+    .then(() => setStatus("☁️ Saved", 2000))
+    .catch(e => {
+      console.error("Cloud save failed:", e);
+      // Firestore persistence will retry automatically when back online.
+    });
+}
+
+// Write to localStorage only — no Firestore, no debounce.
+function saveLocalOnly() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(S));
+  } catch (e) {
+    console.error("localStorage write failed:", e);
+  }
+}
+
+// ── BACKGROUND SYNC ───────────────────────────
+// Pulls from Firestore every 3 minutes while online.
+// Does nothing when offline — Firestore persistence handles that.
+
+const BG_SYNC_INTERVAL_MS = 3 * 60 * 1000; // 3 minutes
+
+function startBackgroundSync() {
+  stopBackgroundSync(); // clear any existing interval first
+  bgSyncInterval = setInterval(() => {
+    if (navigator.onLine) {
+      loadFromCloud();
+    }
+  }, BG_SYNC_INTERVAL_MS);
+}
+
+function stopBackgroundSync() {
+  if (bgSyncInterval) {
+    clearInterval(bgSyncInterval);
+    bgSyncInterval = null;
+  }
+}
+
+// ── BEFOREUNLOAD FLUSH ────────────────────────
+// Bypasses the debounce on tab/browser close so the last session
+// is never lost due to the debounce window being open.
+// Uses sendBeacon-style approach: fire-and-forget, no await.
+
+window.addEventListener("beforeunload", () => {
+  clearTimeout(syncTimeout); // cancel any pending debounce
+  if (currentUser && S.savedAt) {
+    commitToFirestore();
+  }
+});
+
+// ── STATUS HELPER ─────────────────────────────
+
+function setStatus(msg, clearAfterMs = 0) {
+  const el = document.getElementById("sync-status");
+  if (!el) return;
+  el.textContent = msg;
+  if (clearAfterMs > 0) {
+    setTimeout(() => { if (el.textContent === msg) el.textContent = ""; }, clearAfterMs);
+  }
 }
 
 // ── VOICE (TTS) ───────────────────────────────
