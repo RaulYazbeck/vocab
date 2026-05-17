@@ -1716,12 +1716,27 @@ function renderStatsScreen() {
     html += `<div class="stats-section"><div class="stats-section-title">${group.icon} ${group.name}</div>`;
     group.decks.forEach(deck => {
       const { mastered, total, all } = deckProgress(deck);
-      html += `<div style="margin-bottom:1rem">
-        <div style="font-size:12px;font-weight:600;color:#888;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;">
-          <span>${deck.icon} ${deck.name} — ${mastered}/${total} mastered (${all} total)</span>
-          <button onclick="resetDeck('${deck.id}')" style="font-size:11px;padding:3px 8px;border:1px solid #ddd;border-radius:6px;background:white;color:#888;cursor:pointer;">Reset</button>
-        </div>
-        <table><thead><tr><th>English</th><th>Target</th><th>Plural</th><th>✓</th><th>✗</th><th>Streak</th></tr></thead><tbody>`;
+      const pct = total > 0 ? Math.round((mastered / total) * 100) : 0;
+      const deckKey = `stats-deck-${deck.id}`;
+      html += `
+        <div style="margin-bottom:0.75rem;border:1px solid #eee;border-radius:10px;overflow:hidden;">
+          <div onclick="toggleStatsDeck('${deck.id}')" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;cursor:pointer;background:#fafafa;user-select:none;">
+            <div style="display:flex;align-items:center;gap:10px;flex:1;">
+              <span style="font-size:14px;">${deck.icon}</span>
+              <div>
+                <div style="font-size:13px;font-weight:600;">${deck.name}</div>
+                <div style="font-size:11px;color:#888;margin-top:2px;">${mastered}/${total} mastered · ${pct}% · ${all} total words</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button onclick="event.stopPropagation();resetDeck('${deck.id}')" style="font-size:11px;padding:3px 8px;border:1px solid #ddd;border-radius:6px;background:white;color:#888;cursor:pointer;">Reset</button>
+              <span id="chevron-${deck.id}" style="font-size:11px;color:#aaa;transition:transform 0.2s;display:inline-block;">▶</span>
+            </div>
+          </div>
+          <div id="${deckKey}" style="display:none;">
+            <table style="margin:0;border-radius:0;">
+              <thead><tr><th>English</th><th>Target</th><th>Plural</th><th>✓</th><th>✗</th><th>Streak</th></tr></thead>
+              <tbody>`;
       unlockedWords(deck).forEach((w,i) => {
         const ws = getWS(deck.id, i);
         const st = isMastered(ws)
@@ -1731,12 +1746,21 @@ function renderStatsScreen() {
             : `<span style="color:#bbb">new</span>`;
         html += `<tr><td>${w.en}</td><td style="color:#555">${w[WORD_KEY]}</td><td style="color:#aaa">${w.pl||"—"}</td><td>${ws.correct}</td><td>${ws.wrong}</td><td>${st}</td></tr>`;
       });
-      html += `</tbody></table></div>`;
+      html += `</tbody></table></div></div>`;
     });
     html += `</div>`;
   });
   html += `</div>`;
   document.getElementById("main-screen").innerHTML = html;
+}
+
+function toggleStatsDeck(deckId) {
+  const el = document.getElementById(`stats-deck-${deckId}`);
+  const chevron = document.getElementById(`chevron-${deckId}`);
+  if (!el) return;
+  const isOpen = el.style.display !== "none";
+  el.style.display = isOpen ? "none" : "block";
+  if (chevron) chevron.style.transform = isOpen ? "" : "rotate(90deg)";
 }
 // ── STATS CHOICE ──────────────────────────────
 function renderStatsChoice() {
