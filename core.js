@@ -1740,7 +1740,7 @@ function renderStatsScreen() {
             </div>
           </div>
           <div id="${deckKey}" style="display:none;">
-            <table style="margin:0;border-radius:0;">
+            <div class="stats-table-wrap"><table style="margin:0;border-radius:0;">
               <thead><tr><th>English</th><th>Target</th><th>Plural</th><th>✓</th><th>✗</th><th>Streak</th></tr></thead>
               <tbody>`;
       unlockedWords(deck).forEach((w,i) => {
@@ -1752,7 +1752,7 @@ function renderStatsScreen() {
             : `<span style="color:#bbb">new</span>`;
         html += `<tr><td>${w.en}</td><td style="color:#555">${w[WORD_KEY]}</td><td style="color:#aaa">${w.pl||"—"}</td><td>${ws.correct}</td><td>${ws.wrong}</td><td>${st}</td></tr>`;
       });
-      html += `</tbody></table></div></div>`;
+      html += `</tbody></table></div></div></div>`;
     });
     html += `</div>`;
   });
