@@ -479,7 +479,7 @@ function buildAnkiQueue() {
     if (!deck) return;
     deck.words.forEach((w, i) => {
       const ws = getWS(id, i);
-      if (!ws.anki) return;
+      if (!ws.anki) ws.anki = { phase:"new", interval:0, easeFactor:2.5, dueDate:null, learningStep:0, lapses:0 };
       const a = ws.anki;
       const word = { ...w, deckId: id, deckName: deck.name, idx: i };
       if (a.phase === "new" && !a.dueDate) {
@@ -514,7 +514,7 @@ function ankiDueCount() {
     if (!deck) return;
     deck.words.forEach((w, i) => {
       const ws = getWS(id, i);
-      if (!ws.anki) return;
+      if (!ws.anki) ws.anki = { phase:"new", interval:0, easeFactor:2.5, dueDate:null, learningStep:0, lapses:0 };
       const a = ws.anki;
       if (a.phase === "new" && !a.dueDate) newCount++;
       else if (a.dueDate <= today) due++;
