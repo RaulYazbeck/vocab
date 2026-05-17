@@ -590,6 +590,165 @@ function ankiPreviewInterval(word, rating) {
   if (n < 365) return `${Math.round(n/30)}mo`;
   return `${Math.round(n/365)}yr`;
 }
+// ── ANKI RENDER ───────────────────────────────
+function renderAnkiQuestion() {
+  const el = document.getElementById("main-screen");
+  const word = ankiQueue[ankiIndex];
+  if (!word) { renderAnkiSummary(); return; }
+  const ws = getWS(word.deckId, word.idx);
+  const a = ws.anki;
+  const phaseBadge = a.phase === "review"
+    ? `<span class="anki-badge review">review</span>`
+    : a.phase === "learning"
+      ? `<span class="anki-badge learning">learning</span>`
+      : `<span class="anki-badge new">new</span>`;
+  const progress = ankiIndex;
+  const total = ankiQueue.length;
+  const pct = total > 0 ? Math.round((progress / total) * 100) : 0;
+
+  el.innerHTML = `
+    <div class="screen">
+      <div class="screen-top">
+        <div class="screen-label">🃏 Anki · ${total - ankiIndex} left</div>
+        <button class="back-btn" onclick="backToMenu()">← Menu</button>
+      </div>
+      <div class="anki-progress-wrap">
+        <div class="anki-progress-fill" style="width:${pct}%"></div>
+      </div>
+      <div class="anki-phase-row">${phaseBadge}</div>
+      <div class="word-display" style="margin-top:1.5rem;">
+        <div class="english-word">${word.en}</div>
+        <div class="word-hint">${word.hint}</div>
+      </div>
+      <button class="anki-reveal-btn" onclick="ankiReveal()">Show Answer</button>
+      <div class="anki-session-bar">
+        <span class="anki-stat again">✗ ${ankiSessionStats.again}</span>
+        <span class="anki-stat hard">~ ${ankiSessionStats.hard}</span>
+        <span class="anki-stat good">✓ ${ankiSessionStats.good}</span>
+        <span class="anki-stat easy">⚡ ${ankiSessionStats.easy}</span>
+      </div>
+    </div>`;
+}
+
+function renderAnkiAnswer() {
+  const el = document.getElementById("main-screen");
+  const word = ankiQueue[ankiIndex];
+  if (!word) { renderAnkiSummary(); return; }
+  const ws = getWS(word.deckId, word.idx);
+  const a = ws.anki;
+  const phaseBadge = a.phase === "review"
+    ? `<span class="anki-badge review">review</span>`
+    : a.phase === "learning"
+      ? `<span class="anki-badge learning">learning</span>`
+      : `<span class="anki-badge new">new</span>`;
+  const total = ankiQueue.length;
+  const pct = total > 0 ? Math.round((ankiIndex / total) * 100) : 0;
+  const previews = [0,1,2,3].map(r => ankiPreviewInterval(word, r));
+
+  el.innerHTML = `
+    <div class="screen">
+      <div class="screen-top">
+        <div class="screen-label">🃏 Anki · ${total - ankiIndex} left</div>
+        <button class="back-btn" onclick="backToMenu()">← Menu</button>
+      </div>
+      <div class="anki-progress-wrap">
+        <div class="anki-progress-fill" style="width:${pct}%"></div>
+      </div>
+      <div class="anki-phase-row">${phaseBadge}</div>
+      <div class="word-display" style="margin-top:1rem;">
+        <div class="english-word">${word.en}</div>
+        <div class="word-hint">${word.hint}</div>
+      </div>
+      <div class="anki-answer-reveal">
+        <div class="anki-answer-word">${word[WORD_KEY]}
+          <button class="audio-btn" style="font-size:14px;padding:4px 8px;margin-left:8px;" onclick="speak('${word[WORD_KEY].replace(/'/g,"\\'")}')">🔊</button>
+        </div>
+        ${word.pl ? `<div style="font-size:13px;color:#888;margin-top:4px;">plural: ${word.pl}</div>` : ""}
+        ${word.examples && word.examples.length ? `
+          <div class="examples-wrap" style="margin-top:12px;text-align:left;">
+            <div class="examples-title">Example</div>
+            <div class="example-row">
+              <div class="example-de">${word.examples[0][WORD_KEY]}</div>
+              <div class="example-en">${word.examples[0].en}</div>
+            </div>
+          </div>` : ""}
+      </div>
+      <div class="anki-rating-row">
+        <button class="anki-rate-btn again" onclick="ankiRate(0)">
+          <span class="anki-rate-label">Again</span>
+          <span class="anki-rate-interval">${previews[0]}</span>
+        </button>
+        <button class="anki-rate-btn hard" onclick="ankiRate(1)">
+          <span class="anki-rate-label">Hard</span>
+          <span class="anki-rate-interval">${previews[1]}</span>
+        </button>
+        <button class="anki-rate-btn good" onclick="ankiRate(2)">
+          <span class="anki-rate-label">Good</span>
+          <span class="anki-rate-interval">${previews[2]}</span>
+        </button>
+        <button class="anki-rate-btn easy" onclick="ankiRate(3)">
+          <span class="anki-rate-label">Easy</span>
+          <span class="anki-rate-interval">${previews[3]}</span>
+        </button>
+      </div>
+      <div class="anki-session-bar">
+        <span class="anki-stat again">✗ ${ankiSessionStats.again}</span>
+        <span class="anki-stat hard">~ ${ankiSessionStats.hard}</span>
+        <span class="anki-stat good">✓ ${ankiSessionStats.good}</span>
+        <span class="anki-stat easy">⚡ ${ankiSessionStats.easy}</span>
+      </div>
+    </div>`;
+}
+
+function renderAnkiSummary() {
+  const today = todayISO();
+  // Find next due date across all selected decks
+  let nextDue = null, nextCount = 0;
+  selectedIds.forEach(id => {
+    const deck = getDeck(id);
+    if (!deck) return;
+    unlockedWords(deck).forEach((w, i) => {
+      const ws = getWS(id, i);
+      if (!ws.anki || !ws.anki.dueDate) return;
+      if (ws.anki.dueDate > today) {
+        if (!nextDue || ws.anki.dueDate < nextDue) nextDue = ws.anki.dueDate;
+      }
+    });
+  });
+  if (nextDue) {
+    selectedIds.forEach(id => {
+      const deck = getDeck(id);
+      if (!deck) return;
+      unlockedWords(deck).forEach((w, i) => {
+        const ws = getWS(id, i);
+        if (ws.anki && ws.anki.dueDate === nextDue) nextCount++;
+      });
+    });
+  }
+  const nextDueLabel = nextDue
+    ? `Next review: ${daysBetween(today, nextDue) === 1 ? "tomorrow" : `in ${daysBetween(today, nextDue)} days`} · ${nextCount} card${nextCount !== 1 ? "s" : ""}`
+    : "No upcoming reviews scheduled yet.";
+
+  // Bonus XP for completing session
+  addExp(25);
+
+  document.getElementById("main-screen").innerHTML = `
+    <div class="screen">
+      <div class="result-screen">
+        <div class="result-emoji">🎉</div>
+        <div class="result-title">Session complete!</div>
+        <div class="anki-summary-stats">
+          <span class="anki-stat again">✗ Again: ${ankiSessionStats.again}</span>
+          <span class="anki-stat hard">~ Hard: ${ankiSessionStats.hard}</span>
+          <span class="anki-stat good">✓ Good: ${ankiSessionStats.good}</span>
+          <span class="anki-stat easy">⚡ Easy: ${ankiSessionStats.easy}</span>
+        </div>
+        <div style="font-size:13px;color:#888;margin-top:1rem;">${nextDueLabel}</div>
+        <div style="font-size:13px;color:#1D9E75;font-weight:600;margin-top:8px;">+25 XP session bonus</div>
+        <button class="result-btn" onclick="backToMenu()">← Back to menu</button>
+      </div>
+    </div>`;
+}
 
 // ── DECK HELPERS ──────────────────────────────
 function getDeck(deckId) {
