@@ -343,7 +343,8 @@ function unlockedWords(deck) {
 // ── SPACED REPETITION ─────────────────────────
 function getWS(deckId, idx) {
   const key = deckId + "_" + idx;
-  if (!S.words[key]) S.words[key] = { correct:0, wrong:0, streak:0 };
+  if (!S.words[key]) S.words[key] = { correct:0, wrong:0, streak:0, anki:{ phase:"new", interval:0, easeFactor:2.5, dueDate:null, learningStep:0, lapses:0 } };
+  if (!S.words[key].anki) S.words[key].anki = { phase:"new", interval:0, easeFactor:2.5, dueDate:null, learningStep:0, lapses:0 };
   return S.words[key];
 }
 function wilsonLower(correct, total) {
