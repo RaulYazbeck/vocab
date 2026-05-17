@@ -275,6 +275,49 @@ tr:last-child td{border-bottom:none;}
 .anki-chart-bar{width:100%;background:#7C5CBF;border-radius:3px 3px 0 0;min-height:2px;transition:height 0.3s;}
 .anki-chart-count{font-size:10px;color:#555;margin-top:2px;}
 .anki-chart-label{font-size:10px;color:#aaa;}
+
+/* MOBILE STATS TABLE */
+@media(max-width:600px){
+  /* Replace table with card-style rows on mobile */
+  .stats-table-wrap table thead { display:none; }
+  .stats-table-wrap table tbody tr {
+    display:flex;
+    flex-wrap:wrap;
+    padding:8px 0;
+    border-bottom:1px solid #f0f0f0;
+    gap:4px;
+  }
+  .stats-table-wrap table tbody tr:last-child { border-bottom:none; }
+  .stats-table-wrap table td {
+    display:inline;
+    padding:0;
+    border:none;
+    font-size:12px;
+  }
+  /* English word — full row */
+  .stats-table-wrap table td:nth-child(1) {
+    width:100%;
+    font-weight:600;
+    font-size:13px;
+    color:#1a1a1a;
+  }
+  /* Target word */
+  .stats-table-wrap table td:nth-child(2) {
+    color:#555;
+    font-style:italic;
+  }
+  .stats-table-wrap table td:nth-child(2)::after { content:" ·"; color:#ccc; }
+  /* Plural — hide if — */
+  .stats-table-wrap table td:nth-child(3) { color:#aaa; }
+  .stats-table-wrap table td:nth-child(3)::after { content:" ·"; color:#ccc; }
+  /* ✓ correct */
+  .stats-table-wrap table td:nth-child(4)::before { content:"✓ "; color:#1D9E75; font-size:11px; }
+  /* ✗ wrong */
+  .stats-table-wrap table td:nth-child(5)::before { content:"✗ "; color:#E24B4A; font-size:11px; }
+  .stats-table-wrap table td:nth-child(5)::after { content:" ·"; color:#ccc; }
+  /* Streak badge */
+  .stats-table-wrap table td:nth-child(6) { }
+}
 </style>
 </head>
 <body>
