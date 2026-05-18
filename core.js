@@ -214,6 +214,7 @@ function loadFromCloud() {
     if (cloudTime >= localTime) {
       S = { ...meta, words: allWords };
       migrate();
+      recordLogin();
       saveLocalOnly();
       renderExpBar();
       renderGroups();
@@ -370,7 +371,7 @@ function currentLevel() {
   return lv;
 }
 function getDailyStreak() {
-  const today = new Date().toISOString().slice(0,10);
+  const today = new Date().toLocaleDateString('en-CA');
   const dates = [...new Set(S.loginDates)].sort();
   if (!dates.length) return 0;
   const last = dates[dates.length - 1];
@@ -942,7 +943,7 @@ function resetAll() {
 
 // ── LOGIN STREAK ──────────────────────────────
 function recordLogin() {
-  const today = new Date().toISOString().slice(0,10);
+  const today = new Date().toLocaleDateString('en-CA');
   if (S.lastLoginDate === today) return;
   if (!S.loginDates.includes(today)) S.loginDates.push(today);
   S.lastLoginDate = today;
