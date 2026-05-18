@@ -941,6 +941,38 @@ function resetAll() {
   renderStatsScreen();
 }
 
+// ── SECRET SYNC CONTROLS ──────────────────────
+let syncTapCount = 0;
+let syncTapTimer = null;
+
+function handleSyncTap() {
+  syncTapCount++;
+  clearTimeout(syncTapTimer);
+  syncTapTimer = setTimeout(() => { syncTapCount = 0; }, 2000);
+  if (syncTapCount >= 5) {
+    syncTapCount = 0;
+    showSyncControls();
+  }
+}
+
+function showSyncControls() {
+  if (!confirm("⚠️ Admin sync controls. Use with care.")) return;
+  const choice = confirm("OK = Force Download from cloud\nCancel = Force Upload to cloud");
+  if (choice) {
+    // Force download
+    S.savedAt = 0;
+    saveLocalOnly();
+    loadFromCloud();
+    alert("Downloading from cloud...");
+  } else {
+    // Force upload
+    S.savedAt = Date.now();
+    saveLocalOnly();
+    commitToFirestore();
+    alert("Uploading to cloud...");
+  }
+}
+
 // ── LOGIN STREAK ──────────────────────────────
 function recordLogin() {
   const today = new Date().toLocaleDateString('en-CA');
