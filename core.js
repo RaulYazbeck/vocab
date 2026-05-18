@@ -193,7 +193,7 @@ function loadFromCloud() {
   setStatus("☁️ Syncing…");
   const ref = db.collection("users").doc(currentUser.uid).collection("apps");
 
-  ref.get().then(snapshot => {
+  ref.get({ source: 'server' }).catch(() => ref.get()).then(snapshot => {
     let meta = null;
     const allWords = {};
 
