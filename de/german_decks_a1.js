@@ -818,7 +818,91 @@ const DECKS_A1 = {
       ]
     },
 
-    // ── 16. FUNCTION WORDS & GRAMMAR ────────────────────────────────
+    // ── 16. VERBS — PARTIZIP II ───────────────────────────────────
+    {
+      id: "a1_verbs_p2", name: "Verbs — Partizip II", icon: "✅",
+      words: [
+        { en:"to be", de:"gewesen", hint:"Partizip II — sein", examples:[{de:"Ich bin noch nie in Berlin gewesen.",en:"I have never been to Berlin."}] },
+        { en:"to have", de:"gehabt", hint:"Partizip II — haben", examples:[{de:"Ich habe Glück gehabt.",en:"I have been lucky."}] },
+        { en:"to become / will", de:"geworden", hint:"Partizip II — sein", examples:[{de:"Er ist Arzt geworden.",en:"He has become a doctor."}] },
+        { en:"to do / make", de:"gemacht", hint:"Partizip II — haben", examples:[{de:"Was hast du heute Abend gemacht?",en:"What did you do tonight?"}] },
+        { en:"to come", de:"gekommen", hint:"Partizip II — sein", examples:[{de:"Woher bist du gekommen?",en:"Where did you come from?"}] },
+        { en:"to want", de:"gewollt", hint:"Partizip II — haben", examples:[{de:"Er hat das nicht gewollt.",en:"He did not want that."}] },
+        { en:"to be allowed to / may", de:"gedurft", hint:"Partizip II — haben", examples:[{de:"Früher habe ich das nicht gedurft.",en:"I was not allowed to do that before."}] },
+        { en:"to be able to / can", de:"gekonnt", hint:"Partizip II — haben", examples:[{de:"Das hat er nie gekonnt.",en:"He was never able to do that."}] },
+        { en:"to have to / must", de:"gemusst", hint:"Partizip II — haben", examples:[{de:"Ich habe heute lange arbeiten gemusst.",en:"I had to work long today."}] },
+        { en:"to be supposed to / should", de:"gesollt", hint:"Partizip II — haben", examples:[{de:"Das hätte er nicht gesollt.",en:"He was not supposed to do that."}] },
+        { en:"to like", de:"gemocht", hint:"Partizip II — haben", examples:[{de:"Ich habe ihn immer gemocht.",en:"I have always liked him."}] },
+        { en:"to want (polite)", de:"gemocht", hint:"Partizip II — haben", examples:[{de:"Sie hat einen Kaffee gemocht.",en:"She wanted a coffee."}] },
+        { en:"to give", de:"gegeben", hint:"Partizip II — haben", examples:[{de:"Er hat mir den Schlüssel gegeben.",en:"He gave me the key."}] },
+        { en:"to take", de:"genommen", hint:"Partizip II — haben", examples:[{de:"Ich habe den Bus genommen.",en:"I took the bus."}] },
+        { en:"to bring", de:"gebracht", hint:"Partizip II — haben", examples:[{de:"Er hat mir einen Kaffee gebracht.",en:"He brought me a coffee."}] },
+        { en:"to help", de:"geholfen", hint:"Partizip II — haben", examples:[{de:"Sie hat mir sehr geholfen.",en:"She helped me a lot."}] },
+        { en:"to need", de:"gebraucht", hint:"Partizip II — haben", examples:[{de:"Hast du die Zeitung noch gebraucht?",en:"Did you still need the newspaper?"}] },
+        { en:"to know (a fact)", de:"gewusst", hint:"Partizip II — haben", examples:[{de:"Das habe ich nicht gewusst.",en:"I did not know that."}] },
+        { en:"to know (a person / place)", de:"gekannt", hint:"Partizip II — haben", examples:[{de:"Hast du diese Frau gekannt?",en:"Did you know this woman?"}] },
+        { en:"to get to know", de:"kennengelernt", hint:"Partizip II — haben", examples:[{de:"Wir haben uns letztes Jahr kennengelernt.",en:"We got to know each other last year."}] },
+        { en:"to think", de:"gedacht", hint:"Partizip II — haben", examples:[{de:"Das habe ich mir auch gedacht.",en:"I thought so too."}] },
+        { en:"to believe / think", de:"geglaubt", hint:"Partizip II — haben", examples:[{de:"Ich habe ihm geglaubt.",en:"I believed him."}] },
+        { en:"to mean / signify", de:"bedeutet", hint:"Partizip II — haben", examples:[{de:"Was hat dieses Wort bedeutet?",en:"What did this word mean?"}] },
+        { en:"to hear", de:"gehört", hint:"Partizip II — haben", examples:[{de:"Ich habe das Lied schon mal gehört.",en:"I have heard that song before."}] },
+        { en:"to see", de:"gesehen", hint:"Partizip II — haben", examples:[{de:"Ich habe dich nicht gesehen.",en:"I did not see you."}] },
+        { en:"to look / seem", de:"ausgesehen", hint:"Partizip II — haben", examples:[{de:"Du hast heute gut ausgesehen.",en:"You looked well today."}] },
+        { en:"to sleep", de:"geschlafen", hint:"Partizip II — haben", examples:[{de:"Ich habe nur fünf Stunden geschlafen.",en:"I only slept five hours."}] },
+        { en:"to get up", de:"aufgestanden", hint:"Partizip II — sein", examples:[{de:"Ich bin um sechs aufgestanden.",en:"I got up at six."}] },
+        { en:"to go to bed", de:"ins Bett gegangen", hint:"Partizip II — sein", examples:[{de:"Um elf bin ich ins Bett gegangen.",en:"I went to bed at eleven."}] },
+        { en:"to sit", de:"gesessen", hint:"Partizip II — haben", examples:[{de:"Wir haben vorne gesessen.",en:"We sat at the front."}] },
+        { en:"to stand", de:"gestanden", hint:"Partizip II — haben · sein", examples:[{de:"Der Bus hat an der Haltestelle gestanden.",en:"The bus stood at the stop."}] },
+        { en:"to lie (down)", de:"gelegen", hint:"Partizip II — haben · sein", examples:[{de:"Um neun hat er noch im Bett gelegen.",en:"At nine he was still lying in bed."}] },
+        { en:"to put (upright)", de:"gestellt", hint:"Partizip II — haben", examples:[{de:"Ich habe die Tasche in die Ecke gestellt.",en:"I put the bag in the corner."}] },
+        { en:"to put / lay (flat)", de:"gelegt", hint:"Partizip II — haben", examples:[{de:"Er hat das Buch auf den Tisch gelegt.",en:"He laid the book on the table."}] },
+        { en:"to hang", de:"gehangen", hint:"Partizip II — haben · sein", examples:[{de:"Das Bild hat an der Wand gehangen.",en:"The picture was hanging on the wall."}] },
+        { en:"to open (formal / written)", de:"geöffnet", hint:"Partizip II — haben", examples:[{de:"Ich habe die Tür geöffnet.",en:"I opened the door."}] },
+        { en:"to open (casual / spoken)", de:"aufgemacht", hint:"Partizip II — haben", examples:[{de:"Ich habe die Tür aufgemacht.",en:"I opened the door."}] },
+        { en:"to close (formal / written)", de:"geschlossen", hint:"Partizip II — haben", examples:[{de:"Er hat die Tür geschlossen.",en:"He closed the door."}] },
+        { en:"to close (casual / spoken)", de:"zugemacht", hint:"Partizip II — haben", examples:[{de:"Er hat die Tür zugemacht.",en:"He closed the door."}] },
+        { en:"to turn on (casual — lights, music, TV)", de:"angemacht", hint:"Partizip II — haben", examples:[{de:"Hast du das Licht angemacht?",en:"Did you turn the light on?"}] },
+        { en:"to turn on (technical — machines, devices)", de:"eingeschaltet", hint:"Partizip II — haben", examples:[{de:"Hast du den Computer eingeschaltet?",en:"Did you turn the computer on?"}] },
+        { en:"to turn off (casual — lights, music, TV)", de:"ausgemacht", hint:"Partizip II — haben", examples:[{de:"Hast du das Licht ausgemacht?",en:"Did you turn the light off?"}] },
+        { en:"to turn off (technical — machines, devices)", de:"ausgeschaltet", hint:"Partizip II — haben", examples:[{de:"Hast du den Computer ausgeschaltet?",en:"Did you turn the computer off?"}] },
+        { en:"to wait", de:"gewartet", hint:"Partizip II — haben", examples:[{de:"Ich habe lange gewartet.",en:"I waited for a long time."}] },
+        { en:"to ask / question", de:"gefragt", hint:"Partizip II — haben", examples:[{de:"Er hat mich etwas gefragt.",en:"He asked me something."}] },
+        { en:"to begin", de:"begonnen", hint:"Partizip II — haben", examples:[{de:"Der Film hat um acht begonnen.",en:"The film began at eight."}] },
+        { en:"to start", de:"angefangen", hint:"Partizip II — haben", examples:[{de:"Wann hat der Kurs angefangen?",en:"When did the course start?"}] },
+        { en:"to stop", de:"aufgehört", hint:"Partizip II — haben", examples:[{de:"Der Regen hat aufgehört.",en:"The rain has stopped."}] },
+        { en:"to end", de:"geendet", hint:"Partizip II — haben", examples:[{de:"Der Kurs hat gestern geendet.",en:"The course ended yesterday."}] },
+        { en:"to last / take (time)", de:"gedauert", hint:"Partizip II — haben", examples:[{de:"Der Film hat zwei Stunden gedauert.",en:"The film lasted two hours."}] },
+        { en:"to carry / fetch", de:"geholt", hint:"Partizip II — haben", examples:[{de:"Ich habe zwei Flaschen Wasser geholt.",en:"I fetched two bottles of water."}] },
+        { en:"to hand in / give back", de:"abgegeben", hint:"Partizip II — haben", examples:[{de:"Ich habe meinen Schlüssel abgegeben.",en:"I handed in my key."}] },
+        { en:"to pick up / collect", de:"abgeholt", hint:"Partizip II — haben", examples:[{de:"Ich habe den Schrank abgeholt.",en:"I collected the cupboard."}] },
+        { en:"to offer", de:"angeboten", hint:"Partizip II — haben", examples:[{de:"Er hat mir einen Kaffee angeboten.",en:"He offered me a coffee."}] },
+        { en:"to recommend", de:"empfohlen", hint:"Partizip II — haben", examples:[{de:"Welchen Wein hat er empfohlen?",en:"Which wine did he recommend?"}] },
+        { en:"to show", de:"gezeigt", hint:"Partizip II — haben", examples:[{de:"Sie hat mir den Weg gezeigt.",en:"She showed me the way."}] },
+        { en:"to lose", de:"verloren", hint:"Partizip II — haben", examples:[{de:"Ich habe meinen Schlüssel verloren.",en:"I have lost my key."}] },
+        { en:"to repair / fix", de:"repariert", hint:"Partizip II — haben", examples:[{de:"Er hat das Fahrrad repariert.",en:"He repaired the bicycle."}] },
+        { en:"to use / operate", de:"benutzt", hint:"Partizip II — haben", examples:[{de:"Hast du den Aufzug benutzt?",en:"Did you use the lift?"}] },
+        { en:"to wash", de:"gewaschen", hint:"Partizip II — haben", examples:[{de:"Ich habe heute gewaschen.",en:"I did the washing today."}] },
+        { en:"to introduce oneself", de:"sich vorgestellt", hint:"Partizip II — haben", examples:[{de:"Er hat sich vorgestellt.",en:"He introduced himself."}] },
+        { en:"to get dressed", de:"sich angezogen", hint:"Partizip II — haben", examples:[{de:"Ich habe mich schnell angezogen.",en:"I got dressed quickly."}] },
+        { en:"to take off (clothing)", de:"sich ausgezogen", hint:"Partizip II — haben", examples:[{de:"Er hat die Schuhe ausgezogen.",en:"He took his shoes off."}] },
+        { en:"to look after / take care of", de:"sich gekümmert", hint:"Partizip II — haben", examples:[{de:"Sie hat sich um die Kinder gekümmert.",en:"She looked after the children."}] },
+        { en:"to be pleased / look forward", de:"sich gefreut", hint:"Partizip II — haben", examples:[{de:"Ich habe mich auf den Urlaub gefreut.",en:"I looked forward to the holiday."}] },
+        { en:"to receive / get", de:"bekommen", hint:"Partizip II — haben", examples:[{de:"Hast du meinen Brief bekommen?",en:"Did you receive my letter?"}] },
+        { en:"to belong to", de:"gehört", hint:"Partizip II — haben", examples:[{de:"Wem hat das gehört?",en:"Who did that belong to?"}] },
+        { en:"to allow / permit", de:"erlaubt", hint:"Partizip II — haben", examples:[{de:"Hat man das hier erlaubt?",en:"Was that allowed here?"}] },
+        { en:"to tell / narrate", de:"erzählt", hint:"Partizip II — haben", examples:[{de:"Sie hat uns etwas erzählt.",en:"She told us something."}] },
+        { en:"to notice / miss", de:"gefehlt", hint:"Partizip II — haben", examples:[{de:"Du hast mir gefehlt.",en:"I missed you."}] },
+        { en:"to live / be alive", de:"gelebt", hint:"Partizip II — haben", examples:[{de:"Sie hat lange gelebt.",en:"She lived for a long time."}] },
+        { en:"to die", de:"gestorben", hint:"Partizip II — sein", examples:[{de:"Meine Frau ist gestorben.",en:"My wife has died."}] },
+        { en:"to shine", de:"geschienen", hint:"Partizip II — haben", examples:[{de:"Die Sonne hat heute geschienen.",en:"The sun shone today."}] },
+        { en:"to rain", de:"geregnet", hint:"Partizip II — haben", examples:[{de:"Es hat heute geregnet.",en:"It rained today."}] },
+        { en:"to cycle / ride a bike", de:"Rad gefahren", hint:"Partizip II — sein", examples:[{de:"Das Kind ist heute Rad gefahren.",en:"The child rode a bike today."}] },
+        { en:"to smoke", de:"geraucht", hint:"Partizip II — haben", examples:[{de:"Er hat früher geraucht.",en:"He used to smoke."}] },
+        { en:"to sign / subscribe", de:"unterschrieben", hint:"Partizip II — haben", examples:[{de:"Wo hast du unterschrieben?",en:"Where did you sign?"}] },
+      ]
+    },
+
+    // ── 17. FUNCTION WORDS & GRAMMAR ────────────────────────────────
     {
       id: "a1_function", name: "Function Words & Grammar", icon: "🔧",
       words: [
@@ -880,7 +964,7 @@ const DECKS_A1 = {
       ]
     },
 
-    // ── 17. NATURE & WEATHER ────────────────────────────────────────
+    // ── 18. NATURE & WEATHER ────────────────────────────────────────
     {
       id: "a1_nature", name: "Nature & Weather", icon: "🌤️",
       words: [
@@ -914,7 +998,7 @@ const DECKS_A1 = {
       ]
     },
 
-    // ── 18. CONJUGATION — PRESENT TENSE ────────────────────────────
+    // ── 19. CONJUGATION — PRESENT TENSE ────────────────────────────
     {
       id: "a1_conjugation", name: "Conjugation — Present", icon: "✏️",
       words: [
