@@ -264,7 +264,13 @@ async function commitToFirestore(retries = 3) {
       Object.entries(wordsByDeck).forEach(([deckId, deckWords]) => {
         saves.push(ref.doc(STORAGE_KEY + "_words_" + deckId).set({ words: deckWords }));
       });
-      await Promise.all(saves);
+      const results = await Promise.allSettled(saves);
+      const failed = results.filter(r => r.status === "rejected");
+      if (failed.length > 0) {
+        alert("REST failed: " + failed.map(r => r.reason?.message).join(", "));
+      } else {
+        alert("REST succeeded - " + results.length + " docs written");
+      }
     }
     setStatus("☁️ Saved", 2000);
   } catch (e) {
