@@ -244,7 +244,43 @@ function saveToCloud() {
 // Write to Firestore immediately — used by beforeunload and background sync.
 async function commitToFirestore(retries = 3) {
   if (!currentUser) return;
-  const ref = db.collection("users").doc(currentUser.uid).collection("apps");
+  setStatus("☁️ Saving…");
+  try {
+    if (isIOSPWA) {
+      await commitViaREST();
+    } else {
+      const ref = db.collection("users").doc(currentUser.uid).collection("apps");
+      const wordsByDeck = {};
+      Object.keys(S.words).forEach(key => {
+        const deckId = key.substring(0, key.lastIndexOf("_"));
+        if (!wordsByDeck[deckId]) wordsByDeck[deckId] = {};
+        wordsByDeck[deckId][key] = S.words[key];
+      });
+      const { words, ...meta } = S;
+      const saves = [ref.doc(STORAGE_KEY).set(meta)];
+      Object.entries(wordsByDeck).forEach(([deckId, deckWords]) => {
+        saves.push(ref.doc(STORAGE_KEY + "_words_" + deckId).set({ words: deckWords }));
+      });
+      await Promise.all(saves);
+    }
+    setStatus("☁️ Saved", 2000);
+  } catch (e) {
+    console.error("Cloud save failed:", e.message);
+    if (retries > 0) {
+      setStatus("⚠️ Retrying…");
+      setTimeout(() => commitToFirestore(retries - 1), 3000);
+    } else {
+      setStatus("⚠️ Sync failed");
+    }
+  }
+}
+
+async function commitViaREST() {
+  if (!currentUser) return;
+  
+  const token = await currentUser.getIdToken();
+  const projectId = "german-vocab-a"; // your Firebase project ID
+  const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/users/${currentUser.uid}/apps`;
 
   const wordsByDeck = {};
   Object.keys(S.words).forEach(key => {
@@ -254,23 +290,34 @@ async function commitToFirestore(retries = 3) {
   });
 
   const { words, ...meta } = S;
-  const saves = [ref.doc(STORAGE_KEY).set(meta)];
+  const docs = { [STORAGE_KEY]: meta };
   Object.entries(wordsByDeck).forEach(([deckId, deckWords]) => {
-    saves.push(ref.doc(STORAGE_KEY + "_words_" + deckId).set({ words: deckWords }));
+    docs[STORAGE_KEY + "_words_" + deckId] = { words: deckWords };
   });
 
-  try {
-    await Promise.all(saves);
-    setStatus("☁️ Saved", 2000);
-  } catch (e) {
-    console.error("Cloud save failed:", e);
-    if (retries > 0) {
-      setStatus("⚠️ Retrying sync…");
-      setTimeout(() => commitToFirestore(retries - 1), 3000);
-    } else {
-      setStatus("⚠️ Sync failed");
-    }
+  function toFirestoreValue(val) {
+    if (val === null || val === undefined) return { nullValue: null };
+    if (typeof val === "boolean") return { booleanValue: val };
+    if (typeof val === "number") return Number.isInteger(val) ? { integerValue: val } : { doubleValue: val };
+    if (typeof val === "string") return { stringValue: val };
+    if (Array.isArray(val)) return { arrayValue: { values: val.map(toFirestoreValue) } };
+    if (typeof val === "object") return { mapValue: { fields: Object.fromEntries(Object.entries(val).map(([k,v]) => [k, toFirestoreValue(v)])) } };
+    return { stringValue: String(val) };
   }
+
+  function toFirestoreDoc(obj) {
+    return { fields: Object.fromEntries(Object.entries(obj).map(([k,v]) => [k, toFirestoreValue(v)])) };
+  }
+
+  const saves = Object.entries(docs).map(([docId, data]) =>
+    fetch(`${baseUrl}/${docId}`, {
+      method: "PATCH",
+      headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify(toFirestoreDoc(data))
+    }).then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); })
+  );
+
+  await Promise.all(saves);
 }
 
 // Write to localStorage only — no Firestore, no debounce.
