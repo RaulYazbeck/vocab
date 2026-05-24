@@ -283,7 +283,7 @@ function saveLocalOnly() {
 // Pulls from Firestore every 3 minutes while online.
 // Does nothing when offline — Firestore persistence handles that.
 
-const BG_SYNC_INTERVAL_MS = 3 * 60 * 1000; // 3 minutes
+const BG_SYNC_INTERVAL_MS = 2 * 60 * 1000; // 3 minutes
 
 function startBackgroundSync() {
   stopBackgroundSync(); // clear any existing interval first
