@@ -144,16 +144,14 @@ let bgSyncInterval = null;
 // flushes automatically on reconnect). Must be called before any
 // Firestore operation. Fails silently if already enabled (multi-tab).
 const isIOSPWA = navigator.standalone === true;
-if (!isIOSPWA) {
-  db.enablePersistence({ synchronizeTabs: true })
-    .catch(err => {
-      if (err.code === "failed-precondition") {
-        console.warn("Firestore persistence unavailable: multiple tabs open.");
-      } else if (err.code === "unimplemented") {
-        console.warn("Firestore persistence not supported in this browser.");
-      }
-    });
-}
+db.enablePersistence({ synchronizeTabs: !isIOSPWA })
+  .catch(err => {
+    if (err.code === "failed-precondition") {
+      console.warn("Firestore persistence unavailable: multiple tabs open.");
+    } else if (err.code === "unimplemented") {
+      console.warn("Firestore persistence not supported in this browser.");
+    }
+  });
 
 // ── AUTH ──────────────────────────────────────
 
@@ -244,11 +242,10 @@ function saveToCloud() {
 }
 
 // Write to Firestore immediately — used by beforeunload and background sync.
-function commitToFirestore() {
+async function commitToFirestore(retries = 3) {
   if (!currentUser) return;
   const ref = db.collection("users").doc(currentUser.uid).collection("apps");
-  
-  // Split words by deck
+
   const wordsByDeck = {};
   Object.keys(S.words).forEach(key => {
     const deckId = key.substring(0, key.lastIndexOf("_"));
@@ -256,18 +253,24 @@ function commitToFirestore() {
     wordsByDeck[deckId][key] = S.words[key];
   });
 
-  // Save metadata (no words)
   const { words, ...meta } = S;
   const saves = [ref.doc(STORAGE_KEY).set(meta)];
-
-  // Save one doc per deck
   Object.entries(wordsByDeck).forEach(([deckId, deckWords]) => {
     saves.push(ref.doc(STORAGE_KEY + "_words_" + deckId).set({ words: deckWords }));
   });
 
-  Promise.all(saves)
-    .then(() => setStatus("☁️ Saved", 2000))
-    .catch(e => console.error("Cloud save failed:", e));
+  try {
+    await Promise.all(saves);
+    setStatus("☁️ Saved", 2000);
+  } catch (e) {
+    console.error("Cloud save failed:", e);
+    if (retries > 0) {
+      setStatus("⚠️ Retrying sync…");
+      setTimeout(() => commitToFirestore(retries - 1), 3000);
+    } else {
+      setStatus("⚠️ Sync failed");
+    }
+  }
 }
 
 // Write to localStorage only — no Firestore, no debounce.
