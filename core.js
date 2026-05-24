@@ -139,19 +139,22 @@ function migrate() {
 let currentUser  = null;
 let syncTimeout  = null;
 let bgSyncInterval = null;
+let manualSyncInProgress = false;
 
 // Enable Firestore offline persistence (queues writes when offline,
 // flushes automatically on reconnect). Must be called before any
 // Firestore operation. Fails silently if already enabled (multi-tab).
 const isIOSPWA = navigator.standalone === true;
-db.enablePersistence({ synchronizeTabs: !isIOSPWA })
-  .catch(err => {
-    if (err.code === "failed-precondition") {
-      console.warn("Firestore persistence unavailable: multiple tabs open.");
-    } else if (err.code === "unimplemented") {
-      console.warn("Firestore persistence not supported in this browser.");
-    }
-  });
+if (!isIOSPWA) {
+  db.enablePersistence({ synchronizeTabs: true })
+    .catch(err => {
+      if (err.code === "failed-precondition") {
+        console.warn("Firestore persistence unavailable: multiple tabs open.");
+      } else if (err.code === "unimplemented") {
+        console.warn("Firestore persistence not supported in this browser.");
+      }
+    });
+}
 
 // ── AUTH ──────────────────────────────────────
 
@@ -191,7 +194,7 @@ function loadFromCloud() {
   setStatus("☁️ Syncing…");
   const ref = db.collection("users").doc(currentUser.uid).collection("apps");
 
-  ref.get({ source: 'server' }).catch(() => ref.get()).then(snapshot => {
+  return ref.get({ source: 'server' }).catch(() => ref.get()).then(snapshot => {
     let meta = null;
     const allWords = {};
 
@@ -338,7 +341,7 @@ const BG_SYNC_INTERVAL_MS = 1.5 * 60 * 1000; // 90 seconds
 function startBackgroundSync() {
   stopBackgroundSync(); // clear any existing interval first
   bgSyncInterval = setInterval(() => {
-    if (navigator.onLine) {
+    if (navigator.onLine && !manualSyncInProgress) {
       loadFromCloud();
     }
   }, BG_SYNC_INTERVAL_MS);
@@ -1005,22 +1008,23 @@ function handleSyncTap() {
   }
 }
 
-function showSyncControls() {
+async function showSyncControls() {
   if (!confirm("⚠️ Admin sync controls. Use with care.")) return;
   const choice = confirm("OK = Force Download from cloud\nCancel = Force Upload to cloud");
+  manualSyncInProgress = true;
+  stopBackgroundSync();
   if (choice) {
-    // Force download
     S.savedAt = 0;
     saveLocalOnly();
-    loadFromCloud();
-    alert("Downloading from cloud...");
+    await loadFromCloud();
+    setStatus("⬇️ Downloaded", 3000);
   } else {
-    // Force upload
     S.savedAt = Date.now();
     saveLocalOnly();
-    commitToFirestore();
-    alert("Uploading to cloud...");
+    await commitToFirestore();
   }
+  manualSyncInProgress = false;
+  startBackgroundSync();
 }
 
 // ── LOGIN STREAK ──────────────────────────────
