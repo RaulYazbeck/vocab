@@ -163,7 +163,7 @@ const DECKS_A1 = {
         { en:"later", de:"später", hint:"time adverb", examples:[{de:"Das können wir später machen.",en:"We can do that later."}] },
         { en:"then / at that point", de:"dann", hint:"time adverb", examples:[{de:"Ich gehe erst einkaufen, dann koche ich.",en:"First I'll go shopping, then I'll cook."}] },
         { en:"earlier / former", de:"früher", hint:"time adverb", examples:[{de:"Früher haben wir hier gewohnt.",en:"We used to live here."}] },
-        { en:"end of shift / after work", de:"der Feierabend", hint:"noun", examples:[{de:"Nach dem Feierabend gehe ich joggen.",en:"After work I go jogging."}] },
+        { en:"the end of shift / after work", de:"der Feierabend", hint:"noun", examples:[{de:"Nach dem Feierabend gehe ich joggen.",en:"After work I go jogging."}] },
         { en:"the public holiday", de:"der Feiertag", pl:"die Feiertage", hint:"noun", examples:[{de:"Am Feiertag sind die Geschäfte geschlossen.",en:"On public holidays the shops are closed."}] },
         { en:"punctual / on time", de:"pünktlich", hint:"adjective", examples:[{de:"Der Bus fährt pünktlich um acht.",en:"The bus leaves punctually at eight."}] },
         { en:"at the moment / currently", de:"zurzeit", hint:"time adverb", examples:[{de:"Zurzeit wohne ich in Berlin.",en:"Currently I live in Berlin."}] },
