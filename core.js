@@ -702,7 +702,7 @@ function pickNext(focusMode=false) {
     const weights = candidates.map(w => {
       const ws = getWS(w.deckId, w.idx);
       if (ws.correct === 0 && ws.wrong === 0) return 15;
-      if (ws.wrong > ws.correct && ws.wrong > 0) return 10 + ws.wrong * 5;
+      if (ws.wrong > ws.correct) return 10 + (ws.wrong - ws.correct) * 5;
       if (ws.correct > ws.wrong) return Math.max(2, 10 - 2 * (ws.correct - ws.wrong));
       return 10; // equal — still struggling
     });
