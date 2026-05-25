@@ -1,54 +1,3 @@
-// ── TEMP DIAGNOSTIC — REMOVE AFTER DEBUG ────────────────
-(function() {
-  const initialLocalRaw = localStorage.getItem("gv5_de");
-  const initialLocal = initialLocalRaw ? JSON.parse(initialLocalRaw) : null;
-  const tabOpenTime = Date.now();
-  window._diag = {
-    tabOpenTime,
-    initialLocalSavedAt: initialLocal?.savedAt,
-    initialLocalExp: initialLocal?.exp,
-    events: [],
-  };
-  window._diag.events.push({
-    t: 0,
-    label: "tab opened",
-    localStorageSavedAt: initialLocal?.savedAt,
-    localStorageExp: initialLocal?.exp,
-  });
-  // Hook localStorage writes
-  const origSetItem = Storage.prototype.setItem;
-  Storage.prototype.setItem = function(key, value) {
-    if (key === "gv5_de") {
-      try {
-        const parsed = JSON.parse(value);
-        window._diag.events.push({
-          t: Date.now() - tabOpenTime,
-          label: "localStorage.setItem",
-          savedAt: parsed.savedAt,
-          exp: parsed.exp,
-        });
-      } catch(e) {}
-    }
-    return origSetItem.apply(this, arguments);
-  };
-  // Log every 1s for first 10s
-  for (let i = 1; i <= 10; i++) {
-    setTimeout(() => {
-      if (typeof S !== "undefined") {
-        window._diag.events.push({
-          t: Date.now() - tabOpenTime,
-          label: "tick " + i + "s",
-          S_savedAt: S.savedAt,
-          S_exp: S.exp,
-        });
-      }
-    }, i * 1000);
-  }
-  console.log("[DIAG] instrumentation installed at tab open");
-})();
-// ── END TEMP DIAGNOSTIC ─────────────────────────────────
-
-
 // ─────────────────────────────────────────────────────────────────
 // core.js — Shared vocab app engine
 // Requires APP_CONFIG to be defined before this file loads:
@@ -191,21 +140,9 @@ let currentUser  = null;
 let syncTimeout  = null;
 let bgSyncInterval = null;
 let manualSyncInProgress = false;
+let initialLoadComplete = false; // gate cloud writes until first load finishes
 
-// Enable Firestore offline persistence (queues writes when offline,
-// flushes automatically on reconnect). Must be called before any
-// Firestore operation. Fails silently if already enabled (multi-tab).
 const isIOSPWA = navigator.standalone === true;
-if (!isIOSPWA) {
-  db.enablePersistence({ synchronizeTabs: true })
-    .catch(err => {
-      if (err.code === "failed-precondition") {
-        console.warn("Firestore persistence unavailable: multiple tabs open.");
-      } else if (err.code === "unimplemented") {
-        console.warn("Firestore persistence not supported in this browser.");
-      }
-    });
-}
 
 // ── AUTH ──────────────────────────────────────
 
@@ -261,7 +198,7 @@ function loadFromCloud() {
       }
     });
 
-    if (!meta) { setStatus("☁️ Synced", 3000); return; }
+    if (!meta) { setStatus("☁️ Synced", 3000); initialLoadComplete = true; return; }
 
     const cloudTime = meta.savedAt || 0;
     const localTime = S.savedAt || 0;
@@ -281,9 +218,11 @@ function loadFromCloud() {
         renderExpBar();
         renderGroups();
         setStatus("☁️ Restored from cloud", 3000);
+        initialLoadComplete = true;
         return;
       }
       setStatus("☁️ Synced (local newer)", 3000);
+      initialLoadComplete = true;
       return;
     }
 
@@ -302,6 +241,7 @@ function loadFromCloud() {
       );
       if (!accept) {
         // Force local to overwrite cloud on next save.
+        initialLoadComplete = true;
         S.savedAt = Date.now();
         saveToCloud();
         setStatus("☁️ Kept local, pushing up", 3000);
@@ -316,9 +256,13 @@ function loadFromCloud() {
     renderGroups();
 
     setStatus("☁️ Synced", 3000);
+    initialLoadComplete = true;
   }).catch(e => {
     console.error("Cloud load failed (no fallback to cache):", e);
     setStatus("⚠️ Offline — using local data", 3000);
+    // Even on failure, unblock writes after a delay so the user isn't
+    // permanently locked out if they're offline at open time.
+    setTimeout(() => { initialLoadComplete = true; }, 5000);
   });
 }
 
@@ -377,6 +321,14 @@ function saveToCloud() {
 
   S.savedAt = Date.now();
   saveLocalOnly();
+
+  // CRITICAL: do not write to cloud until initial load has completed.
+  // Otherwise, any state change between page open and cloud load can
+  // push stale local state up and clobber newer data on the server.
+  if (!initialLoadComplete) {
+    console.log("[sync] suppressing cloud write — initial load not yet complete");
+    return;
+  }
 
   clearTimeout(syncTimeout);
   syncTimeout = setTimeout(() => {
@@ -1189,13 +1141,12 @@ function recordLogin() {
   if (maxStreak >= 7)  checkBadge("streak_7");
   if (maxStreak >= 30) checkBadge("streak_30");
   S.exp += 15;
-  S.savedAt = Date.now();
+  // Do NOT stamp savedAt here at init time. If we did, Mac would look
+  // "newer" than cloud on page open and reject the load. The next real
+  // save (answering a word, etc.) will stamp savedAt correctly via
+  // saveState() → saveToCloud(). For now, just persist locally.
   saveLocalOnly();
-  // If auth has already resolved, also schedule a cloud write.
-  if (currentUser) {
-    clearTimeout(syncTimeout);
-    syncTimeout = setTimeout(() => commitToFirestore(), 300);
-  }
+  renderExpBar();
 }
 
 // ── BADGES ────────────────────────────────────
