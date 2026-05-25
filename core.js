@@ -40,6 +40,15 @@ const BADGE_DEFS = [
   { id:"graduate",       icon:"🎓", name:"Graduate",      desc:"All words mastered in a deck" },
 ];
 
+const DRILL_MILESTONES = [
+  { at:25, xp:10 }, { at:50, xp:20 }, { at:75, xp:30 }, { at:100, xp:40 }
+];
+function getDrillMilestone(n) {
+  if (n <= 100) return DRILL_MILESTONES.find(m => m.at === n) || null;
+  if (n > 100 && n % 50 === 0) return { at:n, xp:50 };
+  return null;
+}
+
 // ── STATE ─────────────────────────────────────
 let S = loadState();
 let selectedIds = new Set();
@@ -96,6 +105,9 @@ function migrate() {
   if (!S.loginDates)    S.loginDates = [];
   if (!S.totalCorrect)  S.totalCorrect = 0;
   if (!S.lastLoginDate) S.lastLoginDate = "";
+  if (!S.drillMilestonesDate)    S.drillMilestonesDate = "";
+  if (!S.drillCorrectToday)      S.drillCorrectToday = 0;
+  if (!S.drillMilestonesClaimed) S.drillMilestonesClaimed = [];
   Object.keys(S.words).forEach(key => {
     const ws = S.words[key];
     if (!ws.mastered && ws.streak >= 6) ws.mastered = true;
@@ -1484,6 +1496,38 @@ function focusInput() {
   attempt(0); attempt(100); attempt(300);
 }
 function handleDrillKey(e) { if (e.key === "Enter") { if (answered) nextDrillWord(); else checkDrill(); } }
+function checkDrillMilestone() {
+  const today = todayISO();
+  if (S.drillMilestonesDate !== today) {
+    S.drillMilestonesDate = today;
+    S.drillCorrectToday = 0;
+    S.drillMilestonesClaimed = [];
+  }
+  S.drillCorrectToday++;
+  const milestone = getDrillMilestone(S.drillCorrectToday);
+  if (milestone && !S.drillMilestonesClaimed.includes(milestone.at)) {
+    S.drillMilestonesClaimed.push(milestone.at);
+    addExp(milestone.xp);
+    showMilestoneFlash(`🎯 ${S.drillCorrectToday} correct today! +${milestone.xp} XP`);
+  }
+}
+
+function showMilestoneFlash(msg) {
+  const el = document.createElement("div");
+  el.textContent = msg;
+  el.style.cssText = `
+    position:fixed;top:24px;left:50%;transform:translateX(-50%);
+    background:#1D9E75;color:white;padding:10px 20px;border-radius:12px;
+    font-size:14px;font-weight:700;z-index:999;
+    animation:milestoneIn 0.3s ease,milestoneOut 0.4s ease 2s forwards;
+    pointer-events:none;white-space:nowrap;
+  `;
+  el.id = "milestone-flash";
+  const existing = document.getElementById("milestone-flash");
+  if (existing) existing.remove();
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2500);
+}
 function checkDrill() {
   if (answered) return;
   const input = document.getElementById("german-input");
@@ -1497,7 +1541,8 @@ function checkDrill() {
     ws.correct++; ws.streak++; ws.displayStreak++;
     sessionCorrect++; sessionConsecutive++;
     S.totalCorrect++;
-    addExp(isNew ? 20 : 5);
+    if (activeMode === "classic" || activeMode === "focus") checkDrillMilestone();
+    addExp(isNew ? 10 : 5);
     if (!ws.mastered && isMastered(ws)) {
       ws.mastered = true;
       ws.streak = 0;
@@ -1757,7 +1802,8 @@ function handleVoiceResult(correct, heard, isSkip=false) {
     ws.correct++; ws.streak++; ws.displayStreak++;
     sessionCorrect++; sessionConsecutive++;
     S.totalCorrect++;
-    addExp(isNew ? 20 : 5);
+    if (activeMode === "classic" || activeMode === "focus") checkDrillMilestone();
+    addExp(isNew ? 10 : 5);
     if (!ws.mastered && isMastered(ws)) {
       ws.mastered = true;
       ws.streak = 0;
@@ -2102,7 +2148,7 @@ function skipTimer() {
 function endTimer(won) {
   timerFinished = true; clearInterval(timerInterval); stopVoiceSession();
   checkBadge("speed_demon");
-  const perfBonus = Math.max(0, (timerCorrect - timerWrong) * 6);
+  const perfBonus = Math.max(0, (timerCorrect - timerWrong) * 7);
   const winBonus = won ? timerWordCount : 0;
   timerExpEarned = perfBonus + winBonus;
   addExp(timerExpEarned);
