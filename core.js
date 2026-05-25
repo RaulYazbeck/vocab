@@ -1423,7 +1423,7 @@ function renderDrill() {
   if (!currentWord) return;
   const ws = getWS(currentWord.deckId, currentWord.idx);
   const badges = [
-    isMasteryPlus(ws) ? `<span class="masteryplus-badge">⭐ mastery+</span>` :
+    isMasteryPlus(ws) ? `<span class="masteryplus-badge">⭐ ${21 - daysBetween(ws.masteryPlusDate, todayISO())}d</span>` :
       isMastered(ws) ? `<span class="mastered-badge">✓ mastered</span>` : "",
     ws.displayStreak > 0 && !isMasteryPlus(ws) ? `<span class="streak-badge">🔥 ${ws.displayStreak}</span>` : ""
   ].join(" ");
@@ -1844,7 +1844,7 @@ function renderVoiceDrill() {
   if (!currentWord) return;
   const ws = getWS(currentWord.deckId, currentWord.idx);
   const badges = [
-    isMasteryPlus(ws) ? `<span class="masteryplus-badge">⭐ mastery+</span>` :
+    isMasteryPlus(ws) ? `<span class="masteryplus-badge">⭐ ${21 - daysBetween(ws.masteryPlusDate, todayISO())}d</span>` :
     isMastered(ws) ? `<span class="mastered-badge">✓ mastered</span>` : "",
     ws.displayStreak > 0 && !isMasteryPlus(ws) ? `<span class="streak-badge">🔥 ${ws.displayStreak}</span>` : ""
   ].join(" ");
@@ -2150,7 +2150,7 @@ function renderStatsScreen() {
       unlockedWords(deck).forEach((w,i) => {
         const ws = getWS(deck.id, i);
         const st = isMasteryPlus(ws)
-          ? `<span class="masteryplus-badge">⭐+</span>`
+          ? `<span class="masteryplus-badge">⭐ ${21 - daysBetween(ws.masteryPlusDate, todayISO())}d</span>`
           : isMastered(ws)
             ? `<span class="mastered-badge">✓</span>`
             : ws.displayStreak > 0
