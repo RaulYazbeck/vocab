@@ -19,7 +19,7 @@ const WORD_KEY      = APP_CONFIG.targetProp;
 const UNLOCK_STEP   = 10;
 const UNLOCK_INITIAL = 12;
 
-const EXP_BASE = 400, EXP_RATIO = 1.1;
+const EXP_BASE = 400, EXP_RATIO = 1.08;
 function expForLevel(n) {
   if (n <= 1) return 0;
   return Math.round(EXP_BASE * (Math.pow(EXP_RATIO, n - 1) - 1) / (EXP_RATIO - 1));
@@ -2102,7 +2102,7 @@ function skipTimer() {
 function endTimer(won) {
   timerFinished = true; clearInterval(timerInterval); stopVoiceSession();
   checkBadge("speed_demon");
-  const perfBonus = Math.max(0, (timerCorrect - timerWrong) * 5);
+  const perfBonus = Math.max(0, (timerCorrect - timerWrong) * 6);
   const winBonus = won ? timerWordCount : 0;
   timerExpEarned = perfBonus + winBonus;
   addExp(timerExpEarned);
