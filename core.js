@@ -1,3 +1,54 @@
+// ── TEMP DIAGNOSTIC — REMOVE AFTER DEBUG ────────────────
+(function() {
+  const initialLocalRaw = localStorage.getItem("gv5_de");
+  const initialLocal = initialLocalRaw ? JSON.parse(initialLocalRaw) : null;
+  const tabOpenTime = Date.now();
+  window._diag = {
+    tabOpenTime,
+    initialLocalSavedAt: initialLocal?.savedAt,
+    initialLocalExp: initialLocal?.exp,
+    events: [],
+  };
+  window._diag.events.push({
+    t: 0,
+    label: "tab opened",
+    localStorageSavedAt: initialLocal?.savedAt,
+    localStorageExp: initialLocal?.exp,
+  });
+  // Hook localStorage writes
+  const origSetItem = Storage.prototype.setItem;
+  Storage.prototype.setItem = function(key, value) {
+    if (key === "gv5_de") {
+      try {
+        const parsed = JSON.parse(value);
+        window._diag.events.push({
+          t: Date.now() - tabOpenTime,
+          label: "localStorage.setItem",
+          savedAt: parsed.savedAt,
+          exp: parsed.exp,
+        });
+      } catch(e) {}
+    }
+    return origSetItem.apply(this, arguments);
+  };
+  // Log every 1s for first 10s
+  for (let i = 1; i <= 10; i++) {
+    setTimeout(() => {
+      if (typeof S !== "undefined") {
+        window._diag.events.push({
+          t: Date.now() - tabOpenTime,
+          label: "tick " + i + "s",
+          S_savedAt: S.savedAt,
+          S_exp: S.exp,
+        });
+      }
+    }, i * 1000);
+  }
+  console.log("[DIAG] instrumentation installed at tab open");
+})();
+// ── END TEMP DIAGNOSTIC ─────────────────────────────────
+
+
 // ─────────────────────────────────────────────────────────────────
 // core.js — Shared vocab app engine
 // Requires APP_CONFIG to be defined before this file loads:
