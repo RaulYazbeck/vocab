@@ -119,32 +119,50 @@ function migrate() {
 }
 
 // ── FIREBASE AUTH & SYNC ──────────────────────
- 
-let currentUser        = null;
-let syncTimeout        = null;
-let bgSyncInterval     = null;
+//
+// Architecture:
+//   • Firestore persistence enabled → offline writes queue locally,
+//     flush automatically when back online. No offline logic needed.
+//   • On login: always load from Firestore unconditionally (no EXP
+//     comparison). Firestore is source of truth; localStorage is cache.
+//   • On save: write to localStorage immediately, then debounce-write
+//     to Firestore (300ms). Every save stamps a `savedAt` timestamp.
+//   • On load merge: take cloud if cloud.savedAt >= local.savedAt,
+//     otherwise keep local (local has newer unsaved progress).
+//   • beforeunload: bypass debounce, write to Firestore immediately
+//     so tab/browser closes don't lose the last session.
+//   • Background sync: every 3 minutes while online, pull from
+//     Firestore as a safety net for cross-device drift.
+//
+// ─────────────────────────────────────────────
+
+let currentUser  = null;
+let syncTimeout  = null;
+let bgSyncInterval = null;
 let manualSyncInProgress = false;
- 
-// Firestore offline persistence.
-// Skipped on iOS PWA (navigator.standalone) because it causes more
-// problems than it solves there — we handle iOS explicitly below.
+
+// Enable Firestore offline persistence (queues writes when offline,
+// flushes automatically on reconnect). Must be called before any
+// Firestore operation. Fails silently if already enabled (multi-tab).
 const isIOSPWA = navigator.standalone === true;
 if (!isIOSPWA) {
   db.enablePersistence({ synchronizeTabs: true })
     .catch(err => {
-      if (err.code !== "failed-precondition" && err.code !== "unimplemented") {
-        console.warn("Firestore persistence error:", err.code);
+      if (err.code === "failed-precondition") {
+        console.warn("Firestore persistence unavailable: multiple tabs open.");
+      } else if (err.code === "unimplemented") {
+        console.warn("Firestore persistence not supported in this browser.");
       }
     });
 }
- 
+
 // ── AUTH ──────────────────────────────────────
- 
+
 auth.onAuthStateChanged(user => {
   currentUser = user;
   const btn    = document.getElementById("auth-btn");
   const status = document.getElementById("sync-status");
- 
+
   if (user) {
     if (btn)    btn.textContent = user.displayName?.split(" ")[0] || "Signed in";
     if (status) status.textContent = "☁️ Syncing…";
@@ -156,7 +174,7 @@ auth.onAuthStateChanged(user => {
     stopBackgroundSync();
   }
 });
- 
+
 function handleAuth() {
   if (currentUser) {
     if (confirm("Sign out?")) auth.signOut();
@@ -165,53 +183,21 @@ function handleAuth() {
     auth.signInWithPopup(provider).catch(e => alert("Sign in failed: " + e.message));
   }
 }
- 
+
 // ── LOAD FROM CLOUD ───────────────────────────
-//
-// FIX BUG 1 — iOS PWA forced server read with timeout.
-//
-// Previously: ref.get({ source:'server' }).catch(() => ref.get())
-// Problem:    the silent catch falls back to the SDK's local cache,
-//             which on iOS PWA is whatever was last seen in that
-//             session — often stale or empty. You can't tell which
-//             source you actually got.
-//
-// Fix:        wrap the server read in an explicit timeout race.
-//             If Firestore doesn't respond in 8s, we know it failed
-//             and surface the error clearly instead of silently
-//             serving stale data. On non-iOS the SDK cache is fine
-//             as a fallback so we keep the original behavior there.
-//
-// FIX BUG 2 — savedAt comparison uses Firestore server timestamps.
-//             See saveToCloud() for the write side.
-//             On the read side: cloud.savedAt comes back as a
-//             Firestore Timestamp object (with .toMillis()), not a
-//             plain number. We normalise both sides to ms integers
-//             before comparing.
- 
+// Always prefer the most recently saved state using savedAt timestamp.
+// Falls back to unconditional overwrite if either side lacks savedAt
+// (handles existing data that pre-dates this change).
+
 function loadFromCloud() {
   if (!currentUser) return;
   setStatus("☁️ Syncing…");
- 
   const ref = db.collection("users").doc(currentUser.uid).collection("apps");
- 
-  // Build the read promise. On iOS PWA we must hit the server;
-  // on other platforms the SDK cache is a safe fallback.
-  let readPromise;
-  if (isIOSPWA) {
-    const serverRead = ref.get({ source: "server" });
-    const timeout    = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("Firestore read timeout")), 8000)
-    );
-    readPromise = Promise.race([serverRead, timeout]);
-  } else {
-    readPromise = ref.get({ source: "server" }).catch(() => ref.get());
-  }
- 
-  return readPromise.then(snapshot => {
-    let meta      = null;
+
+  return ref.get({ source: 'server' }).catch(() => ref.get()).then(snapshot => {
+    let meta = null;
     const allWords = {};
- 
+
     snapshot.forEach(doc => {
       const data = doc.data();
       if (doc.id === STORAGE_KEY) {
@@ -220,75 +206,44 @@ function loadFromCloud() {
         Object.assign(allWords, data.words || {});
       }
     });
- 
+
     if (!meta) { setStatus("☁️ Synced", 3000); return; }
- 
-    // Normalise savedAt to milliseconds regardless of whether it
-    // arrived as a Firestore Timestamp, a plain number, or missing.
-    const toMs = v =>
-      v && typeof v.toMillis === "function" ? v.toMillis()
-      : typeof v === "number"               ? v
-      : 0;
- 
-    const cloudTime = toMs(meta.savedAt);
-    const localTime = toMs(S.savedAt);
- 
+
+    const cloudTime = meta.savedAt || 0;
+    const localTime = S.savedAt || 0;
+
     if (cloudTime >= localTime) {
-      // Cloud is newer (or equal) — take it.
-      // Normalise savedAt to a plain number so the rest of the
-      // codebase never has to deal with Timestamp objects.
-      S = { ...meta, words: allWords, savedAt: cloudTime };
+      S = { ...meta, words: allWords };
       migrate();
       recordLogin();
       renderExpBar();
       renderGroups();
     }
-    // else: local is newer — keep S as-is, nothing to do.
- 
+
     setStatus("☁️ Synced", 3000);
   }).catch(e => {
-    console.error("Cloud load failed:", e.message);
-    setStatus("⚠️ Sync failed — will retry");
+    console.error("Cloud load failed:", e);
+    setStatus("☁️ Sync failed");
   });
 }
- 
+
 // ── SAVE TO CLOUD ─────────────────────────────
-//
-// FIX BUG 2 — use Firestore server timestamp instead of Date.now().
-//
-// Previously: S.savedAt = Date.now()  (device clock)
-// Problem:    if the device clock is wrong, or two devices write
-//             within the same millisecond, the comparison breaks.
-//             More critically, on iOS the beforeunload path stamped
-//             savedAt locally but the Firestore write was killed,
-//             so localStorage thought it was newer than Firestore.
-//
-// Fix:        stamp a provisional Date.now() into S so localStorage
-//             and the in-memory state have *a* value, but write
-//             firebase.firestore.FieldValue.serverTimestamp() to
-//             Firestore so the authoritative value is always the
-//             server's clock. On the next loadFromCloud() we read
-//             back the real server timestamp and normalise it.
- 
+// Stamps savedAt, writes localStorage immediately, debounces Firestore
+// write to 300ms to batch rapid successive saves (e.g. answering words).
+
 function saveToCloud() {
   if (!currentUser) return;
- 
-  // Provisional local stamp — keeps localStorage consistent.
+
   S.savedAt = Date.now();
   saveLocalOnly();
- 
+
   clearTimeout(syncTimeout);
   syncTimeout = setTimeout(() => {
     commitToFirestore();
   }, 300);
 }
- 
-// ── COMMIT TO FIRESTORE ───────────────────────
-//
-// Writes the full state. On iOS PWA uses the REST API (avoids SDK
-// quirks in standalone mode). On other platforms uses the SDK.
-// savedAt is written as a server timestamp so Firestore's clock wins.
- 
+
+// Write to Firestore immediately — used by beforeunload and background sync.
 async function commitToFirestore(retries = 3) {
   if (!currentUser) return;
   setStatus("☁️ Saving…");
@@ -296,20 +251,25 @@ async function commitToFirestore(retries = 3) {
     if (isIOSPWA) {
       await commitViaREST();
     } else {
-      const ref        = db.collection("users").doc(currentUser.uid).collection("apps");
-      const serverTS   = firebase.firestore.FieldValue.serverTimestamp();
+      const ref = db.collection("users").doc(currentUser.uid).collection("apps");
       const wordsByDeck = {};
       Object.keys(S.words).forEach(key => {
         const deckId = key.substring(0, key.lastIndexOf("_"));
         if (!wordsByDeck[deckId]) wordsByDeck[deckId] = {};
         wordsByDeck[deckId][key] = S.words[key];
       });
-      const { words, savedAt, ...meta } = S;                 // strip local savedAt
-      const saves = [ref.doc(STORAGE_KEY).set({ ...meta, savedAt: serverTS })];
+      const { words, ...meta } = S;
+      const saves = [ref.doc(STORAGE_KEY).set(meta)];
       Object.entries(wordsByDeck).forEach(([deckId, deckWords]) => {
         saves.push(ref.doc(STORAGE_KEY + "_words_" + deckId).set({ words: deckWords }));
       });
-      await Promise.all(saves);
+      const results = await Promise.allSettled(saves);
+      const failed = results.filter(r => r.status === "rejected");
+      if (failed.length > 0) {
+        alert("REST failed: " + failed.map(r => r.reason?.message).join(", "));
+      } else {
+        alert("REST succeeded - " + results.length + " docs written");
+      }
     }
     setStatus("☁️ Saved", 2000);
   } catch (e) {
@@ -322,85 +282,53 @@ async function commitToFirestore(retries = 3) {
     }
   }
 }
- 
-// ── REST FALLBACK (iOS PWA) ───────────────────
-//
-// FIX BUG 2 (iOS path) — use Firestore REST $serverTimestamp transform
-// instead of writing Date.now(). The REST API supports field transforms
-// via the `currentDocument` + `writes` batch format, but the simplest
-// approach is a PATCH with a separate field-transform request.
-// We use the `updateMask` + `currentDocument` approach to keep it
-// simple: write all fields normally, then send a separate transform
-// request to overwrite savedAt with the server timestamp.
- 
+
 async function commitViaREST() {
   if (!currentUser) return;
- 
-  const token     = await currentUser.getIdToken();
-  const projectId = "german-vocab-a";
-  const baseUrl   = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/users/${currentUser.uid}/apps`;
- 
+  
+  const token = await currentUser.getIdToken();
+  const projectId = "german-vocab-a"; // your Firebase project ID
+  const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/users/${currentUser.uid}/apps`;
+
   const wordsByDeck = {};
   Object.keys(S.words).forEach(key => {
     const deckId = key.substring(0, key.lastIndexOf("_"));
     if (!wordsByDeck[deckId]) wordsByDeck[deckId] = {};
     wordsByDeck[deckId][key] = S.words[key];
   });
- 
-  const { words, savedAt, ...meta } = S;   // strip local savedAt before REST write
+
+  const { words, ...meta } = S;
   const docs = { [STORAGE_KEY]: meta };
   Object.entries(wordsByDeck).forEach(([deckId, deckWords]) => {
     docs[STORAGE_KEY + "_words_" + deckId] = { words: deckWords };
   });
- 
+
   function toFirestoreValue(val) {
     if (val === null || val === undefined) return { nullValue: null };
-    if (typeof val === "boolean")          return { booleanValue: val };
-    if (typeof val === "number")           return Number.isInteger(val) ? { integerValue: val } : { doubleValue: val };
-    if (typeof val === "string")           return { stringValue: val };
-    if (Array.isArray(val))                return { arrayValue: { values: val.map(toFirestoreValue) } };
-    if (typeof val === "object")           return { mapValue: { fields: Object.fromEntries(Object.entries(val).map(([k, v]) => [k, toFirestoreValue(v)])) } };
+    if (typeof val === "boolean") return { booleanValue: val };
+    if (typeof val === "number") return Number.isInteger(val) ? { integerValue: val } : { doubleValue: val };
+    if (typeof val === "string") return { stringValue: val };
+    if (Array.isArray(val)) return { arrayValue: { values: val.map(toFirestoreValue) } };
+    if (typeof val === "object") return { mapValue: { fields: Object.fromEntries(Object.entries(val).map(([k,v]) => [k, toFirestoreValue(v)])) } };
     return { stringValue: String(val) };
   }
- 
+
   function toFirestoreDoc(obj) {
-    return { fields: Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, toFirestoreValue(v)])) };
+    return { fields: Object.fromEntries(Object.entries(obj).map(([k,v]) => [k, toFirestoreValue(v)])) };
   }
- 
-  // Step 1: write all docs (savedAt excluded — will be set by server transform)
-  const patchSaves = Object.entries(docs).map(([docId, data]) =>
+
+  const saves = Object.entries(docs).map(([docId, data]) =>
     fetch(`${baseUrl}/${docId}`, {
-      method:  "PATCH",
+      method: "PATCH",
       headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
-      body:    JSON.stringify(toFirestoreDoc(data)),
-    }).then(r => { if (!r.ok) throw new Error(`PATCH ${docId} → HTTP ${r.status}`); })
+      body: JSON.stringify(toFirestoreDoc(data))
+    }).then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); })
   );
-  await Promise.all(patchSaves);
- 
-  // Step 2: apply a server timestamp transform to savedAt on the meta doc.
-  // Uses the Firestore batchWrite endpoint with a fieldTransform.
-  const metaDocPath = `projects/${projectId}/databases/(default)/documents/users/${currentUser.uid}/apps/${STORAGE_KEY}`;
-  const transformBody = {
-    writes: [{
-      transform: {
-        document: metaDocPath,
-        fieldTransforms: [{ fieldPath: "savedAt", setToServerValue: "REQUEST_TIME" }],
-      },
-    }],
-  };
-  const transformRes = await fetch(
-    `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents:batchWrite`,
-    {
-      method:  "POST",
-      headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
-      body:    JSON.stringify(transformBody),
-    }
-  );
-  if (!transformRes.ok) throw new Error(`savedAt transform → HTTP ${transformRes.status}`);
+
+  await Promise.all(saves);
 }
- 
-// ── LOCAL WRITE ───────────────────────────────
- 
+
+// Write to localStorage only — no Firestore, no debounce.
 function saveLocalOnly() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(S));
@@ -408,113 +336,41 @@ function saveLocalOnly() {
     console.error("localStorage write failed:", e);
   }
 }
- 
+
 // ── BACKGROUND SYNC ───────────────────────────
- 
-const BG_SYNC_INTERVAL_MS = 90 * 1000; // 90 seconds
- 
+// Pulls from Firestore every 3 minutes while online.
+// Does nothing when offline — Firestore persistence handles that.
+
+const BG_SYNC_INTERVAL_MS = 0.5 * 60 * 1000; // 90 seconds
+
 function startBackgroundSync() {
-  stopBackgroundSync();
+  stopBackgroundSync(); // clear any existing interval first
   bgSyncInterval = setInterval(() => {
     if (navigator.onLine && !manualSyncInProgress) {
       loadFromCloud();
     }
   }, BG_SYNC_INTERVAL_MS);
 }
- 
+
 function stopBackgroundSync() {
   if (bgSyncInterval) {
     clearInterval(bgSyncInterval);
     bgSyncInterval = null;
   }
 }
- 
-// ── FLUSH ON BACKGROUNDING ────────────────────
-//
-// FIX BUG 3 — replace beforeunload with visibilitychange + pagehide.
-//
-// Previously: window.addEventListener("beforeunload", ...)
-// Problem:    beforeunload does not fire on iOS Safari/PWA when the
-//             user switches apps, presses home, or swipes away.
-//             The debounced commitToFirestore() gets killed mid-flight,
-//             but savedAt was already stamped in localStorage, so
-//             the local state looks newer than Firestore — causing
-//             the other device to ignore the cloud and load stale data.
-//
-// Fix:        listen to visibilitychange (hidden) and pagehide instead.
-//             Both fire reliably on iOS PWA when the app is backgrounded.
-//             We bypass the debounce and write immediately.
-//             We also cancel any pending debounced write to avoid a
-//             double-write race after the app is foregrounded again.
- 
-function flushOnBackground() {
-  clearTimeout(syncTimeout);   // cancel pending debounce
+
+// ── BEFOREUNLOAD FLUSH ────────────────────────
+// Bypasses the debounce on tab/browser close so the last session
+// is never lost due to the debounce window being open.
+// Uses sendBeacon-style approach: fire-and-forget, no await.
+
+window.addEventListener("beforeunload", () => {
+  clearTimeout(syncTimeout); // cancel any pending debounce
   if (currentUser && S.savedAt) {
-    commitToFirestore();       // fire-and-forget; iOS may kill it but
-  }                            // server timestamp means partial writes
-}                              // are harmless — savedAt only lands if
-                               // the full write succeeds.
- 
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "hidden") {
-    flushOnBackground();
+    commitToFirestore();
   }
 });
- 
-// pagehide fires on iOS when the page is being unloaded/cached.
-// Belt-and-suspenders alongside visibilitychange.
-window.addEventListener("pagehide", flushOnBackground);
- 
-// Keep beforeunload for non-iOS desktop browsers where it still works.
-if (!isIOSPWA) {
-  window.addEventListener("beforeunload", flushOnBackground);
-}
- 
-// ── STATUS HELPER ─────────────────────────────
- 
-function setStatus(msg, clearAfterMs = 0) {
-  const el = document.getElementById("sync-status");
-  if (!el) return;
-  el.textContent = msg;
-  if (clearAfterMs > 0) {
-    setTimeout(() => { if (el.textContent === msg) el.textContent = ""; }, clearAfterMs);
-  }
-}
- 
-// ── SECRET SYNC CONTROLS ──────────────────────
- 
-let syncTapCount = 0;
-let syncTapTimer = null;
- 
-function handleSyncTap() {
-  syncTapCount++;
-  clearTimeout(syncTapTimer);
-  syncTapTimer = setTimeout(() => { syncTapCount = 0; }, 2000);
-  if (syncTapCount >= 5) {
-    syncTapCount = 0;
-    showSyncControls();
-  }
-}
- 
-async function showSyncControls() {
-  if (!confirm("⚠️ Admin sync controls. Use with care.")) return;
-  const choice = confirm("OK = Force Download from cloud\nCancel = Force Upload to cloud");
-  manualSyncInProgress = true;
-  stopBackgroundSync();
-  if (choice) {
-    S.savedAt = 0;
-    saveLocalOnly();
-    await loadFromCloud();
-    setStatus("⬇️ Downloaded", 3000);
-  } else {
-    S.savedAt = Date.now();
-    saveLocalOnly();
-    await commitToFirestore();
-  }
-  manualSyncInProgress = false;
-  startBackgroundSync();
-}
- 
+
 // ── STATUS HELPER ─────────────────────────────
 
 function setStatus(msg, clearAfterMs = 0) {
