@@ -701,8 +701,10 @@ function pickNext(focusMode=false) {
     const candidates = filtered.length ? filtered : pool;
     const weights = candidates.map(w => {
       const ws = getWS(w.deckId, w.idx);
-      if (ws.wrong > ws.correct && ws.wrong > 0) return 10 + ws.wrong * 3;
-      return 5;
+      if (ws.correct === 0 && ws.wrong === 0) return 15;
+      if (ws.wrong > ws.correct && ws.wrong > 0) return 10 + ws.wrong * 5;
+      if (ws.correct > ws.wrong) return Math.max(2, 10 - 2 * (ws.correct - ws.wrong));
+      return 10; // equal — still struggling
     });
     const total = weights.reduce((a,b) => a+b, 0);
     let r = Math.random() * total;
