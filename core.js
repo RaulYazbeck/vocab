@@ -194,7 +194,10 @@ function loadFromCloud() {
   setStatus("☁️ Syncing…");
   const ref = db.collection("users").doc(currentUser.uid).collection("apps");
 
-  return ref.get({ source: 'server' }).catch(() => ref.get()).then(snapshot => {
+  // CRITICAL: no cache fallback. If the server is unreachable, do nothing
+  // and let local state stand. The cached Firestore data can be days old
+  // and silently clobbering local state was the source of major data loss.
+  return ref.get({ source: 'server' }).then(snapshot => {
     let meta = null;
     const allWords = {};
 
@@ -212,19 +215,78 @@ function loadFromCloud() {
     const cloudTime = meta.savedAt || 0;
     const localTime = S.savedAt || 0;
 
-    if (cloudTime >= localTime) {
-      S = { ...meta, words: allWords };
-      migrate();
-      recordLogin();
-      renderExpBar();
-      renderGroups();
+    if (cloudTime < localTime) {
+      // Local is newer. Keep local.
+      setStatus("☁️ Synced (local newer)", 3000);
+      return;
     }
+
+    // Cloud is newer-or-equal. Before accepting, sanity-check for regression.
+    const cloudState = { ...meta, words: allWords };
+    if (isRegression(S, cloudState)) {
+      console.warn("Refusing cloud load: looks like a regression.", {
+        localEvidence: evidenceCount(S),
+        cloudEvidence: evidenceCount(cloudState),
+      });
+      const accept = confirm(
+        "⚠️ Cloud data looks older than local data.\n\n" +
+        "Local: " + evidenceCount(S) + " answers, " + S.exp + " XP\n" +
+        "Cloud: " + evidenceCount(cloudState) + " answers, " + (cloudState.exp||0) + " XP\n\n" +
+        "Accept cloud data (LOSE local progress)?\n" +
+        "Cancel = keep local and push it to cloud."
+      );
+      if (!accept) {
+        // Force local to overwrite cloud on next save.
+        S.savedAt = Date.now();
+        saveToCloud();
+        setStatus("☁️ Kept local, pushing up", 3000);
+        return;
+      }
+    }
+
+    S = cloudState;
+    migrate();
+    recordLogin();
+    renderExpBar();
+    renderGroups();
 
     setStatus("☁️ Synced", 3000);
   }).catch(e => {
-    console.error("Cloud load failed:", e);
-    setStatus("☁️ Sync failed");
+    console.error("Cloud load failed (no fallback to cache):", e);
+    setStatus("⚠️ Offline — using local data", 3000);
   });
+}
+
+// Count "evidence of progress" — total answers given + total XP.
+// Used to detect when a load would regress state.
+function evidenceCount(state) {
+  if (!state || !state.words) return 0;
+  let n = 0;
+  Object.values(state.words).forEach(ws => {
+    n += (ws.correct || 0) + (ws.wrong || 0);
+  });
+  return n;
+}
+
+// A load is a regression if cloud has materially less evidence than local.
+// Threshold: cloud has fewer than 90% of local's answers, OR cloud has
+// significantly less XP. Tuned to be lenient (allow normal drift) but
+// catch big losses.
+function isRegression(local, cloud) {
+  const localEv = evidenceCount(local);
+  const cloudEv = evidenceCount(cloud);
+  const localXp = local.exp || 0;
+  const cloudXp = cloud.exp || 0;
+
+  // If local has very little, accept anything.
+  if (localEv < 10) return false;
+
+  // Cloud has materially less work.
+  if (cloudEv < localEv * 0.9) return true;
+  // Cloud has materially less XP.
+  if (cloudXp < localXp * 0.9) return true;
+
+  return false;
 }
 
 // ── SAVE TO CLOUD ─────────────────────────────
@@ -266,9 +328,8 @@ async function commitToFirestore(retries = 3) {
       const results = await Promise.allSettled(saves);
       const failed = results.filter(r => r.status === "rejected");
       if (failed.length > 0) {
-        // alert("REST failed: " + failed.map(r => r.reason?.message).join(", "));
-      } else {
-        // alert("REST succeeded - " + results.length + " docs written");
+        console.error("Cloud save failed:", failed.map(r => r.reason?.message));
+        throw new Error("Some doc writes failed");
       }
     }
     setStatus("☁️ Saved", 2000);
@@ -1049,7 +1110,13 @@ function recordLogin() {
   if (maxStreak >= 7)  checkBadge("streak_7");
   if (maxStreak >= 30) checkBadge("streak_30");
   S.exp += 15;
+  S.savedAt = Date.now();
   saveLocalOnly();
+  // If auth has already resolved, also schedule a cloud write.
+  if (currentUser) {
+    clearTimeout(syncTimeout);
+    syncTimeout = setTimeout(() => commitToFirestore(), 300);
+  }
 }
 
 // ── BADGES ────────────────────────────────────
