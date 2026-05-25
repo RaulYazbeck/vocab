@@ -215,14 +215,30 @@ function loadFromCloud() {
     const cloudTime = meta.savedAt || 0;
     const localTime = S.savedAt || 0;
 
+    const cloudState = { ...meta, words: allWords };
+
     if (cloudTime < localTime) {
-      // Local is newer. Keep local.
+      // Local timestamp is newer, BUT: if local is nearly empty and cloud
+      // has substantial data, this is almost certainly a fresh-install or
+      // post-sign-in scenario where local state is bogus. Override and
+      // accept cloud.
+      if (isFreshInstallVsCloud(S, cloudState)) {
+        console.warn("Local looks like a fresh install but cloud has data. Accepting cloud.");
+        S = cloudState;
+        migrate();
+        recordLogin();
+        renderExpBar();
+        renderGroups();
+        setStatus("☁️ Restored from cloud", 3000);
+        return;
+      }
       setStatus("☁️ Synced (local newer)", 3000);
       return;
     }
 
     // Cloud is newer-or-equal. Before accepting, sanity-check for regression.
-    const cloudState = { ...meta, words: allWords };
+    if (isRegression(S, cloudState)) {
+
     if (isRegression(S, cloudState)) {
       console.warn("Refusing cloud load: looks like a regression.", {
         localEvidence: evidenceCount(S),
@@ -286,6 +302,20 @@ function isRegression(local, cloud) {
   // Cloud has materially less XP.
   if (cloudXp < localXp * 0.9) return true;
 
+  return false;
+}
+
+// Detect "fresh install meets real cloud data" scenario.
+// Local has trivial evidence, cloud has substantial evidence → cloud wins
+// regardless of timestamps.
+function isFreshInstallVsCloud(local, cloud) {
+  const localEv = evidenceCount(local);
+  const cloudEv = evidenceCount(cloud);
+  const localXp = local.exp || 0;
+  const cloudXp = cloud.exp || 0;
+  // Local has barely anything AND cloud has real data
+  if (localEv < 5 && cloudEv >= 20) return true;
+  if (localXp < 50 && cloudXp >= 200) return true;
   return false;
 }
 
