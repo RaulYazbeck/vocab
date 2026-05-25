@@ -266,9 +266,9 @@ async function commitToFirestore(retries = 3) {
       const results = await Promise.allSettled(saves);
       const failed = results.filter(r => r.status === "rejected");
       if (failed.length > 0) {
-        alert("REST failed: " + failed.map(r => r.reason?.message).join(", "));
+        // alert("REST failed: " + failed.map(r => r.reason?.message).join(", "));
       } else {
-        alert("REST succeeded - " + results.length + " docs written");
+        // alert("REST succeeded - " + results.length + " docs written");
       }
     }
     setStatus("☁️ Saved", 2000);
