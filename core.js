@@ -238,8 +238,6 @@ function loadFromCloud() {
 
     // Cloud is newer-or-equal. Before accepting, sanity-check for regression.
     if (isRegression(S, cloudState)) {
-
-    if (isRegression(S, cloudState)) {
       console.warn("Refusing cloud load: looks like a regression.", {
         localEvidence: evidenceCount(S),
         cloudEvidence: evidenceCount(cloudState),
