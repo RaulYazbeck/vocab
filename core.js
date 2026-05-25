@@ -1627,7 +1627,7 @@ function handleVoiceTimerResult(correct, heard, isSkip=false) {
   if (voiceRecognition) { try { voiceRecognition.abort(); } catch(e) {} voiceRecognition = null; }
   const fb = document.getElementById("timer-feedback");
   if (correct) {
-    timerCorrect++; addExp(10); timerExpEarned += 10; playSuccess();
+    timerCorrect++; playSuccess();
     const ws = getWS(currentWord.deckId, currentWord.idx);
     ws.correct++; ws.streak++; ws.displayStreak++; S.totalCorrect++;
     if (!ws.mastered && isMastered(ws)) {
@@ -2028,7 +2028,7 @@ function checkTimer() {
   S.totalCorrect += correct ? 1 : 0;
   saveState();
   if (correct) {
-    timerCorrect++; playSuccess(); addExp(10); timerExpEarned += 10;
+    timerCorrect++; playSuccess();
     const ws = getWS(currentWord.deckId, currentWord.idx);
     ws.correct++; ws.streak++; ws.displayStreak++;
     if (!ws.mastered && isMastered(ws)) {
@@ -2102,7 +2102,10 @@ function skipTimer() {
 function endTimer(won) {
   timerFinished = true; clearInterval(timerInterval); stopVoiceSession();
   checkBadge("speed_demon");
-  if (won) { addExp(50); timerExpEarned += 50; }
+  const perfBonus = Math.max(0, (timerCorrect - timerWrong) * 5);
+  const winBonus = won ? timerWordCount : 0;
+  timerExpEarned = perfBonus + winBonus;
+  addExp(timerExpEarned);
   document.getElementById("main-screen").innerHTML = `<div class="screen">
     <div class="result-screen">
       <div class="result-emoji">${won?"🏆":"⏰"}</div>
