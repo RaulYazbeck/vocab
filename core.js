@@ -19,7 +19,7 @@ const WORD_KEY      = APP_CONFIG.targetProp;
 const UNLOCK_STEP   = 10;
 const UNLOCK_INITIAL = 12;
 
-const EXP_BASE = 200, EXP_RATIO = 1.2;
+const EXP_BASE = 200, EXP_RATIO = 1.12;
 function expForLevel(n) {
   if (n <= 1) return 0;
   return Math.round(EXP_BASE * (Math.pow(EXP_RATIO, n - 1) - 1) / (EXP_RATIO - 1));
