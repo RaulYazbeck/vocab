@@ -216,7 +216,6 @@ function loadFromCloud() {
       S = { ...meta, words: allWords };
       migrate();
       recordLogin();
-      saveLocalOnly();
       renderExpBar();
       renderGroups();
     }
@@ -1049,8 +1048,8 @@ function recordLogin() {
   if (maxStreak >= 3)  checkBadge("streak_3");
   if (maxStreak >= 7)  checkBadge("streak_7");
   if (maxStreak >= 30) checkBadge("streak_30");
-  addExp(15);
-  saveState();
+  S.exp += 15;
+  saveLocalOnly();
 }
 
 // ── BADGES ────────────────────────────────────
