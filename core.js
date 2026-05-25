@@ -103,6 +103,14 @@ function migrate() {
     if (ws.mastered && ws.streak < 6 && !(total >= 6 && wilsonLower(ws.correct, total) >= 0.724)) {
       delete ws.mastered;
     }
+    if (ws.displayStreak === undefined) ws.displayStreak = ws.streak;
+    if (ws.masteryPlusDate && ws.mastered) {
+      const today = todayISO();
+      if (daysBetween(ws.masteryPlusDate, today) > 21) {
+        ws.masteryPlusDate = null;
+        ws.streak = 0;
+      }
+    }
     // Anki initialization
     if (!ws.anki) {
       ws.anki = {
@@ -631,9 +639,12 @@ function unlockedWords(deck) {
 // ── SPACED REPETITION ─────────────────────────
 function getWS(deckId, idx) {
   const key = deckId + "_" + idx;
-  if (!S.words[key]) S.words[key] = { correct:0, wrong:0, streak:0, anki:{ phase:"new", interval:0, easeFactor:2.5, dueDate:null, learningStep:0, lapses:0 } };
+  if (!S.words[key]) S.words[key] = { correct:0, wrong:0, streak:0, displayStreak:0, anki:{ phase:"new", interval:0, easeFactor:2.5, dueDate:null, learningStep:0, lapses:0 } };
   if (!S.words[key].anki) S.words[key].anki = { phase:"new", interval:0, easeFactor:2.5, dueDate:null, learningStep:0, lapses:0 };
-  return S.words[key];
+  const ws = S.words[key];
+  if (!ws.anki) ws.anki = { phase:"new", interval:0, easeFactor:2.5, dueDate:null, learningStep:0, lapses:0 };
+  if (ws.displayStreak === undefined) ws.displayStreak = ws.streak;
+  return ws;
 }
 function wilsonLower(correct, total) {
   if (total === 0) return 0;
@@ -648,6 +659,24 @@ function isMastered(ws) {
   if (total >= 6 && wilsonLower(ws.correct, total) >= 0.724) return true;
   return false;
 }
+function isMasteryPlus(ws) {
+  if (!isMastered(ws)) return false;
+  if (!ws.masteryPlusDate) return false;
+  const today = todayISO();
+  if (daysBetween(ws.masteryPlusDate, today) > 21) return false;
+  return ws.streak >= 3 && wilsonLower(ws.correct, ws.correct + ws.wrong) >= 0.83;
+}
+
+function checkMasteryPlus(ws) {
+  if (!isMastered(ws)) return;
+  if (ws.streak >= 3 && wilsonLower(ws.correct, ws.correct + ws.wrong) >= 0.83) {
+    if (!isMasteryPlus(ws)) {
+      ws.masteryPlusDate = todayISO();
+      ws.streak = 0;
+      addExp(75);
+    }
+  }
+}
 function getWeight(w, focusMode=false) {
   const ws = getWS(w.deckId, w.idx);
   if (focusMode) {
@@ -660,18 +689,34 @@ function getWeight(w, focusMode=false) {
   return 5;
 }
 function pickNext(focusMode=false) {
-  let pool = focusMode
-    ? activeWords.filter(w => !isMastered(getWS(w.deckId, w.idx)))
-    : activeWords;
-  if (!pool.length) pool = activeWords;
+  if (focusMode) {
+    const unmastered = activeWords.filter(w => !isMastered(getWS(w.deckId, w.idx)));
+    const masteredNotPlus = activeWords.filter(w => isMastered(getWS(w.deckId, w.idx)) && !isMasteryPlus(getWS(w.deckId, w.idx)));
+    const masteryPlusWords = activeWords.filter(w => isMasteryPlus(getWS(w.deckId, w.idx)));
+    const pool = unmastered.length ? unmastered : masteredNotPlus.length ? masteredNotPlus : masteryPlusWords;
+    if (!pool.length) return null;
+    const filtered = pool.length > 1 && currentWord
+      ? pool.filter(w => !(w.deckId === currentWord.deckId && w.idx === currentWord.idx))
+      : pool;
+    const candidates = filtered.length ? filtered : pool;
+    const weights = candidates.map(w => {
+      const ws = getWS(w.deckId, w.idx);
+      if (ws.wrong > ws.correct && ws.wrong > 0) return 10 + ws.wrong * 3;
+      return 5;
+    });
+    const total = weights.reduce((a,b) => a+b, 0);
+    let r = Math.random() * total;
+    for (let i = 0; i < candidates.length; i++) { r -= weights[i]; if (r <= 0) return candidates[i]; }
+    return candidates[candidates.length - 1];
+  }
+  let pool = activeWords;
   if (!pool.length) return null;
   const filtered = pool.length > 1 && currentWord
     ? pool.filter(w => !(w.deckId === currentWord.deckId && w.idx === currentWord.idx))
     : pool;
   const candidates = filtered.length ? filtered : pool;
-  const weights = candidates.map(w => Math.max(focusMode ? 0 : 1, getWeight(w, focusMode)));
-  const total   = weights.reduce((a,b) => a+b, 0);
-  if (total === 0) return candidates[Math.floor(Math.random() * candidates.length)];
+  const weights = candidates.map(w => Math.max(1, getWeight(w, false)));
+  const total = weights.reduce((a,b) => a+b, 0);
   let r = Math.random() * total;
   for (let i = 0; i < candidates.length; i++) { r -= weights[i]; if (r <= 0) return candidates[i]; }
   return candidates[candidates.length - 1];
@@ -1067,9 +1112,10 @@ function getDeck(deckId) {
   return null;
 }
 function deckProgress(deck) {
-  const words    = unlockedWords(deck);
+  const words = unlockedWords(deck);
   const mastered = words.filter((_,i) => isMastered(getWS(deck.id, i))).length;
-  return { mastered, total:words.length, all:deck.words.length };
+  const masteryPlus = words.filter((_,i) => isMasteryPlus(getWS(deck.id, i))).length;
+  return { mastered, masteryPlus, total:words.length, all:deck.words.length };
 }
 function resetDeck(deckId) {
   if (!confirm("Reset all progress for this deck?")) return;
@@ -1219,7 +1265,7 @@ function renderGroups() {
     const totalWords   = group.decks.reduce((s,d) => s + d.words.length, 0);
     const totalMastered = group.decks.reduce((s,d) => s + deckProgress(d).mastered, 0);
     const decksHtml = group.decks.map(deck => {
-      const { mastered, total, all } = deckProgress(deck);
+      const { mastered, masteryPlus, total, all } = deckProgress(deck);
       const pct      = total > 0 ? Math.round((mastered / total) * 100) : 0;
       const sel      = selectedIds.has(deck.id);
       const unlocked = getUnlocked(deck.id);
@@ -1230,6 +1276,8 @@ function renderGroups() {
         <div class="folder-meta">${mastered}/${total} mastered</div>
         <div class="folder-unlock">${unlocked}/${all} unlocked</div>
         <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+        <div class="progress-bar" style="margin-top:3px;"><div class="progress-fill" style="background:linear-gradient(90deg,#7C5CBF,#B39DDB);width:${Math.round((masteryPlus/total)*100)||0}%"></div></div>
+        <div style="font-size:10px;color:#7C5CBF;margin-top:2px;">${masteryPlus} ⭐</div>
       </div>`;
     }).join("");
     return `<div class="group">
@@ -1367,7 +1415,7 @@ function nextDrillWord() { answered = false; currentWord = pickNext(activeMode =
 function miniStats(ws) {
   return `<div class="mini-stat"><div class="mini-label">correct</div><div class="mini-val">${ws.correct}</div></div>
     <div class="mini-stat"><div class="mini-label">wrong</div><div class="mini-val">${ws.wrong}</div></div>
-    <div class="mini-stat"><div class="mini-label">streak</div><div class="mini-val">${ws.streak}</div></div>
+    <div class="mini-stat"><div class="mini-label">streak</div><div class="mini-val">${ws.displayStreak}</div></div>
     <div class="mini-stat"><div class="mini-label">mastered</div><div class="mini-val">${isMastered(ws)?"✓":"—"}</div></div>`;
 }
 function renderDrill() {
@@ -1375,8 +1423,9 @@ function renderDrill() {
   if (!currentWord) return;
   const ws = getWS(currentWord.deckId, currentWord.idx);
   const badges = [
-    isMastered(ws) ? `<span class="mastered-badge">✓ mastered</span>` : "",
-    ws.streak > 0 && !isMastered(ws) ? `<span class="streak-badge">🔥 ${ws.streak}</span>` : ""
+    isMasteryPlus(ws) ? `<span class="masteryplus-badge">⭐ mastery+</span>` :
+      isMastered(ws) ? `<span class="mastered-badge">✓ mastered</span>` : "",
+    ws.displayStreak > 0 && !isMasteryPlus(ws) ? `<span class="streak-badge">🔥 ${ws.displayStreak}</span>` : ""
   ].join(" ");
   const deckNames   = [...selectedIds].map(id => getDeck(id)?.name).filter(Boolean).join(" + ");
   const focusNotice = activeMode === "focus"
@@ -1443,16 +1492,22 @@ function checkDrill() {
   const ws      = getWS(currentWord.deckId, currentWord.idx);
   const isNew   = ws.correct === 0 && ws.wrong === 0;
   if (correct) {
-    ws.correct++; ws.streak++;
+    ws.correct++; ws.streak++; ws.displayStreak++;
     sessionCorrect++; sessionConsecutive++;
     S.totalCorrect++;
     addExp(isNew ? 20 : 5);
-    if (!ws.mastered && isMastered(ws)) { ws.mastered = true; addExp(50); }
+    if (!ws.mastered && isMastered(ws)) {
+      ws.mastered = true;
+      ws.streak = 0;
+      addExp(50);
+    } else if (ws.mastered) {
+      checkMasteryPlus(ws);
+    }
     input.classList.add("correct");
     playSuccess();
     checkAllBadges();
   } else {
-    ws.wrong++; ws.streak = 0; sessionConsecutive = 0;
+    ws.wrong++; ws.streak = 0; ws.displayStreak = 0; sessionConsecutive = 0;
     input.classList.add("wrong");
     playFailure();
   }
@@ -1463,7 +1518,7 @@ function dontKnow() {
   if (answered) return;
   answered = true;
   const ws    = getWS(currentWord.deckId, currentWord.idx);
-  ws.wrong++; ws.streak = 0; sessionConsecutive = 0;
+  ws.wrong++; ws.streak = 0; ws.displayStreak = 0; sessionConsecutive = 0;
   const input = document.getElementById("german-input");
   if (input) { input.value = currentWord[WORD_KEY]; input.classList.add("wrong"); }
   saveState();
@@ -1572,7 +1627,15 @@ function handleVoiceTimerResult(correct, heard, isSkip=false) {
   if (correct) {
     timerCorrect++; addExp(10); timerExpEarned += 10; playSuccess();
     const ws = getWS(currentWord.deckId, currentWord.idx);
-    ws.correct++; S.totalCorrect++; saveState();
+    ws.correct++; ws.streak++; ws.displayStreak++; S.totalCorrect++;
+    if (!ws.mastered && isMastered(ws)) {
+      ws.mastered = true;
+      ws.streak = 0;
+      addExp(50);
+    } else if (ws.mastered) {
+      checkMasteryPlus(ws);
+    }
+    saveState();
     timerWordsDone++;
     if (timerWordsDone >= timerQueue.length) { endTimer(true); return; }
     currentWord = timerQueue[timerWordsDone];
@@ -1584,7 +1647,7 @@ function handleVoiceTimerResult(correct, heard, isSkip=false) {
   } else {
     timerWrong++; playFailure();
     const ws = getWS(currentWord.deckId, currentWord.idx);
-    ws.wrong++; saveState();
+    ws.wrong++; ws.streak = 0; ws.displayStreak = 0; saveState();
     timerPaused = true; clearInterval(timerInterval);
     const remaining = timerQueue.length - timerWordsDone - 1;
     if (remaining > 0) {
@@ -1689,14 +1752,20 @@ function handleVoiceResult(correct, heard, isSkip=false) {
   const ws    = getWS(currentWord.deckId, currentWord.idx);
   const isNew = ws.correct === 0 && ws.wrong === 0;
   if (correct) {
-    ws.correct++; ws.streak++;
+    ws.correct++; ws.streak++; ws.displayStreak++;
     sessionCorrect++; sessionConsecutive++;
     S.totalCorrect++;
     addExp(isNew ? 20 : 5);
-    if (!ws.mastered && isMastered(ws)) { ws.mastered = true; addExp(50); }
+    if (!ws.mastered && isMastered(ws)) {
+      ws.mastered = true;
+      ws.streak = 0;
+      addExp(50);
+    } else if (ws.mastered) {
+      checkMasteryPlus(ws);
+    }
     checkAllBadges();
   } else {
-    ws.wrong++; ws.streak = 0; sessionConsecutive = 0;
+    ws.wrong++; ws.streak = 0; ws.displayStreak = 0; sessionConsecutive = 0;
   }
   saveState();
   if (correct) playSuccess(); else playFailure();
@@ -1775,8 +1844,9 @@ function renderVoiceDrill() {
   if (!currentWord) return;
   const ws = getWS(currentWord.deckId, currentWord.idx);
   const badges = [
+    isMasteryPlus(ws) ? `<span class="masteryplus-badge">⭐ mastery+</span>` :
     isMastered(ws) ? `<span class="mastered-badge">✓ mastered</span>` : "",
-    ws.streak > 0 && !isMastered(ws) ? `<span class="streak-badge">🔥 ${ws.streak}</span>` : ""
+    ws.displayStreak > 0 && !isMasteryPlus(ws) ? `<span class="streak-badge">🔥 ${ws.displayStreak}</span>` : ""
   ].join(" ");
   const deckNames = [...selectedIds].map(id => getDeck(id)?.name).filter(Boolean).join(" + ");
   el.innerHTML = `
@@ -1958,7 +2028,15 @@ function checkTimer() {
   if (correct) {
     timerCorrect++; playSuccess(); addExp(10); timerExpEarned += 10;
     const ws = getWS(currentWord.deckId, currentWord.idx);
-    ws.correct++; saveState();
+    ws.correct++; ws.streak++; ws.displayStreak++;
+    if (!ws.mastered && isMastered(ws)) {
+      ws.mastered = true;
+      ws.streak = 0;
+      addExp(50);
+    } else if (ws.mastered) {
+      checkMasteryPlus(ws);
+    }
+    saveState();
     timerWordsDone++;
     if (timerWordsDone >= timerQueue.length) { endTimer(true); return; }
     currentWord = timerQueue[timerWordsDone];
@@ -1969,7 +2047,7 @@ function checkTimer() {
   } else {
     timerWrong++;
     const ws = getWS(currentWord.deckId, currentWord.idx);
-    ws.wrong++; saveState(); playFailure();
+    ws.wrong++; ws.streak = 0; ws.displayStreak = 0; saveState(); playFailure();
     timerPaused = true; clearInterval(timerInterval);
     const remaining = timerQueue.length - timerWordsDone - 1;
     if (remaining > 0) {
@@ -1997,7 +2075,7 @@ function skipTimer() {
   timerPaused = true; clearInterval(timerInterval);
   timerWrong++;
   const ws = getWS(currentWord.deckId, currentWord.idx);
-  ws.wrong++; saveState();
+  ws.wrong++; ws.streak = 0; ws.displayStreak = 0; saveState();
   const skipped   = currentWord;
   const remaining = timerQueue.length - timerWordsDone - 1;
   if (remaining > 0) {
@@ -2047,7 +2125,7 @@ function renderStatsScreen() {
   ALL_GROUPS.forEach(group => {
     html += `<div class="stats-section"><div class="stats-section-title">${group.icon} ${group.name}</div>`;
     group.decks.forEach(deck => {
-      const { mastered, total, all } = deckProgress(deck);
+      const { mastered, masteryPlus, total, all } = deckProgress(deck);
       const pct = total > 0 ? Math.round((mastered / total) * 100) : 0;
       const deckKey = `stats-deck-${deck.id}`;
       html += `
@@ -2057,7 +2135,7 @@ function renderStatsScreen() {
               <span style="font-size:14px;">${deck.icon}</span>
               <div>
                 <div style="font-size:13px;font-weight:600;">${deck.name}</div>
-                <div style="font-size:11px;color:#888;margin-top:2px;">${mastered}/${total} mastered · ${pct}% · ${all} total words</div>
+                <div style="font-size:11px;color:#888;margin-top:2px;">${mastered}/${total} mastered · ${masteryPlus} ⭐ · ${pct}% · ${all} total</div>
               </div>
             </div>
             <div style="display:flex;align-items:center;gap:8px;">
@@ -2071,11 +2149,13 @@ function renderStatsScreen() {
               <tbody>`;
       unlockedWords(deck).forEach((w,i) => {
         const ws = getWS(deck.id, i);
-        const st = isMastered(ws)
-          ? `<span class="mastered-badge">mastered</span>`
-          : ws.streak > 0
-            ? `<span class="streak-badge">${ws.streak}</span>`
-            : `<span style="color:#bbb">new</span>`;
+        const st = isMasteryPlus(ws)
+          ? `<span class="masteryplus-badge">⭐+</span>`
+          : isMastered(ws)
+            ? `<span class="mastered-badge">✓</span>`
+            : ws.displayStreak > 0
+              ? `<span class="streak-badge">${ws.displayStreak}</span>`
+              : `<span style="color:#bbb">new</span>`;
         html += `<tr><td>${w.en}</td><td style="color:#555">${w[WORD_KEY]}</td><td style="color:#aaa">${w.pl||"—"}</td><td>${ws.correct}</td><td>${ws.wrong}</td><td>${st}</td></tr>`;
       });
       html += `</tbody></table></div></div></div>`;
