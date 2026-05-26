@@ -108,6 +108,11 @@ function migrate() {
   if (!S.drillMilestonesDate)    S.drillMilestonesDate = "";
   if (!S.drillCorrectToday)      S.drillCorrectToday = 0;
   if (!S.drillMilestonesClaimed) S.drillMilestonesClaimed = [];
+  if (S.drillMilestonesDate !== todayISO()) {
+    S.drillMilestonesDate = todayISO();
+    S.drillCorrectToday = 0;
+    S.drillMilestonesClaimed = [];
+  }
   Object.keys(S.words).forEach(key => {
     const ws = S.words[key];
     if (!ws.mastered && ws.streak >= 6) ws.mastered = true;
