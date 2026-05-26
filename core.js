@@ -742,7 +742,7 @@ function pickNext(focusMode=false) {
 }
 // ── ANKI HELPERS ─────────────────────────────
 function todayISO() {
-  rereturn new Date().toLocaleDateString('en-CA');
+  return new Date().toLocaleDateString('en-CA');
 }
 function daysBetween(a, b) {
   return Math.round((new Date(b) - new Date(a)) / (1000 * 60 * 60 * 24));
