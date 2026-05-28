@@ -1677,7 +1677,7 @@ function handleVoiceTimerResult(correct, heard, isSkip=false) {
   if (voiceRecognition) { try { voiceRecognition.abort(); } catch(e) {} voiceRecognition = null; }
   const fb = document.getElementById("timer-feedback");
   if (correct) {
-    timerCorrect++; playSuccess();
+    timerCorrect++; playSuccess(); checkDrillMilestone();
     const ws = getWS(currentWord.deckId, currentWord.idx);
     ws.correct++; ws.streak++; ws.displayStreak++; S.totalCorrect++;
     if (!ws.mastered && isMastered(ws)) {
@@ -2079,7 +2079,7 @@ function checkTimer() {
   S.totalCorrect += correct ? 1 : 0;
   saveState();
   if (correct) {
-    timerCorrect++; playSuccess();
+    timerCorrect++; playSuccess(); checkDrillMilestone();
     const ws = getWS(currentWord.deckId, currentWord.idx);
     ws.correct++; ws.streak++; ws.displayStreak++;
     if (!ws.mastered && isMastered(ws)) {
