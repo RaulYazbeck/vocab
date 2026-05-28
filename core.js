@@ -2153,7 +2153,7 @@ function skipTimer() {
 function endTimer(won) {
   timerFinished = true; clearInterval(timerInterval); stopVoiceSession();
   checkBadge("speed_demon");
-  const perfBonus = Math.max(0, (timerCorrect - timerWrong) * 7);
+  const perfBonus = Math.max(0, (timerCorrect - timerWrong) * 6);
   const winBonus = won ? timerWordCount : 0;
   timerExpEarned = perfBonus + winBonus;
   addExp(timerExpEarned);
