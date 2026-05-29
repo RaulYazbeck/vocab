@@ -115,11 +115,8 @@ function migrate() {
   }
   Object.keys(S.words).forEach(key => {
     const ws = S.words[key];
-    if (!ws.mastered && ws.streak >= 6) ws.mastered = true;
-    const total = ws.correct + ws.wrong;
-    if (ws.mastered && ws.streak < 6 && !(total >= 6 && wilsonLower(ws.correct, total) >= 0.724)) {
-      delete ws.mastered;
-    }
+    if (!ws.mastered && (ws.streak >= 6 || ws.displayStreak >= 6)) ws.mastered = true;
+  });
     if (ws.displayStreak === undefined) ws.displayStreak = ws.streak;
     if (ws.masteryPlusDate && ws.mastered) {
       const today = todayISO();
