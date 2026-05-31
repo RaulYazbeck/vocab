@@ -1525,9 +1525,9 @@ function renderDrill() {
         <button class="check-btn"   onclick="checkDrill()">Check</button>
         <button class="dontknow-btn" onclick="dontKnow()">? Don't know</button>
       </div>
-      <div class="feedback" id="feedback"></div>
-      <div id="examples-area"></div>
       <div class="stats-row" id="stats-row">${miniStats(ws)}</div>
+      <div class="feedback" id="feedback" style="min-height:56px;"></div>
+      <div id="examples-area"></div>
     </div>`;
   renderUnlockRow("unlock-row-drill");
   focusInput();
@@ -2116,7 +2116,6 @@ function renderTimerScreen() {
       <div class="english-word">${currentWord.en}</div>
       <div class="word-hint" style="font-size:18px;">${currentWord.hint}</div>
     </div>
-    <div id="timer-feedback" style="min-height:44px;font-size:18px;font-weight:700;text-align:center;padding:6px 0 2px;"></div>
     <input type="text" class="german-input" id="timer-input" placeholder="type the answer…"
       autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
       onkeydown="handleTimerKey(event)"/>
@@ -2124,6 +2123,7 @@ function renderTimerScreen() {
       <button class="check-btn"    onclick="checkTimer()">Check</button>
       <button class="dontknow-btn" onclick="skipTimer()">Skip</button>
     </div>
+    <div id="timer-feedback" style="min-height:44px;font-size:18px;font-weight:700;text-align:center;padding:6px 0 2px;"></div>
   </div>`;
   focusInput();
 }
@@ -2388,7 +2388,7 @@ function renderAnkiStatsScreen() {
         : `in ${daysBetween(today, a.dueDate)}d`;
       wordRows += `<tr>
         <td>${w.en}</td>
-        <td style="color:#555">${w[WORD_KEY]}</td>
+        <td style="color:var(--text-2)">${w[WORD_KEY]}</td>
         <td>${phaseBadge}</td>
         <td>${a.interval}d</td>
         <td>${dueLabel}</td>
