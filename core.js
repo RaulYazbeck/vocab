@@ -53,7 +53,10 @@ function getDrillMilestone(n) {
 let S = loadState();
 let selectedIds = new Set();
 let openGroups  = new Set();
-let activeMode  = "classic";
+let activeMode    = "drill";
+let drillSubMode  = "classic"; // 'classic' | 'focus' | 'refresh'
+let timerSubMode  = "classic"; // 'classic' | 'focus'
+let muteEnabled   = localStorage.getItem('gv_mute') === 'true';
 let activeWords = [];
 let currentWord = null;
 let answered    = false;
@@ -115,6 +118,7 @@ function migrate() {
   }
   Object.keys(S.words).forEach(key => {
     const ws = S.words[key];
+    if (ws.lastAnsweredAt === undefined) ws.lastAnsweredAt = null;
     if (!ws.mastered && (ws.streak >= 6 || ws.displayStreak >= 6)) ws.mastered = true;
     if (ws.displayStreak === undefined) ws.displayStreak = ws.streak;
     if (ws.masteryPlusDate && ws.mastered) {
@@ -499,8 +503,9 @@ function initVoice() {
   if (!window.speechSynthesis) return;
   const load = () => {
     const v = speechSynthesis.getVoices();
-    const lang = APP_CONFIG.speechLang;
-    targetVoice = v.find(x => x.lang === lang) || v.find(x => x.lang.startsWith(lang.slice(0,2))) || null;
+    if (!v.length) return;
+    const deVoices = v.filter(x => x.lang && x.lang.startsWith('de'));
+    targetVoice = deVoices.find(x => x.lang === APP_CONFIG.speechLang) || deVoices[0] || null;
   };
   load();
   speechSynthesis.onvoiceschanged = load;
@@ -651,7 +656,7 @@ function unlockedWords(deck) {
 // ── SPACED REPETITION ─────────────────────────
 function getWS(deckId, idx) {
   const key = deckId + "_" + idx;
-  if (!S.words[key]) S.words[key] = { correct:0, wrong:0, streak:0, displayStreak:0, anki:{ phase:"new", interval:0, easeFactor:2.5, dueDate:null, learningStep:0, lapses:0 } };
+  if (!S.words[key]) S.words[key] = { correct:0, wrong:0, streak:0, displayStreak:0, lastAnsweredAt:null, anki:{ phase:"new", interval:0, easeFactor:2.5, dueDate:null, learningStep:0, lapses:0 } };
   if (!S.words[key].anki) S.words[key].anki = { phase:"new", interval:0, easeFactor:2.5, dueDate:null, learningStep:0, lapses:0 };
   const ws = S.words[key];
   if (!ws.anki) ws.anki = { phase:"new", interval:0, easeFactor:2.5, dueDate:null, learningStep:0, lapses:0 };
@@ -734,6 +739,18 @@ function pickNext(focusMode=false) {
   let r = Math.random() * total;
   for (let i = 0; i < candidates.length; i++) { r -= weights[i]; if (r <= 0) return candidates[i]; }
   return candidates[candidates.length - 1];
+}
+function pickNextRefresh() {
+  if (!activeWords.length) return null;
+  const never = activeWords.filter(w => !getWS(w.deckId, w.idx).lastAnsweredAt);
+  const answered = activeWords
+    .filter(w => getWS(w.deckId, w.idx).lastAnsweredAt)
+    .sort((a, b) => getWS(a.deckId, a.idx).lastAnsweredAt - getWS(b.deckId, b.idx).lastAnsweredAt);
+  const ordered = [...never, ...answered];
+  const candidates = ordered.length > 1 && currentWord
+    ? ordered.filter(w => !(w.deckId === currentWord.deckId && w.idx === currentWord.idx))
+    : ordered;
+  return candidates[0] || null;
 }
 // ── ANKI HELPERS ─────────────────────────────
 function todayISO() {
@@ -898,7 +915,8 @@ function showGameScreen() {
 function ankiReveal() {
   ankiShowingAnswer = true;
   const word = ankiQueue[ankiIndex];
-  speak(word[WORD_KEY]);
+  const toSpeak = word.examples && word.examples.length ? word.examples[0][WORD_KEY] : word[WORD_KEY];
+  speak(toSpeak);
   renderAnkiAnswer();
 }
 
@@ -921,7 +939,7 @@ function ankiRate(rating) {
   ankiSessionStats[labels[rating]]++;
 
   // XP
-  const xpMap = [0, 3, 8, 12];
+  const xpMap = [0, 2, 4, 8];
   if (xpMap[rating] > 0) addExp(xpMap[rating]);
 
   // Again in learning: re-insert 3 cards ahead so user sees it soon
@@ -972,9 +990,10 @@ function renderAnkiQuestion() {
     : a.phase === "learning"
       ? `<span class="anki-badge learning">learning</span>`
       : `<span class="anki-badge new">new</span>`;
-  const progress = ankiIndex;
   const total = ankiQueue.length;
-  const pct = total > 0 ? Math.round((progress / total) * 100) : 0;
+  const pct = total > 0 ? Math.round((ankiIndex / total) * 100) : 0;
+  const hasExample = word.examples && word.examples.length;
+  const exSentence = hasExample ? word.examples[0][WORD_KEY] : null;
 
   el.innerHTML = `
     <div class="screen">
@@ -986,10 +1005,16 @@ function renderAnkiQuestion() {
         <div class="anki-progress-fill" style="width:${pct}%"></div>
       </div>
       <div class="anki-phase-row">${phaseBadge}</div>
-      <div class="word-display" style="margin-top:1.5rem;">
-        <div class="english-word">${word.en}</div>
-        <div class="word-hint">${word.hint}</div>
+      <div class="anki-word-header">
+        <div class="anki-word-main">${word[WORD_KEY]}</div>
+        ${word.hint ? `<div class="anki-word-hint">${word.hint}</div>` : ""}
       </div>
+      ${hasExample
+        ? `<div class="anki-example-q">
+            <div class="anki-example-sentence">${exSentence}</div>
+            <button class="anki-example-play" onclick="speak('${exSentence.replace(/'/g,"\\'")}')">🔊</button>
+           </div>`
+        : `<div style="text-align:center;padding:1.5rem 0;color:var(--text-2);font-size:16px;">${word.en}</div>`}
       <button class="anki-reveal-btn" onclick="ankiReveal()">Show Answer</button>
       <div class="anki-session-bar">
         <span class="anki-stat again">✗ ${ankiSessionStats.again}</span>
@@ -998,6 +1023,8 @@ function renderAnkiQuestion() {
         <span class="anki-stat easy">⚡ ${ankiSessionStats.easy}</span>
       </div>
     </div>`;
+
+  setTimeout(() => speak(hasExample ? exSentence : word[WORD_KEY]), 350);
 }
 
 function renderAnkiAnswer() {
@@ -1014,6 +1041,9 @@ function renderAnkiAnswer() {
   const total = ankiQueue.length;
   const pct = total > 0 ? Math.round((ankiIndex / total) * 100) : 0;
   const previews = [0,1,2,3].map(r => ankiPreviewInterval(word, r));
+  const hasExample = word.examples && word.examples.length;
+  const exSentence = hasExample ? word.examples[0][WORD_KEY] : null;
+  const exEn = hasExample ? word.examples[0].en : null;
 
   el.innerHTML = `
     <div class="screen">
@@ -1025,24 +1055,25 @@ function renderAnkiAnswer() {
         <div class="anki-progress-fill" style="width:${pct}%"></div>
       </div>
       <div class="anki-phase-row">${phaseBadge}</div>
-      <div class="word-display" style="margin-top:1rem;">
-        <div class="english-word">${word.en}</div>
-        <div class="word-hint">${word.hint}</div>
+      <div class="anki-word-header">
+        <div class="anki-word-main">${word[WORD_KEY]}</div>
+        ${word.hint ? `<div class="anki-word-hint">${word.hint}</div>` : ""}
       </div>
-      <div class="anki-answer-reveal">
-        <div class="anki-answer-word">${word[WORD_KEY]}
-          <button class="audio-btn" style="font-size:14px;padding:4px 8px;margin-left:8px;" onclick="speak('${word[WORD_KEY].replace(/'/g,"\\'")}')">🔊</button>
-        </div>
-        ${word.pl ? `<div style="font-size:13px;color:#888;margin-top:4px;">plural: ${word.pl}</div>` : ""}
-        ${word.examples && word.examples.length ? `
-          <div class="examples-wrap" style="margin-top:12px;text-align:left;">
-            <div class="examples-title">Example</div>
-            <div class="example-row">
-              <div class="example-de">${word.examples[0][WORD_KEY]}</div>
-              <div class="example-en">${word.examples[0].en}</div>
+      ${hasExample
+        ? `<div class="anki-example-q">
+            <div class="anki-example-sentence">${exSentence}</div>
+            <button class="anki-example-play" onclick="speak('${exSentence.replace(/'/g,"\\'")}')">🔊</button>
+           </div>
+           <div class="anki-answer-en">
+             <div class="anki-answer-en-sentence">${exEn}</div>
+             <div class="anki-answer-en-word">— ${word.en}</div>
+           </div>`
+        : `<div class="anki-answer-reveal">
+            <div class="anki-answer-word">${word[WORD_KEY]}
+              <button class="audio-btn" style="font-size:14px;padding:4px 8px;margin-left:8px;" onclick="speak('${word[WORD_KEY].replace(/'/g,"\\'")}')">🔊</button>
             </div>
-          </div>` : ""}
-      </div>
+            ${word.pl ? `<div style="font-size:13px;color:var(--text-3);margin-top:4px;">plural: ${word.pl}</div>` : ""}
+           </div>`}
       <div class="anki-rating-row">
         <button class="anki-rate-btn again" onclick="ankiRate(0)">
           <span class="anki-rate-label">Again</span>
@@ -1336,7 +1367,54 @@ function renderStartBar() {
     return s + getUnlocked(id);
   }, 0);
   const names = [...selectedIds].map(id => getDeck(id)?.name).filter(Boolean).join(", ");
-  const modeLabels = { learn:"👁 Learn", classic:"📖 Classic", focus:"🎯 Focus", timer:"⏱ Timer", anki:"🃏 Anki" };
+  const modeLabels = { learn:"👁 Learn", drill:"📖 Drill", timer:"⏱ Timer", anki:"🃏 Anki" };
+  const { due, newCount } = ankiDueCount();
+  const isFocusMode = (activeMode === "drill" && drillSubMode === "focus") || (activeMode === "timer" && timerSubMode === "focus");
+  const totalWords = [...selectedIds].reduce((s, id) => {
+    const d = getDeck(id);
+    if (!d) return s;
+    if (isFocusMode) {
+      const unmastered = unlockedWords(d).filter((w, i) => !isMastered(getWS(id, i))).length;
+      return s + (unmastered > 0 ? unmastered : getUnlocked(id));
+    }
+    return s + getUnlocked(id);
+  }, 0);
+  const names = [...selectedIds].map(id => getDeck(id)?.name).filter(Boolean).join(", ");
+  const ankiSubtitle = activeMode === "anki"
+    ? `<div style="font-size:11px;color:#7C5CBF;font-weight:500;margin-bottom:8px;">${due} due today · ${Math.min(newCount,20)} new available</div>`
+    : "";
+  island.innerHTML = `
+    <div class="fi-summary">
+      <span class="fi-count"><strong>${selectedIds.size}</strong> deck${selectedIds.size !== 1 ? "s" : ""} · <strong>${totalWords}</strong> words</span>
+      <span class="fi-names">${names}</span>
+    </div>
+    <div class="fi-modes">
+      ${["learn","drill","timer","anki"].map(m =>
+        `<button class="fi-pill ${activeMode === m ? "active" : ""}" onclick="setMode('${m}')">${modeLabels[m]}</button>`
+      ).join("")}
+    </div>
+    ${activeMode === "drill" ? `
+    <div class="fi-modes" style="margin-top:6px;">
+      ${["classic","focus","refresh"].map(s =>
+        `<button class="fi-pill ${drillSubMode === s ? "active" : ""}" onclick="setDrillSubMode('${s}')">${s[0].toUpperCase()+s.slice(1)}</button>`
+      ).join("")}
+      <button class="fi-pill ${voiceEnabled ? "active" : ""}" onclick="toggleVoice()">🎙️ Voice</button>
+    </div>` : ""}
+    ${activeMode === "timer" ? `
+    <div class="fi-modes" style="margin-top:6px;">
+      ${["classic","focus"].map(s =>
+        `<button class="fi-pill ${timerSubMode === s ? "active" : ""}" onclick="setTimerSubMode('${s}')">${s[0].toUpperCase()+s.slice(1)}</button>`
+      ).join("")}
+      <button class="fi-pill ${voiceEnabled ? "active" : ""}" onclick="toggleVoice()">🎙️ Voice</button>
+    </div>
+    <div class="fi-modes" style="margin-top:6px;">
+      <span style="font-size:11px;color:var(--text-3);align-self:center;">Words:</span>
+      ${[10,25,50].map(n =>
+        `<button class="fi-pill ${timerWordCount === n ? "active" : ""}" onclick="setTimerCount(${n})">${n}</button>`
+      ).join("")}
+    </div>` : ""}
+    ${ankiSubtitle}
+    <button class="fi-start" onclick="startSession()">Start ▶</button>`;
   const { due, newCount } = ankiDueCount();
   const ankiSubtitle = activeMode === "anki"
     ? `<div style="font-size:11px;color:#7C5CBF;font-weight:500;margin-bottom:8px;">${due} due today · ${Math.min(newCount,20)} new available</div>`
@@ -1369,6 +1447,14 @@ function renderStartBar() {
 function setMode(m)       { activeMode = m; renderStartBar(); }
 function toggleVoice()    { voiceEnabled = !voiceEnabled; renderStartBar(); }
 function setTimerCount(n) { timerWordCount = n; renderStartBar(); }
+function toggleMute() {
+  muteEnabled = !muteEnabled;
+  localStorage.setItem('gv_mute', muteEnabled);
+  const btn = document.getElementById('mute-btn');
+  if (btn) btn.textContent = muteEnabled ? '🔇' : '🔊';
+}
+function setDrillSubMode(s) { drillSubMode = s; renderStartBar(); }
+function setTimerSubMode(s) { timerSubMode = s; renderStartBar(); }
 
 // ── BUILD ACTIVE WORDS ────────────────────────
 function buildActiveWords() {
@@ -1378,6 +1464,13 @@ function buildActiveWords() {
     if (!deck) return;
     unlockedWords(deck).forEach((w,i) => activeWords.push({...w, deckId:id, deckName:deck.name, idx:i}));
   });
+}
+function buildTimerWords() {
+  if (timerSubMode === 'focus') {
+    const unmastered = activeWords.filter(w => !isMastered(getWS(w.deckId, w.idx)));
+    return unmastered.length ? unmastered : activeWords;
+  }
+  return activeWords;
 }
 
 // ── START SESSION ─────────────────────────────
@@ -1418,14 +1511,14 @@ function backToMenu() {
 // ── CLASSIC & FOCUS DRILL ─────────────────────
 function startDrill() {
   answered    = false;
-  currentWord = pickNext(activeMode === "focus");
+  currentWord = drillSubMode === 'refresh' ? pickNextRefresh() : pickNext(drillSubMode === 'focus');
   renderDrill();
   document.getElementById("main-screen").style.display = "block";
   document.getElementById("groups-container").style.display = "none";
   document.getElementById("start-bar").style.display = "none";
   document.getElementById("exp-bar").style.display = "none";
 }
-function nextDrillWord() { answered = false; currentWord = pickNext(activeMode === "focus"); renderDrill(); }
+function nextDrillWord() { answered = false; currentWord = drillSubMode === 'refresh' ? pickNextRefresh() : pickNext(drillSubMode === 'focus'); renderDrill(); }
 function miniStats(ws) {
   return `<div class="mini-stat"><div class="mini-label">correct</div><div class="mini-val">${ws.correct}</div></div>
     <div class="mini-stat"><div class="mini-label">wrong</div><div class="mini-val">${ws.wrong}</div></div>
@@ -1442,8 +1535,11 @@ function renderDrill() {
     ws.displayStreak > 0 && !isMasteryPlus(ws) ? `<span class="streak-badge">🔥 ${ws.displayStreak}</span>` : ""
   ].join(" ");
   const deckNames   = [...selectedIds].map(id => getDeck(id)?.name).filter(Boolean).join(" + ");
-  const focusNotice = activeMode === "focus"
-    ? `<div class="focus-notice">🎯 Focus mode — mastered words excluded</div>` : "";
+  const focusNotice = drillSubMode === "focus"
+    ? `<div class="focus-notice">🎯 Focus mode — mastered words excluded</div>`
+    : drillSubMode === "refresh"
+      ? `<div class="focus-notice" style="background:rgba(0,201,177,0.08);border-color:rgba(0,201,177,0.25);color:var(--teal);">🔄 Refresh — cycling by time since last answer</div>`
+      : "";
   el.innerHTML = `
     <div class="screen">
       <div class="screen-top">
@@ -1541,7 +1637,7 @@ function checkDrill() {
     ws.correct++; ws.streak++; ws.displayStreak++;
     sessionCorrect++; sessionConsecutive++;
     S.totalCorrect++;
-    if (activeMode === "classic" || activeMode === "focus") checkDrillMilestone();
+    if (activeMode === "drill") checkDrillMilestone();
     addExp(isNew ? 10 : 5);
     if (!ws.mastered && isMastered(ws)) {
       ws.mastered = true;
@@ -1565,6 +1661,7 @@ function dontKnow() {
   if (answered) return;
   answered = true;
   const ws    = getWS(currentWord.deckId, currentWord.idx);
+  ws.lastAnsweredAt = Date.now();
   ws.wrong++; ws.streak = 0; ws.displayStreak = 0; sessionConsecutive = 0;
   const input = document.getElementById("german-input");
   if (input) { input.value = currentWord[WORD_KEY]; input.classList.add("wrong"); }
@@ -1586,10 +1683,10 @@ function showDrillFeedback(correct, ws) {
   speak(currentWord[WORD_KEY]);
   if (currentWord.examples && currentWord.examples.length) {
     document.getElementById("examples-area").innerHTML = `
-      <div class="examples-wrap">
+      <div class="examples-wrap-big">
         <div class="examples-title">Examples</div>
         ${currentWord.examples.map(ex => `
-          <div class="example-row">
+          <div class="example-row-big">
             <div class="example-de">${ex[WORD_KEY]}</div>
             <div class="example-en">${ex.en}</div>
           </div>`).join("")}
@@ -1607,7 +1704,7 @@ function startVoiceSession() {
   if (!navigator.onLine) { alert("No internet. Switching to Classic."); activeMode="classic"; startDrill(); return; }
   voiceSessionRunning = true;
   answered    = false;
-  currentWord = pickNext(activeMode === "focus");
+  currentWord = drillSubMode === 'refresh' ? pickNextRefresh() : pickNext(drillSubMode === 'focus');
   renderVoiceDrill();
   document.getElementById("main-screen").style.display = "block";
   document.getElementById("groups-container").style.display = "none";
@@ -1619,7 +1716,7 @@ function startVoiceTimer() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) { alert("Voice not supported. Switching to typed timer."); voiceEnabled=false; startTimer(); return; }
   if (!navigator.onLine) { alert("No internet. Switching to typed timer."); voiceEnabled=false; startTimer(); return; }
-  const words = [...activeWords];
+  const words = buildTimerWords();
   timerQueue  = [];
   while (timerQueue.length < timerWordCount) {
     timerQueue.push(...[...words].sort(() => Math.random() - 0.5));
@@ -1674,6 +1771,7 @@ function handleVoiceTimerResult(correct, heard, isSkip=false) {
   if (correct) {
     timerCorrect++; playSuccess(); checkDrillMilestone();
     const ws = getWS(currentWord.deckId, currentWord.idx);
+    ws.lastAnsweredAt = Date.now();
     ws.correct++; ws.streak++; ws.displayStreak++; S.totalCorrect++;
     if (!ws.mastered && isMastered(ws)) {
       ws.mastered = true;
@@ -1802,7 +1900,7 @@ function handleVoiceResult(correct, heard, isSkip=false) {
     ws.correct++; ws.streak++; ws.displayStreak++;
     sessionCorrect++; sessionConsecutive++;
     S.totalCorrect++;
-    if (activeMode === "classic" || activeMode === "focus") checkDrillMilestone();
+    if (activeMode === "drill") checkDrillMilestone();
     addExp(isNew ? 10 : 5);
     if (!ws.mastered && isMastered(ws)) {
       ws.mastered = true;
@@ -1823,7 +1921,7 @@ function handleVoiceResult(correct, heard, isSkip=false) {
   setTimeout(() => {
     if (!voiceSessionRunning) return;
     answered    = false;
-    currentWord = pickNext(activeMode === "focus");
+    currentWord = drillSubMode === 'refresh' ? pickNextRefresh() : pickNext(drillSubMode === 'focus');
     renderVoiceDrill();
     setTimeout(() => startListening(), 400);
   }, delay);
@@ -2003,7 +2101,7 @@ function finishLearnStartDrill() { activeMode = "classic"; startDrill(); }
 
 // ── TIMER MODE ────────────────────────────────
 function startTimer() {
-  const words = [...activeWords];
+  const words = buildTimerWords();
   timerQueue  = [];
   while (timerQueue.length < timerWordCount) {
     timerQueue.push(...[...words].sort(() => Math.random() - 0.5));
@@ -2401,3 +2499,5 @@ initVoice();
 recordLogin();
 renderExpBar();
 renderGroups();
+const muteBtn = document.getElementById('mute-btn');
+if (muteBtn) muteBtn.textContent = muteEnabled ? '🔇' : '🔊';
