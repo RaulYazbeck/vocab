@@ -511,7 +511,7 @@ function initVoice() {
   speechSynthesis.onvoiceschanged = load;
 }
 function speak(text) {
-  if (!window.speechSynthesis) return;
+  if (muteEnabled || !window.speechSynthesis) return;
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = APP_CONFIG.speechLang;
@@ -1415,30 +1415,6 @@ function renderStartBar() {
     </div>` : ""}
     ${ankiSubtitle}
     <button class="fi-start" onclick="startSession()">Start ▶</button>`;
-  const { due, newCount } = ankiDueCount();
-  const ankiSubtitle = activeMode === "anki"
-    ? `<div style="font-size:11px;color:#7C5CBF;font-weight:500;margin-bottom:8px;">${due} due today · ${Math.min(newCount,20)} new available</div>`
-    : "";
-  island.innerHTML = `
-    <div class="fi-summary">
-      <span class="fi-count"><strong>${selectedIds.size}</strong> deck${selectedIds.size !== 1 ? "s" : ""} · <strong>${totalWords}</strong> words</span>
-      <span class="fi-names">${names}</span>
-    </div>
-    <div class="fi-modes">
-      ${["learn","classic","focus","timer","anki"].map(m =>
-        `<button class="fi-pill ${activeMode === m ? "active" : ""}" onclick="setMode('${m}')">${modeLabels[m]}</button>`
-      ).join("")}
-      ${activeMode !== "learn" && activeMode !== "anki" ? `<button class="fi-pill ${voiceEnabled ? "active" : ""}" onclick="toggleVoice()">🎙️ Voice</button>` : ""}
-    </div>
-    ${activeMode === "timer" ? `
-    <div class="fi-modes" style="margin-top:6px;">
-      <span style="font-size:11px;color:#888;align-self:center;">Words:</span>
-      ${[10,25,50].map(n =>
-        `<button class="fi-pill ${timerWordCount === n ? "active" : ""}" onclick="setTimerCount(${n})">${n}</button>`
-      ).join("")}
-    </div>` : ""}
-    ${ankiSubtitle}
-    <button class="fi-start" onclick="startSession()">Start ▶</button>`;
     requestAnimationFrame(() => {
     const spacer = document.getElementById("island-spacer");
     if (spacer) spacer.style.height = (island.offsetHeight + 32) + "px";
@@ -1632,6 +1608,7 @@ function checkDrill() {
   answered = true;
   const correct = isCorrect(input.value, currentWord[WORD_KEY]);
   const ws      = getWS(currentWord.deckId, currentWord.idx);
+  ws.lastAnsweredAt = Date.now();
   const isNew   = ws.correct === 0 && ws.wrong === 0;
   if (correct) {
     ws.correct++; ws.streak++; ws.displayStreak++;
@@ -1700,8 +1677,8 @@ function showDrillFeedback(correct, ws) {
 // ── VOICE MODE ────────────────────────────────
 function startVoiceSession() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { alert("Voice not supported. Switching to Classic."); activeMode="classic"; startDrill(); return; }
-  if (!navigator.onLine) { alert("No internet. Switching to Classic."); activeMode="classic"; startDrill(); return; }
+  if (!SR) { alert("Voice not supported. Switching to Classic."); activeMode="drill"; startDrill(); return; }
+  if (!navigator.onLine) { alert("No internet. Switching to Classic."); activeMode="drill"; startDrill(); return; }
   voiceSessionRunning = true;
   answered    = false;
   currentWord = drillSubMode === 'refresh' ? pickNextRefresh() : pickNext(drillSubMode === 'focus');
@@ -1870,7 +1847,7 @@ function initVoiceRecognition() {
     } else if (event.error === "network") {
       stopVoiceSession();
       alert("Network error. Switching to Classic.");
-      activeMode = "classic"; startDrill();
+      activeMode = "drill"; startDrill();
     } else {
       setVoiceStatus("Error: " + event.error + " — tap mic to retry");
       voiceActive = false; updateMicBtn();
@@ -2097,7 +2074,7 @@ function learnNotYet() {
   banner.textContent = `✗ ${w[WORD_KEY]}`;
   setTimeout(() => { renderLearnCard(); }, 0);
 }
-function finishLearnStartDrill() { activeMode = "classic"; startDrill(); }
+function finishLearnStartDrill() { activeMode = "drill"; startDrill(); }
 
 // ── TIMER MODE ────────────────────────────────
 function startTimer() {
