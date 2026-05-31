@@ -557,6 +557,52 @@ tr:hover td { background:rgba(255,255,255,0.03); }
   .stats-table-wrap table td:nth-child(5)::before{content:"✗ ";}
   .stats-table-wrap table td:nth-child(6){display:none;}
 }
+/* ── ANKI WORD HEADER ──────────── */
+.anki-word-header { text-align:center; margin:1.25rem 0 0.5rem; }
+.anki-word-main { font-family:'JetBrains Mono',monospace; font-size:26px; font-weight:600; color:var(--text); }
+.anki-word-hint { font-size:13px; color:var(--text-3); margin-top:4px; font-style:italic; }
+
+/* ── ANKI EXAMPLE (QUESTION SIDE) ─ */
+.anki-example-q {
+  background:rgba(155,127,232,0.08); border:1.5px solid rgba(155,127,232,0.28);
+  border-radius:var(--r); padding:16px 18px; margin:1rem 0;
+  display:flex; align-items:center; gap:12px;
+}
+.anki-example-sentence {
+  font-family:'JetBrains Mono',monospace; font-size:17px; color:var(--text);
+  flex:1; font-style:italic; line-height:1.5;
+}
+.anki-example-play {
+  width:36px; height:36px; border-radius:50%;
+  border:1px solid rgba(155,127,232,0.4); background:var(--purple-dim);
+  color:var(--purple); font-size:14px; cursor:pointer; flex-shrink:0; transition:all 0.18s;
+}
+.anki-example-play:hover { background:rgba(155,127,232,0.28); }
+
+/* ── ANKI ANSWER (ENGLISH REVEAL) ─ */
+.anki-answer-en {
+  background:rgba(0,201,177,0.07); border:1.5px solid rgba(0,201,177,0.25);
+  border-radius:var(--r); padding:16px 18px; margin:0.75rem 0; text-align:center;
+}
+.anki-answer-en-sentence { font-size:19px; font-weight:600; color:var(--teal); margin-bottom:6px; font-style:italic; }
+.anki-answer-en-word { font-size:13px; color:var(--text-3); }
+
+/* ── EXAMPLES (DRILL) — PROMINENT ─ */
+.examples-wrap-big {
+  background:rgba(155,127,232,0.07); border:1.5px solid rgba(155,127,232,0.28);
+  border-radius:var(--r); padding:14px 16px; margin-bottom:0.75rem;
+}
+.examples-wrap-big .examples-title {
+  font-size:10px; font-weight:700; color:var(--purple); text-transform:uppercase;
+  letter-spacing:1.5px; margin-bottom:10px;
+}
+.example-row-big { padding:8px 0; border-bottom:1px solid rgba(155,127,232,0.10); }
+.example-row-big:last-child { border-bottom:none; }
+.example-row-big .example-de {
+  font-family:'JetBrains Mono',monospace; font-size:16px; color:var(--text);
+  margin-bottom:3px; font-style:italic;
+}
+.example-row-big .example-en { font-size:14px; color:var(--text-2); }
 </style>
 </head>
 <body>
@@ -566,6 +612,7 @@ tr:hover td { background:rgba(255,255,255,0.03); }
     <div class="header-right">
       <button class="hdr-btn" onclick="showScreen('badges')">🏆</button>
       <button class="hdr-btn" onclick="showScreen('stats')">Stats</button>
+      <button class="hdr-btn" id="mute-btn" onclick="toggleMute()">🔊</button>
       <button class="hdr-btn" id="auth-btn" onclick="handleAuth()">Sign in</button>
     </div>
   </div>
