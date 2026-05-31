@@ -1357,16 +1357,6 @@ function renderStartBar() {
       document.querySelector(".app").appendChild(spacer);
     }
   }
-  const totalWords = [...selectedIds].reduce((s, id) => {
-    const d = getDeck(id);
-    if (!d) return s;
-    if (activeMode === "focus") {
-      const unmastered = unlockedWords(d).filter((w, i) => !isMastered(getWS(id, i))).length;
-      return s + (unmastered > 0 ? unmastered : getUnlocked(id));
-    }
-    return s + getUnlocked(id);
-  }, 0);
-  const names = [...selectedIds].map(id => getDeck(id)?.name).filter(Boolean).join(", ");
   const modeLabels = { learn:"👁 Learn", drill:"📖 Drill", timer:"⏱ Timer", anki:"🃏 Anki" };
   const { due, newCount } = ankiDueCount();
   const isFocusMode = (activeMode === "drill" && drillSubMode === "focus") || (activeMode === "timer" && timerSubMode === "focus");
