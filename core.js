@@ -1717,7 +1717,7 @@ function renderVoiceTimerScreen() {
     <div class="timer-score">✓ <strong id="t-correct">${timerCorrect}</strong> &nbsp; ✗ <strong id="t-wrong">${timerWrong}</strong> &nbsp; left: <strong>${timerQueue.length-timerWordsDone}</strong></div>
     <div class="word-display" id="timer-word-display">
       <div class="english-word">${currentWord.en}</div>
-      <div class="word-hint">${currentWord.hint}</div>
+      <div class="word-hint" style="font-size:18px;">${currentWord.hint}</div>
     </div>
     <div class="voice-indicator">
       <button class="mic-btn" id="voice-mic-btn" onclick="toggleMic()">🎤</button>
@@ -1754,7 +1754,7 @@ function handleVoiceTimerResult(correct, heard, isSkip=false) {
     if (fb) fb.innerHTML = `<span style="color:#0F6E56;font-weight:700;">✓ Correct!</span>`;
     document.getElementById("t-correct").textContent = timerCorrect;
     const wordEl = document.getElementById("timer-word-display");
-    if (wordEl) wordEl.innerHTML = `<div class="english-word">${currentWord.en}</div><div class="word-hint">${currentWord.hint}</div>`;
+    if (wordEl) wordEl.innerHTML = `<div class="english-word">${currentWord.en}</div><div class="word-hint" style="font-size:18px;">${currentWord.hint}</div>`;
     setTimeout(() => { if (!timerFinished && !timerPaused) startListening(); }, 400);
   } else {
     timerWrong++; playFailure();
@@ -2114,7 +2114,7 @@ function renderTimerScreen() {
     <div class="timer-score">✓ <strong id="t-correct">${timerCorrect}</strong> &nbsp; ✗ <strong id="t-wrong">${timerWrong}</strong> &nbsp; left: <strong>${timerQueue.length-timerWordsDone}</strong></div>
     <div class="word-display" id="timer-word-display">
       <div class="english-word">${currentWord.en}</div>
-      <div class="word-hint">${currentWord.hint}</div>
+      <div class="word-hint" style="font-size:18px;">${currentWord.hint}</div>
     </div>
     <div id="timer-feedback" style="min-height:44px;font-size:18px;font-weight:700;text-align:center;padding:6px 0 2px;"></div>
     <input type="text" class="german-input" id="timer-input" placeholder="type the answer…"
@@ -2236,7 +2236,7 @@ function renderStatsScreen() {
   let html = `<div class="screen">
     <div class="screen-top"><div class="screen-label">Progress</div><button class="back-btn" onclick="renderStatsChoice()">← Back</button></div>
     <div style="text-align:right;margin-bottom:1rem;">
-      <button onclick="resetAll()" style="font-size:12px;padding:5px 12px;border:1px solid #E24B4A;border-radius:6px;background:white;color:#E24B4A;cursor:pointer;">Reset all progress</button>
+      <button onclick="resetAll()" style="font-size:12px;padding:5px 12px;border:1px solid var(--error);border-radius:6px;background:transparent;color:var(--error);cursor:pointer;">Reset all progress</button>
     </div>`;
   ALL_GROUPS.forEach(group => {
     html += `<div class="stats-section"><div class="stats-section-title">${group.icon} ${group.name}</div>`;
@@ -2245,21 +2245,21 @@ function renderStatsScreen() {
       const pct = total > 0 ? Math.round((mastered / total) * 100) : 0;
       const deckKey = `stats-deck-${deck.id}`;
       html += `
-        <div style="margin-bottom:0.75rem;border:1px solid #eee;border-radius:10px;overflow:hidden;">
-          <div onclick="toggleStatsDeck('${deck.id}')" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;cursor:pointer;background:#fafafa;user-select:none;">
+        <div style="margin-bottom:0.75rem;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--glass);backdrop-filter:blur(20px);">
+          <div onclick="toggleStatsDeck('${deck.id}')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;background:transparent;user-select:none;border-bottom:1px solid var(--border);">
             <div style="display:flex;align-items:center;gap:10px;flex:1;">
               <span style="font-size:14px;">${deck.icon}</span>
               <div>
-                <div style="font-size:13px;font-weight:600;">${deck.name}</div>
+                <div style="font-size:11px;color:var(--text-3);margin-top:3px;">${mastered}/${total} mastered · ${masteryPlus} ⭐ · ${pct}% · ${all} total</div>
                 <div style="font-size:11px;color:#888;margin-top:2px;">${mastered}/${total} mastered · ${masteryPlus} ⭐ · ${pct}% · ${all} total</div>
               </div>
             </div>
             <div style="display:flex;align-items:center;gap:8px;">
-              <button onclick="event.stopPropagation();resetDeck('${deck.id}')" style="font-size:11px;padding:3px 8px;border:1px solid #ddd;border-radius:6px;background:white;color:#888;cursor:pointer;">Reset</button>
-              <span id="chevron-${deck.id}" style="font-size:11px;color:#aaa;transition:transform 0.2s;display:inline-block;">▶</span>
+              <button onclick="event.stopPropagation();resetDeck('${deck.id}')" style="font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:6px;background:rgba(255,255,255,0.07);color:var(--text-3);cursor:pointer;">Reset</button>
+              <span id="chevron-${deck.id}" style="font-size:11px;color:var(--text-3);transition:transform 0.2s;display:inline-block;">▶</span>
             </div>
           </div>
-          <div id="${deckKey}" style="display:none;">
+          <div id="${deckKey}" style="display:none;background:rgba(255,255,255,0.03);">
             <div class="stats-table-wrap"><table style="margin:0;border-radius:0;">
               <thead><tr><th>English</th><th>Target</th><th>Plural</th><th>✓</th><th>✗</th><th>Streak</th></tr></thead>
               <tbody>`;
