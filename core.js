@@ -2250,8 +2250,8 @@ function renderStatsScreen() {
             <div style="display:flex;align-items:center;gap:10px;flex:1;">
               <span style="font-size:14px;">${deck.icon}</span>
               <div>
+                <div style="font-size:13px;font-weight:700;color:var(--text);">${deck.name}</div>
                 <div style="font-size:11px;color:var(--text-3);margin-top:3px;">${mastered}/${total} mastered · ${masteryPlus} ⭐ · ${pct}% · ${all} total</div>
-                <div style="font-size:11px;color:#888;margin-top:2px;">${mastered}/${total} mastered · ${masteryPlus} ⭐ · ${pct}% · ${all} total</div>
               </div>
             </div>
             <div style="display:flex;align-items:center;gap:8px;">
@@ -2272,7 +2272,7 @@ function renderStatsScreen() {
             : ws.displayStreak > 0
               ? `<span class="streak-badge">${ws.displayStreak}</span>`
               : `<span style="color:#bbb">new</span>`;
-        html += `<tr><td>${w.en}</td><td style="color:#555">${w[WORD_KEY]}</td><td style="color:#aaa">${w.pl||"—"}</td><td>${ws.correct}</td><td>${ws.wrong}</td><td>${st}</td></tr>`;
+        html += `<tr><td>${w.en}</td><td style="color:var(--text-2)">${w[WORD_KEY]}</td><td style="color:var(--text-3)">${w.pl||"—"}</td><td>${ws.correct}</td><td>${ws.wrong}</td><td>${st}</td></tr>`;
       });
       html += `</tbody></table></div></div></div>`;
     });
@@ -2404,7 +2404,7 @@ function renderAnkiStatsScreen() {
         <button class="back-btn" onclick="renderStatsChoice()">← Back</button>
       </div>
       <div style="text-align:right;margin-bottom:1rem;">
-        <button onclick="resetAnkiProgress()" style="font-size:12px;padding:5px 12px;border:1px solid #7C5CBF;border-radius:6px;background:white;color:#7C5CBF;cursor:pointer;">Reset Anki progress</button>
+        <button onclick="resetAnkiProgress()" style="font-size:12px;padding:5px 12px;border:1px solid #7C5CBF;border-radius:6px;background:transparent;color:#7C5CBF;cursor:pointer;">Reset Anki progress</button>
       </div>
       <div class="anki-stats-summary">
         <div class="anki-stats-pill new">📦 ${totalNew} new</div>
