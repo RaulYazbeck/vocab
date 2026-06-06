@@ -644,7 +644,7 @@ const DECKS_A1 = {
         { en:"the birthday", de:"der Geburtstag", pl:"die Geburtstage", hint:"noun + article", examples:[{de:"Herzlichen Glückwunsch zum Geburtstag!",en:"Happy birthday!"}] },
         { en:"the place of birth", de:"der Geburtsort", pl:"die Geburtsorte", hint:"noun + article", examples:[{de:"Bitte schreiben Sie Ihren Geburtsort.",en:"Please write your place of birth."}] },
         { en:"the year of birth", de:"das Geburtsjahr", pl:"die Geburtsjahre", hint:"noun + article", examples:[{de:"Wie ist Ihr Geburtsjahr?",en:"What is your year of birth?"}] },
-        { en:"to be born", de:"geboren (sein)", hint:"past participle", examples:[{de:"Ich bin in Beirut geboren.",en:"I was born in Beirut."}] },
+        { en:"to be born", de:"geboren", hint:"past participle", examples:[{de:"Ich bin in Beirut geboren.",en:"I was born in Beirut."}] },
         { en:"to visit / go sightseeing", de:"besichtigen", hint:"verb regular", examples:[{de:"Ich möchte gern den Dom besichtigen.",en:"I would like to visit the cathedral."}] },
         { en:"to visit (a person)", de:"besuchen", hint:"verb regular", examples:[{de:"Darf ich dich besuchen?",en:"May I visit you?"}] },
         { en:"to meet (by chance)", de:"treffen", hint:"verb irregular", examples:[{de:"Ich treffe in der Stadt einen Kollegen.",en:"I am meeting a colleague in the city."}] },
