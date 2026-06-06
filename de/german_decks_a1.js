@@ -616,7 +616,7 @@ const DECKS_A1 = {
       words: [
         { en:"the hobby", de:"das Hobby", pl:"die Hobbys", hint:"noun + article", examples:[{de:"Meine Hobbys sind Lesen und Schwimmen.",en:"My hobbies are reading and swimming."}] },
         { en:"the sport", de:"der Sport", hint:"noun + article (no plural)", examples:[{de:"Ich mache viel Sport.",en:"I do a lot of sport."}] },
-        { en:"football / soccer", de:"Fußball", hint:"noun + article", examples:[{de:"Spielst du gern Fußball?",en:"Do you like playing football?"}] },
+        { en:"the football / soccer", de:"der Fußball", hint:"noun + article", examples:[{de:"Spielst du gern Fußball?",en:"Do you like playing football?"}] },
         { en:"to play", de:"spielen", hint:"verb regular", examples:[{de:"Die Kinder spielen draußen.",en:"The children are playing outside."}] },
         { en:"to swim", de:"schwimmen", hint:"verb irregular", examples:[{de:"Ich schwimme jeden Tag einen Kilometer.",en:"I swim one kilometre every day."}] },
         { en:"the swimming pool", de:"das Schwimmbad", pl:"die Schwimmbäder", hint:"noun + article", examples:[{de:"Kommst du mit ins Schwimmbad?",en:"Are you coming to the swimming pool?"}] },
