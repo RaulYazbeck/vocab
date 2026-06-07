@@ -603,6 +603,49 @@ tr:hover td { background:rgba(255,255,255,0.03); }
   margin-bottom:3px; font-style:italic;
 }
 .example-row-big .example-en { font-size:14px; color:var(--text-2); }
+/* ── SETTINGS PANEL ─────────────── */
+.settings-overlay { position:fixed; inset:0; z-index:200; }
+.settings-sheet {
+  position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+  width:100%; max-width:720px; z-index:201;
+  background:rgba(10,15,26,0.97);
+  backdrop-filter:blur(32px); -webkit-backdrop-filter:blur(32px);
+  border:1px solid var(--border-hi); border-radius:20px 20px 0 0;
+  padding:1.25rem 1rem 2.5rem;
+  box-shadow:0 -8px 40px rgba(0,0,0,0.6);
+}
+.settings-title {
+  font-family:'Syne',sans-serif; font-size:12px; font-weight:600;
+  color:var(--text-3); margin-bottom:1rem; text-align:center;
+  letter-spacing:1px; text-transform:uppercase;
+}
+.settings-item {
+  display:flex; align-items:center; width:100%; padding:14px 16px;
+  background:var(--glass); border:1px solid var(--border); border-radius:var(--r-sm);
+  color:var(--text); font-size:15px; font-weight:500; cursor:pointer;
+  margin-bottom:8px; transition:all 0.18s; text-align:left; gap:12px;
+}
+.settings-item:hover { background:var(--glass-hover); border-color:var(--border-hi); }
+/* ── GENERAL STATS GRID ──────────── */
+.gen-stats-grid {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:1.25rem;
+}
+.gen-stat-card {
+  background:var(--glass); border:1px solid var(--border);
+  border-radius:var(--r-sm); padding:12px 8px; text-align:center;
+}
+.gen-stat-card.accent { background:var(--accent-dim); border-color:rgba(245,166,35,0.35); }
+.gen-stat-card.teal   { background:var(--teal-dim);   border-color:rgba(0,201,177,0.25); }
+.gen-stat-card.purple { background:var(--purple-dim); border-color:rgba(155,127,232,0.3); }
+.gen-stat-icon { font-size:20px; margin-bottom:4px; }
+.gen-stat-val  {
+  font-family:'Syne',sans-serif; font-size:22px; font-weight:700;
+  color:var(--text); line-height:1; margin-bottom:3px;
+}
+.gen-stat-card.accent .gen-stat-val { color:var(--accent); }
+.gen-stat-card.teal   .gen-stat-val { color:var(--teal); }
+.gen-stat-card.purple .gen-stat-val { color:var(--purple); }
+.gen-stat-label { font-size:10px; color:var(--text-3); text-transform:uppercase; letter-spacing:0.8px; }
 </style>
 </head>
 <body>
@@ -610,9 +653,7 @@ tr:hover td { background:rgba(255,255,255,0.03); }
   <div class="header">
     <h1>🇩🇪 German Vocabulary</h1>
     <div class="header-right">
-      <button class="hdr-btn" onclick="showScreen('badges')">🏆</button>
-      <button class="hdr-btn" onclick="showScreen('stats')">Stats</button>
-      <button class="hdr-btn" id="mute-btn" onclick="toggleMute()">🔊</button>
+      <button class="hdr-btn" id="settings-btn" onclick="openSettings()">⚙️</button>
       <button class="hdr-btn" id="auth-btn" onclick="handleAuth()">Sign in</button>
     </div>
   </div>
@@ -632,5 +673,24 @@ const APP_CONFIG = {
 };
 </script>
 <script src="../core.js"></script>
+<div id="settings-panel" style="display:none;position:fixed;inset:0;z-index:200;">
+  <div class="settings-overlay" onclick="closeSettings()"></div>
+  <div class="settings-sheet">
+    <div class="settings-title">Settings</div>
+    <button class="settings-item" onclick="closeSettings();showScreen('stats')">📊&nbsp; Stats &amp; Progress</button>
+    <button class="settings-item" onclick="closeSettings();showScreen('badges')">🏆&nbsp; Badges</button>
+    <button class="settings-item" id="settings-mute-btn" onclick="toggleMute()">🔊&nbsp; Sound on</button>
+  </div>
+</div>
+<script>
+function openSettings() {
+  document.getElementById('settings-panel').style.display = 'block';
+  const sbtn = document.getElementById('settings-mute-btn');
+  if (sbtn) sbtn.textContent = (typeof muteEnabled !== 'undefined' && muteEnabled) ? '🔇  Sound off' : '🔊  Sound on';
+}
+function closeSettings() {
+  document.getElementById('settings-panel').style.display = 'none';
+}
+</script>
 </body>
 </html>
