@@ -1460,6 +1460,8 @@ function showScreen(name) {
   document.getElementById("groups-container").style.display = "none";
   document.getElementById("start-bar").style.display = "none";
   document.getElementById("exp-bar").style.display = "none";
+  const island = document.getElementById('floating-island');
+  if (island) island.style.display = 'none';
   if (name === "stats")       renderStatsChoice();
   else if (name === "badges") renderBadgesScreen();
 }
@@ -1519,8 +1521,14 @@ function initDrillScreen() {
       <div class="feedback" id="feedback" style="min-height:56px;"></div>
       <div class="stats-row"  id="stats-row"></div>
     </div>`;
-  window.scrollTo({top: 0, behavior: 'instant'});
   updateDrillWord();
+  requestAnimationFrame(() => {
+    const wordEl = document.getElementById('drill-english');
+    if (wordEl) {
+      const y = wordEl.getBoundingClientRect().top + window.scrollY - 8;
+      window.scrollTo({top: Math.max(0, y), behavior: 'instant'});
+    }
+  });
 }
 
 // Updates only the parts that change between words. The DOM structure
