@@ -1503,7 +1503,6 @@ function renderDrill() {
     ws.displayStreak > 0 && !isMasteryPlus(ws) ? `<span class="streak-badge">🔥 ${ws.displayStreak}</span>` : ""
   ].join(" ");
   const deckNames = currentWord.deckName;
-  window.scrollTo({top:0, behavior:'instant'});
   el.innerHTML = `
     <div class="screen">
       <div class="screen-top">
@@ -1526,14 +1525,24 @@ function renderDrill() {
       <div class="feedback" id="feedback" style="min-height:56px;"></div>
       <div class="stats-row" id="stats-row">${miniStats(ws)}</div>
     </div>`;
-  renderUnlockRow("unlock-row-drill");
+  renderUnlockRow("unlock-row-drill", currentWord.deckId);
+  requestAnimationFrame(() => {
+    const unlockEl = document.getElementById('unlock-row-drill');
+    const hasUnlock = unlockEl && unlockEl.innerHTML.trim();
+    const target = hasUnlock ? unlockEl : el.querySelector('.word-display');
+    if (target) {
+      const y = target.getBoundingClientRect().top + window.scrollY - 12;
+      window.scrollTo({top: Math.max(0, y), behavior: 'instant'});
+    }
+  });
   focusInput();
 }
-function renderUnlockRow(containerId) {
+function renderUnlockRow(containerId, onlyDeckId = null) {
   const container = document.getElementById(containerId);
   if (!container) return;
   const rows = [];
-  selectedIds.forEach(id => {
+  const _ids = onlyDeckId ? [onlyDeckId] : [...selectedIds];
+  _ids.forEach(id => {
     const deck = getDeck(id);
     if (!deck) return;
     const u = getUnlocked(id);
