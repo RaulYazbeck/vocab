@@ -1480,62 +1480,76 @@ function backToMenu() {
 function startDrill() {
   answered    = false;
   currentWord = drillSubMode === 'refresh' ? pickNextRefresh() : pickNext(drillSubMode === 'focus');
-  renderDrill();
-  document.getElementById("main-screen").style.display = "block";
-  document.getElementById("groups-container").style.display = "none";
-  document.getElementById("start-bar").style.display = "none";
-  document.getElementById("exp-bar").style.display = "none";
+  initDrillScreen();
 }
-function nextDrillWord() { answered = false; currentWord = drillSubMode === 'refresh' ? pickNextRefresh() : pickNext(drillSubMode === 'focus'); renderDrill(); }
+function nextDrillWord() { answered = false; currentWord = drillSubMode === 'refresh' ? pickNextRefresh() : pickNext(drillSubMode === 'focus'); updateDrillWord(); }
 function miniStats(ws) {
   return `<div class="mini-stat"><div class="mini-label">correct</div><div class="mini-val">${ws.correct}</div></div>
     <div class="mini-stat"><div class="mini-label">wrong</div><div class="mini-val">${ws.wrong}</div></div>
     <div class="mini-stat"><div class="mini-label">streak</div><div class="mini-val">${ws.displayStreak}</div></div>
     <div class="mini-stat"><div class="mini-label">mastered</div><div class="mini-val">${isMastered(ws)?"✓":"—"}</div></div>`;
 }
-function renderDrill() {
+// Renders the drill skeleton once per session. Never called again until
+// the user leaves and re-enters drill mode.
+function initDrillScreen() {
   const el = document.getElementById("main-screen");
-  if (!currentWord) return;
-  const ws = getWS(currentWord.deckId, currentWord.idx);
-  const badges = [
-    isMasteryPlus(ws) ? `<span class="masteryplus-badge">⭐ ${21 - daysBetween(ws.masteryPlusDate, todayISO())}d</span>` :
-      isMastered(ws) ? `<span class="mastered-badge">✓ mastered</span>` : "",
-    ws.displayStreak > 0 && !isMasteryPlus(ws) ? `<span class="streak-badge">🔥 ${ws.displayStreak}</span>` : ""
-  ].join(" ");
-  const deckNames = currentWord.deckName;
+  el.style.display = "block";
+  document.getElementById("groups-container").style.display = "none";
+  document.getElementById("start-bar").style.display    = "none";
+  document.getElementById("exp-bar").style.display      = "none";
   el.innerHTML = `
     <div class="screen">
       <div class="screen-top">
-        <div class="screen-label">${deckNames}</div>
+        <div class="screen-label" id="drill-deck-label"></div>
         <button class="back-btn" onclick="backToMenu()">← Menu</button>
       </div>
       <div id="unlock-row-drill"></div>
       <div class="word-display">
-        <div class="english-word">${currentWord.en}</div>
-        <div class="word-hint">${currentWord.hint} ${badges}</div>
+        <div class="english-word" id="drill-english"></div>
+        <div class="word-hint"    id="drill-hint"></div>
       </div>
       <input type="text" class="german-input" id="german-input" placeholder="type the answer…"
         autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
         onkeydown="handleDrillKey(event)"/>
       <div class="action-row">
-        <button class="check-btn"   onclick="checkDrill()">Check</button>
+        <button class="check-btn"    onclick="checkDrill()">Check</button>
         <button class="dontknow-btn" onclick="dontKnow()">? Don't know</button>
       </div>
       <div id="examples-area"></div>
       <div class="feedback" id="feedback" style="min-height:56px;"></div>
-      <div class="stats-row" id="stats-row">${miniStats(ws)}</div>
+      <div class="stats-row"  id="stats-row"></div>
     </div>`;
-  renderUnlockRow("unlock-row-drill", currentWord.deckId);
-  requestAnimationFrame(() => {
-    const unlockEl = document.getElementById('unlock-row-drill');
-    const hasUnlock = unlockEl && unlockEl.innerHTML.trim();
-    const target = hasUnlock ? unlockEl : el.querySelector('.word-display');
-    if (target) {
-      const y = target.getBoundingClientRect().top + window.scrollY - 12;
-      window.scrollTo({top: Math.max(0, y), behavior: 'instant'});
-    }
-  });
-  focusInput();
+  window.scrollTo({top: 0, behavior: 'instant'});
+  updateDrillWord();
+}
+
+// Updates only the parts that change between words. The DOM structure
+// and the input element are preserved — keyboard never dismisses.
+function updateDrillWord() {
+  if (!currentWord) return;
+  const ws = getWS(currentWord.deckId, currentWord.idx);
+  const badges = [
+    isMasteryPlus(ws)
+      ? `<span class="masteryplus-badge">⭐ ${21 - daysBetween(ws.masteryPlusDate, todayISO())}d</span>`
+      : isMastered(ws) ? `<span class="mastered-badge">✓ mastered</span>` : "",
+    ws.displayStreak > 0 && !isMasteryPlus(ws)
+      ? `<span class="streak-badge">🔥 ${ws.displayStreak}</span>` : ""
+  ].join(" ");
+
+  document.getElementById('drill-deck-label').textContent = currentWord.deckName;
+  document.getElementById('drill-english').textContent    = currentWord.en;
+  document.getElementById('drill-hint').innerHTML         = `${currentWord.hint} ${badges}`;
+
+  const input = document.getElementById('german-input');
+  input.value     = '';
+  input.className = 'german-input';
+
+  document.getElementById('feedback').innerHTML      = '';
+  document.getElementById('examples-area').innerHTML = '';
+  document.getElementById('stats-row').innerHTML     = miniStats(ws);
+
+  renderUnlockRow('unlock-row-drill', currentWord.deckId);
+  input.focus();
 }
 function renderUnlockRow(containerId, onlyDeckId = null) {
   const container = document.getElementById(containerId);
@@ -1667,7 +1681,7 @@ function showDrillFeedback(correct, ws) {
   }
   document.getElementById("stats-row").innerHTML = miniStats(ws);
   const inp = document.getElementById("german-input");
-  if (inp) { inp.setAttribute("readonly","true"); inp.removeAttribute("readonly"); inp.focus(); }
+  if (inp) inp.focus();
 }
 
 // ── VOICE MODE ────────────────────────────────
@@ -2512,5 +2526,3 @@ initVoice();
 recordLogin();
 renderExpBar();
 renderGroups();
-const muteBtn = document.getElementById('mute-btn');
-if (muteBtn) muteBtn.textContent = muteEnabled ? '🔇' : '🔊';
