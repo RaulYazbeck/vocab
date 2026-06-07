@@ -685,11 +685,15 @@ const APP_CONFIG = {
 <script>
 function openSettings() {
   document.getElementById('settings-panel').style.display = 'block';
+  const island = document.getElementById('floating-island');
+  if (island) island.style.display = 'none';
   const sbtn = document.getElementById('settings-mute-btn');
   if (sbtn) sbtn.textContent = (typeof muteEnabled !== 'undefined' && muteEnabled) ? '🔇  Sound off' : '🔊  Sound on';
 }
 function closeSettings() {
   document.getElementById('settings-panel').style.display = 'none';
+  const island = document.getElementById('floating-island');
+  if (island) island.style.display = '';
 }
 </script>
 </body>
