@@ -1526,10 +1526,7 @@ function initDrillScreen() {
   updateDrillWord();
   requestAnimationFrame(() => {
     const card = document.querySelector('.drill-word-card');
-    if (card) {
-      const y = card.getBoundingClientRect().top + window.scrollY - 8;
-      window.scrollTo({top: Math.max(0, y), behavior: 'instant'});
-    }
+    if (card) card.scrollIntoView({block: 'start', behavior: 'instant'});
   });
 }
 
