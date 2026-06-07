@@ -1500,12 +1500,14 @@ function initDrillScreen() {
   document.getElementById("start-bar").style.display    = "none";
   document.getElementById("exp-bar").style.display      = "none";
   el.innerHTML = `
-    <div class="screen">
+    <div class="drill-meta-card">
       <div class="screen-top">
         <div class="screen-label" id="drill-deck-label"></div>
         <button class="back-btn" onclick="backToMenu()">← Menu</button>
       </div>
       <div id="unlock-row-drill"></div>
+    </div>
+    <div class="drill-word-card">
       <div class="word-display">
         <div class="english-word" id="drill-english"></div>
         <div class="word-hint"    id="drill-hint"></div>
@@ -1523,9 +1525,9 @@ function initDrillScreen() {
     </div>`;
   updateDrillWord();
   requestAnimationFrame(() => {
-    const wordEl = document.getElementById('drill-english');
-    if (wordEl) {
-      const y = wordEl.getBoundingClientRect().top + window.scrollY - 8;
+    const card = document.querySelector('.drill-word-card');
+    if (card) {
+      const y = card.getBoundingClientRect().top + window.scrollY - 8;
       window.scrollTo({top: Math.max(0, y), behavior: 'instant'});
     }
   });
