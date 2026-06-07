@@ -1526,10 +1526,6 @@ function initDrillScreen() {
     </div>`;
   el.style.paddingBottom = '50vh';
   updateDrillWord();
-  requestAnimationFrame(() => {
-    const card = document.querySelector('.drill-word-card');
-    if (card) card.scrollIntoView({block: 'start', behavior: 'instant'});
-  });
 }
 
 // Updates only the parts that change between words. The DOM structure
@@ -1559,6 +1555,10 @@ function updateDrillWord() {
 
   renderUnlockRow('unlock-row-drill', currentWord.deckId);
   input.focus();
+  requestAnimationFrame(() => {
+    const card = document.querySelector('.drill-word-card');
+    if (card) card.scrollIntoView({block: 'start', behavior: 'instant'});
+  });
 }
 function renderUnlockRow(containerId, onlyDeckId = null) {
   const container = document.getElementById(containerId);
