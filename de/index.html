@@ -646,6 +646,24 @@ tr:hover td { background:rgba(255,255,255,0.03); }
 .gen-stat-card.teal   .gen-stat-val { color:var(--teal); }
 .gen-stat-card.purple .gen-stat-val { color:var(--purple); }
 .gen-stat-label { font-size:10px; color:var(--text-3); text-transform:uppercase; letter-spacing:0.8px; }
+/* ── DRILL SPLIT LAYOUT ──────────── */
+.drill-meta-card {
+  background:var(--glass);
+  backdrop-filter:blur(24px) saturate(160%); -webkit-backdrop-filter:blur(24px) saturate(160%);
+  border:1px solid var(--border); border-radius:var(--r);
+  padding:10px 1.5rem;
+  box-shadow:var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,0.07);
+  margin-bottom:8px;
+}
+.drill-meta-card .screen-top { margin-bottom:0; }
+.drill-meta-card .unlock-row  { margin-bottom:0; margin-top:8px; }
+.drill-word-card {
+  background:var(--glass);
+  backdrop-filter:blur(24px) saturate(160%); -webkit-backdrop-filter:blur(24px) saturate(160%);
+  border:1px solid var(--border); border-radius:var(--r);
+  padding:1.5rem;
+  box-shadow:0 16px 48px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07);
+}
 </style>
 </head>
 <body>
