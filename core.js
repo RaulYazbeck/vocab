@@ -1470,6 +1470,7 @@ function backToMenu() {
   stopVoiceSession();
   const island = document.getElementById("floating-island");
   if (island) island.remove();
+  document.getElementById("main-screen").style.paddingBottom = '';
   document.getElementById("main-screen").style.display = "none";
   document.getElementById("groups-container").style.display = "block";
   document.getElementById("exp-bar").style.display = "block";
@@ -1523,6 +1524,7 @@ function initDrillScreen() {
       <div class="feedback" id="feedback" style="min-height:56px;"></div>
       <div class="stats-row"  id="stats-row"></div>
     </div>`;
+  el.style.paddingBottom = '50vh';
   updateDrillWord();
   requestAnimationFrame(() => {
     const card = document.querySelector('.drill-word-card');
