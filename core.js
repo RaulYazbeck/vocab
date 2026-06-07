@@ -1418,6 +1418,8 @@ function toggleMute() {
   localStorage.setItem('gv_mute', muteEnabled);
   const btn = document.getElementById('mute-btn');
   if (btn) btn.textContent = muteEnabled ? '🔇' : '🔊';
+  const sbtn = document.getElementById('settings-mute-btn');
+  if (sbtn) sbtn.textContent = muteEnabled ? '🔇  Sound off' : '🔊  Sound on';
 }
 function setDrillSubMode(s) { drillSubMode = s; renderStartBar(); }
 function setTimerSubMode(s) { timerSubMode = s; renderStartBar(); }
@@ -1500,19 +1502,14 @@ function renderDrill() {
       isMastered(ws) ? `<span class="mastered-badge">✓ mastered</span>` : "",
     ws.displayStreak > 0 && !isMasteryPlus(ws) ? `<span class="streak-badge">🔥 ${ws.displayStreak}</span>` : ""
   ].join(" ");
-  const deckNames   = [...selectedIds].map(id => getDeck(id)?.name).filter(Boolean).join(" + ");
-  const focusNotice = drillSubMode === "focus"
-    ? `<div class="focus-notice">🎯 Focus mode — mastered words excluded</div>`
-    : drillSubMode === "refresh"
-      ? `<div class="focus-notice" style="background:rgba(0,201,177,0.08);border-color:rgba(0,201,177,0.25);color:var(--teal);">🔄 Refresh — cycling by time since last answer</div>`
-      : "";
+  const deckNames = currentWord.deckName;
+  window.scrollTo({top:0, behavior:'instant'});
   el.innerHTML = `
     <div class="screen">
       <div class="screen-top">
         <div class="screen-label">${deckNames}</div>
         <button class="back-btn" onclick="backToMenu()">← Menu</button>
       </div>
-      ${focusNotice}
       <div id="unlock-row-drill"></div>
       <div class="word-display">
         <div class="english-word">${currentWord.en}</div>
@@ -1525,9 +1522,9 @@ function renderDrill() {
         <button class="check-btn"   onclick="checkDrill()">Check</button>
         <button class="dontknow-btn" onclick="dontKnow()">? Don't know</button>
       </div>
-      <div class="stats-row" id="stats-row">${miniStats(ws)}</div>
-      <div class="feedback" id="feedback" style="min-height:56px;"></div>
       <div id="examples-area"></div>
+      <div class="feedback" id="feedback" style="min-height:56px;"></div>
+      <div class="stats-row" id="stats-row">${miniStats(ws)}</div>
     </div>`;
   renderUnlockRow("unlock-row-drill");
   focusInput();
@@ -2292,11 +2289,51 @@ function toggleStatsDeck(deckId) {
 }
 // ── STATS CHOICE ──────────────────────────────
 function renderStatsChoice() {
+  const today = todayISO();
+  const todayWords = Object.values(S.words).filter(ws =>
+    ws.lastAnsweredAt && new Date(ws.lastAnsweredAt).toLocaleDateString('en-CA') === today
+  ).length;
+  const streak     = getDailyStreak();
+  const mastered   = countMastered();
+  const level      = currentLevel();
+  const daysActive = S.loginDates.length;
   document.getElementById("main-screen").innerHTML = `
     <div class="screen">
       <div class="screen-top">
         <div class="screen-label">Statistics</div>
         <button class="back-btn" onclick="backToMenu()">← Back</button>
+      </div>
+      <div class="gen-stats-grid">
+        <div class="gen-stat-card accent">
+          <div class="gen-stat-icon">📚</div>
+          <div class="gen-stat-val">${todayWords}</div>
+          <div class="gen-stat-label">words today</div>
+        </div>
+        <div class="gen-stat-card teal">
+          <div class="gen-stat-icon">🔥</div>
+          <div class="gen-stat-val">${streak}</div>
+          <div class="gen-stat-label">day streak</div>
+        </div>
+        <div class="gen-stat-card purple">
+          <div class="gen-stat-icon">⭐</div>
+          <div class="gen-stat-val">${mastered}</div>
+          <div class="gen-stat-label">mastered</div>
+        </div>
+        <div class="gen-stat-card">
+          <div class="gen-stat-icon">✓</div>
+          <div class="gen-stat-val">${(S.totalCorrect||0).toLocaleString()}</div>
+          <div class="gen-stat-label">all-time correct</div>
+        </div>
+        <div class="gen-stat-card">
+          <div class="gen-stat-icon">📅</div>
+          <div class="gen-stat-val">${daysActive}</div>
+          <div class="gen-stat-label">days active</div>
+        </div>
+        <div class="gen-stat-card">
+          <div class="gen-stat-icon">🎓</div>
+          <div class="gen-stat-val">Lv ${level}</div>
+          <div class="gen-stat-label">${(S.exp||0).toLocaleString()} XP</div>
+        </div>
       </div>
       <div class="stats-choice-row">
         <button class="stats-choice-btn" onclick="renderStatsScreen()">
