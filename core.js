@@ -1607,7 +1607,7 @@ function showMilestoneFlash(msg) {
   const el = document.createElement("div");
   el.textContent = msg;
   el.style.cssText = `
-    position:fixed;top:24px;left:50%;transform:translateX(-50%);
+    position:absolute;top:${window.scrollY + 24}px;left:50%;transform:translateX(-50%);
     background:#1D9E75;color:white;padding:10px 20px;border-radius:12px;
     font-size:14px;font-weight:700;z-index:999;
     animation:milestoneIn 0.3s ease,milestoneOut 0.4s ease 2s forwards;
@@ -2322,9 +2322,7 @@ function toggleStatsDeck(deckId) {
 // ── STATS CHOICE ──────────────────────────────
 function renderStatsChoice() {
   const today = todayISO();
-  const todayWords = Object.values(S.words).filter(ws =>
-    ws.lastAnsweredAt && new Date(ws.lastAnsweredAt).toLocaleDateString('en-CA') === today
-  ).length;
+  const todayWords = S.drillCorrectToday || 0;
   const streak     = getDailyStreak();
   const mastered   = countMastered();
   const level      = currentLevel();
@@ -2339,7 +2337,7 @@ function renderStatsChoice() {
         <div class="gen-stat-card accent">
           <div class="gen-stat-icon">📚</div>
           <div class="gen-stat-val">${todayWords}</div>
-          <div class="gen-stat-label">words today</div>
+          <div class="gen-stat-label">correct today</div>
         </div>
         <div class="gen-stat-card teal">
           <div class="gen-stat-icon">🔥</div>
