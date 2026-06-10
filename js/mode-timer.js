@@ -121,7 +121,11 @@ function skipTimer() {
 }
 function endTimer(won) {
   timerFinished = true; clearInterval(timerInterval); stopVoiceSession();
-  checkAchievements({ type: "timer_end", won, perfect: won && timerWrong === 0, words: timerWordCount });
+  if (won) {
+    if (S.timerWinsDate !== todayISO()) { S.timerWinsDate = todayISO(); S.timerWinsToday = 0; }
+    S.timerWinsToday = (S.timerWinsToday || 0) + 1;
+  }
+  checkAchievements({ type: "timer_end", won, perfect: won && timerWrong === 0, words: timerWordCount, winsToday: S.timerWinsToday || 0 });
   const perfBonus = Math.max(0, (timerCorrect - timerWrong) * 6);
   const winBonus = won ? timerWordCount : 0;
   timerExpEarned = perfBonus + winBonus;

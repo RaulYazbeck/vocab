@@ -187,11 +187,20 @@ function renderStatsChoice() {
   const mastered   = countMastered();
   const level      = currentLevel();
   const daysActive = S.loginDates.length;
+  const journey    = b1Progress();
   document.getElementById("main-screen").innerHTML = `
     <div class="screen">
       <div class="screen-top">
         <div class="screen-label">Statistics</div>
         <button class="back-btn" onclick="backToMenu()">← Back</button>
+      </div>
+      <div class="journey-card">
+        <div class="journey-head">
+          <span class="journey-title">🏔️ Road to B1</span>
+          <span class="journey-rank">${rankForLevel(level)}</span>
+        </div>
+        <div class="journey-track"><div class="journey-fill" style="width:${journey.pct}%"></div></div>
+        <div class="journey-sub">${journey.mastered.toLocaleString()} / ${journey.total.toLocaleString()} words mastered · ${journey.pct}%</div>
       </div>
       <div class="gen-stats-grid">
         <div class="gen-stat-card accent">

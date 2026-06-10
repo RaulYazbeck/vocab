@@ -107,6 +107,21 @@ const ACHIEVEMENTS = [
   { id:"level_30", icon:"🐉", name:"Grandmaster", desc:"Reach level 30", category:"Journey", xp:400,
     earned:() => currentLevel() >= 30, progress:() => ({ cur:currentLevel(), target:30 }) },
 
+  // ── The Road to B1 ──
+  // The grand ladder: percentage of the FULL catalogue mastered.
+  // Earning "B1 Ready" means every word in every deck is mastered —
+  // the achievement list is designed to complete right at B1.
+  { id:"road_10", icon:"🚶", name:"First Mile", desc:"Master 10% of all words", category:"The Road to B1", xp:150,
+    earned:() => b1Progress().pct >= 10, progress:() => roadProgress(10) },
+  { id:"road_25", icon:"🥾", name:"Pathfinder", desc:"Master 25% of all words", category:"The Road to B1", xp:250,
+    earned:() => b1Progress().pct >= 25, progress:() => roadProgress(25) },
+  { id:"road_50", icon:"⛰️", name:"Halfway There", desc:"Master half of all words", category:"The Road to B1", xp:400,
+    earned:() => b1Progress().pct >= 50, progress:() => roadProgress(50) },
+  { id:"road_75", icon:"🏔️", name:"Final Stretch", desc:"Master 75% of all words", category:"The Road to B1", xp:600,
+    earned:() => b1Progress().pct >= 75, progress:() => roadProgress(75) },
+  { id:"b1_ready", icon:"🏅", name:"B1 Ready", desc:"Master every single word — the journey is complete", category:"The Road to B1", xp:1000,
+    earned:() => b1Progress().pct >= 100, progress:() => roadProgress(100) },
+
   // ── Secret ──
   { id:"early_bird", icon:"🐦", name:"Early Bird", desc:"Answer correctly before 7 in the morning", category:"Secret", xp:100, secret:true,
     earned:ev => ev.type === "answer" && ev.hour < 7 },
@@ -114,7 +129,40 @@ const ACHIEVEMENTS = [
     earned:ev => ev.type === "answer" && ev.hour >= 23 },
   { id:"weekend_warrior", icon:"🛡️", name:"Weekend Warrior", desc:"Practice on a Saturday and the following Sunday", category:"Secret", xp:100, secret:true,
     earned:() => hasWeekendPair() },
+  { id:"hat_trick", icon:"🎩", name:"Hat Trick", desc:"Win three timer sessions in one day", category:"Secret", xp:150, secret:true,
+    earned:ev => ev.type === "timer_end" && ev.won && (ev.winsToday || 0) >= 3 },
 ];
+
+// One "Conquered" achievement per deck group (A1, A2, …), generated
+// from the app's configured groups so both language apps get theirs.
+ALL_GROUPS.forEach(group => {
+  const total = group.decks.reduce((s, d) => s + d.words.length, 0);
+  ACHIEVEMENTS.push({
+    id: `group_master_${group.id}`,
+    icon: group.icon || "🏅",
+    name: `${group.name} Conquered`,
+    desc: `Master every word in ${group.name} (${total} words)`,
+    category: "The Road to B1",
+    xp: 500,
+    earned: () => groupMasteredCount(group) >= total,
+    progress: () => ({ cur: groupMasteredCount(group), target: total }),
+  });
+});
+
+function groupMasteredCount(group) {
+  let n = 0;
+  group.decks.forEach(d => d.words.forEach((_, i) => { if (isMastered(getWS(d.id, i))) n++; }));
+  return n;
+}
+function roadProgress(pctTarget) {
+  const { mastered, total } = b1Progress();
+  return { cur: mastered, target: Math.ceil(total * pctTarget / 100) };
+}
+function countTotalWords() {
+  let n = 0;
+  ALL_GROUPS.forEach(g => g.decks.forEach(d => { n += d.words.length; }));
+  return n;
+}
 
 // ── COUNTING HELPERS ──────────────────────────
 function countMastered() {
