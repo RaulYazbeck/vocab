@@ -124,6 +124,9 @@ function endTimer(won) {
   if (won) {
     if (S.timerWinsDate !== todayISO()) { S.timerWinsDate = todayISO(); S.timerWinsToday = 0; }
     S.timerWinsToday = (S.timerWinsToday || 0) + 1;
+    S.timerWins = (S.timerWins || 0) + 1;
+    if (timerWrong === 0) S.perfectTimerWins = (S.perfectTimerWins || 0) + 1;
+    if (timerLeft > (S.bestTimerSecondsLeft || 0)) S.bestTimerSecondsLeft = timerLeft;
   }
   checkAchievements({ type: "timer_end", won, perfect: won && timerWrong === 0, words: timerWordCount, winsToday: S.timerWinsToday || 0 });
   const perfBonus = Math.max(0, (timerCorrect - timerWrong) * 6);

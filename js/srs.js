@@ -56,6 +56,7 @@ function applyCorrect(ws) {
   } else if (ws.mastered) {
     checkMasteryPlus(ws);
   }
+  if (sessionConsecutive > (S.bestCombo || 0)) S.bestCombo = sessionConsecutive;
   checkAchievements({ type: "answer", hour: new Date().getHours() });
 }
 function applyWrong(ws) {
