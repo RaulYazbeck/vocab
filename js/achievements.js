@@ -41,6 +41,10 @@ const ACHIEVEMENTS = [
     earned:() => S.totalCorrect >= 1000, progress:() => ({ cur:S.totalCorrect, target:1000 }) },
   { id:"correct_2500", icon:"🧠", name:"Walking Dictionary", desc:"2,500 correct answers, all time", category:"Practice", xp:300,
     earned:() => S.totalCorrect >= 2500, progress:() => ({ cur:S.totalCorrect, target:2500 }) },
+  { id:"correct_5000", icon:"🌠", name:"Relentless", desc:"5,000 correct answers, all time", category:"Practice", xp:400,
+    earned:() => S.totalCorrect >= 5000, progress:() => ({ cur:S.totalCorrect, target:5000 }) },
+  { id:"correct_10000", icon:"🌌", name:"Ten Thousand Strong", desc:"10,000 correct answers, all time", category:"Practice", xp:600,
+    earned:() => S.totalCorrect >= 10000, progress:() => ({ cur:S.totalCorrect, target:10000 }) },
   { id:"daily_100", icon:"🏃", name:"Marathon", desc:"100 correct answers in a single day", category:"Practice", xp:150,
     earned:() => (S.drillCorrectToday || 0) >= 100, progress:() => ({ cur:S.drillCorrectToday || 0, target:100 }) },
 
@@ -51,6 +55,14 @@ const ACHIEVEMENTS = [
     earned:() => countMastered() >= 50, progress:() => ({ cur:countMastered(), target:50 }) },
   { id:"mastery_100", icon:"🏰", name:"Centurion", desc:"Master 100 words", category:"Mastery", xp:250,
     earned:() => countMastered() >= 100, progress:() => ({ cur:countMastered(), target:100 }) },
+  { id:"mastery_250", icon:"🗣️", name:"Conversational", desc:"Master 250 words", category:"Mastery", xp:300,
+    earned:() => countMastered() >= 250, progress:() => ({ cur:countMastered(), target:250 }) },
+  { id:"mastery_500", icon:"📖", name:"Lexicon Builder", desc:"Master 500 words", category:"Mastery", xp:400,
+    earned:() => countMastered() >= 500, progress:() => ({ cur:countMastered(), target:500 }) },
+  { id:"mastery_1000", icon:"🗿", name:"Vocabulary Titan", desc:"Master 1,000 words", category:"Mastery", xp:600,
+    earned:() => countMastered() >= 1000, progress:() => ({ cur:countMastered(), target:1000 }) },
+  { id:"mastery_2000", icon:"🌳", name:"Living Dictionary", desc:"Master 2,000 words", category:"Mastery", xp:800,
+    earned:() => countMastered() >= 2000, progress:() => ({ cur:countMastered(), target:2000 }) },
   { id:"masteryplus_10", icon:"✨", name:"Shining", desc:"Hold Mastery+ on 10 words at once", category:"Mastery", xp:200,
     earned:() => countMasteryPlus() >= 10, progress:() => ({ cur:countMasteryPlus(), target:10 }) },
   { id:"comeback", icon:"🎢", name:"Comeback Kid", desc:"Master a word you got wrong 5+ times", category:"Mastery", xp:150,
@@ -82,6 +94,10 @@ const ACHIEVEMENTS = [
     earned:() => maxLoginStreak() >= 30, progress:() => ({ cur:maxLoginStreak(), target:30 }) },
   { id:"streak_60", icon:"🌋", name:"Unstoppable", desc:"60-day practice streak", category:"Habit", xp:400,
     earned:() => maxLoginStreak() >= 60, progress:() => ({ cur:maxLoginStreak(), target:60 }) },
+  { id:"streak_100", icon:"🪐", name:"Hundred Days", desc:"100-day practice streak", category:"Habit", xp:500,
+    earned:() => maxLoginStreak() >= 100, progress:() => ({ cur:maxLoginStreak(), target:100 }) },
+  { id:"streak_365", icon:"🎆", name:"One Full Year", desc:"365-day practice streak", category:"Habit", xp:1000,
+    earned:() => maxLoginStreak() >= 365, progress:() => ({ cur:maxLoginStreak(), target:365 }) },
 
   // ── Speed ──
   { id:"speed_demon", icon:"⚡", name:"Speed Demon", desc:"Finish a timer session", category:"Speed", xp:50,
@@ -106,6 +122,8 @@ const ACHIEVEMENTS = [
     earned:() => currentLevel() >= 20, progress:() => ({ cur:currentLevel(), target:20 }) },
   { id:"level_30", icon:"🐉", name:"Grandmaster", desc:"Reach level 30", category:"Journey", xp:400,
     earned:() => currentLevel() >= 30, progress:() => ({ cur:currentLevel(), target:30 }) },
+  { id:"level_40", icon:"🦅", name:"B1 Legend", desc:"Reach level 40", category:"Journey", xp:600,
+    earned:() => currentLevel() >= 40, progress:() => ({ cur:currentLevel(), target:40 }) },
 
   // ── The Road to B1 ──
   // The grand ladder: percentage of the FULL catalogue mastered.
