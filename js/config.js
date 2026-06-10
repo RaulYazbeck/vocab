@@ -22,6 +22,11 @@ const WORD_KEY      = APP_CONFIG.targetProp;
 const UNLOCK_STEP   = 10;
 const UNLOCK_INITIAL = 12;
 
+// True when running as an installed PWA (home-screen app) rather
+// than a normal browser tab — some mobile-only behaviours key off this.
+const IS_STANDALONE = navigator.standalone === true ||
+  (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+
 const EXP_BASE = 400, EXP_RATIO = 1.08;
 function expForLevel(n) {
   if (n <= 1) return 0;

@@ -42,7 +42,7 @@ function initDrillScreen() {
       <div class="feedback" id="feedback" style="min-height:56px;"></div>
       <div class="stats-row"  id="stats-row"></div>
     </div>`;
-  el.style.paddingBottom = '50vh';
+  el.style.paddingBottom = IS_STANDALONE ? '50vh' : '';
   updateDrillWord();
 }
 
@@ -88,10 +88,14 @@ function updateDrillWord() {
 
   renderUnlockRow('unlock-row-drill', currentWord.deckId);
   input.focus();
-  requestAnimationFrame(() => {
-    const card = document.querySelector('.drill-word-card');
-    if (card) card.scrollIntoView({block: 'start', behavior: 'instant'});
-  });
+  // Auto-scroll keeps the card above the keyboard — installed PWA only,
+  // desktop browsers should never jump around.
+  if (IS_STANDALONE) {
+    requestAnimationFrame(() => {
+      const card = document.querySelector('.drill-word-card');
+      if (card) card.scrollIntoView({block: 'start', behavior: 'instant'});
+    });
+  }
 }
 function renderUnlockRow(containerId, onlyDeckId = null) {
   const container = document.getElementById(containerId);
@@ -141,6 +145,7 @@ function checkDrillMilestone() {
     S.drillMilestonesClaimed = [];
   }
   S.drillCorrectToday++;
+  if (S.drillCorrectToday > (S.bestDayCorrect || 0)) S.bestDayCorrect = S.drillCorrectToday;
   const milestone = getDrillMilestone(S.drillCorrectToday);
   if (milestone && !S.drillMilestonesClaimed.includes(milestone.at)) {
     S.drillMilestonesClaimed.push(milestone.at);

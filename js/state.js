@@ -81,4 +81,11 @@ function migrate() {
   });
   S.loginDates = [...new Set(S.loginDates)].sort();
   S.badges = [...new Set(S.badges)];
+  if (!S.achLevels)             S.achLevels = {};
+  if (!S.bestCombo)             S.bestCombo = 0;
+  if (!S.bestDayCorrect)        S.bestDayCorrect = 0;
+  if (!S.timerWins)             S.timerWins = 0;
+  if (!S.perfectTimerWins)      S.perfectTimerWins = 0;
+  if (!S.bestTimerSecondsLeft)  S.bestTimerSecondsLeft = 0;
+  if (!S.ankiSessions)          S.ankiSessions = 0;
 }

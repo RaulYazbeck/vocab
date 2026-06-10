@@ -296,6 +296,7 @@ function renderAnkiSummary() {
     : "No upcoming reviews scheduled yet.";
 
   // Bonus XP for completing session
+  S.ankiSessions = (S.ankiSessions || 0) + 1;
   addExp(25);
   confettiBurst(36);
   checkAchievements({ type: "anki_complete" });
