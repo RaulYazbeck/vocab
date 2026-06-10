@@ -49,6 +49,19 @@ function getDrillMilestone(n) {
   return null;
 }
 
+function freshAnki() {
+  return { phase:"new", interval:0, easeFactor:2.5, dueDate:null, learningStep:0, lapses:0 };
+}
+
+// Fisher-Yates, in place. (Math.random in sort() is biased.)
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 // ── STATE ─────────────────────────────────────
 let S = loadState();
 let selectedIds = new Set();
@@ -128,16 +141,7 @@ function migrate() {
         ws.streak = 0;
       }
     }
-    if (!ws.anki) {
-      ws.anki = {
-        phase: "new",
-        interval: 0,
-        easeFactor: 2.5,
-        dueDate: null,
-        learningStep: 0,
-        lapses: 0,
-      };
-    }
+    if (!ws.anki) ws.anki = freshAnki();
   });
   S.loginDates = [...new Set(S.loginDates)].sort();
 }
@@ -155,8 +159,9 @@ function migrate() {
 //     otherwise keep local (local has newer unsaved progress).
 //   • beforeunload: bypass debounce, write to Firestore immediately
 //     so tab/browser closes don't lose the last session.
-//   • Background sync: every 3 minutes while online, pull from
-//     Firestore as a safety net for cross-device drift.
+//   • Background sync: periodically while online (see
+//     BG_SYNC_INTERVAL_MS), pull from Firestore as a safety net
+//     for cross-device drift.
 //
 // ─────────────────────────────────────────────
 
@@ -341,10 +346,11 @@ function isFreshInstallVsCloud(local, cloud) {
 // write to 300ms to batch rapid successive saves (e.g. answering words).
 
 function saveToCloud() {
-  if (!currentUser) return;
-
+  // Always persist locally, even when signed out — otherwise signed-out
+  // progress would silently vanish on reload.
   S.savedAt = Date.now();
   saveLocalOnly();
+  if (!currentUser) return;
 
   // CRITICAL: do not write to cloud until initial load has completed.
   // Otherwise, any state change between page open and cloud load can
@@ -454,10 +460,10 @@ function saveLocalOnly() {
 }
 
 // ── BACKGROUND SYNC ───────────────────────────
-// Pulls from Firestore every 3 minutes while online.
+// Pulls from Firestore on an interval while online.
 // Does nothing when offline — Firestore persistence handles that.
 
-const BG_SYNC_INTERVAL_MS = 0.5 * 60 * 1000; // 90 seconds
+const BG_SYNC_INTERVAL_MS = 30 * 1000;
 
 function startBackgroundSync() {
   stopBackgroundSync(); // clear any existing interval first
@@ -501,11 +507,12 @@ function setStatus(msg, clearAfterMs = 0) {
 // ── VOICE (TTS) ───────────────────────────────
 function initVoice() {
   if (!window.speechSynthesis) return;
+  const langPrefix = APP_CONFIG.speechLang.split('-')[0];
   const load = () => {
     const v = speechSynthesis.getVoices();
     if (!v.length) return;
-    const deVoices = v.filter(x => x.lang && x.lang.startsWith('de'));
-    targetVoice = deVoices.find(x => x.lang === APP_CONFIG.speechLang) || deVoices[0] || null;
+    const matches = v.filter(x => x.lang && x.lang.startsWith(langPrefix));
+    targetVoice = matches.find(x => x.lang === APP_CONFIG.speechLang) || matches[0] || null;
   };
   load();
   speechSynthesis.onvoiceschanged = load;
@@ -536,9 +543,16 @@ function isCorrect(input, answer) {
 
 // ── EXP & LEVELS ──────────────────────────────
 function addExp(amount) {
+  const before = currentLevel();
   S.exp += amount;
   saveState();
   renderExpBar();
+  const after = currentLevel();
+  if (after > before) {
+    playLevelUp();
+    confettiBurst(50);
+    showCelebrateToast("🏅", `Level ${after}!`, "Keep it up!");
+  }
 }
 function currentLevel() {
   let lv = 1;
@@ -587,7 +601,6 @@ function getUnlocked(deckId) {
   return S.unlocked[deckId];
 }
 function unlockMore(deckId) {
-  event.stopPropagation();
   stagedDeckId = deckId;
   stagedCount  = UNLOCK_STEP;
   showUnlockModal();
@@ -656,10 +669,9 @@ function unlockedWords(deck) {
 // ── SPACED REPETITION ─────────────────────────
 function getWS(deckId, idx) {
   const key = deckId + "_" + idx;
-  if (!S.words[key]) S.words[key] = { correct:0, wrong:0, streak:0, displayStreak:0, lastAnsweredAt:null, anki:{ phase:"new", interval:0, easeFactor:2.5, dueDate:null, learningStep:0, lapses:0 } };
-  if (!S.words[key].anki) S.words[key].anki = { phase:"new", interval:0, easeFactor:2.5, dueDate:null, learningStep:0, lapses:0 };
+  if (!S.words[key]) S.words[key] = { correct:0, wrong:0, streak:0, displayStreak:0, lastAnsweredAt:null, anki:freshAnki() };
   const ws = S.words[key];
-  if (!ws.anki) ws.anki = { phase:"new", interval:0, easeFactor:2.5, dueDate:null, learningStep:0, lapses:0 };
+  if (!ws.anki) ws.anki = freshAnki();
   if (ws.displayStreak === undefined) ws.displayStreak = ws.streak;
   return ws;
 }
@@ -691,8 +703,35 @@ function checkMasteryPlus(ws) {
       ws.masteryPlusDate = todayISO();
       ws.streak = 0;
       addExp(75);
+      confettiBurst(30);
+      showCelebrateToast("⭐", "Mastery+!", "+75 XP · locked in for 21 days");
     }
   }
+}
+
+// ── ANSWER BOOKKEEPING ────────────────────────
+// Shared correct/wrong bookkeeping used by drill, voice and timer modes.
+function applyCorrect(ws) {
+  ws.lastAnsweredAt = Date.now();
+  ws.correct++; ws.streak++; ws.displayStreak++;
+  S.totalCorrect++;
+  if (!ws.mastered && isMastered(ws)) {
+    ws.mastered = true;
+    ws.streak = 0;
+    addExp(50);
+    confettiBurst(26);
+    showCelebrateToast("🏆", "Word mastered!", "+50 XP");
+  } else if (ws.mastered) {
+    checkMasteryPlus(ws);
+  }
+}
+function applyWrong(ws) {
+  ws.lastAnsweredAt = Date.now();
+  ws.wrong++; ws.streak = 0; ws.displayStreak = 0;
+}
+// Drill combo: flash every 5 consecutive correct answers.
+function checkCombo() {
+  if (sessionConsecutive >= 5 && sessionConsecutive % 5 === 0) showComboFlash(sessionConsecutive);
 }
 function getWeight(w, focusMode=false) {
   const ws = getWS(w.deckId, w.idx);
@@ -843,9 +882,7 @@ function buildAnkiQueue() {
     const deck = getDeck(id);
     if (!deck) return;
     deck.words.forEach((w, i) => {
-      const ws = getWS(id, i);
-      if (!ws.anki) ws.anki = { phase:"new", interval:0, easeFactor:2.5, dueDate:null, learningStep:0, lapses:0 };
-      const a = ws.anki;
+      const a = getWS(id, i).anki;
       const word = { ...w, deckId: id, deckName: deck.name, idx: i };
       if (a.phase === "new" && !a.dueDate) {
         newCards.push(word);
@@ -857,7 +894,6 @@ function buildAnkiQueue() {
     });
   });
 
-  const shuffle = arr => arr.sort(() => Math.random() - 0.5);
   shuffle(learningCards);
   shuffle(reviewCards);
   shuffle(newCards);
@@ -878,9 +914,7 @@ function ankiDueCount() {
     const deck = getDeck(id);
     if (!deck) return;
     deck.words.forEach((w, i) => {
-      const ws = getWS(id, i);
-      if (!ws.anki) ws.anki = { phase:"new", interval:0, easeFactor:2.5, dueDate:null, learningStep:0, lapses:0 };
-      const a = ws.anki;
+      const a = getWS(id, i).anki;
       if (a.phase === "new" && !a.dueDate) newCount++;
       else if (a.dueDate <= today) due++;
     });
@@ -1132,6 +1166,7 @@ function renderAnkiSummary() {
 
   // Bonus XP for completing session
   addExp(25);
+  confettiBurst(36);
 
   document.getElementById("main-screen").innerHTML = `
     <div class="screen">
@@ -1270,24 +1305,42 @@ function countMastered() {
 }
 
 // ── SOUNDS ────────────────────────────────────
-function playSuccess() {
+// One shared AudioContext — creating a new one per answer leaks
+// resources and hits the browser's context limit.
+let audioCtx = null;
+function getAudioCtx() {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return null;
+  if (!audioCtx) audioCtx = new AC();
+  if (audioCtx.state === "suspended") audioCtx.resume();
+  return audioCtx;
+}
+// notes: [{ freq, at, dur }], volume 0–1
+function playNotes(notes, volume) {
   try {
-    const ctx  = new (window.AudioContext || window.webkitAudioContext)();
-    const t    = ctx.currentTime;
-    const osc  = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(659, t);
-    osc.frequency.setValueAtTime(784, t + 0.12);
-    gain.gain.setValueAtTime(0.25, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
-    osc.start(t); osc.stop(t + 0.5);
+    const ctx = getAudioCtx();
+    if (!ctx) return;
+    const t = ctx.currentTime;
+    notes.forEach(n => {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(n.freq, t + n.at);
+      gain.gain.setValueAtTime(0.0001, t + n.at);
+      gain.gain.linearRampToValueAtTime(volume, t + n.at + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + n.at + n.dur);
+      osc.start(t + n.at); osc.stop(t + n.at + n.dur);
+    });
   } catch(e) {}
+}
+function playSuccess() {
+  playNotes([{ freq:659, at:0, dur:0.16 }, { freq:784, at:0.12, dur:0.38 }], 0.25);
 }
 function playFailure() {
   try {
-    const ctx  = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = getAudioCtx();
+    if (!ctx) return;
     const t    = ctx.currentTime;
     const osc  = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -1299,6 +1352,58 @@ function playFailure() {
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
     osc.start(t); osc.stop(t + 0.4);
   } catch(e) {}
+}
+function playLevelUp() {
+  playNotes([
+    { freq:523, at:0,    dur:0.18 },
+    { freq:659, at:0.12, dur:0.18 },
+    { freq:784, at:0.24, dur:0.18 },
+    { freq:1047, at:0.36, dur:0.5 },
+  ], 0.22);
+}
+
+// ── CELEBRATIONS ──────────────────────────────
+const CONFETTI_COLORS = ["#F5A623", "#FFD166", "#00C9B1", "#9B7FE8", "#00D896", "#FF6363"];
+function confettiBurst(count = 36) {
+  for (let i = 0; i < count; i++) {
+    const piece = document.createElement("div");
+    piece.className = "confetti-piece";
+    const duration = 1.6 + Math.random() * 1.4;
+    piece.style.cssText = `
+      left:${Math.random() * 100}vw;
+      background:${CONFETTI_COLORS[i % CONFETTI_COLORS.length]};
+      animation-duration:${duration}s;
+      animation-delay:${Math.random() * 0.4}s;
+      transform:rotate(${Math.random() * 360}deg);
+      width:${6 + Math.random() * 6}px;
+      height:${10 + Math.random() * 8}px;
+    `;
+    document.body.appendChild(piece);
+    setTimeout(() => piece.remove(), (duration + 0.5) * 1000);
+  }
+}
+function showCelebrateToast(icon, title, sub = "") {
+  const existing = document.getElementById("celebrate-toast");
+  if (existing) existing.remove();
+  const el = document.createElement("div");
+  el.className = "celebrate-toast";
+  el.id = "celebrate-toast";
+  el.innerHTML = `
+    <div class="ct-icon">${icon}</div>
+    <div class="ct-title">${title}</div>
+    ${sub ? `<div class="ct-sub">${sub}</div>` : ""}`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2700);
+}
+function showComboFlash(n) {
+  const existing = document.getElementById("combo-flash");
+  if (existing) existing.remove();
+  const el = document.createElement("div");
+  el.className = "combo-flash";
+  el.id = "combo-flash";
+  el.textContent = `🔥 ${n} in a row!`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2100);
 }
 
 // ── RENDER GROUPS ─────────────────────────────
@@ -1416,8 +1521,6 @@ function setTimerCount(n) { timerWordCount = n; renderStartBar(); }
 function toggleMute() {
   muteEnabled = !muteEnabled;
   localStorage.setItem('gv_mute', muteEnabled);
-  const btn = document.getElementById('mute-btn');
-  if (btn) btn.textContent = muteEnabled ? '🔇' : '🔊';
   const sbtn = document.getElementById('settings-mute-btn');
   if (sbtn) sbtn.textContent = muteEnabled ? '🔇  Sound off' : '🔊  Sound on';
 }
@@ -1440,6 +1543,21 @@ function buildTimerWords() {
   }
   return activeWords;
 }
+function buildTimerQueue() {
+  const words = buildTimerWords();
+  const queue = [];
+  while (queue.length < timerWordCount) queue.push(...shuffle([...words]));
+  return queue.slice(0, timerWordCount);
+}
+// Re-insert the missed/skipped word at a random later spot so it comes back.
+function requeueCurrentWord() {
+  const remaining = timerQueue.length - timerWordsDone - 1;
+  if (remaining > 0) {
+    timerQueue.splice(timerWordsDone + 1 + Math.floor(Math.random() * remaining), 0, { ...currentWord });
+  } else {
+    timerQueue.push({ ...currentWord });
+  }
+}
 
 // ── START SESSION ─────────────────────────────
 function startSession() {
@@ -1456,10 +1574,7 @@ function startSession() {
 
 // ── SHOW SCREEN ───────────────────────────────
 function showScreen(name) {
-  document.getElementById("main-screen").style.display = "block";
-  document.getElementById("groups-container").style.display = "none";
-  document.getElementById("start-bar").style.display = "none";
-  document.getElementById("exp-bar").style.display = "none";
+  showGameScreen();
   const island = document.getElementById('floating-island');
   if (island) island.style.display = 'none';
   if (name === "stats")       renderStatsChoice();
@@ -1495,11 +1610,8 @@ function miniStats(ws) {
 // Renders the drill skeleton once per session. Never called again until
 // the user leaves and re-enters drill mode.
 function initDrillScreen() {
+  showGameScreen();
   const el = document.getElementById("main-screen");
-  el.style.display = "block";
-  document.getElementById("groups-container").style.display = "none";
-  document.getElementById("start-bar").style.display    = "none";
-  document.getElementById("exp-bar").style.display      = "none";
   el.innerHTML = `
     <div class="drill-meta-card">
       <div class="screen-top">
@@ -1545,6 +1657,13 @@ function updateDrillWord() {
   document.getElementById('drill-english').textContent    = currentWord.en;
   document.getElementById('drill-hint').innerHTML         = `${currentWord.hint} ${badges}`;
 
+  const wordDisplay = document.querySelector('.drill-word-card .word-display');
+  if (wordDisplay) {
+    wordDisplay.classList.remove('word-pop');
+    void wordDisplay.offsetWidth; // restart the animation
+    wordDisplay.classList.add('word-pop');
+  }
+
   const input = document.getElementById('german-input');
   input.value     = '';
   input.className = 'german-input';
@@ -1573,7 +1692,7 @@ function renderUnlockRow(containerId, onlyDeckId = null) {
       const toUnlock = Math.min(UNLOCK_STEP, deck.words.length - u);
       rows.push(`<div class="unlock-row">
         <div class="unlock-info">🔒 ${deck.name}: ${u} of ${deck.words.length} words unlocked</div>
-        <button class="unlock-btn" onclick="unlockMore('${id}')">+ Unlock ${toUnlock} words</button>
+        <button class="unlock-btn" onclick="event.stopPropagation();unlockMore('${id}')">+ Unlock ${toUnlock} words</button>
       </div>`);
     }
   });
@@ -1627,26 +1746,18 @@ function checkDrill() {
   answered = true;
   const correct = isCorrect(input.value, currentWord[WORD_KEY]);
   const ws      = getWS(currentWord.deckId, currentWord.idx);
-  ws.lastAnsweredAt = Date.now();
   const isNew   = ws.correct === 0 && ws.wrong === 0;
   if (correct) {
-    ws.correct++; ws.streak++; ws.displayStreak++;
     sessionCorrect++; sessionConsecutive++;
-    S.totalCorrect++;
     if (activeMode === "drill") checkDrillMilestone();
     addExp(isNew ? 10 : 5);
-    if (!ws.mastered && isMastered(ws)) {
-      ws.mastered = true;
-      ws.streak = 0;
-      addExp(50);
-    } else if (ws.mastered) {
-      checkMasteryPlus(ws);
-    }
+    applyCorrect(ws);
+    checkCombo();
     input.classList.add("correct");
     playSuccess();
     checkAllBadges();
   } else {
-    ws.wrong++; ws.streak = 0; ws.displayStreak = 0; sessionConsecutive = 0;
+    applyWrong(ws); sessionConsecutive = 0;
     input.classList.add("wrong");
     playFailure();
   }
@@ -1657,8 +1768,7 @@ function dontKnow() {
   if (answered) return;
   answered = true;
   const ws    = getWS(currentWord.deckId, currentWord.idx);
-  ws.lastAnsweredAt = Date.now();
-  ws.wrong++; ws.streak = 0; ws.displayStreak = 0; sessionConsecutive = 0;
+  applyWrong(ws); sessionConsecutive = 0;
   const input = document.getElementById("german-input");
   if (input) { input.value = currentWord[WORD_KEY]; input.classList.add("wrong"); }
   saveState();
@@ -1701,32 +1811,21 @@ function startVoiceSession() {
   voiceSessionRunning = true;
   answered    = false;
   currentWord = drillSubMode === 'refresh' ? pickNextRefresh() : pickNext(drillSubMode === 'focus');
+  showGameScreen();
   renderVoiceDrill();
-  document.getElementById("main-screen").style.display = "block";
-  document.getElementById("groups-container").style.display = "none";
-  document.getElementById("start-bar").style.display = "none";
-  document.getElementById("exp-bar").style.display = "none";
 }
 
 function startVoiceTimer() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) { alert("Voice not supported. Switching to typed timer."); voiceEnabled=false; startTimer(); return; }
   if (!navigator.onLine) { alert("No internet. Switching to typed timer."); voiceEnabled=false; startTimer(); return; }
-  const words = buildTimerWords();
-  timerQueue  = [];
-  while (timerQueue.length < timerWordCount) {
-    timerQueue.push(...[...words].sort(() => Math.random() - 0.5));
-  }
-  timerQueue     = timerQueue.slice(0, timerWordCount);
+  timerQueue     = buildTimerQueue();
   timerTotal     = Math.round(4.5 * timerQueue.length);
   timerLeft      = timerTotal;
   timerCorrect   = 0; timerWrong = 0; timerWordsDone = 0;
   timerFinished  = false; timerExpEarned = 0; timerPaused = false;
   voiceSessionRunning = true;
-  document.getElementById("main-screen").style.display = "block";
-  document.getElementById("groups-container").style.display = "none";
-  document.getElementById("start-bar").style.display = "none";
-  document.getElementById("exp-bar").style.display = "none";
+  showGameScreen();
   currentWord = timerQueue[timerWordsDone];
   renderVoiceTimerScreen();
   timerInterval = setInterval(timerTick, 100);
@@ -1755,8 +1854,8 @@ function renderVoiceTimerScreen() {
     <div id="unlock-row-voice-timer"></div>
     <div id="timer-feedback" style="min-height:40px;text-align:center;padding-top:4px;"></div>
   </div>`;
+  renderUnlockRow("unlock-row-voice-timer");
 }
-renderUnlockRow("unlock-row-voice-timer");
 
 function handleVoiceTimerResult(correct, heard, isSkip=false) {
   if (timerFinished) return;
@@ -1767,15 +1866,7 @@ function handleVoiceTimerResult(correct, heard, isSkip=false) {
   if (correct) {
     timerCorrect++; playSuccess(); checkDrillMilestone();
     const ws = getWS(currentWord.deckId, currentWord.idx);
-    ws.lastAnsweredAt = Date.now();
-    ws.correct++; ws.streak++; ws.displayStreak++; S.totalCorrect++;
-    if (!ws.mastered && isMastered(ws)) {
-      ws.mastered = true;
-      ws.streak = 0;
-      addExp(50);
-    } else if (ws.mastered) {
-      checkMasteryPlus(ws);
-    }
+    applyCorrect(ws);
     saveState();
     timerWordsDone++;
     if (timerWordsDone >= timerQueue.length) { endTimer(true); return; }
@@ -1788,13 +1879,9 @@ function handleVoiceTimerResult(correct, heard, isSkip=false) {
   } else {
     timerWrong++; playFailure();
     const ws = getWS(currentWord.deckId, currentWord.idx);
-    ws.wrong++; ws.streak = 0; ws.displayStreak = 0; saveState();
+    applyWrong(ws); saveState();
     timerPaused = true; clearInterval(timerInterval);
-    const remaining = timerQueue.length - timerWordsDone - 1;
-    if (remaining > 0) {
-      const insertAt = timerWordsDone + 1 + Math.floor(Math.random() * remaining);
-      timerQueue.splice(insertAt, 0, {...currentWord});
-    } else { timerQueue.push({...currentWord}); }
+    requeueCurrentWord();
     const skippedAnswer = currentWord[WORD_KEY];
     timerWordsDone++;
     const wordEl = document.getElementById("timer-word-display");
@@ -1893,21 +1980,14 @@ function handleVoiceResult(correct, heard, isSkip=false) {
   const ws    = getWS(currentWord.deckId, currentWord.idx);
   const isNew = ws.correct === 0 && ws.wrong === 0;
   if (correct) {
-    ws.correct++; ws.streak++; ws.displayStreak++;
     sessionCorrect++; sessionConsecutive++;
-    S.totalCorrect++;
     if (activeMode === "drill") checkDrillMilestone();
     addExp(isNew ? 10 : 5);
-    if (!ws.mastered && isMastered(ws)) {
-      ws.mastered = true;
-      ws.streak = 0;
-      addExp(50);
-    } else if (ws.mastered) {
-      checkMasteryPlus(ws);
-    }
+    applyCorrect(ws);
+    checkCombo();
     checkAllBadges();
   } else {
-    ws.wrong++; ws.streak = 0; ws.displayStreak = 0; sessionConsecutive = 0;
+    applyWrong(ws); sessionConsecutive = 0;
   }
   saveState();
   if (correct) playSuccess(); else playFailure();
@@ -2009,8 +2089,8 @@ function renderVoiceDrill() {
       <div id="voice-feedback-area"></div>
       <div class="stats-row">${miniStats(ws)}</div>
     </div>`;
+  renderUnlockRow("unlock-row-voice");
 }
-renderUnlockRow("unlock-row-voice");
 
 // ── LEARN MODE ────────────────────────────────
 function startLearn() {
@@ -2023,10 +2103,7 @@ function startLearn() {
     return (wb.wrong - wb.correct) - (wa.wrong - wa.correct);
   });
   learnIndex = 0;
-  document.getElementById("main-screen").style.display = "block";
-  document.getElementById("groups-container").style.display = "none";
-  document.getElementById("start-bar").style.display = "none";
-  document.getElementById("exp-bar").style.display = "none";
+  showGameScreen();
   renderLearnCard();
 }
 function renderLearnCard() {
@@ -2040,6 +2117,7 @@ function renderLearnCard() {
         <div class="result-sub">Now drill them to lock them in.</div>
         <button class="result-btn" onclick="finishLearnStartDrill()">Start drilling →</button>
       </div></div>`;
+    confettiBurst(36);
     return;
   }
   const w     = learnQueue[learnIndex];
@@ -2097,20 +2175,12 @@ function finishLearnStartDrill() { activeMode = "drill"; startDrill(); }
 
 // ── TIMER MODE ────────────────────────────────
 function startTimer() {
-  const words = buildTimerWords();
-  timerQueue  = [];
-  while (timerQueue.length < timerWordCount) {
-    timerQueue.push(...[...words].sort(() => Math.random() - 0.5));
-  }
-  timerQueue    = timerQueue.slice(0, timerWordCount);
+  timerQueue    = buildTimerQueue();
   timerTotal    = Math.round(4.5 * timerQueue.length);
   timerLeft     = timerTotal;
   timerCorrect  = 0; timerWrong = 0; timerWordsDone = 0;
   timerFinished = false; timerExpEarned = 0;
-  document.getElementById("main-screen").style.display = "block";
-  document.getElementById("groups-container").style.display = "none";
-  document.getElementById("start-bar").style.display = "none";
-  document.getElementById("exp-bar").style.display = "none";
+  showGameScreen();
   currentWord   = timerQueue[timerWordsDone];
   renderTimerScreen();
   timerInterval = setInterval(timerTick, 100);
@@ -2165,19 +2235,10 @@ function checkTimer() {
   if (!val.trim()) { skipTimer(); return; }
   const correct = isCorrect(val, currentWord[WORD_KEY]);
   const fb = document.getElementById("timer-feedback");
-  S.totalCorrect += correct ? 1 : 0;
-  saveState();
   if (correct) {
     timerCorrect++; playSuccess(); checkDrillMilestone();
     const ws = getWS(currentWord.deckId, currentWord.idx);
-    ws.correct++; ws.streak++; ws.displayStreak++;
-    if (!ws.mastered && isMastered(ws)) {
-      ws.mastered = true;
-      ws.streak = 0;
-      addExp(50);
-    } else if (ws.mastered) {
-      checkMasteryPlus(ws);
-    }
+    applyCorrect(ws);
     saveState();
     timerWordsDone++;
     if (timerWordsDone >= timerQueue.length) { endTimer(true); return; }
@@ -2189,12 +2250,9 @@ function checkTimer() {
   } else {
     timerWrong++;
     const ws = getWS(currentWord.deckId, currentWord.idx);
-    ws.wrong++; ws.streak = 0; ws.displayStreak = 0; saveState(); playFailure();
+    applyWrong(ws); saveState(); playFailure();
     timerPaused = true; clearInterval(timerInterval);
-    const remaining = timerQueue.length - timerWordsDone - 1;
-    if (remaining > 0) {
-      timerQueue.splice(timerWordsDone + 1 + Math.floor(Math.random() * remaining), 0, {...currentWord});
-    } else { timerQueue.push({...currentWord}); }
+    requeueCurrentWord();
     timerWordsDone++;
     const wordEl = document.getElementById("timer-word-display");
     if (wordEl) wordEl.style.opacity = "0.3";
@@ -2217,12 +2275,9 @@ function skipTimer() {
   timerPaused = true; clearInterval(timerInterval);
   timerWrong++;
   const ws = getWS(currentWord.deckId, currentWord.idx);
-  ws.wrong++; ws.streak = 0; ws.displayStreak = 0; saveState();
-  const skipped   = currentWord;
-  const remaining = timerQueue.length - timerWordsDone - 1;
-  if (remaining > 0) {
-    timerQueue.splice(timerWordsDone + 1 + Math.floor(Math.random() * remaining), 0, {...skipped});
-  } else { timerQueue.push({...skipped}); }
+  applyWrong(ws); saveState();
+  const skipped = currentWord;
+  requeueCurrentWord();
   timerWordsDone++;
   const wordEl = document.getElementById("timer-word-display");
   if (wordEl) wordEl.style.opacity = "0.3";
@@ -2246,6 +2301,7 @@ function endTimer(won) {
   const winBonus = won ? timerWordCount : 0;
   timerExpEarned = perfBonus + winBonus;
   addExp(timerExpEarned);
+  if (won) confettiBurst(44);
   document.getElementById("main-screen").innerHTML = `<div class="screen">
     <div class="result-screen">
       <div class="result-emoji">${won?"🏆":"⏰"}</div>
@@ -2496,16 +2552,7 @@ function renderAnkiStatsScreen() {
 }
 function resetAnkiProgress() {
   if (!confirm("Reset all Anki progress? SM-2 intervals and phases will be cleared. Classic progress is untouched.")) return;
-  Object.keys(S.words).forEach(key => {
-    S.words[key].anki = {
-      phase: "new",
-      interval: 0,
-      easeFactor: 2.5,
-      dueDate: null,
-      learningStep: 0,
-      lapses: 0,
-    };
-  });
+  Object.keys(S.words).forEach(key => { S.words[key].anki = freshAnki(); });
   saveState();
   renderAnkiStatsScreen();
 }
@@ -2526,10 +2573,38 @@ function renderBadgesScreen() {
   </div>`;
 }
 
+// ── SETTINGS PANEL ────────────────────────────
+// Injected here so both language apps share one copy.
+function initSettingsPanel() {
+  const panel = document.createElement("div");
+  panel.id = "settings-panel";
+  panel.style.cssText = "display:none;position:fixed;inset:0;z-index:200;";
+  panel.innerHTML = `
+    <div class="settings-overlay" onclick="closeSettings()"></div>
+    <div class="settings-sheet">
+      <div class="settings-title">Settings</div>
+      <button class="settings-item" onclick="closeSettings();showScreen('stats')">📊&nbsp; Stats &amp; Progress</button>
+      <button class="settings-item" onclick="closeSettings();showScreen('badges')">🏆&nbsp; Badges</button>
+      <button class="settings-item" id="settings-mute-btn" onclick="toggleMute()">${muteEnabled ? "🔇&nbsp; Sound off" : "🔊&nbsp; Sound on"}</button>
+    </div>`;
+  document.body.appendChild(panel);
+}
+function openSettings() {
+  document.getElementById("settings-panel").style.display = "block";
+  const island = document.getElementById("floating-island");
+  if (island) island.style.display = "none";
+}
+function closeSettings() {
+  document.getElementById("settings-panel").style.display = "none";
+  const island = document.getElementById("floating-island");
+  if (island) island.style.display = "";
+}
+
 // ── INIT ──────────────────────────────────────
 document.querySelector("h1").textContent = APP_CONFIG.title;
 migrate();
 initVoice();
+initSettingsPanel();
 recordLogin();
 renderExpBar();
 renderGroups();
