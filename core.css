@@ -66,6 +66,30 @@ body::before {
   pointer-events: none;
   z-index: 0;
 }
+/* Dusty, starry night — tiny stars over the orbs, gently twinkling */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 12% 22%, rgba(255,255,255,0.30) 50%, transparent 50%),
+    radial-gradient(1px 1px at 78% 12%, rgba(255,255,255,0.22) 50%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 38% 64%, rgba(255,255,255,0.16) 50%, transparent 50%),
+    radial-gradient(1px 1px at 64% 82%, rgba(255,255,255,0.24) 50%, transparent 50%),
+    radial-gradient(1px 1px at 90% 52%, rgba(255,255,255,0.18) 50%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 22% 88%, rgba(255,255,255,0.14) 50%, transparent 50%),
+    radial-gradient(1px 1px at 45% 8%,  rgba(255,255,255,0.20) 50%, transparent 50%),
+    radial-gradient(1px 1px at 6% 56%,  rgba(255,255,255,0.16) 50%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 84% 74%, rgba(255,255,255,0.12) 50%, transparent 50%),
+    radial-gradient(1px 1px at 55% 38%, rgba(255,255,255,0.14) 50%, transparent 50%);
+  animation: twinkle 7s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 0;
+}
+@keyframes twinkle {
+  from { opacity: 0.55; }
+  to   { opacity: 1; }
+}
 @keyframes orbDrift {
   0%   { transform: scale(1)    translate(0,    0   ); }
   33%  { transform: scale(1.05) translate(-2%,  1.5%); }
@@ -94,7 +118,7 @@ body::before {
   border:1px solid var(--border); border-radius:var(--r);
   box-shadow:var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,0.07);
 }
-h1 { font-family:'DM Sans',sans-serif; font-size:20px; font-weight:700; color:var(--text); letter-spacing:-0.3px; }
+h1 { font-family:'DM Sans',sans-serif; font-size:20px; font-weight:900; color:var(--text); letter-spacing:-0.4px; }
 .header-right { display:flex; gap:8px; align-items:center; }
 .hdr-btn {
   font-size:13px; padding:6px 13px;
@@ -116,7 +140,7 @@ h1 { font-family:'DM Sans',sans-serif; font-size:20px; font-weight:700; color:va
   display:flex; align-items:center; gap:12px;
   box-shadow:var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,0.06);
 }
-.exp-level { font-family:'DM Sans',sans-serif; font-size:13px; font-weight:700; color:var(--accent); white-space:nowrap; }
+.exp-level { font-family:'DM Sans',sans-serif; font-size:13px; font-weight:900; color:var(--accent); white-space:nowrap; }
 .exp-streak { font-size:13px; font-weight:600; color:#E25C1A; white-space:nowrap; }
 .exp-label { font-size:12px; color:var(--text-3); white-space:nowrap; }
 .exp-track { flex:1; height:6px; background:rgba(255,255,255,0.10); border-radius:3px; overflow:hidden; }
@@ -138,12 +162,28 @@ h1 { font-family:'DM Sans',sans-serif; font-size:20px; font-weight:700; color:va
 }
 .group-header:hover { background:var(--glass-hover); border-color:var(--border-hi); transform:translateY(-1px); }
 .group-icon { font-size:18px; }
-.group-name { font-family:'DM Sans',sans-serif; font-size:14px; font-weight:700; flex:1; color:var(--text); }
+.group-name { font-family:'DM Sans',sans-serif; font-size:14px; font-weight:800; flex:1; color:var(--text); }
 .group-meta { font-size:11.5px; color:var(--text-3); }
 .group-chevron { font-size:11px; color:var(--text-3); transition:transform 0.25s var(--spring); display:inline-block; }
 .group-chevron.open { transform:rotate(90deg); }
 .group-decks { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px; padding-left:8px; }
 .group-decks.collapsed { display:none; }
+/* Cards cascade in only when their dropdown is opened — re-renders
+   from selecting a deck stay perfectly still. */
+.group-decks.just-opened .folder-card { animation:cardIn 0.3s var(--ease) both; }
+.group-decks.just-opened .folder-card:nth-child(1)  { animation-delay:0.00s; }
+.group-decks.just-opened .folder-card:nth-child(2)  { animation-delay:0.03s; }
+.group-decks.just-opened .folder-card:nth-child(3)  { animation-delay:0.06s; }
+.group-decks.just-opened .folder-card:nth-child(4)  { animation-delay:0.09s; }
+.group-decks.just-opened .folder-card:nth-child(5)  { animation-delay:0.12s; }
+.group-decks.just-opened .folder-card:nth-child(6)  { animation-delay:0.15s; }
+.group-decks.just-opened .folder-card:nth-child(7)  { animation-delay:0.18s; }
+.group-decks.just-opened .folder-card:nth-child(8)  { animation-delay:0.21s; }
+.group-decks.just-opened .folder-card:nth-child(n+9){ animation-delay:0.24s; }
+@keyframes cardIn {
+  from { opacity:0; transform:translateY(8px) scale(0.98); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
 
 /* ── DECK CARDS ────────────────── */
 .folder-card {
@@ -152,6 +192,23 @@ h1 { font-family:'DM Sans',sans-serif; font-size:20px; font-weight:700; color:va
   border:1.5px solid var(--border); border-radius:var(--r);
   padding:1rem; cursor:pointer; position:relative; user-select:none;
   transition:all 0.22s var(--spring); box-shadow:var(--shadow-sm);
+  overflow:hidden;
+}
+/* Discrete colour aura behind each card — hues rotate per card */
+.folder-card::before {
+  content:''; position:absolute; inset:0; border-radius:inherit;
+  background:radial-gradient(130% 90% at 85% -10%, rgba(0,201,177,0.13), transparent 60%);
+  opacity:0.85; pointer-events:none; transition:opacity 0.25s var(--ease);
+}
+.folder-card:nth-child(3n+2)::before {
+  background:radial-gradient(130% 90% at 85% -10%, rgba(245,166,35,0.12), transparent 60%);
+}
+.folder-card:nth-child(3n)::before {
+  background:radial-gradient(130% 90% at 85% -10%, rgba(155,127,232,0.13), transparent 60%);
+}
+.folder-card:hover::before { opacity:1; }
+.folder-card.selected::before {
+  background:radial-gradient(130% 90% at 85% -10%, rgba(245,166,35,0.22), transparent 65%);
 }
 .folder-card:hover {
   background:var(--glass-hover); border-color:var(--border-hi);
@@ -251,7 +308,7 @@ h1 { font-family:'DM Sans',sans-serif; font-size:20px; font-weight:700; color:va
 /* ── WORD DISPLAY ──────────────── */
 .word-display { text-align:center; margin-bottom:1.75rem; }
 .english-word {
-  font-family:'DM Sans',sans-serif; font-size:30px; font-weight:800;
+  font-family:'DM Sans',sans-serif; font-size:30px; font-weight:900;
   margin-bottom:6px; line-height:1.2; color:var(--text); letter-spacing:-0.5px;
 }
 .word-hint { font-size:15px; color:var(--text-2); font-style:italic; }
@@ -465,7 +522,7 @@ h1 { font-family:'DM Sans',sans-serif; font-size:20px; font-weight:700; color:va
 .result-screen { text-align:center; padding:2rem 0; }
 .result-emoji { font-size:56px; margin-bottom:12px; display:inline-block; animation:resultPop 0.5s var(--spring); }
 @keyframes resultPop { from { transform:scale(0.4) rotate(-8deg); opacity:0; } to { transform:scale(1) rotate(0); opacity:1; } }
-.result-title { font-family:'DM Sans',sans-serif; font-size:22px; font-weight:800; margin-bottom:6px; color:var(--text); }
+.result-title { font-family:'DM Sans',sans-serif; font-size:22px; font-weight:900; margin-bottom:6px; color:var(--text); }
 .result-sub { font-size:14px; color:var(--text-2); margin-bottom:1.5rem; }
 .result-stat {
   display:inline-block; background:rgba(255,255,255,0.05); border:1px solid var(--border);
@@ -671,7 +728,7 @@ tr:hover td { background:rgba(255,255,255,0.03); }
 .gen-stat-card.purple { background:var(--purple-dim); border-color:rgba(155,127,232,0.3); }
 .gen-stat-icon { font-size:20px; margin-bottom:4px; }
 .gen-stat-val  {
-  font-family:'DM Sans',sans-serif; font-size:22px; font-weight:800;
+  font-family:'DM Sans',sans-serif; font-size:22px; font-weight:900;
   color:var(--text); line-height:1; margin-bottom:3px;
 }
 .gen-stat-card.accent .gen-stat-val { color:var(--accent); }
