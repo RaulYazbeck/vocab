@@ -42,3 +42,14 @@ initSettingsPanel();
 recordLogin();
 renderExpBar();
 renderGroups();
+
+// ── SERVICE WORKER ────────────────────────────
+// Caches the app shell for instant opens and full offline use.
+// Registered after load so it never competes with first-paint fetches.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('../sw.js').catch(e => {
+      console.warn('Service worker registration failed:', e);
+    });
+  });
+}
