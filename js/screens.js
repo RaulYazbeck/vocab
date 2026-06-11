@@ -1,5 +1,16 @@
 // ── RENDER GROUPS ─────────────────────────────
-function toggleGroup(id) { openGroups.has(id) ? openGroups.delete(id) : openGroups.add(id); renderGroups(); }
+// Cards only animate in when their dropdown is opened; re-renders
+// caused by selecting decks must not replay the entrance animation.
+let justOpenedGroupId = null;
+function toggleGroup(id) {
+  if (openGroups.has(id)) {
+    openGroups.delete(id);
+  } else {
+    openGroups.add(id);
+    justOpenedGroupId = id;
+  }
+  renderGroups();
+}
 function toggleDeck(id)  { selectedIds.has(id) ? selectedIds.delete(id) : selectedIds.add(id); renderGroups(); renderStartBar(); }
 function renderGroups() {
   document.getElementById("groups-container").innerHTML = ALL_GROUPS.map(group => {
@@ -29,9 +40,10 @@ function renderGroups() {
         <span class="group-meta">${group.decks.length} deck${group.decks.length!==1?"s":""} · ${totalWords} words · ${totalMastered} mastered</span>
         <span class="group-chevron ${isOpen?"open":""}">▶</span>
       </div>
-      <div class="group-decks ${isOpen?"":"collapsed"}">${decksHtml}</div>
+      <div class="group-decks ${isOpen?"":"collapsed"}${group.id === justOpenedGroupId ? " just-opened" : ""}">${decksHtml}</div>
     </div>`;
   }).join("");
+  justOpenedGroupId = null;
 }
 
 // ── START BAR ─────────────────────────────────
