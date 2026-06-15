@@ -68,7 +68,7 @@ const ACHIEVEMENTS = [
   // ── Speed ──
   { id:"timer_champion", icon:"🏆", name:"Timer Champion", category:"Speed",
     desc:t => `Win ${t} timer session${t>1?"s":""}`,
-    tiers:[1, 5, 12, 25, 45, 70, 100, 150, 220, 300],
+    tiers:[1, 10, 25, 50, 75, 130, 180, 250, 360, 500],
     value:() => S.timerWins || 0 },
   { id:"flawless", icon:"💯", name:"Flawless", category:"Speed",
     desc:t => `Win ${t} timer${t>1?"s":""} without a single mistake`,
