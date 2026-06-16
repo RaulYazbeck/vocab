@@ -12,9 +12,9 @@ const DECKS_A1 = {
     {
       id: "a1_saludos", name: "Saludos y frases sociales", icon: "👋",
       words: [
-        { en:"hola", fr:"bonjour", hint:"saludo general", examples:[{fr:"Bonjour ! Comment allez-vous ?",en:"¡Hola! ¿Cómo está usted?"}] },
+        { en:"hola (formal)", fr:"bonjour", hint:"saludo general", examples:[{fr:"Bonjour ! Comment allez-vous ?",en:"¡Hola! ¿Cómo está usted?"}] },
         { en:"adiós", fr:"au revoir", hint:"despedida formal", examples:[{fr:"Au revoir, Monsieur Dupont !",en:"¡Adiós, señor Dupont!"}] },
-        { en:"hola informal", fr:"salut", hint:"saludo informal", examples:[{fr:"Salut ! À demain !",en:"¡Hola! ¡Hasta mañana!"}] },
+        { en:"hola (informal)", fr:"salut", hint:"saludo informal", examples:[{fr:"Salut ! À demain !",en:"¡Hola! ¡Hasta mañana!"}] },
         { en:"buenos días", fr:"bonjour", hint:"saludo de mañana", examples:[{fr:"Bonjour ! Vous voulez un café ?",en:"¡Buenos días! ¿Quiere un café?"}] },
         { en:"buenas noches saludo", fr:"bonsoir", hint:"saludo de tarde y noche", examples:[{fr:"Bonsoir ! Vous avez réservé ?",en:"¡Buenas noches! ¿Tiene reserva?"}] },
         { en:"buenas noches despedida", fr:"bonne nuit", hint:"despedida nocturna", examples:[{fr:"Bonne nuit ! Dors bien !",en:"¡Buenas noches! ¡Duerme bien!"}] },
@@ -89,7 +89,7 @@ const DECKS_A1 = {
         { en:"un por ciento", fr:"un pour cent", hint:"cantidad", examples:[{fr:"Les prix augmentent d'un pour cent.",en:"Los precios suben un por ciento."}] },
         { en:"un litro", fr:"un litre", hint:"unidad de volumen", examples:[{fr:"J'achète un litre de lait.",en:"Compro un litro de leche."}] },
         { en:"un gramo", fr:"un gramme", hint:"unidad de peso", examples:[{fr:"J'ai besoin de cent grammes de beurre.",en:"Necesito cien gramos de mantequilla."}] },
-        { en:"medio kilo", fr:"une livre", hint:"unidad de peso 500g", examples:[{fr:"Une livre de pommes coûte deux euros.",en:"Medio kilo de manzanas cuesta dos euros."}] },
+        { en:"un medio kilo", fr:"un demi kilo", hint:"unidad de peso 500g", examples:[{fr:"Une livre de pommes coûte deux euros.",en:"Medio kilo de manzanas cuesta dos euros."}] },
         { en:"un kilogramo", fr:"un kilo", hint:"unidad de peso", examples:[{fr:"J'ai besoin d'un kilo de farine.",en:"Necesito un kilo de harina."}] },
         { en:"un metro", fr:"un mètre", hint:"unidad de longitud", examples:[{fr:"La table fait deux mètres de long.",en:"La mesa mide dos metros de largo."}] },
         { en:"un centímetro", fr:"un centimètre", hint:"unidad de longitud", examples:[{fr:"L'enfant a grandi de cinq centimètres.",en:"El niño creció cinco centímetros."}] },
