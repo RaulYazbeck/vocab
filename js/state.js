@@ -81,6 +81,7 @@ function migrate() {
   });
   S.loginDates = [...new Set(S.loginDates)].sort();
   S.badges = [...new Set(S.badges)];
+  if (!S.wordEdits)             S.wordEdits = {};
   if (!S.achLevels)             S.achLevels = {};
   if (!S.bestCombo)             S.bestCombo = 0;
   if (!S.bestDayCorrect)        S.bestDayCorrect = 0;
@@ -88,4 +89,7 @@ function migrate() {
   if (!S.perfectTimerWins)      S.perfectTimerWins = 0;
   if (!S.bestTimerSecondsLeft)  S.bestTimerSecondsLeft = 0;
   if (!S.ankiSessions)          S.ankiSessions = 0;
+  // Re-apply user word-text overrides after every state load — migrate()
+  // runs both at startup and after a cloud sync replaces S.
+  if (typeof applyWordEdits === "function") applyWordEdits();
 }

@@ -46,6 +46,40 @@ function renderExpBar() {
       <div class="exp-track"><div class="exp-fill" style="width:${pct}%"></div></div>
       <div class="exp-label">${cur}/${need} XP</div>
       ${streakHtml}
+    </div>
+    ${dailyGoalHtml()}`;
+}
+
+// ── DAILY GOAL ────────────────────────────────
+// Goal number lives in its own localStorage key (like gv_mute) — never
+// inside S. Progress metric is S.drillCorrectToday (reset daily).
+function getDailyGoal() {
+  const v = parseInt(localStorage.getItem('gv_daily_goal'), 10);
+  return [10, 20, 50, 100].includes(v) ? v : 20;
+}
+let _goalCelebrated = null; // date the toast fired; seeded on first render
+function dailyGoalHtml() {
+  const goal  = getDailyGoal();
+  const done  = S.drillCorrectToday || 0;
+  const today = todayISO();
+  const reached = done >= goal;
+  if (_goalCelebrated === null) {
+    // First render after page open: never toast retroactively.
+    _goalCelebrated = reached ? today : "";
+  } else if (reached && _goalCelebrated !== today) {
+    _goalCelebrated = today;
+    confettiBurst(40);
+    showCelebrateToast("🎯", "Daily goal reached!", `${goal} correct today — nice!`);
+  }
+  const pct = Math.min(100, Math.round((done / goal) * 100));
+  const streak = getDailyStreak();
+  const nudge = !reached && done === 0 && streak > 1
+    ? `<span class="goal-nudge">🔥 keep your ${streak}-day streak alive</span>` : "";
+  return `<div class="goal-row${reached ? " reached" : ""}">
+      <span class="goal-icon">🎯</span>
+      <div class="goal-track"><div class="goal-fill" style="width:${pct}%"></div></div>
+      <span class="goal-label">${done}/${goal}${reached ? " ✓" : ""}</span>
+      ${nudge}
     </div>`;
 }
 

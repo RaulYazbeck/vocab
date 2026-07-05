@@ -5,12 +5,6 @@ function startDrill() {
   initDrillScreen();
 }
 function nextDrillWord() { answered = false; currentWord = drillSubMode === 'refresh' ? pickNextRefresh() : pickNext(drillSubMode === 'focus'); updateDrillWord(); }
-function miniStats(ws) {
-  return `<div class="mini-stat"><div class="mini-label">correct</div><div class="mini-val">${ws.correct}</div></div>
-    <div class="mini-stat"><div class="mini-label">wrong</div><div class="mini-val">${ws.wrong}</div></div>
-    <div class="mini-stat"><div class="mini-label">streak</div><div class="mini-val">${ws.displayStreak}</div></div>
-    <div class="mini-stat"><div class="mini-label">mastered</div><div class="mini-val">${isMastered(ws)?"✓":"—"}</div></div>`;
-}
 // Renders the drill skeleton once per session. Never called again until
 // the user leaves and re-enters drill mode.
 function initDrillScreen() {
@@ -51,13 +45,7 @@ function initDrillScreen() {
 function updateDrillWord() {
   if (!currentWord) return;
   const ws = getWS(currentWord.deckId, currentWord.idx);
-  const badges = [
-    isMasteryPlus(ws)
-      ? `<span class="masteryplus-badge">⭐ ${21 - daysBetween(ws.masteryPlusDate, todayISO())}d</span>`
-      : isMastered(ws) ? `<span class="mastered-badge">✓ mastered</span>` : "",
-    ws.displayStreak > 0 && !isMasteryPlus(ws)
-      ? `<span class="streak-badge">🔥 ${ws.displayStreak}</span>` : ""
-  ].join(" ");
+  const badges = wordBadgesHtml(ws);
 
   document.getElementById('drill-deck-label').textContent = currentWord.deckName;
   document.getElementById('drill-english').textContent    = currentWord.en;
@@ -170,6 +158,20 @@ function showMilestoneFlash(msg) {
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 2500);
 }
+// Shared correct/wrong bookkeeping for typed and voice drill answers.
+// Pure state changes only — sounds and rendering stay at the call sites.
+function applyAnswerState(ws, correct) {
+  if (correct) {
+    sessionCorrect++; sessionConsecutive++;
+    if (activeMode === "drill") checkDrillMilestone();
+    addExp(ws.correct === 0 && ws.wrong === 0 ? 10 : 5);
+    applyCorrect(ws);
+    checkCombo();
+  } else {
+    applyWrong(ws); sessionConsecutive = 0;
+  }
+  saveState();
+}
 function checkDrill() {
   if (answered) return;
   const input = document.getElementById("german-input");
@@ -178,31 +180,18 @@ function checkDrill() {
   answered = true;
   const correct = isCorrect(input.value, currentWord[WORD_KEY]);
   const ws      = getWS(currentWord.deckId, currentWord.idx);
-  const isNew   = ws.correct === 0 && ws.wrong === 0;
-  if (correct) {
-    sessionCorrect++; sessionConsecutive++;
-    if (activeMode === "drill") checkDrillMilestone();
-    addExp(isNew ? 10 : 5);
-    applyCorrect(ws);
-    checkCombo();
-    input.classList.add("correct");
-    playSuccess();
-  } else {
-    applyWrong(ws); sessionConsecutive = 0;
-    input.classList.add("wrong");
-    playFailure();
-  }
-  saveState();
+  applyAnswerState(ws, correct);
+  input.classList.add(correct ? "correct" : "wrong");
+  if (correct) playSuccess(); else playFailure();
   showDrillFeedback(correct, ws);
 }
 function dontKnow() {
   if (answered) return;
   answered = true;
-  const ws    = getWS(currentWord.deckId, currentWord.idx);
-  applyWrong(ws); sessionConsecutive = 0;
+  const ws = getWS(currentWord.deckId, currentWord.idx);
+  applyAnswerState(ws, false);
   const input = document.getElementById("german-input");
   if (input) { input.value = currentWord[WORD_KEY]; input.classList.add("wrong"); }
-  saveState();
   showDrillFeedback(false, ws);
 }
 function showDrillFeedback(correct, ws) {
@@ -214,24 +203,14 @@ function showDrillFeedback(correct, ws) {
       ${currentWord.pl ? `<div class="plural-text">plural: ${currentWord.pl}</div>` : ""}
     </div>
     <div class="feedback-right">
-      <button class="audio-btn" onclick="speak('${currentWord[WORD_KEY].replace(/'/g,"\\'")}')">🔊</button>
+      <button class="audio-btn" ${speakBtnAttrs(currentWord[WORD_KEY])}>🔊</button>
       <button class="next-btn"  onclick="nextDrillWord()">Next →</button>
     </div>`;
   speak(currentWord[WORD_KEY]);
   document.getElementById("hint-area").innerHTML = ""; // full examples replace the hint
   const hintBtn = document.getElementById("hint-btn");
   if (hintBtn) hintBtn.style.display = "none";
-  if (currentWord.examples && currentWord.examples.length) {
-    document.getElementById("examples-area").innerHTML = `
-      <div class="examples-wrap-big">
-        <div class="examples-title">Examples</div>
-        ${currentWord.examples.map(ex => `
-          <div class="example-row-big">
-            <div class="example-de">${ex[WORD_KEY]}</div>
-            <div class="example-en">${ex.en}</div>
-          </div>`).join("")}
-      </div>`;
-  }
+  document.getElementById("examples-area").innerHTML = examplesHtml(currentWord, "big");
   document.getElementById("stats-row").innerHTML = miniStats(ws);
   const inp = document.getElementById("german-input");
   if (inp) inp.focus();

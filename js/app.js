@@ -18,6 +18,7 @@ function showScreen(name) {
   if (island) island.style.display = 'none';
   if (name === "stats")       renderStatsChoice();
   else if (name === "badges") renderBadgesScreen();
+  else if (name === "edits")  renderWordEditsScreen();
 }
 function backToMenu() {
   clearInterval(timerInterval);
