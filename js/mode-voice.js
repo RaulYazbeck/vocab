@@ -41,13 +41,13 @@ function renderVoiceTimerScreen() {
       <div class="word-display" id="timer-word-display">
         ${timerWordHtml(currentWord)}
       </div>
+      <div id="timer-feedback" class="timer-feedback-v"></div>
     </div>
     <div class="voice-indicator">
       <button class="mic-btn" id="voice-mic-btn" onclick="toggleMic()">🎤</button>
       <div class="voice-status" id="voice-status">Listening…</div>
     </div>
     <div id="unlock-row-voice-timer"></div>
-    <div id="timer-feedback" class="timer-feedback-v"></div>
   </div>`;
   renderUnlockRow("unlock-row-voice-timer");
 }

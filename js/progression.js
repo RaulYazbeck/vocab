@@ -51,11 +51,10 @@ function renderExpBar() {
 }
 
 // ── DAILY GOAL ────────────────────────────────
-// Goal number lives in its own localStorage key (like gv_mute) — never
-// inside S. Progress metric is S.drillCorrectToday (reset daily).
+// Goal number lives in S.dailyGoal so it syncs between devices.
+// Progress metric is S.drillCorrectToday (reset daily).
 function getDailyGoal() {
-  const v = parseInt(localStorage.getItem('gv_daily_goal'), 10);
-  return [10, 20, 50, 100].includes(v) ? v : 20;
+  return [10, 20, 50, 100].includes(S.dailyGoal) ? S.dailyGoal : 20;
 }
 let _goalCelebrated = null; // date the toast fired; seeded on first render
 function dailyGoalHtml() {

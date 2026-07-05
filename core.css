@@ -889,7 +889,7 @@ tr:hover td { background:rgba(255,255,255,0.03); }
 }
 
 /* ── TIMER FEEDBACK ────────────── */
-.timer-feedback   { min-height:44px; font-size:18px; font-weight:700; text-align:center; padding:6px 0 2px; }
+.timer-feedback   { min-height:40px; font-size:18px; font-weight:700; text-align:center; padding:2px 0 6px; }
 .timer-feedback-v { min-height:40px; text-align:center; padding-top:4px; }
 .tfb-ok     { color:#0F6E56; font-weight:600; }
 .tfb-strong { font-weight:700; }
@@ -905,9 +905,11 @@ tr:hover td { background:rgba(255,255,255,0.03); }
     position:sticky; top:0; z-index:40;
     background:rgba(8,12,20,0.94);
     backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
-    margin:0 -1.5rem 8px; padding:4px 1.5rem 8px;
+    margin:0 -1.5rem 10px; padding:10px 1.5rem 10px;
     border-bottom:1px solid var(--border);
   }
+  .timer-head .timer-feedback{ min-height:36px; font-size:16px; padding:2px 0 0; }
+  .timer-head .tfb-ans{ font-size:19px; }
   .timer-head .timer-display{ margin-bottom:2px; }
   .timer-head .timer-clock{ font-size:26px; }
   .timer-head .timer-bar-wrap{ margin-bottom:8px; }
@@ -955,7 +957,7 @@ tr:hover td { background:rgba(255,255,255,0.03); }
 .goal-row {
   display:flex; align-items:center; gap:8px;
   background:var(--glass); border:1px solid var(--border); border-radius:var(--r);
-  padding:7px 14px; margin-top:6px;
+  padding:7px 14px; margin-top:-8px; margin-bottom:1rem;
 }
 .goal-icon { font-size:13px; }
 .goal-track { flex:1; height:6px; background:rgba(255,255,255,0.09); border-radius:3px; overflow:hidden; }
