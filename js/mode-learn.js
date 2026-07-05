@@ -41,12 +41,9 @@ function renderLearnCard() {
       <div class="learn-de">${w[WORD_KEY]}</div>
       ${w.pl ? `<div class="learn-hint">plural: ${w.pl}</div>` : ""}
       <div class="learn-hint">${w.hint}</div>
-      ${w.examples && w.examples.length ? `<div class="examples-wrap" style="text-align:left;margin-top:12px">
-        <div class="examples-title">Examples</div>
-        ${w.examples.map(ex=>`<div class="example-row"><div class="example-de">${ex[WORD_KEY]}</div><div class="example-en">${ex.en}</div></div>`).join("")}
-      </div>` : ""}
+      ${examplesHtml(w, "all")}
     </div>
-    <button class="audio-btn" style="display:block;margin:0 auto 1rem;" onclick="speak('${w[WORD_KEY].replace(/'/g,"\\'")}')">🔊 Listen</button>
+    <button class="audio-btn" style="display:block;margin:0 auto 1rem;" ${speakBtnAttrs(w[WORD_KEY])}>🔊 Listen</button>
     <div class="learn-actions">
       <button class="learn-btn not-yet" onclick="learnNotYet()">Not yet</button>
       <button class="learn-btn got-it"  onclick="learnGotIt()">Got it ✓</button>

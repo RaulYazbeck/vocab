@@ -20,6 +20,14 @@ function isMastered(ws) {
   if (total >= 6 && wilsonLower(ws.correct, total) >= 0.724) return true;
   return false;
 }
+// "Struggling" = enough attempts, not mastered, and a Wilson lower bound
+// clearly below the 0.724 mastery threshold. More right than wrong answers
+// can still be struggling (e.g. 5✓/3✗ ≈ 0.44).
+const STRUGGLE_WILSON_MAX = 0.5;
+function isStruggling(ws) {
+  const total = (ws.correct || 0) + (ws.wrong || 0);
+  return total >= 3 && !isMastered(ws) && wilsonLower(ws.correct || 0, total) < STRUGGLE_WILSON_MAX;
+}
 function isMasteryPlus(ws) {
   if (!isMastered(ws)) return false;
   if (!ws.masteryPlusDate) return false;

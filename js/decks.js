@@ -74,9 +74,15 @@ function unlockedWords(deck) {
 
 
 // ── DECK HELPERS ──────────────────────────────
+// Deck lookup happens on every answer and in every render loop, so it
+// uses a lazily-built index. ALL_GROUPS is never mutated after load.
+let _deckById = null;
 function getDeck(deckId) {
-  for (const g of ALL_GROUPS) for (const d of g.decks) if (d.id === deckId) return d;
-  return null;
+  if (!_deckById) {
+    _deckById = new Map();
+    for (const g of ALL_GROUPS) for (const d of g.decks) _deckById.set(d.id, d);
+  }
+  return _deckById.get(deckId) || null;
 }
 function deckProgress(deck) {
   const words = unlockedWords(deck);

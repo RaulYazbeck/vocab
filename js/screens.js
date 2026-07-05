@@ -133,11 +133,15 @@ function setTimerSubMode(s) { timerSubMode = s; renderStartBar(); }
 
 
 // ── STATS SCREEN ──────────────────────────────
+function agoLabel(ts) {
+  const days = daysBetween(new Date(ts).toLocaleDateString('en-CA'), todayISO());
+  return days <= 0 ? "today" : days === 1 ? "yesterday" : `${days}d ago`;
+}
 function renderStatsScreen() {
   let html = `<div class="screen">
     <div class="screen-top"><div class="screen-label">Progress</div><button class="back-btn" onclick="renderStatsChoice()">← Back</button></div>
     <div style="text-align:right;margin-bottom:1rem;">
-      <button onclick="resetAll()" style="font-size:12px;padding:5px 12px;border:1px solid var(--error);border-radius:6px;background:transparent;color:var(--error);cursor:pointer;">Reset all progress</button>
+      <button class="danger-outline-btn" onclick="resetAll()">Reset all progress</button>
     </div>`;
   ALL_GROUPS.forEach(group => {
     html += `<div class="stats-section"><div class="stats-section-title">${group.icon} ${group.name}</div>`;
@@ -145,24 +149,36 @@ function renderStatsScreen() {
       const { mastered, masteryPlus, total, all } = deckProgress(deck);
       const pct = total > 0 ? Math.round((mastered / total) * 100) : 0;
       const deckKey = `stats-deck-${deck.id}`;
+      // Aggregate accuracy / recency / struggle count over unlocked words.
+      // Read S.words directly — no getWS, so viewing stats creates nothing.
+      let sumC = 0, sumW = 0, lastAt = 0, struggling = 0;
+      unlockedWords(deck).forEach((w, i) => {
+        const ws = S.words[deck.id + "_" + i];
+        if (!ws) return;
+        sumC += ws.correct || 0; sumW += ws.wrong || 0;
+        if (ws.lastAnsweredAt && ws.lastAnsweredAt > lastAt) lastAt = ws.lastAnsweredAt;
+        if (isStruggling(ws)) struggling++;
+      });
+      const acc = sumC + sumW > 0 ? Math.round(sumC / (sumC + sumW) * 100) + "%" : "—";
+      const extra = ` · ${acc} acc · ${lastAt ? agoLabel(lastAt) : "never practiced"}${struggling ? ` · <span class="struggle-count">${struggling} struggling</span>` : ""}`;
       html += `
-        <div style="margin-bottom:0.75rem;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--glass);backdrop-filter:blur(20px);">
-          <div onclick="toggleStatsDeck('${deck.id}')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;background:transparent;user-select:none;border-bottom:1px solid var(--border);">
-            <div style="display:flex;align-items:center;gap:10px;flex:1;">
+        <div class="stats-deck-card">
+          <div class="stats-deck-head" onclick="toggleStatsDeck('${deck.id}')">
+            <div class="stats-deck-title">
               <span style="font-size:14px;">${deck.icon}</span>
               <div>
-                <div style="font-size:13px;font-weight:700;color:var(--text);">${deck.name}</div>
-                <div style="font-size:11px;color:var(--text-3);margin-top:3px;">${mastered}/${total} mastered · ${masteryPlus} ⭐ · ${pct}% · ${all} total</div>
+                <div class="stats-deck-name">${deck.name}</div>
+                <div class="stats-deck-meta">${mastered}/${total} mastered · ${masteryPlus} ⭐ · ${pct}% · ${all} total${extra}</div>
               </div>
             </div>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <button onclick="event.stopPropagation();resetDeck('${deck.id}')" style="font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:6px;background:rgba(255,255,255,0.07);color:var(--text-3);cursor:pointer;">Reset</button>
-              <span id="chevron-${deck.id}" style="font-size:11px;color:var(--text-3);transition:transform 0.2s;display:inline-block;">▶</span>
+            <div class="stats-deck-actions">
+              <button class="mini-btn" onclick="event.stopPropagation();resetDeck('${deck.id}')">Reset</button>
+              <span id="chevron-${deck.id}" class="stats-chevron"${_openStatsDecks.has(deck.id) ? ` style="transform:rotate(90deg)"` : ""}>▶</span>
             </div>
           </div>
-          <div id="${deckKey}" style="display:none;background:rgba(255,255,255,0.03);">
+          <div id="${deckKey}" class="stats-deck-body${_openStatsDecks.has(deck.id) ? " open" : ""}">
             <div class="stats-table-wrap"><table style="margin:0;border-radius:0;">
-              <thead><tr><th>English</th><th>Target</th><th>Plural</th><th>✓</th><th>✗</th><th>Streak</th></tr></thead>
+              <thead><tr><th>English</th><th>Target</th><th>Plural</th><th>✓</th><th>✗</th><th>Streak</th><th></th></tr></thead>
               <tbody>`;
       unlockedWords(deck).forEach((w,i) => {
         const ws = getWS(deck.id, i);
@@ -173,7 +189,7 @@ function renderStatsScreen() {
             : ws.displayStreak > 0
               ? `<span class="streak-badge">${ws.displayStreak}</span>`
               : `<span style="color:#bbb">new</span>`;
-        html += `<tr><td>${w.en}</td><td style="color:var(--text-2)">${w[WORD_KEY]}</td><td style="color:var(--text-3)">${w.pl||"—"}</td><td>${ws.correct}</td><td>${ws.wrong}</td><td>${st}</td></tr>`;
+        html += `<tr><td>${w.en}</td><td style="color:var(--text-2)">${w[WORD_KEY]}</td><td style="color:var(--text-3)">${w.pl||"—"}</td><td>${ws.correct}</td><td>${ws.wrong}</td><td>${st}</td><td><button class="edit-word-btn" onclick="openWordEditor('${deck.id}',${i},renderStatsScreen)" title="Edit word texts">✏️</button></td></tr>`;
       });
       html += `</tbody></table></div></div></div>`;
     });
@@ -183,17 +199,73 @@ function renderStatsScreen() {
   document.getElementById("main-screen").innerHTML = html;
 }
 
+// Open/closed deck state survives re-renders (e.g. after a word edit).
+const _openStatsDecks = new Set();
 function toggleStatsDeck(deckId) {
   const el = document.getElementById(`stats-deck-${deckId}`);
   const chevron = document.getElementById(`chevron-${deckId}`);
   if (!el) return;
-  const isOpen = el.style.display !== "none";
-  el.style.display = isOpen ? "none" : "block";
+  const isOpen = _openStatsDecks.has(deckId);
+  if (isOpen) _openStatsDecks.delete(deckId); else _openStatsDecks.add(deckId);
+  el.classList.toggle("open", !isOpen);
   if (chevron) chevron.style.transform = isOpen ? "" : "rotate(90deg)";
 }
 // ── STATS CHOICE ──────────────────────────────
+// 12-week login-activity grid (columns = weeks, Monday-aligned).
+function activityGridHtml() {
+  const dates = new Set(S.loginDates);
+  const todayStr = todayISO();
+  const d = new Date(); d.setHours(12, 0, 0, 0);
+  const dow = (d.getDay() + 6) % 7; // 0 = Monday
+  d.setDate(d.getDate() - dow - 77); // back to the Monday 11 weeks ago
+  let cols = "";
+  for (let wk = 0; wk < 12; wk++) {
+    let cells = "";
+    for (let i = 0; i < 7; i++) {
+      const iso = d.toLocaleDateString('en-CA');
+      const cls = iso > todayStr ? "future" : dates.has(iso) ? "on" : "";
+      cells += `<div class="cal-cell ${cls}" title="${iso}"></div>`;
+      d.setDate(d.getDate() + 1);
+    }
+    cols += `<div class="cal-col">${cells}</div>`;
+  }
+  return `<div class="cal-wrap">
+    <div class="cal-title">📅 Activity — last 12 weeks</div>
+    <div class="cal-grid">${cols}</div>
+  </div>`;
+}
+
+// Struggling = enough attempts, not mastered, and a Wilson confidence
+// score clearly below the mastery bar (see isStruggling in srs.js).
+let _showAllStruggling = false;
+function toggleStruggling() { _showAllStruggling = !_showAllStruggling; renderStatsChoice(); }
+function strugglingListHtml() {
+  const items = [];
+  ALL_GROUPS.forEach(g => g.decks.forEach(d => {
+    unlockedWords(d).forEach((w, i) => {
+      const ws = S.words[d.id + "_" + i];
+      if (!ws || !isStruggling(ws)) return;
+      items.push({ w, ws, score: wilsonLower(ws.correct || 0, (ws.correct || 0) + (ws.wrong || 0)) });
+    });
+  }));
+  if (!items.length) return "";
+  items.sort((a, b) => a.score - b.score);
+  const shown = _showAllStruggling ? items : items.slice(0, 15);
+  const rows = shown.map(it => `<div class="struggle-row">
+      <div><span class="struggle-word">${it.w.en}</span> <span class="struggle-target">${it.w[WORD_KEY]}</span></div>
+      <div class="struggle-score">✓${it.ws.correct} ✗${it.ws.wrong}</div>
+    </div>`).join("");
+  const moreBtn = items.length > 15
+    ? `<button class="show-more-btn" onclick="toggleStruggling()">${_showAllStruggling ? "Show top 15 only" : `Show all ${items.length}`}</button>`
+    : "";
+  return `<div class="struggle-wrap">
+    <div class="stats-section-title">🎯 Struggling words (${items.length})</div>
+    <div class="struggle-list">${rows}</div>
+    ${moreBtn}
+  </div>`;
+}
+
 function renderStatsChoice() {
-  const today = todayISO();
   const todayWords = S.drillCorrectToday || 0;
   const streak     = getDailyStreak();
   const mastered   = countMastered();
@@ -237,6 +309,8 @@ function renderStatsChoice() {
           <div class="gen-stat-label">${(S.exp||0).toLocaleString()} XP</div>
         </div>
       </div>
+      ${activityGridHtml()}
+      ${strugglingListHtml()}
       <div class="stats-choice-row">
         <button class="stats-choice-btn" onclick="renderStatsScreen()">
           <div class="stats-choice-icon">📖</div>
@@ -374,23 +448,44 @@ function resetAnkiProgress() {
 }
 
 // ── SETTINGS PANEL ────────────────────────────
-// Injected here so both language apps share one copy.
+// Injected here so both language apps share one copy. The sheet is
+// re-rendered on every open so dynamic bits (goal, sync, edits) stay fresh.
 function initSettingsPanel() {
   const panel = document.createElement("div");
   panel.id = "settings-panel";
   panel.style.cssText = "display:none;position:fixed;inset:0;z-index:200;";
-  panel.innerHTML = `
+  document.body.appendChild(panel);
+}
+function renderSettingsPanel() {
+  const goal = getDailyGoal();
+  const account = (typeof currentUser !== "undefined" && currentUser)
+    ? (currentUser.displayName || currentUser.email || "Signed in")
+    : "Not signed in";
+  const lastSaved = S.savedAt ? new Date(S.savedAt).toLocaleString() : "never";
+  const editCount = Object.keys(S.wordEdits || {}).length;
+  document.getElementById("settings-panel").innerHTML = `
     <div class="settings-overlay" onclick="closeSettings()"></div>
     <div class="settings-sheet">
       <div class="settings-title">Settings</div>
       <button class="settings-item" onclick="closeSettings();showScreen('stats')">📊&nbsp; Stats &amp; Progress</button>
       <button class="settings-item" onclick="closeSettings();showScreen('badges')">🏆&nbsp; Achievements</button>
+      <button class="settings-item" onclick="closeSettings();showScreen('edits')">✏️&nbsp; My word edits${editCount ? ` (${editCount})` : ""}</button>
       <button class="settings-item" id="settings-mute-btn" onclick="toggleMute()">${muteEnabled ? "🔇&nbsp; Sound off" : "🔊&nbsp; Sound on"}</button>
       <button class="settings-item" id="settings-voice-btn" onclick="cycleVoiceEngine()">${voiceEngineSettingLabel()}</button>
+      <div class="settings-goal">
+        <span class="settings-goal-label">🎯&nbsp; Daily goal</span>
+        ${[10,20,50,100].map(n => `<button class="goal-pick ${goal===n?"active":""}" onclick="setDailyGoal(${n})">${n}</button>`).join("")}
+      </div>
+      <div class="settings-sync-line">☁️ ${escapeHtml(account)} · last saved ${lastSaved}</div>
     </div>`;
-  document.body.appendChild(panel);
+}
+function setDailyGoal(n) {
+  localStorage.setItem('gv_daily_goal', n);
+  renderSettingsPanel();
+  renderExpBar();
 }
 function openSettings() {
+  renderSettingsPanel();
   document.getElementById("settings-panel").style.display = "block";
   const island = document.getElementById("floating-island");
   if (island) island.style.display = "none";

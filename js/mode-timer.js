@@ -33,12 +33,13 @@ function renderTimerScreen() {
       <div class="screen-label">⏱ Timer · ${timerWordCount} words · ${4.5*timerWordCount}s total</div>
       <button class="back-btn" onclick="backToMenu()">✕ Quit</button>
     </div>
-    <div class="timer-display"><div class="timer-clock" id="timer-clock">${timerLeft.toFixed(1)}s</div></div>
-    <div class="timer-bar-wrap"><div class="timer-bar-fill" id="timer-bar-fill" style="width:100%"></div></div>
-    <div class="timer-score">✓ <strong id="t-correct">${timerCorrect}</strong> &nbsp; ✗ <strong id="t-wrong">${timerWrong}</strong> &nbsp; left: <strong>${timerQueue.length-timerWordsDone}</strong></div>
-    <div class="word-display" id="timer-word-display">
-      <div class="english-word">${currentWord.en}</div>
-      <div class="word-hint" style="font-size:18px;">${currentWord.hint}</div>
+    <div class="timer-head">
+      <div class="timer-display"><div class="timer-clock" id="timer-clock">${timerLeft.toFixed(1)}s</div></div>
+      <div class="timer-bar-wrap"><div class="timer-bar-fill" id="timer-bar-fill" style="width:100%"></div></div>
+      <div class="timer-score">✓ <strong id="t-correct">${timerCorrect}</strong> &nbsp; ✗ <strong id="t-wrong">${timerWrong}</strong> &nbsp; left: <strong>${timerQueue.length-timerWordsDone}</strong></div>
+      <div class="word-display" id="timer-word-display">
+        ${timerWordHtml(currentWord)}
+      </div>
     </div>
     <input type="text" class="german-input" id="timer-input" placeholder="type the answer…"
       autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
@@ -47,77 +48,91 @@ function renderTimerScreen() {
       <button class="check-btn"    onclick="checkTimer()">Check</button>
       <button class="dontknow-btn" onclick="skipTimer()">Skip</button>
     </div>
-    <div id="timer-feedback" style="min-height:44px;font-size:18px;font-weight:700;text-align:center;padding:6px 0 2px;"></div>
+    <div id="timer-feedback" class="timer-feedback"></div>
   </div>`;
   focusInput();
 }
 function handleTimerKey(e) { if (e.key === "Enter") checkTimer(); }
+
+// ── SHARED ANSWER FLOW ────────────────────────
+// Used by the typed timer (checkTimer/skipTimer) and the voice timer
+// (handleVoiceTimerResult in mode-voice.js). `voice` selects the
+// re-render/mic path; state bookkeeping is identical for both.
+function timerCorrectAnswer(voice) {
+  timerCorrect++; playSuccess(); checkDrillMilestone();
+  applyCorrect(getWS(currentWord.deckId, currentWord.idx));
+  saveState();
+  timerWordsDone++;
+  if (timerWordsDone >= timerQueue.length) { endTimer(true); return; }
+  currentWord = timerQueue[timerWordsDone];
+  if (voice) {
+    // Patch in place — a full re-render would interrupt the mic flow.
+    const fb = document.getElementById("timer-feedback");
+    if (fb) fb.innerHTML = `<span class="tfb-ok tfb-strong">✓ Correct!</span>`;
+    const tc = document.getElementById("t-correct");
+    if (tc) tc.textContent = timerCorrect;
+    const wordEl = document.getElementById("timer-word-display");
+    if (wordEl) wordEl.innerHTML = timerWordHtml(currentWord);
+    setTimeout(() => { if (!timerFinished && !timerPaused) startListening(); }, 400);
+  } else {
+    renderTimerScreen();
+    const fb = document.getElementById("timer-feedback");
+    if (fb) fb.innerHTML = `<span class="tfb-ok">✓ Correct!</span>`;
+    focusInput();
+  }
+}
+// shownWrongText: the user's rejected answer ("" for a plain skip).
+// sound: the typed skip is historically silent.
+function timerWrongAnswer(shownWrongText, voice, sound) {
+  timerWrong++;
+  applyWrong(getWS(currentWord.deckId, currentWord.idx));
+  saveState();
+  if (sound) playFailure();
+  timerPaused = true; clearInterval(timerInterval);
+  const answer = currentWord[WORD_KEY];
+  requeueCurrentWord();
+  timerWordsDone++;
+  const wordEl = document.getElementById("timer-word-display");
+  if (wordEl) wordEl.style.opacity = "0.3";
+  const fb = document.getElementById("timer-feedback");
+  if (fb) fb.innerHTML = shownWrongText
+    ? `<span class="tfb-strike">${escapeHtml(shownWrongText)}</span><span class="tfb-arrow"> → </span><span class="tfb-ans">${answer}</span>`
+    : `<span class="tfb-ans">✗ ${answer}</span>`;
+  const tc = document.getElementById("t-correct"), tw = document.getElementById("t-wrong");
+  if (tc) tc.textContent = timerCorrect;
+  if (tw) tw.textContent = timerWrong;
+  setTimeout(() => {
+    if (timerFinished) return;
+    timerPaused = false;
+    currentWord = timerQueue[timerWordsDone];
+    timerInterval = setInterval(timerTick, 100);
+    if (voice) {
+      renderVoiceTimerScreen();
+      setTimeout(() => startListening(), 400);
+    } else {
+      renderTimerScreen();
+    }
+  }, 2500);
+}
+
 function checkTimer() {
   if (timerFinished || timerPaused) return;
   const input = document.getElementById("timer-input");
   if (!input) return;
   const val = input.value;
   if (!val.trim()) { skipTimer(); return; }
-  const correct = isCorrect(val, currentWord[WORD_KEY]);
-  const fb = document.getElementById("timer-feedback");
-  if (correct) {
-    timerCorrect++; playSuccess(); checkDrillMilestone();
-    const ws = getWS(currentWord.deckId, currentWord.idx);
-    applyCorrect(ws);
-    saveState();
-    timerWordsDone++;
-    if (timerWordsDone >= timerQueue.length) { endTimer(true); return; }
-    currentWord = timerQueue[timerWordsDone];
-    renderTimerScreen();
-    const fb2 = document.getElementById("timer-feedback");
-    if (fb2) fb2.innerHTML = `<span style="color:#0F6E56;font-weight:600;">✓ Correct!</span>`;
-    focusInput();
+  if (isCorrect(val, currentWord[WORD_KEY])) {
+    timerCorrectAnswer(false);
   } else {
-    timerWrong++;
-    const ws = getWS(currentWord.deckId, currentWord.idx);
-    applyWrong(ws); saveState(); playFailure();
-    timerPaused = true; clearInterval(timerInterval);
-    requeueCurrentWord();
-    timerWordsDone++;
-    const wordEl = document.getElementById("timer-word-display");
-    if (wordEl) wordEl.style.opacity = "0.3";
-    if (input) input.value = "";
-    const typed = val.trim();
-    if (fb) fb.innerHTML = `<span style="color:#993C1D;font-weight:700;font-size:16px;text-decoration:line-through;">${typed}</span><span style="color:#993C1D;font-weight:400;font-size:16px;"> → </span><span style="color:#993C1D;font-weight:700;font-size:22px;">${currentWord[WORD_KEY]}</span>`;
-    document.getElementById("t-correct").textContent = timerCorrect;
-    document.getElementById("t-wrong").textContent   = timerWrong;
-    setTimeout(() => {
-      if (timerFinished) return;
-      timerPaused = false;
-      currentWord = timerQueue[timerWordsDone];
-      timerInterval = setInterval(timerTick, 100);
-      renderTimerScreen();
-    }, 2500);
+    input.value = "";
+    timerWrongAnswer(val.trim(), false, true);
   }
 }
 function skipTimer() {
   if (timerFinished || timerPaused) return;
-  timerPaused = true; clearInterval(timerInterval);
-  timerWrong++;
-  const ws = getWS(currentWord.deckId, currentWord.idx);
-  applyWrong(ws); saveState();
-  const skipped = currentWord;
-  requeueCurrentWord();
-  timerWordsDone++;
-  const wordEl = document.getElementById("timer-word-display");
-  if (wordEl) wordEl.style.opacity = "0.3";
   const input = document.getElementById("timer-input");
   if (input) input.value = "";
-  const fb = document.getElementById("timer-feedback");
-  if (fb) fb.innerHTML = `<span style="color:#993C1D;font-weight:700;font-size:22px;">✗ ${skipped[WORD_KEY]}</span>`;
-  document.getElementById("t-wrong").textContent = timerWrong;
-  setTimeout(() => {
-    if (timerFinished) return;
-    timerPaused = false;
-    currentWord = timerQueue[timerWordsDone];
-    timerInterval = setInterval(timerTick, 100);
-    renderTimerScreen();
-  }, 2500);
+  timerWrongAnswer("", false, false);
 }
 function endTimer(won) {
   timerFinished = true; clearInterval(timerInterval); stopVoiceSession();
