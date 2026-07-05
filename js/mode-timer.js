@@ -50,16 +50,23 @@ function renderTimerScreen() {
       <button class="dontknow-btn" onclick="skipTimer()">Skip</button>
     </div>
   </div>`;
-  focusInput();
-  timerScrollHome();
+  timerFocusAndPosition();
 }
 function handleTimerKey(e) { if (e.key === "Enter") checkTimer(); }
 
-// Land in the same spot after every word: top of the page, timer + word
-// + feedback pinned above the input. Repeated because focusInput() retries
-// (0/100/300ms) and each focus can scroll the page on mobile.
-function timerScrollHome() {
-  [0, 150, 400].forEach(ms => setTimeout(() => window.scrollTo({ top: 0 }), ms));
+// One authority for scroll position: focus never scrolls (preventScroll),
+// then the whole timer card is aligned to the top of the viewport — the
+// same spot after every answer, every next word, and while typing.
+// Phones only; desktop fits without scrolling.
+function timerFocusAndPosition() {
+  [0, 100, 300].forEach(ms => setTimeout(() => {
+    const input = document.getElementById("timer-input");
+    if (input) { try { input.focus({ preventScroll: true }); } catch (e) { input.focus(); } }
+    if (window.innerWidth <= 640 || IS_STANDALONE) {
+      const card = document.querySelector("#main-screen .screen");
+      if (card) card.scrollIntoView({ block: "start", behavior: "instant" });
+    }
+  }, ms));
 }
 
 // ── SHARED ANSWER FLOW ────────────────────────
@@ -86,7 +93,6 @@ function timerCorrectAnswer(voice) {
     renderTimerScreen();
     const fb = document.getElementById("timer-feedback");
     if (fb) fb.innerHTML = `<span class="tfb-ok">✓ Correct!</span>`;
-    focusInput();
   }
 }
 // shownWrongText: the user's rejected answer ("" for a plain skip).

@@ -82,11 +82,12 @@ function migrate() {
   S.loginDates = [...new Set(S.loginDates)].sort();
   S.badges = [...new Set(S.badges)];
   if (!S.wordEdits)             S.wordEdits = {};
-  if (![10, 20, 50, 100].includes(S.dailyGoal)) {
+  if (!GOAL_OPTIONS.includes(S.dailyGoal)) {
     // Adopt the pre-sync localStorage goal once, then live in S (synced).
     const legacy = parseInt(localStorage.getItem('gv_daily_goal'), 10);
-    S.dailyGoal = [10, 20, 50, 100].includes(legacy) ? legacy : 20;
+    S.dailyGoal = GOAL_OPTIONS.includes(legacy) ? legacy : 20;
   }
+  if (!S.goalDates) S.goalDates = [];
   if (!S.achLevels)             S.achLevels = {};
   if (!S.bestCombo)             S.bestCombo = 0;
   if (!S.bestDayCorrect)        S.bestDayCorrect = 0;

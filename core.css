@@ -898,16 +898,11 @@ tr:hover td { background:rgba(255,255,255,0.03); }
 .tfb-ans    { color:#993C1D; font-weight:700; font-size:22px; }
 .word-hint-lg { font-size:18px; }
 
-/* ── TIMER STICKY HEAD (phone) ─── */
-/* Keeps clock + word visible above the on-screen keyboard. */
+/* ── TIMER COMPACT LAYOUT (phone) ── */
+/* Everything (Quit, clock, word, hint, feedback, input, buttons) is
+   compacted so the whole card fits above the on-screen keyboard.
+   Positioning is handled by timerFocusAndPosition() in mode-timer.js. */
 @media(max-width:640px){
-  .timer-head{
-    position:sticky; top:0; z-index:40;
-    background:rgba(8,12,20,0.94);
-    backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
-    margin:0 -1.5rem 10px; padding:10px 1.5rem 10px;
-    border-bottom:1px solid var(--border);
-  }
   .timer-head .timer-feedback{ min-height:36px; font-size:16px; padding:2px 0 0; }
   .timer-head .tfb-ans{ font-size:19px; }
   .timer-head .timer-display{ margin-bottom:2px; }
@@ -964,6 +959,7 @@ tr:hover td { background:rgba(255,255,255,0.03); }
 .goal-fill { height:100%; background:linear-gradient(90deg,var(--accent),var(--accent-hi)); border-radius:3px; transition:width 0.3s var(--ease); }
 .goal-row.reached .goal-fill { background:linear-gradient(90deg,var(--teal),var(--teal-hi)); }
 .goal-label { font-size:11px; color:var(--text-2); white-space:nowrap; font-variant-numeric:tabular-nums; }
+.goal-week { font-size:10px; color:var(--text-3); white-space:nowrap; font-variant-numeric:tabular-nums; }
 .goal-nudge { font-size:10px; color:var(--accent); white-space:nowrap; }
 
 /* ── ACTIVITY CALENDAR ─────────── */
