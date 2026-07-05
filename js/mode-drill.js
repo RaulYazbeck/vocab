@@ -194,7 +194,26 @@ function dontKnow() {
   if (input) { input.value = currentWord[WORD_KEY]; input.classList.add("wrong"); }
   showDrillFeedback(false, ws);
 }
+// Fix a wrong prompt/answer on the spot — opens the word editor for the
+// word just answered and refreshes the card with the edited texts.
+let lastDrillCorrect = false;
+function editCurrentDrillWord() {
+  const { deckId, idx } = currentWord;
+  openWordEditor(deckId, idx, () => {
+    const src = getDeck(deckId).words[idx];
+    WORD_EDIT_FIELDS.forEach(f => {
+      if (src[f] === undefined) delete currentWord[f]; else currentWord[f] = src[f];
+    });
+    const ws = getWS(deckId, idx);
+    const en = document.getElementById("drill-english");
+    if (en) en.textContent = currentWord.en;
+    const hint = document.getElementById("drill-hint");
+    if (hint) hint.innerHTML = `${currentWord.hint} ${wordBadgesHtml(ws)}`;
+    if (answered) showDrillFeedback(lastDrillCorrect, ws);
+  });
+}
 function showDrillFeedback(correct, ws) {
+  lastDrillCorrect = correct;
   const cls  = correct ? "correct" : "wrong";
   const icon = correct ? "✓" : "✗";
   document.getElementById("feedback").innerHTML = `
@@ -203,6 +222,7 @@ function showDrillFeedback(correct, ws) {
       ${currentWord.pl ? `<div class="plural-text">plural: ${currentWord.pl}</div>` : ""}
     </div>
     <div class="feedback-right">
+      <button class="audio-btn" onclick="editCurrentDrillWord()" title="Edit this word">✏️</button>
       <button class="audio-btn" ${speakBtnAttrs(currentWord[WORD_KEY])}>🔊</button>
       <button class="next-btn"  onclick="nextDrillWord()">Next →</button>
     </div>`;

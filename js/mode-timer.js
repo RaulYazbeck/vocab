@@ -40,6 +40,7 @@ function renderTimerScreen() {
       <div class="word-display" id="timer-word-display">
         ${timerWordHtml(currentWord)}
       </div>
+      <div id="timer-feedback" class="timer-feedback"></div>
     </div>
     <input type="text" class="german-input" id="timer-input" placeholder="type the answer…"
       autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
@@ -48,11 +49,18 @@ function renderTimerScreen() {
       <button class="check-btn"    onclick="checkTimer()">Check</button>
       <button class="dontknow-btn" onclick="skipTimer()">Skip</button>
     </div>
-    <div id="timer-feedback" class="timer-feedback"></div>
   </div>`;
   focusInput();
+  timerScrollHome();
 }
 function handleTimerKey(e) { if (e.key === "Enter") checkTimer(); }
+
+// Land in the same spot after every word: top of the page, timer + word
+// + feedback pinned above the input. Repeated because focusInput() retries
+// (0/100/300ms) and each focus can scroll the page on mobile.
+function timerScrollHome() {
+  [0, 150, 400].forEach(ms => setTimeout(() => window.scrollTo({ top: 0 }), ms));
+}
 
 // ── SHARED ANSWER FLOW ────────────────────────
 // Used by the typed timer (checkTimer/skipTimer) and the voice timer

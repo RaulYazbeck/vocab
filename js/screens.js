@@ -480,7 +480,8 @@ function renderSettingsPanel() {
     </div>`;
 }
 function setDailyGoal(n) {
-  localStorage.setItem('gv_daily_goal', n);
+  S.dailyGoal = n;
+  saveState();
   renderSettingsPanel();
   renderExpBar();
 }
