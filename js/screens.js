@@ -474,7 +474,7 @@ function renderSettingsPanel() {
       <button class="settings-item" id="settings-voice-btn" onclick="cycleVoiceEngine()">${voiceEngineSettingLabel()}</button>
       <div class="settings-goal">
         <span class="settings-goal-label">🎯&nbsp; Daily goal</span>
-        ${[10,20,50,100].map(n => `<button class="goal-pick ${goal===n?"active":""}" onclick="setDailyGoal(${n})">${n}</button>`).join("")}
+        ${GOAL_OPTIONS.map(n => `<button class="goal-pick ${goal===n?"active":""}" onclick="setDailyGoal(${n})">${n}</button>`).join("")}
       </div>
       <div class="settings-sync-line">☁️ ${escapeHtml(account)} · last saved ${lastSaved}</div>
     </div>`;

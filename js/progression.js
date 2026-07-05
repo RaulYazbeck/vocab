@@ -52,9 +52,31 @@ function renderExpBar() {
 
 // ── DAILY GOAL ────────────────────────────────
 // Goal number lives in S.dailyGoal so it syncs between devices.
-// Progress metric is S.drillCorrectToday (reset daily).
+// Progress metric is S.drillCorrectToday (reset daily). Days where the
+// goal was reached are recorded in S.goalDates; hitting the goal on
+// GOAL_WEEK_TARGET days per week keeps the weekly goal streak alive.
+const GOAL_OPTIONS = [10, 20, 50, 100, 150];
+const GOAL_WEEK_TARGET = 5;
 function getDailyGoal() {
-  return [10, 20, 50, 100].includes(S.dailyGoal) ? S.dailyGoal : 20;
+  return GOAL_OPTIONS.includes(S.dailyGoal) ? S.dailyGoal : 20;
+}
+function goalWeekInfo() {
+  const goalDates = new Set(S.goalDates || []);
+  const daysHit = monday => {
+    let c = 0; const t = new Date(monday);
+    for (let i = 0; i < 7; i++) { if (goalDates.has(t.toLocaleDateString('en-CA'))) c++; t.setDate(t.getDate() + 1); }
+    return c;
+  };
+  const monday = new Date(); monday.setHours(12, 0, 0, 0);
+  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+  const thisWeek = daysHit(monday);
+  let streak = thisWeek >= GOAL_WEEK_TARGET ? 1 : 0;
+  const m = new Date(monday);
+  while (true) {
+    m.setDate(m.getDate() - 7);
+    if (daysHit(m) >= GOAL_WEEK_TARGET) streak++; else break;
+  }
+  return { thisWeek, streak };
 }
 let _goalCelebrated = null; // date the toast fired; seeded on first render
 function dailyGoalHtml() {
@@ -71,14 +93,13 @@ function dailyGoalHtml() {
     showCelebrateToast("🎯", "Daily goal reached!", `${goal} correct today — nice!`);
   }
   const pct = Math.min(100, Math.round((done / goal) * 100));
-  const streak = getDailyStreak();
-  const nudge = !reached && done === 0 && streak > 1
-    ? `<span class="goal-nudge">🔥 keep your ${streak}-day streak alive</span>` : "";
+  const week = goalWeekInfo();
+  const weekChip = `<span class="goal-week">${week.thisWeek}/${GOAL_WEEK_TARGET}d${week.streak > 0 ? ` · 🔥${week.streak}w` : ""}</span>`;
   return `<div class="goal-row${reached ? " reached" : ""}">
       <span class="goal-icon">🎯</span>
       <div class="goal-track"><div class="goal-fill" style="width:${pct}%"></div></div>
       <span class="goal-label">${done}/${goal}${reached ? " ✓" : ""}</span>
-      ${nudge}
+      ${weekChip}
     </div>`;
 }
 

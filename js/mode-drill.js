@@ -134,6 +134,7 @@ function checkDrillMilestone() {
   }
   S.drillCorrectToday++;
   if (S.drillCorrectToday > (S.bestDayCorrect || 0)) S.bestDayCorrect = S.drillCorrectToday;
+  if (S.drillCorrectToday >= getDailyGoal() && !S.goalDates.includes(today)) S.goalDates.push(today);
   const milestone = getDrillMilestone(S.drillCorrectToday);
   if (milestone && !S.drillMilestonesClaimed.includes(milestone.at)) {
     S.drillMilestonesClaimed.push(milestone.at);
