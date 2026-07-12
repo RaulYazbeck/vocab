@@ -1,73 +1,162 @@
-// ── ANKI STATE ────────────────────────────────
-let ankiQueue = [];
-let ankiIndex = 0;
+// ── ANKI SYSTEM ───────────────────────────────
+// Faithful replica of the official Anki app's daily flow:
+//   owed today = every review due + every learning card + X new words.
+// X (new/day) is configurable in Settings. When the debt is cleared the
+// day is DONE — no extra studying, come back after the 4 AM rollover.
+// Intervals carry no fuzz, so the forecast is exact.
+
+// ── SCOPE HELPERS ─────────────────────────────
+// Anki decks ignore the vocab unlock system: every word in the deck is
+// schedulable; the daily new-card quota is the only gate.
+function ankiScopeWords(deckIds) {
+  const out = [];
+  deckIds.forEach(id => {
+    const deck = getDeck(id);
+    if (!deck) return;
+    deck.words.forEach((w, i) => out.push({ ...w, deckId: id, deckName: deck.name, idx: i }));
+  });
+  return out;
+}
+function allAnkiDeckIds() {
+  const ids = [];
+  ALL_GROUPS.forEach(g => { if (isAnkiGroup(g)) g.decks.forEach(d => ids.push(d.id)); });
+  return ids;
+}
+
+// The new-card quota is global across all Anki decks (you owe X words a
+// day as a person, not per deck), and is derived from card state so it
+// can never drift out of sync across devices.
+function ankiIntroducedToday() {
+  const today = ankiToday();
+  let n = 0;
+  allAnkiDeckIds().forEach(id => {
+    const deck = getDeck(id);
+    deck.words.forEach((w, i) => {
+      const ws = S.words[id + "_" + i];
+      if (ws && ws.anki && ws.anki.introducedOn === today) n++;
+    });
+  });
+  return n;
+}
+
+// Anki-style triple count for a set of decks:
+//   newCount (blue) · learning (orange) · review due (green)
+function ankiCounts(deckIds) {
+  const today = ankiToday();
+  const quota = Math.max(0, ankiNewPerDay() - ankiIntroducedToday());
+  let unseen = 0, learning = 0, review = 0;
+  ankiScopeWords(deckIds).forEach(w => {
+    const ws = S.words[w.deckId + "_" + w.idx];
+    const a = ws && ws.anki;
+    if (!a || a.phase === "new") { unseen++; return; }
+    if (a.phase === "learning" || a.phase === "relearning") learning++;
+    else if (a.phase === "review" && a.due <= today) review++;
+  });
+  return { newCount: Math.min(unseen, quota), learning, review, unseen, quota };
+}
+
+function ankiOwedToday(deckIds) {
+  const c = ankiCounts(deckIds);
+  return c.newCount + c.learning + c.review;
+}
+
+// ── SESSION STATE ─────────────────────────────
+let ankiSession = null; // { deckIds, reviewQueue, newQueue, stats }
+let ankiCurrent = null;
 let ankiShowingAnswer = false;
-let ankiSessionStats = { again:0, hard:0, good:0, easy:0 };
+let _ankiWaitTimer = null;
 
-// ── ANKI QUEUE BUILDER ────────────────────────
-function buildAnkiQueue() {
-  const today = todayISO();
-  let newCards = [], learningCards = [], reviewCards = [];
-
-  selectedIds.forEach(id => {
-    const deck = getDeck(id);
-    if (!deck) return;
-    deck.words.forEach((w, i) => {
-      const a = getWS(id, i).anki;
-      const word = { ...w, deckId: id, deckName: deck.name, idx: i };
-      if (a.phase === "new" && !a.dueDate) {
-        newCards.push(word);
-      } else if (a.phase === "learning" && a.dueDate <= today) {
-        learningCards.push(word);
-      } else if (a.phase === "review" && a.dueDate <= today) {
-        reviewCards.push(word);
-      }
-    });
-  });
-
-  shuffle(learningCards);
-  shuffle(reviewCards);
-  shuffle(newCards);
-
-  // Cap total session size: due/learning cards always included, new cards fill remaining slots up to 20
-  const MAX_SESSION = 20;
-  const dueCount = learningCards.length + reviewCards.length;
-  const newSlots = Math.max(0, MAX_SESSION - dueCount);
-  newCards = newCards.slice(0, newSlots);
-
-  return [...learningCards, ...reviewCards, ...newCards];
+function selectedAnkiDeckIds() {
+  return [...selectedIds].filter(id => isAnkiDeck(id));
 }
 
-function ankiDueCount() {
-  const today = todayISO();
-  let due = 0, newCount = 0;
-  selectedIds.forEach(id => {
-    const deck = getDeck(id);
-    if (!deck) return;
-    deck.words.forEach((w, i) => {
-      const a = getWS(id, i).anki;
-      if (a.phase === "new" && !a.dueDate) newCount++;
-      else if (a.dueDate <= today) due++;
-    });
-  });
-  return { due, newCount };
-}
-// ── ANKI SESSION ──────────────────────────────
 function startAnki() {
-  ankiQueue = buildAnkiQueue();
-  if (ankiQueue.length === 0) {
-    // Nothing due — redirect to Learn mode
-    buildActiveWords();
-    if (!activeWords.length) { backToMenu(); return; }
-    activeMode = "learn";
-    startLearn();
-    return;
-  }
-  ankiIndex = 0;
+  clearTimeout(_ankiWaitTimer);
+  const deckIds = selectedAnkiDeckIds();
+  if (!deckIds.length) { backToMenu(); return; }
+  const today = ankiToday();
+
+  const reviewQueue = [], newQueue = [];
+  ankiScopeWords(deckIds).forEach(w => {
+    const ws = S.words[w.deckId + "_" + w.idx];
+    const a = ws && ws.anki;
+    if (!a || a.phase === "new") newQueue.push(w); // deck order — fixed path
+    else if (a.phase === "review" && a.due <= today) reviewQueue.push(w);
+  });
+  shuffle(reviewQueue);
+
+  ankiSession = {
+    deckIds,
+    reviewQueue,
+    newQueue,
+    stats: { again: 0, hard: 0, good: 0, easy: 0 },
+  };
   ankiShowingAnswer = false;
-  ankiSessionStats = { again:0, hard:0, good:0, easy:0 };
   showGameScreen();
+  ankiNextCard();
+}
+
+// Pick the next card exactly like Anki: due learning cards first, then
+// due reviews, then new cards (while quota lasts), then learning cards
+// up to the learn-ahead window. Nothing left → the day is done.
+function ankiPickNext() {
+  const now = Date.now();
+  const s = ankiSession;
+
+  // Learning/relearning cards, earliest due first
+  const learning = [];
+  ankiScopeWords(s.deckIds).forEach(w => {
+    const ws = S.words[w.deckId + "_" + w.idx];
+    const a = ws && ws.anki;
+    if (a && (a.phase === "learning" || a.phase === "relearning")) learning.push({ w, due: a.due });
+  });
+  learning.sort((x, y) => x.due - y.due);
+
+  const dueNow = learning.find(l => l.due <= now);
+  if (dueNow) return dueNow.w;
+
+  if (s.reviewQueue.length) return s.reviewQueue.shift();
+
+  if (ankiIntroducedToday() < ankiNewPerDay() && s.newQueue.length) return s.newQueue.shift();
+
+  // Learn-ahead: show a not-quite-due learning card rather than idle
+  const ahead = learning.find(l => l.due <= now + ANKI.LEARN_AHEAD_MIN * 60000);
+  if (ahead) return ahead.w;
+
+  if (learning.length) return { _waitUntil: learning[0].due }; // shouldn't happen with ≤10m steps
+  return null;
+}
+
+function ankiNextCard() {
+  const next = ankiPickNext();
+  if (next === null) { renderAnkiDone(); return; }
+  if (next._waitUntil) { renderAnkiWaiting(next._waitUntil); return; }
+  ankiCurrent = next;
+  ankiShowingAnswer = false;
   renderAnkiQuestion();
+}
+
+function ankiReveal() {
+  ankiShowingAnswer = true;
+  const word = ankiCurrent;
+  const toSpeak = word.examples && word.examples.length ? word.examples[0][WORD_KEY] : word[WORD_KEY];
+  speak(toSpeak);
+  renderAnkiAnswer();
+}
+
+function ankiRate(rating) {
+  const word = ankiCurrent;
+  const ws = getWS(word.deckId, word.idx);
+  ws.anki = ankiAnswer(ws.anki, rating);
+
+  const labels = ["again", "hard", "good", "easy"];
+  ankiSession.stats[labels[rating]]++;
+
+  const xpMap = [0, 2, 4, 8];
+  if (xpMap[rating] > 0) addExp(xpMap[rating]);
+
+  saveState();
+  ankiNextCard();
 }
 
 function showGameScreen() {
@@ -77,99 +166,46 @@ function showGameScreen() {
   document.getElementById("exp-bar").style.display = "none";
 }
 
-function ankiReveal() {
-  ankiShowingAnswer = true;
-  const word = ankiQueue[ankiIndex];
-  const toSpeak = word.examples && word.examples.length ? word.examples[0][WORD_KEY] : word[WORD_KEY];
-  speak(toSpeak);
-  renderAnkiAnswer();
+// ── RENDER ────────────────────────────────────
+function ankiPhaseBadge(a) {
+  if (a.phase === "review")     return `<span class="anki-badge review">review</span>`;
+  if (a.phase === "relearning") return `<span class="anki-badge learning">relearning</span>`;
+  if (a.phase === "learning")   return `<span class="anki-badge learning">learning</span>`;
+  return `<span class="anki-badge new">new</span>`;
 }
 
-function ankiRate(rating) {
-  const word = ankiQueue[ankiIndex];
-  const ws = getWS(word.deckId, word.idx);
-
-  // Apply SM-2
-  ws.anki = sm2(ws.anki, rating);
-
-  // Unlock this word for Classic/Focus/Timer if not already unlocked
-  // Only extend the boundary sequentially — never jump ahead
-  const currentUnlocked = S.unlocked[word.deckId] || 0;
-  if (word.idx === currentUnlocked) {
-    S.unlocked[word.deckId] = currentUnlocked + 1;
-  }
-
-  // Track session stats
-  const labels = ["again", "hard", "good", "easy"];
-  ankiSessionStats[labels[rating]]++;
-
-  // XP
-  const xpMap = [0, 2, 4, 8];
-  if (xpMap[rating] > 0) addExp(xpMap[rating]);
-
-  // Again in learning: re-insert 3 cards ahead so user sees it soon
-  if (rating === 0) {
-    const insertAt = Math.min(ankiIndex + 3, ankiQueue.length);
-    ankiQueue.splice(insertAt, 0, { ...word });
-  }
-
-  saveState();
-  ankiIndex++;
-
-  if (ankiIndex >= ankiQueue.length) {
-    renderAnkiSummary();
-  } else {
-    ankiShowingAnswer = false;
-    renderAnkiQuestion();
-  }
+// Anki's signature count bar: blue new · orange learning · green due.
+// Derived from card state, so the unrated current card is still counted
+// in its own column — exactly like the real app.
+function ankiCountBar() {
+  const c = ankiCounts(ankiSession.deckIds);
+  return `<div class="anki-counts">
+    <span class="anki-count new">${c.newCount}</span>
+    <span class="anki-count learning">${c.learning}</span>
+    <span class="anki-count review">${c.review}</span>
+  </div>`;
 }
 
-function ankiPreviewInterval(word, rating) {
-  const ws = getWS(word.deckId, word.idx);
-  const current = ws.anki;
-  const result = sm2({ ...current }, rating);
-
-  // Again on learning card: comes back within this session
-  if (rating === 0 && (current.phase === "new" || current.phase === "learning")) {
-    return "soon";
-  }
-  // Still in learning after this rating: comes back tomorrow
-  if (result.phase === "learning") {
-    return "1d";
-  }
-  // Graduated to review
-  const n = result.interval;
-  if (n < 30) return `${n}d`;
-  if (n < 365) return `${Math.round(n/30)}mo`;
-  return `${Math.round(n/365)}yr`;
+function ankiHeaderHtml() {
+  return `
+    <div class="screen-top">
+      <div class="screen-label">🃏 Anki</div>
+      <button class="back-btn" onclick="backToMenu()">← Menu</button>
+    </div>
+    ${ankiCountBar()}`;
 }
-// ── ANKI RENDER ───────────────────────────────
+
 function renderAnkiQuestion() {
   const el = document.getElementById("main-screen");
-  const word = ankiQueue[ankiIndex];
-  if (!word) { renderAnkiSummary(); return; }
+  const word = ankiCurrent;
   const ws = getWS(word.deckId, word.idx);
-  const a = ws.anki;
-  const phaseBadge = a.phase === "review"
-    ? `<span class="anki-badge review">review</span>`
-    : a.phase === "learning"
-      ? `<span class="anki-badge learning">learning</span>`
-      : `<span class="anki-badge new">new</span>`;
-  const total = ankiQueue.length;
-  const pct = total > 0 ? Math.round((ankiIndex / total) * 100) : 0;
   const hasExample = word.examples && word.examples.length;
   const exSentence = hasExample ? word.examples[0][WORD_KEY] : null;
 
   el.innerHTML = `
     <div class="screen">
-      <div class="screen-top">
-        <div class="screen-label">🃏 Anki · ${total - ankiIndex} left</div>
-        <button class="back-btn" onclick="backToMenu()">← Menu</button>
-      </div>
-      <div class="anki-progress-wrap">
-        <div class="anki-progress-fill" style="width:${pct}%"></div>
-      </div>
-      <div class="anki-phase-row">${phaseBadge}</div>
+      ${ankiHeaderHtml()}
+      <div class="anki-phase-row">${ankiPhaseBadge(ws.anki)}${ws.anki.leech ? ` <span class="anki-badge leech">⚠️ leech</span>` : ""}</div>
       <div class="anki-word-header">
         <div class="anki-word-main">${word[WORD_KEY]}</div>
         ${word.hint ? `<div class="anki-word-hint">${word.hint}</div>` : ""}
@@ -182,10 +218,10 @@ function renderAnkiQuestion() {
         : `<div style="text-align:center;padding:1.5rem 0;color:var(--text-2);font-size:16px;">${word.en}</div>`}
       <button class="anki-reveal-btn" onclick="ankiReveal()">Show Answer</button>
       <div class="anki-session-bar">
-        <span class="anki-stat again">✗ ${ankiSessionStats.again}</span>
-        <span class="anki-stat hard">~ ${ankiSessionStats.hard}</span>
-        <span class="anki-stat good">✓ ${ankiSessionStats.good}</span>
-        <span class="anki-stat easy">⚡ ${ankiSessionStats.easy}</span>
+        <span class="anki-stat again">✗ ${ankiSession.stats.again}</span>
+        <span class="anki-stat hard">~ ${ankiSession.stats.hard}</span>
+        <span class="anki-stat good">✓ ${ankiSession.stats.good}</span>
+        <span class="anki-stat easy">⚡ ${ankiSession.stats.easy}</span>
       </div>
     </div>`;
 
@@ -194,32 +230,17 @@ function renderAnkiQuestion() {
 
 function renderAnkiAnswer() {
   const el = document.getElementById("main-screen");
-  const word = ankiQueue[ankiIndex];
-  if (!word) { renderAnkiSummary(); return; }
+  const word = ankiCurrent;
   const ws = getWS(word.deckId, word.idx);
-  const a = ws.anki;
-  const phaseBadge = a.phase === "review"
-    ? `<span class="anki-badge review">review</span>`
-    : a.phase === "learning"
-      ? `<span class="anki-badge learning">learning</span>`
-      : `<span class="anki-badge new">new</span>`;
-  const total = ankiQueue.length;
-  const pct = total > 0 ? Math.round((ankiIndex / total) * 100) : 0;
-  const previews = [0,1,2,3].map(r => ankiPreviewInterval(word, r));
+  const previews = [0, 1, 2, 3].map(r => ankiPreviewLabel(ws.anki, r));
   const hasExample = word.examples && word.examples.length;
   const exSentence = hasExample ? word.examples[0][WORD_KEY] : null;
   const exEn = hasExample ? word.examples[0].en : null;
 
   el.innerHTML = `
     <div class="screen">
-      <div class="screen-top">
-        <div class="screen-label">🃏 Anki · ${total - ankiIndex} left</div>
-        <button class="back-btn" onclick="backToMenu()">← Menu</button>
-      </div>
-      <div class="anki-progress-wrap">
-        <div class="anki-progress-fill" style="width:${pct}%"></div>
-      </div>
-      <div class="anki-phase-row">${phaseBadge}</div>
+      ${ankiHeaderHtml()}
+      <div class="anki-phase-row">${ankiPhaseBadge(ws.anki)}${ws.anki.leech ? ` <span class="anki-badge leech">⚠️ leech</span>` : ""}</div>
       <div class="anki-word-header">
         <div class="anki-word-main">${word[WORD_KEY]}</div>
         ${word.hint ? `<div class="anki-word-hint">${word.hint}</div>` : ""}
@@ -258,63 +279,132 @@ function renderAnkiAnswer() {
         </button>
       </div>
       <div class="anki-session-bar">
-        <span class="anki-stat again">✗ ${ankiSessionStats.again}</span>
-        <span class="anki-stat hard">~ ${ankiSessionStats.hard}</span>
-        <span class="anki-stat good">✓ ${ankiSessionStats.good}</span>
-        <span class="anki-stat easy">⚡ ${ankiSessionStats.easy}</span>
+        <span class="anki-stat again">✗ ${ankiSession.stats.again}</span>
+        <span class="anki-stat hard">~ ${ankiSession.stats.hard}</span>
+        <span class="anki-stat good">✓ ${ankiSession.stats.good}</span>
+        <span class="anki-stat easy">⚡ ${ankiSession.stats.easy}</span>
       </div>
     </div>`;
 }
 
-function renderAnkiSummary() {
-  const today = todayISO();
-  // Find next due date across all selected decks
-  let nextDue = null, nextCount = 0;
-  selectedIds.forEach(id => {
-    const deck = getDeck(id);
-    if (!deck) return;
-    unlockedWords(deck).forEach((w, i) => {
-      const ws = getWS(id, i);
-      if (!ws.anki || !ws.anki.dueDate) return;
-      if (ws.anki.dueDate > today) {
-        if (!nextDue || ws.anki.dueDate < nextDue) nextDue = ws.anki.dueDate;
-      }
-    });
-  });
-  if (nextDue) {
-    selectedIds.forEach(id => {
-      const deck = getDeck(id);
-      if (!deck) return;
-      unlockedWords(deck).forEach((w, i) => {
-        const ws = getWS(id, i);
-        if (ws.anki && ws.anki.dueDate === nextDue) nextCount++;
-      });
-    });
-  }
-  const nextDueLabel = nextDue
-    ? `Next review: ${daysBetween(today, nextDue) === 1 ? "tomorrow" : `in ${daysBetween(today, nextDue)} days`} · ${nextCount} card${nextCount !== 1 ? "s" : ""}`
-    : "No upcoming reviews scheduled yet.";
+// Rare fallback: a learning card is due beyond the learn-ahead window.
+function renderAnkiWaiting(dueAt) {
+  const mins = Math.max(1, Math.ceil((dueAt - Date.now()) / 60000));
+  document.getElementById("main-screen").innerHTML = `
+    <div class="screen">
+      ${ankiHeaderHtml()}
+      <div class="result-screen">
+        <div class="result-emoji">⏳</div>
+        <div class="result-title">Next card in ${mins} min</div>
+        <div style="font-size:13px;color:var(--text-3);margin-top:8px;">A learning card is still cooling down.</div>
+        <button class="result-btn" onclick="backToMenu()">← Back to menu</button>
+      </div>
+    </div>`;
+  clearTimeout(_ankiWaitTimer);
+  _ankiWaitTimer = setTimeout(() => {
+    if (document.getElementById("main-screen").style.display !== "none") ankiNextCard();
+  }, Math.min(dueAt - Date.now() + 500, 60000));
+}
 
-  // Bonus XP for completing session
-  S.ankiSessions = (S.ankiSessions || 0) + 1;
-  addExp(25);
-  confettiBurst(36);
-  checkAchievements({ type: "anki_complete" });
+// ── DONE-FOR-TODAY SCREEN ─────────────────────
+// The hard stop. Shows what was cleared and exactly what tomorrow costs.
+function renderAnkiDone() {
+  const stats = ankiSession ? ankiSession.stats : { again: 0, hard: 0, good: 0, easy: 0 };
+  const total = stats.again + stats.hard + stats.good + stats.easy;
+  const deckIds = ankiSession ? ankiSession.deckIds : selectedAnkiDeckIds();
+
+  if (total > 0) {
+    S.ankiSessions = (S.ankiSessions || 0) + 1;
+    addExp(25);
+    confettiBurst(36);
+    checkAchievements({ type: "anki_complete" });
+    saveState();
+  }
+
+  const f = ankiForecastData(deckIds, 2)[1]; // tomorrow
+  const tomorrowLabel = f
+    ? `Tomorrow you'll owe <strong>${f.total}</strong> cards: ${f.reviews + f.projected} review${f.reviews + f.projected !== 1 ? "s" : ""} + ${f.news} new`
+    : "";
 
   document.getElementById("main-screen").innerHTML = `
     <div class="screen">
       <div class="result-screen">
-        <div class="result-emoji">🎉</div>
-        <div class="result-title">Session complete!</div>
+        <div class="result-emoji">✅</div>
+        <div class="result-title">${total > 0 ? "Debt cleared — done for today!" : "Nothing owed today"}</div>
+        ${total > 0 ? `
         <div class="anki-summary-stats">
-          <span class="anki-stat again">✗ Again: ${ankiSessionStats.again}</span>
-          <span class="anki-stat hard">~ Hard: ${ankiSessionStats.hard}</span>
-          <span class="anki-stat good">✓ Good: ${ankiSessionStats.good}</span>
-          <span class="anki-stat easy">⚡ Easy: ${ankiSessionStats.easy}</span>
+          <span class="anki-stat again">✗ Again: ${stats.again}</span>
+          <span class="anki-stat hard">~ Hard: ${stats.hard}</span>
+          <span class="anki-stat good">✓ Good: ${stats.good}</span>
+          <span class="anki-stat easy">⚡ Easy: ${stats.easy}</span>
         </div>
-        <div style="font-size:13px;color:#888;margin-top:1rem;">${nextDueLabel}</div>
-        <div style="font-size:13px;color:#1D9E75;font-weight:600;margin-top:8px;">+25 XP session bonus</div>
-        <button class="result-btn" onclick="backToMenu()">← Back to menu</button>
+        <div style="font-size:13px;color:#1D9E75;font-weight:600;margin-top:8px;">+25 XP session bonus</div>` : ""}
+        <div style="font-size:13px;color:var(--text-2);margin-top:1rem;">${tomorrowLabel}</div>
+        <div style="font-size:12px;color:var(--text-3);margin-top:6px;">New day starts at ${ANKI.ROLLOVER_HOUR}:00 AM.</div>
+        <button class="result-btn" onclick="renderAnkiForecast()">📅 See my next days</button>
+        <button class="result-btn" style="margin-top:8px;" onclick="backToMenu()">← Back to menu</button>
       </div>
     </div>`;
+  ankiSession = null;
+}
+
+// ── FORECAST ──────────────────────────────────
+// Deterministic day-by-day simulation of the debt: no fuzz means the
+// already-scheduled reviews are exact; everything further out assumes
+// you clear your debt daily and rate Good — the stable path.
+// Each day: { date, reviews (scheduled now), projected (from future
+// graduations/reviews), learning (today only), news, total }.
+function ankiForecastData(deckIds, horizon) {
+  const today = ankiToday();
+  const perDay = ankiNewPerDay();
+  const introducedToday = ankiIntroducedToday();
+
+  const sim = []; // { due: dayOffset, interval, ease, scheduled }
+  let unseen = 0, learningNow = 0;
+  ankiScopeWords(deckIds).forEach(w => {
+    const ws = S.words[w.deckId + "_" + w.idx];
+    const a = ws && ws.anki;
+    if (!a || a.phase === "new") { unseen++; return; }
+    if (a.phase === "learning" || a.phase === "relearning") {
+      learningNow++; // owed today; graduates to a 1-day interval
+      sim.push({ due: 1, interval: 1, ease: a.ease, scheduled: false });
+    } else {
+      sim.push({
+        due: a.due <= today ? 0 : daysBetween(today, a.due),
+        interval: a.interval, ease: a.ease, scheduled: true,
+      });
+    }
+  });
+
+  let unseenLeft = unseen;
+  const days = [];
+  for (let d = 0; d < horizon; d++) {
+    const quota = d === 0 ? Math.max(0, perDay - introducedToday) : perDay;
+    const news = Math.min(unseenLeft, quota);
+    unseenLeft -= news;
+
+    let reviews = 0, projected = 0;
+    sim.forEach(c => {
+      if (c.due !== d) return;
+      if (c.scheduled) reviews++; else projected++;
+      // advance the card assuming a Good rating
+      const next = Math.min(ANKI.MAX_IVL, Math.max(c.interval + 1, Math.round(c.interval * c.ease)));
+      c.interval = next;
+      c.due = d + next;
+      c.scheduled = false;
+    });
+
+    // today's new cards graduate onto tomorrow with a 1-day interval
+    for (let i = 0; i < news; i++) {
+      sim.push({ due: d + 1, interval: 1, ease: ANKI.STARTING_EASE, scheduled: false });
+    }
+
+    const learning = d === 0 ? learningNow : 0;
+    days.push({
+      date: addDays(today, d),
+      reviews, projected, learning, news,
+      total: reviews + projected + learning + news,
+    });
+  }
+  return days;
 }
