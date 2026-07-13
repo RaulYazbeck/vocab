@@ -73,6 +73,11 @@ function ankiToday() {
 function ankiNewPerDay() {
   return ANKI.NEW_PER_DAY_OPTIONS.includes(S.ankiNewPerDay) ? S.ankiNewPerDay : ANKI.NEW_PER_DAY_DEFAULT;
 }
+// The quota actually in force: 0 while new words are paused (manually,
+// or auto-paused after 3 missed days). Reviews are never paused.
+function ankiEffectiveNewPerDay() {
+  return S.ankiNewPaused ? 0 : ankiNewPerDay();
+}
 
 function freshAnki() {
   return {

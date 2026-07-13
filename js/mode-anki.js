@@ -43,7 +43,7 @@ function ankiIntroducedToday() {
 //   newCount (blue) · learning (orange) · review due (green)
 function ankiCounts(deckIds) {
   const today = ankiToday();
-  const quota = Math.max(0, ankiNewPerDay() - ankiIntroducedToday());
+  const quota = Math.max(0, ankiEffectiveNewPerDay() - ankiIntroducedToday());
   let unseen = 0, learning = 0, review = 0;
   ankiScopeWords(deckIds).forEach(w => {
     const ws = S.words[w.deckId + "_" + w.idx];
@@ -58,6 +58,43 @@ function ankiCounts(deckIds) {
 function ankiOwedToday(deckIds) {
   const c = ankiCounts(deckIds);
   return c.newCount + c.learning + c.review;
+}
+
+// ── PAUSE (new words) ─────────────────────────
+// Pausing stops new-card intake; reviews stay owed in full. Manual via
+// the ⏸ button, or automatic after a long absence: two missed days are
+// tolerated, but once the 3rd consecutive day also passes with debt
+// untouched, the pause switches on — so a comeback from vacation costs
+// only the review backlog, not backlog + new words.
+function toggleAnkiPause() {
+  S.ankiNewPaused = !S.ankiNewPaused;
+  if (!S.ankiNewPaused) delete S.ankiAutoPausedOn;
+  saveState();
+  renderGroups();
+  renderStartBar();
+  const panel = document.getElementById("settings-panel");
+  if (panel && panel.style.display !== "none") renderSettingsPanel();
+}
+
+// Runs from migrate() — i.e. at every app open and after every cloud
+// load. Uses saveLocalOnly: stamping savedAt at init time would make
+// this device look newer than the cloud and block the load (see
+// recordLogin in progression.js).
+function checkAnkiAutoPause() {
+  if (typeof ALL_GROUPS === "undefined" || !allAnkiDeckIds().length) return;
+  const today = ankiToday();
+  // A day with nothing owed is not neglect — count it as active.
+  if (ankiOwedToday(allAnkiDeckIds()) === 0) {
+    if (S.ankiLastActiveDay !== today) { S.ankiLastActiveDay = today; saveLocalOnly(); }
+    return;
+  }
+  if (S.ankiNewPaused || !S.ankiLastActiveDay) return;
+  const missedDays = daysBetween(S.ankiLastActiveDay, today) - 1;
+  if (missedDays >= 3) {
+    S.ankiNewPaused = true;
+    S.ankiAutoPausedOn = today;
+    saveLocalOnly();
+  }
 }
 
 // ── SESSION STATE ─────────────────────────────
@@ -117,7 +154,7 @@ function ankiPickNext() {
 
   if (s.reviewQueue.length) return s.reviewQueue.shift();
 
-  if (ankiIntroducedToday() < ankiNewPerDay() && s.newQueue.length) return s.newQueue.shift();
+  if (ankiIntroducedToday() < ankiEffectiveNewPerDay() && s.newQueue.length) return s.newQueue.shift();
 
   // Learn-ahead: show a not-quite-due learning card rather than idle
   const ahead = learning.find(l => l.due <= now + ANKI.LEARN_AHEAD_MIN * 60000);
@@ -148,6 +185,7 @@ function ankiRate(rating) {
   const word = ankiCurrent;
   const ws = getWS(word.deckId, word.idx);
   ws.anki = ankiAnswer(ws.anki, rating);
+  S.ankiLastActiveDay = ankiToday(); // inactivity tracking for auto-pause
 
   const labels = ["again", "hard", "good", "easy"];
   ankiSession.stats[labels[rating]]++;
@@ -356,7 +394,7 @@ function renderAnkiDone() {
 // graduations/reviews), learning (today only), news, total }.
 function ankiForecastData(deckIds, horizon) {
   const today = ankiToday();
-  const perDay = ankiNewPerDay();
+  const perDay = ankiEffectiveNewPerDay(); // 0 while paused — forecast assumes the pause holds
   const introducedToday = ankiIntroducedToday();
 
   const sim = []; // { due: dayOffset, interval, ease, scheduled }

@@ -67,7 +67,7 @@ function renderGroups() {
     }).join("");
     const meta = anki
       ? (() => { const c = ankiCounts(group.decks.map(d => d.id));
-          return `🃏 Anki · ${totalWords} words · owed today: ${c.newCount + c.learning + c.review}`; })()
+          return `🃏 Anki · ${totalWords} words · owed today: ${c.newCount + c.learning + c.review}${S.ankiNewPaused ? " · ⏸ new paused" : ""}`; })()
       : `${group.decks.length} deck${group.decks.length!==1?"s":""} · ${totalWords} words · ${group.decks.reduce((s,d) => s + deckProgress(d).mastered, 0)} mastered`;
     return `<div class="group">
       <div class="group-header" onclick="toggleGroup('${group.id}')">
@@ -127,9 +127,12 @@ function renderStartBar() {
         : `
           <div class="fi-owed-title done">✓ Done for today — nothing owed</div>
           <div class="fi-owed-sub">Tomorrow: ${f.total} cards (${f.reviews + f.projected} reviews + ${f.news} new)</div>`}
+        ${S.ankiNewPaused ? `
+          <div class="fi-paused">⏸ New words paused${S.ankiAutoPausedOn ? " automatically after 3 missed days" : ""} — reviews only</div>` : ""}
       </div>
       <div class="fi-modes" style="margin-top:6px;">
         <button class="fi-pill" onclick="showScreen('forecast')">📅 Forecast</button>
+        <button class="fi-pill ${S.ankiNewPaused ? "active" : ""}" onclick="toggleAnkiPause()">${S.ankiNewPaused ? "▶ Resume new words" : "⏸ Pause new words"}</button>
       </div>
       ${owed > 0
         ? `<button class="fi-start" onclick="startSession()">Start ▶</button>`
@@ -420,10 +423,13 @@ function renderAnkiForecast() {
     else if (a.phase === "review") inReview++;
     if (a && a.leech) leeches++;
   });
-  const daysToFinish = perDay > 0 ? Math.ceil(unseen / perDay) : 0;
+  const effPerDay = ankiEffectiveNewPerDay();
+  const daysToFinish = effPerDay > 0 ? Math.ceil(unseen / effPerDay) : 0;
   const finishLabel = unseen === 0
     ? "Every word has been introduced."
-    : `At ${perDay} new/day, the last of ${unseen} remaining words is introduced on <strong>${addDays(today, daysToFinish)}</strong>.`;
+    : S.ankiNewPaused
+      ? `⏸ New words are paused${S.ankiAutoPausedOn ? " (auto, after 3 missed days)" : ""} — ${unseen} words waiting. Resume to continue introducing.`
+      : `At ${perDay} new/day, the last of ${unseen} remaining words is introduced on <strong>${addDays(today, daysToFinish)}</strong>.`;
 
   const maxTotal = Math.max(...days.map(d => d.total), 1);
   const chartBars = days.map((d, i) => {
@@ -492,7 +498,7 @@ function renderAnkiForecast() {
       <div class="anki-chart-legend">
         <span><i class="leg seg-review"></i> scheduled reviews</span>
         <span><i class="leg seg-projected"></i> projected (all Good)</span>
-        <span><i class="leg seg-new"></i> new (${perDay}/day)</span>
+        <span><i class="leg seg-new"></i> new (${S.ankiNewPaused ? "paused" : `${perDay}/day`})</span>
       </div>
       <div style="font-size:13px;color:var(--text-2);margin-top:1rem;text-align:center;">${finishLabel}</div>
       <div class="stats-section-title" style="margin-top:1.5rem;">Day by day</div>
@@ -551,7 +557,10 @@ function renderSettingsPanel() {
       <div class="settings-goal">
         <span class="settings-goal-label">🃏&nbsp; New words/day</span>
         ${ANKI.NEW_PER_DAY_OPTIONS.map(n => `<button class="goal-pick ${ankiNewPerDay()===n?"active":""}" onclick="setAnkiNewPerDay(${n})">${n}</button>`).join("")}
-      </div>` : ""}
+      </div>
+      <button class="settings-item" onclick="toggleAnkiPause()">${S.ankiNewPaused
+        ? "▶&nbsp; Resume new words" + (S.ankiAutoPausedOn ? " <span style='font-size:11px;color:var(--text-3);'>(auto-paused)</span>" : "")
+        : "⏸&nbsp; Pause new words <span style='font-size:11px;color:var(--text-3);'>(reviews stay owed)</span>"}</button>` : ""}
       <div class="settings-sync-line">☁️ ${escapeHtml(account)} · last saved ${lastSaved}</div>
     </div>`;
 }

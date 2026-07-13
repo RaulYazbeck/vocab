@@ -97,7 +97,10 @@ function migrate() {
   if (!S.bestTimerSecondsLeft)  S.bestTimerSecondsLeft = 0;
   if (!S.ankiSessions)          S.ankiSessions = 0;
   if (!ANKI.NEW_PER_DAY_OPTIONS.includes(S.ankiNewPerDay)) S.ankiNewPerDay = ANKI.NEW_PER_DAY_DEFAULT;
+  if (S.ankiNewPaused === undefined) S.ankiNewPaused = false;
   // Re-apply user word-text overrides after every state load — migrate()
   // runs both at startup and after a cloud sync replaces S.
   if (typeof applyWordEdits === "function") applyWordEdits();
+  // Auto-pause new Anki words after a long absence (3+ missed days).
+  if (typeof checkAnkiAutoPause === "function") checkAnkiAutoPause();
 }
