@@ -92,16 +92,21 @@ const ACHIEVEMENTS = [
 
 // One "Conquered" ladder (single level) per deck group, generated from
 // the app's configured groups — new decks get theirs automatically.
+// Vocab groups are conquered by mastering every word; Anki groups by
+// graduating every card into the review phase.
 ALL_GROUPS.forEach(group => {
   const total = group.decks.reduce((s, d) => s + d.words.length, 0);
+  const anki = isAnkiGroup(group);
   ACHIEVEMENTS.push({
     id: `group_master_${group.id}`,
     icon: group.icon || "🏅",
     name: `${group.name} Conquered`,
     category: "Vocabulary",
-    desc: () => `Master every word in ${group.name} (${total.toLocaleString()} words)`,
+    desc: () => anki
+      ? `Graduate every card in ${group.name} to review (${total.toLocaleString()} words)`
+      : `Master every word in ${group.name} (${total.toLocaleString()} words)`,
     tiers: [total],
-    value: () => groupMasteredCount(group),
+    value: () => anki ? groupReviewCount(group) : groupMasteredCount(group),
   });
 });
 
@@ -121,6 +126,14 @@ const SECRET_ACHIEVEMENTS = [
 function groupMasteredCount(group) {
   let n = 0;
   group.decks.forEach(d => d.words.forEach((_, i) => { if (isMastered(getWS(d.id, i))) n++; }));
+  return n;
+}
+function groupReviewCount(group) {
+  let n = 0;
+  group.decks.forEach(d => d.words.forEach((_, i) => {
+    const ws = S.words[d.id + "_" + i];
+    if (ws && ws.anki && ws.anki.phase === "review") n++;
+  }));
   return n;
 }
 function countMastered() {

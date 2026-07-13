@@ -76,13 +76,32 @@ function unlockedWords(deck) {
 // ── DECK HELPERS ──────────────────────────────
 // Deck lookup happens on every answer and in every render loop, so it
 // uses a lazily-built index. ALL_GROUPS is never mutated after load.
-let _deckById = null;
+let _deckById = null, _deckTypeById = null;
 function getDeck(deckId) {
   if (!_deckById) {
     _deckById = new Map();
-    for (const g of ALL_GROUPS) for (const d of g.decks) _deckById.set(d.id, d);
+    _deckTypeById = new Map();
+    for (const g of ALL_GROUPS) for (const d of g.decks) {
+      _deckById.set(d.id, d);
+      _deckTypeById.set(d.id, g.type === "anki" ? "anki" : "vocab");
+    }
   }
   return _deckById.get(deckId) || null;
+}
+
+// ── DECK TYPES ────────────────────────────────
+// Two kinds of deck groups: "vocab" (Learn/Drill/Timer, unlock system,
+// mastery) and "anki" (spaced repetition only, daily new-card quota).
+function isAnkiGroup(group) { return group.type === "anki"; }
+function deckType(deckId) {
+  getDeck(deckId); // ensure the index is built
+  return _deckTypeById.get(deckId) || "vocab";
+}
+function isAnkiDeck(deckId) { return deckType(deckId) === "anki"; }
+// Type of the current selection: "anki", "vocab", or null when empty.
+function selectionType() {
+  if (!selectedIds.size) return null;
+  return deckType([...selectedIds][0]);
 }
 function deckProgress(deck) {
   const words = unlockedWords(deck);

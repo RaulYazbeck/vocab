@@ -2,6 +2,7 @@ const germanWithSammyDecks = {
   id: "sammy",
   name: "JM Deck",
   icon: "🧑‍🏫",
+  type: "anki", // Anki deck: spaced-repetition only, no Learn/Drill/Timer
   decks: [
     // ── MODULE 1: Module 1 — Basics ──────────────────────────────
     {

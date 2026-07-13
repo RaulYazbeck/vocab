@@ -134,66 +134,109 @@ function pickNextRefresh() {
   return candidates[0] || null;
 }
 
-// ── SM-2 ALGORITHM ────────────────────────────
-// rating: 0=Again, 1=Hard, 2=Good, 3=Easy
-function sm2(anki, rating) {
-  const today = todayISO();
-  let { interval, easeFactor, phase, learningStep, lapses } = anki;
+// ── ANKI SCHEDULER ────────────────────────────
+// Faithful port of Anki's SM-2 variant (see ANKI constants in config.js).
+// rating: 0=Again, 1=Hard, 2=Good, 3=Easy. Returns a new anki state.
+function ankiAnswer(a, rating) {
+  const now = Date.now();
+  const today = ankiToday();
+  const st = { ...a };
 
-  if (phase === "new" || phase === "learning") {
-    phase = "learning"; // mark as seen immediately
-    if (rating === 0) {
-      // Again: full reset, re-insert in session
-      learningStep = 0;
-      interval = 1;
-    } else if (rating === 1) {
-      // Hard: stay on current step, ease penalty
-      easeFactor = Math.max(1.3, easeFactor - 0.15);
-      interval = 1;
-    } else if (rating === 2) {
-      // Good: advance step, graduate at step 2
-      learningStep++;
-      if (learningStep >= 2) {
-        phase = "review";
-        interval = 1;
-        learningStep = 0;
-      }
-    } else {
-      // Easy: graduate immediately with bonus interval
-      phase = "review";
-      interval = 4;
-      easeFactor = Math.min(2.5, easeFactor + 0.15);
-      learningStep = 0;
-    }
-  } else {
-    // Review phase
-    const daysSinceDue = anki.dueDate ? daysBetween(anki.dueDate, today) : 0;
-    // Overdue correction: cap effective interval to avoid inflation
-    const effectiveInterval = daysSinceDue > 1
-      ? Math.min(anki.interval, daysSinceDue)
-      : anki.interval;
-
-    if (rating === 0) {
-      // Again: lapse — back to learning, ease penalty
-      lapses++;
-      phase = "learning";
-      learningStep = 0;
-      interval = 1;
-      easeFactor = Math.max(1.3, easeFactor - 0.2);
-    } else if (rating === 1) {
-      // Hard: slow growth, ease penalty
-      interval = Math.max(1, Math.round(effectiveInterval * 1.2));
-      easeFactor = Math.max(1.3, easeFactor - 0.15);
-    } else if (rating === 2) {
-      // Good: standard SM-2
-      interval = Math.max(1, Math.round(effectiveInterval * easeFactor));
-    } else {
-      // Easy: accelerated growth + ease boost
-      interval = Math.max(1, Math.round(effectiveInterval * easeFactor * 1.3));
-      easeFactor = Math.min(2.5, easeFactor + 0.15);
-    }
+  if (st.phase === "new") {
+    st.phase = "learning";
+    st.stepIndex = 0;
+    st.introducedOn = today; // counts against today's new-card quota
   }
 
-  const dueDate = addDays(today, interval);
-  return { interval, easeFactor, phase, learningStep, lapses, dueDate };
+  if (st.phase === "learning" || st.phase === "relearning") {
+    const steps = st.phase === "learning" ? ANKI.LEARNING_STEPS : ANKI.RELEARNING_STEPS;
+    if (rating === 0) {
+      // Again: back to the first step
+      st.stepIndex = 0;
+      st.due = now + steps[0] * 60000;
+    } else if (rating === 1) {
+      // Hard: repeat the step (on the first step Anki averages steps 1+2)
+      const delay = st.stepIndex === 0 && steps.length > 1
+        ? (steps[0] + steps[1]) / 2
+        : steps[Math.min(st.stepIndex, steps.length - 1)];
+      st.due = now + delay * 60000;
+    } else if (rating === 2) {
+      // Good: next step, or graduate to review after the last one
+      const next = st.stepIndex + 1;
+      if (next >= steps.length) ankiGraduate(st, false, today);
+      else { st.stepIndex = next; st.due = now + steps[next] * 60000; }
+    } else {
+      // Easy: graduate immediately
+      ankiGraduate(st, true, today);
+    }
+  } else {
+    // Review phase. Days overdue give partial/full credit like Anki.
+    const overdue = st.due ? Math.max(0, daysBetween(st.due, today)) : 0;
+    if (rating === 0) {
+      // Lapse: interval collapses, ease penalty, back through relearning
+      st.lapses++;
+      st.interval = Math.max(ANKI.LAPSE_MIN_IVL, Math.round(st.interval * ANKI.LAPSE_MULT));
+      st.ease = Math.max(ANKI.MIN_EASE, st.ease - 0.20);
+      st.phase = "relearning";
+      st.stepIndex = 0;
+      st.due = now + ANKI.RELEARNING_STEPS[0] * 60000;
+      if (st.lapses >= ANKI.LEECH_THRESHOLD) st.leech = true;
+    } else {
+      let ivl;
+      if (rating === 1) {
+        ivl = st.interval * ANKI.HARD_MULT;
+        st.ease = Math.max(ANKI.MIN_EASE, st.ease - 0.15);
+      } else if (rating === 2) {
+        ivl = (st.interval + overdue / 2) * st.ease;
+      } else {
+        ivl = (st.interval + overdue) * st.ease * ANKI.EASY_BONUS;
+        st.ease = st.ease + 0.15;
+      }
+      // Next interval always exceeds the previous one by at least a day
+      st.interval = Math.min(ANKI.MAX_IVL, Math.max(st.interval + 1, Math.round(ivl)));
+      st.due = addDays(today, st.interval);
+    }
+  }
+  return st;
+}
+
+// Leave the learning/relearning steps and become a review card.
+function ankiGraduate(st, easy, today) {
+  if (st.phase === "relearning") {
+    // Post-lapse interval was already set at lapse time; Easy adds a day
+    st.interval = Math.max(ANKI.LAPSE_MIN_IVL, st.interval + (easy ? 1 : 0));
+  } else {
+    st.interval = easy ? ANKI.EASY_IVL : ANKI.GRADUATING_IVL;
+  }
+  st.phase = "review";
+  st.stepIndex = 0;
+  st.due = addDays(today, st.interval);
+}
+
+// Button-preview label: what would happen to this card at each rating.
+function ankiPreviewLabel(a, rating) {
+  const st = ankiAnswer({ ...a }, rating);
+  if (st.phase === "learning" || st.phase === "relearning") {
+    return fmtIvlMin(Math.max(1, Math.round((st.due - Date.now()) / 60000)));
+  }
+  return fmtIvlDays(st.interval);
+}
+
+// Migrate a pre-rewrite anki object (day-based SM-2) to the new schema.
+function migrateAnkiState(a) {
+  if (!a || a.easeFactor === undefined) return a; // already new schema
+  const fresh = freshAnki();
+  fresh.ease   = Math.max(ANKI.MIN_EASE, a.easeFactor || ANKI.STARTING_EASE);
+  fresh.lapses = a.lapses || 0;
+  if (a.phase === "review" && a.dueDate) {
+    fresh.phase = "review";
+    fresh.interval = Math.max(1, a.interval || 1);
+    fresh.due = a.dueDate;
+    fresh.introducedOn = addDays(ankiToday(), -1); // unknown; don't eat today's quota
+  } else if (a.phase === "learning") {
+    fresh.phase = "learning";
+    fresh.due = Date.now(); // due immediately, restart the steps
+    fresh.introducedOn = addDays(ankiToday(), -1);
+  }
+  return fresh;
 }

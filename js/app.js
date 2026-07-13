@@ -2,7 +2,9 @@
 function startSession() {
   const island = document.getElementById("floating-island");
   if (island) island.remove();
-  if (activeMode === "anki") { buildActiveWords(); startAnki(); return; }
+  // Anki decks: startAnki manages its own scope and hard-stops when the
+  // day's debt is cleared (no fallback into other modes).
+  if (activeMode === "anki") { startAnki(); return; }
   buildActiveWords();
   if (!activeWords.length) return;
   sessionCorrect = 0; sessionConsecutive = 0;
@@ -16,12 +18,14 @@ function showScreen(name) {
   showGameScreen();
   const island = document.getElementById('floating-island');
   if (island) island.style.display = 'none';
-  if (name === "stats")       renderStatsChoice();
-  else if (name === "badges") renderBadgesScreen();
-  else if (name === "edits")  renderWordEditsScreen();
+  if (name === "stats")         renderStatsChoice();
+  else if (name === "badges")   renderBadgesScreen();
+  else if (name === "edits")    renderWordEditsScreen();
+  else if (name === "forecast") renderAnkiForecast();
 }
 function backToMenu() {
   clearInterval(timerInterval);
+  clearTimeout(_ankiWaitTimer);
   stopVoiceSession();
   const island = document.getElementById("floating-island");
   if (island) island.remove();
