@@ -5,11 +5,30 @@ let justOpenedGroupId = null;
 function toggleGroup(id) {
   if (openGroups.has(id)) {
     openGroups.delete(id);
+    deselectGroupDecks(id);
   } else {
     openGroups.add(id);
     justOpenedGroupId = id;
   }
   renderGroups();
+  renderStartBar();
+}
+
+// Closing a folder withdraws its decks from the selection: the start
+// bar only ever reflects decks the user can currently see, so a session
+// can never silently include decks hidden inside a collapsed folder.
+// Selections in other (still open) folders are untouched; when nothing
+// remains selected, renderStartBar removes the island entirely.
+function deselectGroupDecks(groupId) {
+  const group = ALL_GROUPS.find(g => g.id === groupId);
+  if (!group) return;
+  let changed = false;
+  group.decks.forEach(d => { if (selectedIds.delete(d.id)) changed = true; });
+  if (!changed) return;
+  // Keep the mode coherent with whatever selection survives.
+  const type = selectionType();
+  if (type === "anki") activeMode = "anki";
+  else if (type === "vocab" && activeMode === "anki") activeMode = "drill";
 }
 // Anki and Vocab decks are separate systems: selecting one type clears
 // any selection of the other, and the mode follows the deck type.
