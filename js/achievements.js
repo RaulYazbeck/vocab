@@ -96,7 +96,10 @@ const ACHIEVEMENTS = [
 // graduating every card into the review phase.
 ALL_GROUPS.forEach(group => {
   const total = group.decks.reduce((s, d) => s + d.words.length, 0);
-  const anki = isAnkiGroup(group);
+  // Read group.type directly: this runs at script load, before decks.js
+  // (and its isAnkiGroup helper) exists — calling it here crashed the
+  // rest of this file and with it every correct-answer feedback render.
+  const anki = group.type === "anki";
   ACHIEVEMENTS.push({
     id: `group_master_${group.id}`,
     icon: group.icon || "🏅",
