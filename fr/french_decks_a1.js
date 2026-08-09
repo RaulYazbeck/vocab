@@ -800,7 +800,7 @@ const DECKS_A1 = {
         { en:"pero", fr:"mais", hint:"conjunción", examples:[{fr:"Je suis au bureau, mais peu de temps.",en:"Estoy en la oficina, pero poco tiempo."}] },
         { en:"porque", fr:"parce que", hint:"conjunción", examples:[{fr:"Je ne peux pas venir parce que je suis malade.",en:"No puedo venir porque estoy enfermo."}] },
         { en:"así que", fr:"donc", hint:"conjunción", examples:[{fr:"Il a du temps, donc il doit aider.",en:"Tiene tiempo, así que tiene que ayudar."}] },
-        { en:"no (negación con verbo)", fr:"pas", hint:"negación — ne ... pas", examples:[{fr:"Ce n'est pas correct.",en:"Eso no es correcto."}] },
+        { en:"no (negación con verbo)", fr:"pas", hint:"negación — 'ne ... ___'", examples:[{fr:"Ce n'est pas correct.",en:"Eso no es correcto."}] },
         { en:"desde", fr:"depuis", hint:"preposición", examples:[{fr:"J'habite ici depuis trois ans.",en:"Vivo aquí desde hace tres años."}] },
         { en:"en", fr:"à", hint:"preposición de lugar", examples:[{fr:"On se retrouve à la gare.",en:"Nos encontramos en la estación."}] },
         { en:"sobre", fr:"sur", hint:"preposición", examples:[{fr:"Le livre est sur la table.",en:"El libro está sobre la mesa."}] },

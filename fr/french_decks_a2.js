@@ -174,12 +174,12 @@ const DECKS_A2 = {
         { en:"la calefacción", fr:"le chauffage", hint:"sustantivo", examples:[{fr:"Il fait froid. Le chauffage est cassé ?",en:"Hace frío. ¿Está rota la calefacción?"}] },
         { en:"la sala de estar", fr:"le salon", hint:"sustantivo — también feria", examples:[{fr:"Les enfants regardent la télé dans le salon.",en:"Los niños ven la tele en la sala."}] },
         { en:"la mudanza", fr:"le déménagement", hint:"sustantivo", examples:[{fr:"Le déménagement est la semaine prochaine.",en:"La mudanza es la próxima semana."}] },
-        { en:"las tareas de la casa", fr:"le ménage", hint:"sustantivo — faire le ménage", examples:[{fr:"Qui fait le ménage chez vous ?",en:"¿Quién hace las tareas de la casa en tu casa?"}] },
+        { en:"las tareas de la casa", fr:"le ménage", hint:"sustantivo — 'faire le ___' = limpiar la casa", examples:[{fr:"Qui fait le ménage chez vous ?",en:"¿Quién hace las tareas de la casa en tu casa?"}] },
         { en:"el orden", fr:"l'ordre", hint:"sustantivo masculino", examples:[{fr:"Je mets de l'ordre dans ma chambre.",en:"Pongo orden en mi habitación."}] },
         { en:"la cosa (coloquial)", fr:"le truc", hint:"sustantivo coloquial", examples:[{fr:"Donne-moi ce truc, s'il te plaît !",en:"¡Dame esa cosa, por favor!"}] },
         { en:"las cosas (pertenencias)", fr:"les affaires", hint:"sustantivo plural", examples:[{fr:"Vous pouvez laisser vos affaires à l'hôtel.",en:"Pueden dejar sus cosas en el hotel."}] },
         { en:"la olla / la cacerola", fr:"la casserole", hint:"sustantivo", examples:[{fr:"Tu n'as pas une casserole plus grande ?",en:"¿No tienes una olla más grande?"}] },
-        { en:"la vajilla / los trastes", fr:"la vaisselle", hint:"sustantivo — faire la vaisselle", examples:[{fr:"Tu peux faire la vaisselle ?",en:"¿Puedes lavar los trastes?"}] },
+        { en:"la vajilla / los trastes", fr:"la vaisselle", hint:"sustantivo — 'faire la ___' = fregar los platos", examples:[{fr:"Tu peux faire la vaisselle ?",en:"¿Puedes lavar los trastes?"}] },
         { en:"el plato (objeto)", fr:"l'assiette", hint:"sustantivo femenino", examples:[{fr:"Mets les assiettes sur la table !",en:"¡Pon los platos en la mesa!"}] },
         { en:"el tenedor", fr:"la fourchette", hint:"sustantivo", examples:[{fr:"Je peux avoir une fourchette ?",en:"¿Me da un tenedor?"}] },
         { en:"la cuchara", fr:"la cuillère", hint:"sustantivo", examples:[{fr:"Apportez-moi une cuillère, s'il vous plaît.",en:"Tráigame una cuchara, por favor."}] },
@@ -293,7 +293,7 @@ const DECKS_A2 = {
         { en:"el albergue juvenil", fr:"l'auberge de jeunesse", hint:"sustantivo femenino", examples:[{fr:"On dort dans une auberge de jeunesse.",en:"Dormimos en un albergue juvenil."}] },
         { en:"la guía de viaje (libro o persona)", fr:"le guide", hint:"sustantivo", examples:[{fr:"J'achète un guide de Paris.",en:"Compro una guía de París."}] },
         { en:"los informes / la información (ventanilla)", fr:"les renseignements", hint:"sustantivo plural", examples:[{fr:"Vous pouvez me donner des renseignements ?",en:"¿Me puede dar informes?"}] },
-        { en:"el extranjero (país)", fr:"l'étranger", hint:"sustantivo masculino — à l'étranger", examples:[{fr:"Vous partez à l'étranger ?",en:"¿Se va al extranjero?"}] },
+        { en:"el extranjero (país)", fr:"l'étranger", hint:"sustantivo masculino — 'à l'___' = en el extranjero", examples:[{fr:"Vous partez à l'étranger ?",en:"¿Se va al extranjero?"}] },
         { en:"los objetos perdidos", fr:"les objets trouvés", hint:"sustantivo plural", examples:[{fr:"Vous pouvez regarder aux objets trouvés.",en:"Puede mirar en objetos perdidos."}] },
         { en:"el destino / la meta", fr:"la destination", hint:"sustantivo", examples:[{fr:"Quelle est votre destination ?",en:"¿Cuál es su destino?"}] },
         { en:"el tren de alta velocidad (Francia)", fr:"le TGV", hint:"sustantivo — train à grande vitesse", examples:[{fr:"Le TGV pour Paris part du quai douze.",en:"El TGV a París sale del andén doce."}] },
@@ -372,9 +372,9 @@ const DECKS_A2 = {
         { en:"la salud", fr:"la santé", hint:"sustantivo", examples:[{fr:"Fumer est mauvais pour la santé.",en:"Fumar es malo para la salud."}] },
         { en:"la receta médica", fr:"l'ordonnance", hint:"sustantivo femenino", examples:[{fr:"Ce médicament est seulement sur ordonnance.",en:"Este medicamento es solo con receta médica."}] },
         { en:"sano / saludable", fr:"sain", hint:"adjetivo", examples:[{fr:"Les légumes sont très sains.",en:"Las verduras son muy sanas."}] },
-        { en:"resfriado", fr:"enrhumé", hint:"adjetivo — être enrhumé", examples:[{fr:"Lisa est enrhumée. Elle ne peut pas aller à l'école.",en:"Lisa está resfriada. No puede ir a la escuela."}] },
+        { en:"resfriado", fr:"enrhumé", hint:"adjetivo — 'être ___' = estar resfriado", examples:[{fr:"Lisa est enrhumée. Elle ne peut pas aller à l'école.",en:"Lisa está resfriada. No puede ir a la escuela."}] },
         { en:"embarazada", fr:"enceinte", hint:"adjetivo", examples:[{fr:"Lena est enceinte. Le bébé arrive en juillet.",en:"Lena está embarazada. El bebé llega en julio."}] },
-        { en:"en forma", fr:"en forme", hint:"locución — être en forme", examples:[{fr:"Tom veut être en forme. Il va au sport chaque jour.",en:"Tom quiere estar en forma. Va al deporte cada día."}] },
+        { en:"en forma", fr:"en forme", hint:"locución — 'être ___' = estar en forma", examples:[{fr:"Tom veut être en forme. Il va au sport chaque jour.",en:"Tom quiere estar en forma. Va al deporte cada día."}] },
       ]
     },
 
@@ -420,7 +420,7 @@ const DECKS_A2 = {
         { en:"el instrumento", fr:"l'instrument", hint:"sustantivo masculino", examples:[{fr:"Vous jouez aussi d'un instrument ?",en:"¿Toca usted también un instrumento?"}] },
         { en:"el festival", fr:"le festival", hint:"sustantivo", examples:[{fr:"Ce week-end, il y a un festival de musique.",en:"Este fin de semana hay un festival de música."}] },
         { en:"la exposición", fr:"l'exposition", hint:"sustantivo femenino", examples:[{fr:"On va ensemble à l'exposition demain ?",en:"¿Vamos juntos a la exposición mañana?"}] },
-        { en:"la obra de teatro", fr:"la pièce", hint:"sustantivo — pièce de théâtre", examples:[{fr:"Au théâtre, on joue la pièce « Roméo et Juliette ».",en:"En el teatro dan la obra «Romeo y Julieta»."}] },
+        { en:"la obra de teatro", fr:"la pièce", hint:"sustantivo — '___ de théâtre' = obra de teatro", examples:[{fr:"Au théâtre, on joue la pièce « Roméo et Juliette ».",en:"En el teatro dan la obra «Romeo y Julieta»."}] },
         { en:"el teatro", fr:"le théâtre", hint:"sustantivo", examples:[{fr:"Je n'aime pas aller au théâtre.",en:"No me gusta ir al teatro."}] },
         { en:"la novela policíaca", fr:"le roman policier", hint:"sustantivo", examples:[{fr:"Miriam aime lire des romans policiers.",en:"A Miriam le gusta leer novelas policíacas."}] },
         { en:"el quiz / el concurso de preguntas", fr:"le quiz", hint:"sustantivo", examples:[{fr:"Elle a gagné au quiz.",en:"Ganó el concurso de preguntas."}] },
@@ -502,8 +502,8 @@ const DECKS_A2 = {
         { en:"todos los días", fr:"tous les jours", hint:"frecuencia", examples:[{fr:"Le restaurant est ouvert tous les jours.",en:"El restaurante abre todos los días."}] },
         { en:"el día siguiente", fr:"le lendemain", hint:"sustantivo", examples:[{fr:"Le lendemain, il était malade.",en:"Al día siguiente estaba enfermo."}] },
         { en:"ahora mismo / enseguida", fr:"tout de suite", hint:"locución", examples:[{fr:"J'arrive tout de suite !",en:"¡Voy ahora mismo!"}] },
-        { en:"con retraso / tarde (llegar)", fr:"en retard", hint:"locución — être en retard", examples:[{fr:"Excusez-moi, je suis en retard.",en:"Disculpe, llego tarde."}] },
-        { en:"a tiempo / puntual (llegar)", fr:"à l'heure", hint:"locución — être à l'heure", examples:[{fr:"Le train est à l'heure.",en:"El tren llega a tiempo."}] },
+        { en:"con retraso / tarde (llegar)", fr:"en retard", hint:"locución — 'être ___' = llegar tarde", examples:[{fr:"Excusez-moi, je suis en retard.",en:"Disculpe, llego tarde."}] },
+        { en:"a tiempo / puntual (llegar)", fr:"à l'heure", hint:"locución — 'être ___' = llegar puntual", examples:[{fr:"Le train est à l'heure.",en:"El tren llega a tiempo."}] },
       ]
     },
 
@@ -600,7 +600,7 @@ const DECKS_A2 = {
     {
       id: "a2_funcion", name: "Palabras función y conectores", icon: "🔧",
       words: [
-        { en:"que (conjunción)", fr:"que", hint:"conjunción — je pense que...", examples:[{fr:"Rico a dit qu'il vient aussi.",en:"Rico dijo que también viene."}] },
+        { en:"que (conjunción)", fr:"que", hint:"conjunción — 'je pense ___...'", examples:[{fr:"Rico a dit qu'il vient aussi.",en:"Rico dijo que también viene."}] },
         { en:"porque (formal, escrito)", fr:"car", hint:"conjunción — más formal que parce que", examples:[{fr:"Je ne viens pas, car je suis malade.",en:"No vengo porque estoy enfermo."}] },
         { en:"por eso", fr:"c'est pourquoi", hint:"conector", examples:[{fr:"Je suis malade. C'est pourquoi je ne viens pas.",en:"Estoy enfermo. Por eso no vengo."}] },
         { en:"si (condicional)", fr:"si", hint:"conjunción condicional", examples:[{fr:"Si je ne travaille pas, je viens.",en:"Si no trabajo, vengo."}] },
@@ -634,7 +634,7 @@ const DECKS_A2 = {
         { en:"enfrente de", fr:"en face de", hint:"locución preposicional", examples:[{fr:"La poste est en face de la gare.",en:"Correos está enfrente de la estación."}] },
         { en:"todo el mundo", fr:"tout le monde", hint:"pronombre", examples:[{fr:"Tout le monde est là ?",en:"¿Está todo el mundo?"}] },
         { en:"en casa de / a casa de", fr:"chez", hint:"preposición", examples:[{fr:"J'habite chez mes parents.",en:"Vivo en casa de mis padres."}] },
-        { en:"suficiente", fr:"assez", hint:"adverbio — assez de", examples:[{fr:"Il y a encore assez de pizza.",en:"Todavía hay suficiente pizza."}] },
+        { en:"suficiente", fr:"assez", hint:"adverbio — '___ de' = bastante de", examples:[{fr:"Il y a encore assez de pizza.",en:"Todavía hay suficiente pizza."}] },
       ]
     },
 
@@ -676,7 +676,7 @@ const DECKS_A2 = {
         { en:"caerse / caer", fr:"tomber", hint:"verbo regular — con être", examples:[{fr:"Attention, le verre va tomber de la table !",en:"¡Cuidado, el vaso se va a caer de la mesa!"}] },
         { en:"tomar fotos / fotografiar", fr:"photographier", hint:"verbo regular", examples:[{fr:"J'ai photographié l'église.",en:"Fotografié la iglesia."}] },
         { en:"sentirse", fr:"se sentir", hint:"verbo reflexivo irregular", examples:[{fr:"Je ne me sens pas bien aujourd'hui.",en:"No me siento bien hoy."}] },
-        { en:"gustar (a alguien)", fr:"plaire", hint:"verbo irregular — plaire à", examples:[{fr:"Ce tableau me plaît.",en:"Me gusta este cuadro."}] },
+        { en:"gustar (a alguien)", fr:"plaire", hint:"verbo irregular — se usa con la preposición à", examples:[{fr:"Ce tableau me plaît.",en:"Me gusta este cuadro."}] },
         { en:"sostener / agarrar", fr:"tenir", hint:"verbo irregular", examples:[{fr:"Tu peux tenir mon sac ?",en:"¿Puedes sostener mi bolsa?"}] },
         { en:"fabricar", fr:"fabriquer", hint:"verbo regular", examples:[{fr:"Notre entreprise fabrique des meubles.",en:"Nuestra empresa fabrica muebles."}] },
         { en:"descargar", fr:"télécharger", hint:"verbo regular", examples:[{fr:"Il télécharge la musique sur internet.",en:"Descarga la música de internet."}] },

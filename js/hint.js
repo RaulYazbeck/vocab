@@ -64,7 +64,10 @@ function buildHint(word) {
   if (!word || !word.examples || !word.examples.length) return null;
   const tokens = hintAnswerTokens(word[WORD_KEY]);
   if (!tokens.length) return null;
-  const mainToken = tokens.reduce((a, b) => (b.length > a.length ? b : a), "");
+  // Longest token, ties going to the later one: for three-letter nouns
+  // ("der Rat", "die Ehe") the article would otherwise win and the hint
+  // would hinge on the sentence containing "der"/"die"/"das".
+  const mainToken = tokens.reduce((a, b) => (b.length >= a.length ? b : a), "");
 
   for (const ex of word.examples) {
     const sentence = ex[WORD_KEY];
