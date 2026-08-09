@@ -77,7 +77,7 @@ const DECKS_B1 = {
         { en:"the opinion (what you think)", de:"die Meinung", pl:"die Meinungen", hint:"feminine noun — der Meinung sein, dass", examples:[{de:"Ich bin der Meinung, dass du recht hast.",en:"I am of the opinion that you are right."}] },
         { en:"the point of view (the position you argue from)", de:"der Standpunkt", pl:"die Standpunkte", hint:"masculine noun — more formal than Meinung", examples:[{de:"Von seinem Standpunkt aus hat er recht.",en:"From his point of view he is right."}] },
         { en:"the suggestion / the proposal", de:"der Vorschlag", pl:"die Vorschläge", hint:"masculine noun — einen Vorschlag machen", examples:[{de:"Ich mache dir einen Vorschlag: Du hilfst mir beim Deutschlernen, und ich lade dich zum Essen ein.",en:"I'll make you a suggestion: you help me learn German, and I'll take you out for a meal."}] },
-        { en:"the advice (a serious recommendation)", de:"der Rat", hint:"masculine noun — einen Rat geben", examples:[{de:"Was soll ich machen? Können Sie mir einen Rat geben?",en:"What should I do? Can you give me some advice?"}] },
+        { en:"the advice (uncountable — einen Rat geben)", de:"der Rat", hint:"masculine noun — einen Rat geben", examples:[{de:"Was soll ich machen? Können Sie mir einen Rat geben?",en:"What should I do? Can you give me some advice?"}] },
         { en:"the tip (a practical hint)", de:"der Tipp", pl:"die Tipps", hint:"masculine noun — lighter than Rat", examples:[{de:"Kannst du mir einen Tipp geben? Wo finde ich billige Möbel?",en:"Can you give me a tip? Where do I find cheap furniture?"}] },
         { en:"the meaning / the sense (what something means)", de:"der Sinn", hint:"masculine noun — es hat keinen Sinn", examples:[{de:"Es hat keinen Sinn, noch ein Spiel zu beginnen. Es ist schon spät.",en:"There is no sense in starting another game. It is already late."}] },
         { en:"the purpose (what something is for)", de:"der Zweck", pl:"die Zwecke", hint:"masculine noun — the aim behind an action", examples:[{de:"Ich glaube, es hat keinen Zweck, sich zu bewerben. Der Job ist sicher schon weg.",en:"I think there is no purpose in applying. The job is surely already gone."}] },
@@ -85,6 +85,10 @@ const DECKS_B1 = {
         { en:"the condition (a term you must accept)", de:"die Bedingung", pl:"die Bedingungen", hint:"feminine noun — of a contract or an offer", examples:[{de:"Wenn Sie unsere Bedingungen akzeptieren, können wir einen Vertrag machen.",en:"If you accept our conditions, we can make a contract."}] },
         { en:"the success", de:"der Erfolg", pl:"die Erfolge", hint:"masculine noun", examples:[{de:"Der Film war ein großer Erfolg.",en:"The film was a great success."}] },
         { en:"the official decision (letter from an authority)", de:"der Bescheid", pl:"die Bescheide", hint:"masculine noun — not the phrase Bescheid geben", examples:[{de:"Den endgültigen Bescheid erhalten Sie in etwa vier Wochen.",en:"You will receive the final decision in about four weeks."}] },
+        { en:"the pardon (said when apologising)", de:"die Verzeihung", hint:"feminine noun — no plural", examples:[{de:"Verzeihung! Ich habe die falsche Nummer gewählt.",en:"Pardon! I dialled the wrong number."}] },
+        { en:"the piece of advice (one you can count)", de:"der Ratschlag", hint:"masculine noun — plural die Ratschläge", examples:[{de:"Meine Tochter nimmt meine Ratschläge nicht an.",en:"My daughter does not take my advice."}] },
+        { en:"cheers (raising a glass)", de:"Prost", hint:"exclamation", examples:[{de:"Wir trinken auf Ihre Gesundheit! Prost!",en:"We drink to your health! Cheers!"}] },
+        { en:"to put up with something", de:"sich etwas gefallen lassen", hint:"idiom — lässt sich gefallen · ließ sich gefallen", examples:[{de:"Das würde ich mir nicht gefallen lassen.",en:"I would not put up with that."}] },
       ]
     },
 
@@ -154,6 +158,7 @@ const DECKS_B1 = {
         { en:"to arrange to meet", de:"verabreden", hint:"verb regular · verabredete · hat verabredet", examples:[{de:"Wir haben uns mit Freunden verabredet. Wir wollen zusammen essen.",en:"We have arranged to meet friends. We want to eat together."}] },
         { en:"to address someone formally (as Sie)", de:"siezen", hint:"verb regular · siezte · hat gesiezt", examples:[{de:"Obwohl sie sich schon lange kennen, siezen sie sich.",en:"Although they have known each other a long time, they address each other formally."}] },
         { en:"to separate (split two things apart)", de:"trennen", hint:"verb regular · trennte · hat getrennt", examples:[{de:"Wir leben getrennt.",en:"We live separately."}] },
+        { en:"to live apart (be separated)", de:"getrennt leben", hint:"phrase — lebte getrennt · hat getrennt gelebt", examples:[{de:"Ich lebe getrennt von meiner Frau.",en:"I live apart from my wife."}] },
       ]
     },
 
@@ -352,6 +357,7 @@ const DECKS_B1 = {
         { en:"the wood", de:"das Holz", hint:"neuter noun", examples:[{de:"Möchten Sie ein Regal aus Holz oder aus Metall?",en:"Would you like a shelf made of wood or of metal?"}] },
         { en:"the leather", de:"das Leder", hint:"neuter noun — no plural", examples:[{de:"Ist die Tasche aus Leder?",en:"Is the bag made of leather?"}] },
         { en:"the wool", de:"die Wolle", hint:"feminine noun — no plural", examples:[{de:"Dieser Pullover ist aus reiner Wolle.",en:"This pullover is made of pure wool."}] },
+        { en:"the corridor (the -idor word)", de:"der Korridor", hint:"masculine noun — plural die Korridore, synonym of der Flur", examples:[{de:"Die Zimmer gehen alle vom Korridor ab.",en:"The rooms all lead off the corridor."}] },
       ]
     },
 
@@ -473,6 +479,8 @@ const DECKS_B1 = {
         // Taste and hunger
         { en:"the appetite", de:"der Appetit", hint:"masculine noun — no plural", examples:[{de:"Ich habe heute keinen Appetit. Ich mag nichts essen.",en:"I have no appetite today. I do not want to eat anything."}] },
         { en:"the taste (the flavour of something)", de:"der Geschmack", hint:"masculine noun — no plural", examples:[{de:"Ich möchte bitte Kaugummi mit Erdbeergeschmack.",en:"I would like chewing gum with a strawberry taste, please."}] },
+        { en:"the dessert (the German word)", de:"die Nachspeise", hint:"feminine noun — plural die Nachspeisen, beside das Dessert", examples:[{de:"Als Nachspeise gab es Obst.",en:"For dessert there was fruit."}] },
+        { en:"the dumpling (the -ödel word)", de:"der Knödel", hint:"masculine noun — plural unchanged, synonym of der Kloß", examples:[{de:"Möchten Sie Kartoffeln oder Knödel?",en:"Would you like potatoes or dumplings?"}] },
       ]
     },
 
@@ -571,6 +579,8 @@ const DECKS_B1 = {
         { en:"the profit / the winnings", de:"der Gewinn", pl:"die Gewinne", hint:"masculine noun", examples:[{de:"Ich habe bei einem Ratespiel mitgemacht. Der Hauptgewinn ist ein Auto.",en:"I took part in a quiz. The main prize is a car."}] },
         { en:"the loss", de:"der Verlust", pl:"die Verluste", hint:"masculine noun", examples:[{de:"Der Verlust meiner Uhr ärgert mich sehr.",en:"The loss of my watch annoys me a lot."}] },
         { en:"the insurance", de:"die Versicherung", pl:"die Versicherungen", hint:"feminine noun", examples:[{de:"Sie sollten eine Versicherung für Ihr Gepäck abschließen.",en:"You should take out insurance for your luggage."}] },
+        { en:"the cash machine", de:"der Geldautomat", hint:"masculine noun — n-declension, plural die Geldautomaten", examples:[{de:"Ich hole schnell Geld am Geldautomaten.",en:"I will quickly get money from the cash machine."}] },
+        { en:"the debit card", de:"die EC-Karte", hint:"feminine noun — plural die EC-Karten", examples:[{de:"Kann ich mit EC-Karte zahlen?",en:"Can I pay by debit card?"}] },
       ]
     },
 
@@ -637,6 +647,7 @@ const DECKS_B1 = {
 
         // Verbs that belong to this topic
         { en:"to take on (hire an employee)", de:"einstellen", hint:"verb separable · stellte ein · hat eingestellt", examples:[{de:"Die Firma wird in diesem Jahr drei neue Leute einstellen.",en:"The company will take on three new people this year."}] },
+        { en:"to retire (start drawing a pension)", de:"in Rente gehen", hint:"phrase — ging in Rente · ist in Rente gegangen", examples:[{de:"Mein Nachbar ist vor zehn Jahren in Rente gegangen.",en:"My neighbour retired ten years ago."}] },
       ]
     },
 
@@ -777,7 +788,6 @@ const DECKS_B1 = {
         { en:"the consulate", de:"das Konsulat", pl:"die Konsulate", hint:"neuter noun — the smaller office", examples:[{de:"Ein Visum bekommst du auch im Konsulat.",en:"You can also get a visa at the consulate."}] },
         { en:"the embassy", de:"die Botschaft", pl:"die Botschaften", hint:"feminine noun — the main mission, in the capital", examples:[{de:"Das Visum habe ich von der Botschaft bekommen.",en:"I got the visa from the embassy."}] },
         { en:"the asylum", de:"das Asyl", hint:"neuter noun — no plural", examples:[{de:"Die Menschen sind auf der Flucht und bitten um Asyl.",en:"The people are fleeing and are asking for asylum."}] },
-        { en:"the marital status (on a form)", de:"der Personenstand", hint:"masculine noun — no plural", examples:[{de:"Bei Personenstand musst du ledig ankreuzen.",en:"Under marital status you have to tick single."}] },
         { en:"the justification (reasons given)", de:"die Begründung", pl:"die Begründungen", hint:"feminine noun — from begründen", examples:[{de:"Die Miete wurde ohne Begründung erhöht.",en:"The rent was raised without any justification."}] },
         { en:"the formal request (telling you to act)", de:"die Aufforderung", pl:"die Aufforderungen", hint:"feminine noun — an official demand", examples:[{de:"Sie erhalten eine Aufforderung, den Betrag bis Juni zu zahlen.",en:"You will receive a formal request to pay the amount by June."}] },
 
@@ -1121,6 +1131,7 @@ const DECKS_B1 = {
         { en:"the cigarette", de:"die Zigarette", pl:"die Zigaretten", hint:"feminine noun", examples:[{de:"Wie viele Zigaretten rauchst du am Tag?",en:"How many cigarettes do you smoke a day?"}] },
         { en:"the kiss", de:"der Kuss", pl:"die Küsse", hint:"masculine noun — umlaut plural", examples:[{de:"Gib der Mama einen Kuss!",en:"Give mummy a kiss!"}] },
         { en:"the audience (at a concert or show)", de:"das Publikum", hint:"neuter noun — no plural", examples:[{de:"Es war ein tolles Konzert. Das Publikum war begeistert.",en:"It was a great concert. The audience was thrilled."}] },
+        { en:"the golf", de:"Golf", hint:"neuter noun — no article with Sport spielen", examples:[{de:"Kannst du Golf spielen?",en:"Can you play golf?"}] },
       ]
     },
 
@@ -1311,6 +1322,7 @@ const DECKS_B1 = {
         { en:"to refuse", de:"sich weigern", hint:"weigerte sich · hat sich geweigert", examples:[{de:"Ich weigere mich diese Arbeit zu tun.",en:"I refuse to do this work."}] },
         { en:"to be surprised (+ über)", de:"sich wundern", hint:"wunderte sich · hat sich gewundert", examples:[{de:"Es hat mich gewundert, dass das Essen hier so günstig ist.",en:"I was surprised that the food here is so cheap."}] },
         { en:"to get used to (+ an)", de:"sich gewöhnen", hint:"verb · gewöhnte sich · hat sich gewöhnt", examples:[{de:"Wir haben uns an das Leben hier gewöhnt.",en:"We have got used to life here."}] },
+        { en:"to get divorced", de:"sich scheiden lassen", hint:"verb · ließ sich scheiden · hat sich scheiden lassen", examples:[{de:"Meine Nachbarn haben sich scheiden lassen.",en:"My neighbours got divorced."}] },
       ]
     },
 
@@ -1400,6 +1412,9 @@ const DECKS_B1 = {
         { en:"to come towards someone (+ Dativ)", de:"entgegenkommen", hint:"verb · kam entgegen · ist entgegengekommen", examples:[{de:"Auf dem Weg nach Hause ist mir mein Nachbar entgegengekommen.",en:"On the way home my neighbour came towards me."}] },
         { en:"to break (stop working)", de:"kaputtgehen", hint:"verb · ging kaputt · ist kaputtgegangen", examples:[{de:"Pass bitte mit diesem Glas auf. Es geht leicht kaputt.",en:"Please be careful with this glass. It breaks easily."}] },
         { en:"to break something", de:"kaputtmachen", hint:"verb · machte kaputt · hat kaputtgemacht", examples:[{de:"Wer hat die Lampe kaputtgemacht?",en:"Who broke the lamp?"}] },
+        { en:"to arrest (take into custody on the spot)", de:"festnehmen", hint:"verb · nahm fest · hat festgenommen", examples:[{de:"Die Polizei hat einen Mann festgenommen.",en:"The police arrested a man."}] },
+        { en:"to stop (come to a standstill)", de:"stehen bleiben", hint:"verb · blieb stehen · ist stehen geblieben", examples:[{de:"Meine Uhr ist stehen geblieben.",en:"My watch has stopped."}] },
+        { en:"to announce (make known officially)", de:"bekannt geben", hint:"verb · gab bekannt · hat bekannt gegeben", examples:[{de:"Den Prüfungsort geben wir Ihnen noch rechtzeitig bekannt.",en:"We will announce the exam venue to you in good time."}] },
       ]
     },
 
@@ -1992,6 +2007,9 @@ const DECKS_B1 = {
         { en:"until then / to there", de:"dahin", hint:"adverb", examples:[{de:"Der Zug kommt in 30 Minuten. Bis dahin trinken wir einen Kaffee.",en:"The train comes in 30 minutes. Until then we will have a coffee."}] },
         { en:"inside (colloquial)", de:"drin", hint:"adverb — short for darin", examples:[{de:"Wo wollt ihr sitzen, draußen oder drin?",en:"Where do you want to sit, outside or inside?"}] },
         { en:"all of them (formal)", de:"sämtliche", hint:"determiner — more formal than alle", examples:[{de:"Sämtliche Fenster müssen geschlossen bleiben.",en:"All the windows have to stay closed."}] },
+        { en:"upwards", de:"aufwärts", hint:"adverb", examples:[{de:"Der Weg geht immer aufwärts.",en:"The path goes steadily upwards."}] },
+        { en:"downwards", de:"abwärts", hint:"adverb", examples:[{de:"Von dort führt der Weg abwärts ins Tal.",en:"From there the path leads downwards into the valley."}] },
+        { en:"there (pointing at a spot)", de:"da", hint:"adverb — da drüben, da vorne", examples:[{de:"Da drüben ist ein Getränkeautomat.",en:"Over there is a drinks machine."}] },
       ]
     },
     // ── 30. ABBREVIATIONS & ANGLICISMS ─────────────────────────────
@@ -2264,7 +2282,7 @@ const DECKS_B1 = {
         { en:"ausfallen (Partizip II) — er ist ___", de:"ausgefallen", hint:"Präteritum fiel aus · takes ist", examples:[{de:"Nächste Woche fällt der Kurs aus.",en:"Next week the course is cancelled."}] },
         { en:"ausschließen (Partizip II) — er hat ___", de:"ausgeschlossen", hint:"Präteritum schloss aus · takes hat", examples:[{de:"Das kann man nicht ganz ausschließen.",en:"You cannot rule that out entirely."}] },
         { en:"befinden (Partizip II) — er hat ___", de:"befunden", hint:"Präteritum befand sich · takes hat", examples:[{de:"Das Bord-Bistro befindet sich in der Mitte des Zuges.",en:"The on-board bistro is located in the middle of the train."}] },
-        { en:"behalten (Partizip II) — er hat ___", de:"behalten", hint:"Präteritum behielt · takes hat", examples:[{de:"Darf ich die Zeitschrift behalten?",en:"May I keep the magazine?"}] },
+        { en:"behalten (Partizip II) — er hat ___", de:"behalten", hint:"Präteritum behielt · takes hat · identical to the infinitive, no ge-", examples:[{de:"Darf ich die Zeitschrift behalten?",en:"May I keep the magazine?"}] },
         { en:"beißen (Partizip II) — er hat ___", de:"gebissen", hint:"Präteritum biss · takes hat", examples:[{de:"Pass auf, dass dich der Hund nicht beißt!",en:"Watch out that the dog does not bite you!"}] },
         { en:"beschließen (Partizip II) — er hat ___", de:"beschlossen", hint:"Präteritum beschloss · takes hat", examples:[{de:"Wir haben beschlossen, uns ein kleineres Auto zu kaufen.",en:"We have decided to buy a smaller car."}] },
         { en:"besitzen (Partizip II) — er hat ___", de:"besessen", hint:"Präteritum besaß · takes hat", examples:[{de:"Besitzt Ihre Frau ein eigenes Auto?",en:"Does your wife own a car of her own?"}] },
@@ -2277,15 +2295,15 @@ const DECKS_B1 = {
         { en:"einfallen (Partizip II) — er ist ___", de:"eingefallen", hint:"Präteritum fiel ein · takes ist", examples:[{de:"Mir ist wieder eingefallen, wie das Buch heißt.",en:"It came back to me what the book is called."}] },
         { en:"einnehmen (Partizip II) — er hat ___", de:"eingenommen", hint:"Präteritum nahm ein · takes hat", examples:[{de:"Wie muss ich die Tropfen einnehmen?",en:"How do I have to take the drops?"}] },
         { en:"eintreten (Partizip II) — er ist ___", de:"eingetreten", hint:"Präteritum trat ein · takes ist", examples:[{de:"Letztes Jahr bin ich in einen Sportverein eingetreten.",en:"Last year I joined a sports club."}] },
-        { en:"empfangen (Partizip II) — er hat ___", de:"empfangen", hint:"Präteritum empfing · takes hat", examples:[{de:"Wir können mit unserem Fernseher über 30 Programme empfangen.",en:"With our television we can receive over 30 channels."}] },
-        { en:"enthalten (Partizip II) — er hat ___", de:"enthalten", hint:"Präteritum enthielt · takes hat", examples:[{de:"Diese Schokolade enthält nur sehr wenig Zucker.",en:"This chocolate contains very little sugar."}] },
-        { en:"entlassen (Partizip II) — er hat ___", de:"entlassen", hint:"Präteritum entließ · takes hat", examples:[{de:"Die Operation ist gut gelaufen. Wir können Sie nächste Woche aus dem Krankenhaus entlassen.",en:"The operation went well. We can discharge you from hospital next week."}] },
+        { en:"empfangen (Partizip II) — er hat ___", de:"empfangen", hint:"Präteritum empfing · takes hat · identical to the infinitive, no ge-", examples:[{de:"Wir können mit unserem Fernseher über 30 Programme empfangen.",en:"With our television we can receive over 30 channels."}] },
+        { en:"enthalten (Partizip II) — er hat ___", de:"enthalten", hint:"Präteritum enthielt · takes hat · identical to the infinitive, no ge-", examples:[{de:"Diese Schokolade enthält nur sehr wenig Zucker.",en:"This chocolate contains very little sugar."}] },
+        { en:"entlassen (Partizip II) — er hat ___", de:"entlassen", hint:"Präteritum entließ · takes hat · identical to the infinitive, no ge-", examples:[{de:"Die Operation ist gut gelaufen. Wir können Sie nächste Woche aus dem Krankenhaus entlassen.",en:"The operation went well. We can discharge you from hospital next week."}] },
         { en:"entscheiden (Partizip II) — er hat ___", de:"entschieden", hint:"Präteritum entschied · takes hat", examples:[{de:"Das kann ich nicht allein entscheiden, da muss ich erst fragen.",en:"I cannot decide that alone, I have to ask first."}] },
-        { en:"entschließen (Partizip II) — er hat ___", de:"entschlossen", hint:"Präteritum entschloss sich · takes hat", examples:[{de:"Mein Nachbar hat sich nun doch entschlossen, sein Auto zu verkaufen.",en:"My neighbour has now made up his mind to sell his car after all."}] },
+        { en:"sich entschließen (Partizip II) — er hat sich ___", de:"entschlossen", hint:"Präteritum entschloss sich · takes hat", examples:[{de:"Mein Nachbar hat sich nun doch entschlossen, sein Auto zu verkaufen.",en:"My neighbour has now made up his mind to sell his car after all."}] },
         { en:"entstehen (Partizip II) — er ist ___", de:"entstanden", hint:"Präteritum entstand · takes ist", examples:[{de:"Hier entsteht ein neues Einkaufszentrum.",en:"A new shopping centre is coming up here."}] },
-        { en:"erfahren (Partizip II) — er hat ___", de:"erfahren", hint:"Präteritum erfuhr · takes hat", examples:[{de:"Wann erfahren wir das Ergebnis der Prüfung?",en:"When do we find out the result of the exam?"}] },
+        { en:"erfahren (Partizip II) — er hat ___", de:"erfahren", hint:"Präteritum erfuhr · takes hat · identical to the infinitive, no ge-", examples:[{de:"Wann erfahren wir das Ergebnis der Prüfung?",en:"When do we find out the result of the exam?"}] },
         { en:"erfinden (Partizip II) — er hat ___", de:"erfunden", hint:"Präteritum erfand · takes hat", examples:[{de:"Das Rad wurde vor ca. 6000 Jahren erfunden.",en:"The wheel was invented about 6000 years ago."}] },
-        { en:"erhalten (Partizip II) — er hat ___", de:"erhalten", hint:"Präteritum erhielt · takes hat", examples:[{de:"Wir haben Ihr Schreiben vom 5. Mai erhalten.",en:"We received your letter of 5 May."}] },
+        { en:"erhalten (Partizip II) — er hat ___", de:"erhalten", hint:"Präteritum erhielt · takes hat · identical to the infinitive, no ge-", examples:[{de:"Wir haben Ihr Schreiben vom 5. Mai erhalten.",en:"We received your letter of 5 May."}] },
         { en:"fangen (Partizip II) — er hat ___", de:"gefangen", hint:"Präteritum fing · takes hat", examples:[{de:"Das Kind hat den Ball gefangen.",en:"The child caught the ball."}] },
         { en:"festhalten (Partizip II) — er hat ___", de:"festgehalten", hint:"Präteritum hielt fest · takes hat", examples:[{de:"Halt dich gut fest.",en:"Hold on tight."}] },
         { en:"feststehen (Partizip II) — er ist ___", de:"festgestanden", hint:"Präteritum stand fest · takes ist", examples:[{de:"Der Termin steht seit Langem fest.",en:"The date has been certain for a long time."}] },
@@ -2295,10 +2313,10 @@ const DECKS_B1 = {
         { en:"gelingen (Partizip II) — er ist ___", de:"gelungen", hint:"Präteritum gelang · takes ist", examples:[{de:"Es ist mir gelungen, meinen Chef zu überzeugen.",en:"I succeeded in convincing my boss."}] },
         { en:"gelten (Partizip II) — er hat ___", de:"gegolten", hint:"Präteritum galt · takes hat", examples:[{de:"Mein Pass gilt noch ein Jahr.",en:"My passport is still valid for a year."}] },
         { en:"genießen (Partizip II) — er hat ___", de:"genossen", hint:"Präteritum genoss · takes hat", examples:[{de:"Er kann das Essen leider nicht genießen, weil es zu scharf ist.",en:"He unfortunately cannot enjoy the food because it is too spicy."}] },
-        { en:"geschehen (Partizip II) — er ist ___", de:"geschehen", hint:"Präteritum geschah · takes ist", examples:[{de:"Vielen Dank für Ihre Hilfe. – Gern geschehen.",en:"Many thanks for your help. – You are welcome."}] },
+        { en:"geschehen (Partizip II) — er ist ___", de:"geschehen", hint:"Präteritum geschah · takes ist · identical to the infinitive, no ge-", examples:[{de:"Vielen Dank für Ihre Hilfe. – Gern geschehen.",en:"Many thanks for your help. – You are welcome."}] },
         { en:"greifen (Partizip II) — er hat ___", de:"gegriffen", hint:"Präteritum griff · takes hat", examples:[{de:"Greifen Sie doch zu!",en:"Do help yourself!"}] },
         { en:"heben (Partizip II) — er hat ___", de:"gehoben", hint:"Präteritum hob · takes hat", examples:[{de:"Kannst du mir helfen? Das Paket kann ich allein nicht heben.",en:"Can you help me? I cannot lift the parcel on my own."}] },
-        { en:"hinterlassen (Partizip II) — er hat ___", de:"hinterlassen", hint:"Präteritum hinterließ · takes hat", examples:[{de:"Möchten Sie eine Nachricht hinterlassen?",en:"Would you like to leave a message?"}] },
+        { en:"hinterlassen (Partizip II) — er hat ___", de:"hinterlassen", hint:"Präteritum hinterließ · takes hat · identical to the infinitive, no ge-", examples:[{de:"Möchten Sie eine Nachricht hinterlassen?",en:"Would you like to leave a message?"}] },
         { en:"hinweisen (Partizip II) — er hat ___", de:"hingewiesen", hint:"Präteritum wies hin · takes hat", examples:[{de:"Wir möchten Sie darauf hinweisen, dass das Rauchen am Bahnsteig nicht gestattet ist.",en:"We would like to point out to you that smoking on the platform is not permitted."}] },
         { en:"hochladen (Partizip II) — er hat ___", de:"hochgeladen", hint:"Präteritum lud hoch · takes hat", examples:[{de:"Kannst du bitte die Datei für die Hausaufgabe hochladen?",en:"Could you upload the file for the homework, please?"}] },
         { en:"klingen (Partizip II) — er hat ___", de:"geklungen", hint:"Präteritum klang · takes hat", examples:[{de:"Wollen wir einkaufen gehen und danach zusammen kochen? – Ja, das klingt gut.",en:"Shall we go shopping and cook together afterwards? – Yes, that sounds good."}] },
@@ -2320,18 +2338,18 @@ const DECKS_B1 = {
         { en:"treten (Partizip II) — er hat ___", de:"getreten", hint:"Präteritum trat · takes hat", examples:[{de:"Ich bin in ein Stück Glas getreten.",en:"I stepped on a piece of glass."}] },
         { en:"umgehen (Partizip II) — er ist ___", de:"umgegangen", hint:"Präteritum ging um · takes ist", examples:[{de:"Er kann sehr gut mit Kindern umgehen.",en:"He is very good at dealing with children."}] },
         { en:"unterbrechen (Partizip II) — er hat ___", de:"unterbrochen", hint:"Präteritum unterbrach · takes hat", examples:[{de:"Wir unterbrechen die Sendung für eine wichtige Nachricht.",en:"We interrupt the programme for an important news item."}] },
-        { en:"unterlassen (Partizip II) — er hat ___", de:"unterlassen", hint:"Präteritum unterließ · takes hat", examples:[{de:"Das Rauchen auf den Gängen ist zu unterlassen.",en:"Smoking in the corridors is to be refrained from."}] },
+        { en:"unterlassen (Partizip II) — er hat ___", de:"unterlassen", hint:"Präteritum unterließ · takes hat · identical to the infinitive, no ge-", examples:[{de:"Das Rauchen auf den Gängen ist zu unterlassen.",en:"Smoking in the corridors is to be refrained from."}] },
         { en:"unterscheiden (Partizip II) — er hat ___", de:"unterschieden", hint:"Präteritum unterschied · takes hat", examples:[{de:"Ihr seid euch sehr ähnlich. Auf dem Foto kann man euch beide nicht unterscheiden.",en:"You are very alike. In the photo you cannot tell the two of you apart."}] },
         { en:"unterstreichen (Partizip II) — er hat ___", de:"unterstrichen", hint:"Präteritum unterstrich · takes hat", examples:[{de:"Wir sollen alle wichtigen Wörter unterstreichen.",en:"We are to underline all the important words."}] },
         { en:"verbinden (Partizip II) — er hat ___", de:"verbunden", hint:"Präteritum verband · takes hat", examples:[{de:"Wir müssen die Wunde sofort verbinden.",en:"We have to bandage the wound immediately."}] },
-        { en:"verlassen (Partizip II) — er hat ___", de:"verlassen", hint:"Präteritum verließ · takes hat", examples:[{de:"Ich habe die Party um 3 Uhr verlassen.",en:"I left the party at 3 o'clock."}] },
+        { en:"verlassen (Partizip II) — er hat ___", de:"verlassen", hint:"Präteritum verließ · takes hat · identical to the infinitive, no ge-", examples:[{de:"Ich habe die Party um 3 Uhr verlassen.",en:"I left the party at 3 o'clock."}] },
         { en:"verlaufen (Partizip II) — er hat ___", de:"verlaufen", hint:"Präteritum verlief sich · takes hat", examples:[{de:"Gestern haben wir uns im Wald verlaufen. Wir haben erst eine Stunde später den richtigen Weg gefunden.",en:"Yesterday we got lost in the forest. We only found the right path an hour later."}] },
         { en:"vermeiden (Partizip II) — er hat ___", de:"vermieden", hint:"Präteritum vermied · takes hat", examples:[{de:"Der Arzt sagt, ich soll Stress vermeiden.",en:"The doctor says I should avoid stress."}] },
-        { en:"verraten (Partizip II) — er hat ___", de:"verraten", hint:"Präteritum verriet · takes hat", examples:[{de:"Wer hat dir das Geheimnis verraten?",en:"Who gave away the secret to you?"}] },
+        { en:"verraten (Partizip II) — er hat ___", de:"verraten", hint:"Präteritum verriet · takes hat · identical to the infinitive, no ge-", examples:[{de:"Wer hat dir das Geheimnis verraten?",en:"Who gave away the secret to you?"}] },
         { en:"verschreiben (Partizip II) — er hat ___", de:"verschrieben", hint:"Präteritum verschrieb · takes hat", examples:[{de:"Die Ärztin hat mir Tabletten verschrieben.",en:"The doctor prescribed me tablets."}] },
         { en:"verschwinden (Partizip II) — er ist ___", de:"verschwunden", hint:"Präteritum verschwand · takes ist", examples:[{de:"Mein Ausweis ist verschwunden. Hast du ihn vielleicht gesehen?",en:"My ID has disappeared. Have you perhaps seen it?"}] },
         { en:"versprechen (Partizip II) — er hat ___", de:"versprochen", hint:"Präteritum versprach · takes hat", examples:[{de:"Meine Mutter hat mir versprochen, mich abzuholen.",en:"My mother promised to pick me up."}] },
-        { en:"vertreten (Partizip II) — er hat ___", de:"vertreten", hint:"Präteritum vertrat · takes hat", examples:[{de:"Wer vertritt Sie, wenn Sie Urlaub machen?",en:"Who stands in for you when you take a holiday?"}] },
+        { en:"vertreten (Partizip II) — er hat ___", de:"vertreten", hint:"Präteritum vertrat · takes hat · identical to the infinitive, no ge-", examples:[{de:"Wer vertritt Sie, wenn Sie Urlaub machen?",en:"Who stands in for you when you take a holiday?"}] },
         { en:"verzeihen (Partizip II) — er hat ___", de:"verziehen", hint:"Präteritum verzieh · takes hat", examples:[{de:"Das werde ich ihm nie verzeihen können.",en:"I will never be able to forgive him for that."}] },
         { en:"vorkommen (Partizip II) — er ist ___", de:"vorgekommen", hint:"Präteritum kam vor · takes ist", examples:[{de:"Kein Problem. Das kann vorkommen.",en:"No problem. That can happen."}] },
         { en:"vorlesen (Partizip II) — er hat ___", de:"vorgelesen", hint:"Präteritum las vor · takes hat", examples:[{de:"Ich lese meinen Kindern oft etwas vor.",en:"I often read aloud to my children."}] },
@@ -2346,7 +2364,7 @@ const DECKS_B1 = {
         { en:"zunehmen (Partizip II) — er hat ___", de:"zugenommen", hint:"Präteritum nahm zu · takes hat", examples:[{de:"Ich habe im Urlaub 1 Kilo zugenommen.",en:"I put on one kilo on holiday."}] },
         { en:"zurechtkommen (Partizip II) — er ist ___", de:"zurechtgekommen", hint:"Präteritum kam zurecht · takes ist", examples:[{de:"Soll ich Ihnen helfen? – Danke. Ich komme allein zurecht.",en:"Shall I help you? – Thank you. I can manage on my own."}] },
         { en:"zwingen (Partizip II) — er hat ___", de:"gezwungen", hint:"Präteritum zwang · takes hat", examples:[{de:"Bitte zwing mich nicht etwas zu essen. Ich bin wirklich nicht hungrig.",en:"Please do not force me to eat something. I am really not hungry."}] },
-        { en:"überfahren (Partizip II) — er hat ___", de:"überfahren", hint:"Präteritum überfuhr · takes hat", examples:[{de:"Gestern hat ein Autofahrer einen Hund überfahren.",en:"Yesterday a driver ran over a dog."}] },
+        { en:"überfahren (Partizip II) — er hat ___", de:"überfahren", hint:"Präteritum überfuhr · takes hat · identical to the infinitive, no ge-", examples:[{de:"Gestern hat ein Autofahrer einen Hund überfahren.",en:"Yesterday a driver ran over a dog."}] },
         { en:"übernehmen (Partizip II) — er hat ___", de:"übernommen", hint:"Präteritum übernahm · takes hat", examples:[{de:"Ich habe das Geschäft von meinem Vater übernommen.",en:"I took over the business from my father."}] },
         { en:"übertreiben (Partizip II) — er hat ___", de:"übertrieben", hint:"Präteritum übertrieb · takes hat", examples:[{de:"Ein bisschen Sport ist gesund. Aber man sollte es nicht übertreiben.",en:"A little sport is healthy. But you should not overdo it."}] },
       ]
@@ -2457,6 +2475,7 @@ const DECKS_B1 = {
         { en:"the door is locked (Zustandspassiv)", de:"die Tür ist abgeschlossen", hint:"sein + Partizip II — the resulting state", examples:[{de:"Die Tür ist schon abgeschlossen.",en:"The door is already locked."}] },
         { en:"by the neighbour (agent in the Passiv)", de:"von dem Nachbarn", hint:"von + Dativ names the person who did it", examples:[{de:"Der Hund wurde von dem Nachbarn gefunden.",en:"The dog was found by the neighbour."}] },
         { en:"by the storm (cause in the Passiv)", de:"durch den Sturm", hint:"durch + Akkusativ names the cause, not a person", examples:[{de:"Das Dach wurde durch den Sturm beschädigt.",en:"The roof was damaged by the storm."}] },
+        { en:"to be born (a fixed Passiv phrase)", de:"geboren werden", hint:"wurde geboren · ist geboren worden", examples:[{de:"Wann und wo sind Sie geboren?",en:"When and where were you born?"}] },
       ]
     },
 
@@ -2717,22 +2736,22 @@ const DECKS_B1 = {
       // The answer here is the affix itself, not the finished word — the
       // point is to be able to build words the list never taught you.
       words: [
-        { en:"the ending that turns a verb into a feminine noun (lösen → die Lös___)", de:"-ung", hint:"verb + -ung · always feminine", examples:[{de:"lösen wird zu die Lösung, erklären zu die Erklärung.",en:"lösen becomes die Lösung, erklären becomes die Erklärung."}] },
-        { en:"the ending that turns an adjective into a feminine noun (frei → die Frei___)", de:"-heit", hint:"adjective + -heit · always feminine", examples:[{de:"frei wird zu die Freiheit, krank zu die Krankheit.",en:"frei becomes die Freiheit, krank becomes die Krankheit."}] },
-        { en:"the -heit variant used after -ig, -lich and -bar (möglich → die Möglich___)", de:"-keit", hint:"always feminine", examples:[{de:"möglich wird zu die Möglichkeit, schwierig zu die Schwierigkeit.",en:"möglich becomes die Möglichkeit, schwierig becomes die Schwierigkeit."}] },
-        { en:"the ending for a collective noun (Freund → die Freund___)", de:"-schaft", hint:"noun + -schaft · always feminine", examples:[{de:"Freund wird zu die Freundschaft, Gesell zu die Gesellschaft.",en:"Freund becomes die Freundschaft, Gesell becomes die Gesellschaft."}] },
-        { en:"the ending for the person who does something (lehren → der Lehr___)", de:"-er", hint:"verb + -er · masculine, plural unchanged", examples:[{de:"lehren wird zu der Lehrer, fahren zu der Fahrer.",en:"lehren becomes der Lehrer, fahren becomes der Fahrer."}] },
-        { en:"the ending that makes a noun into an adjective (Durst → durst___)", de:"-ig", hint:"noun + -ig", examples:[{de:"Durst wird zu durstig, Hunger zu hungrig.",en:"Durst becomes durstig, Hunger becomes hungrig."}] },
-        { en:"the ending meaning in the manner of (Beruf → beruf___)", de:"-lich", hint:"noun + -lich", examples:[{de:"Beruf wird zu beruflich, Freund zu freundlich.",en:"Beruf becomes beruflich, Freund becomes freundlich."}] },
-        { en:"the ending meaning it can be done (halten → halt___)", de:"-bar", hint:"verb + -bar", examples:[{de:"halten wird zu haltbar, essen zu essbar.",en:"halten becomes haltbar, essen becomes essbar."}] },
-        { en:"the ending meaning without it (Sinn → sinn___)", de:"-los", hint:"noun + -los", examples:[{de:"Sinn wird zu sinnlos, Arbeit zu arbeitslos.",en:"Sinn becomes sinnlos, Arbeit becomes arbeitslos."}] },
-        { en:"the ending meaning full of it (Wert → wert___)", de:"-voll", hint:"noun + -voll", examples:[{de:"Wert wird zu wertvoll, Geschmack zu geschmackvoll.",en:"Wert becomes wertvoll, Geschmack becomes geschmackvoll."}] },
-        { en:"the prefix that reverses an adjective (freundlich → ___freundlich)", de:"un-", hint:"un- + adjective", examples:[{de:"freundlich wird zu unfreundlich, möglich zu unmöglich.",en:"freundlich becomes unfreundlich, möglich becomes unmöglich."}] },
-        { en:"the verb prefix for a change of state (bessern → ___bessern)", de:"ver-", hint:"inseparable · no ge- in the Partizip II", examples:[{de:"bessern wird zu verbessern, größern zu vergrößern.",en:"bessern becomes verbessern, größern becomes vergrößern."}] },
-        { en:"the verb prefix that gives a verb a direct object (antworten → ___antworten)", de:"be-", hint:"inseparable · makes the verb transitive", examples:[{de:"auf eine Frage antworten wird zu eine Frage beantworten.",en:"auf eine Frage antworten becomes eine Frage beantworten."}] },
-        { en:"the verb prefix meaning away or un- (decken → ___decken)", de:"ent-", hint:"inseparable · no ge- in the Partizip II", examples:[{de:"decken wird zu entdecken, spannen zu entspannen.",en:"decken becomes entdecken, spannen becomes entspannen."}] },
-        { en:"the verb prefix meaning to pieces (stören → ___stören)", de:"zer-", hint:"inseparable · no ge- in the Partizip II", examples:[{de:"stören wird zu zerstören, brechen zu zerbrechen.",en:"stören becomes zerstören, brechen becomes zerbrechen."}] },
-        { en:"the letter that joins many compounds (Arbeit + Zeit → Arbeit___zeit)", de:"-s-", hint:"the Fugen-s", examples:[{de:"Arbeit und Zeit werden zu die Arbeitszeit.",en:"Arbeit and Zeit become die Arbeitszeit."}] },
+        { en:"the ending that turns a verb into a feminine noun (lösen → die Lös___)", de:"-ung", hint:"verb + -ung · always feminine", examples:[{de:"Aus lösen wird die Lösung, aus erklären wird die Erklärung.",en:"From lösen comes die Lösung, from erklären comes die Erklärung."}] },
+        { en:"the ending that turns an adjective into a feminine noun (frei → die Frei___)", de:"-heit", hint:"adjective + -heit · always feminine", examples:[{de:"Aus frei wird die Freiheit, aus krank wird die Krankheit.",en:"From frei comes die Freiheit, from krank comes die Krankheit."}] },
+        { en:"the -heit variant used after -ig, -lich and -bar (möglich → die Möglich___)", de:"-keit", hint:"always feminine", examples:[{de:"Aus möglich wird die Möglichkeit, aus schwierig wird die Schwierigkeit.",en:"From möglich comes die Möglichkeit, from schwierig comes die Schwierigkeit."}] },
+        { en:"the ending for a collective noun (Freund → die Freund___)", de:"-schaft", hint:"noun + -schaft · always feminine", examples:[{de:"Aus Freund wird die Freundschaft, aus Gesell wird die Gesellschaft.",en:"From Freund comes die Freundschaft, from Gesell comes die Gesellschaft."}] },
+        { en:"the ending for the person who does something (lehren → der Lehr___)", de:"-er", hint:"verb + -er · masculine, plural unchanged", examples:[{de:"Aus lehren wird der Lehrer, aus fahren wird der Fahrer.",en:"From lehren comes der Lehrer, from fahren comes der Fahrer."}] },
+        { en:"the ending that makes a noun into an adjective (Durst → durst___)", de:"-ig", hint:"noun + -ig", examples:[{de:"Aus Durst wird durstig, aus Hunger wird hungrig.",en:"From Durst comes durstig, from Hunger comes hungrig."}] },
+        { en:"the ending meaning in the manner of (Beruf → beruf___)", de:"-lich", hint:"noun + -lich", examples:[{de:"Aus Beruf wird beruflich, aus Freund wird freundlich.",en:"From Beruf comes beruflich, from Freund comes freundlich."}] },
+        { en:"the ending meaning it can be done (halten → halt___)", de:"-bar", hint:"verb + -bar", examples:[{de:"Aus halten wird haltbar, aus essen wird essbar.",en:"From halten comes haltbar, from essen comes essbar."}] },
+        { en:"the ending meaning without it (Sinn → sinn___)", de:"-los", hint:"noun + -los", examples:[{de:"Aus Sinn wird sinnlos, aus Arbeit wird arbeitslos.",en:"From Sinn comes sinnlos, from Arbeit comes arbeitslos."}] },
+        { en:"the ending meaning full of it (Wert → wert___)", de:"-voll", hint:"noun + -voll", examples:[{de:"Aus Wert wird wertvoll, aus Geschmack wird geschmackvoll.",en:"From Wert comes wertvoll, from Geschmack comes geschmackvoll."}] },
+        { en:"the prefix that reverses an adjective (freundlich → ___freundlich)", de:"un-", hint:"un- + adjective", examples:[{de:"Aus freundlich wird unfreundlich, aus möglich wird unmöglich.",en:"From freundlich comes unfreundlich, from möglich comes unmöglich."}] },
+        { en:"the verb prefix for a change of state (bessern → ___bessern)", de:"ver-", hint:"inseparable · no ge- in the Partizip II", examples:[{de:"Aus bessern wird verbessern, aus größern wird vergrößern.",en:"From bessern comes verbessern, from größern comes vergrößern."}] },
+        { en:"the verb prefix that gives a verb a direct object (antworten → ___antworten)", de:"be-", hint:"inseparable · makes the verb transitive", examples:[{de:"Aus auf eine Frage antworten wird eine Frage beantworten.",en:"The phrase auf eine Frage antworten becomes eine Frage beantworten."}] },
+        { en:"the verb prefix meaning away or un- (decken → ___decken)", de:"ent-", hint:"inseparable · no ge- in the Partizip II", examples:[{de:"Aus decken wird entdecken, aus spannen wird entspannen.",en:"From decken comes entdecken, from spannen comes entspannen."}] },
+        { en:"the verb prefix meaning to pieces (stören → ___stören)", de:"zer-", hint:"inseparable · no ge- in the Partizip II", examples:[{de:"Aus stören wird zerstören, aus brechen wird zerbrechen.",en:"From stören comes zerstören, from brechen comes zerbrechen."}] },
+        { en:"the letter that joins many compounds (Arbeit + Zeit → Arbeit___zeit)", de:"-s-", hint:"the Fugen-s", examples:[{de:"Aus Arbeit und Zeit wird die Arbeitszeit.",en:"From Arbeit and Zeit comes die Arbeitszeit."}] },
         { en:"the part of a compound that decides its gender (Haus + Tür)", de:"die Haustür", hint:"the last part rules: die Tür → die Haustür", examples:[{de:"Die Haustür war nicht abgeschlossen.",en:"The front door was not locked."}] },
       ]
     },
