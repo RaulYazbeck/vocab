@@ -45,6 +45,7 @@ function renderTimerScreen() {
     <input type="text" class="german-input" id="timer-input" placeholder="type the answer…"
       autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
       onkeydown="handleTimerKey(event)"/>
+    ${accentBarHtml("timer-input")}
     <div class="action-row">
       <button class="check-btn"    onclick="checkTimer()">Check</button>
       <button class="dontknow-btn" onclick="skipTimer()">Skip</button>
@@ -75,7 +76,11 @@ function timerFocusAndPosition() {
 // re-render/mic path; state bookkeeping is identical for both.
 function timerCorrectAnswer(voice) {
   timerCorrect++; playSuccess(); checkDrillMilestone();
-  applyCorrect(getWS(currentWord.deckId, currentWord.idx));
+  const ws = getWS(currentWord.deckId, currentWord.idx);
+  const prevAt = ws.lastAnsweredAt;
+  applyCorrect(ws, { w: currentWord });
+  logEvent("answer", { m: voice ? "timer:voice" : "timer", ok: true, typed: true, voice: !!voice });
+  questEvent("answer", { mode: "timer", ok: true, typed: true, voice: !!voice, w: currentWord, prevAt });
   saveState();
   timerWordsDone++;
   if (timerWordsDone >= timerQueue.length) { endTimer(true); return; }
@@ -99,7 +104,9 @@ function timerCorrectAnswer(voice) {
 // sound: the typed skip is historically silent.
 function timerWrongAnswer(shownWrongText, voice, sound) {
   timerWrong++;
-  applyWrong(getWS(currentWord.deckId, currentWord.idx));
+  applyWrong(getWS(currentWord.deckId, currentWord.idx), { w: currentWord });
+  logEvent("answer", { m: voice ? "timer:voice" : "timer", ok: false, typed: true, voice: !!voice });
+  questEvent("answer", { mode: "timer", ok: false, typed: true, w: currentWord });
   saveState();
   if (sound) playFailure();
   timerPaused = true; clearInterval(timerInterval);
@@ -110,8 +117,8 @@ function timerWrongAnswer(shownWrongText, voice, sound) {
   if (wordEl) wordEl.style.opacity = "0.3";
   const fb = document.getElementById("timer-feedback");
   if (fb) fb.innerHTML = shownWrongText
-    ? `<span class="tfb-strike">${escapeHtml(shownWrongText)}</span><span class="tfb-arrow"> → </span><span class="tfb-ans">${answer}</span>`
-    : `<span class="tfb-ans">✗ ${answer}</span>`;
+    ? `<span class="tfb-strike">${escapeHtml(shownWrongText)}</span><span class="tfb-arrow"> → </span><span class="tfb-ans">${colorArticleHtml(answer)}</span>`
+    : `<span class="tfb-ans">✗ ${colorArticleHtml(answer)}</span>`;
   const tc = document.getElementById("t-correct"), tw = document.getElementById("t-wrong");
   if (tc) tc.textContent = timerCorrect;
   if (tw) tw.textContent = timerWrong;
@@ -157,6 +164,8 @@ function endTimer(won) {
     if (timerWrong === 0) S.perfectTimerWins = (S.perfectTimerWins || 0) + 1;
     if (timerLeft > (S.bestTimerSecondsLeft || 0)) S.bestTimerSecondsLeft = timerLeft;
   }
+  questEvent("timer_end", { won, words: timerWordCount });
+  logEvent("session_end", { kind: "timer", abandoned: false, n: timerCorrect + timerWrong, ok: timerCorrect, won });
   checkAchievements({ type: "timer_end", won, perfect: won && timerWrong === 0, words: timerWordCount, winsToday: S.timerWinsToday || 0 });
   const perfBonus = Math.max(0, (timerCorrect - timerWrong) * 6);
   const winBonus = won ? timerWordCount : 0;

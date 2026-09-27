@@ -159,8 +159,12 @@ function loadFromCloud() {
       S = cloudState;
       migrate();
       recordLogin();
+      if (typeof questEnsureToday === "function") questEnsureToday();
+      if (typeof applyCosmetics === "function") applyCosmetics();
+      if (typeof invalidatePathScan === "function") invalidatePathScan();
       renderExpBar();
       renderGroups();
+      if (typeof renderHome === "function") renderHome();
       // What we just loaded IS the cloud content — seed the save diff
       // cache so the next commit only writes docs that really changed.
       const docs = buildSyncDocs();

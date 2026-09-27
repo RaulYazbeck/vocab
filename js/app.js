@@ -16,16 +16,25 @@ function startSession() {
 
 // ── SHOW SCREEN ───────────────────────────────
 function showScreen(name) {
+  // Leaving a Today session through the header or Settings ends it
+  // properly (answers are already saved) instead of orphaning it.
+  if (typeof pathSession !== "undefined" && pathSession) endPathSession(true);
   showGameScreen();
   const island = document.getElementById('floating-island');
   if (island) island.style.display = 'none';
+  if (typeof logScreen === "function") logScreen(name);
   if (name === "stats")         renderStatsChoice();
+  else if (name === "journey")  renderJourney();
+  else if (name === "collection") renderCollection();
   else if (name === "badges")   renderBadgesScreen();
   else if (name === "edits")    renderWordEditsScreen();
   else if (name === "forecast") renderAnkiForecast();
   else if (name === "games")    openGamesHub(null);
 }
 function backToMenu() {
+  if (typeof pathSession !== "undefined" && pathSession) endPathSession(true);
+  if (typeof stopPathVoice === "function") stopPathVoice();
+  activeMode = selectionType() === "anki" ? "anki" : (activeMode === "path" ? "drill" : activeMode);
   quitAllGames();
   closePoolPicker();
   clearInterval(timerInterval);
@@ -37,9 +46,14 @@ function backToMenu() {
   document.getElementById("main-screen").style.display = "none";
   document.getElementById("groups-container").style.display = "block";
   document.getElementById("exp-bar").style.display = "block";
+  const home = document.getElementById("home");
+  if (home) home.style.display = "";
   renderStartBar();
   renderGroups();
   renderExpBar();
+  renderHome();
+  if (typeof logScreen === "function") logScreen("home");
+  if (typeof questAfterActivity === "function") questAfterActivity();
 }
 
 
@@ -49,8 +63,13 @@ migrate();
 initVoice();
 initSettingsPanel();
 recordLogin();
+questEnsureToday();
+applyCosmetics();
 renderExpBar();
 renderGroups();
+renderHome();
+startUsageClock();
+logEvent("app_open", { standalone: IS_STANDALONE, w: window.innerWidth });
 
 // ── SERVICE WORKER ────────────────────────────
 // Caches the app shell for instant opens and full offline use.

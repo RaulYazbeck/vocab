@@ -11,8 +11,11 @@ function initVoice() {
   load();
   speechSynthesis.onvoiceschanged = load;
 }
+// Quiet mode (path.js) silences everything for the day: speech,
+// chimes and game effects.
+function soundAllowed() { return !(typeof quietActive === "function" && quietActive()); }
 function speak(text) {
-  if (muteEnabled || !window.speechSynthesis) return;
+  if (muteEnabled || !window.speechSynthesis || !soundAllowed()) return;
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = APP_CONFIG.speechLang;
@@ -35,6 +38,7 @@ function getAudioCtx() {
 }
 // notes: [{ freq, at, dur }], volume 0–1, type: oscillator waveform
 function playNotes(notes, volume, type = "sine") {
+  if (!soundAllowed()) return;
   try {
     const ctx = getAudioCtx();
     if (!ctx) return;
@@ -56,6 +60,7 @@ function playSuccess() {
   playNotes([{ freq:659, at:0, dur:0.16 }, { freq:784, at:0.12, dur:0.38 }], 0.25);
 }
 function playFailure() {
+  if (!soundAllowed()) return;
   try {
     const ctx = getAudioCtx();
     if (!ctx) return;
@@ -91,7 +96,7 @@ function playAchievement() {
 // Short arcade effects for the minigames. Unlike the answer chimes
 // above, these follow the 🔇 setting: minigames fire them rapidly, so
 // "Sound off" has to silence them. Haptics follow the same switch.
-function gameSfxOn() { return !muteEnabled; }
+function gameSfxOn() { return !muteEnabled && soundAllowed(); }
 function playPop() {
   if (gameSfxOn()) playNotes([{ freq:880, at:0, dur:0.07 }, { freq:1320, at:0.05, dur:0.09 }], 0.14);
 }
@@ -118,14 +123,18 @@ function playGameOver() {
 function playCountdown(final) {
   if (gameSfxOn()) playNotes([{ freq: final ? 1047 : 659, at:0, dur: final ? 0.25 : 0.1 }], 0.13);
 }
+// Haptics stay on in Quiet mode (they make no sound); off when muted.
 function buzz(pattern) {
-  if (!gameSfxOn()) return;
+  if (muteEnabled) return;
   try { if (navigator.vibrate) navigator.vibrate(pattern); } catch (e) {}
 }
 
 // ── CELEBRATIONS ──────────────────────────────
 const CONFETTI_COLORS = ["#F5A623", "#FFD166", "#00C9B1", "#9B7FE8", "#00D896", "#FF6363"];
 function confettiBurst(count = 36) {
+  // Never stack bursts into a blizzard: top up to a ceiling instead.
+  const live = document.querySelectorAll(".confetti-piece").length;
+  count = Math.min(count, Math.max(0, 70 - live));
   for (let i = 0; i < count; i++) {
     const piece = document.createElement("div");
     piece.className = "confetti-piece";
@@ -166,3 +175,8 @@ function showComboFlash(n) {
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 2100);
 }
+
+// Unified haptic vocabulary: light = select, double = correct streak,
+// strong = miss / heart lost.
+const HAPTICS = { select: 8, correct: [10, 40, 10], miss: 40, heavy: [60, 40, 60], drop: 12 };
+function haptic(kind) { buzz(HAPTICS[kind] || 10); }

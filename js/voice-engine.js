@@ -40,7 +40,11 @@ function voiceEngineSettingLabel() {
 
 // ── RESULT PIPELINE (shared by both engines) ──
 
+// Screens that capture a single spoken answer (the Path) install a
+// handler here and get every result instead of the drill/timer flow.
+let voiceCapture = null;
 function routeVoiceResult(correct, heard, isSkip = false) {
+  if (typeof voiceCapture === "function") { voiceCapture(correct, heard, isSkip); return; }
   const isTimerVoice = activeMode === "timer" && voiceEnabled;
   if (isTimerVoice) handleVoiceTimerResult(correct, heard, isSkip);
   else              handleVoiceResult(correct, heard, isSkip);

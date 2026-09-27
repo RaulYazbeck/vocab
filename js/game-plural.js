@@ -56,11 +56,16 @@ function _pluralItem(word) {
 function pluralWords(pool) { return dedupeWords(pool.filter(w => pluralItem(w))); }
 
 if (!IS_FRENCH_APP) registerGame({
-  id: "plural", name: "Plural Hunt", icon: "🔢", skill: "Grammar · plurals",
+  id: "plural", name: "Plural Hunt", icon: "🔢", skill: "Grammar · plurals", credit: null,
+  ranks: [
+    { options: 4 }, { options: 4 }, { options: 5 }, { options: 6, typed: true }, { options: 6, typed: true },
+  ],
+  twists: ["golden", "sudden"],
   howTo: [
     "You see a noun in the singular. Pick its plural.",
     "The wrong answers follow real German patterns (-e, -en, -er, -s, umlauts…) — trust your ear!",
-    "Streaks add bonus points. Keys 1–4 work too.",
+    "From 💠 Platinum you type the plural of nouns you know. A miss costs points (half for 🌱 new words).",
+    "Right on three different days → the plural joins your collection. Keys 1–6 work too.",
   ],
   requirement(pool) {
     const n = pluralWords(pool).length;
@@ -71,55 +76,81 @@ if (!IS_FRENCH_APP) registerGame({
     const total = ctx.rounds(10, 5, 5);
     const eligible = pluralWords(ctx.pool);
     const words = sampleWords(eligible, total);
-    let r = 0, score = 0, combo = 0, maxCombo = 0, correct = 0, wrong = 0, q = null;
+    let r = 0, score = 0, combo = 0, maxCombo = 0, correct = 0, wrong = 0, typedOk = 0, collected = 0, q = null;
+    const done = () => ctx.finish({ score, correct, wrong, maxCombo, typedCorrect: typedOk,
+      note: collected ? `🔢 ${collected} plural${collected > 1 ? "s" : ""} added to your collection` : "" });
 
     const round = () => {
-      if (r >= words.length) { ctx.finish({ score, correct, wrong, maxCombo }); return; }
+      if (r >= words.length) { done(); return; }
       const w = words[r++];
       const item = pluralItem(w);
-      const opts = shuffle([{ text: "die " + item.pl, correct: true },
-        ...shuffle(item.others.slice()).slice(0, 3).map(o => ({ text: "die " + o, correct: false }))]);
-      q = { w, item, opts };
+      const f = ctx.fmt(w);
+      const typed = !!ctx.rp.typed && f.typed && ctx.size === "full";
+      const n = Math.min(f.options, item.others.length + 1);
+      const opts = typed ? [] : shuffle([{ text: "die " + item.pl, correct: true },
+        ...shuffle(item.others.slice()).slice(0, n - 1).map(o => ({ text: "die " + o, correct: false }))]);
+      q = { w, item, opts, typed };
       ctx.setBar((r - 1) / words.length, "progress");
       ctx.setClock(`${r}/${words.length}`);
       ctx.stage.innerHTML = `
         <div class="g-question g-enter">
-          <div class="g-q-label">One → many</div>
+          <div class="g-q-label">One → many${ctx.tag(w)}</div>
           <div class="g-q-word target"><span class="${genderClass(item.np.answer)}-text">${escapeHtml(item.np.full)}</span></div>
           <div class="g-q-sub">${escapeHtml(gamePrompt(w))}</div>
           <div class="pl-arrow">↓ plural</div>
         </div>
-        ${mcOptionsHtml(opts, "mono")}`;
+        ${typed ? gTypedHtml("die …") : mcOptionsHtml(opts, "mono")}`;
+      if (typed) gTypedBind(ctx, v => answerTyped(v));
       ctx.busy = false;
+    };
+    const good = (btn) => {
+      correct++; combo++; maxCombo = Math.max(maxCombo, combo);
+      if (collectAttr(q.w, "p")) collected++;
+      const pts = ctx.award(q.w, 10 + Math.min(combo - 1, 5) * 2);
+      score += pts;
+      floatScore(btn, "+" + pts, ctx.isGolden(q.w) ? "gold" : "");
+      if (combo >= 3) playCombo(combo); else playPop();
+      haptic("select");
+      ctx.say(`Correct — ${q.item.np.full} → die ${q.item.pl}`);
+      gTimeout(round, 1000);
+    };
+    const bad = (btn) => {
+      wrong++;
+      combo = ctx.comboAfterMiss(combo, q.w);
+      const pen = Math.round(6 * ctx.cost(q.w));
+      score = Math.max(0, score - pen);
+      if (btn) { shakeEl(btn); floatScore(btn, "−" + pen, "bad"); }
+      playMiss(); haptic("miss");
+      ctx.missed(q.w);
+      ctx.say(`${q.item.np.full} → die ${q.item.pl}`);
+      gTimeout(ctx.sudden ? done : round, 1800);
     };
 
     const answer = i => {
-      if (!q || ctx.busy || ctx.finished) return;
+      if (!q || q.typed || ctx.busy || ctx.finished) return;
+      if (!q.opts[i]) return;
       ctx.busy = true;
       const btn = ctx.stage.querySelector(`.g-opt[data-i="${i}"]`);
       mcReveal(ctx.stage, q.opts, i);
-      const realText = "die " + q.item.pl;
-      speak(realText);
-      if (q.opts[i].correct) {
-        correct++; combo++; maxCombo = Math.max(maxCombo, combo);
-        const pts = 10 + Math.min(combo - 1, 5) * 2;
-        score += pts;
-        floatScore(btn, "+" + pts);
-        if (combo >= 3) playCombo(combo); else playPop();
-        ctx.say(`Correct — ${q.item.np.full} → ${realText}`);
-        gTimeout(round, 1000);
-      } else {
-        wrong++; combo = 0;
-        shakeEl(btn); playMiss(); buzz(40);
-        ctx.missed(q.w);
-        ctx.say(`${q.item.np.full} → ${realText}`);
-        gTimeout(round, 1800);
-      }
+      speak("die " + q.item.pl);
+      if (q.opts[i].correct) good(btn); else bad(btn);
+      ctx.setScore(score); ctx.setCombo(combo);
+    };
+    const answerTyped = v => {
+      if (!q || !q.typed || ctx.busy || ctx.finished) return;
+      ctx.busy = true;
+      const input = document.getElementById("g-typed");
+      const res = gradeTyped(v.replace(/^\s*die\s+/i, ""), [q.item.pl]);
+      speak("die " + q.item.pl);
+      const sub = ctx.stage.querySelector(".pl-arrow");
+      if (res === true) { typedOk++; if (input) input.classList.add("correct"); if (sub) sub.textContent = `✓ die ${q.item.pl}`; good(input); }
+      else if (res === "near") { if (input) input.classList.add("near"); if (sub) sub.innerHTML = `≈ die ${diffHtml(v.replace(/^\s*die\s+/i, ""), q.item.pl)}`; ctx.say("Almost — check the spelling"); gTimeout(round, 1800); }
+      else { if (input) input.classList.add("wrong"); if (sub) sub.textContent = `die ${q.item.pl}`; bad(input); }
       ctx.setScore(score); ctx.setCombo(combo);
     };
 
     gListen(ctx.stage, "click", e => { const b = e.target.closest(".g-opt"); if (b) answer(+b.dataset.i); });
-    ctx.onKey = e => { const i = digitKey(e, 4); if (i >= 0) { e.preventDefault(); answer(i); } };
+    ctx.onKey = e => { const i = digitKey(e, q && q.opts.length ? q.opts.length : 4); if (i >= 0) { e.preventDefault(); answer(i); } };
     ctx.setScore(0);
     round();
   },

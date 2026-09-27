@@ -42,7 +42,7 @@ function renderExpBar() {
     : "";
   document.getElementById("exp-bar").innerHTML = `
     <div class="exp-bar-wrap">
-      <div class="exp-level">Lv ${lv}</div>
+      <div class="exp-level">Lv ${lv}${typeof activeTitle === "function" && activeTitle() ? ` <span class="exp-title">${activeTitle().icon} ${escapeHtml(activeTitle().name)}</span>` : ""}</div>
       <div class="exp-track"><div class="exp-fill" style="width:${pct}%"></div></div>
       <div class="exp-label">${cur}/${need} XP</div>
       ${streakHtml}
@@ -58,16 +58,19 @@ function renderExpBar() {
 const GOAL_OPTIONS = [10, 20, 50, 100, 150];
 const GOAL_WEEK_TARGET = 5;
 function getDailyGoal() {
+  // A finish date sizes the goal to the day's real work (see path.js).
+  const plan = typeof pathEnsurePlan === "function" && S.path ? pathEnsurePlan() : null;
+  if (plan) return plan.goal;
   return GOAL_OPTIONS.includes(S.dailyGoal) ? S.dailyGoal : 20;
 }
 
-// Minigames feed the goal at a discount: every GAME_GOAL_RATIO correct
-// game answers count as one, and games alone can fill at most half the
-// goal — so reaching it always takes some real (typed) recall.
-const GAME_GOAL_RATIO = 3;
+// Every correct answer counts toward the goal — typed, spoken, choice,
+// Anki or games. Games count 1:1 but can fill at most GAME_GOAL_SHARE of
+// the goal, so reaching it always takes real (typed) recall.
+const GAME_GOAL_SHARE = 0.3;
 function gameGoalCredit() {
   if (S.gameCorrectDate !== todayISO()) return 0;
-  return Math.min(Math.floor((S.gameCorrectToday || 0) / GAME_GOAL_RATIO), Math.floor(getDailyGoal() / 2));
+  return Math.min(S.gameCorrectToday || 0, Math.floor(getDailyGoal() * GAME_GOAL_SHARE));
 }
 function drillCorrectTodayCount() {
   return S.drillMilestonesDate === todayISO() ? (S.drillCorrectToday || 0) : 0;

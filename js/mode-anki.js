@@ -192,6 +192,10 @@ function ankiRate(rating) {
 
   const xpMap = [0, 2, 4, 8];
   if (xpMap[rating] > 0) addExp(xpMap[rating]);
+  // Hard/Good/Easy count toward the daily goal like any correct answer.
+  if (rating >= 1) checkDrillMilestone();
+  logEvent("answer", { m: "anki", ok: rating >= 1 });
+  if (typeof questEvent === "function") questEvent("answer", { mode: "anki", ok: rating >= 1, typed: false });
 
   saveState();
   ankiNextCard();
@@ -199,6 +203,8 @@ function ankiRate(rating) {
 
 function showGameScreen() {
   document.getElementById("main-screen").style.display = "block";
+  const home = document.getElementById("home");
+  if (home) home.style.display = "none";
   document.getElementById("groups-container").style.display = "none";
   document.getElementById("start-bar").style.display = "none";
   document.getElementById("exp-bar").style.display = "none";
@@ -353,6 +359,7 @@ function renderAnkiDone() {
 
   if (total > 0) {
     S.ankiSessions = (S.ankiSessions || 0) + 1;
+    if (typeof questEvent === "function") questEvent("anki_done", {});
     addExp(25);
     confettiBurst(36);
     checkAchievements({ type: "anki_complete" });

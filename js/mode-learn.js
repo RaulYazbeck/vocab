@@ -38,7 +38,7 @@ function renderLearnCard() {
     <div id="unlock-row-learn"></div>
     <div class="learn-card">
       <div class="learn-en">${w.en}</div>
-      <div class="learn-de">${w[WORD_KEY]}</div>
+      <div class="learn-de">${colorArticleHtml(w[WORD_KEY])}</div>
       ${w.pl ? `<div class="learn-hint">plural: ${w.pl}</div>` : ""}
       <div class="learn-hint">${w.hint}</div>
       ${examplesHtml(w, "all")}
@@ -51,7 +51,23 @@ function renderLearnCard() {
   </div>`;
   renderUnlockRow("unlock-row-learn");
 }
-function learnGotIt()  { learnIndex++; addExp(5); saveState(); renderLearnCard(); }
+function learnGotIt()  {
+  const w = learnQueue[learnIndex];
+  if (w && introduceWord(getWS(w.deckId, w.idx))) {
+    if ((S.unlocked[w.deckId] || 0) < w.idx + 1) S.unlocked[w.deckId] = w.idx + 1;
+    if (typeof questEvent === "function") questEvent("met", { w });
+  }
+  learnIndex++; addExp(5); saveState(); renderLearnCard();
+}
+// Meeting a word (Learn card): it joins the Path at stage 1 and waits
+// for its first correct recall to be scheduled.
+function introduceWord(ws, now = Date.now()) {
+  if (stageOf(ws)) return false;
+  ws.st = 1; ws.pk = Math.max(ws.pk || 0, 1);
+  ws.lrn = 1; ws.sAt = now; ws.dueAt = now;
+  ws.metOn = studyToday();
+  return true;
+}
 function learnNotYet() {
   const w = learnQueue[learnIndex];
   learnQueue.splice(learnIndex, 1);
