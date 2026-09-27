@@ -648,3 +648,10 @@ body.g-drag-active { user-select:none; -webkit-user-select:none; cursor:grabbing
 .g-options > .g-opt.right:last-child:nth-child(odd) { animation-name:gOptPopWide; }
 @keyframes gOptPop { 0% { transform:scale(1); } 45% { transform:scale(1.06); } 100% { transform:scale(1); } }
 @keyframes gOptPopWide { 0% { transform:scale(1); } 45% { transform:scale(1.02); } 100% { transform:scale(1); } }
+/* Countdown dead centre; no scrollbar flashing on the right of a game. */
+.g-countdown { margin:auto; line-height:1; }
+.g-overlay { scrollbar-width:none; }
+.g-overlay::-webkit-scrollbar { display:none; }
+#game-screen { overflow:hidden; }
+.g-bonus-goal { color:var(--gold); font-weight:800; }
+.g-bonus-goal.done { color:var(--success); }

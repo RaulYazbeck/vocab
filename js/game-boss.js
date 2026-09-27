@@ -31,7 +31,7 @@ const BOSSES = [
 const BOSS_RANKS = [
   { hp: 8, hearts: 3 }, { hp: 10, hearts: 3 }, { hp: 12, hearts: 2 }, { hp: 14, hearts: 2 }, { hp: 16, hearts: 1, timer: 12000 },
 ];
-const DECK_BOSS_UNLOCK = 12;
+const DECK_BOSS_UNLOCK = 12; // legacy (quests); the 👑 boss now needs the whole deck met
 const BOSS_CREATURES = [
   ["Kraken", "🐙"], ["Dragon", "🐉"], ["Golem", "🗿"], ["Hydra", "🐍"], ["Wyvern", "🐲"], ["Troll", "🧌"],
   ["Phantom", "👻"], ["Sphinx", "🦁"], ["Basilisk", "🦎"], ["Manticore", "🦂"], ["Yeti", "❄️"], ["Minotaur", "🐂"],
@@ -64,17 +64,33 @@ function deckMetWords(deckId) {
   d.words.forEach((w, i) => { const ws = S.words[d.id + "_" + i]; if (ws && ws.st) out.push({ ...w, deckId: d.id, deckName: d.name, idx: i, anki: false }); });
   return out;
 }
-function deckBossHp(deckId) { return Math.max(8, Math.min(30, deckMetWords(deckId).length)); }
-// Decks whose boss can be fought now (not already beaten today).
+// 👑 The ultimate deck boss: unlocks once every word of the deck is met,
+// has the whole deck as HP and must be beaten without a single mistake.
+function deckBossReady(deckId) { const d = getDeck(deckId); return !!d && deckMetWords(deckId).length >= d.words.length; }
+function deckBossHp(deckId) { const d = getDeck(deckId); return d ? d.words.length : 0; }
+// Decks whose ultimate boss can be fought now (not already beaten today).
 function deckBossesAvailable() {
   const out = [];
   const today = todayISO();
   vocabGroups().forEach(g => g.decks.forEach(d => {
-    const met = deckMetWords(d.id).length;
     const rec = S.games.bestiary[d.id];
-    if (met >= DECK_BOSS_UNLOCK && !(rec && rec.last === today)) out.push(d.id);
+    if (deckBossReady(d.id) && !(rec && rec.last === today)) out.push(d.id);
   }));
   return out;
+}
+// ⚔️ Minions: the weak version, met by surprise inside Today sessions —
+// 10 words of a deck, 3 lives. A win is a small trophy, not the 👑 kill.
+const MINION_WORDS = 10, MINION_CHANCE = 0.10;
+function minionDeckPick(rng = Math.random) {
+  const ds = [];
+  vocabGroups().forEach(g => g.decks.forEach(d => { const n = deckMetWords(d.id).length; if (n >= MINION_WORDS) ds.push({ id: d.id, w: n }); }));
+  const p = weightedPick(ds, rng);
+  return p ? p.id : null;
+}
+function startMinion(deckId, onDone) {
+  const pool = deckMetWords(deckId);
+  gameRun = { kind: "surprise", ids: ["boss"], i: 0, summaries: [], pool, size: "bonus", title: "⚔️ Minion", onDone };
+  launchGame("boss", { pool, size: "bonus", bossMode: "minion", deck: deckId });
 }
 function deckBossBadge(deckId) {
   const rec = S.games.bestiary[deckId];
@@ -84,17 +100,17 @@ function deckBossBadge(deckId) {
 function deckBossRowHtml(deckId) {
   const b = deckBoss(deckId), rec = S.games.bestiary[deckId] || {};
   const met = deckMetWords(deckId).length;
-  const ok = met >= DECK_BOSS_UNLOCK;
+  const ok = deckBossReady(deckId);
   return `<div class="boss-row">
     <span class="boss-row-icon">${ok || rec.wins ? b.icon : "🔒"}</span>
-    <span class="boss-row-body"><b>${ok || rec.wins ? escapeHtml(b.name) : "Deck boss"}</b>
-      <small>${rec.wins ? `Defeated ${rec.wins}× ${rec.perfect ? "· 🏅 perfect" : ""} · HP now ${deckBossHp(deckId)}` : ok ? `HP ${deckBossHp(deckId)} · a typed final exam on this deck` : `Meet ${DECK_BOSS_UNLOCK - met} more word${DECK_BOSS_UNLOCK - met === 1 ? "" : "s"} to unlock`}</small></span>
+    <span class="boss-row-body"><b>${ok || rec.wins ? `👑 ${escapeHtml(b.name)}` : "👑 Deck boss"}</b>
+      <small>${rec.wins ? `Defeated ${rec.wins}× · the whole deck, no mistakes${rec.minions ? ` · ⚔️ ${rec.minions} minion${rec.minions > 1 ? "s" : ""}` : ""}` : ok ? `All ${deckBossHp(deckId)} words · no mistakes allowed` : `Unlocks when all ${getDeck(deckId).words.length} words are met (${met} so far)${rec.minions ? ` · ⚔️ ${rec.minions} minion${rec.minions > 1 ? "s" : ""} beaten` : ""}`}</small></span>
     ${ok ? `<button class="g-sec-btn" onclick="startDeckBoss('${deckId}')">${rec.wins ? "Rematch" : "Fight"} ⚔️</button>` : ""}
   </div>`;
 }
 function startDeckBoss(deckId) {
   const pool = deckMetWords(deckId);
-  if (pool.length < DECK_BOSS_UNLOCK) { showCelebrateToast("🔒", "Deck boss", `Meet ${DECK_BOSS_UNLOCK} words of this deck first`); return; }
+  if (!deckBossReady(deckId)) { showCelebrateToast("🔒", "👑 Deck boss", `Meet all ${deckBossHp(deckId)} words of this deck first (${pool.length} so far)`); return; }
   launchGame("boss", { pool, size: "full", bossMode: "deck", deck: deckId });
 }
 
@@ -136,7 +152,7 @@ function bossRowHtml() {
     ${show.length ? `<div class="boss-decks">${show.map(id => { const b = deckBoss(id), rec = S.games.bestiary[id] || {};
       return `<button class="boss-chip ${rec.wins ? "won" : ""}" onclick="startDeckBoss('${id}')" title="${escapeHtml(getDeck(id).name)}">
         <span>${b.icon}</span><small>${escapeHtml(b.name)}</small><em>HP ${deckBossHp(id)}${rec.wins ? " · ⚔️" : ""}</em></button>`; }).join("")}</div>`
-      : `<div class="boss-hint">Deck bosses unlock once you've met ${DECK_BOSS_UNLOCK} words of a deck.</div>`}
+      : `<div class="boss-hint">👑 A deck's boss unlocks once every word of it is met. Its minions may show up in your sessions before that.</div>`}
   </div>`;
 }
 function renderBestiary() {
@@ -147,11 +163,12 @@ function renderBestiary() {
       const b = deckBoss(d.id), rec = S.games.bestiary[d.id] || {};
       const met = deckMetWords(d.id).length;
       const known = rec.wins > 0;
-      return `<button class="bst-tile ${known ? "won" : met >= DECK_BOSS_UNLOCK ? "ready" : "locked"}" ${met >= DECK_BOSS_UNLOCK ? `onclick="startDeckBoss('${d.id}')"` : "disabled"}>
-        <span class="bst-icon">${known || met >= DECK_BOSS_UNLOCK ? b.icon : "❔"}</span>
-        <span class="bst-name">${known ? escapeHtml(b.name) : met >= DECK_BOSS_UNLOCK ? escapeHtml(b.name) : "???"}</span>
+      const ready = deckBossReady(d.id), seen = known || ready || rec.minions;
+      return `<button class="bst-tile ${known ? "won" : ready ? "ready" : "locked"}" ${ready ? `onclick="startDeckBoss('${d.id}')"` : "disabled"}>
+        <span class="bst-icon">${seen ? b.icon : "❔"}</span>
+        <span class="bst-name">${seen ? (known ? "👑 " : "") + escapeHtml(b.name) : "???"}</span>
         <span class="bst-deck">${d.icon} ${escapeHtml(d.name)}</span>
-        <span class="bst-rec">${known ? `${rec.wins}× ${rec.perfect ? "🏅" : ""}` : met >= DECK_BOSS_UNLOCK ? "ready ⚔️" : `${met}/${DECK_BOSS_UNLOCK} met`}</span>
+        <span class="bst-rec">${known ? `👑 ${rec.wins}×` : ready ? "ready ⚔️" : `${met}/${d.words.length} met`}${rec.minions ? ` · ⚔️${rec.minions}` : ""}</span>
       </button>`;
     }).join("");
     return `<div class="stats-section-title" style="margin-top:12px">${g.icon} ${escapeHtml(g.name)}</div><div class="bst-grid">${tiles}</div>`;
@@ -177,7 +194,7 @@ registerGame({
     return n >= 4 ? { ok: true } : { ok: false, reason: `Needs 4 words — you have ${n}` };
   },
   starsFor(res) { return !res.won ? 0 : res.wrong === 0 ? 3 : res.hearts >= 2 ? 2 : 1; },
-  xpFor(res) { return res.won ? (res.world ? 150 : 50) : 0; }, // per-answer XP is paid live, like Drill
+  xpFor(res) { return res.won ? (res.world ? 150 : res.deck ? 200 : res.minion ? 25 : 50) : 0; }, // per-answer XP is paid live, like Drill
   onRecord(res) { if (res.won) S.games.bossesDefeated = (S.games.bossesDefeated || 0) + 1; },
   start(ctx) {
     const mode = ctx.opts.bossMode || "weak";
@@ -186,15 +203,18 @@ registerGame({
     // Weakest first (a little jitter so equal words vary between fights).
     const ranked = dedupeWords(ctx.pool.map(w => ({ w, k: wordWeakness(w) + Math.random() * 1.5 }))
       .sort((a, b) => b.k - a.k).map(x => x.w));
-    const size = mode === "deck" ? deckBossHp(ctx.opts.deck) : mode === "world" ? Math.min(12, world.hp) : rp.hp;
+    const size = mode === "deck" ? deckBossHp(ctx.opts.deck) : mode === "minion" ? MINION_WORDS : mode === "world" ? Math.min(12, world.hp) : rp.hp;
     const queue = ranked.slice(0, size);
     while (queue.length < size && ranked.length) queue.push(...shuffle(ranked.slice()).slice(0, size - queue.length));
     const maxHp = mode === "world" ? world.max : queue.length;
     let hp = mode === "world" ? world.hp : maxHp;
     const skin = typeof activeBossSkin === "function" ? activeBossSkin() : null;
-    const boss = mode === "deck" ? deckBoss(ctx.opts.deck) : mode === "world" ? { icon: world.icon, name: world.name }
+    const boss = mode === "deck" ? deckBoss(ctx.opts.deck) : mode === "minion" ? { icon: deckBoss(ctx.opts.deck).icon, name: deckBoss(ctx.opts.deck).name + " minion" }
+      : mode === "world" ? { icon: world.icon, name: world.name }
       : skin ? { icon: skin.icon, name: skin.name } : BOSSES[Math.floor((S.games.bossesDefeated || 0) / 3) % BOSSES.length];
-    const maxHearts = ctx.sudden ? 1 : rp.hearts;
+    // 👑 Deck boss: flawless or nothing. Minion: 3 lives.
+    const flawless = ctx.sudden || mode === "deck";
+    const maxHearts = flawless ? 1 : mode === "minion" ? 3 : rp.hearts;
     let hearts = maxHearts, correct = 0, wrong = 0, combo = 0, maxCombo = 0, dealt = 0, typedOk = 0;
     const perWord = ctx.size === "full" && rp.timer ? rp.timer * ctx.timeScale : 0;
     let wordStart = 0;
@@ -203,7 +223,8 @@ registerGame({
     ctx.stage.innerHTML = `
       <div class="bb-arena" id="bb-arena">
         <div class="bb-boss" id="bb-boss">${boss.icon}</div>
-        <div class="bb-name">${escapeHtml(boss.name)}${mode === "world" ? " · 🌋 world boss" : mode === "deck" ? ` · ${escapeHtml(getDeck(ctx.opts.deck).name)}` : ""}</div>
+        <div class="bb-name">${mode === "deck" ? "👑 " : ""}${escapeHtml(boss.name)}${mode === "world" ? " · 🌋 world boss" : mode === "deck" || mode === "minion" ? ` · ${escapeHtml(getDeck(ctx.opts.deck).name)}` : ""}</div>
+        ${mode === "deck" ? `<div class="bb-rule">The whole deck — one mistake and it escapes</div>` : mode === "minion" ? `<div class="bb-rule">${MINION_WORDS} words · 3 lives</div>` : ""}
         <div class="bb-hp"><div class="bb-hp-fill" id="bb-hp"></div></div>
         <div class="bb-hp-label" id="bb-hp-label"></div>
       </div>
@@ -244,7 +265,8 @@ registerGame({
     const end = won => {
       const score = correct * 10 + Math.round(hearts * 20) + (won ? 50 : 0) + ctx.golden * 20;
       if (mode === "world") {
-        world.hp = Math.max(0, hp);
+        // Losing every heart lets the world boss recover; retreating keeps your damage.
+        world.hp = !won && hearts <= 0 ? world.max : Math.max(0, hp);
         if (won && !world.defeated) {
           world.defeated = true;
           S.games.worldWins = (S.games.worldWins || 0) + 1;
@@ -253,13 +275,22 @@ registerGame({
       }
       if (mode === "deck" && won) {
         const rec = S.games.bestiary[ctx.opts.deck] || (S.games.bestiary[ctx.opts.deck] = { wins: 0 });
-        rec.wins++; rec.last = todayISO();
-        if (wrong === 0) rec.perfect = 1;
+        rec.wins++; rec.last = todayISO(); rec.perfect = 1;
+        if (typeof questQueueChest === "function") questQueueChest("boss", "epic");
       }
-      questEvent("boss", { won, perfect: won && wrong === 0, ms: Math.round(ctx.clock.elapsed()), deck: mode === "deck" ? ctx.opts.deck : null, world: mode === "world" });
-      ctx.finish({ score, correct, wrong, maxCombo, won, hearts, world: mode === "world", dealt,
-        note: mode === "world" ? (won ? "🌋 World boss defeated — an Epic chest is waiting!" : `🌋 You dealt ${dealt} damage — the world boss has ${Math.max(0, hp)} HP left this week.`)
-          : mode === "deck" && won ? `📖 ${boss.name} added to your Bestiary` : "" });
+      if (mode === "minion" && won) {
+        const rec = S.games.bestiary[ctx.opts.deck] || (S.games.bestiary[ctx.opts.deck] = { wins: 0 });
+        rec.minions = (rec.minions || 0) + 1;
+        if (typeof questQueueChest === "function") questQueueChest("minion", "common");
+      }
+      // Minions count for the "any boss" quests (and the weekly saga), not
+      // for the 👑 deck-boss or weakest-words ones. Their answers already
+      // count as Today-session answers (they happen inside one).
+      questEvent("boss", { won, perfect: won && wrong === 0, ms: Math.round(ctx.clock.elapsed()), deck: mode === "deck" ? ctx.opts.deck : null, world: mode === "world", minion: mode === "minion" });
+      ctx.finish({ score, correct, wrong, maxCombo, won, hearts, world: mode === "world", deck: mode === "deck", minion: mode === "minion", dealt,
+        note: mode === "world" ? (won ? "🌋 World boss defeated — an Epic chest is waiting!" : hearts <= 0 ? "🌋 The world boss recovered — it's back to full HP." : `🌋 You dealt ${dealt} damage — the world boss has ${Math.max(0, hp)} HP left this week.`)
+          : mode === "deck" ? (won ? `👑 ${boss.name} defeated — the whole deck, flawless. An Epic chest is waiting!` : `👑 ${boss.name} escaped. It's back to full strength — the whole deck, no mistakes.`)
+          : mode === "minion" && won ? `⚔️ Minion defeated — the 👑 ${deckBoss(ctx.opts.deck).name} still waits for the whole deck.` : "" });
     };
 
     const attack = skip => {
@@ -290,7 +321,7 @@ registerGame({
           sessionConsecutive++;
           addExp(first ? 10 : 5);
           applyCorrect(ws, { w });
-          questEvent("answer", { mode: "boss", ok: true, typed: true, w });
+          questEvent("answer", { mode: mode === "minion" ? "path" : "boss", ok: true, typed: true, w });
         } else addExp(5);
         ctx.award(w, 1);
         saveState();
@@ -309,9 +340,9 @@ registerGame({
           gTimeout(() => end(true), 1100);
         } else gTimeout(show, 750);
       } else {
-        const cost = ctx.sudden ? hearts : ctx.cost(w);
+        const cost = flawless ? hearts : ctx.cost(w);
         wrong++; hearts = Math.max(0, hearts - cost); combo = ctx.comboAfterMiss(combo, w);
-        if (!w.anki) { applyWrong(getWS(w.deckId, w.idx), { w }); questEvent("answer", { mode: "boss", ok: false, typed: true, w }); }
+        if (!w.anki) { applyWrong(getWS(w.deckId, w.idx), { w }); questEvent("answer", { mode: mode === "minion" ? "path" : "boss", ok: false, typed: true, w }); }
         sessionConsecutive = 0;
         saveState();
         ctx.missed(w);

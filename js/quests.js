@@ -763,7 +763,8 @@ function questEvent(type, d = {}) {
         m.bosses++; questWeekBump("bosses", 1);
         if (d.perfect) m.bossPerfect++;
         if (d.ms && d.ms < 60000) m.bossFast++;
-        if (d.deck) m.deckBosses[d.deck] = 1; else if (!d.world) m.weakBoss++;
+        if (d.minion) m.minions = (m.minions || 0) + 1;
+        else if (d.deck) m.deckBosses[d.deck] = 1; else if (!d.world) m.weakBoss++;
       }
       break;
     }
@@ -1038,7 +1039,7 @@ function openPendingChest() {
   saveState();
   showChestModal(ch, res);
 }
-const CHEST_SRC = { daily: "Daily chest", weekly: "Weekly chest", flash: "Flash quest chest", lucky: "Lucky drop", double: "✨ Double reward", weekend: "Weekend bonus", world: "World boss chest", saga: "Saga chest" };
+const CHEST_SRC = { daily: "Daily chest", weekly: "Weekly chest", flash: "Flash quest chest", lucky: "Lucky drop", double: "✨ Double reward", weekend: "Weekend bonus", world: "World boss chest", saga: "Saga chest", boss: "👑 Deck boss chest", minion: "⚔️ Minion chest" };
 function showChestModal(ch, res) {
   const info = RARITY_INFO[res.rar];
   const old = document.getElementById("chest-modal"); if (old) old.remove();

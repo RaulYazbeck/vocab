@@ -73,8 +73,18 @@ function voiceIsCorrect(transcript, answer) {
   return answer.split("/").some(alt => {
     const normA = normalize(alt.trim());
     if (!normA) return false;
+    // Articles must be said exactly, in order — never fuzzy, never dropped.
+    const arts = typeof articleSeq === "function" ? articleSeq(normA).split(" ").filter(Boolean) : [];
+    if (arts.length) {
+      let k = 0;
+      for (const t of normT.split(" ")) if (t === arts[k]) k++;
+      if (k < arts.length) return false;
+    }
     if (normT.includes(normA)) return true;
-    if (normA.includes(normT) && normT.length > 2) return true;
+    // A clipped transcript is fine, but it must hold the actual word (not
+    // just the article) and most of the answer.
+    if (normA.includes(normT) && normT.length > 2 && normT.length >= normA.length * 0.6 &&
+        normT.split(" ").some(t => !(typeof ARTICLE_TOKENS !== "undefined" && ARTICLE_TOKENS.test(t)))) return true;
     if (normA.length >= 4) {
       const whole = 1 - levenshtein(normT, normA) / Math.max(normT.length, normA.length);
       if (whole >= 0.8) return true;

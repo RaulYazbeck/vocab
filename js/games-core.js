@@ -706,6 +706,7 @@ function launchGame(id, opts = {}) {
         <span class="g-stat g-lives" id="g-lives"></span>
         <span class="g-stat g-combo" id="g-combo"></span>
         <span class="g-stat g-clock" id="g-clock"></span>
+        ${opts.size === "bonus" ? `<span class="g-stat g-bonus-goal" id="g-bonus-goal" title="Bonus target">🎯 0/${bonusGoal(def.id)}</span>` : ""}
       </div>
       <div class="g-bar"><div class="g-bar-fill" id="g-bar-fill"></div></div>
       <div class="g-stage" id="g-stage"></div>
@@ -868,6 +869,11 @@ function makeCtx(def, pool, size, opts) {
     },
     // Points for a hit: 🌱 words ×1.5 (they take longer), golden ×3.
     award(w, pts) {
+      if (size === "bonus") {
+        ctx.bonusHits = (ctx.bonusHits || 0) + 1;
+        const b = document.getElementById("g-bonus-goal");
+        if (b) { b.textContent = `🎯 ${Math.min(ctx.bonusHits, bonusGoal(def.id))}/${bonusGoal(def.id)}`; b.classList.toggle("done", ctx.bonusHits >= bonusGoal(def.id)); }
+      }
       let p = pts;
       if (w && isRookie(w)) p = Math.round(p * 1.5);
       if (ctx.isGolden(w)) { p *= 3; ctx.golden++; }
@@ -1096,10 +1102,19 @@ function applyGameCredit(ctx) {
   return out;
 }
 
+// Bonus rounds (inside Today sessions and Drill): one clear target per
+// game — the same number on the offer card, in the HUD and at the end.
+const BONUS_GOALS = { boss: 10, listen: 4, cloze: 4, builder: 3, scramble: 4, plural: 4, conj: 4, gender: 5, blitz: 6, truefalse: 8, typerush: 5, rain: 6, match: 4 };
+function bonusGoal(id) { return BONUS_GOALS[id] || 4; }
+function bonusGoalText(id) {
+  const g = getGame(id), n = bonusGoal(id);
+  return g && g.timed ? `get ${n} right in 20 s` : `get ${n} right`;
+}
 function finishGame(ctx, result) {
   const def = ctx.def, size = ctx.size, rank = ctx.rank, twist = ctx.twist;
   stopActiveGame();
   result = Object.assign({ score: 0, correct: 0, wrong: 0, maxCombo: 0 }, result);
+  if (size === "bonus") result.cleared = (result.correct || 0) >= bonusGoal(def.id);
   result.missed = ctx.missedWords.slice();
   result.golden = ctx.golden || 0;
   const G = S.games;
@@ -1408,13 +1423,14 @@ function resumeDrillAfterBonus() {
 function renderSurpriseResult(sum, run) {
   const back = (run && run.onDone) || resumeDrillAfterBonus;
   const label = run && run.onDone === resumeDrillAfterBonus ? "Back to drill →" : "Continue →";
-  const cleared = !!sum.result.cleared;
-  if (cleared) { confettiBurst(30); playAchievement(); }
+  const cleared = !!sum.result.cleared, minion = !!sum.result.minion;
+  if (cleared) { confettiBurst(minion ? 50 : 30); playAchievement(); }
   document.getElementById("main-screen").innerHTML = `<div class="screen game-screen">
       <div class="result-screen g-results">
-        <div class="result-emoji">${cleared ? "🎁" : "⏰"}</div>
-        <div class="result-title">${cleared ? "Bonus cleared!" : "So close!"}</div>
-        <div class="result-sub">${sum.result.correct} correct · +${sum.xp} XP</div>
+        <div class="result-emoji">${minion ? (cleared ? "⚔️" : "💨") : cleared ? "🎁" : "⏰"}</div>
+        <div class="result-title">${minion ? (cleared ? "Minion defeated!" : "The minion escaped") : cleared ? "Bonus cleared ✓" : "So close!"}</div>
+        ${sum.result.note ? `<div class="g-best-line">${escapeHtml(sum.result.note)}</div>` : ""}
+        <div class="result-sub">${sum.result.correct}/${bonusGoal(sum.id || (sum.def && sum.def.id))} right${cleared ? "" : " — nearly there"} · +${sum.xp} XP</div>
         ${missedListHtml(sum.result.missed)}
         <div class="g-result-actions"><button class="g-big-btn" id="g-back-drill">${label}</button></div>
       </div>
