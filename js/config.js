@@ -150,6 +150,12 @@ function studyDayStart(offset = 0, now = Date.now()) {
 // ISO date of the current study day (same clock as the Anki day).
 function studyToday() { return ankiToday(); }
 
+// "2027-09-27" → "27 Sep 2027"
+function fmtShortDate(iso) {
+  const d = new Date(iso + "T12:00");
+  return isNaN(d) ? iso : d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+
 // ── RNG ───────────────────────────────────────
 function hashString(str) {
   let h = 2166136261;

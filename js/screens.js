@@ -551,6 +551,7 @@ function initSettingsPanel() {
 }
 function renderSettingsPanel() {
   const goal = getDailyGoal();
+  const plan = pathEnsurePlan();
   const account = (typeof currentUser !== "undefined" && currentUser)
     ? (currentUser.displayName || currentUser.email || "Signed in")
     : "Not signed in";
@@ -571,13 +572,16 @@ function renderSettingsPanel() {
       <button class="settings-item" onclick="toggleSurpriseRounds()">🎁&nbsp; Surprise rounds in Drill: ${S.games && S.games.surprise === false ? "off" : "on"} <span class='settings-sub'>(bonus game every ${SURPRISE_EVERY} correct)</span></button>
       <button class="settings-item" onclick="toggleQuiet();renderSettingsPanel()">${quietActive() ? "🔇&nbsp; Quiet mode: on for today" : "🔈&nbsp; Quiet mode: off"} <span class='settings-sub'>(no sound or voice, today only)</span></button>
       <button class="settings-item" onclick="toggleRandomTwists()">🌀&nbsp; Random game twists: ${S.games && S.games.twists === false ? "off" : "on"} <span class='settings-sub'>(you can always decline one)</span></button>
+      ${deadlineSettingsHtml()}
       <div class="settings-goal">
         <span class="settings-goal-label">🌱&nbsp; New words/day</span>
-        ${PATH.NEW_PER_DAY_OPTIONS.map(n => `<button class="goal-pick ${S.path.newPerDay===n?"active":""}" onclick="setPathNewPerDay(${n});renderSettingsPanel()">${n === 0 ? "⏸" : n}</button>`).join("")}
+        ${plan ? `<span class="settings-auto">Auto · ${plan.pace} today</span>`
+          : PATH.NEW_PER_DAY_OPTIONS.map(n => `<button class="goal-pick ${S.path.newPerDay===n?"active":""}" onclick="setPathNewPerDay(${n});renderSettingsPanel()">${n === 0 ? "⏸" : n}</button>`).join("")}
       </div>
       <div class="settings-goal">
         <span class="settings-goal-label">🎯&nbsp; Daily goal</span>
-        ${GOAL_OPTIONS.map(n => `<button class="goal-pick ${goal===n?"active":""}" onclick="setDailyGoal(${n})">${n}</button>`).join("")}
+        ${plan ? `<span class="settings-auto">Auto · ${plan.goal} today</span>`
+          : GOAL_OPTIONS.map(n => `<button class="goal-pick ${goal===n?"active":""}" onclick="setDailyGoal(${n})">${n}</button>`).join("")}
       </div>
       ${allAnkiDeckIds().length ? `
       <div class="settings-goal">
@@ -590,6 +594,33 @@ function renderSettingsPanel() {
       <button class="settings-item" onclick="copyUsageReport()">📋&nbsp; Copy usage report <span class='settings-sub'>(paste it to Claude for the next improvements)</span></button>
       <div class="settings-sync-line">☁️ ${escapeHtml(account)} · last saved ${lastSaved}</div>
     </div>`;
+}
+// Optional finish date: off by default. When set, new words/day and
+// the daily goal are worked out each morning and the Core quest becomes
+// "Today's plan" — doing the 4 quests keeps you on time.
+function deadlineSettingsHtml() {
+  const on = pathDeadlineOn();
+  const minDate = addDays(studyToday(), 30);
+  if (!on) return `<button class="settings-item" onclick="setDeadlineFromSettings(addDays(studyToday(), 365))">🗓️&nbsp; Finish date: off
+    <span class='settings-sub'>(optional — set one and your quests are sized so you finish everything by then)</span></button>`;
+  const scan = pathScan();
+  const need = pathPaceNeeded(scan);
+  const late = need > PLAN.MAX_PACE
+    ? `<span class='settings-sub'>At the maximum pace (${PLAN.MAX_PACE}/day) this lands around ${fmtShortDate(addDays(studyToday(), Math.ceil(pathUnmet(scan) / PLAN.MAX_PACE) + 40))} — pick a later date if you like.</span>` : "";
+  return `<div class="settings-goal settings-deadline">
+      <span class="settings-goal-label">🗓️&nbsp; Finish everything by</span>
+      <input type="date" class="settings-date" value="${S.path.deadline}" min="${minDate}" onchange="setDeadlineFromSettings(this.value)" aria-label="Finish date">
+      <button class="goal-pick" onclick="setDeadlineFromSettings('')">Off</button>
+      <span class='settings-sub'>Your quests are sized to it — do your 4 quests and you're on time. Missed days are spread over the weeks after.</span>
+      ${late}
+    </div>`;
+}
+function setDeadlineFromSettings(iso) {
+  setPathDeadline(iso);
+  if (typeof questPlanChanged === "function") questPlanChanged();
+  renderSettingsPanel();
+  renderExpBar();
+  if (typeof renderHome === "function") renderHome();
 }
 function setDailyGoal(n) {
   S.dailyGoal = n;
@@ -749,7 +780,7 @@ function renderJourney() {
         <span class="jl-pct">${pct(g.known, g.total)}% known · ${pct(g.locked, g.total)}% 💎</span></div>
       ${tierBarHtml(g.tiers, g.total)}
       <div class="jl-left">${left.length ? "What's left: " + left.join(" · ") : "Every word is at least Known ✓"}</div>
-      <div class="jl-eta">${eta.met ? `All met ≈ <b>${eta.met}</b> · ` : ""}${eta.known ? `all Known ≈ <b>${eta.known}</b>` : "all Known ✓"}${eta.locked ? ` · all 💎 ≈ <b>${eta.locked}</b>` : " · all 💎 ✓"}</div>
+      <div class="jl-eta">${eta.met ? `All met ≈ <b>${fmtShortDate(eta.met)}</b> · ` : ""}${eta.known ? `all Known ≈ <b>${fmtShortDate(eta.known)}</b>` : "all Known ✓"}${eta.locked ? ` · all 💎 ≈ <b>${fmtShortDate(eta.locked)}</b>` : " · all 💎 ✓"}</div>
       <details class="jl-decks" ${g.met > 0 && g.met < g.total ? "open" : ""}><summary>${g.decks.length} decks</summary><div class="jd-grid">${decks}</div></details>
     </div>`;
   }).join("");
@@ -760,6 +791,7 @@ function renderJourney() {
     <div class="screen-top"><div class="screen-label">🗺️ Journey</div><button class="back-btn" onclick="backToMenu()">← Back</button></div>
     <div class="jh">
       <div class="jh-big"><b>${scan.known.toLocaleString()}</b> / ${scan.total.toLocaleString()} words Known ✓ <span>${pct(scan.known, scan.total)}%</span></div>
+      ${pathDeadlineOn() ? `<div class="jh-plan">🗓️ Quests are sized to finish everything by <b>${fmtShortDate(S.path.deadline)}</b> · ${pathEnsurePlan().pace} new today</div>` : ""}
       <div class="jh-sub">💎 ${scan.locked.toLocaleString()} locked in · 🌱 ${scan.met.toLocaleString()} met${scan.repair ? ` · 🩹 ${scan.repair} in repair` : ""}${scan.flagged ? ` · ⚠️ ${scan.flagged} flagged` : ""}</div>
       ${tierBarHtml(scan.tiers, scan.total, "big")}
       <div class="tier-legend">${TIERS.map(t => `<span><i class="tb-${t.id}"></i>${t.icon} ${t.name} ${scan.tiers[t.id] || 0}</span>`).join("")}</div>

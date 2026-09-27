@@ -163,6 +163,8 @@ function migratePath() {
   if (P.autoPaused === undefined) P.autoPaused = false;
   if (P.welcomed === undefined) P.welcomed = false;
   if (typeof P.quietDay !== "string") P.quietDay = "";
+  if (typeof P.deadline !== "string") P.deadline = "";
+  if (P.plan === undefined) P.plan = null;
   if (typeof P.lastDeck !== "string") P.lastDeck = "";
   if (!P.migrated) P.migrated = {};
   const now = Date.now();

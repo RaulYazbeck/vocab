@@ -168,7 +168,7 @@ function pathRollDay() {
 // it lifts by itself once the backlog is back under THROTTLE_HALF.
 function pathCheckAutoPause(scan = pathScan()) {
   const P = S.path, today = studyToday();
-  if (P.autoPaused && scan.overdue < PATH.THROTTLE_HALF) { P.autoPaused = false; P.autoPausedOn = ""; }
+  if (P.autoPaused && scan.overdue < PATH.THROTTLE_HALF * (pathDeadlineOn() ? 2 : 1)) { P.autoPaused = false; P.autoPausedOn = ""; }
   if (!P.autoPaused && P.lastActiveDay && scan.due > 0) {
     const missed = daysBetween(P.lastActiveDay, today) - 1;
     if (missed >= PATH.AUTO_PAUSE_DAYS) { P.autoPaused = true; P.autoPausedOn = today; }
@@ -179,13 +179,17 @@ function pathMarkActive() { S.path.lastActiveDay = studyToday(); }
 function pathNewQuota(scan = pathScan()) {
   pathRollDay();
   const P = S.path;
-  let base = P.newPerDay;
+  const plan = pathEnsurePlan(scan);
+  let base = plan ? plan.pace : P.newPerDay;
+  // With a finish date the plan works backlogs down over a week, so the
+  // brakes only kick in at twice the usual pile.
+  const k = plan ? 2 : 1;
   let reason = "";
   if (!pathFrontier(scan)) return { quota: 0, left: 0, reason: "done" };
   if (P.autoPaused) { base = 0; reason = "autopaused"; }
   else if (base === 0) reason = "paused";
-  else if (scan.overdue >= PATH.THROTTLE_STOP) { base = 0; reason = "catchup"; }
-  else if (scan.overdue >= PATH.THROTTLE_HALF) { base = Math.ceil(base / 2); reason = "slowed"; }
+  else if (scan.overdue >= PATH.THROTTLE_STOP * k) { base = 0; reason = "catchup"; }
+  else if (scan.overdue >= PATH.THROTTLE_HALF * k) { base = Math.ceil(base / 2); reason = "slowed"; }
   const quota = base + (P.extraToday || 0);
   return { quota, left: Math.max(0, quota - scan.metToday), reason };
 }
@@ -201,6 +205,65 @@ function setPathNewPerDay(n) {
   if (n > 0) { S.path.autoPaused = false; }
   saveState();
   logEvent("setting", { k: "newPerDay", v: n });
+}
+// ── FINISH DATE (optional) ────────────────────
+// With S.path.deadline set, the day's numbers are worked out once each
+// morning: new words from the words left and the days left (LAG days
+// kept for the last words to reach Known, plus slack), reviews from
+// what's due (a backlog from missed days is spread over the next days).
+// The quests are sized from them, so doing the 4 quests = on time.
+const PLAN = { LAG: 75, MIN_PACE: 5, MAX_PACE: 30, SPREAD: 7, SMALL_BACKLOG: 20, GOAL_MIN: 50, GOAL_MAX: 300 };
+function pathDeadlineOn() { return !!(S.path && S.path.deadline); }
+function pathDaysLeft(today = studyToday()) { return pathDeadlineOn() ? daysBetween(today, S.path.deadline) : 0; }
+function pathUnmet(scan = pathScan()) { return scan.total - scan.met; }
+// New words a day needed from here, uncapped (for the "out of reach" note).
+function pathPaceNeeded(scan = pathScan(), today = studyToday()) {
+  const unmet = pathUnmet(scan);
+  if (!unmet) return 0;
+  return Math.ceil(unmet / Math.max(14, pathDaysLeft(today) - PLAN.LAG));
+}
+function pathPace(scan = pathScan(), today = studyToday()) {
+  if (!pathUnmet(scan)) return 0;
+  return Math.max(PLAN.MIN_PACE, Math.min(PLAN.MAX_PACE, pathPaceNeeded(scan, today)));
+}
+// Today's frozen plan, or null when no finish date is set.
+function pathEnsurePlan(scan) {
+  const P = S.path;
+  if (!pathDeadlineOn()) return null;
+  const today = studyToday();
+  if (P.plan && P.plan.day === today && P.plan.deadline === P.deadline) return P.plan;
+  scan = scan || pathScan(true);
+  const backlog = scan.overdue;
+  const pace = pathPace(scan, today);
+  // A backlog from missed days is spread out: about a week's worth a day,
+  // but never more than +20% on a normal day (after several days away it
+  // simply takes up to two weeks to clear).
+  const normal = (scan.due - backlog) * 1.1 + pace * 3;
+  const take = backlog <= PLAN.SMALL_BACKLOG ? backlog
+    : Math.max(Math.ceil(backlog / 14), Math.min(Math.ceil(backlog / PLAN.SPREAD), Math.floor(normal * 0.2 / 1.1)));
+  const reviews = scan.due - backlog + take;
+  const target = Math.max(5, Math.round((reviews * 1.1 + pace * 3) / 5) * 5);
+  P.plan = { day: today, deadline: P.deadline, pace, reviews, leave: backlog - take, target,
+    goal: Math.max(PLAN.GOAL_MIN, Math.min(PLAN.GOAL_MAX, Math.round(target / 10) * 10)) };
+  logEvent("plan", { pace, reviews, target, backlog });
+  return P.plan;
+}
+// Everything today's plan asked for is done: reviews down to the part
+// of the backlog left for later days, and today's new words met.
+function pathPlanDone(scan = pathScan()) {
+  const plan = pathEnsurePlan(scan);
+  if (!plan) return false;
+  return scan.due <= plan.leave && pathNewQuota(scan).left === 0;
+}
+function setPathDeadline(iso) {
+  const P = S.path;
+  if (iso && !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return;
+  if (iso && daysBetween(studyToday(), iso) < 30) iso = addDays(studyToday(), 30);
+  P.deadline = iso || "";
+  P.plan = null;
+  invalidatePathScan();
+  saveState();
+  logEvent("setting", { k: "deadline", v: P.deadline });
 }
 function pathResume() { S.path.autoPaused = false; S.path.autoPausedOn = ""; if (!S.path.newPerDay) S.path.newPerDay = PATH.NEW_PER_DAY_DEFAULT; saveState(); }
 
@@ -423,7 +486,7 @@ function pathTodaySummary() {
 // met, Known, and locked in, at the current pace and assuming reviews
 // go well.
 function pathEta(groupStats) {
-  const perDay = Math.max(1, S.path.newPerDay || PATH.NEW_PER_DAY_DEFAULT);
+  const perDay = Math.max(1, pathDeadlineOn() ? pathPace() : (S.path.newPerDay || PATH.NEW_PER_DAY_DEFAULT));
   const today = todayISO();
   const scan = pathScan();
   // Words still to meet before this level is finished (earlier levels first).

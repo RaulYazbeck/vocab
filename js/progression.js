@@ -58,6 +58,9 @@ function renderExpBar() {
 const GOAL_OPTIONS = [10, 20, 50, 100, 150];
 const GOAL_WEEK_TARGET = 5;
 function getDailyGoal() {
+  // A finish date sizes the goal to the day's real work (see path.js).
+  const plan = typeof pathEnsurePlan === "function" && S.path ? pathEnsurePlan() : null;
+  if (plan) return plan.goal;
   return GOAL_OPTIONS.includes(S.dailyGoal) ? S.dailyGoal : 20;
 }
 

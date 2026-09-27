@@ -169,7 +169,7 @@ function buildUsageReport(nDays = 30) {
   lines.push(`Bonus rounds offered/taken: ${sum(v => v.bonus[0] + v.bonus[1])}/${sum(v => v.bonus[1])} · twists declined/taken: ${sum(v => v.twist[0])}/${sum(v => v.twist[1])} · drag vs tap: ${sum(v => v.drag[0])}/${sum(v => v.drag[1])}`);
   lines.push(`Busiest hours: ${peak.join(", ") || "—"}`);
   lines.push(`Words by tier now: ` + TIERS.map(t => `${t.icon}${t.name} ${tiers[t.id]}`).join(" · "));
-  lines.push(`Daily goal ${getDailyGoal()} · new/day ${S.path.newPerDay} · level ${currentLevel()} · streak ${getDailyStreak()}d`);
+  lines.push(`Daily goal ${getDailyGoal()} · new/day ${S.path.deadline ? `auto ${pathPace()} (finish by ${S.path.deadline})` : S.path.newPerDay} · level ${currentLevel()} · streak ${getDailyStreak()}d`);
   const json = JSON.stringify({ app: STORAGE_KEY, generated: new Date().toISOString(), days: Object.fromEntries(days), quests: qStats, tiers });
   return lines.join("\n") + "\n\n--- JSON ---\n" + json;
 }

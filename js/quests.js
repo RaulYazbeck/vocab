@@ -129,8 +129,9 @@ function questContext() {
   const now = new Date();
   const hour = now.getHours();
   const quota = pathNewQuota(scan);
+  const plan = pathEnsurePlan(scan);
   const ctx = {
-    G, hour, scan, quota, quiet: quietActive(), audio: audioOk(),
+    G, hour, scan, quota, plan, quiet: quietActive(), audio: audioOk(),
     weekend: [0, 6].includes(now.getDay()), de: !IS_FRENCH_APP,
     struggling: 0, stale30: 0, st4due: 0, st5due: 0, belowPeak: 0, strong: 0, clozeable: 0,
     pos: { verb: 0, noun: 0, adj: 0 }, special: 0, metDecks: [], dueByDeck: {},
@@ -192,6 +193,14 @@ const byId = id => QT.find(t => t.id === id);
 // A · CORE — typed recall, the backbone of the day
 qt({ id: "a_path", slot: "A", fam: "path", icon: "📖", w: 3, target: c => sz(c, 0.45, 10, 90),
   title: q => `Practise ${q.target} words in Today sessions`, prog: m => m.path, go: "path" });
+// With a finish date (Settings), this one always takes the Core slot:
+// the day's reviews + new words, sized so the 4 quests keep you on time.
+// It also completes as soon as today's plan is all done.
+qt({ id: "a_plan", slot: "A", fam: "plan", icon: "📅", w: 0, fixed: true, ok: () => false,
+  target: c => c.plan ? c.plan.target : sz(c, 0.45, 10, 90),
+  title: q => `Today's plan: ${q.target} right answers in Today sessions`,
+  sub: () => S.path.deadline ? `on course for ${fmtShortDate(S.path.deadline)}` : "",
+  prog: (m, q) => typeof pathPlanDone === "function" && pathPlanDone() ? q.target : m.path, go: "path" });
 qt({ id: "a_typed", slot: "A", fam: "typed", icon: "⌨️", w: 3, target: c => sz(c, 0.45, 10, 90),
   title: q => `Type ${q.target} correct answers (any mode)`, prog: m => m.typed, go: "path" });
 qt({ id: "a_clear", slot: "A", fam: "clear", icon: "🧹", w: 2,
@@ -503,6 +512,12 @@ function questGenerate(opts = {}) {
   const used = new Set(), fams = new Set();
   const list = [];
   QUEST_SLOTS.forEach(slot => {
+    if (slot === "A" && ctx.plan) {
+      const t = byId("a_plan");
+      used.add(t.id); fams.add(t.fam);
+      list.push(makeQuest(t, ctx, rng, slot));
+      return;
+    }
     let cands = questCandidates(slot, ctx, used, fams);
     if (!cands.length) cands = QT.filter(t => t.slot === slot && !used.has(t.id) && !t.audio && (() => { try { return t.ok(ctx); } catch (e) { return false; } })()).map(t => ({ t, w: t.w }));
     const pick = weightedPick(cands, rng);
@@ -529,11 +544,38 @@ function questGenerate(opts = {}) {
   logEvent("quest_gen", { ids: list.map(q => q.tpl), dbl: Q.dbl, weekend: Q.weekend ? Q.weekend.tpl : null });
   questRecompute(true);
 }
+// The finish date was switched on/off or moved: rebuild today's quests
+// if none is finished yet, else swap just the Core quest if it's still
+// open; otherwise the change applies from tomorrow.
+function questPlanChanged() {
+  const Q = S.quests;
+  if (!Q || !Q.list.length) return false;
+  if (!Q.list.some(q => q.done)) { questGenerate({ salt: 1 }); saveState(); return true; }
+  const i = Q.list.findIndex(q => q.slot === "A");
+  if (i >= 0 && !Q.list[i].done) {
+    const ctx = questContext();
+    const rng = seededRandom(hashString(Q.day + "|plan|" + Date.now()));
+    let t = ctx.plan ? byId("a_plan") : null;
+    if (!t) {
+      const used = new Set(Q.list.map(x => x.tpl));
+      const fams = new Set(Q.list.filter((x, k) => k !== i).map(x => (byId(x.tpl) || {}).fam));
+      const pick = weightedPick(questCandidates("A", ctx, used, fams).filter(x => !x.t.audio), rng);
+      t = pick ? pick.t : byId("a_typed");
+    }
+    Q.list[i] = makeQuest(t, ctx, rng, "A");
+    questRecompute(true);
+    saveState();
+    return true;
+  }
+  showCelebrateToast("🗓️", "Starts tomorrow", "Today's Core quest is already done");
+  return false;
+}
 // Replace one quest (reroll, or free 🔇 swap for sound quests).
 function questReroll(idx, free = false) {
   const Q = S.quests, q = Q.list[idx];
   if (!q || q.done) return;
   const t = byId(q.tpl);
+  if (t && t.fixed) return;
   const isSound = t && t.audio || (q.hidden && byId(q.hidden.tpl) && byId(q.hidden.tpl).audio);
   if (!free) {
     if (Q.rerolled && Q.tokens <= 0) { showCelebrateToast("🎟️", "No rerolls left", "Chests sometimes contain reroll tokens"); return; }
@@ -721,6 +763,7 @@ function questOnAnswer(m, d) {
   const ok = d.ok === true;
   const isGame = d.mode === "game";
   const key = w ? w.deckId + "_" + w.idx : "";
+  if (d.mode === "path" && (d.ok === true || d.ok === false)) { m.pathAll++; if (ok) m.path++; }
   if (ok) {
     if (!isGame) m.ok++;
     if (d.typed) {
@@ -1141,7 +1184,7 @@ function questCardsHtml() {
       <div class="quest-acts">
         ${!q.done ? `<button class="quest-go" onclick="questGo(${i})" aria-label="Start">▶</button>` : ""}
         ${!q.done && sound ? `<button class="quest-mini" onclick="questReroll(${i}, true)" title="Can't use sound now? Swap it (free)">🔇</button>`
-          : !q.done && q.tpl !== "d_mystery" ? `<button class="quest-mini" onclick="questReroll(${i})" title="Reroll this quest${Q.rerolled ? ` (${Q.tokens} tokens)` : " (1 free today)"}">🎲</button>` : ""}
+          : !q.done && q.tpl !== "d_mystery" && !t.fixed ? `<button class="quest-mini" onclick="questReroll(${i})" title="Reroll this quest${Q.rerolled ? ` (${Q.tokens} tokens)` : " (1 free today)"}">🎲</button>` : ""}
       </div>
     </div>`;
   }).join("");
