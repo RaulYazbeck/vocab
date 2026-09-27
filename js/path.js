@@ -401,7 +401,7 @@ function focusWords(focus, param) {
     if (focus === "level" && g.id !== param) return;
     for (let i = 0; i < d.words.length; i++) {
       const ws = S.words[d.id + "_" + i];
-      if (!ws || !ws.st) continue;
+      if (!ws || !ws.st || ws.sk) continue;
       let keep = true;
       if (focus === "pos") keep = posOf({ ...d.words[i], deckId: d.id, idx: i }) === param;
       else if (focus === "hard") keep = isStruggling(ws) || !!ws.rp || !!ws.fl;
@@ -608,26 +608,28 @@ function buildPathQueue(lenKey, opts = {}) {
 
 // ── SKIP A LEVEL (⚙️ › 🍪 Cookie) ──────────────
 // "I already know A1": every word of the first level that still has
-// words below 🌳 Known becomes Known, and new words move on to the
-// next level. It only touches word stages:
-//   • words met today (metOn) keep their own progress — today's new
-//     words, quota and quests stay exactly as they were;
-//   • words already Known or higher (⭐ 💎) are left alone;
-//   • no XP, goal, streak, quest or saga credit — nothing was answered;
-//   • reviews are spread over 1–4 weeks so they never land on one day.
+// words below 🌳 Known becomes Known, and Start moves straight on to
+// new words of the next level. Skipped words (ws.sk) are treated as
+// known and stay out of the way:
+//   • no scheduled reviews (dueAt null) — they never fill a session;
+//   • left out of extra practice, focus sessions, game pools and quest
+//     sizing (focusWords, poolWordsForDeck, questContext);
+//   • words learnt today are lifted too and stop counting toward
+//     today's new-word quota, so Start brings new words of the next
+//     level right away; quests keep their own counters untouched;
+//   • no XP, goal, streak, saga or achievement credit (srs.js clears
+//     sk only when a skipped word is later answered right, e.g. when
+//     you practise it on purpose in the Library).
 function skipLevelInfo() {
-  const today = studyToday();
   const groups = vocabGroups();
   for (let gi = 0; gi < groups.length; gi++) {
     const g = groups[gi];
-    let lift = 0, today_ = 0;
+    let lift = 0;
     g.decks.forEach(d => d.words.forEach((w, i) => {
       const ws = S.words[d.id + "_" + i];
-      if (ws && (ws.st || 0) >= STAGE_KNOWN) return;
-      if (ws && ws.st && ws.metOn === today) { today_++; return; }
-      lift++;
+      if (!ws || (ws.st || 0) < STAGE_KNOWN) lift++;
     }));
-    if (lift) return { id: g.id, name: g.name, lift, today: today_, next: (groups[gi + 1] || {}).name || "" };
+    if (lift) return { id: g.id, name: g.name, lift, next: (groups[gi + 1] || {}).name || "" };
   }
   return null;
 }
@@ -638,18 +640,9 @@ function skipLevel(groupId) {
   let n = 0;
   g.decks.forEach(d => {
     d.words.forEach((w, i) => {
-      const key = d.id + "_" + i;
-      const prev = S.words[key];
+      const prev = S.words[d.id + "_" + i];
       if (prev && (prev.st || 0) >= STAGE_KNOWN) return;
-      if (prev && prev.st && prev.metOn === today) return;
-      const ws = getWS(d.id, i);
-      ws.st = STAGE_KNOWN;
-      ws.pk = Math.max(ws.pk || 0, STAGE_KNOWN);
-      ws.sAt = now;
-      ws.dueAt = studyDayStart(7 + hashString(key) % 22, now); // 1–4 weeks, spread
-      ws.mastered = true;
-      ws.sk = prev && prev.st ? 1 : 2; // skipped, not answered (see srs.js)
-      ["rp", "lrn", "fl", "cf", "rc", "dropDay"].forEach(f => delete ws[f]);
+      skipLiftWord(getWS(d.id, i), now, today);
       n++;
     });
     S.unlocked[d.id] = d.words.length;
@@ -659,6 +652,42 @@ function skipLevel(groupId) {
   saveState();
   return n;
 }
+function skipLiftWord(ws, now = Date.now(), today = studyToday()) {
+  const met = !!ws.st;
+  ws.st = STAGE_KNOWN;
+  ws.pk = Math.max(ws.pk || 0, STAGE_KNOWN);
+  ws.sAt = now;
+  ws.dueAt = null;   // known: no reviews scheduled
+  ws.mastered = true;
+  ws.sk = met ? 1 : 2; // skipped, not answered (see srs.js)
+  if (ws.metOn === today) delete ws.metOn; // frees today's new-word quota
+  ["rp", "lrn", "fl", "cf", "rc", "dropDay"].forEach(f => delete ws[f]);
+}
+// One-time, for levels skipped with the first version of Skip a level
+// (it left the words learnt that day as they were and scheduled checks
+// for the rest): finish the job the way skipping works now. A level
+// counts as skipped when it holds skipped words. Runs once per state
+// (S.path.skipFixed), so a word that slips later is never lifted again.
+function skipRetrofit() {
+  const P = S.path;
+  if (!P || P.skipFixed) return;
+  const now = Date.now(), today = studyToday();
+  let n = 0;
+  vocabGroups().forEach(g => {
+    const words = [];
+    g.decks.forEach(d => d.words.forEach((w, i) => words.push([d, i, S.words[d.id + "_" + i]])));
+    if (!words.some(([, , ws]) => ws && ws.sk)) return;
+    words.forEach(([d, i, ws]) => {
+      if (ws && ws.sk && ws.st === STAGE_KNOWN && ws.dueAt && !ws.rp) { ws.dueAt = null; n++; } // old checks
+      else if (!ws || (ws.st || 0) < STAGE_KNOWN) { skipLiftWord(getWS(d.id, i), now, today); n++; }
+    });
+    g.decks.forEach(d => { S.unlocked[d.id] = d.words.length; });
+  });
+  P.skipFixed = true;
+  if (n) { invalidatePathScan(); if (typeof logEvent === "function") logEvent("skip_retrofit", { n }); }
+}
+// Skipped words are known — they never fill a session or a game.
+function isSkipped(ws) { return !!(ws && ws.sk); }
 
 // ── SUMMARY FOR THE TODAY CARD ────────────────
 function pathTodaySummary() {

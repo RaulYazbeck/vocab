@@ -629,8 +629,8 @@ function settingsCookieHtml() {
   return `
     ${setSwitchHtml("👵", "Grandma mode", "Big buttons, no fuss: just Start, your quests and games. Your grandchildren will be proud.", grandmaOn(), "toggleGrandma()")}
     ${setSwitchHtml("🗣️", "Speak, don't spell", "For speaking, not writing: say each answer out loud, tap Show, hear it and grade yourself. Words still climb all the way to 💎. Spelling games and quests are left out.", speakOn(), "toggleSpeakMode()")}
-    ${sk ? setNavHtml("⏭️", `Skip ${escapeHtml(sk.name)}`, `Already know ${escapeHtml(sk.name)}? Its ${sk.lift} remaining word${sk.lift === 1 ? "" : "s"} become 🌳 Known and new words start from ${escapeHtml(sk.next || "the next level")}.`, "confirmSkipLevel()")
-      : setNavHtml("⏭️", "Skip a level", "Nothing left to skip — every level is 🌳 Known or learnt today.", "")}`;
+    ${sk ? setNavHtml("⏭️", `Skip ${escapeHtml(sk.name)}`, `Already know ${escapeHtml(sk.name)}? Its ${sk.lift} remaining word${sk.lift === 1 ? "" : "s"} become 🌳 Known and you move straight on to ${escapeHtml(sk.next || "the next level")}.`, "confirmSkipLevel()")
+      : setNavHtml("⏭️", "Skip a level", "Nothing left to skip — every level is 🌳 Known.", "")}`;
 }
 function settingsProgressHtml() {
   const chests = S.quests && S.quests.pending.length;
@@ -870,10 +870,9 @@ async function confirmSkipLevel() {
   if (!sk) return;
   const ok = await appConfirm({
     title: `Skip ${sk.name}?`,
-    body: `${sk.lift} ${sk.name} word${sk.lift === 1 ? "" : "s"} become 🌳 Known right away, and new words start from ${sk.next || "the next level"}. `
-      + `They come back for a quick check over the next weeks; a slip just gets a 🩹 repair, like any Known word.`
-      + (sk.today ? (sk.today === 1 ? " The word you learnt today keeps its own progress." : ` The ${sk.today} words you learnt today keep their own progress.`) : "")
-      + ` Today's quests, goal, streak and achievements don't change. This can't be undone.`,
+    body: `All ${sk.lift} ${sk.name} word${sk.lift === 1 ? "" : "s"} you haven't reached 🌳 Known yet become Known — including any you learnt today. `
+      + `They won't come up in your sessions or games any more, and Start moves on to new ${sk.next || "words"} right away. `
+      + `You can still practise them on purpose in the Library. Today's quests, goal, streak and achievements don't change. This can't be undone.`,
     ok: `Skip ${sk.name}`, cancel: "Cancel", danger: true,
   });
   if (!ok) return;

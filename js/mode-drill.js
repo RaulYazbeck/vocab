@@ -33,13 +33,13 @@ function initDrillScreen() {
         <div class="english-word" id="drill-english"></div>
         <div class="word-hint"    id="drill-hint"></div>
       </div>
-      ${say ? `<div class="g-q-label drill-say-label" id="drill-say-root">Say it out loud — then Show</div>` : ""}
+      ${say ? `<div class="drill-say-label" id="drill-say-root"></div>` : ""}
       <input type="text" class="german-input" id="german-input" placeholder="type the answer…" ${say ? `style="display:none" tabindex="-1"` : ""}
         autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
         onkeydown="handleDrillKey(event)"/>
       ${say ? "" : accentBarHtml("german-input")}
       <div class="action-row" id="drill-actions">
-        ${say ? `<button class="check-btn" onclick="drillSayReveal()">Show ▶</button>` : `<button class="check-btn"    onclick="checkDrill()">Check</button>`}
+        ${say ? `<button class="check-btn say-primary" onclick="drillSayReveal()">Show ▶</button>` : `<button class="check-btn"    onclick="checkDrill()">Check</button>`}
         <button class="hint-btn"     id="hint-btn" onclick="showDrillHint()">💡 Hint</button>
         <button class="dontknow-btn" onclick="dontKnow()">? Don't know</button>
       </div>
@@ -89,6 +89,12 @@ function updateDrillWord() {
   // Hint is only offered when the word can be confidently located
   // (and hidden) in one of its example sentences.
   currentDrillHint = buildHint(currentWord);
+  drillHintKind = "context";
+  if (drillSay) {
+    // Say-it: spell out what to do, and 💡 falls back to first letters.
+    document.getElementById('drill-say-root').innerHTML = sayStepsHtml("word", currentWord);
+    if (!currentDrillHint) { currentDrillHint = sayLetterHintHtml(currentWord); drillHintKind = "letters"; }
+  }
   const hintBtn = document.getElementById('hint-btn');
   hintBtn.style.display = currentDrillHint ? '' : 'none';
   hintBtn.disabled = false;
@@ -124,12 +130,12 @@ function renderUnlockRow(containerId, onlyDeckId = null) {
   container.innerHTML = rows.join("");
 }
 let currentDrillHint = null;
-let drillShownAt = 0, drillUsedHint = false;
+let drillShownAt = 0, drillUsedHint = false, drillHintKind = "context";
 function showDrillHint() {
   if (!currentDrillHint || answered) return;
   document.getElementById('hint-area').innerHTML = `
     <div class="hint-wrap">
-      <div class="examples-title">💡 In context — word hidden</div>
+      <div class="examples-title">${drillHintKind === "letters" ? "💡 It starts with" : "💡 In context — word hidden"}</div>
       <div class="hint-sentence">${currentDrillHint}</div>
     </div>`;
   const hintBtn = document.getElementById('hint-btn');
@@ -146,6 +152,7 @@ function drillSayReveal() {
   drillFast = Date.now() - drillShownAt < SAY_MIN_MS;
   const actions = document.getElementById('drill-actions');
   if (actions) actions.style.display = 'none';
+  document.getElementById('drill-say-root').innerHTML = '';
   document.getElementById('drill-say').innerHTML = sayRevealHtml(currentWord) + sayGradeHtml("drillSayGrade");
   speak(gameForm(currentWord));
 }

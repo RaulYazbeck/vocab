@@ -211,6 +211,8 @@ function migratePath() {
   if (P.plan === undefined) P.plan = null;
   if (typeof P.lastDeck !== "string") P.lastDeck = "";
   if (!P.migrated) P.migrated = {};
+  // Levels skipped with the first Skip a level: finish them (path.js).
+  if (typeof skipRetrofit === "function") skipRetrofit();
   const now = Date.now();
   const counts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
   let changed = 0;

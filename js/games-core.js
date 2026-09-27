@@ -354,12 +354,16 @@ function poolWordsForDeck(deck, explicit) {
   return out;
 }
 function validDeckIds(ids) { return (ids || []).filter(id => !!getDeck(id)); }
+// Words skipped with Skip a level stay out of the default pool (they're
+// known, and would crowd out what you're learning) — unless too few
+// words would be left to play at all.
 function buildGamePool(deckIds) {
   const out = [];
   const ids = deckIds ? validDeckIds(deckIds) : null;
-  if (ids && ids.length) ids.forEach(id => out.push(...poolWordsForDeck(getDeck(id), true)));
-  else ALL_GROUPS.forEach(g => g.decks.forEach(d => out.push(...poolWordsForDeck(d, false))));
-  return out;
+  if (ids && ids.length) { ids.forEach(id => out.push(...poolWordsForDeck(getDeck(id), true))); return out; }
+  ALL_GROUPS.forEach(g => g.decks.forEach(d => out.push(...poolWordsForDeck(d, false))));
+  const own = out.filter(w => !isSkipped(S.words[wordKey(w)]));
+  return own.length >= 12 ? own : out;
 }
 
 // How much a word needs practice — higher = shows up more.

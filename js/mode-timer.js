@@ -41,6 +41,7 @@ function renderTimerScreen() {
       <div class="word-display" id="timer-word-display">
         ${timerWordHtml(currentWord)}
       </div>
+      ${say ? sayStepsHtml("word", currentWord) : ""}
       <div id="timer-feedback" class="timer-feedback"></div>
     </div>
     <input type="text" class="german-input" id="timer-input" placeholder="type the answer…" ${say ? `style="display:none" tabindex="-1"` : ""}
@@ -48,7 +49,7 @@ function renderTimerScreen() {
       onkeydown="handleTimerKey(event)"/>
     ${say ? "" : accentBarHtml("timer-input")}
     <div class="action-row" id="timer-actions">
-      ${say ? `<button class="check-btn" onclick="timerSayReveal()">Show ▶</button>` : `<button class="check-btn"    onclick="checkTimer()">Check</button>`}
+      ${say ? `<button class="check-btn say-primary" onclick="timerSayReveal()">Show ▶</button>` : `<button class="check-btn"    onclick="checkTimer()">Check</button>`}
       <button class="dontknow-btn" onclick="skipTimer()">Skip</button>
     </div>
     <div id="timer-say"></div>
@@ -65,7 +66,8 @@ function timerSayReveal() {
   if (timerFinished || timerPaused || timerRevealed || !currentWord) return;
   timerRevealed = true; timerRevealAt = Date.now();
   const a = document.getElementById("timer-actions"); if (a) a.style.display = "none";
-  document.getElementById("timer-say").innerHTML = sayRevealHtml(currentWord, { noSentence: true }) + sayGradeHtml("timerSayGrade", { close: false });
+  document.querySelectorAll("#main-screen .say-steps").forEach(el => el.remove());
+  document.getElementById("timer-say").innerHTML = sayRevealHtml(currentWord, { noSentence: true, ask: "short" }) + sayGradeHtml("timerSayGrade", { close: false });
   speak(gameForm(currentWord));
 }
 function timerSayGrade(v) {

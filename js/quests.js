@@ -149,7 +149,7 @@ function questContext() {
     let met = 0, known = 0, due = 0;
     for (let i = 0; i < d.words.length; i++) {
       const ws = S.words[d.id + "_" + i];
-      if (!ws || !ws.st) continue;
+      if (!ws || !ws.st || ws.sk) continue; // skipped words: not yours to quest on
       met++;
       if (ws.st >= STAGE_KNOWN) known++;
       if (isDue(ws, nowMs)) {

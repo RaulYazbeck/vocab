@@ -180,9 +180,9 @@ registerGame({
       <div class="g-typed-wrap">
         <input type="text" class="german-input" id="cj-input" placeholder="the verb form…" ${sayMode ? `style="display:none" tabindex="-1"` : ""}
           autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="go"/>
-        ${sayMode ? `<div class="g-q-label cj-say-label">Say the form out loud — then Show</div>` : accentBarHtml("cj-input")}
+        ${sayMode ? `<div class="cj-say-label">${sayStepsHtml("form")}</div>` : accentBarHtml("cj-input")}
         <div class="g-typed-actions" id="cj-actions">
-          <button class="hint-btn" id="cj-hint" ${sayMode ? `style="display:none"` : ""}>💡</button>
+          <button class="hint-btn" id="cj-hint" aria-label="Hint: first letter">💡</button>
           <button class="dontknow-btn" id="cj-skip">? Don't know</button>
           <button class="g-big-btn" id="cj-go">${sayMode ? "Show ▶" : "Check"}</button>
         </div>
@@ -232,6 +232,7 @@ registerGame({
         revealed = false;
         document.getElementById("cj-say").innerHTML = "";
         document.getElementById("cj-actions").style.display = "";
+        document.querySelector(".cj-say-label").style.display = "";
       }
       ctx.teach("");
       ctx.setBar((r - 1) / total, "progress");
@@ -288,8 +289,9 @@ registerGame({
       if (!sayMode || revealed || !cur || ctx.busy || ctx.finished || ctx.paused || ctx.waiting) return;
       revealed = true; revealAtMs = Date.now();
       document.getElementById("cj-actions").style.display = "none";
+      document.querySelector(".cj-say-label").style.display = "none";
       document.getElementById("cj-say").innerHTML = sayRevealHtml(cur.kind === "card" ? cur.w : null,
-        { html: shownOf(cur), audio: sayOf(cur), noSentence: true }) + sayGradeHtml("conjSayGrade", { close: false });
+        { html: shownOf(cur), audio: sayOf(cur), noSentence: true, ask: "short" }) + sayGradeHtml("conjSayGrade", { close: false });
       speak(sayOf(cur));
     };
     _conjSayGrade = v => { if (sayMode && revealed && !ctx.busy && !ctx.finished) submit(v !== true, v === true); };
@@ -302,7 +304,7 @@ registerGame({
       if (!sayMode && !skip && !val.trim()) { shakeEl(input); return; }
       if (sayMode) {
         document.getElementById("cj-say").innerHTML = "";
-        if (said && sayKind(shownAtMs, revealAtMs) === "recognition") helped = true;
+        if (said && sayKind(shownAtMs, revealAtMs, helped) === "recognition") helped = true;
       }
       const res = skip ? false : sayMode ? said : gradeTyped(val, answersOf(cur));
       if (res === "near") {
@@ -361,9 +363,10 @@ registerGame({
     document.getElementById("cj-hint").onclick = () => {
       if (!cur || ctx.busy || helped || ctx.waiting) return;
       helped = true;
-      if (!input.value) input.value = answersOf(cur)[0][0];
+      if (sayMode) fb.innerHTML = `<span class="g-near">💡 It starts with <b>${escapeHtml(answersOf(cur)[0].slice(0, 1))}</b>…</span>`;
+      else if (!input.value) input.value = answersOf(cur)[0][0];
       floatScore(document.getElementById("cj-hint"), "help", "bad");
-      try { input.focus({ preventScroll: true }); } catch (e) {}
+      if (!sayMode) try { input.focus({ preventScroll: true }); } catch (e) {}
     };
     gListen(input, "keydown", e => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); submit(false); } });
     // Tense chips and the "+ all B1 verbs" switch apply from the next spin.

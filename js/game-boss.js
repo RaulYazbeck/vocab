@@ -236,9 +236,9 @@ registerGame({
         <div class="bb-hp-label" id="bb-hp-label"></div>
       </div>
       <div class="word-display bb-prompt">
-        ${sayMode ? `<div class="g-q-label">Say it out loud — then Show</div>` : ""}
         <div class="english-word" id="bb-en"></div>
         <div class="word-hint" id="bb-hint"></div>
+        ${sayMode ? `<div id="bb-steps"></div>` : ""}
       </div>
       <input type="text" class="german-input" id="bb-input" placeholder="type the answer…" ${sayMode ? `style="display:none" tabindex="-1"` : ""}
         autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="go"/>
@@ -270,6 +270,7 @@ registerGame({
       fb.innerHTML = "";
       if (sayMode) {
         revealed = false; shownAtMs = Date.now();
+        document.getElementById("bb-steps").innerHTML = sayStepsHtml("word", w);
         document.getElementById("bb-say").innerHTML = "";
         document.getElementById("bb-actions").style.display = "";
       }
@@ -313,7 +314,8 @@ registerGame({
       revealed = true; revealAtMs = Date.now();
       const w = queue[0];
       document.getElementById("bb-actions").style.display = "none";
-      document.getElementById("bb-say").innerHTML = sayRevealHtml(w, { noSentence: true }) + sayGradeHtml("bossSayGrade", { close: false });
+      document.getElementById("bb-steps").innerHTML = "";
+      document.getElementById("bb-say").innerHTML = sayRevealHtml(w, { noSentence: true, ask: "short" }) + sayGradeHtml("bossSayGrade", { close: false });
       speak(gameForm(w));
     };
     _bossSayGrade = v => { if (sayMode && revealed && !ctx.busy && !ctx.finished) attack(v !== true, v === true); };

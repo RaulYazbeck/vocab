@@ -217,11 +217,30 @@ function mistakeHeld(fbId) {
 // here, not CSS :has() — iOS home-screen apps sometimes don't
 // re-evaluate :has() when the sheet is removed, and the page stayed
 // blurred after closing the welcome sheet.
+//
+// The page behind a sheet must not scroll (on phones a drag on the dim
+// backdrop scrolled the home screen). overflow:hidden alone doesn't stop
+// iOS Safari, so the body is pinned in place (position:fixed at the
+// current offset) and the scroll position restored when the sheet closes.
+let _sheetScrollY = null;
+function lockPageScroll(lock) {
+  const b = document.body;
+  if (lock && _sheetScrollY === null) {
+    _sheetScrollY = window.scrollY || 0;
+    Object.assign(b.style, { position: "fixed", top: `-${_sheetScrollY}px`, left: "0", right: "0", width: "100%" });
+  } else if (!lock && _sheetScrollY !== null) {
+    const y = _sheetScrollY;
+    _sheetScrollY = null;
+    ["position", "top", "left", "right", "width"].forEach(k => b.style[k] = "");
+    window.scrollTo(0, y);
+  }
+}
 (function watchSheets() {
   const sync = () => {
     const sp = document.getElementById("settings-panel");
     const open = !!document.querySelector("body > .modal-overlay") || !!(sp && sp.style.display === "block");
     document.body.classList.toggle("sheet-open", open);
+    lockPageScroll(open);
   };
   let watched = null;
   new MutationObserver(() => {
