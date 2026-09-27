@@ -70,13 +70,6 @@ function migrate() {
     if (ws.lastAnsweredAt === undefined) ws.lastAnsweredAt = null;
     if (!ws.mastered && (ws.streak >= 6 || ws.displayStreak >= 6)) ws.mastered = true;
     if (ws.displayStreak === undefined) ws.displayStreak = ws.streak;
-    if (ws.masteryPlusDate && ws.mastered) {
-      const today = todayISO();
-      if (daysBetween(ws.masteryPlusDate, today) > 21) {
-        ws.masteryPlusDate = null;
-        ws.streak = 0;
-      }
-    }
     if (!ws.anki) ws.anki = freshAnki();
     else ws.anki = migrateAnkiState(ws.anki); // old day-based SM-2 → Anki schema
   });
@@ -99,6 +92,9 @@ function migrate() {
   if (!ANKI.NEW_PER_DAY_OPTIONS.includes(S.ankiNewPerDay)) S.ankiNewPerDay = ANKI.NEW_PER_DAY_DEFAULT;
   if (S.ankiNewPaused === undefined) S.ankiNewPaused = false;
   migrateGames();
+  migratePath();
+  if (typeof migrateQuests === "function") migrateQuests();
+  if (typeof migrateUsage === "function") migrateUsage();
   // Re-apply user word-text overrides after every state load — migrate()
   // runs both at startup and after a cloud sync replaces S.
   if (typeof applyWordEdits === "function") applyWordEdits();
@@ -122,6 +118,79 @@ function migrateGames() {
   if (!Array.isArray(G.daily.done)) G.daily.done = [];
   if (!Array.isArray(G.daily.completedDates)) G.daily.completedDates = [];
   if (!Array.isArray(G.daily.ids)) G.daily.ids = [];
+  // Ranks (🥉→💎): stars and bests per rank. Old single-level records
+  // become Bronze; a 3★ Bronze game starts with Silver unlocked.
+  ["rank", "rankStars", "rankBest", "twistBest", "lastPlayed"].forEach(k => { if (!G[k] || typeof G[k] !== "object") G[k] = {}; });
+  Object.keys(G.stars).forEach(id => {
+    if (!G.rankStars[id]) G.rankStars[id] = [G.stars[id] || 0, 0, 0, 0, 0];
+    if (G.rank[id] === undefined) G.rank[id] = (G.stars[id] || 0) >= 3 ? 1 : 0;
+  });
+  Object.keys(G.best).forEach(id => { if (!G.rankBest[id]) G.rankBest[id] = [G.best[id]]; });
+  if (G.twists === undefined) G.twists = true;
+  if (!G.bestiary || typeof G.bestiary !== "object") G.bestiary = {};
+  if (!G.world || typeof G.world !== "object") G.world = {};
+  if (!G.collect || typeof G.collect !== "object") G.collect = { g: 0, p: 0 };
   if (S.gameCorrectToday === undefined) S.gameCorrectToday = 0;
   if (S.gameCorrectDate === undefined)  S.gameCorrectDate = "";
+}
+
+// ── PATH MIGRATION ────────────────────────────
+// One-time conversion of the old mastery model (Wilson score, Mastery+
+// for 21 days) into word stages. Idempotent: only records without `st`
+// are touched, and every choice is derived from the record itself plus
+// a hash of its key, so two devices (or a cloud load) agree.
+function legacyMastered(ws) {
+  if (ws.mastered) return true;
+  const total = (ws.correct || 0) + (ws.wrong || 0);
+  if ((ws.streak || 0) >= 6) return true;
+  return total >= 6 && wilsonLower(ws.correct || 0, total) >= 0.724;
+}
+function legacyMasteryPlus(ws) {
+  if (!ws.masteryPlusDate || !legacyMastered(ws)) return false;
+  if (daysBetween(ws.masteryPlusDate, todayISO()) > 21) return false;
+  return (ws.streak || 0) >= 3 && wilsonLower(ws.correct || 0, (ws.correct || 0) + (ws.wrong || 0)) >= 0.83;
+}
+function migratePath() {
+  if (!S.path || typeof S.path !== "object") S.path = {};
+  const P = S.path;
+  if (!PATH.NEW_PER_DAY_OPTIONS.includes(P.newPerDay)) P.newPerDay = PATH.NEW_PER_DAY_DEFAULT;
+  if (!PATH.SESSION_LENGTHS[P.sessionLen]) P.sessionLen = "regular";
+  if (P.voiceInput === undefined) P.voiceInput = false;
+  if (typeof P.day !== "string") P.day = "";
+  if (!(P.introducedToday >= 0)) P.introducedToday = 0;
+  if (!(P.extraToday >= 0)) P.extraToday = 0;
+  if (typeof P.lastActiveDay !== "string") P.lastActiveDay = "";
+  if (P.autoPaused === undefined) P.autoPaused = false;
+  if (P.welcomed === undefined) P.welcomed = false;
+  if (typeof P.quietDay !== "string") P.quietDay = "";
+  if (typeof P.lastDeck !== "string") P.lastDeck = "";
+  if (!P.migrated) P.migrated = {};
+  const now = Date.now();
+  const counts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+  let changed = 0;
+  Object.keys(S.words).forEach(key => {
+    const ws = S.words[key];
+    if (ws.st !== undefined) return;
+    const deckId = key.substring(0, key.lastIndexOf("_"));
+    if (!getDeck(deckId) || isAnkiDeck(deckId)) return;
+    const total = (ws.correct || 0) + (ws.wrong || 0);
+    const h = hashString(key);
+    let st = 0, spread = 0;
+    if (legacyMasteryPlus(ws)) { st = 6; spread = 3 + h % 8; }
+    else if (legacyMastered(ws)) { st = 5; spread = 2 + h % 9; ws.mastered = true; }
+    else if (total > 0) {
+      const w = wilsonLower(ws.correct || 0, total);
+      st = w >= 0.62 ? 4 : w >= 0.5 ? 3 : w >= 0.3 ? 2 : 1;
+      spread = st >= 3 ? 1 + h % 5 : h % 3;
+    }
+    ws.st = st;
+    if (st) {
+      ws.pk = st;
+      ws.sAt = now;
+      ws.dueAt = studyDayStart(spread, now);
+      counts[st]++;
+    }
+    changed++;
+  });
+  if (changed && !P.migrated.done) P.migrated = { done: true, counts, on: todayISO() };
 }

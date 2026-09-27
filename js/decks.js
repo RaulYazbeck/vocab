@@ -105,8 +105,10 @@ function selectionType() {
 }
 function deckProgress(deck) {
   const words = unlockedWords(deck);
-  const mastered = words.filter((_,i) => isMastered(getWS(deck.id, i))).length;
-  const masteryPlus = words.filter((_,i) => isMasteryPlus(getWS(deck.id, i))).length;
+  // Read S.words directly — rendering must never create word records.
+  const peek = i => S.words[deck.id + "_" + i];
+  const mastered = words.filter((_,i) => isMastered(peek(i))).length;
+  const masteryPlus = words.filter((_,i) => { const ws = peek(i); return !!ws && isMasteryPlus(ws); }).length;
   return { mastered, masteryPlus, total:words.length, all:deck.words.length };
 }
 function resetDeck(deckId) {

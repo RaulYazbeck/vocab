@@ -8,9 +8,18 @@
 //     Surprise Rounds that pop up inside Drill
 //
 // Progress rules (decided with the user):
-//   • Games give XP and feed the daily goal at a discount
-//     (creditGameAnswers in progression.js) but never touch mastery —
-//     except Boss Battle, which is typed recall and counts like Drill.
+//   • Games give XP and feed the daily goal 1:1, capped at 30% of it
+//     (creditGameAnswers in progression.js).
+//   • Tiered credit: a word answered right in a choice game gets
+//     recognition credit (can lift a due word up to 🌿 Familiar); typed
+//     formats give recall credit (all stages). A miss never demotes —
+//     it flags the word for a typed check. Applied once, at the end of
+//     a finished round (ctx.hit / ctx.missed), never for abandoned ones.
+//   • Two kinds of difficulty: the game's RANK (🥉→💎, per game) sets
+//     arcade handling — speed, time, lives, board size; each WORD's
+//     stage sets its format (itemFormat): 🌱 words always get the gentle
+//     version, typed formats only for words you know.
+//   • Every miss costs something; a miss on a 🌱 word costs half.
 //   • Anki cards join the pool only once introduced, and games never
 //     write to ws.anki.
 //
@@ -20,7 +29,10 @@
 //     start(ctx),               // begins play; ctx documented at makeCtx
 //     stars:[s1,s2,s3] | starsFor(result),
 //     xpFor?(result, size),     // override the default XP formula
-//     inRuns? (default true) }  // may appear in Daily / Mix rounds
+//     inRuns? (default true),   // may appear in Daily / Mix rounds
+//     ranks?: [p0…p4],          // arcade params per rank (ctx.rp)
+//     twists?: ["mirror", …],   // twists the game supports
+//     credit?: "recognition"|"recall"|null, liveCredit?, audio? }
 // ─────────────────────────────────────────────
 
 const GAMES = [];
@@ -30,23 +42,7 @@ function getGame(id) { return GAMES.find(g => g.id === id) || null; }
 const IS_FRENCH_APP = WORD_KEY === "fr";
 const GAME_RUN_EXCLUDE = new Set(["boss"]); // long, typed — hub only
 
-// ── RNG ───────────────────────────────────────
-function hashString(str) {
-  let h = 2166136261;
-  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
-  return h >>> 0;
-}
-// mulberry32 — tiny deterministic PRNG (Daily Challenge picks)
-function seededRandom(seed) {
-  let a = seed >>> 0;
-  return function () {
-    a = (a + 0x6D2B79F5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
+// (hashString / seededRandom live in config.js)
 function randInt(n) { return Math.floor(Math.random() * n); }
 
 // ── WORD HELPERS ──────────────────────────────
@@ -258,7 +254,7 @@ function poolWordsForDeck(deck, explicit) {
     unlockedWords(deck).forEach((w, i) => {
       if (explicit) { out.push(mk(w, i)); return; }
       const ws = S.words[deck.id + "_" + i];
-      if (ws && (ws.correct || 0) + (ws.wrong || 0) > 0) out.push(mk(w, i));
+      if (ws && (ws.st || (ws.correct || 0) + (ws.wrong || 0) > 0)) out.push(mk(w, i));
     });
   }
   return out;
@@ -281,13 +277,27 @@ function wordWeakness(w) {
     const a = ws.anki || {};
     s += (a.lapses || 0) * 1.5 + (a.phase === "learning" || a.phase === "relearning" ? 2 : 0) + ((a.ease || 2.5) < 2.3 ? 1 : 0);
   } else {
-    const c = ws.correct || 0, x = ws.wrong || 0;
-    if (isStruggling(ws)) s += 4;
-    else if (!isMastered(ws)) s += 2;
-    if (x > c) s += Math.min(6, x - c);
+    const st = ws.st || 0;
+    if (ws.rp || ws.fl) s += 6;
+    if (ws.lrn) s += 3;
+    if (isDue(ws)) s += 3;
+    s += Math.max(0, 5 - st) * 0.8;
+    if (isStruggling(ws)) s += 3;
   }
   return s;
 }
+// A word's stage for game purposes (Anki cards mapped by interval).
+function wordStage(w) {
+  const ws = S.words[wordKey(w)];
+  if (!ws) return 0;
+  if (w.anki) {
+    const a = ws.anki || {};
+    if (a.phase !== "review") return 1;
+    return a.interval >= 21 ? 5 : a.interval >= 7 ? 4 : 3;
+  }
+  return ws.st || 0;
+}
+function isRookie(w) { return wordStage(w) <= 1; }
 function weightedPickDistinct(list, n, weightFn) {
   const items = list.map(w => ({ w, wt: Math.max(0.01, weightFn(w)) }));
   const out = [];
@@ -300,8 +310,23 @@ function weightedPickDistinct(list, n, weightFn) {
   return out;
 }
 // n words, ~60% weighted toward weak words, ~40% uniform. Repeats only
-// when the list is smaller than n, and never twice in a row.
+// when the list is smaller than n, and never twice in a row. At most
+// ~30% 🌱 words when there are enough others, so a fresh batch never
+// swamps a round.
 function sampleWords(list, n) {
+  if (!list.length) return [];
+  const rookies = list.filter(isRookie), others = list.filter(w => !isRookie(w));
+  if (rookies.length && others.length >= Math.ceil(n * 0.7) && rookies.length > Math.round(list.length * 0.3)) {
+    const nr = Math.max(1, Math.round(n * 0.3));
+    const pickR = sampleWordsRaw(rookies, Math.min(nr, rookies.length));
+    const rest = sampleWordsRaw(others, n - pickR.length);
+    const out = shuffle([...pickR, ...rest]);
+    for (let i = 1; i < out.length; i++) if (sameWord(out[i], out[i - 1]) && i + 1 < out.length) [out[i], out[i + 1]] = [out[i + 1], out[i]];
+    return out;
+  }
+  return sampleWordsRaw(list, n);
+}
+function sampleWordsRaw(list, n) {
   if (!list.length) return [];
   const out = [];
   while (out.length < n) {
@@ -322,6 +347,53 @@ function dedupeWords(list, formFn = gameForm) {
     if (!a || f.has(a) || p.has(b)) return false;
     f.add(a); p.add(b); return true;
   });
+}
+
+// ── RANKS · WORD FORMATS · TWISTS ─────────────
+// Rank = the player's arcade skill in one game (speed, time, lives,
+// board size). 3★ at your top rank unlocks the next. You can always
+// replay a lower rank.
+const GAME_RANKS = [
+  { name: "Bronze", icon: "🥉" }, { name: "Silver", icon: "🥈" }, { name: "Gold", icon: "🥇" },
+  { name: "Platinum", icon: "💠" }, { name: "Diamond", icon: "💎" },
+];
+function gameRankOf(id) { return (S.games.rank && S.games.rank[id]) || 0; }
+function gameRankStars(id, r) { return ((S.games.rankStars[id] || [])[r]) || 0; }
+function gameRankProgress(id) { const r = gameRankOf(id); return { rank: r, stars: gameRankStars(id, r) }; }
+function totalGameStars() {
+  let n = 0;
+  Object.values(S.games.rankStars || {}).forEach(a => (a || []).forEach(x => n += x || 0));
+  return n;
+}
+function rankLabel(r) { const k = GAME_RANKS[r] || GAME_RANKS[0]; return `${k.icon} ${k.name}`; }
+
+// Per-word format: the easier of what the rank and the word's stage
+// allow. 🌱 words (stage ≤ 1) always get the gentle version.
+function itemFormat(w, ctx) {
+  const st = wordStage(w);
+  const rookie = st <= 1;
+  const rp = (ctx && ctx.rp) || {};
+  return {
+    st, rookie,
+    options: rookie ? 3 : (rp.options || 4),
+    typed: !!rp.typed && st >= 3,
+    reverse: st >= 2,
+    slow: rookie ? 0.75 : 1,
+  };
+}
+function rookieTagHtml(w) { return isRookie(w) ? `<span class="g-rookie" title="New word — gentler format, half the cost of a miss">🌱</span>` : ""; }
+
+const TWISTS = {
+  mirror: { icon: "🪞", name: "Mirror", desc: "Directions flipped" },
+  sudden: { icon: "💀", name: "Sudden death", desc: "One slip ends the round" },
+  golden: { icon: "🌟", name: "Golden words", desc: "Three words are worth ×3" },
+  turbo:  { icon: "🚀", name: "Turbo", desc: "A third less time, everything faster" },
+};
+const TWIST_CHANCE = 0.2;
+function rollTwist(def, size) {
+  if (size === "bonus" || !def.twists || !def.twists.length) return null;
+  if (S.games.twists === false || Math.random() >= TWIST_CHANCE) return null;
+  return def.twists[Math.floor(Math.random() * def.twists.length)];
 }
 
 // ── LIFECYCLE / CLEANUP ───────────────────────
@@ -417,7 +489,158 @@ function floatScore(anchor, text, cls = "") {
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 900);
 }
+// ── DRAG & DROP ───────────────────────────────
+// One engine for every draggable game (Pointer Events: touch + mouse).
+// A move under DRAG_SLOP px is a tap — the element's normal click
+// handler runs, so every tap interaction keeps working. Beyond that the
+// item is picked up, a ghost follows the finger, `resolve(x, y)` names
+// the drop target, `hover(target)` can draw a caret/highlight and
+// `drop(item, target)` commits. A drop outside any target snaps back.
+// All listeners go through gListen, so quitting a game cleans up.
+const DRAG_SLOP = 6;
+let _dragJustEnded = 0;
+function gDrag(root, opts) {
+  let st = null;
+  const ctx = activeGame && activeGame.ctx;
+  const cleanup = (dropped) => {
+    if (!st) return;
+    const s0 = st; st = null;
+    if (s0.ghost) {
+      if (!dropped && !REDUCED_MOTION) {
+        const r = s0.el.getBoundingClientRect();
+        s0.ghost.style.transition = "transform 0.18s ease";
+        s0.ghost.style.transform = `translate(${r.left}px, ${r.top}px)`;
+        setTimeout(() => s0.ghost.remove(), 190);
+      } else s0.ghost.remove();
+    }
+    s0.el.classList.remove("g-dragging");
+    if (opts.hover) opts.hover(null);
+    document.body.classList.remove("g-drag-active");
+  };
+  gListen(root, "pointerdown", e => {
+    if (e.button !== undefined && e.button !== 0) return;
+    const el = e.target.closest(opts.items);
+    if (!el || !root.contains(el) || el.disabled || (opts.canDrag && !opts.canDrag(el))) return;
+    st = { el, x0: e.clientX, y0: e.clientY, id: e.pointerId, ghost: null, dragging: false, target: null };
+  });
+  gListen(window, "pointermove", e => {
+    if (!st || e.pointerId !== st.id) return;
+    const dx = e.clientX - st.x0, dy = e.clientY - st.y0;
+    if (!st.dragging) {
+      if (Math.hypot(dx, dy) < DRAG_SLOP) return;
+      st.dragging = true;
+      const r = st.el.getBoundingClientRect();
+      const g = st.el.cloneNode(true);
+      g.classList.add("g-ghost");
+      g.removeAttribute("id");
+      g.style.width = r.width + "px"; g.style.height = r.height + "px";
+      st.offX = st.x0 - r.left; st.offY = st.y0 - r.top;
+      document.body.appendChild(g);
+      st.ghost = g;
+      st.el.classList.add("g-dragging");
+      document.body.classList.add("g-drag-active");
+      if (typeof haptic === "function") haptic("select");
+    }
+    e.preventDefault();
+    st.ghost.style.transform = `translate(${e.clientX - st.offX}px, ${e.clientY - st.offY}px) scale(1.06)`;
+    // Auto-scroll near the viewport edges.
+    if (e.clientY < 60) window.scrollBy(0, -12); else if (e.clientY > window.innerHeight - 60) window.scrollBy(0, 12);
+    st.target = opts.resolve(e.clientX, e.clientY, st.el);
+    if (opts.hover) opts.hover(st.target, st.el);
+  }, { passive: false });
+  const end = e => {
+    if (!st || e.pointerId !== st.id) return;
+    if (!st.dragging) { st = null; if (ctx) ctx.tapN = (ctx.tapN || 0) + 1; return; } // a tap: click handles it
+    const { el, target } = st;
+    _dragJustEnded = Date.now();
+    const ok = !!target && opts.drop(el, target) !== false;
+    if (ctx) ctx.dragN = (ctx.dragN || 0) + 1;
+    if (ok && typeof haptic === "function") haptic("drop");
+    cleanup(ok);
+  };
+  gListen(window, "pointerup", end);
+  gListen(window, "pointercancel", e => { if (st && e.pointerId === st.id) cleanup(false); });
+  // The click that follows a drag must not also count as a tap.
+  gListen(root, "click", e => { if (Date.now() - _dragJustEnded < 350) { e.stopPropagation(); e.preventDefault(); } }, true);
+}
+// Where in a wrapped row of tiles would (x, y) insert? Returns an index
+// among `kids` (0…kids.length).
+function insertionIndex(kids, x, y) {
+  if (!kids.length) return 0;
+  let best = -1, bestD = Infinity;
+  kids.forEach((k, i) => {
+    const r = k.getBoundingClientRect();
+    const cx = Math.max(r.left, Math.min(x, r.right)), cy = Math.max(r.top, Math.min(y, r.bottom));
+    const d = Math.hypot(x - cx, (y - cy) * 2);
+    if (d < bestD) { bestD = d; best = i; }
+  });
+  const r = kids[best].getBoundingClientRect();
+  return x > r.left + r.width / 2 ? best + 1 : best;
+}
+function pointIn(el, x, y, pad = 0) {
+  if (!el) return false;
+  const r = el.getBoundingClientRect();
+  return x >= r.left - pad && x <= r.right + pad && y >= r.top - pad && y <= r.bottom + pad;
+}
+
 function comboMult(combo) { return combo >= 20 ? 4 : combo >= 10 ? 3 : combo >= 5 ? 2 : 1; }
+
+// ── TYPED ANSWERS INSIDE GAMES ────────────────
+// Typed formats (Platinum+ on words you know) share one small UI: an
+// input with the accent bar, "Don't know" and "Check". onSubmit gets
+// the raw text ("" for don't know).
+function gTypedHtml(placeholder = "type it…") {
+  return `<div class="g-typed-wrap">
+    <input type="text" class="german-input" id="g-typed" placeholder="${escapeHtml(placeholder)}"
+      autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="go"/>
+    ${accentBarHtml("g-typed")}
+    <div class="g-typed-actions">
+      <button class="dontknow-btn" id="g-typed-skip">? Don't know</button>
+      <button class="g-big-btn" id="g-typed-go">Check</button>
+    </div>
+  </div>`;
+}
+function gTypedBind(ctx, onSubmit) {
+  const input = document.getElementById("g-typed");
+  if (!input) return null;
+  const go = () => {
+    if (ctx.busy || ctx.finished || ctx.paused) return;
+    if (!input.value.trim()) { shakeEl(input); return; }
+    onSubmit(input.value);
+  };
+  document.getElementById("g-typed-go").onclick = go;
+  document.getElementById("g-typed-skip").onclick = () => { if (!ctx.busy && !ctx.finished && !ctx.paused) onSubmit(""); };
+  ["g-typed-go", "g-typed-skip"].forEach(id => gListen(document.getElementById(id), "pointerdown", e => e.preventDefault()));
+  gListen(input, "keydown", e => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); go(); } });
+  setTimeout(() => { try { input.focus({ preventScroll: true }); } catch (e) {} }, 60);
+  return input;
+}
+// Grade a typed game answer against one or more accepted strings.
+function gradeTyped(val, answers) {
+  if (!String(val || "").trim()) return false;
+  if (answers.some(a => a && (isCorrect(val, a) || normalize(val) === normalize(a)))) return true;
+  return isNearMiss(val, answers) ? "near" : false;
+}
+
+// ── COLLECTIONS (gender · plural) ─────────────
+// A noun is collected once its gender (or plural) was right on three
+// different days. Collections never go down.
+function collectAttr(w, kind) {
+  if (!w || w.anki) return false;
+  const ws = S.words[wordKey(w)];
+  if (!ws || !ws.st) return false;
+  const today = todayISO();
+  const c = ws[kind] || (ws[kind] = { n: 0, d: "" });
+  if (c.done || c.d === today) return false;
+  c.n++; c.d = today;
+  if (c.n >= 3) {
+    c.done = 1;
+    S.games.collect[kind] = (S.games.collect[kind] || 0) + 1;
+    questEvent("collect", { kind });
+    return true;
+  }
+  return false;
+}
 
 // ── MULTIPLE-CHOICE HELPERS ───────────────────
 // options: [{ text, correct, word }]. Buttons carry data-i for clicks
@@ -483,6 +706,8 @@ function launchGame(id, opts = {}) {
 
   const ctx = makeCtx(def, pool, size, opts);
   activeGame = { def, ctx };
+  const maxRank = gameRankOf(def.id);
+  ctx.rank = opts.rank !== undefined ? Math.min(opts.rank, maxRank) : size === "bonus" ? Math.min(maxRank, 1) : maxRank;
   // Deferred: the keypress that opened this screen (e.g. Enter in Drill
   // triggering a Surprise Round) is still bubbling and must not reach us.
   gTimeout(() => gListen(document, "keydown", e => gameKeydown(e, ctx)), 0);
@@ -494,9 +719,74 @@ function launchGame(id, opts = {}) {
     if (def.timed) runCountdown(ctx, () => beginGame(ctx));
     else beginGame(ctx);
   };
+  ctx.twist = opts.twist !== undefined ? opts.twist : (introSeen ? rollTwist(def, size) : null);
+  ctx.twistOffered = ctx.twist;
+  updateHudRun(ctx);
+  logEvent("game_start", { id: def.id, size, rank: ctx.rank, twist: ctx.twist || "" });
   if (!introSeen || opts.forceIntro) showGameIntro(ctx, go);
   else if (gameRun || size === "bonus") showRoundSplash(ctx, go);
+  else if (maxRank > 0 || ctx.twist) showStartCard(ctx, go);
   else go();
+}
+function updateHudRun(ctx) {
+  const el = document.querySelector(".g-hud-title");
+  if (!el) return;
+  let line = el.querySelector(".g-hud-run");
+  const runLabel = gameRun ? `${gameRun.title} · ${gameRun.i + 1}/${gameRun.ids.length}` : "";
+  const parts = [runLabel, ctx.size === "full" && gameRankOf(ctx.def.id) > 0 ? rankLabel(ctx.rank) : "", ctx.twist ? `${TWISTS[ctx.twist].icon} ${TWISTS[ctx.twist].name}` : ""].filter(Boolean);
+  if (!parts.length) { if (line) line.remove(); return; }
+  if (!line) { line = document.createElement("span"); line.className = "g-hud-run"; el.appendChild(line); }
+  line.textContent = parts.join(" · ");
+}
+// The twist line on start cards: an offered twist can be declined; with
+// a rank above Bronze you can also add one yourself.
+function twistLineHtml(ctx) {
+  const d = ctx.def;
+  if (!d.twists || !d.twists.length || ctx.size === "bonus") return "";
+  if (ctx.twist) {
+    const t = TWISTS[ctx.twist];
+    return `<div class="g-twist on">🌀 Twist: <strong>${t.icon} ${t.name}</strong> — ${t.desc} · ×1.5 XP
+      <button class="g-twist-btn" id="g-twist-x">No thanks</button></div>`;
+  }
+  if (ctx.size !== "full") return "";
+  return `<div class="g-twist"><button class="g-twist-btn" id="g-twist-add">🌀 Add a twist</button></div>`;
+}
+function bindTwistLine(ctx, rerender) {
+  const x = document.getElementById("g-twist-x");
+  if (x) x.onclick = () => { logEvent("twist", { id: ctx.twist, taken: false }); ctx.twist = null; updateHudRun(ctx); rerender(); };
+  const a = document.getElementById("g-twist-add");
+  if (a) a.onclick = () => {
+    const list = ctx.def.twists;
+    ctx.twist = list[Math.floor(Math.random() * list.length)];
+    ctx.twistOffered = ctx.twist; updateHudRun(ctx); rerender();
+  };
+}
+// Start card for full-size rounds once a rank above Bronze exists (or a
+// twist was rolled): pick the rank, keep or decline the twist.
+function showStartCard(ctx, onGo) {
+  const d = ctx.def, max = gameRankOf(d.id);
+  const render = () => {
+    const o = overlay(`<div class="g-card">
+      <div class="g-card-icon">${d.icon}</div>
+      <div class="g-card-title">${escapeHtml(gameName(d))}</div>
+      <div class="g-card-skill">${escapeHtml(d.skill)}</div>
+      ${max > 0 ? `<div class="g-ranks" role="radiogroup" aria-label="Rank">${GAME_RANKS.slice(0, max + 1).map((r, i) =>
+        `<button class="g-rank ${i === ctx.rank ? "on" : ""}" data-r="${i}" role="radio" aria-checked="${i === ctx.rank}">${r.icon}<small>${r.name}</small><span>${starsHtml(gameRankStars(d.id, i))}</span></button>`).join("")}</div>` : ""}
+      ${max < 4 ? `<div class="g-rank-next">3★ at ${rankLabel(max)} unlocks ${rankLabel(max + 1)}</div>` : `<div class="g-rank-next">💎 Top rank reached</div>`}
+      ${twistLineHtml(ctx)}
+      <button class="g-big-btn" id="g-go">Start</button>
+      <button class="g-link-btn" onclick="quitGame()">← Back</button>
+    </div>`);
+    if (!o) return;
+    o.querySelectorAll(".g-rank").forEach(b => b.onclick = () => { ctx.rank = +b.dataset.r; updateHudRun(ctx); render(); });
+    bindTwistLine(ctx, render);
+    armOverlayButton(o.querySelector("#g-go"), () => { overlay(""); startWithTwistLog(ctx, onGo); });
+  };
+  render();
+}
+function startWithTwistLog(ctx, onGo) {
+  if (ctx.twist) logEvent("twist", { id: ctx.twist, taken: true });
+  onGo();
 }
 function gameName(def) { return typeof def.name === "function" ? def.name() : def.name; }
 
@@ -514,6 +804,7 @@ function gameRequirement(def, pool, size) {
 function beginGame(ctx) {
   if (ctx.dead || ctx.started) return;
   ctx.started = true;
+  ctx.startedAt = Date.now();
   // A toast or confetti still on screen from before (results, splash)
   // must not cover the first question.
   document.querySelectorAll("#celebrate-toast, .confetti-piece").forEach(el => el.remove());
@@ -537,10 +828,50 @@ function makeCtx(def, pool, size, opts) {
     stage: $("g-stage"),
     clock: makeClock(),
     busy: false, dead: false, paused: false, started: false, finished: false,
-    missedWords: [],
+    missedWords: [], hits: new Map(), rank: 0, twist: null, golden: 0, goldenKeys: null,
+    get rp() { const r = def.ranks || []; return r[Math.min(ctx.rank, r.length - 1)] || {}; },
+    get timeScale() { return ctx.twist === "turbo" ? 0.67 : 1; },
+    get speedScale() { return ctx.twist === "turbo" ? 1.5 : 1; },
+    get sudden() { return ctx.twist === "sudden"; },
+    get mirror() { return ctx.twist === "mirror"; },
+    fmt(w) { return itemFormat(w, ctx); },
+    // Record a correct answer on a specific word (credit at the end).
+    hit(w, kind = "recognition") {
+      if (!w) return;
+      const k = wordKey(w), prev = ctx.hits.get(k);
+      if (!prev || (prev.kind !== "recall" && kind === "recall")) ctx.hits.set(k, { w, kind });
+    },
+    // Cost multiplier of a miss: 🌱 words cost half — never nothing.
+    cost(w) { return w && isRookie(w) ? 0.5 : 1; },
+    comboAfterMiss(combo, w) { return w && isRookie(w) ? Math.floor(combo / 2) : 0; },
+    // Golden words (twist): decided the first time a word is shown —
+    // about one in five until three are golden.
+    isGolden(w) {
+      if (!w || ctx.twist !== "golden") return false;
+      if (!ctx.goldenKeys) { ctx.goldenKeys = new Set(); ctx.goldenSeen = new Set(); }
+      const k = wordKey(w);
+      if (ctx.goldenKeys.has(k)) return true;
+      if (ctx.goldenSeen.has(k)) return false;
+      ctx.goldenSeen.add(k);
+      if (ctx.goldenKeys.size < 3 && Math.random() < 0.22) { ctx.goldenKeys.add(k); return true; }
+      return false;
+    },
+    // Points for a hit: 🌱 words ×1.5 (they take longer), golden ×3.
+    award(w, pts) {
+      let p = pts;
+      if (w && isRookie(w)) p = Math.round(p * 1.5);
+      if (ctx.isGolden(w)) { p *= 3; ctx.golden++; }
+      return p;
+    },
+    tag(w) { return (ctx.isGolden(w) ? `<span class="g-golden-tag">🌟×3</span>` : "") + rookieTagHtml(w); },
     rounds(full, short, bonus) { return size === "full" ? full : size === "short" ? short : (bonus ?? short); },
     setScore(n) { const e = $("g-score"); if (e) { e.textContent = n.toLocaleString(); popEl(e); } },
-    setLives(n, max) { const e = $("g-lives"); if (e) e.textContent = "❤️".repeat(Math.max(0, n)) + "🖤".repeat(Math.max(0, max - n)); },
+    setLives(n, max) {
+      const e = $("g-lives"); if (!e) return;
+      n = Math.max(0, n);
+      const full = Math.floor(n + 1e-9), half = n - full >= 0.5 ? 1 : 0;
+      e.textContent = "❤️".repeat(full) + (half ? "💔" : "") + "🖤".repeat(Math.max(0, max - full - half));
+    },
     setCombo(n) {
       const e = $("g-combo"); if (!e) return;
       const m = comboMult(n);
@@ -598,17 +929,22 @@ function showGameIntro(ctx, onGo) {
 function showRoundSplash(ctx, onGo) {
   const d = ctx.def;
   const sub = ctx.size === "bonus" ? "🎁 Bonus round — 20 seconds!" : escapeHtml(d.skill);
-  const o = overlay(`<div class="g-card">
-      <div class="g-card-icon">${d.icon}</div>
-      <div class="g-card-title">${escapeHtml(gameName(d))}</div>
-      <div class="g-card-skill">${sub}</div>
-      <button class="g-big-btn" id="g-go">Start</button>
-      <button class="g-link-btn" id="g-skip">${ctx.size === "bonus" ? "Skip bonus" : gameRun && gameRun.kind === "daily" ? "← Leave — finished rounds are kept" : "← Leave"}</button>
-    </div>`);
-  if (!o) return;
-  armOverlayButton(o.querySelector("#g-go"), () => { overlay(""); onGo(); });
-  const skip = o.querySelector("#g-skip");
-  if (skip) armOverlayButton(skip, quitGame);
+  const render = () => {
+    const o = overlay(`<div class="g-card">
+        <div class="g-card-icon">${d.icon}</div>
+        <div class="g-card-title">${escapeHtml(gameName(d))}</div>
+        <div class="g-card-skill">${sub}</div>
+        ${twistLineHtml(ctx)}
+        <button class="g-big-btn" id="g-go">Start</button>
+        <button class="g-link-btn" id="g-skip">${ctx.size === "bonus" ? "Skip bonus" : gameRun && gameRun.kind === "daily" ? "← Leave — finished rounds are kept" : "← Leave"}</button>
+      </div>`);
+    if (!o) return;
+    bindTwistLine(ctx, render);
+    armOverlayButton(o.querySelector("#g-go"), () => { overlay(""); startWithTwistLog(ctx, onGo); });
+    const skip = o.querySelector("#g-skip");
+    if (skip) armOverlayButton(skip, quitGame);
+  };
+  render();
 }
 function runCountdown(ctx, onDone) {
   let n = 3;
@@ -694,6 +1030,8 @@ function digitKey(e, n) {
 // the drill. Nothing is recorded for an abandoned round.
 function quitGame() {
   const run = gameRun;
+  if (activeGame && activeGame.ctx && activeGame.ctx.started && !activeGame.ctx.finished)
+    logEvent("game_end", { id: activeGame.def.id, size: activeGame.ctx.size, quit: true, ms: Math.round(activeGame.ctx.clock.elapsed()) });
   stopActiveGame();
   flushDeferredCelebrations();
   if (run && run.kind === "surprise") { gameRun = null; run.onDone && run.onDone(); return; }
@@ -702,9 +1040,11 @@ function quitGame() {
 }
 
 // ── FINISH & REWARDS ──────────────────────────
-function starsFor(def, result) {
-  if (def.starsFor) return def.starsFor(result);
-  const t = def.stars || [Infinity, Infinity, Infinity];
+function starsFor(def, result, ctx) {
+  const rank = ctx ? ctx.rank : 0;
+  if (def.starsFor) return def.starsFor(result, ctx);
+  const rp = (def.ranks && def.ranks[rank]) || {};
+  const t = rp.stars || def.stars || [Infinity, Infinity, Infinity];
   return result.score >= t[2] ? 3 : result.score >= t[1] ? 2 : result.score >= t[0] ? 1 : 0;
 }
 // Default XP: ~2 per correct answer + 10 per star, capped per round.
@@ -714,31 +1054,86 @@ function defaultGameXp(result, size, stars) {
   return Math.min(60, (result.correct || 0) * 2 + stars * 10);
 }
 
+// Tiered credit, applied once when a round is finished: misses flag
+// (never demote), hits lift due words — recognition up to 🌿 Familiar,
+// recall (typed formats) through every stage.
+function applyGameCredit(ctx) {
+  const out = { up: 0, flagged: 0, moved: [] };
+  const def = ctx.def;
+  if (def.liveCredit || def.credit === null) return out;
+  const missKeys = new Set(ctx.missedWords.map(wordKey));
+  ctx.missedWords.forEach(w => {
+    if (w.anki) return;
+    const ws = S.words[wordKey(w)];
+    if (!ws || !ws.st) return;
+    const r = srsReview(ws, false, "recognition");
+    r._w = w;
+    if (r.events.includes("flagged")) out.flagged++;
+    questEvent("srs", r);
+  });
+  ctx.hits.forEach(({ w, kind }, k) => {
+    if (w.anki || missKeys.has(k)) return;
+    const ws = S.words[k];
+    if (!ws || !ws.st) return;
+    if (kind === "recall") { ws.correct = (ws.correct || 0) + 1; S.totalCorrect++; }
+    ws.lastAnsweredAt = Date.now();
+    const r = srsReview(ws, true, kind === "recall" ? "recall" : "recognition");
+    r._w = w;
+    celebrateReview(r, false);
+    if (r.promoted) { out.up++; out.moved.push({ w, from: r.from, to: r.to }); }
+  });
+  if (typeof invalidatePathScan === "function") invalidatePathScan();
+  return out;
+}
+
 function finishGame(ctx, result) {
-  const def = ctx.def, size = ctx.size;
+  const def = ctx.def, size = ctx.size, rank = ctx.rank, twist = ctx.twist;
   stopActiveGame();
   result = Object.assign({ score: 0, correct: 0, wrong: 0, maxCombo: 0 }, result);
   result.missed = ctx.missedWords.slice();
+  result.golden = ctx.golden || 0;
   const G = S.games;
-  const stars = size === "full" ? starsFor(def, result) : 0;
-  const xp = Math.max(0, def.xpFor ? def.xpFor(result, size, stars) : defaultGameXp(result, size, stars));
+  const stars = size === "full" ? starsFor(def, result, ctx) : 0;
+  let xp = Math.max(0, def.xpFor ? def.xpFor(result, size, stars) : defaultGameXp(result, size, stars));
+  if (twist) xp = Math.round(xp * 1.5);
 
   G.plays[def.id] = (G.plays[def.id] || 0) + 1;
   G.totalPlays = (G.totalPlays || 0) + 1;
-  let newBest = false;
+  G.lastPlayed[def.id] = todayISO();
+  let newBest = false, rankedUp = false;
   if (size === "full") {
-    const prevBest = G.best[def.id];
-    if (prevBest === undefined || result.score > prevBest) { newBest = prevBest !== undefined && result.score > 0; G.best[def.id] = result.score; }
-    if (stars > (G.stars[def.id] || 0)) G.stars[def.id] = stars;
+    if (twist) {
+      const prev = G.twistBest[def.id];
+      if (prev === undefined || result.score > prev) { newBest = prev !== undefined && result.score > 0; G.twistBest[def.id] = result.score; }
+    } else {
+      const rs = G.rankStars[def.id] = G.rankStars[def.id] || [0, 0, 0, 0, 0];
+      const rb = G.rankBest[def.id] = G.rankBest[def.id] || [];
+      if (stars > (rs[rank] || 0)) rs[rank] = stars;
+      if (rb[rank] === undefined || result.score > rb[rank]) { newBest = rb[rank] !== undefined && result.score > 0; rb[rank] = result.score; }
+      if (stars > (G.stars[def.id] || 0)) G.stars[def.id] = stars;
+      if (G.best[def.id] === undefined || result.score > G.best[def.id]) G.best[def.id] = result.score;
+      if (stars === 3 && rank === gameRankOf(def.id) && rank < GAME_RANKS.length - 1) {
+        G.rank[def.id] = rank + 1; rankedUp = true;
+      }
+    }
   }
   if (def.onRecord) def.onRecord(result, size);
+  const credit = applyGameCredit(ctx);
   creditGameAnswers(result.goalCorrect ?? result.correct);
   if (xp > 0) addExp(xp); // saves
+  if (ctx.dragN) logEvent("drag", { how: "drag", game: def.id, n: ctx.dragN });
+  if (ctx.tapN) logEvent("drag", { how: "tap", game: def.id, n: ctx.tapN });
+  logEvent("game_end", { id: def.id, size, rank, twist: twist || "", stars, score: result.score, ok: result.correct, bad: result.wrong,
+    ms: Math.round(ctx.clock.elapsed()), up: credit.up, fl: credit.flagged, rankedUp });
+  questEvent("game_end", { id: def.id, size, stars, result, rank, twist, rankedUp, newBest, startedAt: ctx.startedAt || 0 });
   saveState();
-  checkAchievements({ type: "game_end", game: def.id, size, stars, ...result });
+  checkAchievements({ type: "game_end", game: def.id, size, stars, rank, rankedUp, ...result });
 
-  const summary = { def, size, result, stars, xp, newBest };
-  if (newBest) {
+  const summary = { def, size, result, stars, xp, newBest, rank, twist, rankedUp, credit };
+  if (rankedUp) {
+    confettiBurst(60);
+    showCelebrateToast(GAME_RANKS[rank + 1].icon, `${GAME_RANKS[rank + 1].name} unlocked!`, `${gameName(def)} · harder handling, same words`);
+  } else if (newBest) {
     confettiBurst(40);
     showCelebrateToast("🏅", "New best!", `${gameName(def)} · ${result.score.toLocaleString()}`);
   }
@@ -763,13 +1158,14 @@ function missedListHtml(words) {
   </div>`;
 }
 function renderGameResults(sum, ctx) {
-  const { def, size, result, stars, xp, newBest } = sum;
+  const { def, size, result, stars, xp, newBest, rank, twist, rankedUp, credit } = sum;
   const emoji = def.id === "boss" ? (result.won ? "🏆" : "💀") : stars === 3 ? "🏆" : stars === 2 ? "🎉" : stars === 1 ? "👍" : "💪";
   const title = def.id === "boss" ? (result.won ? "Boss defeated!" : "The boss got away…")
     : stars === 3 ? "Outstanding!" : stars === 2 ? "Great round!" : stars === 1 ? "Nice work!" : "Keep practising!";
   if (stars >= 2 || (def.id === "boss" && result.won)) confettiBurst(stars === 3 ? 50 : 30);
   if (def.id === "boss" && !result.won) playGameOver(); else playAchievement();
-  const best = S.games.best[def.id];
+  const best = twist ? S.games.twistBest[def.id] : ((S.games.rankBest[def.id] || [])[rank]);
+  const maxR = gameRankOf(def.id);
   const drillable = result.missed.filter(w => !w.anki);
   document.getElementById("main-screen").innerHTML = `
     <div class="screen game-screen">
@@ -781,15 +1177,18 @@ function renderGameResults(sum, ctx) {
         <div class="result-emoji">${emoji}</div>
         <div class="result-title">${title}</div>
         ${size === "full" ? `<div class="g-stars-row">${starsHtml(stars, 3, "big")}</div>` : ""}
+        ${size === "full" ? `<div class="g-rank-line">${twist ? `${TWISTS[twist].icon} ${TWISTS[twist].name} round · twists don't change your rank` : rankedUp ? `<span class="g-rankup">${GAME_RANKS[rank + 1].icon} ${GAME_RANKS[rank + 1].name} unlocked!</span>` : maxR < GAME_RANKS.length - 1 && rank === maxR ? `${rankLabel(rank)} · 3★ unlocks ${rankLabel(rank + 1)}` : rankLabel(rank)}</div>` : ""}
         ${newBest ? `<div class="g-newbest">🏅 New personal best!</div>` : ""}
+        ${credit && (credit.up || credit.flagged) ? `<div class="g-credit">${credit.up ? `📈 ${credit.up} word${credit.up > 1 ? "s" : ""} moved up` : ""}${credit.up && credit.flagged ? " · " : ""}${credit.flagged ? `⚠️ ${credit.flagged} flagged for a typed check` : ""}</div>` : ""}
         <div>
           <div class="result-stat"><strong>${result.score.toLocaleString()}</strong>score</div>
           <div class="result-stat"><strong>${result.correct}</strong>correct</div>
           ${result.maxCombo >= 3 ? `<div class="result-stat"><strong>🔥${result.maxCombo}</strong>best combo</div>` : ""}
-          <div class="result-stat"><strong>+${xp} XP</strong>earned</div>
+          <div class="result-stat"><strong>+${xp} XP</strong>earned${twist ? " (×1.5)" : ""}</div>
+          ${result.golden ? `<div class="result-stat"><strong>🌟${result.golden}</strong>golden</div>` : ""}
         </div>
         ${result.note ? `<div class="g-best-line">${escapeHtml(result.note)}</div>` : ""}
-        ${size === "full" && best !== undefined ? `<div class="g-best-line">Personal best: ${best.toLocaleString()}</div>` : ""}
+        ${size === "full" && best !== undefined ? `<div class="g-best-line">Personal best${twist ? " (twist)" : ` at ${GAME_RANKS[rank].name}`}: ${best.toLocaleString()}</div>` : ""}
         ${missedListHtml(result.missed)}
         <div class="g-result-actions">
           <button class="g-big-btn" id="g-again">↻ Play again</button>
@@ -801,7 +1200,8 @@ function renderGameResults(sum, ctx) {
   window.scrollTo({ top: 0, behavior: "instant" });
   // Guarded: a keypress that ended the round (Enter in Boss Battle)
   // must not immediately restart it.
-  armOverlayButton(document.getElementById("g-again"), () => launchGame(def.id, { pool: ctx.pool, size: "full" }));
+  armOverlayButton(document.getElementById("g-again"), () => launchGame(def.id, { pool: ctx.pool, size: "full", rank: rankedUp ? rank + 1 : rank }));
+  if (typeof questAfterActivity === "function") questAfterActivity();
   const dm = document.getElementById("g-drill-missed");
   if (dm) dm.onclick = () => drillWords(drillable);
   flushDeferredCelebrations();
@@ -827,9 +1227,17 @@ function drillWords(words) {
 function startGameRun(kind, ids, opts = {}) {
   if (!ids.length) return;
   gameRun = { kind, ids, i: 0, summaries: [], pool: opts.pool, size: opts.size || "short",
-    title: opts.title || "", onDone: opts.onDone || null };
-  launchGame(ids[0], { pool: gameRun.pool, size: gameRun.size });
+    title: opts.title || "", onDone: opts.onDone || null, twists: opts.twists || null };
+  logEvent("session_start", { kind: "games:" + kind, n: ids.length });
+  launchGame(ids[0], runLaunchOpts(0));
 }
+function runLaunchOpts(i) {
+  const o = { pool: gameRun.pool, size: gameRun.size };
+  if (gameRun.twists) o.twist = gameRun.twists[i] || null;
+  return o;
+}
+// Audio games only when sound is possible (not muted, not Quiet mode).
+function gameUsableNow(g) { return !g.audio || (typeof audioOk === "function" ? audioOk() : !muteEnabled); }
 function gameRunRoundDone(sum) {
   const run = gameRun;
   run.summaries.push(sum);
@@ -840,6 +1248,8 @@ function gameRunRoundDone(sum) {
   const last = run.i >= run.ids.length - 1;
   const el = document.getElementById("main-screen");
   const dailyBonus = run.kind === "daily" && last ? dailyCompleteIfDone() : 0;
+  if (last) logEvent("session_end", { kind: "games:" + run.kind, abandoned: false, n: run.summaries.length });
+  if (last && run.kind === "mix") questEvent("mix", {});
   const totalXp = run.summaries.reduce((s, x) => s + x.xp, 0) + dailyBonus;
   const rows = run.summaries.map((x, i) => `<div class="g-run-row">
       <span>${i + 1}. ${x.def.icon} ${escapeHtml(gameName(x.def))}</span>
@@ -867,7 +1277,7 @@ function gameRunRoundDone(sum) {
   if (last && run.kind === "daily" && dailyBonus) { confettiBurst(60); playLevelUp(); }
   window.scrollTo({ top: 0, behavior: "instant" });
   armOverlayButton(document.getElementById("g-next"), () => {
-    if (next) { run.i++; launchGame(run.ids[run.i], { pool: run.pool, size: run.size }); }
+    if (next) { run.i++; launchGame(run.ids[run.i], runLaunchOpts(run.i)); }
     else { gameRun = null; openGamesHub(); }
   });
   flushDeferredCelebrations();
@@ -892,7 +1302,7 @@ function dailyState() {
 // new words mid-day can never reshuffle a half-finished challenge.
 function dailyGameIds(pool) {
   const d = dailyState();
-  const usable = id => { const g = getGame(id); return g && g.inRuns !== false && !GAME_RUN_EXCLUDE.has(id) && gameRequirement(g, pool, "short").ok; };
+  const usable = id => { const g = getGame(id); return g && g.inRuns !== false && !GAME_RUN_EXCLUDE.has(id) && gameUsableNow(g) && gameRequirement(g, pool, "short").ok; };
   if (Array.isArray(d.ids) && d.ids.length === 3 && d.ids.every(usable)) return d.ids.slice();
   const rng = seededRandom(hashString(todayISO() + "|" + STORAGE_KEY));
   const order = GAMES.map(g => g.id);
@@ -916,6 +1326,7 @@ function dailyCompleteIfDone() {
   if (d.completedDates.length > 400) d.completedDates = d.completedDates.slice(-400);
   addExp(DAILY_BONUS_XP);
   saveState();
+  questEvent("daily", {});
   checkAchievements({ type: "daily_challenge" });
   return DAILY_BONUS_XP;
 }
@@ -927,19 +1338,32 @@ function dailyStreak() {
   while (dates.has(day)) { n++; day = addDays(day, -1); }
   return n;
 }
+// The Daily Challenge plays your due / flagged / weakest words (topped
+// up with other known words), with a random twist on the last round.
+function dailyPool() {
+  const all = buildGamePool(null);
+  const need = all.filter(w => wordWeakness(w) >= 4);
+  if (need.length >= 16) return need;
+  const rest = all.filter(w => !need.includes(w)).sort((a, b) => wordWeakness(b) - wordWeakness(a));
+  return need.concat(rest.slice(0, Math.max(0, 24 - need.length)));
+}
 function startDailyChallenge() {
-  const pool = buildGamePool(null);
+  const pool = dailyPool();
   const ids = dailyGameIds(pool);
   const d = dailyState();
   const remaining = ids.filter(id => !d.done.includes(id));
   if (!remaining.length) { showCelebrateToast("📆", "Challenge done", "Come back tomorrow for a new one"); return; }
-  startGameRun("daily", remaining, { pool, size: "short", title: "📆 Daily Challenge" });
+  const twists = remaining.map(id => {
+    if (ids.indexOf(id) !== ids.length - 1 || ids.length < 3) return null;
+    const g = getGame(id); return g && g.twists && g.twists.length ? g.twists[Math.floor(Math.random() * g.twists.length)] : null;
+  });
+  startGameRun("daily", remaining, { pool, size: "short", title: "📆 Daily Challenge", twists });
 }
 
 // ── ARCADE MIX ────────────────────────────────
 function startArcadeMix() {
   const pool = buildGamePool(gameHubDeckIds || S.games.pool);
-  const ids = shuffle(GAMES.filter(g => g.inRuns !== false && !GAME_RUN_EXCLUDE.has(g.id) && gameRequirement(g, pool, "short").ok).map(g => g.id)).slice(0, 4);
+  const ids = shuffle(GAMES.filter(g => g.inRuns !== false && !GAME_RUN_EXCLUDE.has(g.id) && gameUsableNow(g) && gameRequirement(g, pool, "short").ok).map(g => g.id)).slice(0, 4);
   if (ids.length < 2) { showCelebrateToast("🕹️", "Arcade Mix", "Needs more known words"); return; }
   startGameRun("mix", ids, { pool, size: "short", title: "🕹️ Arcade Mix" });
 }
@@ -956,7 +1380,7 @@ function maybeSurpriseRound() {
   if (!sessionCorrect || sessionCorrect % SURPRISE_EVERY !== 0 || _surpriseShownAt === sessionCorrect) return false;
   if (document.getElementById("unlock-modal")) return false;
   const pool = activeWords.map(w => ({ ...w, anki: isAnkiDeck(w.deckId) }));
-  const options = SURPRISE_GAMES.filter(id => { const g = getGame(id); return g && gameRequirement(g, pool, "bonus").ok; });
+  const options = SURPRISE_GAMES.filter(id => { const g = getGame(id); return g && gameUsableNow(g) && gameRequirement(g, pool, "bonus").ok; });
   if (!options.length) return false;
   _surpriseShownAt = sessionCorrect;
   const id = options[randInt(options.length)];
@@ -971,7 +1395,9 @@ function resumeDrillAfterBonus() {
   currentWord = drillSubMode === 'refresh' ? pickNextRefresh() : pickNext(drillSubMode === 'focus');
   initDrillScreen();
 }
-function renderSurpriseResult(sum) {
+function renderSurpriseResult(sum, run) {
+  const back = (run && run.onDone) || resumeDrillAfterBonus;
+  const label = run && run.onDone === resumeDrillAfterBonus ? "Back to drill →" : "Continue →";
   const cleared = !!sum.result.cleared;
   if (cleared) { confettiBurst(30); playAchievement(); }
   document.getElementById("main-screen").innerHTML = `<div class="screen game-screen">
@@ -980,11 +1406,11 @@ function renderSurpriseResult(sum) {
         <div class="result-title">${cleared ? "Bonus cleared!" : "So close!"}</div>
         <div class="result-sub">${sum.result.correct} correct · +${sum.xp} XP</div>
         ${missedListHtml(sum.result.missed)}
-        <div class="g-result-actions"><button class="g-big-btn" id="g-back-drill">Back to drill →</button></div>
+        <div class="g-result-actions"><button class="g-big-btn" id="g-back-drill">${label}</button></div>
       </div>
     </div>`;
   window.scrollTo({ top: 0, behavior: "instant" });
-  armOverlayButton(document.getElementById("g-back-drill"), resumeDrillAfterBonus);
+  armOverlayButton(document.getElementById("g-back-drill"), () => back());
   flushDeferredCelebrations();
 }
 function toggleSurpriseRounds() {
@@ -1013,7 +1439,7 @@ function currentPoolIds() {
 }
 function poolLabel(ids, pool) {
   if (gameHubDeckIds) return `Selected decks (${ids.length}) · ${pool.length} words`;
-  if (!ids) return `All known words · ${pool.length}`;
+  if (!ids) return `Your words · ${pool.length}`;
   return ids.length === 1 ? `${getDeck(ids[0]).name} · ${pool.length} words` : `${ids.length} decks · ${pool.length} words`;
 }
 function renderGamesHub() {
@@ -1064,26 +1490,59 @@ function renderGamesHub() {
 
   const cards = GAMES.map(g => {
     const req = gameRequirement(g, pool, "full");
-    const best = S.games.best[g.id];
-    const st = S.games.stars[g.id] || 0;
+    const r = gameRankOf(g.id);
+    const st = gameRankStars(g.id, r);
+    const best = (S.games.rankBest[g.id] || [])[r];
     const plays = S.games.plays[g.id] || 0;
-    return `<button class="g-card-tile ${req.ok ? "" : "off"}" onclick="gameTileTap('${g.id}')" ${req.ok ? "" : `aria-disabled="true"`}>
+    const quietOff = !gameUsableNow(g);
+    return `<button class="g-card-tile ${req.ok && !quietOff ? "" : "off"}" onclick="gameTileTap('${g.id}')" ${req.ok ? "" : `aria-disabled="true"`}>
+      <div class="g-tile-rank" title="${GAME_RANKS[r].name}">${GAME_RANKS[r].icon}</div>
       <div class="g-tile-icon">${g.icon}</div>
       <div class="g-tile-name">${escapeHtml(gameName(g))}</div>
       <div class="g-tile-skill">${escapeHtml(g.skill)}</div>
-      ${req.ok
-        ? `<div class="g-tile-stars">${starsHtml(st)}</div>
-           <div class="g-tile-best">${best !== undefined ? `Best ${best.toLocaleString()}` : plays ? "" : "✨ Try it!"}</div>`
-        : `<div class="g-tile-reason">${escapeHtml(req.reason)}</div>`}
+      ${!req.ok ? `<div class="g-tile-reason">${escapeHtml(req.reason)}</div>`
+        : quietOff ? `<div class="g-tile-reason">🔇 Needs sound</div>`
+        : `<div class="g-tile-stars">${starsHtml(st)}</div>
+           <div class="g-tile-best">${r < GAME_RANKS.length - 1 ? (st === 3 ? "" : `3★ → ${GAME_RANKS[r + 1].icon}`) : "💎 max rank"}${best !== undefined ? ` · best ${best.toLocaleString()}` : plays ? "" : " ✨ Try it!"}</div>`}
     </button>`;
   }).join("");
 
-  const mixOk = GAMES.filter(g => g.inRuns !== false && !GAME_RUN_EXCLUDE.has(g.id) && gameRequirement(g, pool, "short").ok).length >= 2;
+  const mixOk = GAMES.filter(g => g.inRuns !== false && !GAME_RUN_EXCLUDE.has(g.id) && gameUsableNow(g) && gameRequirement(g, pool, "short").ok).length >= 2;
+  const pick = playForTodayPick();
   el.innerHTML = `<div class="screen game-screen">${top}
+    ${pick ? `<button class="g-today-btn" onclick="playForToday()"><span class="g-today-main">▶ Play for today</span><span class="g-today-sub">${pick.icon} ${escapeHtml(gameName(pick))} with the words you need most</span></button>` : ""}
     ${dailyHtml}
+    ${typeof bossRowHtml === "function" ? bossRowHtml() : ""}
     <button class="g-mix-btn" onclick="startArcadeMix()" ${mixOk ? "" : "disabled"}>🕹️ Arcade Mix <span>4 quick rounds, back to back</span></button>
     <div class="g-grid">${cards}</div>
   </div>`;
+}
+
+// ▶ Play for today: no choosing — a game that fits your due words,
+// preferring ones you haven't played lately, never the last one.
+let _todayPick = null;
+function playForTodayPick() {
+  const pool = dailyPool();
+  const last = S.games.lastGameId;
+  const cands = GAMES.filter(g => g.id !== "boss" && g.id !== last && gameUsableNow(g) && gameRequirement(g, pool, "full").ok);
+  if (!cands.length) return null;
+  if (_todayPick && cands.includes(_todayPick)) return _todayPick;
+  const today = todayISO();
+  const w = cands.map(g => {
+    const lp = S.games.lastPlayed[g.id];
+    const age = lp ? Math.min(14, daysBetween(lp, today)) : 14;
+    return { g, w: 1 + age };
+  });
+  _todayPick = weightedPick(w).g;
+  return _todayPick;
+}
+function playForToday() {
+  const g = playForTodayPick();
+  if (!g) return;
+  _todayPick = null;
+  S.games.lastGameId = g.id;
+  logEvent("play_for_today", { id: g.id });
+  launchGame(g.id, { pool: dailyPool(), size: "full" });
 }
 
 // Locked tiles stay tappable so they can explain themselves.
@@ -1091,7 +1550,8 @@ function gameTileTap(id) {
   const g = getGame(id);
   if (!g) return;
   const req = gameRequirement(g, buildGamePool(currentPoolIds()), "full");
-  if (req.ok) launchGame(id);
+  if (req.ok && !gameUsableNow(g)) { showCelebrateToast("🔇", gameName(g), "Needs sound — turn off Quiet mode / unmute"); return; }
+  if (req.ok) { S.games.lastGameId = id; launchGame(id); }
   else { buzz(30); showCelebrateToast(g.icon, gameName(g), req.reason); }
 }
 
@@ -1148,7 +1608,7 @@ function renderPoolPicker() {
       <div class="modal-sub">${count} word${count !== 1 ? "s" : ""} in the pool. Vocab and Anki decks can be mixed.</div>
       <button class="g-pick-all ${all ? "on" : ""}" onclick="pickerAll()">
         <span class="g-check ${all ? "on" : ""}">${all ? "✓" : ""}</span>
-        <span><strong>All known words</strong><br><small>Every word you've practised, plus introduced Anki cards</small></span>
+        <span><strong>Your words</strong><br><small>Every word you've met on your Path, plus introduced Anki cards</small></span>
       </button>
       <div class="g-pick-list">${groupsHtml}</div>
       <div class="modal-actions">

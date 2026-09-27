@@ -1,8 +1,16 @@
 // ── GAME: DER · DIE · DAS  (French: LE · LA) ──
-// A noun appears without its article; tap the right gender bucket.
-// Nouns come from nounParts() in games-core.js, which skips plural-only
-// nouns and words with competing articles, so every answer is fair.
-// The hint is never shown — B1 hints name the gender.
+// A noun appears without its article; tap the right gender bucket — or
+// fling the card into it. Nouns come from nounParts() in games-core.js,
+// which skips plural-only nouns and words with competing articles, so
+// every answer is fair. The hint is never shown — B1 hints name the
+// gender.
+//
+// Gender is a grammar attribute, not the word's meaning, so this game
+// doesn't move stages; right answers on three different days add the
+// noun to your Gender collection instead.
+//
+// Ranks: less time; from 🥇 Gold a miss costs seconds (half for 🌱
+// words); 💎 Diamond is sudden death.
 
 const GENDER_BUCKETS = IS_FRENCH_APP
   ? [{ a: "le", sub: "masculin", cls: "m" }, { a: "la", sub: "féminin", cls: "f" }]
@@ -13,14 +21,22 @@ function genderClass(answer) { return (GENDER_BUCKETS.find(b => b.a === answer) 
 
 registerGame({
   id: "gender", name: () => IS_FRENCH_APP ? "Le · La" : "Der · Die · Das", icon: "🎨",
-  skill: "Grammar · gender", timed: true,
-  howTo: () => [
-    `A noun appears without its article — tap <strong>${GENDER_BUCKETS.map(b => b.a).join("</strong>, <strong>")}</strong>.`,
-    "Every correct answer in a row builds your streak and multiplier.",
-    `Colours stick in memory: ${GENDER_BUCKETS.map(b => `<span class="gd-inline ${b.cls}">${b.a}</span>`).join(" ")}`,
-    `Keys 1–${GENDER_BUCKETS.length} work too.`,
+  skill: "Grammar · gender", timed: true, credit: null,
+  ranks: [
+    { limit: 45000, pen: 0 },
+    { limit: 40000, pen: 0 },
+    { limit: 35000, pen: 2000 },
+    { limit: 30000, pen: 2000 },
+    { limit: 30000, pen: 2000, sudden: true },
   ],
-  requirement(pool, size) {
+  twists: ["golden", "turbo", "sudden"],
+  howTo: () => [
+    `A noun appears without its article — tap <strong>${GENDER_BUCKETS.map(b => b.a).join("</strong>, <strong>")}</strong>, or fling the card into a bucket.`,
+    "Every correct answer in a row builds your streak and multiplier. A miss breaks it (a 🌱 new word only halves it).",
+    `Colours stick in memory: ${GENDER_BUCKETS.map(b => `<span class="gd-inline ${b.cls}">${b.a}</span>`).join(" ")}`,
+    "Right on three different days → the noun joins your Gender collection.",
+  ],
+  requirement(pool) {
     const need = 6, n = genderNouns(pool).length;
     return n >= need ? { ok: true } : { ok: false, reason: `Needs ${need} nouns — you have ${n}` };
   },
@@ -29,11 +45,13 @@ registerGame({
     if ((result.maxCombo || 0) > (S.games.bestGenderStreak || 0)) S.games.bestGenderStreak = result.maxCombo;
   },
   start(ctx) {
-    const limit = ctx.rounds(45000, 30000, 20000);
+    const rp = ctx.rp;
+    const limit = ctx.rounds(rp.limit, 30000, 20000) * ctx.timeScale;
+    const sudden = ctx.sudden || (!!rp.sudden && ctx.size === "full");
     const bonusCount = 6;
     const nouns = genderNouns(ctx.pool);
     let words = sampleWords(nouns, ctx.size === "bonus" ? bonusCount : 80), qi = 0;
-    let score = 0, combo = 0, maxCombo = 0, correct = 0, wrong = 0, lastSec = 99, cur = null;
+    let score = 0, combo = 0, maxCombo = 0, correct = 0, wrong = 0, lastSec = 99, cur = null, collected = 0;
 
     ctx.stage.innerHTML = `
       <div class="gd-card" id="gd-card"><div class="gd-noun" id="gd-noun"></div><div class="gd-en" id="gd-en"></div></div>
@@ -45,7 +63,7 @@ registerGame({
     const nounEl = document.getElementById("gd-noun"), enEl = document.getElementById("gd-en");
 
     const end = () => ctx.finish({ score, correct, wrong, maxCombo,
-      cleared: ctx.size === "bonus" ? correct >= 5 : true });
+      cleared: ctx.size === "bonus" ? correct >= 5 : true, note: collected ? `🎨 ${collected} noun${collected > 1 ? "s" : ""} added to your Gender collection` : "" });
 
     const next = () => {
       if (ctx.finished) return;
@@ -56,8 +74,9 @@ registerGame({
       cur = words[qi++];
       const np = nounParts(cur);
       card.className = "gd-card";
+      card.style.transform = "";
       nounEl.textContent = np.noun;
-      enEl.textContent = gamePrompt(cur);
+      enEl.innerHTML = escapeHtml(gamePrompt(cur)) + ctx.tag(cur);
       popEl(card, true);
       ctx.busy = false;
     };
@@ -72,28 +91,41 @@ registerGame({
       nounEl.textContent = np.full;
       if (ok) {
         correct++; combo++; maxCombo = Math.max(maxCombo, combo);
-        const pts = 10 * comboMult(combo);
+        const pts = ctx.award(cur, 10 * comboMult(combo));
         score += pts;
-        floatScore(bucket, "+" + pts);
+        if (collectAttr(cur, "g")) collected++;
+        floatScore(bucket, "+" + pts, ctx.isGolden(cur) ? "gold" : "");
         popEl(bucket);
         if (combo >= 5) playCombo(combo); else playPop();
         if ([10, 20, 30].includes(combo)) showComboFlash(combo);
+        haptic("select");
         ctx.say(`Correct — ${np.full}`);
         gTimeout(next, 330);
       } else {
-        wrong++; combo = 0;
+        wrong++;
+        combo = ctx.comboAfterMiss(combo, cur);
+        if (rp.pen) { const pen = Math.round(rp.pen * ctx.cost(cur)); ctx.clock.add(pen); floatScore(bucket, `−${pen / 1000}s`, "bad"); }
         card.classList.add("wrong");
-        shakeEl(bucket); playMiss(); buzz(40);
+        shakeEl(bucket); playMiss(); haptic("miss");
         ctx.missed(cur);
         ctx.say(`It's ${np.full}`);
         speak(np.full);
-        gTimeout(next, 1000);
+        if (sudden) gTimeout(end, 1000); else gTimeout(next, 1000);
       }
       ctx.setScore(score); ctx.setCombo(combo);
     };
 
     gListen(ctx.stage, "click", e => { const b = e.target.closest(".gd-bucket"); if (b) answer(+b.dataset.i); });
     ctx.onKey = e => { const i = digitKey(e, GENDER_BUCKETS.length); if (i >= 0) { e.preventDefault(); answer(i); } };
+    // Fling the card into a bucket.
+    const buckets = () => [...ctx.stage.querySelectorAll(".gd-bucket")];
+    gDrag(ctx.stage, {
+      items: ".gd-card",
+      canDrag: () => !ctx.busy && !ctx.paused && !ctx.finished && !!cur,
+      resolve: (x, y) => buckets().find(b => pointIn(b, x, y, 14)) || null,
+      hover: t => { buckets().forEach(b => b.classList.toggle("drop-hot", b === t)); },
+      drop: (el, t) => { answer(+t.dataset.i); return true; },
+    });
 
     gInterval(() => {
       if (ctx.finished) return;

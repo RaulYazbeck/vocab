@@ -104,6 +104,76 @@ function fmtIvlDays(days) {
   return `${yr < 10 ? Math.round(yr * 10) / 10 : Math.round(yr)}yr`;
 }
 
+// ── WORD STAGES (the Path) ────────────────────
+// Every vocab word climbs 0 → 7. Intervals are in days and land on the
+// 4 AM rollover (like Anki's day). Known (5) is the main finish line,
+// Locked in (7) the prestige one; 5–7 are checkpoints (see srs.js).
+const STAGE_DAYS = [0, 1, 2, 4, 7, 14, 30, 0]; // interval after reaching st
+const STAGE_KNOWN = 5, STAGE_STRONG = 6, STAGE_LOCKED = 7, STAGE_MAX = 7;
+const STAGE_RECOG_CAP = 3;          // recognition can lift a word up to here
+const RELEARN_MS = 2 * 60 * 1000;   // a missed word comes back this soon
+const TIERS = [
+  { id: "new",      icon: "·",  name: "Not met",    min: 0, max: 0 },
+  { id: "learning", icon: "🌱", name: "Learning",   min: 1, max: 2 },
+  { id: "familiar", icon: "🌿", name: "Familiar",   min: 3, max: 4 },
+  { id: "known",    icon: "🌳", name: "Known",      min: 5, max: 5 },
+  { id: "strong",   icon: "⭐", name: "Strong",     min: 6, max: 6 },
+  { id: "locked",   icon: "💎", name: "Locked in",  min: 7, max: 7 },
+];
+const PATH = {
+  NEW_PER_DAY_OPTIONS: [0, 5, 10, 15, 20, 30],
+  NEW_PER_DAY_DEFAULT: 10,
+  CLUSTER_MIN: 3, CLUSTER_MAX: 4,
+  THROTTLE_HALF: 60,   // overdue reviews that halve new words
+  THROTTLE_STOP: 120,  // … and that pause them
+  AUTO_PAUSE_DAYS: 3,
+  SESSION_LENGTHS: { quick: 15, regular: 30, long: 60 },
+  EXTRA_NEW: 5,
+};
+// Start of the study day `offset` days from today (4 AM rollover).
+function studyDayStart(offset = 0, now = Date.now()) {
+  const d = new Date(now);
+  d.setHours(ANKI.ROLLOVER_HOUR, 0, 0, 0);
+  if (now < d.getTime()) d.setDate(d.getDate() - 1);
+  if (offset) d.setDate(d.getDate() + offset);
+  return d.getTime();
+}
+// ISO date of the current study day (same clock as the Anki day).
+function studyToday() { return ankiToday(); }
+
+// ── RNG ───────────────────────────────────────
+function hashString(str) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+// mulberry32 — tiny deterministic PRNG (Daily Challenge, quests, Path)
+function seededRandom(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+// Weighted pick from [{…, w}] with an rng() in [0,1).
+function weightedPick(items, rng = Math.random, wf = x => x.w) {
+  let total = 0; items.forEach(x => total += Math.max(0, wf(x)));
+  if (total <= 0) return items[Math.floor(rng() * items.length)] || null;
+  let r = rng() * total;
+  for (const x of items) { r -= Math.max(0, wf(x)); if (r <= 0) return x; }
+  return items[items.length - 1] || null;
+}
+function seededShuffle(arr, rng) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 // Fisher-Yates, in place. (Math.random in sort() is biased.)
 function shuffle(arr) {
   for (let i = arr.length - 1; i > 0; i--) {

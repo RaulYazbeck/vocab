@@ -33,13 +33,40 @@ const ACHIEVEMENTS = [
     tiers:[25, 60, 120, 250, 450, 800, 1300, 2000, 3000, 4000],
     value:() => totalUnlockedWords() },
   { id:"perfectionist", icon:"✨", name:"Perfectionist", category:"Vocabulary",
-    desc:t => `Hold Mastery+ on ${t} words at once`,
+    desc:t => `Hold ⭐ Strong or better on ${t} words at once`,
     tiers:[1, 3, 5, 10, 15, 25, 40, 60, 80, 100],
     value:() => countMasteryPlus() },
   { id:"comeback", icon:"🎢", name:"Comeback Kid", category:"Vocabulary",
     desc:t => `Master ${t} word${t>1?"s":""} you failed 5+ times`,
     tiers:[1, 3, 7, 12, 20, 30, 45, 60, 80, 100],
     value:() => Object.values(S.words).filter(ws => (ws.wrong || 0) >= 5 && isMastered(ws)).length },
+
+  { id:"locked_in", icon:"💎", name:"Locked In", category:"Vocabulary",
+    desc:t => `Lock in ${t.toLocaleString()} word${t>1?"s":""} for good`,
+    tiers:[1, 5, 15, 40, 80, 150, 300, 600, 1000, 2000],
+    value:() => countLockedIn() },
+  { id:"healer", icon:"🩹", name:"Healer", category:"Vocabulary",
+    desc:t => `Repair ${t} slipped word${t>1?"s":""}`,
+    tiers:[1, 5, 15, 30, 60, 100, 160, 240, 350, 500],
+    value:() => S.repairedTotal || 0 },
+
+  // ── Quests ──
+  { id:"quest_master", icon:"🏁", name:"Quest Master", category:"Quests",
+    desc:t => `Finish all four quests on ${t} day${t>1?"s":""}`,
+    tiers:[1, 3, 7, 14, 30, 60, 100, 150, 250, 365],
+    value:() => (S.quests && S.quests.qdays && S.quests.qdays.length) || 0 },
+  { id:"saga_hero", icon:"📜", name:"Saga Hero", category:"Quests",
+    desc:t => `Finish ${t} weekly saga${t>1?"s":""}`,
+    tiers:[1, 2, 4, 8, 12, 20, 30, 40, 52, 75],
+    value:() => (S.quests && S.quests.sagas) || 0 },
+  { id:"collector", icon:"🎨", name:"Collector", category:"Quests",
+    desc:t => `Own ${t} cosmetic${t>1?"s":""}`,
+    tiers:[1, 3, 5, 8, 12, 16, 20, 25, 30, 37],
+    value:() => (S.quests && S.quests.cos && S.quests.cos.owned.length) || 0 },
+  { id:"lucky", icon:"🍀", name:"Lucky", category:"Quests",
+    desc:t => `Catch ${t} flash quest${t>1?"s":""} or lucky drop${t>1?"s":""}`,
+    tiers:[1, 3, 6, 10, 15, 25, 40, 60, 80, 100],
+    value:() => ((S.quests && S.quests.flashes) || 0) + ((S.quests && S.quests.lucky) || 0) },
 
   // ── Practice ──
   { id:"scholar", icon:"📚", name:"Scholar", category:"Practice",
@@ -95,9 +122,25 @@ const ACHIEVEMENTS = [
     tiers:[1, 10, 25, 50, 100, 200, 350, 500, 750, 1000],
     value:() => (S.games && S.games.totalPlays) || 0 },
   { id:"star_collector", icon:"🌟", name:"Star Collector", category:"Arcade",
-    desc:t => `Collect ${t} best-round stars across the games`,
-    tiers:[3, 6, 9, 12, 15, 18, 21, 24, 27, 30],
-    value:() => Object.values((S.games && S.games.stars) || {}).reduce((a, b) => a + (b || 0), 0) },
+    desc:t => `Collect ${t} stars across every game and rank`,
+    tiers:[3, 10, 20, 35, 55, 80, 105, 130, 160, 180],
+    value:() => typeof totalGameStars === "function" ? totalGameStars() : 0 },
+  { id:"rank_climber", icon:"🏅", name:"Rank Climber", category:"Arcade",
+    desc:t => `Earn ${t} rank-up${t>1?"s":""} across the games (🥉→💎)`,
+    tiers:[1, 3, 6, 10, 15, 20, 26, 32, 40, 48],
+    value:() => Object.values((S.games && S.games.rank) || {}).reduce((a, b) => a + (b || 0), 0) },
+  { id:"bestiary", icon:"📖", name:"Monster Hunter", category:"Arcade",
+    desc:t => `Defeat ${t} different deck boss${t>1?"es":""}`,
+    tiers:[1, 3, 5, 10, 15, 25, 35, 45, 60, 80],
+    value:() => Object.values((S.games && S.games.bestiary) || {}).filter(r => r && r.wins).length },
+  { id:"world_breaker", icon:"🌋", name:"World Breaker", category:"Arcade",
+    desc:t => `Defeat ${t} weekly world boss${t>1?"es":""}`,
+    tiers:[1, 2, 4, 8, 12, 20, 30, 40, 52, 75],
+    value:() => (S.games && S.games.worldWins) || 0 },
+  { id:"gender_collector", icon:"🎨", name:"Gender Collector", category:"Arcade",
+    desc:t => `Collect the gender of ${t} nouns`,
+    tiers:[10, 25, 50, 100, 200, 350, 500, 750, 1000, 1300],
+    value:() => (S.games && S.games.collect && S.games.collect.g) || 0 },
   { id:"boss_slayer", icon:"👾", name:"Boss Slayer", category:"Arcade",
     desc:t => `Defeat ${t} boss${t>1?"es":""}`,
     tiers:[1, 3, 5, 10, 20, 35, 50, 75, 100, 150],
@@ -147,12 +190,24 @@ const SECRET_ACHIEVEMENTS = [
     earned:ev => ev.type === "timer_end" && ev.won && (ev.winsToday || 0) >= 3 },
   { id:"perfect_match", icon:"🃏", name:"Perfect Match", desc:"Clear a full Match Pairs round with no mistakes in under 45 seconds", xp:150,
     earned:ev => ev.type === "game_end" && ev.game === "match" && ev.size === "full" && ev.wrong === 0 && ev.seconds < 45 },
+  { id:"diamond_comeback", icon:"💎", name:"Comeback", desc:"Repair a 💎 locked-in word after a slip", xp:150,
+    earned:ev => ev.type === "repair_locked" },
+  { id:"diamond_hands", icon:"🙌", name:"Diamond Hands", desc:"Reach 💎 Diamond rank in any game", xp:200,
+    earned:ev => ev.type === "game_end" && ev.rankedUp && ev.rank === 3 },
+  { id:"treasure_hunter", icon:"🗺️", name:"Treasure Hunter", desc:"Find 10 golden words", xp:150,
+    earned:() => !!(S.quests && S.quests.gold >= 10) },
 ];
 
 // ── COUNTING HELPERS ──────────────────────────
+// Counters read S.words directly — looking must never create records.
 function groupMasteredCount(group) {
   let n = 0;
-  group.decks.forEach(d => d.words.forEach((_, i) => { if (isMastered(getWS(d.id, i))) n++; }));
+  group.decks.forEach(d => d.words.forEach((_, i) => { if (isMastered(S.words[d.id + "_" + i])) n++; }));
+  return n;
+}
+function countLockedIn() {
+  let n = 0;
+  Object.values(S.words).forEach(ws => { if (ws && ws.st >= STAGE_LOCKED) n++; });
   return n;
 }
 function groupReviewCount(group) {
@@ -166,14 +221,15 @@ function groupReviewCount(group) {
 function countMastered() {
   let n = 0;
   ALL_GROUPS.forEach(g => g.decks.forEach(d => d.words.forEach((_, i) => {
-    if (isMastered(getWS(d.id, i))) n++;
+    if (isMastered(S.words[d.id + "_" + i])) n++;
   })));
   return n;
 }
 function countMasteryPlus() {
   let n = 0;
   ALL_GROUPS.forEach(g => g.decks.forEach(d => d.words.forEach((_, i) => {
-    if (isMasteryPlus(getWS(d.id, i))) n++;
+    const ws = S.words[d.id + "_" + i];
+    if (ws && isMasteryPlus(ws)) n++;
   })));
   return n;
 }

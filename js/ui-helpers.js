@@ -18,23 +18,22 @@ function speakBtnAttrs(text) {
   return `data-say="${escapeHtml(text)}" onclick="speak(this.dataset.say)"`;
 }
 
-// Mastery/streak badges shown next to the hint in drill and voice modes.
+// Stage badge + pips shown next to the hint in drill and voice modes.
 function wordBadgesHtml(ws) {
   return [
-    isMasteryPlus(ws)
-      ? `<span class="masteryplus-badge">⭐ ${21 - daysBetween(ws.masteryPlusDate, todayISO())}d</span>`
-      : isMastered(ws) ? `<span class="mastered-badge">✓ mastered</span>` : "",
-    ws.displayStreak > 0 && !isMasteryPlus(ws)
-      ? `<span class="streak-badge">🔥 ${ws.displayStreak}</span>` : ""
-  ].join(" ");
+    tierBadgeHtml(ws),
+    stageOf(ws) ? pipsHtml(ws) : "",
+    ws.displayStreak > 0 ? `<span class="streak-badge">🔥 ${ws.displayStreak}</span>` : ""
+  ].filter(Boolean).join(" ");
 }
 
 // Per-word stat chips shown under drill/voice cards.
 function miniStats(ws) {
+  const t = tierOf(ws);
   return `<div class="mini-stat"><div class="mini-label">correct</div><div class="mini-val">${ws.correct}</div></div>
     <div class="mini-stat"><div class="mini-label">wrong</div><div class="mini-val">${ws.wrong}</div></div>
     <div class="mini-stat"><div class="mini-label">streak</div><div class="mini-val">${ws.displayStreak}</div></div>
-    <div class="mini-stat"><div class="mini-label">mastered</div><div class="mini-val">${isMastered(ws)?"✓":"—"}</div></div>`;
+    <div class="mini-stat"><div class="mini-label">stage</div><div class="mini-val">${t.icon}</div></div>`;
 }
 
 // The prompt (word + hint) shown on timer screens.
@@ -92,4 +91,92 @@ function copyTextToClipboard(text) {
     catch (e) { reject(e); }
     finally { ta.remove(); }
   });
+}
+
+// ── TYPING COMFORT ────────────────────────────
+// Accent bar above an input: tapping a letter inserts it at the caret
+// without closing the phone keyboard (pointerdown is swallowed so the
+// input keeps focus).
+const ACCENT_KEYS = WORD_KEY === "fr"
+  ? ["é", "è", "ê", "à", "â", "ç", "ô", "î", "û", "ù", "ë", "ï", "œ"]
+  : ["ä", "ö", "ü", "ß", "Ä", "Ö", "Ü"];
+function accentBarHtml(inputId) {
+  return `<div class="accent-bar" data-for="${inputId}" role="toolbar" aria-label="Special letters">${ACCENT_KEYS.map(k =>
+    `<button type="button" class="accent-key" data-ch="${k}" tabindex="-1">${k}</button>`).join("")}</div>`;
+}
+// Delegated once for the whole document.
+document.addEventListener("pointerdown", e => {
+  const b = e.target.closest && e.target.closest(".accent-key");
+  if (!b) return;
+  e.preventDefault();
+  const bar = b.closest(".accent-bar");
+  const input = bar && document.getElementById(bar.dataset.for);
+  if (!input || input.disabled || input.readOnly) return;
+  const ch = b.dataset.ch;
+  const s = input.selectionStart ?? input.value.length, en = input.selectionEnd ?? input.value.length;
+  input.value = input.value.slice(0, s) + ch + input.value.slice(en);
+  try { input.setSelectionRange(s + ch.length, s + ch.length); } catch (err) {}
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+  if (document.activeElement !== input) input.focus({ preventScroll: true });
+  if (typeof haptic === "function") haptic("select");
+});
+
+// Letter-by-letter comparison of what was typed against the answer:
+// matching letters plain, wrong ones red, missing ones underlined.
+function diffHtml(typed, answer) {
+  const a = String(typed || "").trim(), b = String(answer || "").trim();
+  if (!a) return `<span class="df-miss">${escapeHtml(b)}</span>`;
+  if (a.length > 80 || b.length > 80) return escapeHtml(b);
+  const la = a.toLowerCase(), lb = b.toLowerCase();
+  const n = la.length, m = lb.length;
+  const dp = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+  for (let i = 0; i <= n; i++) dp[i][0] = i;
+  for (let j = 0; j <= m; j++) dp[0][j] = j;
+  for (let i = 1; i <= n; i++) for (let j = 1; j <= m; j++)
+    dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + (la[i - 1] === lb[j - 1] ? 0 : 1));
+  // Walk back: build the answer with marks.
+  const out = [];
+  let i = n, j = m;
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && la[i - 1] === lb[j - 1] && dp[i][j] === dp[i - 1][j - 1]) { out.push(["ok", b[j - 1]]); i--; j--; }
+    else if (i > 0 && j > 0 && dp[i][j] === dp[i - 1][j - 1] + 1) { out.push(["bad", b[j - 1]]); i--; j--; }
+    else if (j > 0 && dp[i][j] === dp[i][j - 1] + 1) { out.push(["miss", b[j - 1]]); j--; }
+    else { out.push(["extra", a[i - 1]]); i--; }
+  }
+  out.reverse();
+  return out.map(([k, ch]) => k === "ok" ? escapeHtml(ch) : k === "extra" ? `<span class="df-extra">${escapeHtml(ch)}</span>`
+    : `<span class="df-${k}">${escapeHtml(ch === " " ? "·" : ch)}</span>`).join("");
+}
+
+// One-letter typo on a longer word, away from the article and the
+// ending (which carry grammar): "Almost" — neither right nor wrong.
+const ARTICLE_TOKENS = /^(der|die|das|den|dem|des|ein|eine|le|la|les|l|un|une)$/;
+function isNearMiss(input, answers) {
+  const b = normalize(String(input || ""));
+  if (!b) return false;
+  return answers.some(ansRaw => {
+    const a = normalize(String(ansRaw || ""));
+    if (a.length < 6 || Math.abs(a.length - b.length) > 1) return false;
+    if (levenshtein(a, b) !== 1) return false;
+    let p = 0;
+    while (p < a.length && p < b.length && a[p] === b[p]) p++;
+    let q = 0;
+    while (q < a.length - p && q < b.length - p && a[a.length - 1 - q] === b[b.length - 1 - q]) q++;
+    const firstTok = a.split(" ")[0];
+    if (a.includes(" ") && ARTICLE_TOKENS.test(firstTok) && p <= firstTok.length) return false; // article
+    if (q < 2) return false; // ending
+    return true;
+  });
+}
+
+// Colour a leading article by gender (der/le blue, die/la red, das
+// green) — the colours stick in memory. Returns escaped HTML.
+function colorArticleHtml(text) {
+  const t = String(text ?? "");
+  const m = t.match(/^(der|die|das|le|la|l')(\s*)(.*)$/i);
+  if (!m) return escapeHtml(t);
+  const a = m[1].toLowerCase();
+  const cls = a === "der" || a === "le" ? "m" : a === "die" || a === "la" ? "f" : a === "das" ? "n" : "";
+  if (!cls || (a === "die" && /,\s*pl\.|^die\s+\S+\s*\(pl/i.test(t))) return escapeHtml(t);
+  return `<span class="art ${cls}-text">${escapeHtml(m[1])}</span>${escapeHtml(m[2] + m[3])}`;
 }

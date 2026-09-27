@@ -30,6 +30,7 @@ function initDrillScreen() {
       <input type="text" class="german-input" id="german-input" placeholder="type the answer…"
         autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
         onkeydown="handleDrillKey(event)"/>
+      ${accentBarHtml("german-input")}
       <div class="action-row">
         <button class="check-btn"    onclick="checkDrill()">Check</button>
         <button class="hint-btn"     id="hint-btn" onclick="showDrillHint()">💡 Hint</button>
@@ -65,6 +66,7 @@ function updateDrillWord() {
   const input = document.getElementById('german-input');
   input.value     = '';
   input.className = 'german-input';
+  drillShownAt = Date.now();
 
   document.getElementById('feedback').innerHTML      = '';
   document.getElementById('examples-area').innerHTML = '';
@@ -109,6 +111,7 @@ function renderUnlockRow(containerId, onlyDeckId = null) {
   container.innerHTML = rows.join("");
 }
 let currentDrillHint = null;
+let drillShownAt = 0, drillUsedHint = false;
 function showDrillHint() {
   if (!currentDrillHint || answered) return;
   document.getElementById('hint-area').innerHTML = `
@@ -118,6 +121,7 @@ function showDrillHint() {
     </div>`;
   const hintBtn = document.getElementById('hint-btn');
   if (hintBtn) hintBtn.disabled = true;
+  drillUsedHint = true;
   const input = document.getElementById('german-input');
   if (input) input.focus();
 }
@@ -166,15 +170,22 @@ function showMilestoneFlash(msg) {
 // Shared correct/wrong bookkeeping for typed and voice drill answers.
 // Pure state changes only — sounds and rendering stay at the call sites.
 function applyAnswerState(ws, correct) {
+  const w = currentWord, prevAt = ws.lastAnsweredAt;
+  const voice = !!voiceSessionRunning && voiceEnabled;
+  const hint = drillUsedHint;
   if (correct) {
     sessionCorrect++; sessionConsecutive++;
     if (activeMode === "drill") checkDrillMilestone();
     addExp(ws.correct === 0 && ws.wrong === 0 ? 10 : 5);
-    applyCorrect(ws);
+    applyCorrect(ws, { w, kind: hint ? "recognition" : "recall" });
     checkCombo();
   } else {
-    applyWrong(ws); sessionConsecutive = 0;
+    applyWrong(ws, { w }); sessionConsecutive = 0;
   }
+  const ms = Date.now() - drillShownAt;
+  logEvent("answer", { m: voice ? "drill:voice" : "drill:" + drillSubMode, ok: correct, typed: true, voice, hint, ms });
+  questEvent("answer", { mode: "drill", ok: correct, typed: true, voice, hint, w, prevAt, ms });
+  drillUsedHint = false;
   saveState();
 }
 function checkDrill() {
@@ -185,14 +196,27 @@ function checkDrill() {
   answered = true;
   const correct = isCorrect(input.value, currentWord[WORD_KEY]);
   const ws      = getWS(currentWord.deckId, currentWord.idx);
+  lastDrillTyped = input.value;
+  // One-letter typo on a longer word: neither right nor wrong.
+  if (!correct && isNearMiss(input.value, [currentWord[WORD_KEY], typeof gameForm === "function" ? gameForm(currentWord) : currentWord[WORD_KEY]])) {
+    ws.near = (ws.near || 0) + 1; ws.lastAnsweredAt = Date.now();
+    logEvent("answer", { m: "drill:" + drillSubMode, ok: false, near: true, typed: true, ms: Date.now() - drillShownAt });
+    drillUsedHint = false;
+    saveState();
+    input.classList.add("near");
+    showDrillFeedback("near", ws);
+    return;
+  }
   applyAnswerState(ws, correct);
   input.classList.add(correct ? "correct" : "wrong");
   if (correct) playSuccess(); else playFailure();
   showDrillFeedback(correct, ws);
 }
+let lastDrillTyped = "";
 function dontKnow() {
   if (answered) return;
   answered = true;
+  lastDrillTyped = "";
   const ws = getWS(currentWord.deckId, currentWord.idx);
   applyAnswerState(ws, false);
   const input = document.getElementById("german-input");
@@ -219,11 +243,15 @@ function editCurrentDrillWord() {
 }
 function showDrillFeedback(correct, ws) {
   lastDrillCorrect = correct;
-  const cls  = correct ? "correct" : "wrong";
-  const icon = correct ? "✓" : "✗";
+  const near = correct === "near";
+  const cls  = near ? "near" : correct ? "correct" : "wrong";
+  const icon = near ? "≈" : correct ? "✓" : "✗";
+  const typed = lastDrillTyped && lastDrillTyped.trim();
   document.getElementById("feedback").innerHTML = `
     <div class="feedback-left">
-      <div class="feedback-text ${cls}">${icon} ${correct?"Correct!":"Answer:"} <strong>${currentWord[WORD_KEY]}</strong></div>
+      <div class="feedback-text ${cls}">${icon} ${near ? "Almost — check the spelling:" : correct ? "Correct!" : "Answer:"} <strong>${colorArticleHtml(currentWord[WORD_KEY])}</strong></div>
+      ${!correct || near ? (typed ? `<div class="p-diff">${diffHtml(typed, currentWord[WORD_KEY])}</div>` : "") : ""}
+      ${near ? `<div class="plural-text">No step up, no step down — it comes back soon.</div>` : ""}
       ${currentWord.pl ? `<div class="plural-text">plural: ${currentWord.pl}</div>` : ""}
     </div>
     <div class="feedback-right">

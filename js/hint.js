@@ -108,7 +108,11 @@ function buildHintInfo(word, tight = false) {
     const html = parts.map((part, i) => hidden.has(i) ? `<span class="hint-redacted"></span>` : part).join("");
     // Same sentence with the hidden words highlighted (Gap Fill reveal).
     const reveal = parts.map((part, i) => hidden.has(i) ? `<mark class="hint-reveal">${part}</mark>` : part).join("");
-    const info = { html, reveal, example: ex };
+    // The exact text that was hidden (first to last hidden word), for
+    // typed sentence recall in the Path.
+    const hid = [...hidden].sort((a, b) => a - b);
+    const answer = parts.slice(hid[0], hid[hid.length - 1] + 1).join("");
+    const info = { html, reveal, example: ex, answer };
     if (!tight) return info;
     // tight: prefer an example whose blanks form one group (a fuzzy
     // match like "Haben" ≈ "Abend" elsewhere adds a second, stray gap).
