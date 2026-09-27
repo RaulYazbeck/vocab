@@ -108,7 +108,7 @@ function bindPathKeys() {
       if (it.t === "learn") pathNext();
       else if (it.t === "bonus") { if (it.minion) pathMinion(true); else pathBonus(true); }
       else if (pathSession.pendingReverse !== null) pathReverseResolve(false);
-      else if (pathSession.answered) pathNext();
+      else if (pathSession.answered) pathGo();
       else if (["typed", "spot", "cloze", "reverse"].includes(it.t)) pathCheckTyped();
       return;
     }
@@ -170,6 +170,8 @@ function pathNext() {
     default: return renderPathTyped(it);
   }
 }
+// Next after an answer — held for a moment after a mistake.
+function pathGo() { if (!mistakeHeld("p-fb")) pathNext(); }
 function pathWordHeader(w, ws, extra = "") {
   const badge = ws && stageOf(ws) ? `${tierBadgeHtml(ws)} ${pipsHtml(ws)}` : `<span class="tier-badge tier-learning">🌱 New</span>`;
   return `<div class="p-meta"><span class="p-deck">${escapeHtml(w.deckName)}</span>${badge}${extra}</div>`;
@@ -265,7 +267,8 @@ function pathAnswerChoice(i) {
   const fb = document.getElementById("p-fb");
   if (fb) fb.innerHTML = ok ? `<div class="p-ok">✓ ${colorArticleHtml(gameForm(w))} — ${escapeHtml(gamePrompt(w))}</div>`
     : `<div class="p-bad">✗ ${colorArticleHtml(gameForm(w))} — ${escapeHtml(gamePrompt(w))}</div>`;
-  pathSetActions(`<button class="g-big-btn p-main" id="p-go" onclick="pathNext()">Next →</button>`);
+  pathSetActions(`<button class="g-big-btn p-main" id="p-go" onclick="pathGo()">Next →</button>`);
+  if (!ok) holdAfterMistake("p-go");
   // Never auto-skip: you always move on yourself (Enter or Next).
   const go = document.getElementById("p-go"); if (go) try { go.focus({ preventScroll: true }); } catch (e) {}
 }
@@ -380,10 +383,12 @@ function pathReverseMismatch(val) {
     <button class="g-sec-btn" onclick="pathReverseResolve(true)">✓ I was right</button>
     <button class="g-big-btn p-main" id="p-go" onclick="pathReverseResolve(false)">✗ I was wrong</button>`);
   pathPreventBlur();
+  holdAfterMistake("p-go");
 }
 function pathReverseResolve(right) {
   const s = pathSession;
   if (!s || s.pendingReverse === null) return;
+  if (mistakeHeld("p-fb")) return;
   const val = s.pendingReverse;
   s.pendingReverse = null; s.answered = false;
   pathGradeTyped(val, right, "", true);
@@ -463,8 +468,10 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
   pathSetActions(`
     <button class="audio-btn" onclick="pathEditWord()" title="Edit this word">✏️</button>
     ${audioOk() ? `<button class="audio-btn" ${speakBtnAttrs(w[WORD_KEY])}>🔊</button>` : ""}
-    <button class="g-big-btn p-main" id="p-go" onclick="pathNext()">Next →</button>`);
+    <button class="g-big-btn p-main" id="p-go" onclick="pathGo()">Next →</button>`);
   pathPreventBlur();
+  // The reversed item's mismatch screen already held; "I was wrong" moves on.
+  if (ok !== true && !fromReverse) holdAfterMistake("p-go");
   speak(w[WORD_KEY]);
   if (input) input.focus({ preventScroll: true });
 }

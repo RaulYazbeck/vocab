@@ -188,6 +188,27 @@ function isNearMiss(input, answers) {
   });
 }
 
+// After a mistake, moving on stays shut for a moment, so a confident
+// Enter pressed before the correction was read can't skip past it.
+// The Next button shows the wait; a press during it shakes the
+// feedback instead.
+const MISTAKE_HOLD_MS = 800;
+let _mistakeHoldUntil = 0;
+function holdAfterMistake(btnId) {
+  _mistakeHoldUntil = Date.now() + MISTAKE_HOLD_MS;
+  const b = btnId && document.getElementById(btnId);
+  if (!b) return;
+  b.classList.remove("mistake-hold"); void b.offsetWidth; b.classList.add("mistake-hold");
+  setTimeout(() => b.classList.remove("mistake-hold"), MISTAKE_HOLD_MS);
+}
+// True while the hold is on (and nudges the feedback so you look).
+function mistakeHeld(fbId) {
+  if (Date.now() >= _mistakeHoldUntil) return false;
+  const fb = fbId && document.getElementById(fbId);
+  if (fb && typeof shakeEl === "function") shakeEl(fb);
+  return true;
+}
+
 // Colour a leading article by gender (der/le blue, die/la red, das
 // green) — the colours stick in memory. Returns escaped HTML.
 function colorArticleHtml(text) {
