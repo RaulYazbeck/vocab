@@ -100,12 +100,13 @@ function bindPathKeys() {
     // Any open sheet (word editor, confirm, chest…) owns the keyboard.
     if (document.querySelector(".modal-overlay") || document.getElementById("settings-panel").style.display === "block") return;
     if (e.key === "Escape") { e.preventDefault(); pathQuit(); return; }
-    // A focused button handles its own Enter (no double advance).
-    if (e.key === "Enter" && e.target && e.target.tagName === "BUTTON") return;
+    // A focused, live button handles its own Enter (no double advance);
+    // a stale one (an answered option) falls through to Next.
+    if (e.key === "Enter" && e.target && e.target.tagName === "BUTTON" && !e.target.disabled && !e.target.closest(".g-options")) return;
     if (e.key === "Enter") {
       e.preventDefault();
       if (it.t === "learn") pathNext();
-      else if (it.t === "bonus") return;
+      else if (it.t === "bonus") { if (it.minion) pathMinion(true); else pathBonus(true); }
       else if (pathSession.pendingReverse !== null) pathReverseResolve(false);
       else if (pathSession.answered) pathNext();
       else if (["typed", "spot", "cloze", "reverse"].includes(it.t)) pathCheckTyped();
@@ -262,7 +263,8 @@ function pathAnswerChoice(i) {
   if (fb) fb.innerHTML = ok ? `<div class="p-ok">✓ ${colorArticleHtml(gameForm(w))} — ${escapeHtml(gamePrompt(w))}</div>`
     : `<div class="p-bad">✗ ${colorArticleHtml(gameForm(w))} — ${escapeHtml(gamePrompt(w))}</div>`;
   pathSetActions(`<button class="g-big-btn p-main" id="p-go" onclick="pathNext()">Next →</button>`);
-  if (ok) setTimeout(() => { if (pathSession === s && s.cur === it && s.answered) pathNext(); }, 900);
+  // Never auto-skip: you always move on yourself (Enter or Next).
+  const go = document.getElementById("p-go"); if (go) try { go.focus({ preventScroll: true }); } catch (e) {}
 }
 
 // Typed recall: plain, spot check, sentence (cloze) or reversed.
@@ -563,7 +565,7 @@ function pathNudge(yes) {
 function pathBonusGame() {
   const s = pathSession;
   const pool = uniqWords(s.items.map(x => x.w).filter(Boolean)).filter(w => isMet(w.deckId, w.idx)).map(w => ({ ...w, anki: false }));
-  const ids = ["gender", "match", "blitz", "cloze", "rain", "truefalse", "listen", "conj"];
+  const ids = PATH_BONUS_IDS;
   const ok = ids.filter(id => {
     const g = getGame(id);
     if (!g || id === s.lastBonus) return false;
@@ -571,12 +573,38 @@ function pathBonusGame() {
     return gameRequirement(g, pool, "bonus").ok;
   });
   if (!ok.length) return null;
+  // A game an open quest asks for comes first.
+  const wanted = questNudges().games.filter(id => ok.includes(id));
+  if (wanted.length) return { id: wanted[0], pool };
   // Prefer games that fit the words: nouns → gender, verb forms → conj.
   const weights = ok.map(id => ({ id, w: id === "gender" || id === "conj" ? 2 : 1 }));
   return { id: weightedPick(weights).id, pool };
 }
+function renderPathMinionOffer(it) {
+  const s = pathSession, b = deckBoss(it.minion), d = getDeck(it.minion);
+  S.games.minionDay = todayISO(); saveState();
+  pathShowTyped(false);
+  document.getElementById("p-card").innerHTML = `
+    <div class="p-bonus p-minion">
+      <div class="p-bonus-icon">${b.icon}</div>
+      <div class="p-bonus-title">A ${escapeHtml(b.name)} minion appears!</div>
+      <div class="p-bonus-sub">⚔️ ${MINION_WORDS} words from ${d.icon} ${escapeHtml(d.name)} · 3 lives</div>
+      <div class="p-sub">A small trophy — the 👑 boss itself waits until the whole deck is met.</div>
+    </div>`;
+  pathSetActions(`
+    <button class="g-sec-btn" onclick="pathMinion(false)">Skip</button>
+    <button class="g-big-btn p-main" onclick="pathMinion(true)">Fight ⚔️</button>`);
+}
+function pathMinion(take) {
+  const s = pathSession;
+  if (!s || !s.cur || !s.cur.minion) return;
+  logEvent("minion", { taken: take, deck: s.cur.minion });
+  if (!take) { pathNext(); return; }
+  startMinion(s.cur.minion, resumePathAfterBonus);
+}
 function renderPathBonusOffer(it) {
   const s = pathSession;
+  if (it.minion) return renderPathMinionOffer(it);
   const pick = pathBonusGame();
   if (!pick) { pathNext(); return; }
   it.pick = pick;
@@ -587,7 +615,8 @@ function renderPathBonusOffer(it) {
     <div class="p-bonus">
       <div class="p-bonus-icon">🎁</div>
       <div class="p-bonus-title">Bonus round?</div>
-      <div class="p-bonus-sub">${g.icon} ${escapeHtml(gameName(g))} · 20 seconds with this session's words</div>
+      <div class="p-bonus-sub">${g.icon} ${escapeHtml(gameName(g))} — <strong>${bonusGoalText(pick.id)}</strong> to clear it</div>
+      <div class="p-sub">With this session's words · optional</div>
     </div>`;
   pathSetActions(`
     <button class="g-sec-btn" onclick="pathBonus(false)">Skip</button>
@@ -596,6 +625,7 @@ function renderPathBonusOffer(it) {
 function pathBonus(take) {
   const s = pathSession;
   if (!s || !s.cur || s.cur.t !== "bonus") return;
+  if (s.cur.minion) return pathMinion(take);
   logEvent("bonus", { taken: take, id: s.cur.pick && s.cur.pick.id });
   if (!take) { pathNext(); return; }
   const { id, pool } = s.cur.pick;

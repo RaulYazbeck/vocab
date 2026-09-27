@@ -1038,7 +1038,7 @@ function openPendingChest() {
   saveState();
   showChestModal(ch, res);
 }
-const CHEST_SRC = { daily: "Daily chest", weekly: "Weekly chest", flash: "Flash quest chest", lucky: "Lucky drop", double: "✨ Double reward", weekend: "Weekend bonus", world: "World boss chest", saga: "Saga chest" };
+const CHEST_SRC = { daily: "Daily chest", weekly: "Weekly chest", flash: "Flash quest chest", lucky: "Lucky drop", double: "✨ Double reward", weekend: "Weekend bonus", world: "World boss chest", saga: "Saga chest", boss: "👑 Deck boss chest", minion: "⚔️ Minion chest" };
 function showChestModal(ch, res) {
   const info = RARITY_INFO[res.rar];
   const old = document.getElementById("chest-modal"); if (old) old.remove();

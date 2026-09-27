@@ -231,7 +231,7 @@ function pathEnsurePlan(scan) {
   const P = S.path;
   if (!pathDeadlineOn()) return null;
   const today = studyToday();
-  if (P.plan && P.plan.day === today && P.plan.deadline === P.deadline) return P.plan;
+  if (P.plan && P.plan.day === today && P.plan.deadline === P.deadline && P.plan.v === 2) return P.plan;
   scan = scan || pathScan(true);
   const backlog = scan.overdue;
   const pace = pathPace(scan, today);
@@ -242,9 +242,13 @@ function pathEnsurePlan(scan) {
   const take = backlog <= PLAN.SMALL_BACKLOG ? backlog
     : Math.max(Math.ceil(backlog / 14), Math.min(Math.ceil(backlog / PLAN.SPREAD), Math.floor(normal * 0.2 / 1.1)));
   const reviews = scan.due - backlog + take;
-  const target = Math.max(5, Math.round((reviews * 1.1 + pace * 3) / 5) * 5);
-  P.plan = { day: today, deadline: P.deadline, pace, reviews, leave: backlog - take, target,
-    goal: Math.max(PLAN.GOAL_MIN, Math.min(PLAN.GOAL_MAX, Math.round(target / 10) * 10)) };
+  // One number everywhere: rounded up to the next 10 (85 → 90), and the
+  // daily goal is that same number.
+  const target = Math.max(PLAN.GOAL_MIN, Math.min(PLAN.GOAL_MAX, Math.ceil((reviews * 1.1 + pace * 3) / 10) * 10));
+  P.plan = { v: 2, day: today, deadline: P.deadline, pace, reviews, leave: backlog - take, target, goal: target };
+  // Keep today's "Today's plan" quest on the same number.
+  const pq = S.quests && S.quests.list && S.quests.list.find(q => q.tpl === "a_plan" && !q.done);
+  if (pq) pq.target = target;
   logEvent("plan", { pace, reviews, target, backlog });
   return P.plan;
 }
@@ -378,6 +382,27 @@ const FOCUS_LABELS = { deck: "Deck focus", level: "Level focus", pos: "Word-type
   stale30: "Dust-off", oldest: "Oldest first", comeback: "Comeback", reverse: "Mirror", cloze: "Sentences", spot: "Spot checks",
   rescue: "Rescue", new: "Explorer" };
 
+// ── QUESTS THE SESSION CAN MOVE ───────────────
+// Start is the one button: besides today's due and new words it leans
+// towards your open quests — words for focus quests (the hard ones, a
+// deck, verbs…) and, as the bonus round, the game a quest asks for.
+const PATH_BONUS_IDS = ["gender", "match", "blitz", "cloze", "rain", "truefalse", "listen", "conj"];
+function questNudges() {
+  const out = { focus: [], games: [], quests: [] };
+  if (!S.quests || !S.quests.list || typeof byId !== "function") return out;
+  const list = S.quests.list.concat(S.quests.weekend ? [S.quests.weekend] : []);
+  list.forEach(q => {
+    if (!q || q.done || q.tpl === "d_mystery") return;
+    const t = byId(q.tpl); if (!t || !t.go) return;
+    let go = ""; try { go = typeof t.go === "function" ? t.go(q) : t.go; } catch (e) { return; }
+    const [k, a, b] = String(go).split(":");
+    if (k === "focus" && a !== "new") { out.focus.push({ focus: a, param: b }); out.quests.push(q); }
+    else if (k === "game" && PATH_BONUS_IDS.includes(a)) { out.games.push(a); out.quests.push(q); }
+    else if (k === "path" || k === "quick5") out.quests.push(q);
+  });
+  return out;
+}
+
 // ── QUEUE ─────────────────────────────────────
 // Builds one session: fixes, due reviews, new-word rituals (learn card →
 // choice check → typed recall a few items later), an optional spot
@@ -413,6 +438,23 @@ function buildPathQueue(lenKey, opts = {}) {
     const nNew0 = clusters.reduce((s, c) => s + c.length, 0);
     const reviewBudget = Math.max(0, budget - nNew0 * 3);
     reviews = [...fix, ...due].slice(0, reviewBudget).map(x => pathItemFor(pathWord(x.d.id, x.i), x.ws, rng));
+    // Words for open focus quests: the spare room, at least a fifth and
+    // at most a third of the session, spread through it.
+    const nudges = opts.reviewOnly ? null : questNudges();
+    if (nudges && nudges.focus.length) {
+      const room = Math.min(Math.round(budget / 3), Math.max(Math.round(budget / 5), budget - reviews.length - nNew0 * 3));
+      const have = new Set(reviews.map(r => r.w.deckId + "_" + r.w.idx));
+      const per = Math.ceil(room / nudges.focus.length), extra = [];
+      nudges.focus.forEach(({ focus: f, param }) => {
+        focusWords(f, param).filter(x => !have.has(x.d.id + "_" + x.i)).slice(0, per).forEach(x => {
+          have.add(x.d.id + "_" + x.i); extra.push(focusItem(x, f));
+        });
+      });
+      if (extra.length) {
+        const step = Math.max(1, Math.floor((reviews.length + extra.length) / extra.length));
+        extra.slice(0, room).forEach((it, i) => reviews.splice(Math.min(reviews.length, i * step + 1), 0, it));
+      }
+    }
     // Spot check (at most 2 a day).
     spots = !opts.reviewOnly && (S.path.spotToday || 0) < 2 && budget >= 15 ? pathSpotCandidates(1, rng) : [];
     // Word of the day (a quest): slip it in once per session.
@@ -460,11 +502,17 @@ function buildPathQueue(lenKey, opts = {}) {
     if (!spotDone) { out.push({ t: "spot", w: spots[0] }); spotDone = true; continue; }
     break;
   }
+  // ⚔️ A minion may show up (≈10% of Regular/Long sessions, once a day).
+  if (budget >= 30 && !opts.noBonus && !focus && typeof minionDeckPick === "function"
+      && S.games && S.games.minionDay !== todayISO() && Math.random() < MINION_CHANCE) {
+    const deck = minionDeckPick();
+    if (deck) out.splice(Math.max(1, Math.floor(out.length * 0.55)), 0, { t: "bonus", minion: deck });
+  }
   // Bonus-round offers (Regular / Long, never in Quiet mode for audio games).
   if (budget >= 30 && !opts.noBonus && !focus) {
     let n = 0;
     for (let i = 0; i < out.length; i++) {
-      if (out[i].t === "learn" || out[i].t === "bonus") continue;
+      if (out[i].t === "learn" || out[i].t === "bonus") { if (out[i].minion) n = 0; continue; }
       n++;
       if (n % 12 === 0 && i < out.length - 3) { out.splice(i + 1, 0, { t: "bonus" }); i++; }
     }
