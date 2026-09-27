@@ -226,35 +226,62 @@ function pathPace(scan = pathScan(), today = studyToday()) {
   if (!pathUnmet(scan)) return 0;
   return Math.max(PLAN.MIN_PACE, Math.min(PLAN.MAX_PACE, pathPaceNeeded(scan, today)));
 }
-// Today's frozen plan, or null when no finish date is set.
+// Today's plan, or null when no finish date is set.
+// It is made ONCE, the first time the app is opened in a study day, and
+// stays fixed all day: reviews due this morning + today's new words.
+// Only changing the finish date recalculates it (keeping the morning's
+// reviews). App updates never rebuild a day that has started.
+function planTarget(reviews, pace) {
+  return Math.max(PLAN.GOAL_MIN, Math.min(PLAN.GOAL_MAX, Math.ceil((reviews * 1.1 + pace * 3) / 10) * 10));
+}
+function planSyncQuest(plan) {
+  const pq = S.quests && S.quests.list && S.quests.list.find(q => q.tpl === "a_plan" && !q.done);
+  if (pq) pq.target = plan.target;
+}
+// The first plan logged today (this morning's numbers), from the usage log.
+function morningPlanEvent() {
+  if (typeof _usageLog !== "function") return null;
+  const t0 = studyDayStart(0);
+  return _usageLog().find(e => e.e === "plan" && e.t >= t0 && e.reviews >= 0 && e.pace >= 0) || null;
+}
 function pathEnsurePlan(scan) {
   const P = S.path;
   if (!pathDeadlineOn()) return null;
   const today = studyToday();
-  if (P.plan && P.plan.day === today && P.plan.deadline === P.deadline && P.plan.v === 3) return P.plan;
-  // A plan rebuilt during the day (app update, finish date changed) must
-  // still describe the whole day: it counts the reviews already done
-  // today, and never lowers today's bar.
   const prev = P.plan && P.plan.day === today ? P.plan : null;
+  if (prev && prev.deadline === P.deadline) {
+    if (prev.v >= 4) return prev;
+    // One-time repair: earlier versions rebuilt today's plan mid-day.
+    // Go back to this morning's reviews and pace.
+    const first = morningPlanEvent();
+    if (first) { prev.reviews = first.reviews; prev.pace = first.pace; }
+    prev.target = prev.goal = planTarget(prev.reviews, prev.pace);
+    prev.v = 4;
+    planSyncQuest(prev);
+    return prev;
+  }
   scan = scan || pathScan(true);
-  const backlog = scan.overdue;
   const pace = pathPace(scan, today);
-  // A backlog from missed days is spread out: about a week's worth a day,
-  // but never more than +20% on a normal day (after several days away it
-  // simply takes up to two weeks to clear).
-  const normal = (scan.due - backlog) * 1.1 + pace * 3;
-  const take = backlog <= PLAN.SMALL_BACKLOG ? backlog
-    : Math.max(Math.ceil(backlog / 14), Math.min(Math.ceil(backlog / PLAN.SPREAD), Math.floor(normal * 0.2 / 1.1)));
-  const reviews = scan.due - backlog + take + pathReviewedToday();
-  // One number everywhere: rounded up to the next 10 (85 → 90), and the
-  // daily goal is that same number.
-  let target = Math.max(PLAN.GOAL_MIN, Math.min(PLAN.GOAL_MAX, Math.ceil((reviews * 1.1 + pace * 3) / 10) * 10));
-  if (prev && prev.deadline === P.deadline) target = Math.max(target, prev.target || 0);
-  P.plan = { v: 3, day: today, deadline: P.deadline, pace, reviews, leave: backlog - take, target, goal: target };
-  // Keep today's "Today's plan" quest on the same number.
-  const pq = S.quests && S.quests.list && S.quests.list.find(q => q.tpl === "a_plan" && !q.done);
-  if (pq) pq.target = target;
-  logEvent("plan", { pace, reviews, target, backlog });
+  let reviews, leave;
+  if (prev) {
+    // Finish date changed today: same morning reviews, new pace.
+    reviews = prev.reviews; leave = prev.leave;
+  } else {
+    // A backlog from missed days is spread out: about a week's worth a
+    // day, but never more than +20% on a normal day (after several days
+    // away it simply takes up to two weeks to clear).
+    const backlog = scan.overdue;
+    const normal = (scan.due - backlog) * 1.1 + pace * 3;
+    const take = backlog <= PLAN.SMALL_BACKLOG ? backlog
+      : Math.max(Math.ceil(backlog / 14), Math.min(Math.ceil(backlog / PLAN.SPREAD), Math.floor(normal * 0.2 / 1.1)));
+    // Turned on mid-day: reviews already done today still belong to today.
+    reviews = scan.due - backlog + take + pathReviewedToday();
+    leave = backlog - take;
+  }
+  const target = planTarget(reviews, pace);
+  P.plan = { v: 4, day: today, deadline: P.deadline, pace, reviews, leave, target, goal: target };
+  planSyncQuest(P.plan);
+  logEvent("plan", { pace, reviews, target, leave });
   return P.plan;
 }
 // Reviews already done today: words that were due and got answered and
@@ -279,7 +306,8 @@ function setPathDeadline(iso) {
   if (iso && !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return;
   if (iso && daysBetween(studyToday(), iso) < 30) iso = addDays(studyToday(), 30);
   P.deadline = iso || "";
-  P.plan = null;
+  // Keep today's plan: pathEnsurePlan sees the new date and redoes only
+  // the pace, keeping this morning's reviews.
   invalidatePathScan();
   saveState();
   logEvent("setting", { k: "deadline", v: P.deadline });
@@ -520,8 +548,8 @@ function buildPathQueue(lenKey, opts = {}) {
   // ⚔️ A minion may show up (≈10% of Regular/Long sessions, once a day).
   if (budget >= 30 && !opts.noBonus && !focus && typeof minionDeckPick === "function"
       && S.games && S.games.minionDay !== todayISO() && Math.random() < MINION_CHANCE) {
-    const deck = minionDeckPick();
-    if (deck) out.splice(Math.max(1, Math.floor(out.length * 0.55)), 0, { t: "bonus", minion: deck });
+    const deck = out.filter(x => x.t !== "learn").length >= 10 ? minionDeckPick() : null;
+    if (deck) out.splice(Math.floor(out.length * 0.55), 0, { t: "bonus", minion: deck });
   }
   // Bonus-round offers (Regular / Long, never in Quiet mode for audio games).
   if (budget >= 30 && !opts.noBonus && !focus) {
