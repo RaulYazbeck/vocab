@@ -1012,3 +1012,12 @@ tr:hover td { background:rgba(255,255,255,0.03); }
   .stats-table-wrap table tbody tr{ grid-template-columns:1fr auto auto; }
   .stats-table-wrap table td:nth-child(7){ grid-column:3; grid-row:1 / 3; display:flex; align-items:center; padding:0 0 0 4px; border:none; }
 }
+
+/* After a mistake, Next waits 800 ms (holdAfterMistake) — a bar sweeps across it. */
+.mistake-hold { position:relative; overflow:hidden; opacity:0.6; cursor:default; }
+.mistake-hold::after {
+  content:""; position:absolute; left:0; bottom:0; width:100%; height:3px;
+  background:currentColor; transform-origin:left; animation:mistakeHold 0.8s linear forwards;
+}
+@keyframes mistakeHold { from { transform:scaleX(0); } to { transform:scaleX(1); } }
+@media (prefers-reduced-motion: reduce) { .mistake-hold::after { animation:none; display:none; } }

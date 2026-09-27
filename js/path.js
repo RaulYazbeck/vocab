@@ -436,7 +436,7 @@ const FOCUS_LABELS = { deck: "Deck focus", level: "Level focus", pos: "Word-type
 // Start is the one button: besides today's due and new words it leans
 // towards your open quests — words for focus quests (the hard ones, a
 // deck, verbs…) and, as the bonus round, the game a quest asks for.
-const PATH_BONUS_IDS = ["gender", "match", "blitz", "cloze", "rain", "truefalse", "listen", "conj"];
+const PATH_BONUS_IDS = ["gender", "match", "blitz", "cloze", "rain", "truefalse", "listen", "conj", "cases"];
 function questNudges() {
   const out = { focus: [], games: [], quests: [] };
   if (!S.quests || !S.quests.list || typeof byId !== "function") return out;
@@ -565,19 +565,40 @@ function buildPathQueue(lenKey, opts = {}) {
     if (short > 0) focusWords("stale").filter(x => !have.has(x.d.id + "_" + x.i)).slice(0, short)
       .forEach(x => out.push({ ...focusItem(x, "stale"), practice: true }));
   }
+  // Every word goes learn → multiple choice → typed: a 🌱 word (stage ≤ 1:
+  // a fix, a word of the day, a practice pick…) never meets typing first
+  // in a session. A warm-up choice goes a few items before it — no stage
+  // change and not counted in the session length.
+  const TYPED_T = new Set(["typed", "spot", "cloze", "reverse"]);
+  const choiced = new Set();
+  for (let i = 0; i < out.length; i++) {
+    const it = out[i];
+    if (!it.w) continue;
+    const k = it.w.deckId + "_" + it.w.idx;
+    if (it.t === "choice" || it.t === "listen") { choiced.add(k); continue; }
+    if (!TYPED_T.has(it.t) || choiced.has(k)) continue;
+    const ws = S.words[k];
+    if (ws && (ws.st || 0) >= 2) continue;
+    let at = Math.max(0, i - 3);
+    for (let j = i - 1; j >= at; j--) if (out[j].t === "learn" && out[j].w && sameWord(out[j].w, it.w)) { at = j + 1; break; }
+    out.splice(at, 0, { t: "choice", w: it.w, warm: true, rev: rng() < 0.5 });
+    choiced.add(k);
+    i++;
+  }
   // ⚔️ A minion may show up (≈10% of Regular/Long sessions, once a day).
   if (budget >= 30 && !opts.noBonus && !focus && typeof minionDeckPick === "function"
       && S.games && S.games.minionDay !== todayISO() && Math.random() < MINION_CHANCE) {
     const deck = out.filter(x => x.t !== "learn").length >= 10 ? minionDeckPick() : null;
     if (deck) out.splice(Math.floor(out.length * 0.55), 0, { t: "bonus", minion: deck });
   }
-  // Bonus-round offers (Regular / Long, never in Quiet mode for audio games).
-  if (budget >= 30 && !opts.noBonus && !focus) {
+  // Bonus-round offers: one every 9 questions (Quick gets one too;
+  // never in Quiet mode for audio games).
+  if (budget >= 15 && !opts.noBonus && !focus) {
     let n = 0;
     for (let i = 0; i < out.length; i++) {
-      if (out[i].t === "learn" || out[i].t === "bonus") { if (out[i].minion) n = 0; continue; }
+      if (out[i].t === "learn" || out[i].t === "bonus" || out[i].warm) { if (out[i].minion) n = 0; continue; }
       n++;
-      if (n % 12 === 0 && i < out.length - 3) { out.splice(i + 1, 0, { t: "bonus" }); i++; }
+      if (n % 9 === 0 && i < out.length - 3) { out.splice(i + 1, 0, { t: "bonus" }); i++; }
     }
   }
   return { items: out, budget, newWords: nNew, reviews: reviews.length, quota: q, focus };

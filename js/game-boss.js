@@ -252,6 +252,7 @@ registerGame({
       ctx.setBar(1 - hp / maxHp, "progress");
     };
     const show = () => {
+      ctx.teach("");
       const w = queue[0];
       document.getElementById("bb-en").innerHTML = escapeHtml(gamePrompt(w)) + ctx.tag(w);
       document.getElementById("bb-hint").textContent = w.hint || "";
@@ -294,6 +295,7 @@ registerGame({
     };
 
     const attack = skip => {
+      if (ctx.waiting) { ctx.continueNow(); return; }
       if (ctx.busy || ctx.finished || !queue.length) return;
       const w = queue[0];
       const val = input.value;
@@ -358,8 +360,9 @@ registerGame({
         ctx.setCombo(combo);
         ctx.say(`Ouch — it was ${w[WORD_KEY]}${cost < 1 && !ctx.sudden ? " (new word: half a heart)" : ""}`);
         updateHp();
+        ctx.teach(wordLessonHtml(w), "bad");
         if (hearts <= 0) gTimeout(() => end(false), 1800);
-        else gTimeout(show, 1900);
+        else ctx.waitContinue(show);
       }
     };
 

@@ -65,6 +65,7 @@ registerGame({
       if (ctx.finished) return;
       if (qi >= words.length) { words = sampleWords(ctx.pool, 60); qi = 0; }
       cur = words[qi++];
+      ctx.teach("");
       shown = 0; shownAt = ctx.clock.elapsed();
       promptEl.innerHTML = escapeHtml(gamePrompt(cur)) + ctx.tag(cur);
       document.getElementById("tr-label").textContent = cur.hint ? cur.hint : "Type it";
@@ -112,7 +113,8 @@ registerGame({
         floatScore(input, `−${pen / 1000}s`, "bad");
         playMiss(); haptic("miss");
         ctx.say(`It was ${target(cur)}`);
-        gTimeout(ctx.sudden ? end : next, 1100);
+        ctx.teach(wordLessonHtml(cur), "bad");
+        if (ctx.sudden) gTimeout(end, 1500); else ctx.pauseClockFor(1900, next);
       }
       ctx.setScore(score); ctx.setCombo(combo);
       if (ctx.size === "bonus" && correct >= 5) gTimeout(end, 300);

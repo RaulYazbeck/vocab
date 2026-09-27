@@ -100,10 +100,12 @@ function copyTextToClipboard(text) {
 const ACCENT_KEYS = WORD_KEY === "fr"
   ? ["é", "è", "ê", "à", "â", "ç", "ô", "î", "û", "ù", "ë", "ï", "œ"]
   : ["ä", "ö", "ü", "ß", "Ä", "Ö", "Ü"];
-// German answers ignore umlauts and ß (Muller = Müller, Strasse = Straße),
-// so the German app shows no bar; French keeps it.
+// Answers ignore accents, umlauts and ß in both apps (Muller = Müller,
+// ecole = école), so no bar is shown: the phone keyboard is enough.
+// Kept as a function so the call sites stay put.
+const ACCENT_BAR_ON = false;
 function accentBarHtml(inputId) {
-  if (WORD_KEY !== "fr") return "";
+  if (!ACCENT_BAR_ON) return "";
   return `<div class="accent-bar" data-for="${inputId}" role="toolbar" aria-label="Special letters">${ACCENT_KEYS.map(k =>
     `<button type="button" class="accent-key" data-ch="${k}" tabindex="-1">${k}</button>`).join("")}</div>`;
 }
@@ -183,10 +185,51 @@ function isNearMiss(input, answers) {
     const start = a.lastIndexOf(" ", Math.max(0, p - 1)) + 1, end = a.indexOf(" ", p);
     const tok = a.slice(start, end < 0 ? a.length : end);
     if (ARTICLE_TOKENS.test(tok)) return false;
-    if (q < 2) return false; // ending
+    // A slip in the last two letters is the ending — grammar (musstn
+    // for müssen is a conjugation error), so it's simply wrong.
+    if (q < 2) return false;
     return true;
   });
 }
+
+// After a mistake, moving on stays shut for a moment, so a confident
+// Enter pressed before the correction was read can't skip past it.
+// The Next button shows the wait; a press during it shakes the
+// feedback instead.
+const MISTAKE_HOLD_MS = 800;
+let _mistakeHoldUntil = 0;
+function holdAfterMistake(btnId) {
+  _mistakeHoldUntil = Date.now() + MISTAKE_HOLD_MS;
+  const b = btnId && document.getElementById(btnId);
+  if (!b) return;
+  b.classList.remove("mistake-hold"); void b.offsetWidth; b.classList.add("mistake-hold");
+  setTimeout(() => b.classList.remove("mistake-hold"), MISTAKE_HOLD_MS);
+}
+// True while the hold is on (and nudges the feedback so you look).
+function mistakeHeld(fbId) {
+  if (Date.now() >= _mistakeHoldUntil) return false;
+  const fb = fbId && document.getElementById(fbId);
+  if (fb && typeof shakeEl === "function") shakeEl(fb);
+  return true;
+}
+
+// Page blur behind sheets and modals: a body class kept in sync from
+// here, not CSS :has() — iOS home-screen apps sometimes don't
+// re-evaluate :has() when the sheet is removed, and the page stayed
+// blurred after closing the welcome sheet.
+(function watchSheets() {
+  const sync = () => {
+    const sp = document.getElementById("settings-panel");
+    const open = !!document.querySelector("body > .modal-overlay") || !!(sp && sp.style.display === "block");
+    document.body.classList.toggle("sheet-open", open);
+  };
+  let watched = null;
+  new MutationObserver(() => {
+    const sp = document.getElementById("settings-panel");
+    if (sp && sp !== watched) { watched = sp; new MutationObserver(sync).observe(sp, { attributes: true, attributeFilter: ["style"] }); }
+    sync();
+  }).observe(document.body, { childList: true });
+})();
 
 // Colour a leading article by gender (der/le blue, die/la red, das
 // green) — the colours stick in memory. Returns escaped HTML.

@@ -530,7 +530,7 @@ tr.unmet td { opacity:0.55; }
 /* Depth behind sheets: the page (not the sky) blurs once while a modal or
    Settings is open — a static layer, so it costs nothing per frame. */
 .app { transition:filter 0.22s ease; }
-body:has(> .modal-overlay) > .app, body:has(> #settings-panel[style*="block"]) > .app { filter:blur(6px) saturate(1.08); }
+body.sheet-open > .app { filter:blur(6px) saturate(1.08); } /* class set in ui-helpers.js */
 .modal-overlay { background:rgba(3,5,10,0.6); }
 @media (prefers-reduced-motion: reduce) { .app { transition:none; } }
 .tc-moves { text-align:center; font-size:12px; color:var(--text-3); margin-top:6px; }

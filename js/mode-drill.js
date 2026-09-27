@@ -132,7 +132,9 @@ function focusInput() {
   }, ms);
   attempt(0); attempt(100); attempt(300);
 }
-function handleDrillKey(e) { if (e.key === "Enter") { if (answered) nextDrillWord(); else checkDrill(); } }
+function handleDrillKey(e) { if (e.key === "Enter") { if (answered) drillGo(); else checkDrill(); } }
+// Next after an answer — held for a moment after a mistake.
+function drillGo() { if (!mistakeHeld("feedback")) nextDrillWord(); }
 function checkDrillMilestone() {
   const today = todayISO();
   if (S.drillMilestonesDate !== today) {
@@ -205,12 +207,14 @@ function checkDrill() {
     saveState();
     input.classList.add("near");
     showDrillFeedback("near", ws);
+    holdAfterMistake("drill-next");
     return;
   }
   applyAnswerState(ws, correct);
   input.classList.add(correct ? "correct" : "wrong");
   if (correct) playSuccess(); else playFailure();
   showDrillFeedback(correct, ws);
+  if (!correct) holdAfterMistake("drill-next");
 }
 let lastDrillTyped = "";
 function dontKnow() {
@@ -222,6 +226,7 @@ function dontKnow() {
   const input = document.getElementById("german-input");
   if (input) { input.value = currentWord[WORD_KEY]; input.classList.add("wrong"); }
   showDrillFeedback(false, ws);
+  holdAfterMistake("drill-next");
 }
 // Fix a wrong prompt/answer on the spot — opens the word editor for the
 // word just answered and refreshes the card with the edited texts.
@@ -257,7 +262,7 @@ function showDrillFeedback(correct, ws) {
     <div class="feedback-right">
       <button class="audio-btn" onclick="editCurrentDrillWord()" title="Edit this word">✏️</button>
       <button class="audio-btn" ${speakBtnAttrs(currentWord[WORD_KEY])}>🔊</button>
-      <button class="next-btn"  onclick="nextDrillWord()">Next →</button>
+      <button class="next-btn" id="drill-next" onclick="drillGo()">Next →</button>
     </div>`;
   speak(currentWord[WORD_KEY]);
   document.getElementById("hint-area").innerHTML = ""; // full examples replace the hint

@@ -273,7 +273,7 @@ qt({ id: "a_twin", slot: "A", fam: "deck", icon: "👯", w: 1, ok: c => c.metDec
   target: c => Math.round(sz(c, 0.2, 8, 30) / 2) * 2,
   title: q => `Twin decks: ${q.target / 2} from ${deckName(q.p.d1)} and ${q.target / 2} from ${deckName(q.p.d2)}`,
   prog: (m, q) => Math.min(q.target / 2, m.decks[q.p.d1] || 0) + Math.min(q.target / 2, m.decks[q.p.d2] || 0), go: q => `focus:deck:${q.p.d1}` });
-qt({ id: "a_special", slot: "A", fam: "spelling", icon: "✒️", w: 1, ok: c => IS_FRENCH_APP && c.special >= 15, target: c => c.G >= 50 ? 12 : 6,
+qt({ id: "a_special", slot: "A", fam: "spelling", icon: "✒️", w: 1, ok: c => ACCENT_BAR_ON && c.special >= 15, target: c => c.G >= 50 ? 12 : 6,
   title: q => `${q.target} words with ${IS_FRENCH_APP ? "accents" : "ä, ö, ü or ß"} typed exactly right`, prog: m => m.umlaut, go: "path" });
 qt({ id: "a_timeattack", slot: "A", fam: "fast", icon: "⏲️", w: 1, target: c => sz(c, 0.25, 10, 40),
   title: q => `Time attack: ${q.target} correct within the first 5 minutes of a session`,

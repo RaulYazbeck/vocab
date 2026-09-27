@@ -41,6 +41,19 @@ function builderItem(word, range = BUILDER_BASE) {
   _builderCache.set(k, res);
   return res;
 }
+// A wrong-case twin of an article in the sentence ("dem" when it says
+// "den"), or null — German only.
+function builderGrammarDecoy(tiles, have) {
+  if (typeof GR_DE === "undefined" || !GR_DE) return null;
+  for (const t of shuffle(tiles.slice())) {
+    if (!/^[\p{L}]+$/u.test(t)) continue;
+    const p = detParse(t);
+    if (!p) continue;
+    const alt = shuffle(detFamilyForms(p).map(f => capLike(t, f)).filter(f => !have.has(normKey(f))))[0];
+    if (alt) return alt;
+  }
+  return null;
+}
 function builderWords(pool, range = BUILDER_BASE) {
   const seen = new Set();
   return pool.filter(w => {
@@ -98,6 +111,7 @@ registerGame({
 
     const round = () => {
       if (r >= words.length) { done(); return; }
+      ctx.teach("");
       const w = words[r++];
       const it = builderItem(w, range);
       cur = { w, it };
@@ -111,7 +125,11 @@ registerGame({
         const have = new Set(it.tiles.map(t => normKey(t)));
         const pool = shuffle(eligible.filter(x => x !== w).flatMap(x => builderItem(x, range) ? builderItem(x, range).tiles : []))
           .filter(t => /^[\p{L}]+$/u.test(t) && !have.has(normKey(t)));
-        pool.slice(0, decoys).forEach(t => bank.splice(Math.floor(Math.random() * (bank.length + 1)), 0, { text: t, used: false, decoy: true }));
+        // German: the first decoy is the sentence's own article in the
+        // wrong case (dem for den) — so the order AND the case count.
+        const gd = builderGrammarDecoy(it.tiles, have);
+        cur.gd = gd;
+        (gd ? [gd, ...pool] : pool).slice(0, decoys).forEach(t => bank.splice(Math.floor(Math.random() * (bank.length + 1)), 0, { text: t, used: false, decoy: true }));
       }
       ctx.setBar((r - 1) / words.length, "progress");
       ctx.setClock(`${r}/${words.length}`);
@@ -150,7 +168,9 @@ registerGame({
       speak(cur.it.ex[WORD_KEY]);
       playMiss(); haptic("miss");
       ctx.say("Here's the sentence.");
-      gTimeout(ctx.sudden ? done : round, 2600);
+      const rule = typeof wordOrderRuleHtml === "function" ? wordOrderRuleHtml(cur.it.ex[WORD_KEY]) : "";
+      ctx.teach(`<div class="g-teach-main">${escapeHtml(cur.it.ex[WORD_KEY])}</div><div class="g-teach-sub">${escapeHtml(cur.it.ex.en || "")}</div>${rule ? `<div class="g-teach-rule">${rule}</div>` : ""}${cur.gd ? `<div class="g-teach-sub">The extra tile <s>${escapeHtml(cur.gd)}</s> was the same article in the wrong case.</div>` : ""}`, "bad");
+      ctx.waitContinue(ctx.sudden ? done : round);
     };
 
     const check = () => {
@@ -182,6 +202,9 @@ registerGame({
       shakeEl(lineEl); playMiss(); haptic("miss");
       if (tries >= 2 || ctx.sudden) { ctx.busy = true; gTimeout(() => reveal(true), 700); return; }
       ctx.say("Almost — the highlighted word is out of place. Drag it where it belongs!");
+      const rule = typeof wordOrderRuleHtml === "function" ? wordOrderRuleHtml(cur.it.ex[WORD_KEY]) : "";
+      const usedDecoy = line.some(i => bank[i].decoy);
+      ctx.teach(`${usedDecoy ? "A tile in your sentence doesn't belong. " : "The highlighted word is out of place. "}${rule ? `<div class="g-teach-rule">${rule}</div>` : ""}`, "near");
     };
 
     const takeBack = li => {

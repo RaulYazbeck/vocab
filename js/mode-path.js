@@ -108,7 +108,7 @@ function bindPathKeys() {
       if (it.t === "learn") pathNext();
       else if (it.t === "bonus") { if (it.minion) pathMinion(true); else pathBonus(true); }
       else if (pathSession.pendingReverse !== null) pathReverseResolve(false);
-      else if (pathSession.answered) pathNext();
+      else if (pathSession.answered) pathGo();
       else if (["typed", "spot", "cloze", "reverse"].includes(it.t)) pathCheckTyped();
       return;
     }
@@ -124,7 +124,7 @@ function pathProgress() {
   const s = pathSession;
   // Learn cards and bonus offers aren't questions: a Regular session
   // reads x/30, like the length you picked.
-  const q = x => x.t !== "bonus" && x.t !== "learn";
+  const q = x => x.t !== "bonus" && x.t !== "learn" && !x.warm;
   const total = s.items.filter(q).length;
   const done = s.items.slice(0, s.i).filter(q).length;
   const f = document.getElementById("p-prog");
@@ -170,6 +170,8 @@ function pathNext() {
     default: return renderPathTyped(it);
   }
 }
+// Next after an answer — held for a moment after a mistake.
+function pathGo() { if (!mistakeHeld("p-fb")) pathNext(); }
 function pathWordHeader(w, ws, extra = "") {
   const badge = ws && stageOf(ws) ? `${tierBadgeHtml(ws)} ${pipsHtml(ws)}` : `<span class="tier-badge tier-learning">🌱 New</span>`;
   return `<div class="p-meta"><span class="p-deck">${escapeHtml(w.deckName)}</span>${badge}${extra}</div>`;
@@ -238,7 +240,7 @@ function pathAnswerChoice(i) {
   pathLogAnswer(it, ok, { typed: false });
   if (ok) {
     ws.lastAnsweredAt = Date.now(); ws.correct++; S.totalCorrect++;
-    const res = it.fresh ? null : srsReview(ws, true, "recognition");
+    const res = it.fresh || it.warm ? null : srsReview(ws, true, "recognition");
     if (res) { res._w = w; questEvent("srs", res); }
     pathRecordMove(w, from, res);
     s.stats.correct++; sessionCorrect++; sessionConsecutive++;
@@ -250,12 +252,13 @@ function pathAnswerChoice(i) {
     speak(gameForm(w));
   } else {
     ws.lastAnsweredAt = Date.now(); ws.wrong++;
-    const res = it.fresh ? null : srsReview(ws, false, "recognition");
+    const res = it.fresh || it.warm ? null : srsReview(ws, false, "recognition");
     if (res) { res._w = w; questEvent("srs", res); }
     pathRecordMove(w, from, res);
     s.stats.wrong++; sessionConsecutive = 0;
     pathMissed(w);
-    if (it.fresh) pathReask(w, 2);
+    // A missed first choice comes back as a choice — typing comes after.
+    if (it.fresh || it.warm) pathReask(w, 2, "choice");
     questEvent("answer", { mode: "path", ok: false, typed: false, st: from, w });
     playFailure(); haptic("miss");
     speak(gameForm(w));
@@ -265,7 +268,8 @@ function pathAnswerChoice(i) {
   const fb = document.getElementById("p-fb");
   if (fb) fb.innerHTML = ok ? `<div class="p-ok">✓ ${colorArticleHtml(gameForm(w))} — ${escapeHtml(gamePrompt(w))}</div>`
     : `<div class="p-bad">✗ ${colorArticleHtml(gameForm(w))} — ${escapeHtml(gamePrompt(w))}</div>`;
-  pathSetActions(`<button class="g-big-btn p-main" id="p-go" onclick="pathNext()">Next →</button>`);
+  pathSetActions(`<button class="g-big-btn p-main" id="p-go" onclick="pathGo()">Next →</button>`);
+  if (!ok) holdAfterMistake("p-go");
   // Never auto-skip: you always move on yourself (Enter or Next).
   const go = document.getElementById("p-go"); if (go) try { go.focus({ preventScroll: true }); } catch (e) {}
 }
@@ -380,10 +384,12 @@ function pathReverseMismatch(val) {
     <button class="g-sec-btn" onclick="pathReverseResolve(true)">✓ I was right</button>
     <button class="g-big-btn p-main" id="p-go" onclick="pathReverseResolve(false)">✗ I was wrong</button>`);
   pathPreventBlur();
+  holdAfterMistake("p-go");
 }
 function pathReverseResolve(right) {
   const s = pathSession;
   if (!s || s.pendingReverse === null) return;
+  if (mistakeHeld("p-fb")) return;
   const val = s.pendingReverse;
   s.pendingReverse = null; s.answered = false;
   pathGradeTyped(val, right, "", true);
@@ -459,14 +465,24 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
   if (fb) fb.innerHTML = `
     <div class="p-fb-main">${head}${chip}${w.pl && it.t !== "cloze" && it.t !== "reverse" ? `<div class="p-sub">plural: ${escapeHtml(w.pl)}</div>` : ""}</div>
     ${it.t === "reverse" ? `<div class="p-sub">${colorArticleHtml(gameForm(w))} = ${escapeHtml(gamePrompt(w))}</div>` : ""}
+    ${pathCaseNote(it)}
     ${examplesHtml(w, "first")}`;
   pathSetActions(`
     <button class="audio-btn" onclick="pathEditWord()" title="Edit this word">✏️</button>
     ${audioOk() ? `<button class="audio-btn" ${speakBtnAttrs(w[WORD_KEY])}>🔊</button>` : ""}
-    <button class="g-big-btn p-main" id="p-go" onclick="pathNext()">Next →</button>`);
+    <button class="g-big-btn p-main" id="p-go" onclick="pathGo()">Next →</button>`);
   pathPreventBlur();
+  // The reversed item's mismatch screen already held; "I was wrong" moves on.
+  if (ok !== true && !fromReverse) holdAfterMistake("p-go");
   speak(w[WORD_KEY]);
   if (input) input.focus({ preventScroll: true });
+}
+// Sentence items: why the article in front of the noun has its form
+// (display only — grading is unchanged).
+function pathCaseNote(it) {
+  if (it.t !== "cloze" || typeof caseItem !== "function" || !it.cloze) return "";
+  const ci = caseItem(it.w);
+  return ci && ci.ex === it.cloze.example ? `<div class="p-sub">🧭 ${ci.reason.html}</div>` : "";
 }
 function pathEditWord() {
   const s = pathSession; if (!s || !s.cur) return;
@@ -490,13 +506,13 @@ function pathMissed(w) {
   if (!s.missed.some(x => sameWord(x, w))) s.missed.push(w);
 }
 // Bring a missed word back a few items later (at most twice).
-function pathReask(w, gap) {
+function pathReask(w, gap, type = "typed") {
   const s = pathSession, k = wordKey(w);
   s.reasks[k] = (s.reasks[k] || 0) + 1;
   if (s.reasks[k] > 2) return;
   let pos = s.i + 1, n = 0;
   while (pos < s.items.length && n < gap) { if (s.items[pos].t !== "bonus" && s.items[pos].t !== "learn") n++; pos++; }
-  s.items.splice(pos, 0, { t: "typed", w, reask: true, fix: true });
+  s.items.splice(pos, 0, type === "choice" ? { t: "choice", w, reask: true, warm: true, rev: Math.random() < 0.5 } : { t: "typed", w, reask: true, fix: true });
 }
 function pathRecordMove(w, from, res) {
   const s = pathSession;

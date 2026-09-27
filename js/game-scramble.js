@@ -66,6 +66,7 @@ registerGame({
 
     const round = () => {
       if (r >= words.length) { done(); return; }
+      ctx.teach("");
       const w = words[r++];
       const t = scrambleTarget(w);
       const f = ctx.fmt(w);
@@ -159,7 +160,8 @@ registerGame({
       speak(gameForm(cur.w));
       playMiss(); haptic("miss");
       ctx.say(`${why}: ${gameForm(cur.w)}`);
-      gTimeout(ctx.sudden ? done : round, 1800);
+      ctx.teach(wordLessonHtml(cur.w), "bad");
+      ctx.waitContinue(ctx.sudden ? done : round);
     };
     const win = (el, base) => {
       ctx.busy = true;
@@ -174,7 +176,8 @@ registerGame({
       if (combo >= 3) playCombo(combo); else playSuccess();
       haptic("correct");
       ctx.say(`Correct — ${gameForm(cur.w)}`);
-      gTimeout(round, 1100);
+      ctx.teach(wordLessonHtml(cur.w), "ok");
+      gTimeout(round, 1700);
     };
     const check = () => {
       const guess = slots.map(i => lowerCh(tiles[i].ch)).join("");

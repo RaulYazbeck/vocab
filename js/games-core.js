@@ -199,17 +199,37 @@ function allGameWords() {
   }
   return _allGameWords;
 }
-function pickDistractors(word, pool, n, formFn = gameForm, filterFn = null) {
+// opts.hard (games, words you know): prefer look-alikes, same-gender
+// nouns and words you've mixed up before — so the answer can't be
+// guessed from the article or from one odd-looking option.
+function pickDistractors(word, pool, n, formFn = gameForm, filterFn = null, opts = {}) {
   const bad = new Set([normKey(formFn(word))]);
   const badP = new Set([normKey(gamePrompt(word))]);
   const pos = posOf(word);
   const len = formFn(word).length;
   const out = [];
+  const hard = !!opts.hard;
+  const target = normKey(gameForm(word)).replace(/^(der|die|das|le|la|l|un|une) /, "");
+  const gender = hard && nounParts(word) ? nounParts(word).answer : "";
+  const mixed = hard ? confusedWith(word) : null;
+  const hardScore = w => {
+    let s = 0;
+    const f = normKey(gameForm(w)).replace(/^(der|die|das|le|la|l|un|une) /, "");
+    if (gender && nounParts(w) && nounParts(w).answer === gender) s += 3;
+    if (f.slice(0, 3) === target.slice(0, 3)) s += 2;
+    if (f.slice(-3) === target.slice(-3)) s += 1;
+    if (Math.abs(f.length - target.length) <= 4 && f.length < 30 && target.length < 30) {
+      const sim = 1 - levenshtein(f, target) / Math.max(f.length, target.length);
+      if (sim >= 0.5) s += 2.5 * sim;
+    }
+    if (mixed && mixed.has(wordKey(w))) s += 6;
+    return s;
+  };
   const take = list => {
     const scored = list
       .filter(w => !sameWord(w, word) && (!filterFn || filterFn(w)))
       .map(w => ({ w, s: (posOf(w) === pos ? 3 : 0) + (w.deckId === word.deckId ? 1.5 : 0)
-        + (Math.abs(formFn(w).length - len) <= 3 ? 1 : 0) + Math.random() * 1.6 }))
+        + (Math.abs(formFn(w).length - len) <= 3 ? 1 : 0) + Math.random() * (hard ? 0.9 : 1.6) + (hard ? hardScore(w) : 0) }))
       .sort((a, b) => b.s - a.s);
     for (const { w } of scored) {
       if (out.length >= n) break;
@@ -223,6 +243,73 @@ function pickDistractors(word, pool, n, formFn = gameForm, filterFn = null) {
   if (out.length < n) take(allGameWords().filter(w => w.deckId === word.deckId));
   if (out.length < n) take(allGameWords());
   return out;
+}
+
+// ── HARDER CHOICES ────────────────────────────
+// Mix-ups you've made (a wrong pick in a game) come back as traps.
+// Small and capped: the 150 most recent words, 3 partners each.
+function confusedWith(w) {
+  const m = (S.games && S.games.confuse) || {};
+  const k = wordKey(w);
+  const set = new Set(m[k] || []);
+  Object.keys(m).forEach(o => { if ((m[o] || []).includes(k)) set.add(o); });
+  return set;
+}
+function recordConfusion(w, other) {
+  if (!w || !other || sameWord(w, other) || !S.games) return;
+  const m = S.games.confuse || (S.games.confuse = {});
+  const k = wordKey(w), o = wordKey(other);
+  const list = (m[k] || []).filter(x => x !== o);
+  list.unshift(o);
+  delete m[k];
+  m[k] = list.slice(0, 3); // re-insert: newest last
+  const keys = Object.keys(m);
+  if (keys.length > 150) keys.slice(0, keys.length - 150).forEach(x => delete m[x]);
+}
+// The same noun with a wrong article ("das Mund") — or null.
+function articleTrap(w) {
+  const np = nounParts(w);
+  if (!np) return null;
+  const arts = IS_FRENCH_APP ? ["le", "la"] : ["der", "die", "das"];
+  const wrong = shuffle(arts.filter(a => a !== np.answer))[0];
+  const art = IS_FRENCH_APP && /^[aeiouhéèê]/i.test(np.noun) ? null : wrong;
+  return art ? `${art} ${np.noun}` : null;
+}
+// Multiple-choice options for a word, harder for words you know:
+//   hard distractors · an article trap (target-language options) ·
+//   "None of these" (the right answer left out, ~1 in 6).
+// cfg: { text(x), n, pool, target: options show the target language,
+//        hard, none }
+function mcChoices(w, cfg) {
+  const n = cfg.n;
+  const hard = !!cfg.hard;
+  const none = !!cfg.none;
+  const noneRight = none && Math.random() < 0.17;
+  const want = noneRight ? n - 1 : n - 1 - (none ? 1 : 0);
+  const ds = pickDistractors(w, cfg.pool, Math.max(1, want), cfg.formFn || gameForm, null, { hard });
+  let opts = ds.map(x => ({ text: cfg.text(x), correct: false, word: x }));
+  if (hard && cfg.target && opts.length >= 2 && Math.random() < 0.45) {
+    const trap = articleTrap(w);
+    if (trap && !opts.some(o => normKey(o.text) === normKey(trap))) opts[opts.length - 1] = { text: trap, correct: false, trap: true };
+  }
+  if (!noneRight) opts.push({ text: cfg.text(w), correct: true, word: w });
+  opts = shuffle(opts);
+  if (none) opts.push({ text: "", none: true, correct: noneRight });
+  return opts;
+}
+// Remember a wrong pick so it returns as a trap.
+function noteWrongPick(w, opt) { if (opt && opt.word && !opt.correct) recordConfusion(w, opt.word); }
+
+// The lesson after a miss: the right word, what you picked, an example.
+function wordLessonHtml(w, picked = null, extra = "") {
+  const ex = (w.examples || [])[0];
+  const pl = w.pl ? ` <span class="g-teach-pl">· pl. ${escapeHtml(w.pl)}</span>` : "";
+  let pick = "";
+  if (picked && picked.trap) pick = `<div class="g-teach-sub">✗ <s>${escapeHtml(picked.text)}</s> — wrong article: it's ${colorArticleHtml(gameForm(w))}</div>`;
+  else if (picked && picked.none) pick = `<div class="g-teach-sub">✗ It was there: ${colorArticleHtml(gameForm(w))}</div>`;
+  else if (picked && picked.word && !sameWord(picked.word, w)) pick = `<div class="g-teach-sub">✗ You picked ${colorArticleHtml(gameForm(picked.word))} = ${escapeHtml(gamePrompt(picked.word))}</div>`;
+  return `<div class="g-teach-main">${colorArticleHtml(gameForm(w))} = ${escapeHtml(gamePrompt(w))}${pl}</div>${pick}${extra}
+    ${ex && ex[WORD_KEY] ? `<div class="g-teach-ex">${escapeHtml(ex[WORD_KEY])}${ex.en ? `<span>${escapeHtml(ex.en)}</span>` : ""}</div>` : ""}`;
 }
 
 // Number of distinct words (by display form and prompt) in a list.
@@ -614,6 +701,7 @@ function gTypedBind(ctx, onSubmit) {
   const input = document.getElementById("g-typed");
   if (!input) return null;
   const go = () => {
+    if (ctx.waiting) { ctx.continueNow(); return; }
     if (ctx.busy || ctx.finished || ctx.paused) return;
     if (!input.value.trim()) { shakeEl(input); return; }
     onSubmit(input.value);
@@ -657,8 +745,8 @@ function collectAttr(w, kind) {
 // and number badges for keys 1–4 on desktop.
 function mcOptionsHtml(options, cls = "") {
   return `<div class="g-options ${cls}">${options.map((o, i) => `
-    <button class="g-opt${String(o.text).length > 26 ? " long" : ""}" data-i="${i}">
-      <span class="g-key">${i + 1}</span><span class="g-opt-text">${escapeHtml(o.text)}</span>
+    <button class="g-opt${String(o.text).length > 26 ? " long" : ""}${o.none ? " none" : ""}" data-i="${i}">
+      <span class="g-key">${i + 1}</span><span class="g-opt-text">${o.none ? "∅ None of these" : escapeHtml(o.text)}</span>
     </button>`).join("")}</div>`;
 }
 // Mark the chosen/right options after an answer and lock the set.
@@ -710,6 +798,7 @@ function launchGame(id, opts = {}) {
       </div>
       <div class="g-bar"><div class="g-bar-fill" id="g-bar-fill"></div></div>
       <div class="g-stage" id="g-stage"></div>
+      <div class="g-teach" id="g-teach" aria-live="polite"></div>
       <div class="g-live" id="g-live" aria-live="polite"></div>
       <div class="g-overlay" id="g-overlay" style="display:none"></div>
     </div>`;
@@ -901,6 +990,45 @@ function makeCtx(def, pool, size, opts) {
     },
     setClock(text, urgent = false) { const e = $("g-clock"); if (e) { e.textContent = text; e.classList.toggle("urgent", urgent); } },
     say(text) { const e = $("g-live"); if (e) e.textContent = text; },
+    // ── Teaching panel (under the stage): the why behind an answer.
+    teach(html, cls = "") {
+      const e = $("g-teach"); if (!e) return;
+      e.innerHTML = html ? `<div class="g-teach-card ${cls}">${html}</div>` : "";
+      e.classList.toggle("on", !!html);
+    },
+    // After a miss in an untimed game: wait for Continue (Enter / tap),
+    // held for a moment so a confident Enter can't skip the lesson.
+    waitContinue(fn, label = "Continue") {
+      const e = $("g-teach"); if (!e) { fn(); return; }
+      // 20-second bonus rounds keep moving: read it, it moves on by itself.
+      if (size === "bonus") { gTimeout(fn, 1800); return; }
+      ctx.waiting = fn;
+      const card = e.querySelector(".g-teach-card") || (ctx.teach(" "), e.querySelector(".g-teach-card"));
+      card.insertAdjacentHTML("beforeend", `<button class="g-big-btn g-continue" id="g-continue">${escapeHtml(label)} ⏎</button>`);
+      const b = $("g-continue");
+      b.onclick = () => ctx.continueNow();
+      gListen(b, "pointerdown", ev => ev.preventDefault()); // keep the phone keyboard up
+      holdAfterMistake("g-continue");
+      try { b.scrollIntoView({ block: "nearest", behavior: REDUCED_MOTION ? "auto" : "smooth" }); } catch (err) {}
+    },
+    continueNow() {
+      if (!ctx.waiting || ctx.finished || ctx.paused) return;
+      if (mistakeHeld("g-teach")) return;
+      const f = ctx.waiting;
+      ctx.waiting = null;
+      ctx.teach("");
+      f();
+    },
+    // Timed games: the clock stands still while a lesson shows.
+    pauseClockFor(ms, fn) {
+      ctx.clockHeld = true;
+      ctx.clock.pause();
+      gTimeout(() => {
+        ctx.clockHeld = false;
+        if (!ctx.paused && !ctx.finished) ctx.clock.start();
+        fn();
+      }, ms);
+    },
     missed(word) { if (word && !ctx.missedWords.some(w => sameWord(w, word))) ctx.missedWords.push(word); },
     finish(result) {
       if (ctx.finished || ctx.dead) return;
@@ -1015,7 +1143,7 @@ function resumeGame() {
   if (!ctx.paused) { overlay(""); return; }
   overlay("");
   ctx.paused = false;
-  ctx.clock.start();
+  if (!ctx.clockHeld) ctx.clock.start();
   if (ctx.onResume) ctx.onResume();
 }
 function toggleGamePause() {
@@ -1033,6 +1161,10 @@ function gameKeydown(e, ctx) {
   }
   if (!ctx.started || ctx.paused || ctx.finished) return;
   if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (ctx.waiting) {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (e.target && e.target.id !== "g-continue") ctx.continueNow(); }
+    return;
+  }
   if (ctx.onKey) ctx.onKey(e);
 }
 // Keys 1–N pick option N (multiple-choice games).
@@ -1104,7 +1236,7 @@ function applyGameCredit(ctx) {
 
 // Bonus rounds (inside Today sessions and Drill): one clear target per
 // game — the same number on the offer card, in the HUD and at the end.
-const BONUS_GOALS = { boss: 10, listen: 4, cloze: 4, builder: 3, scramble: 4, plural: 4, conj: 4, gender: 5, blitz: 6, truefalse: 8, typerush: 5, rain: 6, match: 4 };
+const BONUS_GOALS = { boss: 10, listen: 4, cloze: 4, cases: 4, builder: 3, scramble: 4, plural: 4, conj: 4, gender: 5, blitz: 6, truefalse: 8, typerush: 5, rain: 6, match: 4 };
 function bonusGoal(id) { return BONUS_GOALS[id] || 4; }
 function bonusGoalText(id) {
   const g = getGame(id), n = bonusGoal(id);
