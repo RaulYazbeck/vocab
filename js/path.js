@@ -24,7 +24,9 @@ function pathWord(deckId, idx) {
 function wsPeek(deckId, idx) { return S.words[deckId + "_" + idx] || null; }
 function isMet(deckId, idx) { const ws = wsPeek(deckId, idx); return !!(ws && ws.st); }
 
-// Quiet mode: no sound, no voice, no audio items — for today only.
+// "Mute until tomorrow" (stored as quietDay): no speech, no sound
+// effects, no vibration, no mic and no listening items — until the
+// 4 AM rollover. The permanent sound switches are left alone.
 function quietActive() { return !!(S.path && S.path.quietDay === todayISO()); }
 function toggleQuiet() {
   S.path.quietDay = quietActive() ? "" : todayISO();
@@ -33,7 +35,7 @@ function toggleQuiet() {
   if (quietActive() && window.speechSynthesis) try { speechSynthesis.cancel(); } catch (e) {}
   if (typeof onQuietChanged === "function") onQuietChanged();
 }
-function audioOk() { return !muteEnabled && !quietActive() && !!window.speechSynthesis; }
+function audioOk() { return ttsOn() && !!window.speechSynthesis; }
 
 // ── SCAN ──────────────────────────────────────
 // One pass over every vocab word. Memoised for a short moment: the
@@ -586,14 +588,14 @@ function buildPathQueue(lenKey, opts = {}) {
     i++;
   }
   // ⚔️ A minion may show up (≈10% of Regular/Long sessions, once a day).
-  if (budget >= 30 && !opts.noBonus && !focus && typeof minionDeckPick === "function"
+  if (budget >= 30 && !opts.noBonus && !focus && !grandmaOn() && typeof minionDeckPick === "function"
       && S.games && S.games.minionDay !== todayISO() && Math.random() < MINION_CHANCE) {
     const deck = out.filter(x => x.t !== "learn").length >= 10 ? minionDeckPick() : null;
     if (deck) out.splice(Math.floor(out.length * 0.55), 0, { t: "bonus", minion: deck });
   }
   // Bonus-round offers: one every 9 questions (Quick gets one too;
-  // never in Quiet mode for audio games).
-  if (budget >= 15 && !opts.noBonus && !focus) {
+  // never while muted for audio games; never in Grandma mode).
+  if (budget >= 15 && !opts.noBonus && !focus && !grandmaOn()) {
     let n = 0;
     for (let i = 0; i < out.length; i++) {
       if (out[i].t === "learn" || out[i].t === "bonus" || out[i].warm) { if (out[i].minion) n = 0; continue; }
@@ -602,6 +604,60 @@ function buildPathQueue(lenKey, opts = {}) {
     }
   }
   return { items: out, budget, newWords: nNew, reviews: reviews.length, quota: q, focus };
+}
+
+// ── SKIP A LEVEL (⚙️ › 🍪 Cookie) ──────────────
+// "I already know A1": every word of the first level that still has
+// words below 🌳 Known becomes Known, and new words move on to the
+// next level. It only touches word stages:
+//   • words met today (metOn) keep their own progress — today's new
+//     words, quota and quests stay exactly as they were;
+//   • words already Known or higher (⭐ 💎) are left alone;
+//   • no XP, goal, streak, quest or saga credit — nothing was answered;
+//   • reviews are spread over 1–4 weeks so they never land on one day.
+function skipLevelInfo() {
+  const today = studyToday();
+  const groups = vocabGroups();
+  for (let gi = 0; gi < groups.length; gi++) {
+    const g = groups[gi];
+    let lift = 0, today_ = 0;
+    g.decks.forEach(d => d.words.forEach((w, i) => {
+      const ws = S.words[d.id + "_" + i];
+      if (ws && (ws.st || 0) >= STAGE_KNOWN) return;
+      if (ws && ws.st && ws.metOn === today) { today_++; return; }
+      lift++;
+    }));
+    if (lift) return { id: g.id, name: g.name, lift, today: today_, next: (groups[gi + 1] || {}).name || "" };
+  }
+  return null;
+}
+function skipLevel(groupId) {
+  const g = vocabGroups().find(x => x.id === groupId);
+  if (!g) return 0;
+  const today = studyToday(), now = Date.now();
+  let n = 0;
+  g.decks.forEach(d => {
+    d.words.forEach((w, i) => {
+      const key = d.id + "_" + i;
+      const prev = S.words[key];
+      if (prev && (prev.st || 0) >= STAGE_KNOWN) return;
+      if (prev && prev.st && prev.metOn === today) return;
+      const ws = getWS(d.id, i);
+      ws.st = STAGE_KNOWN;
+      ws.pk = Math.max(ws.pk || 0, STAGE_KNOWN);
+      ws.sAt = now;
+      ws.dueAt = studyDayStart(7 + hashString(key) % 22, now); // 1–4 weeks, spread
+      ws.mastered = true;
+      ws.sk = prev && prev.st ? 1 : 2; // skipped, not answered (see srs.js)
+      ["rp", "lrn", "fl", "cf", "rc", "dropDay"].forEach(f => delete ws[f]);
+      n++;
+    });
+    S.unlocked[d.id] = d.words.length;
+  });
+  invalidatePathScan();
+  logEvent("skip_level", { g: groupId, n });
+  saveState();
+  return n;
 }
 
 // ── SUMMARY FOR THE TODAY CARD ────────────────

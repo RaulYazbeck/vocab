@@ -1,8 +1,8 @@
 // ── GAME: LISTEN & PICK ───────────────────────
 // Text-to-speech says a word; pick its meaning. Needs speechSynthesis
-// and sound, so it's never auto-picked in Quiet mode or while muted
-// (games-core: gameUsableNow). speak() is silent while muted, so the
-// game offers an inline "Turn sound on" instead of a silent round.
+// words read aloud, so it's never auto-picked while that switch is off
+// or muted until tomorrow (games-core: gameUsableNow). speak() is then
+// silent, so the game offers an inline "Turn it on" instead.
 //
 // Ranks: fewer free replays; from 💠 Platinum, words you know become
 // dictation — type what you hear (recall credit).
@@ -16,7 +16,7 @@ function listenVoiceMissing() {
   return voices.length > 0 && !voices.some(v => v.lang && v.lang.startsWith(prefix));
 }
 function listenUnmute() {
-  if (muteEnabled) toggleMute();
+  if (!SOUND.tts) setSoundPref("tts", true);
   const n = document.getElementById("l-muted");
   if (n) n.remove();
   if (activeGame && activeGame.ctx.listenReplay) activeGame.ctx.listenReplay();
@@ -32,10 +32,10 @@ registerGame({
     { replays: 1, typed: true },
   ],
   twists: ["golden", "sudden"], credit: "recognition",
-  howTo: [
+  howTo: () => [
     "Listen to the word, then pick what it means.",
     "Tap 🔊 to hear it again. Answering without a replay earns a bonus.",
-    "From 💠 Platinum, words you know become dictation: type what you hear.",
+    speakOn() ? "From 💠 Platinum: more options to choose from." : "From 💠 Platinum, words you know become dictation: type what you hear.",
     "Words you know get sound-alike options; from 🥇 Gold the answer may be missing — pick <strong>∅ None of these</strong>.",
     "A wrong answer costs points (half for 🌱 new words). Keys 1–4 pick, Space replays.",
   ],
@@ -71,7 +71,7 @@ registerGame({
       const n = Math.min(4, f.options);
       // Words you know: options whose German sounds alike, and from 🥇 Gold
       // sometimes "None of these".
-      const opts = typed ? [] : mcChoices(w, { text: gamePrompt, n, pool: ctx.pool, target: false, hard: !f.rookie,
+      const opts = typed ? [] : mcChoices(w, { text: gamePrompt, n, pool: ctx.pool, target: false, hard: !f.rookie, ear: true,
         none: !f.rookie && ctx.size === "full" && ctx.rank >= 2 });
       q = { w, opts, typed };
       ctx.teach("");
@@ -79,7 +79,7 @@ registerGame({
       ctx.setBar((r - 1) / words.length, "progress");
       ctx.setClock(`${r}/${words.length}`);
       ctx.stage.innerHTML = `
-        ${muteEnabled ? `<div class="g-notice" id="l-muted">🔇 Sound is off. <button class="g-notice-btn" onclick="listenUnmute()">Turn sound on</button></div>` : ""}
+        ${!SOUND.tts ? `<div class="g-notice" id="l-muted">🔇 Reading words aloud is off. <button class="g-notice-btn" onclick="listenUnmute()">Turn it on</button></div>` : ""}
         ${listenVoiceMissing() ? `<div class="g-notice soft">No ${langName} voice found on this device — pronunciation may sound off.</div>` : ""}
         <div class="l-play-wrap">
           <button class="l-play g-enter" id="l-play" aria-label="Play the word again">🔊</button>

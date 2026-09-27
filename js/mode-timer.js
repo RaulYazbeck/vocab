@@ -28,6 +28,7 @@ function updateTimerDisplay() {
 function renderTimerScreen() {
   const el = document.getElementById("main-screen");
   if (!currentWord) return;
+  const say = speakOn();
   el.innerHTML = `<div class="screen">
     <div class="screen-top">
       <div class="screen-label">⏱ Timer · ${timerWordCount} words · ${4.5*timerWordCount}s total</div>
@@ -42,16 +43,36 @@ function renderTimerScreen() {
       </div>
       <div id="timer-feedback" class="timer-feedback"></div>
     </div>
-    <input type="text" class="german-input" id="timer-input" placeholder="type the answer…"
+    <input type="text" class="german-input" id="timer-input" placeholder="type the answer…" ${say ? `style="display:none" tabindex="-1"` : ""}
       autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
       onkeydown="handleTimerKey(event)"/>
-    ${accentBarHtml("timer-input")}
-    <div class="action-row">
-      <button class="check-btn"    onclick="checkTimer()">Check</button>
+    ${say ? "" : accentBarHtml("timer-input")}
+    <div class="action-row" id="timer-actions">
+      ${say ? `<button class="check-btn" onclick="timerSayReveal()">Show ▶</button>` : `<button class="check-btn"    onclick="checkTimer()">Check</button>`}
       <button class="dontknow-btn" onclick="skipTimer()">Skip</button>
     </div>
+    <div id="timer-say"></div>
   </div>`;
+  timerRevealed = false; timerShownAt = Date.now();
+  if (say) sayKeys = { root: "timer-say", close: false, state: () => timerPaused || timerFinished ? "done" : timerRevealed ? "revealed" : "prompt",
+    reveal: timerSayReveal, grade: timerSayGrade };
   timerFocusAndPosition();
+}
+// ── SAY IT (Speak, don't spell) ───────────────
+// A race: say it, Show, ✗ / ✓ — the clock keeps running.
+let timerRevealed = false, timerShownAt = 0, timerRevealAt = 0;
+function timerSayReveal() {
+  if (timerFinished || timerPaused || timerRevealed || !currentWord) return;
+  timerRevealed = true; timerRevealAt = Date.now();
+  const a = document.getElementById("timer-actions"); if (a) a.style.display = "none";
+  document.getElementById("timer-say").innerHTML = sayRevealHtml(currentWord, { noSentence: true }) + sayGradeHtml("timerSayGrade", { close: false });
+  speak(gameForm(currentWord));
+}
+function timerSayGrade(v) {
+  if (timerFinished || timerPaused || !timerRevealed) return;
+  document.getElementById("timer-say").innerHTML = "";
+  if (v === true) timerCorrectAnswer(false, sayKind(timerShownAt, timerRevealAt));
+  else timerWrongAnswer("", false, true);
 }
 function handleTimerKey(e) { if (e.key === "Enter") checkTimer(); }
 
@@ -62,7 +83,7 @@ function handleTimerKey(e) { if (e.key === "Enter") checkTimer(); }
 function timerFocusAndPosition() {
   [0, 100, 300].forEach(ms => setTimeout(() => {
     const input = document.getElementById("timer-input");
-    if (input) { try { input.focus({ preventScroll: true }); } catch (e) { input.focus(); } }
+    if (input && !speakOn()) { try { input.focus({ preventScroll: true }); } catch (e) { input.focus(); } }
     if (window.innerWidth <= 640 || IS_STANDALONE) {
       const card = document.querySelector("#main-screen .screen");
       if (card) card.scrollIntoView({ block: "start", behavior: "instant" });
@@ -74,13 +95,15 @@ function timerFocusAndPosition() {
 // Used by the typed timer (checkTimer/skipTimer) and the voice timer
 // (handleVoiceTimerResult in mode-voice.js). `voice` selects the
 // re-render/mic path; state bookkeeping is identical for both.
-function timerCorrectAnswer(voice) {
+// kind: "recognition" for a Say-it Show tapped straight away.
+function timerCorrectAnswer(voice, kind = "recall") {
   timerCorrect++; playSuccess(); checkDrillMilestone();
   const ws = getWS(currentWord.deckId, currentWord.idx);
   const prevAt = ws.lastAnsweredAt;
-  applyCorrect(ws, { w: currentWord });
-  logEvent("answer", { m: voice ? "timer:voice" : "timer", ok: true, typed: true, voice: !!voice });
-  questEvent("answer", { mode: "timer", ok: true, typed: true, voice: !!voice, w: currentWord, prevAt });
+  applyCorrect(ws, { w: currentWord, kind });
+  const said = speakOn() && !voice;
+  logEvent("answer", { m: voice ? "timer:voice" : "timer", ok: true, typed: true, voice: !!voice, say: said });
+  questEvent("answer", { mode: "timer", ok: true, typed: true, voice: !!voice, w: currentWord, prevAt, said, hint: kind !== "recall" });
   saveState();
   timerWordsDone++;
   if (timerWordsDone >= timerQueue.length) { endTimer(true); return; }

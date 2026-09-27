@@ -13,7 +13,7 @@
 
 function scrambleTarget(word) {
   const np = nounParts(word);
-  if (np) {
+  if (np && !np.elided) {
     const parts = np.full.split(" ");
     const noun = parts.slice(1).join(" ");
     if (/^[\p{L}]+$/u.test(noun) && noun.length >= 3 && noun.length <= 12) return { prefix: parts[0], word: noun };

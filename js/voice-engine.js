@@ -26,16 +26,9 @@ function voiceEngineUsable() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   return !!SR && navigator.onLine;
 }
-function cycleVoiceEngine() {
-  voiceEngineChoice = voiceEngineChoice === "system" ? "whisper" : "system";
+function setVoiceEngine(choice) {
+  voiceEngineChoice = choice === "whisper" ? "whisper" : "system";
   localStorage.setItem("gv_voice_engine", voiceEngineChoice);
-  const btn = document.getElementById("settings-voice-btn");
-  if (btn) btn.innerHTML = voiceEngineSettingLabel();
-}
-function voiceEngineSettingLabel() {
-  return voiceEngineChoice === "whisper"
-    ? "🎙️&nbsp; Voice: Whisper (accurate, 40 MB once)"
-    : "🎙️&nbsp; Voice: System (fast)";
 }
 
 // ── RESULT PIPELINE (shared by both engines) ──

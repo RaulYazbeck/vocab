@@ -27,7 +27,7 @@ const ACHIEVEMENTS = [
   { id:"road_b1", icon:"🏔️", name:"Road to B1", category:"Vocabulary",
     desc:t => `Master ${t.toLocaleString()} words`,
     tiers:[10, 50, 150, 300, 600, 1000, 1500, 2200, 3000, 4000],
-    value:() => countMastered() },
+    value:() => countMastered(true) },
   { id:"explorer", icon:"🧭", name:"Explorer", category:"Vocabulary",
     desc:t => `Unlock ${t.toLocaleString()} words`,
     tiers:[25, 60, 120, 250, 450, 800, 1300, 2000, 3000, 4000],
@@ -39,7 +39,7 @@ const ACHIEVEMENTS = [
   { id:"comeback", icon:"🎢", name:"Comeback Kid", category:"Vocabulary",
     desc:t => `Master ${t} word${t>1?"s":""} you failed 5+ times`,
     tiers:[1, 3, 7, 12, 20, 30, 45, 60, 80, 100],
-    value:() => Object.values(S.words).filter(ws => (ws.wrong || 0) >= 5 && isMastered(ws)).length },
+    value:() => Object.values(S.words).filter(ws => (ws.wrong || 0) >= 5 && isMastered(ws) && !ws.sk).length },
 
   { id:"locked_in", icon:"💎", name:"Locked In", category:"Vocabulary",
     desc:t => `Lock in ${t.toLocaleString()} word${t>1?"s":""} for good`,
@@ -200,9 +200,11 @@ const SECRET_ACHIEVEMENTS = [
 
 // ── COUNTING HELPERS ──────────────────────────
 // Counters read S.words directly — looking must never create records.
+// Words lifted by ⏭️ Skip a level (ws.sk) count for achievements only
+// once they've been answered right for real (srsReview clears sk).
 function groupMasteredCount(group) {
   let n = 0;
-  group.decks.forEach(d => d.words.forEach((_, i) => { if (isMastered(S.words[d.id + "_" + i])) n++; }));
+  group.decks.forEach(d => d.words.forEach((_, i) => { const ws = S.words[d.id + "_" + i]; if (isMastered(ws) && !ws.sk) n++; }));
   return n;
 }
 function countLockedIn() {
@@ -218,10 +220,12 @@ function groupReviewCount(group) {
   }));
   return n;
 }
-function countMastered() {
+// forAch: leave out words lifted by Skip a level that were never answered.
+function countMastered(forAch = false) {
   let n = 0;
   ALL_GROUPS.forEach(g => g.decks.forEach(d => d.words.forEach((_, i) => {
-    if (isMastered(S.words[d.id + "_" + i])) n++;
+    const ws = S.words[d.id + "_" + i];
+    if (isMastered(ws) && !(forAch && ws.sk)) n++;
   })));
   return n;
 }
@@ -236,7 +240,9 @@ function countMasteryPlus() {
 function totalUnlockedWords() {
   let n = 0;
   ALL_GROUPS.forEach(g => g.decks.forEach(d => { n += getUnlocked(d.id); }));
-  return n;
+  // Words Skip a level unlocked without you ever meeting them (sk 2).
+  Object.values(S.words).forEach(ws => { if (ws && ws.sk === 2) n--; });
+  return Math.max(0, n);
 }
 // Longest run of consecutive days in the login history.
 function maxLoginStreak() {

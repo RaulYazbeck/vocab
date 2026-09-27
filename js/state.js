@@ -5,7 +5,27 @@ let openGroups  = new Set();
 let activeMode    = "drill";
 let drillSubMode  = "classic"; // 'classic' | 'focus' | 'refresh'
 let timerSubMode  = "classic"; // 'classic' | 'focus'
-let muteEnabled   = localStorage.getItem('gv_mute') === 'true';
+// Sound switches live on this device (a phone and a laptop can differ).
+// Each one names what it controls; "Mute until tomorrow" (quietActive,
+// path.js) silences all three for the day without touching them.
+const SOUND = loadSoundPrefs();
+function loadSoundPrefs() {
+  let p = null;
+  try { p = JSON.parse(localStorage.getItem("gv_sound") || "null"); } catch (e) {}
+  if (!p || typeof p !== "object") {
+    // The old single "Sound off" switch silenced speech, game sounds and
+    // vibration: carry it over as those switches off.
+    const muted = localStorage.getItem("gv_mute") === "true";
+    p = { tts: !muted, sfx: !muted, vibe: !muted };
+  }
+  return { tts: p.tts !== false, sfx: p.sfx !== false, vibe: p.vibe !== false };
+}
+function setSoundPref(k, v) {
+  SOUND[k] = !!v;
+  try { localStorage.setItem("gv_sound", JSON.stringify(SOUND)); } catch (e) {}
+  if (k === "tts" && !v && window.speechSynthesis) try { speechSynthesis.cancel(); } catch (e) {}
+  if (typeof logEvent === "function") logEvent("setting", { k: "sound_" + k, v: !!v });
+}
 let activeWords = [];
 let currentWord = null;
 let answered    = false;
@@ -91,6 +111,7 @@ function migrate() {
   if (!S.ankiSessions)          S.ankiSessions = 0;
   if (!ANKI.NEW_PER_DAY_OPTIONS.includes(S.ankiNewPerDay)) S.ankiNewPerDay = ANKI.NEW_PER_DAY_DEFAULT;
   if (S.ankiNewPaused === undefined) S.ankiNewPaused = false;
+  migratePrefs();
   migrateGames();
   migratePath();
   if (typeof migrateQuests === "function") migrateQuests();
@@ -100,6 +121,23 @@ function migrate() {
   if (typeof applyWordEdits === "function") applyWordEdits();
   // Auto-pause new Anki words after a long absence (3+ missed days).
   if (typeof checkAnkiAutoPause === "function") checkAnkiAutoPause();
+}
+
+// Two ways of using the app, both off by default and synced:
+//   grandma — the home screen shrinks to Start, quests and games
+//   speak   — "Speak, don't spell": recall is said aloud and self-graded
+function migratePrefs() {
+  if (!S.prefs || typeof S.prefs !== "object") S.prefs = {};
+  S.prefs.grandma = !!S.prefs.grandma;
+  S.prefs.speak = !!S.prefs.speak;
+  applyPrefClasses();
+}
+function grandmaOn() { return !!(S.prefs && S.prefs.grandma); }
+function speakOn() { return !!(S.prefs && S.prefs.speak); }
+function applyPrefClasses() {
+  if (!document.body) return;
+  document.body.classList.toggle("grandma", grandmaOn());
+  document.body.classList.toggle("speak-mode", speakOn());
 }
 
 // Minigame records (see games-core.js). Lives in the synced meta doc,

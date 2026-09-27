@@ -181,11 +181,15 @@ function renderBestiary() {
   </div>`;
 }
 
+// The ✗ / ✓ buttons of a Say-it boss round call in here.
+let _bossSayGrade = null;
+function bossSayGrade(v) { if (_bossSayGrade) _bossSayGrade(v); }
+
 registerGame({
-  id: "boss", name: "Boss Battle", icon: "👾", skill: "Typed recall · counts for stages",
+  id: "boss", name: "Boss Battle", icon: "👾", get skill() { return speakOn() ? "Recall out loud · counts for stages" : "Typed recall · counts for stages"; },
   inRuns: false, liveCredit: true, ranks: BOSS_RANKS, twists: ["sudden", "golden"],
-  howTo: [
-    "Your weakest words have teamed up. Type each answer to hit the boss.",
+  howTo: () => [
+    speakOn() ? "Your weakest words have teamed up. Say each answer out loud, tap Show, and a ✓ hits the boss." : "Your weakest words have teamed up. Type each answer to hit the boss.",
     "A miss costs a ❤️ (half a heart for 🌱 new words) and the word comes back later. Lose them all and the boss escapes.",
     "Answers count toward your word stages, just like Drill. Deck bosses and the weekly world boss live in the hub.",
   ],
@@ -218,6 +222,9 @@ registerGame({
     let hearts = maxHearts, correct = 0, wrong = 0, combo = 0, maxCombo = 0, dealt = 0, typedOk = 0;
     const perWord = ctx.size === "full" && rp.timer ? rp.timer * ctx.timeScale : 0;
     let wordStart = 0;
+    // Speak, don't spell: say it, Show, then ✗ / ✓ (say-it.js).
+    const sayMode = speakOn();
+    let revealed = false, shownAtMs = 0, revealAtMs = 0;
     sessionConsecutive = 0; // applyCorrect reads it for the best-combo record
 
     ctx.stage.innerHTML = `
@@ -229,14 +236,16 @@ registerGame({
         <div class="bb-hp-label" id="bb-hp-label"></div>
       </div>
       <div class="word-display bb-prompt">
+        ${sayMode ? `<div class="g-q-label">Say it out loud — then Show</div>` : ""}
         <div class="english-word" id="bb-en"></div>
         <div class="word-hint" id="bb-hint"></div>
       </div>
-      <input type="text" class="german-input" id="bb-input" placeholder="type the answer…"
+      <input type="text" class="german-input" id="bb-input" placeholder="type the answer…" ${sayMode ? `style="display:none" tabindex="-1"` : ""}
         autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="go"/>
-      ${accentBarHtml("bb-input")}
-      <div class="action-row">
-        <button class="check-btn" id="bb-attack">⚔️ Attack</button>
+      ${sayMode ? "" : accentBarHtml("bb-input")}
+      <div class="bb-say" id="bb-say"></div>
+      <div class="action-row" id="bb-actions">
+        ${sayMode ? `<button class="g-big-btn say-show" id="bb-show">Show ▶</button>` : `<button class="check-btn" id="bb-attack">⚔️ Attack</button>`}
         <button class="dontknow-btn" id="bb-skip">? Don't know</button>
         ${mode === "world" ? `<button class="dontknow-btn" id="bb-retreat" title="Keep your damage and leave">🏳️ Retreat</button>` : ""}
       </div>
@@ -259,6 +268,11 @@ registerGame({
       input.value = "";
       input.className = "german-input";
       fb.innerHTML = "";
+      if (sayMode) {
+        revealed = false; shownAtMs = Date.now();
+        document.getElementById("bb-say").innerHTML = "";
+        document.getElementById("bb-actions").style.display = "";
+      }
       ctx.busy = false;
       wordStart = ctx.clock.elapsed();
       try { input.focus({ preventScroll: true }); } catch (e) { input.focus(); }
@@ -294,19 +308,31 @@ registerGame({
           : mode === "minion" && won ? `⚔️ Minion defeated — the 👑 ${deckBoss(ctx.opts.deck).name} still waits for the whole deck.` : "" });
     };
 
-    const attack = skip => {
+    const reveal = () => {
+      if (!sayMode || revealed || ctx.busy || ctx.finished || ctx.paused || ctx.waiting || !queue.length) return;
+      revealed = true; revealAtMs = Date.now();
+      const w = queue[0];
+      document.getElementById("bb-actions").style.display = "none";
+      document.getElementById("bb-say").innerHTML = sayRevealHtml(w, { noSentence: true }) + sayGradeHtml("bossSayGrade", { close: false });
+      speak(gameForm(w));
+    };
+    _bossSayGrade = v => { if (sayMode && revealed && !ctx.busy && !ctx.finished) attack(v !== true, v === true); };
+    // said: true = ✓ Got it (the answer counts as right, no typing).
+    const attack = (skip, said = false) => {
       if (ctx.waiting) { ctx.continueNow(); return; }
       if (ctx.busy || ctx.finished || !queue.length) return;
+      if (sayMode && !revealed && !skip) { reveal(); return; }
       const w = queue[0];
       const val = input.value;
-      if (!skip && !val.trim()) {
+      if (!sayMode && !skip && !val.trim()) {
         // An accidental Enter on an empty box shouldn't cost a heart.
         shakeEl(input);
         ctx.say("Type an answer — or tap “Don't know”.");
         return;
       }
-      const ok = !skip && (typedCorrect(val, w) || bossSynonyms(w).some(x => typedCorrect(val, x)));
-      const near = !ok && !skip && isNearMiss(val, [w[WORD_KEY], gameForm(w)]);
+      const ok = sayMode ? said : !skip && (typedCorrect(val, w) || bossSynonyms(w).some(x => typedCorrect(val, x)));
+      const near = !sayMode && !ok && !skip && isNearMiss(val, [w[WORD_KEY], gameForm(w)]);
+      if (sayMode) document.getElementById("bb-say").innerHTML = "";
       ctx.busy = true;
       if (near) {
         input.classList.add("near");
@@ -322,8 +348,8 @@ registerGame({
           const first = ws.correct === 0 && ws.wrong === 0;
           sessionConsecutive++;
           addExp(first ? 10 : 5);
-          applyCorrect(ws, { w });
-          questEvent("answer", { mode: mode === "minion" ? "path" : "boss", ok: true, typed: true, w });
+          applyCorrect(ws, { w, kind: sayMode ? sayKind(shownAtMs, revealAtMs) : "recall" });
+          questEvent("answer", { mode: mode === "minion" ? "path" : "boss", ok: true, typed: true, w, said: sayMode });
         } else addExp(5);
         ctx.award(w, 1);
         saveState();
@@ -350,9 +376,9 @@ registerGame({
         ctx.missed(w);
         queue.push(queue.shift());
         input.classList.add("wrong");
-        fb.innerHTML = `<span class="bb-bad">${skip ? "✗" : `<s>${escapeHtml(val.trim())}</s> →`} <strong>${colorArticleHtml(w[WORD_KEY])}</strong></span>
+        fb.innerHTML = `<span class="bb-bad">${skip || sayMode ? "✗" : `<s>${escapeHtml(val.trim())}</s> →`} <strong>${colorArticleHtml(w[WORD_KEY])}</strong></span>
           <button class="audio-btn" ${speakBtnAttrs(w[WORD_KEY])} aria-label="Listen">🔊</button>`;
-        speak(w[WORD_KEY]);
+        if (!revealed) speak(w[WORD_KEY]);
         const arena = document.getElementById("bb-arena");
         arena.classList.remove("hurt"); void arena.offsetWidth; arena.classList.add("hurt");
         shakeEl(document.getElementById("game-screen"));
@@ -368,14 +394,18 @@ registerGame({
 
     // Buttons must not take focus from the input — on phones that would
     // close the keyboard between every word.
-    ["bb-attack", "bb-skip", "bb-retreat"].forEach(id => { const b = document.getElementById(id); if (b) gListen(b, "pointerdown", e => e.preventDefault()); });
-    document.getElementById("bb-attack").onclick = () => { attack(false); input.focus({ preventScroll: true }); };
-    document.getElementById("bb-skip").onclick = () => { attack(true); input.focus({ preventScroll: true }); };
+    ["bb-attack", "bb-skip", "bb-retreat"].forEach(id => { const b = document.getElementById(id); if (b && !sayMode) gListen(b, "pointerdown", e => e.preventDefault()); });
+    if (sayMode) {
+      document.getElementById("bb-show").onclick = reveal;
+      sayKeys = { root: "bb-arena", close: false, state: () => ctx.waiting ? "done" : !revealed ? "prompt" : "revealed",
+        reveal, grade: v => _bossSayGrade(v), next: () => { if (ctx.waiting) ctx.continueNow(); } };
+    } else document.getElementById("bb-attack").onclick = () => { attack(false); input.focus({ preventScroll: true }); };
+    document.getElementById("bb-skip").onclick = () => { attack(true); if (!sayMode) input.focus({ preventScroll: true }); };
     const rt = document.getElementById("bb-retreat");
     if (rt) rt.onclick = () => { if (!ctx.busy && !ctx.finished) end(false); };
     gListen(input, "keydown", e => { if (e.key === "Enter") { e.preventDefault(); attack(false); } });
     if (perWord) gInterval(() => {
-      if (ctx.busy || ctx.paused || ctx.finished || !queue.length) return;
+      if (ctx.busy || ctx.paused || ctx.finished || !queue.length || (sayMode && revealed)) return;
       const left = Math.max(0, perWord - (ctx.clock.elapsed() - wordStart));
       ctx.setClock(Math.ceil(left / 1000) + "s", left < 4000);
       if (left <= 0) { input.value = ""; attack(true); }

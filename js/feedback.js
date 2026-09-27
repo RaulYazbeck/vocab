@@ -11,15 +11,18 @@ function initVoice() {
   load();
   speechSynthesis.onvoiceschanged = load;
 }
-// Quiet mode (path.js) silences everything for the day: speech,
-// chimes and game effects.
-function soundAllowed() { return !(typeof quietActive === "function" && quietActive()); }
-function speak(text) {
-  if (muteEnabled || !window.speechSynthesis || !soundAllowed()) return;
+// Three switches (state.js) — read words aloud, sound effects,
+// vibration — and "Mute until tomorrow" (path.js) over all of them.
+function mutedToday() { return typeof quietActive === "function" && quietActive(); }
+function ttsOn()  { return SOUND.tts && !mutedToday(); }
+function sfxOn()  { return SOUND.sfx && !mutedToday(); }
+function vibeOn() { return SOUND.vibe && !mutedToday(); }
+function speak(text, rate = 0.85) {
+  if (!ttsOn() || !window.speechSynthesis) return;
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = APP_CONFIG.speechLang;
-  u.rate = 0.85;
+  u.rate = rate;
   if (targetVoice) u.voice = targetVoice;
   speechSynthesis.speak(u);
 }
@@ -38,7 +41,7 @@ function getAudioCtx() {
 }
 // notes: [{ freq, at, dur }], volume 0–1, type: oscillator waveform
 function playNotes(notes, volume, type = "sine") {
-  if (!soundAllowed()) return;
+  if (!sfxOn()) return;
   try {
     const ctx = getAudioCtx();
     if (!ctx) return;
@@ -60,7 +63,7 @@ function playSuccess() {
   playNotes([{ freq:659, at:0, dur:0.16 }, { freq:784, at:0.12, dur:0.38 }], 0.25);
 }
 function playFailure() {
-  if (!soundAllowed()) return;
+  if (!sfxOn()) return;
   try {
     const ctx = getAudioCtx();
     if (!ctx) return;
@@ -93,10 +96,9 @@ function playAchievement() {
 }
 
 // ── GAME SOUNDS & HAPTICS ─────────────────────
-// Short arcade effects for the minigames. Unlike the answer chimes
-// above, these follow the 🔇 setting: minigames fire them rapidly, so
-// "Sound off" has to silence them. Haptics follow the same switch.
-function gameSfxOn() { return !muteEnabled && soundAllowed(); }
+// Short arcade effects for the minigames — the same 🔔 Sound effects
+// switch as the answer chimes above.
+function gameSfxOn() { return sfxOn(); }
 function playPop() {
   if (gameSfxOn()) playNotes([{ freq:880, at:0, dur:0.07 }, { freq:1320, at:0.05, dur:0.09 }], 0.14);
 }
@@ -123,9 +125,9 @@ function playGameOver() {
 function playCountdown(final) {
   if (gameSfxOn()) playNotes([{ freq: final ? 1047 : 659, at:0, dur: final ? 0.25 : 0.1 }], 0.13);
 }
-// Haptics stay on in Quiet mode (they make no sound); off when muted.
+// Haptics follow the 📳 Vibration switch (and Mute until tomorrow).
 function buzz(pattern) {
-  if (muteEnabled) return;
+  if (!vibeOn()) return;
   try { if (navigator.vibrate) navigator.vibrate(pattern); } catch (e) {}
 }
 

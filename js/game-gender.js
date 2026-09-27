@@ -89,7 +89,7 @@ registerGame({
       const bucket = ctx.stage.querySelector(`.gd-bucket[data-i="${i}"]`);
       const ok = GENDER_BUCKETS[i].a === np.answer;
       card.classList.add(genderClass(np.answer));
-      nounEl.textContent = np.full;
+      nounEl.textContent = np.indef ? `${np.full} · ${np.indef}` : np.full;
       if (ok) {
         correct++; combo++; maxCombo = Math.max(maxCombo, combo);
         const pts = ctx.award(cur, 10 * comboMult(combo));

@@ -235,12 +235,45 @@ function mistakeHeld(fbId) {
 // green) — the colours stick in memory. Returns escaped HTML.
 function colorArticleHtml(text) {
   const t = String(text ?? "");
-  const m = t.match(/^(der|die|das|le|la|l')(\s*)(.*)$/i);
+  const m = t.match(/^(der|die|das|les|le|la|l')(\s*)(.*)$/i);
   if (!m) return escapeHtml(t);
   const a = m[1].toLowerCase();
-  const cls = a === "der" || a === "le" ? "m" : a === "die" || a === "la" ? "f" : a === "das" ? "n" : "";
+  if (a !== "l'" && !m[2]) return escapeHtml(t); // "lent", "lesen": not an article
+  // French l'/les hide the gender: the decks note it (g), see frGenderOf.
+  const hidden = (a === "l'" || a === "les") && WORD_KEY === "fr" ? frGenderOf(t) : "";
+  const cls = a === "der" || a === "le" || hidden === "m" ? "m" : a === "die" || a === "la" || hidden === "f" ? "f" : a === "das" ? "n" : "";
   if (!cls || (a === "die" && /,\s*pl\.|^die\s+\S+\s*\(pl/i.test(t))) return escapeHtml(t);
   return `<span class="art ${cls}-text">${escapeHtml(m[1])}</span>${escapeHtml(m[2] + m[3])}`;
+}
+
+// French nouns whose article hides the gender (l'heure, les vacances)
+// carry g: "m" | "f" | "mf" in the decks. Looked up by their text.
+let _frGender = null;
+function frGenderOf(text) {
+  if (!_frGender) {
+    _frGender = new Map();
+    ALL_GROUPS.forEach(g => g.decks.forEach(d => d.words.forEach(w => { if (w.g) _frGender.set(String(w.fr), w.g); })));
+  }
+  return _frGender.get(String(text).trim()) || "";
+}
+// "une heure" / "un ou une élève" for an l' noun — the gender you
+// hear. Null for everything else (les + noun: "des" has no gender).
+function frIndefinite(word) {
+  if (WORD_KEY !== "fr") return null;
+  const f = String(word.fr || "");
+  const g = word.g || frGenderOf(f);
+  if (!g || !/^l'/i.test(f)) return null;
+  const noun = f.slice(2);
+  return g === "m" ? `un ${noun}` : g === "f" ? `une ${noun}` : `un ou une ${noun}`;
+}
+// A small line under a French l' noun: "une heure · féminin".
+function frGenderNoteHtml(word) {
+  const ind = frIndefinite(word);
+  if (!ind) return "";
+  const g = word.g || frGenderOf(word.fr);
+  const cls = g === "m" ? "m" : g === "f" ? "f" : "";
+  const label = g === "m" ? "masculin" : g === "f" ? "féminin" : "masculin ou féminin";
+  return `<div class="fr-gender"><span class="${cls ? cls + "-text" : ""}">${escapeHtml(ind)}</span> · ${label}</div>`;
 }
 
 // In-app confirmation sheet (instead of the browser's confirm()).

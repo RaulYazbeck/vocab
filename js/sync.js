@@ -53,6 +53,8 @@ function watchAuth() { auth.onAuthStateChanged(user => {
     if (status) status.textContent = "";
     stopBackgroundSync();
   }
+  const sp = document.getElementById("settings-panel");
+  if (sp && sp.style.display === "block" && typeof renderSettingsPanel === "function") renderSettingsPanel();
 }); }
 try { watchAuth(); } catch (e) { console.warn("[sync] Firebase unavailable — saving on this device only", e); }
 

@@ -30,6 +30,8 @@ function wilsonLower(correct, total) {
 //   mt       💎 maintenance check-ins done (see LOCKED_CHECKS)
 //   rc       1 = a repaired 💎 word's extra check-in is pending
 //   mastered sticky: reached Known once (achievements never go down)
+//   sk       ⏭️ lifted by Skip a level, not yet answered right (1 = was
+//            met before, 2 = never met) — left out of achievements
 function stageOf(ws) { return (ws && ws.st) || 0; }
 function tierOfStage(st) { return TIERS.find(t => st >= t.min && st <= t.max) || TIERS[0]; }
 function tierOf(ws) { return tierOfStage(stageOf(ws)); }
@@ -116,6 +118,7 @@ function srsReview(ws, ok, kind = "recall", now = Date.now(), opts = {}) {
   const res = { from, to: from, promoted: false, demoted: false, repaired: false, events: [], pkBefore: ws.pk || 0 };
   if (ok === "near") { if (from && kind === "recall") nudgeEase(ws, -EASE.NEAR); return res; }
   const recall = kind === "recall";
+  if (ok === true && ws.sk) delete ws.sk; // a skipped word answered right: really known now
   const today = studyToday();
 
   // Not met yet (Library drill of an unlocked word): the first answer

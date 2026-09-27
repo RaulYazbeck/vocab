@@ -13,6 +13,12 @@ function nextDrillWord() {
 // the user leaves and re-enters drill mode.
 function initDrillScreen() {
   showGameScreen();
+  // Speak, don't spell: say it, Show, grade yourself (say-it.js). The
+  // mode is fixed for the session, so a switch in ⚙️ never leaves a
+  // half-typed, half-spoken screen.
+  const say = drillSay = speakOn();
+  if (say) sayKeys = { root: "drill-say-root", state: () => answered ? "done" : drillRevealed ? "revealed" : "prompt",
+    reveal: drillSayReveal, grade: drillSayGrade, next: drillGo };
   const el = document.getElementById("main-screen");
   el.innerHTML = `
     <div class="drill-meta-card">
@@ -27,15 +33,17 @@ function initDrillScreen() {
         <div class="english-word" id="drill-english"></div>
         <div class="word-hint"    id="drill-hint"></div>
       </div>
-      <input type="text" class="german-input" id="german-input" placeholder="type the answer…"
+      ${say ? `<div class="g-q-label drill-say-label" id="drill-say-root">Say it out loud — then Show</div>` : ""}
+      <input type="text" class="german-input" id="german-input" placeholder="type the answer…" ${say ? `style="display:none" tabindex="-1"` : ""}
         autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
         onkeydown="handleDrillKey(event)"/>
-      ${accentBarHtml("german-input")}
-      <div class="action-row">
-        <button class="check-btn"    onclick="checkDrill()">Check</button>
+      ${say ? "" : accentBarHtml("german-input")}
+      <div class="action-row" id="drill-actions">
+        ${say ? `<button class="check-btn" onclick="drillSayReveal()">Show ▶</button>` : `<button class="check-btn"    onclick="checkDrill()">Check</button>`}
         <button class="hint-btn"     id="hint-btn" onclick="showDrillHint()">💡 Hint</button>
         <button class="dontknow-btn" onclick="dontKnow()">? Don't know</button>
       </div>
+      <div id="drill-say"></div>
       <div id="hint-area"></div>
       <div id="examples-area"></div>
       <div class="feedback" id="feedback" style="min-height:56px;"></div>
@@ -67,6 +75,11 @@ function updateDrillWord() {
   input.value     = '';
   input.className = 'german-input';
   drillShownAt = Date.now();
+  drillRevealed = false; drillFast = false;
+  const sayArea = document.getElementById('drill-say');
+  if (sayArea) sayArea.innerHTML = '';
+  const actions = document.getElementById('drill-actions');
+  if (actions) actions.style.display = '';
 
   document.getElementById('feedback').innerHTML      = '';
   document.getElementById('examples-area').innerHTML = '';
@@ -81,7 +94,7 @@ function updateDrillWord() {
   hintBtn.disabled = false;
 
   renderUnlockRow('unlock-row-drill', currentWord.deckId);
-  input.focus();
+  if (!drillSay) input.focus();
   // Auto-scroll keeps the card above the keyboard — installed PWA only,
   // desktop browsers should never jump around.
   if (IS_STANDALONE) {
@@ -123,7 +136,38 @@ function showDrillHint() {
   if (hintBtn) hintBtn.disabled = true;
   drillUsedHint = true;
   const input = document.getElementById('german-input');
-  if (input) input.focus();
+  if (input && !drillSay) input.focus();
+}
+// ── SAY IT (Speak, don't spell) ───────────────
+let drillRevealed = false, drillFast = false, drillSay = false;
+function drillSayReveal() {
+  if (answered || drillRevealed || !currentWord) return;
+  drillRevealed = true;
+  drillFast = Date.now() - drillShownAt < SAY_MIN_MS;
+  const actions = document.getElementById('drill-actions');
+  if (actions) actions.style.display = 'none';
+  document.getElementById('drill-say').innerHTML = sayRevealHtml(currentWord) + sayGradeHtml("drillSayGrade");
+  speak(gameForm(currentWord));
+}
+function drillSayGrade(v) {
+  if (answered || !drillRevealed || !currentWord) return;
+  answered = true;
+  document.getElementById('drill-say').innerHTML = '';
+  const ws = getWS(currentWord.deckId, currentWord.idx);
+  lastDrillTyped = "";
+  if (v === "near") {
+    ws.near = (ws.near || 0) + 1; ws.lastAnsweredAt = Date.now();
+    logEvent("answer", { m: "drill:" + drillSubMode, ok: false, near: true, typed: true, say: true, ms: Date.now() - drillShownAt });
+    drillUsedHint = false;
+    saveState();
+    showDrillFeedback("near", ws);
+    return;
+  }
+  if (drillFast) drillUsedHint = true; // Show straight away = a look, not recall
+  applyAnswerState(ws, v === true);
+  if (v === true) playSuccess(); else playFailure();
+  showDrillFeedback(v === true, ws);
+  if (v !== true) holdAfterMistake("drill-next");
 }
 function focusInput() {
   const ids = ["german-input","timer-input"];
@@ -185,8 +229,9 @@ function applyAnswerState(ws, correct) {
     applyWrong(ws, { w }); sessionConsecutive = 0;
   }
   const ms = Date.now() - drillShownAt;
-  logEvent("answer", { m: voice ? "drill:voice" : "drill:" + drillSubMode, ok: correct, typed: true, voice, hint, ms });
-  questEvent("answer", { mode: "drill", ok: correct, typed: true, voice, hint, w, prevAt, ms });
+  const say = drillSay && !voice;
+  logEvent("answer", { m: voice ? "drill:voice" : "drill:" + drillSubMode, ok: correct, typed: true, voice, hint, ms, say });
+  questEvent("answer", { mode: "drill", ok: correct, typed: true, voice, hint, w, prevAt, ms, said: say });
   drillUsedHint = false;
   saveState();
 }
@@ -254,7 +299,8 @@ function showDrillFeedback(correct, ws) {
   const typed = lastDrillTyped && lastDrillTyped.trim();
   document.getElementById("feedback").innerHTML = `
     <div class="feedback-left">
-      <div class="feedback-text ${cls}">${icon} ${near ? "Almost — check the spelling:" : correct ? "Correct!" : "Answer:"} <strong>${colorArticleHtml(currentWord[WORD_KEY])}</strong></div>
+      <div class="feedback-text ${cls}">${icon} ${near ? (drillSay ? "Close — say it once more:" : "Almost — check the spelling:") : correct ? "Correct!" : "Answer:"} <strong>${colorArticleHtml(currentWord[WORD_KEY])}</strong></div>
+      ${drillSay ? frGenderNoteHtml(currentWord) : ""}
       ${!correct || near ? (typed ? `<div class="p-diff">${diffHtml(typed, currentWord[WORD_KEY])}</div>` : "") : ""}
       ${near ? `<div class="plural-text">No step up, no step down — it comes back soon.</div>` : ""}
       ${currentWord.pl ? `<div class="plural-text">plural: ${currentWord.pl}</div>` : ""}
@@ -264,12 +310,14 @@ function showDrillFeedback(correct, ws) {
       <button class="audio-btn" ${speakBtnAttrs(currentWord[WORD_KEY])}>🔊</button>
       <button class="next-btn" id="drill-next" onclick="drillGo()">Next →</button>
     </div>`;
-  speak(currentWord[WORD_KEY]);
+  if (!drillRevealed) speak(currentWord[WORD_KEY]); // a Say-it reveal has just said it
   document.getElementById("hint-area").innerHTML = ""; // full examples replace the hint
   const hintBtn = document.getElementById("hint-btn");
   if (hintBtn) hintBtn.style.display = "none";
   document.getElementById("examples-area").innerHTML = examplesHtml(currentWord, "big");
   document.getElementById("stats-row").innerHTML = miniStats(ws);
   const inp = document.getElementById("german-input");
-  if (inp) inp.focus();
+  if (inp && !drillSay) inp.focus();
+  const actions = document.getElementById("drill-actions");
+  if (actions && drillSay) actions.style.display = "none";
 }
