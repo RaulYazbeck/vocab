@@ -231,7 +231,11 @@ function pathEnsurePlan(scan) {
   const P = S.path;
   if (!pathDeadlineOn()) return null;
   const today = studyToday();
-  if (P.plan && P.plan.day === today && P.plan.deadline === P.deadline && P.plan.v === 2) return P.plan;
+  if (P.plan && P.plan.day === today && P.plan.deadline === P.deadline && P.plan.v === 3) return P.plan;
+  // A plan rebuilt during the day (app update, finish date changed) must
+  // still describe the whole day: it counts the reviews already done
+  // today, and never lowers today's bar.
+  const prev = P.plan && P.plan.day === today ? P.plan : null;
   scan = scan || pathScan(true);
   const backlog = scan.overdue;
   const pace = pathPace(scan, today);
@@ -241,16 +245,27 @@ function pathEnsurePlan(scan) {
   const normal = (scan.due - backlog) * 1.1 + pace * 3;
   const take = backlog <= PLAN.SMALL_BACKLOG ? backlog
     : Math.max(Math.ceil(backlog / 14), Math.min(Math.ceil(backlog / PLAN.SPREAD), Math.floor(normal * 0.2 / 1.1)));
-  const reviews = scan.due - backlog + take;
+  const reviews = scan.due - backlog + take + pathReviewedToday();
   // One number everywhere: rounded up to the next 10 (85 → 90), and the
   // daily goal is that same number.
-  const target = Math.max(PLAN.GOAL_MIN, Math.min(PLAN.GOAL_MAX, Math.ceil((reviews * 1.1 + pace * 3) / 10) * 10));
-  P.plan = { v: 2, day: today, deadline: P.deadline, pace, reviews, leave: backlog - take, target, goal: target };
+  let target = Math.max(PLAN.GOAL_MIN, Math.min(PLAN.GOAL_MAX, Math.ceil((reviews * 1.1 + pace * 3) / 10) * 10));
+  if (prev && prev.deadline === P.deadline) target = Math.max(target, prev.target || 0);
+  P.plan = { v: 3, day: today, deadline: P.deadline, pace, reviews, leave: backlog - take, target, goal: target };
   // Keep today's "Today's plan" quest on the same number.
   const pq = S.quests && S.quests.list && S.quests.list.find(q => q.tpl === "a_plan" && !q.done);
   if (pq) pq.target = target;
   logEvent("plan", { pace, reviews, target, backlog });
   return P.plan;
+}
+// Reviews already done today: words that were due and got answered and
+// rescheduled today (not today's new words, not ones still being fixed).
+function pathReviewedToday() {
+  const t0 = studyDayStart(0), today = studyToday();
+  let n = 0;
+  for (const ws of Object.values(S.words)) {
+    if (ws && ws.st && ws.sAt >= t0 && ws.lastAnsweredAt >= t0 && ws.metOn !== today && !ws.lrn && !ws.rp) n++;
+  }
+  return n;
 }
 // Everything today's plan asked for is done: reviews down to the part
 // of the backlog left for later days, and today's new words met.
