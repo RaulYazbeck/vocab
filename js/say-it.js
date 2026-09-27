@@ -21,8 +21,36 @@ const SAY_MIN_MS = 1000;
 function sayKind(shownAt, revealedAt, helped = false) {
   return helped || revealedAt - shownAt < SAY_MIN_MS ? "recognition" : "recall";
 }
-function sayPromptLabel(w) {
-  return typeof nounParts === "function" && nounParts(w) ? "Say it out loud — with its article" : "Say it out loud";
+// What to do, spelled out — Say-it cards are new to most people:
+// ① say it out loud, ② tap Show to check. kind: "word" · "cloze" ·
+// "meaning" · "ear" (hear it, say the meaning) · "form" (a verb form).
+function sayLangName() { return WORD_KEY === "fr" ? "French" : "German"; }
+function sayStepsHtml(kind, w) {
+  const lang = sayLangName();
+  const noun = kind === "word" && w && typeof nounParts === "function" && nounParts(w);
+  const art = noun ? ` — with its article (${WORD_KEY === "fr" ? "le, la, l'" : "der, die, das"})` : "";
+  const what = {
+    word: `Say the ${lang} word out loud${art}`,
+    cloze: `Say the missing ${lang} word out loud`,
+    meaning: "Say what it means, out loud",
+    ear: "Listen, then say what it means, out loud",
+    form: `Say the ${lang} form out loud`,
+  }[kind] || "Say it out loud";
+  return `<div class="say-steps"><div class="say-step"><b>1</b><span>${what}</span></div><div class="say-step"><b>2</b><span>Tap <strong>Show</strong> to check</span></div></div>`;
+}
+// Under the answer: how to grade, in words.
+function sayAskHtml(short = false) {
+  return `<div class="say-ask">${short ? "Did you say it right?" : "Did you say it right? Be honest — it decides when the word comes back."}</div>`;
+}
+// 💡 when there's no example sentence to hide the word in: its first
+// letter(s) — "der H…", "s'il v… p…". Using it counts as help.
+function sayLetterHintHtml(w) {
+  const f = gameForm(w);
+  const m = f.match(/^(der|die|das|le|la|les|l')\s*(.*)$/i);
+  const prefix = m ? m[1] + (m[1].endsWith("'") ? "" : " ") : "";
+  const rest = m ? m[2] : f;
+  const words = rest.split(/\s+/).filter(Boolean);
+  return escapeHtml(prefix) + words.map((x, i) => `<b>${escapeHtml(x.slice(0, words.length === 1 && x.length > 6 ? 2 : 1))}</b>…`).join(" ");
 }
 
 // The answer, big, with what helps you say it: the gender you hear for
@@ -35,7 +63,8 @@ function sayPromptLabel(w) {
 function sayRevealHtml(w, opts = {}) {
   const text = opts.answer != null ? String(opts.answer) : w ? gameForm(w) : "";
   const audio = opts.audio != null ? String(opts.audio) : text;
-  const ex = w && w.examples && w.examples[0] && w.examples[0][WORD_KEY];
+  const exObj = w && w.examples && w.examples[0] && w.examples[0][WORD_KEY] ? w.examples[0] : null;
+  const ex = exObj ? exObj[WORD_KEY] : "";
   return `<div class="say-reveal">
     ${opts.heard ? `<div class="say-heard">🎙️ I heard “${escapeHtml(opts.heard)}” — how did you do?</div>` : ""}
     <div class="say-word">${opts.html != null ? opts.html : colorArticleHtml(text)}</div>
@@ -46,6 +75,8 @@ function sayRevealHtml(w, opts = {}) {
       <button class="say-btn" data-say="${escapeHtml(audio)}" onclick="speak(this.dataset.say, 0.55)" aria-label="Hear it slower">🐢 Slower</button>
       ${ex && !opts.noSentence ? `<button class="say-btn" data-say="${escapeHtml(ex)}" onclick="speak(this.dataset.say)" aria-label="Hear it in a sentence">▶ Sentence</button>` : ""}
     </div>` : ""}
+    ${exObj && !opts.noSentence ? `<div class="say-ex"><div class="say-ex-t">${escapeHtml(ex)}</div>${exObj.en ? `<div class="say-ex-en">${escapeHtml(exObj.en)}</div>` : ""}</div>` : ""}
+    ${opts.ask === false ? "" : sayAskHtml(opts.ask === "short")}
   </div>`;
 }
 // The three self-grade buttons; fn is called with false / "near" / true.

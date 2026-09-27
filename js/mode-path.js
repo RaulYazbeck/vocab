@@ -321,7 +321,7 @@ function renderPathTyped(it) {
   // then counts as recognition: right, but no step up (repairs and new
   // words simply come back for an unaided try).
   const hint = it.t === "typed" || it.t === "spot" ? buildHint(w) : null;
-  it.hintHtml = hint;
+  it.hintHtml = hint; it.hintKind = "context";
   pathSetActions(`
     ${hint ? `<button class="hint-btn" id="p-hint-btn" onclick="pathShowHint()">💡 Hint</button>` : ""}
     <button class="dontknow-btn" onclick="pathDontKnow()">? Don't know</button>
@@ -341,31 +341,34 @@ function renderPathSay(it) {
     const info = clozeTarget(w);
     if (!info) { it.t = "typed"; return renderPathSay(it); }
     it.cloze = info;
-    body = `<div class="g-q-label">Say the missing word</div>
-      <div class="cz-sentence p-cloze">${info.html}</div>
+    body = `<div class="cz-sentence p-cloze">${info.html}</div>
       <div class="cz-trans">${escapeHtml(info.example.en || "")}</div>
-      <div class="p-cloze-meaning">(${escapeHtml(gamePrompt(w))})</div>`;
+      <div class="p-cloze-meaning">(${escapeHtml(gamePrompt(w))})</div>
+      ${sayStepsHtml("cloze", w)}`;
   } else if (it.t === "reverse") {
     // By ear when words can be read aloud: hear it, say what it means.
     it.ear = audioOk();
     body = it.ear
-      ? `<div class="g-q-label">Listen — what does it mean? Say it</div>
-         <button class="l-play say-play" id="p-say-play" aria-label="Play again">🔊</button>`
-      : `<div class="g-q-label">What does it mean? Say it</div>
-         <div class="english-word p-target">${colorArticleHtml(gameForm(w))}</div>`;
+      ? `<button class="l-play say-play" id="p-say-play" aria-label="Play again">🔊</button>
+         ${sayStepsHtml("ear", w)}`
+      : `<div class="english-word p-target">${colorArticleHtml(gameForm(w))}</div>
+         ${sayStepsHtml("meaning", w)}`;
   } else {
-    body = `<div class="g-q-label">${sayPromptLabel(w)}</div>
-      <div class="english-word">${escapeHtml(w.en)}</div>
-      <div class="word-hint">${escapeHtml(w.hint || "")}</div>`;
+    body = `<div class="english-word">${escapeHtml(w.en)}</div>
+      <div class="word-hint">${escapeHtml(w.hint || "")}</div>
+      ${sayStepsHtml("word", w)}`;
   }
   document.getElementById("p-card").innerHTML = `${pathWordHeader(w, it.fresh ? null : ws)}${pathKickerHtml(it, ws)}<div class="word-display p-word">${body}</div><div id="p-hint"></div>`;
   // The typed area stays for the optional 🎤 only — no text box.
   const t = document.getElementById("p-typed");
   if (t) { t.classList.add("say-only"); t.style.display = pathVoiceFits(it) ? "" : "none"; }
-  const hint = it.t === "typed" || it.t === "spot" ? buildHint(w) : null;
-  it.hintHtml = hint;
+  // 💡 always there for a word: its sentence with the word hidden, or
+  // else its first letters. Either way it counts as help (no step up).
+  const ctxHint = it.t === "typed" || it.t === "spot" ? buildHint(w) : null;
+  it.hintKind = ctxHint ? "context" : "letters";
+  it.hintHtml = ctxHint || (it.t === "typed" || it.t === "spot" ? sayLetterHintHtml(w) : null);
   pathSetActions(`
-    ${hint ? `<button class="hint-btn" id="p-hint-btn" onclick="pathShowHint()">💡 Hint</button>` : ""}
+    ${it.hintHtml ? `<button class="hint-btn" id="p-hint-btn" onclick="pathShowHint()">💡 Hint</button>` : ""}
     ${sayShowBtnHtml("pathSayReveal()", "p-show")}`);
   if (it.ear) {
     const play = () => { speak(gameForm(w)); popEl(document.getElementById("p-say-play")); };
@@ -385,6 +388,7 @@ function pathSayReveal(heard = "") {
   it.revealedAt = Date.now();
   it.fast = !heard && !it.spoken && it.revealedAt - s.shownAt < SAY_MIN_MS;
   stopPathVoice();
+  document.querySelectorAll("#p-card .say-steps").forEach(el => el.remove()); // done: said it, tapped Show
   const form = gameForm(w);
   let opts;
   if (it.t === "cloze") opts = { answer: it.cloze.answer, sub: normalize(it.cloze.answer) !== normalize(form) ? `${colorArticleHtml(form)} — in this sentence: <strong>${escapeHtml(it.cloze.answer)}</strong>` : "", audio: it.cloze.example[WORD_KEY] || it.cloze.answer, noSentence: true };
@@ -416,7 +420,7 @@ function pathShowHint() {
   const s = pathSession;
   if (!s || s.answered || !s.cur.hintHtml) return;
   s.cur.usedHint = true;
-  document.getElementById("p-hint").innerHTML = `<div class="hint-wrap"><div class="examples-title">💡 In context — word hidden</div><div class="hint-sentence">${s.cur.hintHtml}</div></div>`;
+  document.getElementById("p-hint").innerHTML = `<div class="hint-wrap"><div class="examples-title">${s.cur.hintKind === "letters" ? "💡 It starts with" : "💡 In context — word hidden"}</div><div class="hint-sentence">${s.cur.hintHtml}</div></div>`;
   const b = document.getElementById("p-hint-btn"); if (b) b.disabled = true;
   logEvent("hint", {});
 }

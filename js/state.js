@@ -211,6 +211,9 @@ function migratePath() {
   if (P.plan === undefined) P.plan = null;
   if (typeof P.lastDeck !== "string") P.lastDeck = "";
   if (!P.migrated) P.migrated = {};
+  // Skipped words (Skip a level) used to get a check 1–4 weeks later;
+  // they're known — no reviews (idempotent, only unanswered skips).
+  Object.values(S.words).forEach(ws => { if (ws && ws.sk && ws.st === STAGE_KNOWN && ws.dueAt && !ws.rp) ws.dueAt = null; });
   const now = Date.now();
   const counts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
   let changed = 0;
