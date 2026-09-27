@@ -122,8 +122,11 @@ function bindPathKeys() {
 }
 function pathProgress() {
   const s = pathSession;
-  const total = s.items.filter(x => x.t !== "bonus").length;
-  const done = s.items.slice(0, s.i).filter(x => x.t !== "bonus").length;
+  // Learn cards and bonus offers aren't questions: a Regular session
+  // reads x/30, like the length you picked.
+  const q = x => x.t !== "bonus" && x.t !== "learn";
+  const total = s.items.filter(q).length;
+  const done = s.items.slice(0, s.i).filter(q).length;
   const f = document.getElementById("p-prog");
   if (f) f.style.width = Math.round(done / Math.max(1, total) * 100) + "%";
   const c = document.getElementById("p-count");
@@ -276,7 +279,8 @@ function renderPathTyped(it) {
     : ws.rp ? `<div class="p-kicker repair">🩹 Repair — get it right to keep its badge</div>`
     : it.second ? `<div class="p-kicker">🌱 Once more, from memory</div>`
     : it.reask ? `<div class="p-kicker">↻ Once more</div>`
-    : ws.fl ? `<div class="p-kicker flag">⚠️ Quick check</div>` : "";
+    : ws.fl ? `<div class="p-kicker flag">⚠️ Quick check</div>`
+    : it.practice ? `<div class="p-kicker">🧺 Extra practice</div>` : "";
   if (it.t === "cloze") {
     const info = clozeTarget(w);
     if (!info) { it.t = "typed"; return renderPathTyped(it); }
@@ -296,7 +300,10 @@ function renderPathTyped(it) {
   }
   document.getElementById("p-card").innerHTML = `${pathWordHeader(w, it.fresh ? null : ws)}${kicker}<div class="word-display p-word">${body}</div><div id="p-hint"></div>`;
   pathShowTyped(true, placeholder, it.t !== "reverse");
-  const hint = it.hintOk && it.t === "typed" && !it.fix ? buildHint(w) : null;
+  // 💡 is always there for a plain prompt. Using it is fine — the answer
+  // then counts as recognition: right, but no step up (repairs and new
+  // words simply come back for an unaided try).
+  const hint = it.t === "typed" || it.t === "spot" ? buildHint(w) : null;
   it.hintHtml = hint;
   pathSetActions(`
     ${hint ? `<button class="hint-btn" id="p-hint-btn" onclick="pathShowHint()">💡 Hint</button>` : ""}
