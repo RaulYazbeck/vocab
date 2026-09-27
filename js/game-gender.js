@@ -60,7 +60,6 @@ registerGame({
       enEl.textContent = gamePrompt(cur);
       popEl(card, true);
       ctx.busy = false;
-      if (ctx.size === "bonus") ctx.setBar(1 - (qi - 1) / bonusCount, "progress");
     };
 
     const answer = i => {
@@ -100,7 +99,7 @@ registerGame({
       if (ctx.finished) return;
       const left = Math.max(0, limit - ctx.clock.elapsed());
       const sec = Math.ceil(left / 1000);
-      if (ctx.size !== "bonus") ctx.setBar(left / limit, left < 5000 ? "urgent" : "");
+      ctx.setBar(left / limit, left < 5000 ? "urgent" : "");
       ctx.setClock(sec + "s", left < 5000);
       if (sec !== lastSec && sec <= 5 && sec > 0 && !ctx.paused) playTick();
       lastSec = sec;

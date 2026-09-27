@@ -121,6 +121,7 @@ function migrateGames() {
   if (typeof G.daily.date !== "string") G.daily.date = "";
   if (!Array.isArray(G.daily.done)) G.daily.done = [];
   if (!Array.isArray(G.daily.completedDates)) G.daily.completedDates = [];
+  if (!Array.isArray(G.daily.ids)) G.daily.ids = [];
   if (S.gameCorrectToday === undefined) S.gameCorrectToday = 0;
   if (S.gameCorrectDate === undefined)  S.gameCorrectDate = "";
 }

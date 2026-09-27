@@ -150,7 +150,11 @@ registerGame({
         ctx.busy = true;
         if (tries >= 3) { gTimeout(() => { slotsEl.classList.remove("bad"); reveal("Three tries", true); }, 500); return; }
         ctx.say(`Not quite — ${3 - tries} ${3 - tries === 1 ? "try" : "tries"} left`);
-        gTimeout(() => { ctx.busy = false; slotsEl.classList.remove("bad"); unplaceFrom(0); }, 550);
+        // Keep the letters that are already right; take back the rest.
+        let keep = 0;
+        const target = [...cur.t.word];
+        while (keep < placed.length && lowerCh(tiles[placed[keep]].ch) === lowerCh(target[keep])) keep++;
+        gTimeout(() => { ctx.busy = false; slotsEl.classList.remove("bad"); unplaceFrom(keep); }, 550);
       }
     };
 

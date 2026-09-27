@@ -17,6 +17,12 @@ const BOSSES = [
   { icon: "🐙", name: "Kraken of Cases" },
 ];
 const BOSS_HEARTS = 3, BOSS_SIZE = 8;
+// Words sharing this exact prompt — typing any of them is fair game
+// ("the car": das Auto or der Wagen when both carry that prompt).
+function bossSynonyms(w) {
+  const p = normKey(gamePrompt(w));
+  return allGameWords().filter(x => !sameWord(x, w) && normKey(gamePrompt(x)) === p);
+}
 
 registerGame({
   id: "boss", name: "Boss Battle", icon: "👾", skill: "Typed recall · counts for mastery",
@@ -34,7 +40,9 @@ registerGame({
   xpFor(res) { return res.won ? 50 : 0; }, // per-answer XP is paid live, like Drill
   onRecord(res) { if (res.won) S.games.bossesDefeated = (S.games.bossesDefeated || 0) + 1; },
   start(ctx) {
-    const ranked = dedupeWords(ctx.pool.slice().sort((a, b) => (wordWeakness(b) + Math.random() * 1.5) - (wordWeakness(a) + Math.random() * 1.5)));
+    // Weakest first (a little jitter so equal words vary between fights).
+    const ranked = dedupeWords(ctx.pool.map(w => ({ w, k: wordWeakness(w) + Math.random() * 1.5 }))
+      .sort((a, b) => b.k - a.k).map(x => x.w));
     const queue = ranked.slice(0, BOSS_SIZE);
     const maxHp = queue.length;
     const boss = BOSSES[Math.min(Math.floor((S.games.bossesDefeated || 0) / 3), BOSSES.length - 1)];
@@ -88,8 +96,13 @@ registerGame({
       if (ctx.busy || ctx.finished || !queue.length) return;
       const w = queue[0];
       const val = input.value;
-      if (!skip && !val.trim()) { skip = true; }
-      const ok = !skip && isCorrect(val, w[WORD_KEY]);
+      if (!skip && !val.trim()) {
+        // An accidental Enter on an empty box shouldn't cost a heart.
+        shakeEl(input);
+        ctx.say("Type an answer — or tap “Don't know”.");
+        return;
+      }
+      const ok = !skip && (typedCorrect(val, w) || bossSynonyms(w).some(x => typedCorrect(val, x)));
       ctx.busy = true;
       if (ok) {
         correct++; combo++; maxCombo = Math.max(maxCombo, combo);
@@ -137,8 +150,11 @@ registerGame({
       }
     };
 
-    document.getElementById("bb-attack").onclick = () => attack(false);
-    document.getElementById("bb-skip").onclick = () => attack(true);
+    // Buttons must not take focus from the input — on phones that would
+    // close the keyboard between every word.
+    ["bb-attack", "bb-skip"].forEach(id => gListen(document.getElementById(id), "pointerdown", e => e.preventDefault()));
+    document.getElementById("bb-attack").onclick = () => { attack(false); input.focus({ preventScroll: true }); };
+    document.getElementById("bb-skip").onclick = () => { attack(true); input.focus({ preventScroll: true }); };
     gListen(input, "keydown", e => { if (e.key === "Enter") { e.preventDefault(); attack(false); } });
 
     ctx.setScore(0);

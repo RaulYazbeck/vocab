@@ -8,7 +8,7 @@ const _clozeCache = new Map();
 _gameCacheClearers.push(() => _clozeCache.clear());
 function clozeInfo(word) {
   const k = wordKey(word) + "|" + word[WORD_KEY] + "|" + ((word.examples && word.examples[0] && word.examples[0][WORD_KEY]) || "");
-  if (!_clozeCache.has(k)) _clozeCache.set(k, buildHintInfo(word));
+  if (!_clozeCache.has(k)) _clozeCache.set(k, buildHintInfo(word, true));
   return _clozeCache.get(k);
 }
 function clozeWords(pool) { return dedupeWords(pool.filter(w => clozeInfo(w))); }
@@ -63,7 +63,7 @@ registerGame({
       mcReveal(ctx.stage, q.opts, i);
       const sentence = q.info.example[WORD_KEY];
       const sEl = document.getElementById("cz-sentence");
-      if (sEl) { sEl.textContent = sentence; sEl.classList.add(q.opts[i].correct ? "ok" : "bad"); }
+      if (sEl) { sEl.innerHTML = q.info.reveal; sEl.classList.add(q.opts[i].correct ? "ok" : "bad"); }
       const tr = document.getElementById("cz-trans"), pk = document.getElementById("cz-peek");
       if (tr) tr.style.display = ""; if (pk) pk.style.display = "none";
       speak(sentence);

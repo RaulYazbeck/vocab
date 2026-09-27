@@ -85,6 +85,23 @@ function gameForm(word) {
   return f;
 }
 function gamePrompt(word) { return String(word.en || "").trim(); }
+// A prompt's spaced " / " alternatives ("please / you're welcome" →
+// please, you're welcome). A distractor sharing one would be a second
+// right answer. Unspaced slashes ("er/sie/es") are not alternatives.
+const _altCache = new Map();
+function promptAlts(word) {
+  const p = gamePrompt(word);
+  let a = _altCache.get(p);
+  if (!a) { a = p.split(" / ").map(normKey).filter(Boolean); _altCache.set(p, a); }
+  return a;
+}
+function sharesPromptAlt(a, b) { const s = new Set(promptAlts(a)); return promptAlts(b).some(x => s.has(x)); }
+// Typed recall (Boss Battle): the stored answer or its clean display
+// form — "die Katze" must count for "die Katze, -n", "sie" for
+// "sie (plural 3rd person)".
+function typedCorrect(input, word) {
+  return isCorrect(input, word[WORD_KEY]) || isCorrect(input, gameForm(word));
+}
 const _normCache = new Map();
 function normKey(s) {
   s = String(s || "");
@@ -118,13 +135,21 @@ function nounParts(word) {
   _nounCache.set(k, res);
   return res;
 }
+// Nominalised adjectives take either article (der/die Angestellte), so
+// they only count when the prompt says which person is meant.
+const ADJECTIVAL_NOUN_RE = /^(Angestellte|Bekannte|Verwandte|Deutsche|Erwachsene|Jugendliche|Kranke|Arbeitslose|Fremde|Verletzte|Tote|Reisende|Vorsitzende|Verlobte|Abgeordnete|Obdachlose|Auszubildende|Studierende|Beschäftigte|Gefangene|Selbstständige|Überlebende|Behinderte|Alte|Geliebte|Freiwillige|Kriminelle|Blinde)$/;
 function _parseNoun(word) {
   const raw = String(word[WORD_KEY] || "");
   const hint = String(word.hint || "");
-  if (/plural|always pl|\bpl\.\)/i.test(hint) || /always pl/i.test(raw) || /\(pl(\.|ural)?\)/i.test(word.en || "")) return null;
+  const en = String(word.en || "");
+  if (/plural|always pl|\bpl\.\)/i.test(hint) || /always pl/i.test(raw) || /\(pl(\.|ural)?\)/i.test(en)) return null;
+  // Grammar-deck case forms ("der Frau" = of the woman, Genitiv) show a
+  // declined article, not the noun's gender.
+  if (/genitiv|dativ|akkusativ|nominativ|genitive|dative|accusative|nominative/i.test(en + " " + hint)) return null;
   const f = gameForm(word);
   if (IS_FRENCH_APP) {
     if (raw.includes("/")) return null;
+    if (/locución|adverbio|expresión|verbo|adjetivo|pronombre/i.test(hint)) return null; // "un peu"
     const m = f.match(/^(le|la|un|une)\s+(\S.*)$/i);
     if (!m || /[,!?]/.test(m[2])) return null;
     const art = m[1].toLowerCase();
@@ -140,6 +165,7 @@ function _parseNoun(word) {
   const m = f.match(/^(der|die|das)\s+([A-ZÄÖÜ][\p{L}-]*)$/u);
   if (!m) return null;
   const answer = m[1].toLowerCase(), noun = m[2];
+  if (ADJECTIVAL_NOUN_RE.test(noun) && !/\b(male|female|man|woman|men|women)\b/i.test(en)) return null;
   // "die Ferien, pl. die Ferien": feminine nouns always change in the
   // plural, so an unchanged "die" plural means a plural-only noun.
   const pl = germanPluralNoun(word);
@@ -193,6 +219,7 @@ function pickDistractors(word, pool, n, formFn = gameForm, filterFn = null) {
       if (out.length >= n) break;
       const f = normKey(formFn(w)), p = normKey(gamePrompt(w));
       if (!f || bad.has(f) || badP.has(p)) continue;
+      if (sharesPromptAlt(w, word) || out.some(o => sharesPromptAlt(o, w))) continue;
       bad.add(f); badP.add(p); out.push(w);
     }
   };
@@ -485,11 +512,16 @@ function gameRequirement(def, pool, size) {
 }
 
 function beginGame(ctx) {
-  if (ctx.dead) return;
+  if (ctx.dead || ctx.started) return;
   ctx.started = true;
+  // A toast or confetti still on screen from before (results, splash)
+  // must not cover the first question.
+  document.querySelectorAll("#celebrate-toast, .confetti-piece").forEach(el => el.remove());
   ctx.clock.start();
   try { ctx.def.start(ctx); }
-  catch (e) { console.error("game start failed:", ctx.def.id, e); showCelebrateToast("⚠️", "Something went wrong", "Returning to the hub"); quitGame(); }
+  catch (e) { console.error("game start failed:", ctx.def.id, e); showCelebrateToast("⚠️", "Something went wrong", "Returning to the hub"); quitGame(); return; }
+  // The countdown may have finished while the app was in the background.
+  if (document.hidden) pauseGame(true);
 }
 
 // The object handed to every game.
@@ -558,7 +590,7 @@ function showGameIntro(ctx, onGo) {
       <div class="g-card-skill">${escapeHtml(d.skill)}</div>
       <ul class="g-howto">${(typeof d.howTo === "function" ? d.howTo() : d.howTo).map(l => `<li>${l}</li>`).join("")}</ul>
       <button class="g-big-btn" id="g-go">${ctx.started ? "Resume" : "Let's go"}</button>
-      ${ctx.size === "bonus" && !ctx.started ? `<button class="g-link-btn" onclick="quitGame()">Skip bonus</button>` : ""}
+      <button class="g-link-btn" onclick="quitGame()">${ctx.started ? "Quit game" : ctx.size === "bonus" ? "Skip bonus" : "← Back"}</button>
     </div>`);
   if (!o) return;
   armOverlayButton(o.querySelector("#g-go"), () => { overlay(""); onGo(); });
@@ -571,7 +603,7 @@ function showRoundSplash(ctx, onGo) {
       <div class="g-card-title">${escapeHtml(gameName(d))}</div>
       <div class="g-card-skill">${sub}</div>
       <button class="g-big-btn" id="g-go">Start</button>
-      ${ctx.size === "bonus" ? `<button class="g-link-btn" id="g-skip">Skip bonus</button>` : ""}
+      <button class="g-link-btn" id="g-skip">${ctx.size === "bonus" ? "Skip bonus" : gameRun && gameRun.kind === "daily" ? "← Leave — finished rounds are kept" : "← Leave"}</button>
     </div>`);
   if (!o) return;
   armOverlayButton(o.querySelector("#g-go"), () => { overlay(""); onGo(); });
@@ -580,26 +612,35 @@ function showRoundSplash(ctx, onGo) {
 }
 function runCountdown(ctx, onDone) {
   let n = 3;
+  ctx.counting = true;
   const step = () => {
-    if (ctx.dead) return;
-    if (n === 0) { overlay(""); playCountdown(true); onDone(); return; }
+    if (ctx.dead || !ctx.counting) return;
+    if (n === 0) { ctx.counting = false; overlay(""); playCountdown(true); onDone(); return; }
     overlay(`<div class="g-countdown" aria-live="assertive">${n}</div>`);
     playCountdown(false);
     n--;
-    gTimeout(step, 650);
+    ctx.countdownTimer = gTimeout(step, 650);
   };
   step();
+}
+function cancelCountdown(ctx) {
+  if (!ctx.counting) return;
+  ctx.counting = false;
+  gClearTimeout(ctx.countdownTimer);
 }
 function showGameHelp() {
   if (!activeGame) return;
   const ctx = activeGame.ctx;
-  const wasRunning = ctx.started && !ctx.paused && !ctx.finished;
+  if (ctx.finished) return;
+  cancelCountdown(ctx); // "?" mid-countdown: the intro's button restarts it
+  const wasRunning = ctx.started && !ctx.paused;
   if (wasRunning && ctx.def.timed) pauseGame(false);
   showGameIntro(ctx, () => {
     if (!ctx.started) { if (ctx.def.timed) runCountdown(ctx, () => beginGame(ctx)); else beginGame(ctx); }
     else if (ctx.paused) resumeGame();
   });
 }
+// auto: true = app went to the background; a string = custom reason.
 function pauseGame(auto) {
   if (!activeGame) return;
   const ctx = activeGame.ctx;
@@ -610,7 +651,7 @@ function pauseGame(auto) {
   const o = overlay(`<div class="g-card">
       <div class="g-card-icon">⏸</div>
       <div class="g-card-title">Paused</div>
-      <div class="g-card-skill">${auto ? "The game paused while the app was in the background." : "Take a breath."}</div>
+      <div class="g-card-skill">${typeof auto === "string" ? escapeHtml(auto) : auto ? "The game paused while the app was in the background." : "Take a breath."}</div>
       <button class="g-big-btn" id="g-resume">Tap to continue</button>
       <button class="g-link-btn" onclick="quitGame()">Quit game</button>
     </div>`);
@@ -747,6 +788,7 @@ function renderGameResults(sum, ctx) {
           ${result.maxCombo >= 3 ? `<div class="result-stat"><strong>🔥${result.maxCombo}</strong>best combo</div>` : ""}
           <div class="result-stat"><strong>+${xp} XP</strong>earned</div>
         </div>
+        ${result.note ? `<div class="g-best-line">${escapeHtml(result.note)}</div>` : ""}
         ${size === "full" && best !== undefined ? `<div class="g-best-line">Personal best: ${best.toLocaleString()}</div>` : ""}
         ${missedListHtml(result.missed)}
         <div class="g-result-actions">
@@ -756,9 +798,10 @@ function renderGameResults(sum, ctx) {
         ${drillable.length ? `<button class="g-link-btn" id="g-drill-missed">📖 Drill these ${drillable.length} word${drillable.length > 1 ? "s" : ""} →</button>` : ""}
       </div>
     </div>`;
-  const again = document.getElementById("g-again");
-  again.onclick = () => launchGame(def.id, { pool: ctx.pool, size: "full" });
-  again.focus({ preventScroll: true });
+  window.scrollTo({ top: 0, behavior: "instant" });
+  // Guarded: a keypress that ended the round (Enter in Boss Battle)
+  // must not immediately restart it.
+  armOverlayButton(document.getElementById("g-again"), () => launchGame(def.id, { pool: ctx.pool, size: "full" }));
   const dm = document.getElementById("g-drill-missed");
   if (dm) dm.onclick = () => drillWords(drillable);
   flushDeferredCelebrations();
@@ -790,7 +833,9 @@ function startGameRun(kind, ids, opts = {}) {
 function gameRunRoundDone(sum) {
   const run = gameRun;
   run.summaries.push(sum);
-  if (run.kind === "daily") dailyMarkDone(sum.def.id);
+  // A daily round counts once you get at least one answer right.
+  const dailyMissed = run.kind === "daily" && !(sum.result.correct > 0);
+  if (run.kind === "daily" && !dailyMissed) dailyMarkDone(sum.def.id);
   if (run.kind === "surprise") { renderSurpriseResult(sum, run); return; }
   const last = run.i >= run.ids.length - 1;
   const el = document.getElementById("main-screen");
@@ -808,8 +853,9 @@ function gameRunRoundDone(sum) {
       </div>
       <div class="result-screen g-results">
         <div class="result-emoji">${last ? (run.kind === "daily" ? "📆" : "🕹️") : sum.def.icon}</div>
-        <div class="result-title">${last ? (run.kind === "daily" ? "Daily Challenge complete!" : "Arcade Mix complete!") : `Round ${run.i + 1} of ${run.ids.length} done`}</div>
+        <div class="result-title">${last ? (run.kind === "daily" ? (dailyBonus || S.games.daily.completedDates.includes(todayISO()) ? "Daily Challenge complete!" : "Daily rounds finished") : "Arcade Mix complete!") : `Round ${run.i + 1} of ${run.ids.length} done`}</div>
         <div class="result-sub">${last ? `+${totalXp} XP in total${dailyBonus ? ` (incl. +${dailyBonus} challenge bonus)` : ""}` : `${sum.result.correct} correct · +${sum.xp} XP`}</div>
+        ${dailyMissed ? `<div class="g-notice">This round didn't count — get at least one answer right. You can replay it from the hub.</div>` : ""}
         <div class="g-run-list">${rows}</div>
         ${last ? missedListHtml(uniqWords(run.summaries.flatMap(x => x.result.missed))) : ""}
         <div class="g-result-actions">
@@ -819,12 +865,11 @@ function gameRunRoundDone(sum) {
       </div>
     </div>`;
   if (last && run.kind === "daily" && dailyBonus) { confettiBurst(60); playLevelUp(); }
-  const btn = document.getElementById("g-next");
-  btn.onclick = () => {
+  window.scrollTo({ top: 0, behavior: "instant" });
+  armOverlayButton(document.getElementById("g-next"), () => {
     if (next) { run.i++; launchGame(run.ids[run.i], { pool: run.pool, size: run.size }); }
     else { gameRun = null; openGamesHub(); }
-  };
-  btn.focus({ preventScroll: true });
+  });
   flushDeferredCelebrations();
 }
 function uniqWords(list) {
@@ -840,17 +885,21 @@ function uniqWords(list) {
 const DAILY_BONUS_XP = 100;
 function dailyState() {
   const d = S.games.daily, today = todayISO();
-  if (d.date !== today) { d.date = today; d.done = []; }
+  if (d.date !== today) { d.date = today; d.done = []; d.ids = []; }
   return d;
 }
+// Once three games are available the day's set is frozen, so learning
+// new words mid-day can never reshuffle a half-finished challenge.
 function dailyGameIds(pool) {
+  const d = dailyState();
+  const usable = id => { const g = getGame(id); return g && g.inRuns !== false && !GAME_RUN_EXCLUDE.has(id) && gameRequirement(g, pool, "short").ok; };
+  if (Array.isArray(d.ids) && d.ids.length === 3 && d.ids.every(usable)) return d.ids.slice();
   const rng = seededRandom(hashString(todayISO() + "|" + STORAGE_KEY));
   const order = GAMES.map(g => g.id);
   for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
-  return order.filter(id => {
-    const g = getGame(id);
-    return g.inRuns !== false && !GAME_RUN_EXCLUDE.has(id) && gameRequirement(g, pool, "short").ok;
-  }).slice(0, 3);
+  const ids = order.filter(usable).slice(0, 3);
+  if (ids.length === 3) d.ids = ids.slice();
+  return ids;
 }
 function dailyMarkDone(id) {
   const d = dailyState();
@@ -934,9 +983,8 @@ function renderSurpriseResult(sum) {
         <div class="g-result-actions"><button class="g-big-btn" id="g-back-drill">Back to drill →</button></div>
       </div>
     </div>`;
-  const b = document.getElementById("g-back-drill");
-  b.onclick = resumeDrillAfterBonus;
-  b.focus({ preventScroll: true });
+  window.scrollTo({ top: 0, behavior: "instant" });
+  armOverlayButton(document.getElementById("g-back-drill"), resumeDrillAfterBonus);
   flushDeferredCelebrations();
 }
 function toggleSurpriseRounds() {
@@ -1050,7 +1098,9 @@ function gameTileTap(id) {
 // ── POOL PICKER ───────────────────────────────
 let _pickerSel = null;      // Set of deck ids, or null = all known
 let _pickerOpenGroups = new Set();
+function _pickerKey(e) { if (e.key === "Escape") { e.preventDefault(); closePoolPicker(); } }
 function openPoolPicker() {
+  document.addEventListener("keydown", _pickerKey);
   const ids = currentPoolIds();
   _pickerSel = ids ? new Set(ids) : null;
   _pickerOpenGroups = new Set();
@@ -1124,7 +1174,11 @@ function pickerToggleGroup(gid) {
   if (!_pickerSel.size) _pickerSel = null;
   renderPoolPicker();
 }
-function closePoolPicker() { const m = document.getElementById("pool-modal"); if (m) m.remove(); }
+function closePoolPicker() {
+  document.removeEventListener("keydown", _pickerKey);
+  const m = document.getElementById("pool-modal");
+  if (m) m.remove();
+}
 function applyPoolPicker() {
   S.games.pool = _pickerSel ? [..._pickerSel] : null;
   gameHubDeckIds = null; // an explicit choice replaces the start-bar selection
@@ -1137,6 +1191,6 @@ function applyPoolPicker() {
 // every hub open (games may register extra caches here).
 const _gameCacheClearers = [];
 function clearGameCaches() {
-  _formCache.clear(); _nounCache.clear(); _normCache.clear(); _allGameWords = null;
+  _formCache.clear(); _nounCache.clear(); _normCache.clear(); _altCache.clear(); _allGameWords = null;
   _gameCacheClearers.forEach(fn => fn());
 }

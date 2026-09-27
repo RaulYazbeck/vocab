@@ -602,6 +602,7 @@ function setAnkiNewPerDay(n) {
   renderStartBar();
 }
 function openSettings() {
+  if (typeof pauseGame === "function") pauseGame("Paused while Settings were open.");
   renderSettingsPanel();
   document.getElementById("settings-panel").style.display = "block";
   const island = document.getElementById("floating-island");

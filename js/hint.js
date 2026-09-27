@@ -67,7 +67,10 @@ function buildHint(word) {
 
 // Same as buildHint, plus the example the redaction was built from
 // (Gap Fill shows its translation and reveals the full sentence).
-function buildHintInfo(word) {
+// tight: helper tokens (an article, a particle) are hidden only when
+// they touch the main word — Gap Fill wants one gap, not a stray blank
+// wherever "der" happens to appear in the sentence.
+function buildHintInfo(word, tight = false) {
   if (!word || !word.examples || !word.examples.length) return null;
   const tokens = hintAnswerTokens(word[WORD_KEY]);
   if (!tokens.length) return null;
@@ -76,21 +79,44 @@ function buildHintInfo(word) {
   // would hinge on the sentence containing "der"/"die"/"das".
   const mainToken = tokens.reduce((a, b) => (b.length >= a.length ? b : a), "");
 
+  let best = null;
   for (const ex of word.examples) {
     const sentence = ex[WORD_KEY];
     if (!sentence) continue;
     const parts = sentence.split(/(\p{L}+)/u); // odd indices = words
-    let hidMain = false;
-    const out = parts.map((part, i) => {
-      if (i % 2 === 0) return part;
+    const matched = new Set(), main = new Set();
+    parts.forEach((part, i) => {
+      if (i % 2 === 0) return;
       const norm = normalize(part);
       if (tokens.some(t => hintTokenMatches(norm, t))) {
-        if (hintTokenMatches(norm, mainToken)) hidMain = true;
-        return `<span class="hint-redacted"></span>`;
+        matched.add(i);
+        if (hintTokenMatches(norm, mainToken)) main.add(i);
       }
-      return part;
-    }).join("");
-    if (hidMain) return { html: out, example: ex }; // safe: the main word is hidden
+    });
+    if (!main.size) continue; // unsafe: the main word can't be hidden here
+    let hidden = matched;
+    if (tight) {
+      // Grow outward from the main word through directly neighbouring
+      // matches only ("s'il vous plaît", "auf Wiedersehen").
+      hidden = new Set(main);
+      let grew = true;
+      while (grew) {
+        grew = false;
+        matched.forEach(i => { if (!hidden.has(i) && (hidden.has(i - 2) || hidden.has(i + 2))) { hidden.add(i); grew = true; } });
+      }
+    }
+    const html = parts.map((part, i) => hidden.has(i) ? `<span class="hint-redacted"></span>` : part).join("");
+    // Same sentence with the hidden words highlighted (Gap Fill reveal).
+    const reveal = parts.map((part, i) => hidden.has(i) ? `<mark class="hint-reveal">${part}</mark>` : part).join("");
+    const info = { html, reveal, example: ex };
+    if (!tight) return info;
+    // tight: prefer an example whose blanks form one group (a fuzzy
+    // match like "Haben" ≈ "Abend" elsewhere adds a second, stray gap).
+    const idx = [...hidden].sort((a, b) => a - b);
+    let groups = 1;
+    for (let k = 1; k < idx.length; k++) if (idx[k] - idx[k - 1] > 2) groups++;
+    if (groups === 1) return info;
+    if (!best || groups < best.groups) best = { info, groups };
   }
-  return null;
+  return best ? best.info : null;
 }

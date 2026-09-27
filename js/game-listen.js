@@ -3,6 +3,14 @@
 // speak() is silent while the app is muted, so the game offers an
 // inline "Turn sound on" instead of playing a silent round.
 
+// Voices load asynchronously; only warn once the list is known and has
+// nothing for this language.
+function listenVoiceMissing() {
+  if (targetVoice || !window.speechSynthesis) return false;
+  const voices = speechSynthesis.getVoices();
+  const prefix = APP_CONFIG.speechLang.split("-")[0];
+  return voices.length > 0 && !voices.some(v => v.lang && v.lang.startsWith(prefix));
+}
 function listenUnmute() {
   if (muteEnabled) toggleMute();
   const n = document.getElementById("l-muted");
@@ -45,7 +53,7 @@ registerGame({
       ctx.setClock(`${r}/${words.length}`);
       ctx.stage.innerHTML = `
         ${muteEnabled ? `<div class="g-notice" id="l-muted">🔇 Sound is off. <button class="g-notice-btn" onclick="listenUnmute()">Turn sound on</button></div>` : ""}
-        ${!targetVoice ? `<div class="g-notice soft">No ${langName} voice found on this device — pronunciation may sound off.</div>` : ""}
+        ${listenVoiceMissing() ? `<div class="g-notice soft">No ${langName} voice found on this device — pronunciation may sound off.</div>` : ""}
         <div class="l-play-wrap">
           <button class="l-play g-enter" id="l-play" aria-label="Play the word again">🔊</button>
           <div class="l-reveal" id="l-reveal"></div>

@@ -25,10 +25,13 @@ registerGame({
     const boardSets = [];
     for (let b = 0; b < boards; b++) {
       const forms = new Set(), prompts = new Set(), set = [];
-      const fits = w => !forms.has(normKey(gameForm(w))) && !prompts.has(normKey(gamePrompt(w)));
-      // Prefer words not used on an earlier board; reuse only if needed.
-      for (const pass of [0, 1]) {
-        for (const w of candidates) {
+      const fits = w => !forms.has(normKey(gameForm(w))) && !prompts.has(normKey(gamePrompt(w)))
+        && !set.some(x => sharesPromptAlt(x, w));
+      // Prefer words not used on an earlier board; reuse only if needed;
+      // finally fall back to the whole pool so a board always fills.
+      const fallback = shuffle(dedupeWords(ctx.pool).slice());
+      for (const pass of [0, 1, 2]) {
+        for (const w of pass < 2 ? candidates : fallback) {
           if (set.length >= per) break;
           if (set.includes(w) || !fits(w) || (pass === 0 && used.has(wordKey(w)))) continue;
           set.push(w); forms.add(normKey(gameForm(w))); prompts.add(normKey(gamePrompt(w)));
@@ -37,6 +40,7 @@ registerGame({
       set.forEach(w => used.add(wordKey(w)));
       boardSets.push(set);
     }
+    for (let i = boardSets.length - 1; i >= 0; i--) if (boardSets[i].length < 2) boardSets.splice(i, 1);
     const realTotal = boardSets.reduce((s, x) => s + x.length, 0);
 
     let b = 0, pairs = 0, mistakes = 0, combo = 0, maxCombo = 0, sel = null, byKey = new Map();
@@ -51,7 +55,7 @@ registerGame({
         return `<button class="m-tile ${side === "R" ? "target" : ""} ${text.length > 22 ? "long" : ""}" data-k="${wordKey(w)}" data-side="${side}">${escapeHtml(text)}</button>`;
       };
       ctx.stage.innerHTML = `
-        <div class="m-board-label">${boards > 1 ? `Board ${b + 1} of ${boards}` : ""}</div>
+        <div class="m-board-label">${boardSets.length > 1 ? `Board ${b + 1} of ${boardSets.length}` : ""}</div>
         <div class="m-board g-enter">
           <div class="m-col">${left.map(w => tile(w, "L")).join("")}</div>
           <div class="m-col">${right.map(w => tile(w, "R")).join("")}</div>
@@ -61,8 +65,9 @@ registerGame({
     const finish = cleared => {
       const secs = ctx.clock.elapsed() / 1000;
       const timeBonus = limit ? 0 : Math.max(0, Math.round(realTotal * 4 - secs)) * 10;
-      ctx.finish({ score: live() + timeBonus, correct: pairs, wrong: mistakes, maxCombo,
-        seconds: Math.round(secs * 10) / 10, cleared });
+      const seconds = Math.round(secs * 10) / 10;
+      ctx.finish({ score: live() + timeBonus, correct: pairs, wrong: mistakes, maxCombo, seconds, cleared,
+        note: limit ? "" : `⏱ ${seconds}s · ${mistakes} mistake${mistakes === 1 ? "" : "s"} · time bonus +${timeBonus}` });
     };
 
     gListen(ctx.stage, "click", e => {

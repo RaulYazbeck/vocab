@@ -71,6 +71,9 @@ registerGame({
       target = words[qi++];
       const others = pickDistractors(target, eligible, 2, gameForm, rainFits);
       const lanes = shuffle([0, 1, 2]);
+      // Random start heights, independent of which drop is right — the
+      // first word to arrive must not give the answer away.
+      const offsets = shuffle([0, 1, 2]);
       drops.forEach(d => d.el.remove());
       drops = [target, ...others].map((w, i) => {
         const el = document.createElement("button");
@@ -80,7 +83,7 @@ registerGame({
         el.style.left = `calc(${lanes[i] * 33.333}% + 3px)`;
         field.appendChild(el);
         fitDropText(el);
-        const d = { w, el, lane: lanes[i], y: -12 - i * 26 - Math.random() * 30, ok: i === 0 };
+        const d = { w, el, lane: lanes[i], y: -12 - offsets[i] * 28 - Math.random() * 18, ok: i === 0 };
         el.style.transform = `translateY(${d.y}px)`;
         return d;
       });
@@ -100,6 +103,7 @@ registerGame({
       drops.filter(d => d !== right && d !== drop).forEach(d => d.el.classList.add("fade"));
       shakeEl(field); playMiss(); buzz([40, 40, 40]);
       ctx.say(`${why} — it was ${gameForm(target)}`);
+      speak(gameForm(target));
       gTimeout(() => { if (lives <= 0) end(); else wave(); }, 1000);
     };
 

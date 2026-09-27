@@ -6,18 +6,31 @@
 
 function umlautize(noun) {
   const map = { a: "ä", o: "ö", u: "ü", A: "Ä", O: "Ö", U: "Ü" };
-  const m = noun.match(/^(.*?)(au|Au|a|o|u|A|O|U)([^aeiouäöüAEIOUÄÖÜ]*e?[^aeiouäöüAEIOUÄÖÜ]*)$/);
+  // Last a/o/u/au of the word, not part of a vowel pair (Pool, Tour).
+  const m = noun.match(/^(|.*?[^aeiouäöüAEIOUÄÖÜ])(au|Au|a|o|u|A|O|U)([^aeiouäöüAEIOUÄÖÜ]*e?[^aeiouäöüAEIOUÄÖÜ]*)$/);
   if (!m) return noun;
   const v = m[2].length === 2 ? map[m[2][0]] + "u" : map[m[2]];
   return m[1] + v + m[3];
 }
+// Plausible wrong plurals, chosen by how the noun ends — the patterns a
+// learner actually has to choose between, never nonsense like "Gruppee"
+// or "Filmn".
 function pluralDistractors(noun, real) {
-  const U = umlautize(noun);
-  const endsE = /e$/.test(noun);
-  const cands = [
-    noun, noun + "e", noun + (endsE ? "n" : "en"), noun + "n", noun + "er", noun + "s",
-    U + "e", U + "er", U, /in$/.test(noun) ? noun + "nen" : null, endsE ? noun + "s" : noun + "es",
-  ];
+  const low = noun.toLowerCase();
+  // Suffixes that never take an umlaut (Zeitung, Freiheit, Station…)
+  const U = /(ung|heit|keit|schaft|ion|tät)$/.test(low) ? noun : umlautize(noun), hasU = U !== noun;
+  let cands;
+  if (/e$/.test(low)) {                              // Katze, Gruppe, Name
+    cands = [noun + "n", noun + "s", noun, hasU && U + "n", hasU && U];
+  } else if (/[^aeiouäöü](el|er|en)$|(chen|lein)$/.test(low)) { // Lehrer, Apfel, Garten, Mädchen (not Meer)
+    cands = [noun, noun + "n", noun + "s", hasU && U, hasU && U + "n", noun + "e"];
+  } else if (/y$/.test(low)) {                        // Baby, Handy, Party
+    cands = [noun.slice(0, -1) + "ies", noun, noun + "en", noun.slice(0, -1) + "ien"];
+  } else if (/[^aeiouäöü][aiou]$/.test(low)) {        // Auto, Kino, Thema, Oma, Taxi (not Ei, Bäckerei)
+    cands = [noun + "s", noun.slice(0, -1) + "en", noun + "n", noun];
+  } else {                                            // Film, Stuhl, Zeitung, Lehrerin
+    cands = [noun + "e", noun + "en", noun + "er", noun + "s", hasU && U + "e", hasU && U + "er", noun];
+  }
   const seen = new Set([real.toLowerCase()]);
   return shuffle(cands.filter(c => {
     if (!c || !/^[\p{L}-]+$/u.test(c) || seen.has(c.toLowerCase())) return false;
