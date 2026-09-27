@@ -676,7 +676,7 @@ function renderHome() {
   const streak = questStreak();
   const quiet = quietActive();
   const ankiIds = allAnkiDeckIds();
-  const ankiOwed = ankiIds.length ? ankiOwedToday(ankiIds) : 0;
+  const ankiOwed = ankiIds.length && ankiInUse() ? ankiOwedToday(ankiIds) : 0;
   const sg = sagaProgress();
   const banner = t.reason === "autopaused"
     ? `<div class="tc-banner">⏸ New words paused after a few days away — clear some reviews and they resume by themselves. <button class="tc-link" onclick="pathResume();renderHome()">Resume now</button></div>`

@@ -29,10 +29,16 @@ const FIRESTORE_DEBOUNCE_MS = 2500;
 // JSON of each doc as last written/loaded — used to skip unchanged
 // docs on save. Cleared to force a full upload.
 let syncedDocCache = {};
+// Coalesced local saves (see scheduleLocalSave). Declared up here so they
+// exist even if the Firebase setup below fails (offline, blocked CDN).
+const LOCAL_SAVE_DEBOUNCE_MS = 300;
+let _localSaveT = 0;
 
 // ── AUTH ──────────────────────────────────────
 
-auth.onAuthStateChanged(user => {
+// Without Firebase (offline first load, a blocked CDN) the app still runs
+// and saves locally; only sign-in and cloud sync are unavailable.
+function watchAuth() { auth.onAuthStateChanged(user => {
   currentUser = user;
   const btn    = document.getElementById("auth-btn");
   const status = document.getElementById("sync-status");
@@ -47,9 +53,11 @@ auth.onAuthStateChanged(user => {
     if (status) status.textContent = "";
     stopBackgroundSync();
   }
-});
+}); }
+try { watchAuth(); } catch (e) { console.warn("[sync] Firebase unavailable — saving on this device only", e); }
 
 function handleAuth() {
+  if (!auth) { showCelebrateToast("☁️", "Sign-in unavailable", "Needs a connection — your progress is saved on this device"); return; }
   if (currentUser) {
     if (confirm("Sign out?")) auth.signOut();
   } else {
@@ -223,7 +231,7 @@ function saveToCloud() {
   // Always persist locally, even when signed out — otherwise signed-out
   // progress would silently vanish on reload.
   S.savedAt = Date.now();
-  saveLocalOnly();
+  scheduleLocalSave();
   if (!currentUser) return;
 
   // CRITICAL: do not write to cloud until initial load has completed.
@@ -311,7 +319,20 @@ async function commitViaREST(changed) {
 }
 
 // Write to localStorage only — no Firestore, no debounce.
+// Answers often save several times in a row; serialising all of S each
+// time is wasted work. Coalesce into one write shortly after, and flush
+// at once when the page hides or unloads (flushPendingSave below).
+function scheduleLocalSave() {
+  if (_localSaveT) return;
+  _localSaveT = setTimeout(() => { _localSaveT = 0; saveLocalOnly(); }, LOCAL_SAVE_DEBOUNCE_MS);
+}
+function flushLocalSave() {
+  if (!_localSaveT) return;
+  clearTimeout(_localSaveT); _localSaveT = 0;
+  saveLocalOnly();
+}
 function saveLocalOnly() {
+  if (_localSaveT) { clearTimeout(_localSaveT); _localSaveT = 0; }
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(S));
   } catch (e) {
@@ -349,6 +370,7 @@ function stopBackgroundSync() {
 // visible tab triggers a pull if the last sync is stale.
 
 function flushPendingSave() {
+  flushLocalSave();
   clearTimeout(syncTimeout);
   if (currentUser && initialLoadComplete && S.savedAt) {
     commitToFirestore();
@@ -356,6 +378,7 @@ function flushPendingSave() {
 }
 
 window.addEventListener("beforeunload", flushPendingSave);
+window.addEventListener("pagehide", flushPendingSave);
 
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") {

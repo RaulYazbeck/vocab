@@ -195,6 +195,7 @@ function ankiRate(rating) {
   // Hard/Good/Easy count toward the daily goal like any correct answer.
   if (rating >= 1) checkDrillMilestone();
   logEvent("answer", { m: "anki", ok: rating >= 1 });
+  S.ankiLastUsed = todayISO();
   if (typeof questEvent === "function") questEvent("answer", { mode: "anki", ok: rating >= 1, typed: false });
 
   saveState();
@@ -452,4 +453,12 @@ function ankiForecastData(deckIds, horizon) {
     });
   }
   return days;
+}
+
+// Anki is optional and separate from the Path. Until you've used it in
+// the last two weeks it stays quietly in the Library: no "owed" line on
+// the Today card and no Anki quests. One Anki answer brings them back.
+const ANKI_IN_USE_DAYS = 14;
+function ankiInUse() {
+  return !!S.ankiLastUsed && daysBetween(S.ankiLastUsed, todayISO()) <= ANKI_IN_USE_DAYS;
 }

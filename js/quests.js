@@ -74,7 +74,7 @@ function freshQuestCounters() {
 function questEnsureToday() {
   migrateQuests();
   const Q = S.quests, today = todayISO();
-  if (Q.day === today && Q.list.length) return false;
+  if (Q.day === today && Q.list.length) { questSwapUnusedAnki(); return false; }
   // Quests made before the switch to the 4 AM day (00:00–04:00 that one
   // night) belong to the day that's about to start — keep them.
   if (Q.day > today && Q.list.length) return false;
@@ -140,7 +140,7 @@ function questContext() {
     pos: { verb: 0, noun: 0, adj: 0 }, special: 0, metDecks: [], dueByDeck: {},
     missedYesterday: (S.quests.missedYesterday || []).length, prevOk: S.quests.prevOk || 0,
     frontierIdx: scan.groups.findIndex(g => g.met < g.total),
-    ankiOwed: allAnkiDeckIds().length ? ankiOwedToday(allAnkiDeckIds()) : 0,
+    ankiOwed: allAnkiDeckIds().length && ankiInUse() ? ankiOwedToday(allAnkiDeckIds()) : 0,
     games: [], gameLast: {}, bossDecks: [],
   };
   const nowMs = Date.now(), dayMs = 864e5;
@@ -572,6 +572,26 @@ function questPlanChanged() {
   }
   showCelebrateToast("🗓️", "Starts tomorrow", "Today's Core quest is already done");
   return false;
+}
+// An Anki quest drawn before Anki went quiet (not used for 2 weeks) is
+// swapped for free — you never have to do Anki to finish your day.
+const ANKI_TPLS = ["b_anki", "d_ankiwild"];
+function questSwapUnusedAnki() {
+  const Q = S.quests;
+  if (!Q || !Q.list.length || (typeof ankiInUse === "function" && ankiInUse())) return;
+  let changed = false;
+  Q.list.forEach((q, i) => {
+    const isAnki = ANKI_TPLS.includes(q.tpl) || (q.hidden && ANKI_TPLS.includes(q.hidden.tpl));
+    if (!isAnki || q.done) return;
+    const ctx = questContext();
+    const rng = seededRandom(hashString(Q.day + "|anki|" + i));
+    const used = new Set(Q.list.map(x => x.tpl).concat(ANKI_TPLS));
+    const fams = new Set(Q.list.filter((x, k) => k !== i).map(x => (byId(x.tpl) || {}).fam));
+    const pick = weightedPick(questCandidates(q.slot, ctx, used, fams).filter(x => !x.t.audio && x.t.id !== "d_mystery"), rng);
+    Q.list[i] = makeQuest(pick ? pick.t : byId(q.slot === "C" ? "c_games" : "a_typed"), ctx, rng, q.slot);
+    changed = true;
+  });
+  if (changed) { logEvent("quest_swap", { why: "anki_unused" }); questRecompute(true); saveLocalOnly(); }
 }
 // Replace one quest (reroll, or free 🔇 swap for sound quests).
 function questReroll(idx, free = false) {

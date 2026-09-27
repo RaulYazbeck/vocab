@@ -49,7 +49,7 @@
 /* ── OVERLAY: intro, countdown, pause ── */
 .g-overlay {
   position:absolute; inset:0; z-index:20; border-radius:var(--r);
-  background:rgba(8,12,20,0.82); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  background:rgba(8,12,20,0.82);
   display:flex; padding:1rem; overflow-y:auto;
   animation:fadeIn 0.2s ease;
 }
@@ -136,7 +136,7 @@
 .g-opt {
   position:relative; min-height:64px; padding:12px 12px 12px 14px;
   display:flex; align-items:center; justify-content:center; text-align:center;
-  background:var(--glass); border:1.5px solid var(--border); border-radius:var(--r-sm);
+  background:var(--glass-tile); border:1.5px solid var(--border); border-radius:var(--r-sm);
   color:var(--text); font-size:15px; font-weight:600; line-height:1.3; cursor:pointer;
   transition:transform 0.15s var(--ease), background 0.15s, border-color 0.15s;
   overflow-wrap:anywhere;
@@ -196,7 +196,7 @@
 .g-card-tile {
   position:relative; display:flex; flex-direction:column; align-items:center; text-align:center;
   padding:14px 10px 12px; min-height:150px; font-family:inherit;
-  background:var(--glass); border:1px solid var(--border); border-radius:var(--r);
+  background:var(--glass-tile); border:1px solid var(--border); border-radius:var(--r);
   color:var(--text); cursor:pointer; transition:all 0.2s var(--ease);
 }
 .g-card-tile:hover { border-color:var(--border-hi); background:var(--glass-hover); transform:translateY(-2px); }
@@ -275,7 +275,7 @@
 .m-col { display:flex; flex-direction:column; gap:8px; }
 .m-tile {
   min-height:58px; padding:8px 10px; border-radius:var(--r-sm); cursor:pointer;
-  background:var(--glass); border:1.5px solid var(--border); color:var(--text);
+  background:var(--glass-tile); border:1.5px solid var(--border); color:var(--text);
   font-size:14px; font-weight:600; line-height:1.25; overflow-wrap:break-word; hyphens:auto;
   transition:transform 0.15s var(--ease), background 0.15s, border-color 0.15s, opacity 0.3s;
 }
@@ -387,7 +387,7 @@
 .sc-bank { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; min-height:56px; margin-bottom:16px; }
 .sc-tile {
   width:48px; height:52px; border-radius:12px; cursor:pointer;
-  border:1.5px solid var(--border-hi); background:var(--glass); color:var(--text);
+  border:1.5px solid var(--border-hi); background:var(--glass-tile); color:var(--text);
   font-family:'JetBrains Mono',monospace; font-size:21px; font-weight:700;
   box-shadow:0 3px 0 rgba(255,255,255,0.08); transition:transform 0.1s var(--ease), opacity 0.15s;
 }
@@ -413,7 +413,7 @@
 .sb-bank { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; min-height:48px; margin-bottom:16px; }
 .sb-tile {
   min-height:44px; padding:0 13px; border-radius:10px; cursor:pointer;
-  border:1.5px solid var(--border-hi); background:var(--glass); color:var(--text);
+  border:1.5px solid var(--border-hi); background:var(--glass-tile); color:var(--text);
   font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:600;
   transition:transform 0.1s var(--ease), opacity 0.15s;
 }
