@@ -8,7 +8,7 @@
 //
 // Every answer goes through applyCorrect / applyWrong (srs.js), so the
 // stage rules live in one place. Voice is optional: a 🎙️ toggle, off by
-// default, never offered in Quiet mode.
+// default, never offered while muted until tomorrow.
 
 let pathSession = null;
 let _pathKeyBound = false;
@@ -568,7 +568,7 @@ function stopPathVoice() {
   voiceSessionRunning = false;
   const mic = document.getElementById("p-mic"); if (mic) mic.style.display = "none";
 }
-// A gentle, once-a-day suggestion — never in Quiet mode, never forced.
+// A gentle, once-a-day suggestion — never while muted, never forced.
 function pathMaybeNudge() {
   const s = pathSession, el = document.getElementById("p-nudge");
   if (!el) return;

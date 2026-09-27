@@ -5,7 +5,27 @@ let openGroups  = new Set();
 let activeMode    = "drill";
 let drillSubMode  = "classic"; // 'classic' | 'focus' | 'refresh'
 let timerSubMode  = "classic"; // 'classic' | 'focus'
-let muteEnabled   = localStorage.getItem('gv_mute') === 'true';
+// Sound switches live on this device (a phone and a laptop can differ).
+// Each one names what it controls; "Mute until tomorrow" (quietActive,
+// path.js) silences all three for the day without touching them.
+const SOUND = loadSoundPrefs();
+function loadSoundPrefs() {
+  let p = null;
+  try { p = JSON.parse(localStorage.getItem("gv_sound") || "null"); } catch (e) {}
+  if (!p || typeof p !== "object") {
+    // The old single "Sound off" switch silenced speech, game sounds and
+    // vibration: carry it over as those switches off.
+    const muted = localStorage.getItem("gv_mute") === "true";
+    p = { tts: !muted, sfx: !muted, vibe: !muted };
+  }
+  return { tts: p.tts !== false, sfx: p.sfx !== false, vibe: p.vibe !== false };
+}
+function setSoundPref(k, v) {
+  SOUND[k] = !!v;
+  try { localStorage.setItem("gv_sound", JSON.stringify(SOUND)); } catch (e) {}
+  if (k === "tts" && !v && window.speechSynthesis) try { speechSynthesis.cancel(); } catch (e) {}
+  if (typeof logEvent === "function") logEvent("setting", { k: "sound_" + k, v: !!v });
+}
 let activeWords = [];
 let currentWord = null;
 let answered    = false;

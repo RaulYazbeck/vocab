@@ -1393,8 +1393,8 @@ function runLaunchOpts(i) {
   if (gameRun.twists) o.twist = gameRun.twists[i] || null;
   return o;
 }
-// Audio games only when sound is possible (not muted, not Quiet mode).
-function gameUsableNow(g) { return !g.audio || (typeof audioOk === "function" ? audioOk() : !muteEnabled); }
+// Audio games only when words can be read aloud (switch on, not muted today).
+function gameUsableNow(g) { return !g.audio || audioOk(); }
 function gameRunRoundDone(sum) {
   const run = gameRun;
   run.summaries.push(sum);
@@ -1710,7 +1710,7 @@ function gameTileTap(id) {
   const g = getGame(id);
   if (!g) return;
   const req = gameRequirement(g, buildGamePool(currentPoolIds()), "full");
-  if (req.ok && !gameUsableNow(g)) { showCelebrateToast("🔇", gameName(g), "Needs sound — turn off Quiet mode / unmute"); return; }
+  if (req.ok && !gameUsableNow(g)) { showCelebrateToast("🔇", gameName(g), "Needs words read aloud — check ⚙️ Settings › Sound & voice"); return; }
   if (req.ok) { S.games.lastGameId = id; launchGame(id); }
   else { buzz(30); showCelebrateToast(g.icon, gameName(g), req.reason); }
 }

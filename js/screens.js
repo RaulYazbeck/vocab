@@ -215,12 +215,6 @@ function renderStartBar() {
 function setMode(m)       { activeMode = m; renderStartBar(); }
 function toggleVoice()    { voiceEnabled = !voiceEnabled; renderStartBar(); }
 function setTimerCount(n) { timerWordCount = n; renderStartBar(); }
-function toggleMute() {
-  muteEnabled = !muteEnabled;
-  localStorage.setItem('gv_mute', muteEnabled);
-  const sbtn = document.getElementById('settings-mute-btn');
-  if (sbtn) sbtn.textContent = muteEnabled ? '🔇  Sound off' : '🔊  Sound on';
-}
 function setDrillSubMode(s) { drillSubMode = s; renderStartBar(); }
 function setTimerSubMode(s) { timerSubMode = s; renderStartBar(); }
 
@@ -542,58 +536,157 @@ function resetAnkiProgress() {
 
 // ── SETTINGS PANEL ────────────────────────────
 // Injected here so both language apps share one copy. The sheet is
-// re-rendered on every open so dynamic bits (goal, sync, edits) stay fresh.
+// re-rendered on every open so dynamic bits (goal, sync, edits) stay
+// fresh. A short main page leads to sub-pages; every row says in one
+// plain line what it does.
+let settingsPage = "main";
+const SETTINGS_PAGES = {
+  progress: "📈 Progress", plan: "🎯 Study plan", sound: "🔊 Sound & voice",
+  games: "🎮 Games", anki: "🃏 Anki", account: "☁️ Account & data",
+};
 function initSettingsPanel() {
   const panel = document.createElement("div");
   panel.id = "settings-panel";
   panel.style.cssText = "display:none;position:fixed;inset:0;z-index:200;";
   document.body.appendChild(panel);
 }
+function openSettingsPage(p) {
+  settingsPage = SETTINGS_PAGES[p] ? p : "main";
+  renderSettingsPanel();
+  const sheet = document.querySelector("#settings-panel .settings-sheet");
+  if (sheet) sheet.scrollTop = 0;
+}
+// A row that opens a sub-page or a screen.
+function setNavHtml(icon, label, sub, onclick) {
+  return `<button class="settings-item set-nav" onclick="${onclick}"><span class="set-icon">${icon}</span><span class="set-label">${label}</span><span class="set-chev" aria-hidden="true">›</span>${sub ? `<span class="settings-sub">${sub}</span>` : ""}</button>`;
+}
+// An on/off switch row.
+function setSwitchHtml(icon, label, sub, on, onclick) {
+  return `<button class="settings-item set-switch ${on ? "on" : ""}" role="switch" aria-checked="${!!on}" onclick="${onclick}"><span class="set-icon">${icon}</span><span class="set-label">${label}</span><span class="set-knob" aria-hidden="true"></span>${sub ? `<span class="settings-sub">${sub}</span>` : ""}</button>`;
+}
 function renderSettingsPanel() {
-  const goal = getDailyGoal();
-  const plan = pathEnsurePlan();
-  const account = (typeof currentUser !== "undefined" && currentUser)
-    ? (currentUser.displayName || currentUser.email || "Signed in")
-    : "Not signed in";
-  const lastSaved = S.savedAt ? new Date(S.savedAt).toLocaleString() : "never";
-  const editCount = Object.keys(S.wordEdits || {}).length;
+  const page = SETTINGS_PAGES[settingsPage] ? settingsPage : "main";
+  const body = page === "progress" ? settingsProgressHtml()
+    : page === "plan" ? settingsPlanHtml()
+    : page === "sound" ? settingsSoundHtml()
+    : page === "games" ? settingsGamesHtml()
+    : page === "anki" ? settingsAnkiHtml()
+    : page === "account" ? settingsAccountHtml()
+    : settingsMainHtml();
   document.getElementById("settings-panel").innerHTML = `
     <div class="settings-overlay" onclick="closeSettings()"></div>
-    <div class="settings-sheet">
-      <div class="settings-title">Settings</div>
-      <button class="settings-item" onclick="closeSettings();showScreen('journey')">🗺️&nbsp; Journey (completion map)</button>
-      <button class="settings-item" onclick="closeSettings();showScreen('stats')">📊&nbsp; Stats &amp; Progress</button>
-      <button class="settings-item" onclick="closeSettings();showScreen('collection')">🎨&nbsp; Collection${S.quests && S.quests.pending.length ? ` <span class='settings-sub accent'>(${S.quests.pending.length} chest${S.quests.pending.length > 1 ? "s" : ""} to open)</span>` : ""}</button>
-      <button class="settings-item" onclick="closeSettings();showScreen('badges')">🏆&nbsp; Achievements</button>
-      <button class="settings-item" onclick="closeSettings();showScreen('games')">🎮&nbsp; Games</button>
-      <button class="settings-item" onclick="closeSettings();showScreen('edits')">✏️&nbsp; My word edits${editCount ? ` (${editCount})` : ""}</button>
-      <button class="settings-item" id="settings-mute-btn" onclick="toggleMute()">${muteEnabled ? "🔇&nbsp; Sound off" : "🔊&nbsp; Sound on"}</button>
-      <button class="settings-item" id="settings-voice-btn" onclick="cycleVoiceEngine()">${voiceEngineSettingLabel()}</button>
-      <button class="settings-item" onclick="toggleSurpriseRounds()">🎁&nbsp; Surprise rounds in Drill: ${S.games && S.games.surprise === false ? "off" : "on"} <span class='settings-sub'>(bonus game every ${SURPRISE_EVERY} correct)</span></button>
-      <button class="settings-item" onclick="toggleQuiet();renderSettingsPanel()">${quietActive() ? "🔇&nbsp; Quiet mode: on for today" : "🔈&nbsp; Quiet mode: off"} <span class='settings-sub'>(no sound or voice, today only)</span></button>
-      <button class="settings-item" onclick="toggleRandomTwists()">🌀&nbsp; Random game twists: ${S.games && S.games.twists === false ? "off" : "on"} <span class='settings-sub'>(you can always decline one)</span></button>
-      ${deadlineSettingsHtml()}
-      <div class="settings-goal">
-        <span class="settings-goal-label">🌱&nbsp; New words/day</span>
-        ${plan ? `<span class="settings-auto">Auto · ${plan.pace} today</span>`
-          : PATH.NEW_PER_DAY_OPTIONS.map(n => `<button class="goal-pick ${S.path.newPerDay===n?"active":""}" onclick="setPathNewPerDay(${n});renderSettingsPanel()">${n === 0 ? "⏸" : n}</button>`).join("")}
+    <div class="settings-sheet" role="dialog" aria-label="Settings">
+      <div class="settings-top">
+        ${page === "main" ? "" : `<button class="set-back" onclick="openSettingsPage('main')" aria-label="Back to Settings">‹ Back</button>`}
+        <div class="settings-title">${page === "main" ? "Settings" : SETTINGS_PAGES[page]}</div>
+        <button class="set-close" onclick="closeSettings()" aria-label="Close settings">✕</button>
       </div>
-      <div class="settings-goal">
-        <span class="settings-goal-label">🎯&nbsp; Daily goal</span>
-        ${plan ? `<span class="settings-auto">Auto · ${plan.goal} today</span>`
-          : GOAL_OPTIONS.map(n => `<button class="goal-pick ${goal===n?"active":""}" onclick="setDailyGoal(${n})">${n}</button>`).join("")}
-      </div>
-      ${allAnkiDeckIds().length ? `
-      <div class="settings-goal">
-        <span class="settings-goal-label">🃏&nbsp; Anki new/day</span>
-        ${ANKI.NEW_PER_DAY_OPTIONS.map(n => `<button class="goal-pick ${ankiNewPerDay()===n?"active":""}" onclick="setAnkiNewPerDay(${n})">${n}</button>`).join("")}
-      </div>
-      <button class="settings-item" onclick="toggleAnkiPause()">${S.ankiNewPaused
-        ? "▶&nbsp; Resume Anki new words" + (S.ankiAutoPausedOn ? " <span class='settings-sub'>(auto-paused)</span>" : "")
-        : "⏸&nbsp; Pause Anki new words <span class='settings-sub'>(reviews stay owed)</span>"}</button>` : ""}
-      <button class="settings-item" onclick="copyUsageReport()">📋&nbsp; Copy usage report <span class='settings-sub'>(paste it to Claude for the next improvements)</span></button>
-      <div class="settings-sync-line">☁️ ${escapeHtml(account)} · last saved ${lastSaved}</div>
+      ${body}
     </div>`;
+}
+function settingsAccountName() {
+  return (typeof currentUser !== "undefined" && currentUser)
+    ? (currentUser.displayName || currentUser.email || "Signed in") : "";
+}
+function settingsMainHtml() {
+  const plan = pathEnsurePlan();
+  const editCount = Object.keys(S.wordEdits || {}).length;
+  const chests = S.quests && S.quests.pending.length;
+  const lens = PATH.SESSION_LENGTHS, len = S.path.sessionLen || "regular";
+  const planSub = plan
+    ? `Finish by ${fmtShortDate(S.path.deadline)} · ${plan.pace} new words today`
+    : `${S.path.newPerDay ? S.path.newPerDay + " new words a day" : "New words paused"} · goal ${getDailyGoal()} · ${len[0].toUpperCase() + len.slice(1)} sessions (${lens[len]})`;
+  const account = settingsAccountName();
+  return `
+    ${setNavHtml("📈", "Progress", "Journey map, stats, collection, achievements" + (chests ? ` · <span class='accent'>${chests} chest${chests > 1 ? "s" : ""} to open</span>` : ""), "openSettingsPage('progress')")}
+    ${setNavHtml("🎯", "Study plan", planSub, "openSettingsPage('plan')")}
+    ${setNavHtml("🔊", "Sound & voice", soundSummary(), "openSettingsPage('sound')")}
+    ${setNavHtml("🎮", "Games", "Surprise rounds and random twists", "openSettingsPage('games')")}
+    ${allAnkiDeckIds().length ? setNavHtml("🃏", "Anki", `${ankiNewPerDay()} new cards a day${S.ankiNewPaused ? " · new cards paused" : ""}`, "openSettingsPage('anki')") : ""}
+    ${setNavHtml("✏️", `My word edits${editCount ? ` (${editCount})` : ""}`, "Words whose text you corrected", "closeSettings();showScreen('edits')")}
+    ${setNavHtml("☁️", "Account & data", account ? `Signed in as ${escapeHtml(account)}` : "Not signed in — progress is saved on this device only", "openSettingsPage('account')")}`;
+}
+function settingsProgressHtml() {
+  const chests = S.quests && S.quests.pending.length;
+  return `
+    ${setNavHtml("🗺️", "Journey", "The completion map: every level and deck", "closeSettings();showScreen('journey')")}
+    ${setNavHtml("📊", "Stats &amp; progress", "Activity, words you struggle with, per-deck detail", "closeSettings();showScreen('stats')")}
+    ${setNavHtml("🎨", "Collection", chests ? `<span class='accent'>${chests} chest${chests > 1 ? "s" : ""} to open</span>` : "What your chests gave you", "closeSettings();showScreen('collection')")}
+    ${setNavHtml("🏆", "Achievements", "Badges and their levels", "closeSettings();showScreen('badges')")}`;
+}
+function settingsPlanHtml() {
+  const goal = getDailyGoal();
+  const plan = pathEnsurePlan();
+  const len = S.path.sessionLen || "regular";
+  return `
+    ${deadlineSettingsHtml()}
+    <div class="settings-goal">
+      <span class="settings-goal-label">🌱&nbsp; New words/day</span>
+      ${plan ? `<span class="settings-auto">Auto · ${plan.pace} today</span>`
+        : PATH.NEW_PER_DAY_OPTIONS.map(n => `<button class="goal-pick ${S.path.newPerDay===n?"active":""}" onclick="setPathNewPerDay(${n});renderSettingsPanel()">${n === 0 ? "⏸" : n}</button>`).join("")}
+      <span class="settings-sub">How many new words Start brings in each day. ⏸ = reviews only.</span>
+    </div>
+    <div class="settings-goal">
+      <span class="settings-goal-label">🎯&nbsp; Daily goal</span>
+      ${plan ? `<span class="settings-auto">Auto · ${plan.goal} today</span>`
+        : GOAL_OPTIONS.map(n => `<button class="goal-pick ${goal===n?"active":""}" onclick="setDailyGoal(${n})">${n}</button>`).join("")}
+      <span class="settings-sub">Correct answers a day — your 4 quests add up to it.</span>
+    </div>
+    <div class="settings-goal">
+      <span class="settings-goal-label">⏱️&nbsp; Session length</span>
+      ${Object.entries(PATH.SESSION_LENGTHS).map(([k, n]) => `<button class="goal-pick ${k === len ? "active" : ""}" onclick="setSessionLen('${k}');renderSettingsPanel()">${k[0].toUpperCase() + k.slice(1)} ${n}</button>`).join("")}
+      <span class="settings-sub">How many questions one Start gives you. Also on the Today card.</span>
+    </div>`;
+}
+// One short line for the main page: what is actually on right now.
+function soundSummary() {
+  if (quietActive()) return "🔇 Muted until tomorrow";
+  const on = [SOUND.tts && "words read aloud", SOUND.sfx && "sound effects", SOUND.vibe && hasVibration() && "vibration"].filter(Boolean);
+  const mic = S.path.voiceInput ? " · mic on" : "";
+  return (on.length ? on.join(", ")[0].toUpperCase() + on.join(", ").slice(1) : "All sound off") + mic;
+}
+function hasVibration() { return typeof navigator.vibrate === "function"; }
+function settingsSoundHtml() {
+  const quiet = quietActive();
+  return `
+    ${quiet ? `<div class="set-note">🔇 <strong>Muted until tomorrow.</strong> Everything below stays silent until the day rolls over (4 AM), whatever the switches say. <button class="goal-pick" onclick="toggleQuiet();renderSettingsPanel()">Unmute now</button></div>` : ""}
+    <div class="set-group-title">Always on this device</div>
+    ${setSwitchHtml("🗣️", "Read words aloud", "The app pronounces words and example sentences. Off also hides listening exercises — there would be nothing to hear.", SOUND.tts, "toggleSoundPref('tts')")}
+    ${setSwitchHtml("🔔", "Sound effects", "The chime for a right or wrong answer, and the sounds in games.", SOUND.sfx, "toggleSoundPref('sfx')")}
+    ${hasVibration() ? setSwitchHtml("📳", "Vibration", "A short buzz on answers and in games.", SOUND.vibe, "toggleSoundPref('vibe')") : ""}
+    <div class="set-group-title">Just for today</div>
+    ${setSwitchHtml("🔇", "Mute until tomorrow", "Silences everything above — plus the mic and listening exercises — until tomorrow, then switches itself off. Your switches above are not changed. Same as the button on the Today card.", quiet, "toggleQuiet();renderSettingsPanel()")}
+    <div class="set-group-title">Microphone (optional)</div>
+    ${setSwitchHtml("🎙️", "Answer with the mic", "In Today sessions, say your answer instead of typing it. You can always type. Also the 🎙️ button during a session.", !!S.path.voiceInput, "pathToggleVoice();renderSettingsPanel()")}
+    <div class="settings-goal">
+      <span class="settings-goal-label">🎧&nbsp; Speech recognition</span>
+      <button class="goal-pick ${voiceEngineChoice === "system" ? "active" : ""}" onclick="setVoiceEngine('system');renderSettingsPanel()">System</button>
+      <button class="goal-pick ${voiceEngineChoice === "whisper" ? "active" : ""}" onclick="setVoiceEngine('whisper');renderSettingsPanel()">Whisper</button>
+      <span class="settings-sub">What listens to the mic. <strong>System</strong>: the browser's own, fast, needs internet. <strong>Whisper</strong>: more accurate, works offline, downloads 40 MB once.</span>
+    </div>`;
+}
+function toggleSoundPref(k) { setSoundPref(k, !SOUND[k]); renderSettingsPanel(); }
+function settingsGamesHtml() {
+  return `
+    ${setSwitchHtml("🎁", "Surprise rounds in Drill", `A bonus game every ${SURPRISE_EVERY} correct answers in Library Drill.`, !(S.games && S.games.surprise === false), "toggleSurpriseRounds()")}
+    ${setSwitchHtml("🌀", "Random game twists", "Games sometimes start with a twist (golden words, sudden death…). You can always decline one.", !(S.games && S.games.twists === false), "toggleRandomTwists()")}`;
+}
+function settingsAnkiHtml() {
+  return `
+    <div class="settings-goal">
+      <span class="settings-goal-label">🃏&nbsp; Anki new/day</span>
+      ${ANKI.NEW_PER_DAY_OPTIONS.map(n => `<button class="goal-pick ${ankiNewPerDay()===n?"active":""}" onclick="setAnkiNewPerDay(${n})">${n}</button>`).join("")}
+      <span class="settings-sub">New cards per day across your Anki decks.</span>
+    </div>
+    ${setSwitchHtml("⏸", "Pause new Anki cards", "Reviews stay owed; only new cards stop." + (S.ankiNewPaused && S.ankiAutoPausedOn ? " Paused automatically after 3 missed days." : ""), !!S.ankiNewPaused, "toggleAnkiPause()")}`;
+}
+function settingsAccountHtml() {
+  const account = settingsAccountName();
+  const lastSaved = S.savedAt ? new Date(S.savedAt).toLocaleString() : "never";
+  return `
+    ${setNavHtml("👤", account ? `Signed in as ${escapeHtml(account)}` : "Sign in with Google", account ? "Tap to sign out" : "Sync your progress across devices", "handleAuth()")}
+    ${setNavHtml("📋", "Copy usage report", "Paste it to Claude for the next improvements", "copyUsageReport()")}
+    <div class="settings-sync-line">☁️ Last saved ${lastSaved}</div>`;
 }
 // Optional finish date: off by default. When set, new words/day and
 // the daily goal are worked out each morning and the Core quest becomes
@@ -601,8 +694,7 @@ function renderSettingsPanel() {
 function deadlineSettingsHtml() {
   const on = pathDeadlineOn();
   const minDate = addDays(studyToday(), 30);
-  if (!on) return `<button class="settings-item" onclick="setDeadlineFromSettings(addDays(studyToday(), 365))">🗓️&nbsp; Finish date: off
-    <span class='settings-sub'>(optional — set one and your quests are sized so you finish everything by then)</span></button>`;
+  if (!on) return setSwitchHtml("🗓️", "Finish date", "Optional. Set one and your quests are sized so you finish every word by then.", false, "setDeadlineFromSettings(addDays(studyToday(), 365))");
   const scan = pathScan();
   const need = pathPaceNeeded(scan);
   const late = need > PLAN.MAX_PACE
@@ -648,8 +740,9 @@ function setAnkiNewPerDay(n) {
   renderGroups();
   renderStartBar();
 }
-function openSettings() {
+function openSettings(page = "main") {
   if (typeof pauseGame === "function") pauseGame("Paused while Settings were open.");
+  settingsPage = SETTINGS_PAGES[page] ? page : "main";
   renderSettingsPanel();
   document.getElementById("settings-panel").style.display = "block";
   const island = document.getElementById("floating-island");
@@ -692,7 +785,7 @@ function renderHome() {
       <div class="tc-head">
         <div class="tc-title">Today</div>
         ${streak || Q.freezes ? `<div class="tc-streak" title="Days in a row with all quests done">${streak ? `🔥 ${streak}` : ""}${Q.freezes ? ` <span class="tc-freeze" title="Streak freezes">🧊${Q.freezes}</span>` : ""}</div>` : ""}
-        <button class="tc-quiet ${quiet ? "on" : ""}" onclick="toggleQuiet()" aria-pressed="${quiet}" title="Quiet mode: no sound or voice today">${quiet ? "🔇 Quiet" : "🔈 Sound"}</button>
+        <button class="tc-quiet ${quiet ? "on" : ""}" onclick="toggleQuiet()" aria-pressed="${quiet}" title="Silence everything until tomorrow — your sound settings stay as they are">${quiet ? "🔇 Muted until tomorrow" : "🔈 Mute until tomorrow"}</button>
       </div>
       ${banner}
       ${Q.pending.length ? `<button class="tc-chest" onclick="openPendingChest()">🎁 ${Q.pending.length} chest${Q.pending.length > 1 ? "s" : ""} to open</button>` : ""}

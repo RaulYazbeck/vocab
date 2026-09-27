@@ -24,7 +24,9 @@ function pathWord(deckId, idx) {
 function wsPeek(deckId, idx) { return S.words[deckId + "_" + idx] || null; }
 function isMet(deckId, idx) { const ws = wsPeek(deckId, idx); return !!(ws && ws.st); }
 
-// Quiet mode: no sound, no voice, no audio items — for today only.
+// "Mute until tomorrow" (stored as quietDay): no speech, no sound
+// effects, no vibration, no mic and no listening items — until the
+// 4 AM rollover. The permanent sound switches are left alone.
 function quietActive() { return !!(S.path && S.path.quietDay === todayISO()); }
 function toggleQuiet() {
   S.path.quietDay = quietActive() ? "" : todayISO();
@@ -33,7 +35,7 @@ function toggleQuiet() {
   if (quietActive() && window.speechSynthesis) try { speechSynthesis.cancel(); } catch (e) {}
   if (typeof onQuietChanged === "function") onQuietChanged();
 }
-function audioOk() { return !muteEnabled && !quietActive() && !!window.speechSynthesis; }
+function audioOk() { return ttsOn() && !!window.speechSynthesis; }
 
 // ── SCAN ──────────────────────────────────────
 // One pass over every vocab word. Memoised for a short moment: the
