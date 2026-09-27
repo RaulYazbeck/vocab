@@ -124,7 +124,7 @@ function pathProgress() {
   const s = pathSession;
   // Learn cards and bonus offers aren't questions: a Regular session
   // reads x/30, like the length you picked.
-  const q = x => x.t !== "bonus" && x.t !== "learn";
+  const q = x => x.t !== "bonus" && x.t !== "learn" && !x.warm;
   const total = s.items.filter(q).length;
   const done = s.items.slice(0, s.i).filter(q).length;
   const f = document.getElementById("p-prog");
@@ -240,7 +240,7 @@ function pathAnswerChoice(i) {
   pathLogAnswer(it, ok, { typed: false });
   if (ok) {
     ws.lastAnsweredAt = Date.now(); ws.correct++; S.totalCorrect++;
-    const res = it.fresh ? null : srsReview(ws, true, "recognition");
+    const res = it.fresh || it.warm ? null : srsReview(ws, true, "recognition");
     if (res) { res._w = w; questEvent("srs", res); }
     pathRecordMove(w, from, res);
     s.stats.correct++; sessionCorrect++; sessionConsecutive++;
@@ -252,12 +252,13 @@ function pathAnswerChoice(i) {
     speak(gameForm(w));
   } else {
     ws.lastAnsweredAt = Date.now(); ws.wrong++;
-    const res = it.fresh ? null : srsReview(ws, false, "recognition");
+    const res = it.fresh || it.warm ? null : srsReview(ws, false, "recognition");
     if (res) { res._w = w; questEvent("srs", res); }
     pathRecordMove(w, from, res);
     s.stats.wrong++; sessionConsecutive = 0;
     pathMissed(w);
-    if (it.fresh) pathReask(w, 2);
+    // A missed first choice comes back as a choice — typing comes after.
+    if (it.fresh || it.warm) pathReask(w, 2, "choice");
     questEvent("answer", { mode: "path", ok: false, typed: false, st: from, w });
     playFailure(); haptic("miss");
     speak(gameForm(w));
@@ -505,13 +506,13 @@ function pathMissed(w) {
   if (!s.missed.some(x => sameWord(x, w))) s.missed.push(w);
 }
 // Bring a missed word back a few items later (at most twice).
-function pathReask(w, gap) {
+function pathReask(w, gap, type = "typed") {
   const s = pathSession, k = wordKey(w);
   s.reasks[k] = (s.reasks[k] || 0) + 1;
   if (s.reasks[k] > 2) return;
   let pos = s.i + 1, n = 0;
   while (pos < s.items.length && n < gap) { if (s.items[pos].t !== "bonus" && s.items[pos].t !== "learn") n++; pos++; }
-  s.items.splice(pos, 0, { t: "typed", w, reask: true, fix: true });
+  s.items.splice(pos, 0, type === "choice" ? { t: "choice", w, reask: true, warm: true, rev: Math.random() < 0.5 } : { t: "typed", w, reask: true, fix: true });
 }
 function pathRecordMove(w, from, res) {
   const s = pathSession;

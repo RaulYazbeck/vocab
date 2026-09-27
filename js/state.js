@@ -130,10 +130,10 @@ function migrateGames() {
   if (!G.bestiary || typeof G.bestiary !== "object") G.bestiary = {};
   if (!G.world || typeof G.world !== "object") G.world = {};
   if (!G.collect || typeof G.collect !== "object") G.collect = { g: 0, p: 0 };
-  // Grammar tracks (never touch word stages): case accuracy, verb forms
-  // per verb × tense, and recent mix-ups used as distractors.
+  // Grammar stats (never touch word stages): case accuracy, and recent
+  // mix-ups used as distractors. (No per-verb track: verbs stay in games.)
   if (!G.cases || typeof G.cases !== "object") G.cases = {};
-  if (!G.vf || typeof G.vf !== "object") G.vf = {};
+  delete G.vf;
   if (!G.confuse || typeof G.confuse !== "object") G.confuse = {};
   if (S.gameCorrectToday === undefined) S.gameCorrectToday = 0;
   if (S.gameCorrectDate === undefined)  S.gameCorrectDate = "";

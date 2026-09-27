@@ -185,9 +185,22 @@ function isNearMiss(input, answers) {
     const start = a.lastIndexOf(" ", Math.max(0, p - 1)) + 1, end = a.indexOf(" ", p);
     const tok = a.slice(start, end < 0 ? a.length : end);
     if (ARTICLE_TOKENS.test(tok)) return false;
-    if (q < 2) return false; // ending
+    // A slip in the last two letters is still "almost" (musstn for
+    // müssen) — unless it turns one grammatical ending into another
+    // (gute/guten, geht/gehst): that's grammar, not a typo.
+    if (q < 2 && endingSwap(a, b)) return false;
     return true;
   });
+}
+const GRAM_ENDINGS = new Set(["", "e", "n", "en", "er", "es", "em", "s", "st", "t", "et", "est", "te", "ten", "tet", "test", "ern", "el"]);
+function endingSwap(a, b) {
+  const x = a.split(" ").pop(), y = b.split(" ").pop();
+  for (let k = 2; k <= Math.min(x.length, y.length); k++) {
+    if (x.slice(0, k) !== y.slice(0, k)) break;
+    const ex = x.slice(k), ey = y.slice(k);
+    if (ex !== ey && GRAM_ENDINGS.has(ex) && GRAM_ENDINGS.has(ey)) return true;
+  }
+  return false;
 }
 
 // After a mistake, moving on stays shut for a moment, so a confident
@@ -210,6 +223,24 @@ function mistakeHeld(fbId) {
   if (fb && typeof shakeEl === "function") shakeEl(fb);
   return true;
 }
+
+// Page blur behind sheets and modals: a body class kept in sync from
+// here, not CSS :has() — iOS home-screen apps sometimes don't
+// re-evaluate :has() when the sheet is removed, and the page stayed
+// blurred after closing the welcome sheet.
+(function watchSheets() {
+  const sync = () => {
+    const sp = document.getElementById("settings-panel");
+    const open = !!document.querySelector("body > .modal-overlay") || !!(sp && sp.style.display === "block");
+    document.body.classList.toggle("sheet-open", open);
+  };
+  let watched = null;
+  new MutationObserver(() => {
+    const sp = document.getElementById("settings-panel");
+    if (sp && sp !== watched) { watched = sp; new MutationObserver(sync).observe(sp, { attributes: true, attributeFilter: ["style"] }); }
+    sync();
+  }).observe(document.body, { childList: true });
+})();
 
 // Colour a leading article by gender (der/le blue, die/la red, das
 // green) — the colours stick in memory. Returns escaped HTML.

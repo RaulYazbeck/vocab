@@ -9,12 +9,10 @@
 //     Präsens, Präteritum, Perfekt, Plusquamperfekt, Futur I,
 //     Konjunktiv II, Imperativ — conjugated by grammar-de.js, which only
 //     serves verbs/tenses it reproduced from the decks' own data.
-//     These spins NEVER touch word stages, the deck plan or the Path:
-//     they feed a separate verb track (S.games.vf: per verb, a level
-//     0–5 per tense; right on 3 different days = solid).
-//     "My verbs" = verbs you've met; "+ all B1 verbs" mixes in the
-//     rest of the list (meaning shown), so you can learn more verbs
-//     without them entering your decks.
+//     These spins are game practice only: nothing is stored per verb
+//     and word stages don't move. A form you miss comes back later in
+//     the same round. "+ all B1 verbs" mixes in verbs you haven't met
+//     yet (meaning shown).
 //
 // Ranks: a clock per spin from 🥈 Silver; from 🥇 Gold, verbs you know
 // show their MEANING on the reel ("to be") instead of the infinitive.
@@ -62,58 +60,20 @@ function conjVerbSplit(pool) {
   });
   return { mine, extra };
 }
-function vfRec(inf) {
-  const m = S.games.vf || (S.games.vf = {});
-  const n = CONJ_TENSE_IDS().length;
-  let r = m[inf];
-  if (!r || typeof r.l !== "string") r = m[inf] = { l: "0".repeat(n), d: "", b: 0 };
-  if (r.l.length < n) r.l = r.l.padEnd(n, "0");
-  return r;
-}
-function vfLevel(inf, tense) { const r = (S.games.vf || {})[inf]; if (!r) return 0; return +(r.l[CONJ_TENSE_IDS().indexOf(tense)] || 0); }
-// Right: +1 (at most once a day per verb × tense). Wrong: −1.
-function vfRecord(inf, tense, ok) {
-  const r = vfRec(inf), i = CONJ_TENSE_IDS().indexOf(tense), today = todayISO();
-  if (i < 0) return;
-  if (r.d !== today) { r.d = today; r.b = 0; }
-  let lv = +r.l[i];
-  if (ok) { if (!(r.b & (1 << i))) { lv = Math.min(5, lv + 1); r.b |= 1 << i; } }
-  else lv = Math.max(0, lv - 1);
-  r.l = r.l.slice(0, i) + lv + r.l.slice(i + 1);
-}
-const VF_SOLID = 3;
-// A verb is "learned" once its core forms are solid: Präsens and Perfekt
-// (Präteritum instead of Perfekt for modals/sein/haben, where it's the norm).
-function vfLearned(v) {
-  const coreB = ["sein", "haben", "werden", "können", "müssen", "dürfen", "sollen", "wollen", "mögen", "wissen"].includes(v.inf) ? "pt" : "pf";
-  const need = ["pr", coreB].filter(t => v.tenses.includes(t));
-  return need.length > 0 && need.every(t => vfLevel(v.inf, t) >= VF_SOLID);
-}
-function verbTrackSummary() {
-  if (!conjUnlimitedOn()) return "";
-  const bank = verbBank().verbs;
-  const learned = bank.filter(vfLearned).length;
-  let line = `🗂️ Verbs learned: ${learned} / ${bank.length} (Präsens + Perfekt solid)`;
-  if (typeof pathDeadlineOn === "function" && pathDeadlineOn()) {
-    const days = Math.max(1, pathDaysLeft());
-    const left = bank.length - learned;
-    if (left > 0) line += ` · ≈ ${Math.ceil(left / days)} a day to have them all by ${S.path.deadline}`;
-  }
-  return line;
-}
-// Pick the next unlimited spin, favouring low levels and unseen verbs.
+// Pick the next unlimited spin: verbs you find hard come up more.
 function conjPickSpin(verbs, tenses, lastInf) {
   if (!verbs || !verbs.length) return null;
-  const cands = weightedPickDistinct(verbs.filter(v => v.inf !== lastInf && v.tenses.some(t => tenses.includes(t))), 1, v => {
-    const ts = v.tenses.filter(t => tenses.includes(t));
-    const low = ts.reduce((s, t) => s + (5 - vfLevel(v.inf, t)), 0) / Math.max(1, ts.length);
-    return 0.5 + low;
-  });
+  const cands = weightedPickDistinct(verbs.filter(v => v.inf !== lastInf && v.tenses.some(t => tenses.includes(t))), 1,
+    v => v.word ? wordWeakness(v.word) : 1);
   const v = cands[0] || verbs[0];
+  return conjSpinFor(v, tenses);
+}
+function conjSpinFor(v, tenses, notPerson = "") {
   const ts = v.tenses.filter(t => tenses.includes(t));
-  const tense = weightedPickDistinct(ts.length ? ts : v.tenses, 1, t => 6 - vfLevel(v.inf, t))[0];
+  const tense = shuffle(ts.length ? ts : v.tenses)[0];
   let persons = tense === "im" ? ["du", "ihr", "Sie"] : PERSONS.slice();
-  persons = persons.filter(p => verbCell(v.F, tense, p));
+  persons = persons.filter(p => verbCell(v.F, tense, p) && p !== notPerson);
+  if (!persons.length) return null;
   const person = persons[Math.floor(Math.random() * persons.length)];
   const cell = verbCell(v.F, tense, person);
   return cell ? { v, tense, person, cell } : null;
@@ -129,7 +89,7 @@ registerGame({
     IS_FRENCH_APP ? "The reels spin a verb and a person — type the matching form." : "The reels spin a <strong>verb</strong>, a <strong>person</strong> and a <strong>tense</strong> — type the form (Perfekt: <em>ist gefahren</em>).",
     "💡 shows the first letter (then it counts as help, not recall).",
     IS_FRENCH_APP ? "A wrong form costs points (half for 🌱 new verbs). From 🥇 Gold the verb reel may show its meaning instead."
-      : "Any verb of the A1–B1 lists, every tense — pick tenses with the chips. <strong>+ all B1 verbs</strong> mixes in verbs you haven't met yet: extra practice that never touches your decks or your plan.",
+      : "Any verb of the A1–B1 lists, every tense — pick tenses with the chips. <strong>+ all B1 verbs</strong> mixes in verbs you haven't met yet. A form you miss comes back later in the round.",
     "A miss shows the whole row and the rule. Enter checks.",
   ],
   requirement(pool) {
@@ -153,7 +113,8 @@ registerGame({
     // Deck cards and verbs you know count toward the daily goal; extra
     // B1 verbs are practice only.
     const done = () => ctx.finish({ score, correct, wrong, maxCombo, typedCorrect: correct, goalCorrect: goal,
-      cleared: ctx.size === "bonus" ? correct >= 4 : true, note: verbTrackSummary() });
+      cleared: ctx.size === "bonus" ? correct >= 4 : true });
+    const retry = []; // missed verb × tense: back later this round, another person
     // Which spins come from cards: spread through the round.
     const plan = [];
     for (let i = 0; i < total; i++) plan.push(i < cards.length ? "card" : "gen");
@@ -198,6 +159,12 @@ registerGame({
       if (k === "card" && cards.length) {
         const w = cards.shift();
         return { kind: "card", w, it: conjItem(w) };
+      }
+      // A form missed earlier this round comes back (another person).
+      if (retry.length && (retry[0].at <= r || r >= total - 1)) {
+        const m = retry.shift();
+        const again = conjSpinFor(m.v, [m.tense], m.person);
+        if (again) { lastInf = m.v.inf; return { kind: "gen", ...again, extra: m.extra }; }
       }
       // Mine first (~65%), extra B1 verbs mixed in when switched on.
       const useExtra = S.games.conjAll !== false && split.extra.length && (split.mine.length < 4 || Math.random() < 0.35);
@@ -280,7 +247,7 @@ registerGame({
       }
       ctx.busy = true;
       const gen = cur.kind === "gen";
-      if (gen) vfRecord(cur.v.inf, cur.tense, res === true && !helped);
+      if (gen && res !== true && !retry.some(x => x.v === cur.v)) retry.push({ v: cur.v, tense: cur.tense, person: cur.person, extra: cur.extra, at: r + 3 });
       if (res === true) {
         correct++; combo++; maxCombo = Math.max(maxCombo, combo);
         if (!gen || !cur.extra) goal++;
