@@ -9,10 +9,13 @@
 //     Präsens, Präteritum, Perfekt, Plusquamperfekt, Futur I,
 //     Konjunktiv II, Imperativ — conjugated by grammar-de.js, which only
 //     serves verbs/tenses it reproduced from the decks' own data.
-//     These spins are game practice only: nothing is stored per verb
-//     and word stages don't move. A form you miss comes back later in
-//     the same round. "+ all B1 verbs" mixes in verbs you haven't met
-//     yet (meaning shown).
+//     These spins never touch word stages, your decks or the plan, and
+//     nothing about them is shown as progress — your decks are the one
+//     track. Behind the scenes a small record per verb × tense
+//     (S.games.vf: level 0–5, last day) steers what comes up: weak and
+//     unpractised forms more, solid ones less. A form you miss also
+//     comes back later in the same round. "+ all B1 verbs" mixes in
+//     verbs you haven't met yet (meaning shown).
 //
 // Ranks: a clock per spin from 🥈 Silver; from 🥇 Gold, verbs you know
 // show their MEANING on the reel ("to be") instead of the infinitive.
@@ -60,17 +63,49 @@ function conjVerbSplit(pool) {
   });
   return { mine, extra };
 }
-// Pick the next unlimited spin: verbs you find hard come up more.
+// ── Hidden practice record (steers the spins; never displayed) ──
+// S.games.vf[inf] = { l: one digit 0–5 per tense, d: last day, b: tenses
+// already moved up that day }. Right: +1 (once a day per tense). Wrong: −1.
+function vfRec(inf) {
+  const m = S.games.vf || (S.games.vf = {});
+  const n = CONJ_TENSE_IDS().length;
+  let r = m[inf];
+  if (!r || typeof r.l !== "string") r = m[inf] = { l: "0".repeat(n), d: "", b: 0 };
+  if (r.l.length < n) r.l = r.l.padEnd(n, "0");
+  return r;
+}
+function vfLevel(inf, tense) { const r = (S.games.vf || {})[inf]; return r ? +(r.l[CONJ_TENSE_IDS().indexOf(tense)] || 0) : 0; }
+function vfRecord(inf, tense, ok) {
+  const r = vfRec(inf), i = CONJ_TENSE_IDS().indexOf(tense), today = todayISO();
+  if (i < 0) return;
+  if (r.d !== today) { r.d = today; r.b = 0; }
+  let lv = +r.l[i];
+  if (ok) { if (!(r.b & (1 << i))) { lv = Math.min(5, lv + 1); r.b |= 1 << i; } }
+  else lv = Math.max(0, lv - 1);
+  r.l = r.l.slice(0, i) + lv + r.l.slice(i + 1);
+}
+// Weight of a verb × tense: low levels and forms not practised today weigh more.
+function vfWeight(inf, tense) {
+  const r = (S.games.vf || {})[inf];
+  const lv = vfLevel(inf, tense);
+  const today = r && r.d === todayISO();
+  return (6 - lv) * (today ? 0.6 : 1.4);
+}
+// Pick the next unlimited spin: weak / unpractised forms and verbs you
+// find hard in your decks come up more.
 function conjPickSpin(verbs, tenses, lastInf) {
   if (!verbs || !verbs.length) return null;
-  const cands = weightedPickDistinct(verbs.filter(v => v.inf !== lastInf && v.tenses.some(t => tenses.includes(t))), 1,
-    v => v.word ? wordWeakness(v.word) : 1);
+  const cands = weightedPickDistinct(verbs.filter(v => v.inf !== lastInf && v.tenses.some(t => tenses.includes(t))), 1, v => {
+    const ts = v.tenses.filter(t => tenses.includes(t));
+    const w = ts.reduce((s, t) => s + vfWeight(v.inf, t), 0) / Math.max(1, ts.length);
+    return w * (v.word ? Math.sqrt(wordWeakness(v.word)) : 1);
+  });
   const v = cands[0] || verbs[0];
   return conjSpinFor(v, tenses);
 }
 function conjSpinFor(v, tenses, notPerson = "") {
   const ts = v.tenses.filter(t => tenses.includes(t));
-  const tense = shuffle(ts.length ? ts : v.tenses)[0];
+  const tense = weightedPickDistinct(ts.length ? ts : v.tenses, 1, t => vfWeight(v.inf, t))[0];
   let persons = tense === "im" ? ["du", "ihr", "Sie"] : PERSONS.slice();
   persons = persons.filter(p => verbCell(v.F, tense, p) && p !== notPerson);
   if (!persons.length) return null;
@@ -247,6 +282,7 @@ registerGame({
       }
       ctx.busy = true;
       const gen = cur.kind === "gen";
+      if (gen) vfRecord(cur.v.inf, cur.tense, res === true && !helped);
       if (gen && res !== true && !retry.some(x => x.v === cur.v)) retry.push({ v: cur.v, tense: cur.tense, person: cur.person, extra: cur.extra, at: r + 3 });
       if (res === true) {
         correct++; combo++; maxCombo = Math.max(maxCombo, combo);

@@ -185,22 +185,11 @@ function isNearMiss(input, answers) {
     const start = a.lastIndexOf(" ", Math.max(0, p - 1)) + 1, end = a.indexOf(" ", p);
     const tok = a.slice(start, end < 0 ? a.length : end);
     if (ARTICLE_TOKENS.test(tok)) return false;
-    // A slip in the last two letters is still "almost" (musstn for
-    // müssen) — unless it turns one grammatical ending into another
-    // (gute/guten, geht/gehst): that's grammar, not a typo.
-    if (q < 2 && endingSwap(a, b)) return false;
+    // A slip in the last two letters is the ending — grammar (musstn
+    // for müssen is a conjugation error), so it's simply wrong.
+    if (q < 2) return false;
     return true;
   });
-}
-const GRAM_ENDINGS = new Set(["", "e", "n", "en", "er", "es", "em", "s", "st", "t", "et", "est", "te", "ten", "tet", "test", "ern", "el"]);
-function endingSwap(a, b) {
-  const x = a.split(" ").pop(), y = b.split(" ").pop();
-  for (let k = 2; k <= Math.min(x.length, y.length); k++) {
-    if (x.slice(0, k) !== y.slice(0, k)) break;
-    const ex = x.slice(k), ey = y.slice(k);
-    if (ex !== ey && GRAM_ENDINGS.has(ex) && GRAM_ENDINGS.has(ey)) return true;
-  }
-  return false;
 }
 
 // After a mistake, moving on stays shut for a moment, so a confident
