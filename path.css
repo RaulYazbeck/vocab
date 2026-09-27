@@ -557,3 +557,29 @@ body.sheet-open > .app { filter:blur(6px) saturate(1.08); } /* class set in ui-h
 .set-note { font-size:13px; line-height:1.45; color:var(--text); background:var(--accent-dim); border:1px solid rgba(245,166,35,0.35); border-radius:var(--r-sm); padding:10px 12px; margin-bottom:10px; }
 .set-note .goal-pick { margin-left:4px; }
 @media (prefers-reduced-motion: reduce) { .set-knob, .set-knob::after { transition:none; } }
+
+/* ── 👵 GRANDMA MODE ───────────── */
+body.grandma #exp-bar, body.grandma #groups-container, body.grandma #games-btn,
+body.grandma .library-head, body.grandma .journey-strip { display:none !important; }
+.gm-progress { margin:2px 2px 14px; }
+.gm-line { display:flex; align-items:baseline; gap:10px; font-size:17px; color:var(--text); margin-bottom:8px; }
+.gm-line b { font-weight:900; font-variant-numeric:tabular-nums; }
+.gm-streak { margin-left:auto; font-size:16px; font-weight:800; color:#FF9A3C; white-space:nowrap; }
+.gm-bar { position:relative; height:10px; border-radius:5px; background:rgba(255,255,255,0.08); overflow:hidden; }
+.gm-bar i { position:absolute; left:0; top:0; display:block; height:100%; border-radius:5px; background:linear-gradient(90deg, var(--teal), var(--success)); }
+.gm-bar i.gm-met { background:rgba(0,201,177,0.28); }
+.gm-sub { font-size:13px; color:var(--text-2); margin-top:6px; }
+body.grandma .tc-len-btn { font-size:16px; min-height:52px; }
+body.grandma .tc-len-btn small { font-size:12px; }
+.gm-start { font-size:24px !important; min-height:72px; }
+.gm-games {
+  display:block; width:100%; min-height:58px; margin-top:10px; border-radius:var(--r);
+  border:1px solid var(--border-hi); background:rgba(255,255,255,0.07); color:var(--text);
+  font-size:19px; font-weight:800; cursor:pointer;
+}
+.gm-games:hover { background:var(--glass-hover); }
+.gm-games:active { transform:scale(0.97); }
+body.grandma .quest { font-size:15px; }
+body.grandma .tc-saga { font-size:14.5px; margin-top:12px; }
+body.grandma .p-card { font-size:17px; }
+body.grandma .english-word, body.grandma .p-learn-prompt { font-size:1.25em; }

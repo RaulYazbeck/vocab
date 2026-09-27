@@ -588,14 +588,14 @@ function buildPathQueue(lenKey, opts = {}) {
     i++;
   }
   // ⚔️ A minion may show up (≈10% of Regular/Long sessions, once a day).
-  if (budget >= 30 && !opts.noBonus && !focus && typeof minionDeckPick === "function"
+  if (budget >= 30 && !opts.noBonus && !focus && !grandmaOn() && typeof minionDeckPick === "function"
       && S.games && S.games.minionDay !== todayISO() && Math.random() < MINION_CHANCE) {
     const deck = out.filter(x => x.t !== "learn").length >= 10 ? minionDeckPick() : null;
     if (deck) out.splice(Math.floor(out.length * 0.55), 0, { t: "bonus", minion: deck });
   }
   // Bonus-round offers: one every 9 questions (Quick gets one too;
-  // never in Quiet mode for audio games).
-  if (budget >= 15 && !opts.noBonus && !focus) {
+  // never while muted for audio games; never in Grandma mode).
+  if (budget >= 15 && !opts.noBonus && !focus && !grandmaOn()) {
     let n = 0;
     for (let i = 0; i < out.length; i++) {
       if (out[i].t === "learn" || out[i].t === "bonus" || out[i].warm) { if (out[i].minion) n = 0; continue; }

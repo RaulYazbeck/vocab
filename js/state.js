@@ -111,6 +111,7 @@ function migrate() {
   if (!S.ankiSessions)          S.ankiSessions = 0;
   if (!ANKI.NEW_PER_DAY_OPTIONS.includes(S.ankiNewPerDay)) S.ankiNewPerDay = ANKI.NEW_PER_DAY_DEFAULT;
   if (S.ankiNewPaused === undefined) S.ankiNewPaused = false;
+  migratePrefs();
   migrateGames();
   migratePath();
   if (typeof migrateQuests === "function") migrateQuests();
@@ -120,6 +121,23 @@ function migrate() {
   if (typeof applyWordEdits === "function") applyWordEdits();
   // Auto-pause new Anki words after a long absence (3+ missed days).
   if (typeof checkAnkiAutoPause === "function") checkAnkiAutoPause();
+}
+
+// Two ways of using the app, both off by default and synced:
+//   grandma — the home screen shrinks to Start, quests and games
+//   speak   — "Speak, don't spell": recall is said aloud and self-graded
+function migratePrefs() {
+  if (!S.prefs || typeof S.prefs !== "object") S.prefs = {};
+  S.prefs.grandma = !!S.prefs.grandma;
+  S.prefs.speak = !!S.prefs.speak;
+  applyPrefClasses();
+}
+function grandmaOn() { return !!(S.prefs && S.prefs.grandma); }
+function speakOn() { return !!(S.prefs && S.prefs.speak); }
+function applyPrefClasses() {
+  if (!document.body) return;
+  document.body.classList.toggle("grandma", grandmaOn());
+  document.body.classList.toggle("speak-mode", speakOn());
 }
 
 // Minigame records (see games-core.js). Lives in the synced meta doc,

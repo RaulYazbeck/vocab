@@ -598,6 +598,8 @@ function settingsMainHtml() {
     : `${S.path.newPerDay ? S.path.newPerDay + " new words a day" : "New words paused"} · goal ${getDailyGoal()} · ${len[0].toUpperCase() + len.slice(1)} sessions (${lens[len]})`;
   const account = settingsAccountName();
   return `
+    ${setSwitchHtml("👵", "Grandma mode", "Big buttons, no fuss: just Start, your quests and games. Your grandchildren will be proud.", grandmaOn(), "toggleGrandma()")}
+    <div class="set-group-title">Everything else</div>
     ${setNavHtml("📈", "Progress", "Journey map, stats, collection, achievements" + (chests ? ` · <span class='accent'>${chests} chest${chests > 1 ? "s" : ""} to open</span>` : ""), "openSettingsPage('progress')")}
     ${setNavHtml("🎯", "Study plan", planSub, "openSettingsPage('plan')")}
     ${setNavHtml("🔊", "Sound & voice", soundSummary(), "openSettingsPage('sound')")}
@@ -763,6 +765,7 @@ function renderHome() {
   if (!home) return;
   if (document.getElementById("main-screen").style.display === "block") return;
   questEnsureToday();
+  if (grandmaOn()) { renderGrandmaHome(home); return; }
   const t = pathTodaySummary();
   const Q = S.quests;
   const len = S.path.sessionLen || "regular";
@@ -807,6 +810,49 @@ function renderHome() {
     ${journeyStripHtml(t.scan)}
     <div class="library-head"><span class="lh-title">📚 Library</span><small>Pick decks yourself — Learn · Drill · Timer · Games</small></div>`;
   maybeShowPathWelcome();
+}
+// 👵 Grandma mode: one progress line, Start (with its length), the
+// quests, the weekly saga and Games. Everything else waits in ⚙️.
+function renderGrandmaHome(home) {
+  const t = pathTodaySummary();
+  const Q = S.quests;
+  const len = S.path.sessionLen || "regular";
+  const streak = questStreak();
+  const sg = sagaProgress();
+  const scan = t.scan;
+  const pct = scan.total ? Math.round(scan.known / scan.total * 100) : 0;
+  const nothing = !t.due && !t.newLeft;
+  const banner = t.reason === "autopaused"
+    ? `<div class="tc-banner">⏸ New words paused after a few days away — they come back by themselves. <button class="tc-link" onclick="pathResume();renderHome()">Resume now</button></div>` : "";
+  home.innerHTML = `
+    <div class="today-card gm-card" id="today-card">
+      <div class="gm-progress" role="img" aria-label="${scan.known} of ${scan.total} words known">
+        <div class="gm-line"><span>🌳 <b>${scan.known.toLocaleString()}</b> of ${scan.total.toLocaleString()} words known</span>${streak ? `<span class="gm-streak">🔥 ${streak}</span>` : ""}</div>
+        <div class="gm-bar"><i class="gm-met" style="width:${scan.total ? Math.max(Math.round(scan.met / scan.total * 100), scan.met ? 1 : 0) : 0}%"></i><i style="width:${Math.max(pct, scan.known ? 1 : 0)}%"></i></div>
+        ${scan.met > scan.known ? `<div class="gm-sub">🌱 ${(scan.met - scan.known).toLocaleString()} more on their way</div>` : ""}
+      </div>
+      ${banner}
+      ${Q.pending.length ? `<button class="tc-chest" onclick="openPendingChest()">🎁 ${Q.pending.length} chest${Q.pending.length > 1 ? "s" : ""} to open</button>` : ""}
+      <div class="tc-len" role="radiogroup" aria-label="Session length">
+        ${Object.entries(PATH.SESSION_LENGTHS).map(([k, n]) => `<button class="tc-len-btn ${k === len ? "on" : ""}" role="radio" aria-checked="${k === len}" onclick="setSessionLen('${k}')">${k[0].toUpperCase() + k.slice(1)} <small>${n}</small></button>`).join("")}
+      </div>
+      <button class="tc-start gm-start ${nothing ? "calm" : ""}" onclick="startPathSession('${len}'${nothing ? ", { practice: true }" : ""})">${nothing ? "✓ All done · practise more ▶" : "Start ▶"}</button>
+      <button class="gm-games" onclick="openGamesHub(null)">🎮 Games</button>
+      ${questCardsHtml()}
+      ${sg && !sg.done ? `<div class="tc-saga">📜 Weekly saga ${sg.idx + 1}/3 · ${escapeHtml(sg.title)} <span>${sg.prog}/${sg.target}</span></div>` : sg && sg.done ? `<div class="tc-saga done">📜 Weekly saga complete ✓</div>` : ""}
+    </div>`;
+  maybeShowPathWelcome();
+}
+function toggleGrandma() {
+  S.prefs.grandma = !S.prefs.grandma;
+  saveState();
+  logEvent("setting", { k: "grandma", v: S.prefs.grandma });
+  applyPrefClasses();
+  if (S.prefs.grandma) { selectedIds.clear(); renderStartBar(); }
+  renderSettingsPanel();
+  renderGroups();
+  renderExpBar();
+  renderHome();
 }
 function setSessionLen(k) { if (!PATH.SESSION_LENGTHS[k]) return; S.path.sessionLen = k; saveState(); renderHome(); }
 function onQuietChanged() { renderHome(); }
