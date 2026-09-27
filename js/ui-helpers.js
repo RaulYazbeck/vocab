@@ -100,7 +100,10 @@ function copyTextToClipboard(text) {
 const ACCENT_KEYS = WORD_KEY === "fr"
   ? ["é", "è", "ê", "à", "â", "ç", "ô", "î", "û", "ù", "ë", "ï", "œ"]
   : ["ä", "ö", "ü", "ß", "Ä", "Ö", "Ü"];
+// German answers ignore umlauts and ß (Muller = Müller, Strasse = Straße),
+// so the German app shows no bar; French keeps it.
 function accentBarHtml(inputId) {
+  if (WORD_KEY !== "fr") return "";
   return `<div class="accent-bar" data-for="${inputId}" role="toolbar" aria-label="Special letters">${ACCENT_KEYS.map(k =>
     `<button type="button" class="accent-key" data-ch="${k}" tabindex="-1">${k}</button>`).join("")}</div>`;
 }
