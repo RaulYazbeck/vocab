@@ -82,7 +82,8 @@ registerGame({
       if (qi >= words.length) { words = sampleWords(eligible, 60); qi = 0; }
       target = words[qi++];
       const f = ctx.fmt(target);
-      const others = pickDistractors(target, eligible, 2, gameForm, rainFits);
+      const others = pickDistractors(target, eligible, 2, gameForm, rainFits, { hard: !f.rookie });
+      ctx.teach("");
       // Reverse (meanings fall, target at the bottom) for words you know,
       // at Platinum+ or with the Mirror twist — when the meanings fit.
       reversed = (rp.reverse || ctx.mirror) && f.reverse &&
@@ -124,7 +125,9 @@ registerGame({
       shakeEl(field); playMiss(); haptic(cost < 1 ? "miss" : "heavy");
       ctx.say(`${why} — it was ${gameForm(target)}${cost < 1 ? " (new word: half a heart)" : ""}`);
       speak(gameForm(target));
-      gTimeout(() => { if (lives <= 0) end(); else wave(); }, 1000);
+      if (drop && drop.w) recordConfusion(target, drop.w);
+      ctx.teach(wordLessonHtml(target, drop && !drop.ok ? { word: drop.w } : null), "bad");
+      gTimeout(() => { if (lives <= 0) end(); else wave(); }, 2000);
     };
 
     const hit = drop => {

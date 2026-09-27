@@ -36,6 +36,7 @@ registerGame({
     "Listen to the word, then pick what it means.",
     "Tap 🔊 to hear it again. Answering without a replay earns a bonus.",
     "From 💠 Platinum, words you know become dictation: type what you hear.",
+    "Words you know get sound-alike options; from 🥇 Gold the answer may be missing — pick <strong>∅ None of these</strong>.",
     "A wrong answer costs points (half for 🌱 new words). Keys 1–4 pick, Space replays.",
   ],
   requirement(pool) {
@@ -68,9 +69,12 @@ registerGame({
       const f = ctx.fmt(w);
       const typed = f.typed && ctx.size === "full";
       const n = Math.min(4, f.options);
-      const opts = typed ? [] : shuffle([{ text: gamePrompt(w), correct: true, word: w },
-        ...pickDistractors(w, ctx.pool, n - 1).map(x => ({ text: gamePrompt(x), correct: false, word: x }))]);
+      // Words you know: options whose German sounds alike, and from 🥇 Gold
+      // sometimes "None of these".
+      const opts = typed ? [] : mcChoices(w, { text: gamePrompt, n, pool: ctx.pool, target: false, hard: !f.rookie,
+        none: !f.rookie && ctx.size === "full" && ctx.rank >= 2 });
       q = { w, opts, typed };
+      ctx.teach("");
       replays = 0;
       ctx.setBar((r - 1) / words.length, "progress");
       ctx.setClock(`${r}/${words.length}`);
@@ -99,7 +103,7 @@ registerGame({
       ctx.say("Correct!");
       gTimeout(round, 1000);
     };
-    const bad = (w, btn) => {
+    const bad = (w, btn, picked) => {
       wrong++;
       combo = ctx.comboAfterMiss(combo, w);
       const pen = Math.round(5 * ctx.cost(w));
@@ -108,7 +112,9 @@ registerGame({
       playMiss(); haptic("miss");
       ctx.missed(w);
       ctx.say(`It was: ${gamePrompt(w)}`);
-      gTimeout(ctx.sudden ? () => ctx.finish({ score, correct, wrong, maxCombo, typedCorrect: typedOk, stats: { noReplay } }) : round, 1900);
+      noteWrongPick(w, picked);
+      ctx.teach(wordLessonHtml(w, picked, `<button class="g-link-btn" ${speakBtnAttrs(gameForm(w))}>🔊 Hear it again</button>`), "bad");
+      ctx.waitContinue(ctx.sudden ? () => ctx.finish({ score, correct, wrong, maxCombo, typedCorrect: typedOk, stats: { noReplay } }) : round);
     };
 
     const answer = i => {
@@ -120,7 +126,7 @@ registerGame({
       mcReveal(ctx.stage, q.opts, i);
       const rev = document.getElementById("l-reveal");
       if (rev) rev.textContent = gameForm(q.w);
-      if (opt.correct) { ctx.hit(q.w); good(q.w, btn, 10); } else bad(q.w, btn);
+      if (opt.correct) { ctx.hit(q.w); good(q.w, btn, 10); } else bad(q.w, btn, opt);
       ctx.setScore(score); ctx.setCombo(combo);
     };
     const answerTyped = v => {
@@ -131,7 +137,7 @@ registerGame({
       const rev = document.getElementById("l-reveal");
       if (rev) rev.innerHTML = res === true ? escapeHtml(gameForm(q.w)) : diffHtml(v, gameForm(q.w));
       if (res === true) { typedOk++; ctx.hit(q.w, "recall"); if (input) input.classList.add("correct"); good(q.w, input, 15); }
-      else if (res === "near") { if (input) input.classList.add("near"); ctx.say("Almost — check the spelling"); gTimeout(round, 1800); }
+      else if (res === "near") { if (input) input.classList.add("near"); ctx.say("Almost — check the spelling"); ctx.teach(`≈ Almost — ${diffHtml(v, gameForm(q.w))}`, "near"); ctx.waitContinue(round); }
       else { if (input) input.classList.add("wrong"); bad(q.w, input); }
       ctx.setScore(score); ctx.setCombo(combo);
     };

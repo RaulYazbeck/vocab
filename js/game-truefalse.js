@@ -19,6 +19,8 @@ registerGame({
     "A word and a translation: do they match?",
     "Swipe right (or tap ✓, or →) for TRUE · swipe left (✗, ←) for FALSE.",
     "Streaks multiply your points. A miss costs seconds — half for 🌱 new words.",
+    "For words you know the false pairs are sneaky: the right noun with the wrong article, a look-alike, or a word you've mixed up before.",
+    "After a miss the clock stops while you read why.",
   ],
   requirement(pool) {
     const n = distinctCount(pool);
@@ -53,10 +55,20 @@ registerGame({
       if (ctx.finished) return;
       if (qi >= words.length) { words = sampleWords(ctx.pool, 60); qi = 0; }
       const w = words[qi++];
+      const f = ctx.fmt(w);
       const truth = Math.random() < 0.5;
-      const other = truth ? null : pickDistractors(w, ctx.pool, 1)[0];
-      const shownForm = truth || !other ? gameForm(w) : gameForm(other);
-      q = { w, truth: truth || !other, shownForm };
+      // False pairs: for words you know, a near miss — the wrong article
+      // (~40% of nouns) or the most look-alike / mixed-up word.
+      let other = null, trap = null;
+      if (!truth) {
+        const t = !f.rookie && Math.random() < 0.4 ? articleTrap(w) : null;
+        if (t) trap = t;
+        else other = pickDistractors(w, ctx.pool, 1, gameForm, null, { hard: !f.rookie })[0] || null;
+      }
+      const isTrue = truth || (!other && !trap);
+      const shownForm = isTrue ? gameForm(w) : trap || gameForm(other);
+      q = { w, truth: isTrue, shownForm, other, trap };
+      ctx.teach("");
       const promptHtml = escapeHtml(gamePrompt(w)) + ctx.tag(w);
       const formHtml = `<span class="tf-target">${colorArticleHtml(shownForm)}</span>`;
       top.innerHTML = ctx.mirror ? formHtml : promptHtml;
@@ -93,7 +105,12 @@ registerGame({
         playMiss(); haptic("miss");
         ctx.say(`${gamePrompt(q.w)} = ${gameForm(q.w)}`);
         bot.innerHTML = `<span class="tf-target">${colorArticleHtml(gameForm(q.w))}</span>`;
-        gTimeout(ctx.sudden ? end : next, 1000);
+        if (q.other) recordConfusion(q.w, q.other);
+        const why = q.truth ? `<div class="g-teach-sub">✓ That pair was right.</div>`
+          : q.trap ? `<div class="g-teach-sub">✗ <s>${escapeHtml(q.trap)}</s> — wrong article.${GR_DE ? " " + genderRuleHtml(nounParts(q.w).noun, nounParts(q.w).answer) : ""}</div>`
+          : q.other ? `<div class="g-teach-sub">✗ ${colorArticleHtml(gameForm(q.other))} = ${escapeHtml(gamePrompt(q.other))}</div>` : "";
+        ctx.teach(wordLessonHtml(q.w, null, why), "bad");
+        if (ctx.sudden) gTimeout(end, 1500); else ctx.pauseClockFor(1900, next);
       }
       ctx.setScore(score); ctx.setCombo(combo);
       if (ctx.size === "bonus" && correct >= 8) gTimeout(end, 250);

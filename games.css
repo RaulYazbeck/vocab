@@ -655,3 +655,64 @@ body.g-drag-active { user-select:none; -webkit-user-select:none; cursor:grabbing
 #game-screen { overflow:hidden; }
 .g-bonus-goal { color:var(--gold); font-weight:800; }
 .g-bonus-goal.done { color:var(--success); }
+
+/* ── TEACHING PANEL (every game: the why behind an answer) ── */
+.g-teach { margin-top:12px; }
+.g-teach:not(.on) { display:none; }
+.g-teach-card {
+  padding:12px 14px; border-radius:var(--r-sm); border:1px solid var(--border);
+  background:rgba(255,255,255,0.04); font-size:14px; line-height:1.5; color:var(--text);
+  animation:gTeachIn 0.22s var(--ease) both;
+}
+.g-teach-card.ok   { border-color:rgba(0,216,150,0.45); background:var(--success-dim); }
+.g-teach-card.bad  { border-color:rgba(255,99,99,0.45); background:var(--error-dim); }
+.g-teach-card.near { border-color:rgba(245,166,35,0.45); background:var(--accent-dim); }
+.g-teach-main { font-size:15.5px; font-weight:700; }
+.g-teach-sub  { margin-top:4px; color:var(--text-2); font-size:13.5px; }
+.g-teach-pl   { color:var(--text-2); font-weight:500; font-size:13px; }
+.g-teach-rule { margin-top:6px; font-size:13.5px; color:var(--text); }
+.g-teach-ex {
+  margin-top:8px; padding-top:8px; border-top:1px dashed var(--border);
+  font-family:'JetBrains Mono',monospace; font-size:13.5px; color:var(--text);
+}
+.g-teach-ex span { display:block; margin-top:2px; font-family:'DM Sans',sans-serif; font-style:italic; color:var(--text-2); font-size:13px; }
+.g-teach-card .g-continue { margin:12px auto 0; display:flex; max-width:none; min-height:46px; }
+.g-teach-card .g-link-btn { margin-top:6px; }
+@keyframes gTeachIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce) { .g-teach-card { animation:none; } }
+
+/* "None of these" */
+.g-opt.none { border-style:dashed; color:var(--text-2); font-style:italic; }
+.g-opt.none.right { font-style:normal; }
+
+/* ── GAP FILL · steps ── */
+.cz-steps { display:flex; gap:8px; justify-content:center; margin-top:10px; font-size:11.5px; font-weight:700; letter-spacing:0.3px; text-transform:uppercase; }
+.cz-steps span { padding:3px 9px; border-radius:20px; border:1px solid var(--border); color:var(--text-3); }
+.cz-steps span.on { color:var(--accent-hi); border-color:rgba(245,166,35,0.5); background:var(--accent-dim); }
+.cz-steps span.done { color:var(--success); border-color:rgba(0,216,150,0.4); }
+.cz-lemma { font-family:'JetBrains Mono',monospace; text-transform:none; letter-spacing:0; color:var(--text); }
+.cz-sentence .cg-gap { display:inline-block; min-width:3.2em; border-bottom:2px solid var(--accent); color:transparent; line-height:1.1; }
+
+/* ── DER · DEN · DEM ── */
+.cs-noun { margin-top:10px; font-size:15px; font-weight:700; }
+.cs-noun span { font-weight:500; color:var(--text-2); }
+
+/* ── CONJUGATION SLOTS · tenses & verb track ── */
+.cj-chips { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin:0 0 8px; }
+.cj-chip {
+  padding:5px 10px; border-radius:20px; font-size:12px; font-weight:700; cursor:pointer;
+  border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--text-3);
+  font-family:'DM Sans',sans-serif; transition:all 0.15s var(--ease);
+}
+.cj-chip.on { color:var(--accent-hi); border-color:rgba(245,166,35,0.55); background:var(--accent-dim); }
+.cj-chip.all.on { color:var(--success); border-color:rgba(0,216,150,0.5); background:var(--success-dim); }
+.cj-machine.three { grid-template-columns:1.3fr 1fr; }
+.cj-machine.three .cj-reel.tense { grid-column:1 / -1; height:40px; }
+.cj-reel.tense span { font-size:15px; color:var(--accent-hi); }
+.cj-meaning { text-align:center; font-size:13.5px; color:var(--text-2); min-height:18px; margin-bottom:4px; }
+.cj-new { color:var(--success); font-weight:700; font-size:12px; }
+.vr-row { display:flex; flex-wrap:wrap; gap:4px 12px; margin-top:8px; font-family:'JetBrains Mono',monospace; font-size:13px; }
+.vr-c { color:var(--text-2); }
+.vr-c.on { color:var(--text); font-weight:700; background:var(--accent-dim); border-radius:4px; padding:0 4px; }
+.vr-p { color:var(--text-3); }
+.vr-t { color:var(--text-3); }

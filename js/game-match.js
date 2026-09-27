@@ -140,6 +140,11 @@ registerGame({
       gTimeout(() => [a, t].forEach(x => { x.classList.remove("bad"); if (memory && x.dataset.side === "R") { x.classList.remove("peek"); x.classList.add("hidden-face"); } }), 450);
       playMiss(); haptic("miss");
       ctx.say(cost < 1 ? "Not a pair — new word, half the cost." : "Not a pair — try again.");
+      const other = byKey.get((promptTile === a ? t : a).dataset.k);
+      if (other && !sameWord(other, w)) {
+        recordConfusion(w, other);
+        ctx.teach(`✗ Not a pair: <strong>${escapeHtml(gamePrompt(w))}</strong> ≠ ${colorArticleHtml(gameForm(other))} <span class="g-teach-pl">(= ${escapeHtml(gamePrompt(other))})</span>`, "bad");
+      }
       if (ctx.sudden) { ctx.busy = true; gTimeout(() => finish(false), 600); }
       return false;
     };

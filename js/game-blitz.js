@@ -22,6 +22,8 @@ registerGame({
     "Pick the right translation — as many as you can before time runs out.",
     "Questions alternate direction for words you know; 🌱 new words stay easy.",
     "Streaks multiply your points (×2 at 5, ×3 at 10, ×4 at 20). A miss costs seconds — half for new words.",
+    "Words you know get tricky options: look-alikes, a wrong article, your own past mix-ups. From 🥈 Silver, sometimes the answer isn't there — pick <strong>∅ None of these</strong>.",
+    "After a miss the clock stops while you read why.",
     "Keys 1–6 work too.",
   ],
   requirement(pool) {
@@ -46,9 +48,10 @@ registerGame({
       if (ctx.mirror && f.reverse) reverse = !reverse;
       const text = x => reverse ? gamePrompt(x) : gameForm(x);
       const n = Math.min(f.options, 6);
-      const opts = shuffle([{ text: text(w), correct: true, word: w },
-        ...pickDistractors(w, ctx.pool, n - 1).map(x => ({ text: text(x), correct: false, word: x }))]);
+      const opts = mcChoices(w, { text, n, pool: ctx.pool, target: !reverse, hard: !f.rookie,
+        none: !f.rookie && ctx.size === "full" && ctx.rank >= 1 });
       q = { w, opts, at: performance.now() };
+      ctx.teach("");
       ctx.busy = false;
       const shown = reverse ? gameForm(w) : gamePrompt(w);
       const hideText = spoken && reverse;
@@ -92,9 +95,11 @@ registerGame({
         floatScore(btn, `−${(pen / 1000).toFixed(pen % 1000 ? 1 : 0)}s`, "bad");
         shakeEl(btn); playMiss(); haptic("miss");
         ctx.missed(q.w);
-        ctx.say(`Answer: ${q.opts.find(o => o.correct).text}`);
-        if (ctx.sudden) { gTimeout(end, 850); }
-        else gTimeout(next, 850);
+        noteWrongPick(q.w, opt);
+        ctx.say(`Answer: ${gameForm(q.w)} = ${gamePrompt(q.w)}`);
+        ctx.teach(wordLessonHtml(q.w, opt), "bad");
+        if (ctx.sudden) { gTimeout(end, 1500); }
+        else ctx.pauseClockFor(1900, next);
       }
       ctx.setScore(score); ctx.setCombo(combo);
       if (ctx.size === "bonus" && correct >= 6) end();

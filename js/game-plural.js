@@ -82,6 +82,7 @@ if (!IS_FRENCH_APP) registerGame({
 
     const round = () => {
       if (r >= words.length) { done(); return; }
+      ctx.teach("");
       const w = words[r++];
       const item = pluralItem(w);
       const f = ctx.fmt(w);
@@ -123,7 +124,9 @@ if (!IS_FRENCH_APP) registerGame({
       playMiss(); haptic("miss");
       ctx.missed(q.w);
       ctx.say(`${q.item.np.full} → die ${q.item.pl}`);
-      gTimeout(ctx.sudden ? done : round, 1800);
+      const rule = typeof pluralRuleHtml === "function" ? pluralRuleHtml(q.item.np.full, q.item.pl) : "";
+      ctx.teach(`<div class="g-teach-main">${colorArticleHtml(q.item.np.full)} → <strong>die ${escapeHtml(q.item.pl)}</strong> <span class="g-teach-pl">= ${escapeHtml(gamePrompt(q.w))}</span></div>${rule ? `<div class="g-teach-rule">${rule}</div>` : `<div class="g-teach-sub">No simple rule for this one — learn it with the singular.</div>`}`, "bad");
+      ctx.waitContinue(ctx.sudden ? done : round);
     };
 
     const answer = i => {
@@ -144,7 +147,7 @@ if (!IS_FRENCH_APP) registerGame({
       speak("die " + q.item.pl);
       const sub = ctx.stage.querySelector(".pl-arrow");
       if (res === true) { typedOk++; if (input) input.classList.add("correct"); if (sub) sub.textContent = `✓ die ${q.item.pl}`; good(input); }
-      else if (res === "near") { if (input) input.classList.add("near"); if (sub) sub.innerHTML = `≈ die ${diffHtml(v.replace(/^\s*die\s+/i, ""), q.item.pl)}`; ctx.say("Almost — check the spelling"); gTimeout(round, 1800); }
+      else if (res === "near") { if (input) input.classList.add("near"); if (sub) sub.innerHTML = `≈ die ${diffHtml(v.replace(/^\s*die\s+/i, ""), q.item.pl)}`; ctx.say("Almost — check the spelling"); ctx.teach("≈ Almost — check the spelling.", "near"); ctx.waitContinue(round); }
       else { if (input) input.classList.add("wrong"); if (sub) sub.textContent = `die ${q.item.pl}`; bad(input); }
       ctx.setScore(score); ctx.setCombo(combo);
     };

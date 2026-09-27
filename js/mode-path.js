@@ -464,6 +464,7 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
   if (fb) fb.innerHTML = `
     <div class="p-fb-main">${head}${chip}${w.pl && it.t !== "cloze" && it.t !== "reverse" ? `<div class="p-sub">plural: ${escapeHtml(w.pl)}</div>` : ""}</div>
     ${it.t === "reverse" ? `<div class="p-sub">${colorArticleHtml(gameForm(w))} = ${escapeHtml(gamePrompt(w))}</div>` : ""}
+    ${pathCaseNote(it)}
     ${examplesHtml(w, "first")}`;
   pathSetActions(`
     <button class="audio-btn" onclick="pathEditWord()" title="Edit this word">✏️</button>
@@ -474,6 +475,13 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
   if (ok !== true && !fromReverse) holdAfterMistake("p-go");
   speak(w[WORD_KEY]);
   if (input) input.focus({ preventScroll: true });
+}
+// Sentence items: why the article in front of the noun has its form
+// (display only — grading is unchanged).
+function pathCaseNote(it) {
+  if (it.t !== "cloze" || typeof caseItem !== "function" || !it.cloze) return "";
+  const ci = caseItem(it.w);
+  return ci && ci.ex === it.cloze.example ? `<div class="p-sub">🧭 ${ci.reason.html}</div>` : "";
 }
 function pathEditWord() {
   const s = pathSession; if (!s || !s.cur) return;
