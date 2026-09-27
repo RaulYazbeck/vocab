@@ -1,10 +1,14 @@
 // ── CLASSIC & FOCUS DRILL ─────────────────────
 function startDrill() {
+  _surpriseShownAt = 0;
   answered    = false;
   currentWord = drillSubMode === 'refresh' ? pickNextRefresh() : pickNext(drillSubMode === 'focus');
   initDrillScreen();
 }
-function nextDrillWord() { answered = false; currentWord = drillSubMode === 'refresh' ? pickNextRefresh() : pickNext(drillSubMode === 'focus'); updateDrillWord(); }
+function nextDrillWord() {
+  if (maybeSurpriseRound()) return; // 🎁 bonus round every 10 correct (games-core.js)
+  answered = false; currentWord = drillSubMode === 'refresh' ? pickNextRefresh() : pickNext(drillSubMode === 'focus'); updateDrillWord();
+}
 // Renders the drill skeleton once per session. Never called again until
 // the user leaves and re-enters drill mode.
 function initDrillScreen() {
@@ -134,7 +138,7 @@ function checkDrillMilestone() {
   }
   S.drillCorrectToday++;
   if (S.drillCorrectToday > (S.bestDayCorrect || 0)) S.bestDayCorrect = S.drillCorrectToday;
-  if (S.drillCorrectToday >= getDailyGoal() && !S.goalDates.includes(today)) S.goalDates.push(today);
+  markGoalIfReached();
   const milestone = getDrillMilestone(S.drillCorrectToday);
   if (milestone && !S.drillMilestonesClaimed.includes(milestone.at)) {
     S.drillMilestonesClaimed.push(milestone.at);

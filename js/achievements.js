@@ -88,6 +88,28 @@ const ACHIEVEMENTS = [
     desc:t => `Grow ${t} card${t>1?"s":""} to a 21-day review interval`,
     tiers:[1, 5, 15, 30, 60, 100, 160, 240, 350, 500],
     value:() => Object.values(S.words).filter(ws => ws.anki && ws.anki.interval >= 21).length },
+
+  // ── Arcade (minigames, see games-core.js) ──
+  { id:"arcade_regular", icon:"🕹️", name:"Arcade Regular", category:"Arcade",
+    desc:t => `Finish ${t.toLocaleString()} minigame round${t>1?"s":""}`,
+    tiers:[1, 10, 25, 50, 100, 200, 350, 500, 750, 1000],
+    value:() => (S.games && S.games.totalPlays) || 0 },
+  { id:"star_collector", icon:"🌟", name:"Star Collector", category:"Arcade",
+    desc:t => `Collect ${t} best-round stars across the games`,
+    tiers:[3, 6, 9, 12, 15, 18, 21, 24, 27, 30],
+    value:() => Object.values((S.games && S.games.stars) || {}).reduce((a, b) => a + (b || 0), 0) },
+  { id:"boss_slayer", icon:"👾", name:"Boss Slayer", category:"Arcade",
+    desc:t => `Defeat ${t} boss${t>1?"es":""}`,
+    tiers:[1, 3, 5, 10, 20, 35, 50, 75, 100, 150],
+    value:() => (S.games && S.games.bossesDefeated) || 0 },
+  { id:"daily_challenger", icon:"📆", name:"Daily Challenger", category:"Arcade",
+    desc:t => `Complete ${t} daily challenge${t>1?"s":""}`,
+    tiers:[1, 3, 7, 14, 30, 50, 75, 100, 150, 200],
+    value:() => (S.games && S.games.daily && S.games.daily.completedDates.length) || 0 },
+  { id:"gender_guru", icon:"🎨", name:"Gender Guru", category:"Arcade",
+    desc:t => `Get ${t} genders right in a row`,
+    tiers:[10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+    value:() => (S.games && S.games.bestGenderStreak) || 0 },
 ];
 
 // One "Conquered" ladder (single level) per deck group, generated from
@@ -123,6 +145,8 @@ const SECRET_ACHIEVEMENTS = [
     earned:() => hasWeekendPair() },
   { id:"hat_trick", icon:"🎩", name:"Hat Trick", desc:"Win three timer sessions in one day", xp:150,
     earned:ev => ev.type === "timer_end" && ev.won && (ev.winsToday || 0) >= 3 },
+  { id:"perfect_match", icon:"🃏", name:"Perfect Match", desc:"Clear a full Match Pairs round with no mistakes in under 45 seconds", xp:150,
+    earned:ev => ev.type === "game_end" && ev.game === "match" && ev.size === "full" && ev.wrong === 0 && ev.seconds < 45 },
 ];
 
 // ── COUNTING HELPERS ──────────────────────────

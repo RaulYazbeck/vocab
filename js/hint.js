@@ -61,6 +61,13 @@ function hintAnswerTokens(answer) {
 // Returns HTML of an example sentence with the answer word(s) redacted,
 // or null when the word can't be confidently located in any example.
 function buildHint(word) {
+  const info = buildHintInfo(word);
+  return info ? info.html : null;
+}
+
+// Same as buildHint, plus the example the redaction was built from
+// (Gap Fill shows its translation and reveals the full sentence).
+function buildHintInfo(word) {
   if (!word || !word.examples || !word.examples.length) return null;
   const tokens = hintAnswerTokens(word[WORD_KEY]);
   if (!tokens.length) return null;
@@ -83,7 +90,7 @@ function buildHint(word) {
       }
       return part;
     }).join("");
-    if (hidMain) return out; // safe: the main word is hidden
+    if (hidMain) return { html: out, example: ex }; // safe: the main word is hidden
   }
   return null;
 }

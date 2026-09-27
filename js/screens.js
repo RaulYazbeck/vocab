@@ -121,7 +121,7 @@ function renderStartBar() {
       document.querySelector(".app").appendChild(spacer);
     }
   }
-  const modeLabels = { learn:"👁 Learn", drill:"📖 Drill", timer:"⏱ Timer" };
+  const modeLabels = { learn:"👁 Learn", drill:"📖 Drill", timer:"⏱ Timer", games:"🎮 Games" };
   const names = [...selectedIds].map(id => getDeck(id)?.name).filter(Boolean).join(", ");
 
   // Anki selection: no modes to pick — you owe what you owe, then stop.
@@ -151,6 +151,7 @@ function renderStartBar() {
       </div>
       <div class="fi-modes" style="margin-top:6px;">
         <button class="fi-pill" onclick="showScreen('forecast')">📅 Forecast</button>
+        <button class="fi-pill" onclick="openGamesHub(selectedAnkiDeckIds())">🎮 Games</button>
         <button class="fi-pill ${S.ankiNewPaused ? "active" : ""}" onclick="toggleAnkiPause()">${S.ankiNewPaused ? "▶ Resume new words" : "⏸ Pause new words"}</button>
       </div>
       ${owed > 0
@@ -179,7 +180,7 @@ function renderStartBar() {
       <span class="fi-names">${names}</span>
     </div>
     <div class="fi-modes">
-      ${["learn","drill","timer"].map(m =>
+      ${["learn","drill","timer","games"].map(m =>
         `<button class="fi-pill ${activeMode === m ? "active" : ""}" onclick="setMode('${m}')">${modeLabels[m]}</button>`
       ).join("")}
     </div>
@@ -203,7 +204,9 @@ function renderStartBar() {
         `<button class="fi-pill ${timerWordCount === n ? "active" : ""}" onclick="setTimerCount(${n})">${n}</button>`
       ).join("")}
     </div>` : ""}
-    <button class="fi-start" onclick="startSession()">Start ▶</button>`;
+    ${activeMode === "games" ? `
+    <div class="fi-owed-sub" style="margin:-2px 0 10px;text-align:center;">Minigames with every unlocked word in these decks</div>` : ""}
+    <button class="fi-start" onclick="startSession()">${activeMode === "games" ? "Open games ▶" : "Start ▶"}</button>`;
     requestAnimationFrame(() => {
     const spacer = document.getElementById("island-spacer");
     if (spacer) spacer.style.height = (island.offsetHeight + 32) + "px";
@@ -565,9 +568,11 @@ function renderSettingsPanel() {
       <div class="settings-title">Settings</div>
       <button class="settings-item" onclick="closeSettings();showScreen('stats')">📊&nbsp; Stats &amp; Progress</button>
       <button class="settings-item" onclick="closeSettings();showScreen('badges')">🏆&nbsp; Achievements</button>
+      <button class="settings-item" onclick="closeSettings();showScreen('games')">🎮&nbsp; Games</button>
       <button class="settings-item" onclick="closeSettings();showScreen('edits')">✏️&nbsp; My word edits${editCount ? ` (${editCount})` : ""}</button>
       <button class="settings-item" id="settings-mute-btn" onclick="toggleMute()">${muteEnabled ? "🔇&nbsp; Sound off" : "🔊&nbsp; Sound on"}</button>
       <button class="settings-item" id="settings-voice-btn" onclick="cycleVoiceEngine()">${voiceEngineSettingLabel()}</button>
+      <button class="settings-item" onclick="toggleSurpriseRounds()">🎁&nbsp; Surprise rounds in Drill: ${S.games && S.games.surprise === false ? "off" : "on"} <span style='font-size:11px;color:var(--text-3);'>(bonus game every ${SURPRISE_EVERY} correct)</span></button>
       <div class="settings-goal">
         <span class="settings-goal-label">🎯&nbsp; Daily goal</span>
         ${GOAL_OPTIONS.map(n => `<button class="goal-pick ${goal===n?"active":""}" onclick="setDailyGoal(${n})">${n}</button>`).join("")}

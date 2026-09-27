@@ -127,6 +127,8 @@ h1 { font-family:'DM Sans',sans-serif; font-size:20px; font-weight:900; color:va
   transition:all 0.18s var(--ease);
 }
 .hdr-btn:hover { background:rgba(255,255,255,0.12); color:var(--text); border-color:var(--border-hi); }
+.hdr-btn { white-space:nowrap; }
+@media(max-width:480px){ .header{padding:11px 12px;} .header-right{gap:6px;} .hdr-btn{padding:6px 10px;} h1{font-size:18px;} }
 
 /* ── SYNC STATUS ───────────────── */
 #sync-status { min-height:16px; font-size:11px; color:var(--text-3); text-align:right; margin:-4px 4px 8px 0; cursor:pointer; }

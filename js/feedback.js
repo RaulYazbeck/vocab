@@ -33,8 +33,8 @@ function getAudioCtx() {
   if (audioCtx.state === "suspended") audioCtx.resume();
   return audioCtx;
 }
-// notes: [{ freq, at, dur }], volume 0–1
-function playNotes(notes, volume) {
+// notes: [{ freq, at, dur }], volume 0–1, type: oscillator waveform
+function playNotes(notes, volume, type = "sine") {
   try {
     const ctx = getAudioCtx();
     if (!ctx) return;
@@ -43,7 +43,7 @@ function playNotes(notes, volume) {
       const osc  = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.connect(gain); gain.connect(ctx.destination);
-      osc.type = "sine";
+      osc.type = type;
       osc.frequency.setValueAtTime(n.freq, t + n.at);
       gain.gain.setValueAtTime(0.0001, t + n.at);
       gain.gain.linearRampToValueAtTime(volume, t + n.at + 0.02);
@@ -85,6 +85,42 @@ function playAchievement() {
     { freq:1175, at:0.10, dur:0.14 },
     { freq:1568, at:0.20, dur:0.45 },
   ], 0.18);
+}
+
+// ── GAME SOUNDS & HAPTICS ─────────────────────
+// Short arcade effects for the minigames. Unlike the answer chimes
+// above, these follow the 🔇 setting: minigames fire them rapidly, so
+// "Sound off" has to silence them. Haptics follow the same switch.
+function gameSfxOn() { return !muteEnabled; }
+function playPop() {
+  if (gameSfxOn()) playNotes([{ freq:880, at:0, dur:0.07 }, { freq:1320, at:0.05, dur:0.09 }], 0.14);
+}
+// Pitch climbs with the combo so a hot streak audibly "rises".
+function playCombo(n) {
+  if (!gameSfxOn()) return;
+  const f = 523 * Math.pow(2, Math.min(n, 24) / 24);
+  playNotes([{ freq:f, at:0, dur:0.09 }, { freq:f * 1.5, at:0.06, dur:0.16 }], 0.14);
+}
+function playTick() {
+  if (gameSfxOn()) playNotes([{ freq:1250, at:0, dur:0.035 }], 0.07);
+}
+function playMiss() {
+  if (gameSfxOn()) playNotes([{ freq:220, at:0, dur:0.16 }, { freq:185, at:0.08, dur:0.22 }], 0.12, "triangle");
+}
+function playBossHit() {
+  if (gameSfxOn()) playNotes([{ freq:130, at:0, dur:0.12 }, { freq:98, at:0.05, dur:0.2 }], 0.12, "square");
+}
+function playGameOver() {
+  if (gameSfxOn()) playNotes([
+    { freq:392, at:0, dur:0.2 }, { freq:330, at:0.18, dur:0.2 }, { freq:262, at:0.36, dur:0.45 },
+  ], 0.16, "triangle");
+}
+function playCountdown(final) {
+  if (gameSfxOn()) playNotes([{ freq: final ? 1047 : 659, at:0, dur: final ? 0.25 : 0.1 }], 0.13);
+}
+function buzz(pattern) {
+  if (!gameSfxOn()) return;
+  try { if (navigator.vibrate) navigator.vibrate(pattern); } catch (e) {}
 }
 
 // ── CELEBRATIONS ──────────────────────────────
