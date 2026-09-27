@@ -198,7 +198,9 @@ qt({ id: "a_path", slot: "A", fam: "path", icon: "📖", w: 3, target: c => sz(c
   title: q => `Practise ${q.target} words in Today sessions`, prog: m => m.path, go: "path" });
 // With a finish date (Settings), this one always takes the Core slot:
 // the day's reviews + new words, sized so the 4 quests keep you on time.
-// It also completes as soon as today's plan is all done.
+// Its progress is the goal bar's counter (right answers outside games),
+// so the two always show the same number. If the due and new words run
+// out first, extra practice makes up the rest.
 qt({ id: "a_plan", slot: "A", fam: "plan", icon: "📅", w: 0, fixed: true, ok: () => false,
   target: c => c.plan ? c.plan.target : sz(c, 0.45, 10, 90),
   title: q => `Today's plan: ${q.target} right answers`,
@@ -206,7 +208,7 @@ qt({ id: "a_plan", slot: "A", fam: "plan", icon: "📅", w: 0, fixed: true, ok: 
     if (p && p.day === studyToday()) parts.push(`${p.reviews} reviews + ${p.pace} new words`);
     if (S.path.deadline && pathDaysLeft() >= 0) parts.push(`on course for ${fmtShortDate(S.path.deadline)}`);
     return parts.join(" · "); },
-  prog: (m, q) => typeof pathPlanDone === "function" && pathPlanDone() ? q.target : m.ok, go: "path" });
+  prog: m => m.ok, go: "path" });
 qt({ id: "a_typed", slot: "A", fam: "typed", icon: "⌨️", w: 3, target: c => sz(c, 0.45, 10, 90),
   title: q => `Type ${q.target} correct answers (any mode)`, prog: m => m.typed, go: "path" });
 qt({ id: "a_clear", slot: "A", fam: "clear", icon: "🧹", w: 2,
@@ -1048,34 +1050,144 @@ function openPendingChest() {
   showChestModal(ch, res);
 }
 const CHEST_SRC = { daily: "Daily chest", weekly: "Weekly chest", flash: "Flash quest chest", lucky: "Lucky drop", double: "✨ Double reward", weekend: "Weekend bonus", world: "World boss chest", saga: "Saga chest", boss: "👑 Deck boss chest", minion: "⚔️ Minion chest" };
+// The opening: the chest lands in the middle of the screen as a plain
+// Common chest and takes a few taps. Some taps upgrade it — Rare, Epic,
+// Legendary — up to the rarity it already rolled (rollRarity decides,
+// the taps only show it). Four taps for every chest, so the count gives
+// nothing away… except a Legendary, which upgrades on the "last" tap
+// and asks for one more.
+const CHEST_TAPS = 4;
+function chestTapPlan(finalIdx, rng = Math.random) {
+  // upgrades[k] = the tier reached on tap k+1 (or -1: just a shake).
+  const steps = Math.max(CHEST_TAPS, finalIdx + 2);
+  const early = Math.min(finalIdx, CHEST_TAPS - 2);
+  const slots = seededShuffle([...Array(CHEST_TAPS - 1).keys()], rng).slice(0, early).sort((a, b) => a - b);
+  const plan = new Array(steps - 1).fill(-1);
+  slots.forEach((k, i) => plan[k] = i + 1);
+  if (finalIdx > early) plan[CHEST_TAPS - 1] = finalIdx; // the Legendary surprise
+  return plan;
+}
+function chestSvg() {
+  return `<svg class="chx-svg" viewBox="0 0 200 180" aria-hidden="true">
+    <defs><clipPath id="chx-lid-clip"><path d="M30 80 V60 Q30 24 100 24 Q170 24 170 60 V80 Z"/></clipPath></defs>
+    <ellipse cx="100" cy="164" rx="74" ry="9" fill="rgba(0,0,0,0.35)"/>
+    <ellipse class="chx-inner" cx="100" cy="80" rx="66" ry="10"/>
+    <g class="chx-base">
+      <rect x="30" y="80" width="140" height="76" rx="8" class="c-wood"/>
+      <path d="M32 106 H168 M32 131 H168" class="c-seam"/>
+      <rect x="46" y="80" width="15" height="76" class="c-band"/>
+      <rect x="139" y="80" width="15" height="76" class="c-band"/>
+      <rect x="26" y="146" width="148" height="12" rx="5" class="c-band"/>
+      <rect x="84" y="72" width="32" height="40" rx="6" class="c-plate"/>
+      <circle cx="100" cy="88" r="5" class="c-hole"/><rect x="97.5" y="90" width="5" height="11" rx="2" class="c-hole"/>
+      <circle cx="100" cy="106" r="3.2" class="c-gem"/>
+    </g>
+    <g class="chx-lid">
+      <path d="M30 80 V60 Q30 24 100 24 Q170 24 170 60 V80 Z" class="c-wood"/>
+      <g clip-path="url(#chx-lid-clip)">
+        <path d="M30 52 Q100 30 170 52" class="c-seam"/>
+        <rect x="46" y="10" width="15" height="72" class="c-band"/>
+        <rect x="139" y="10" width="15" height="72" class="c-band"/>
+        <path d="M44 44 Q70 30 100 29" class="c-sheen"/>
+      </g>
+      <rect x="26" y="72" width="148" height="12" rx="5" class="c-band"/>
+      <circle cx="53.5" cy="78" r="2.4" class="c-rivet"/><circle cx="146.5" cy="78" r="2.4" class="c-rivet"/>
+      <circle cx="100" cy="46" r="5.5" class="c-gem"/>
+    </g>
+  </svg>`;
+}
+function chestSfx(kind, tier = 0) {
+  if (typeof gameSfxOn === "function" && !gameSfxOn()) return;
+  if (kind === "tap") playNotes([{ freq: 150 + tier * 30, at: 0, dur: 0.12 }, { freq: 110 + tier * 20, at: 0.04, dur: 0.16 }], 0.16, "triangle");
+  else if (kind === "up") { const f = 523 * Math.pow(1.26, tier); playNotes([{ freq: f, at: 0, dur: 0.14 }, { freq: f * 1.25, at: 0.09, dur: 0.14 }, { freq: f * 1.5, at: 0.18, dur: 0.4 }], 0.2); }
+}
+function chestParticles(stage, color, n, spread) {
+  const box = stage.querySelector(".chx-fx");
+  if (!box) return;
+  for (let i = 0; i < n; i++) {
+    const p = document.createElement("i");
+    const a = Math.random() * Math.PI * 2, d = spread * (0.55 + Math.random() * 0.6);
+    p.style.cssText = `--dx:${Math.cos(a) * d}px;--dy:${Math.sin(a) * d - spread * 0.25}px;--pc:${color};--ps:${4 + Math.random() * 6}px;animation-delay:${Math.random() * 60}ms`;
+    box.appendChild(p);
+    setTimeout(() => p.remove(), 1100);
+  }
+}
 function showChestModal(ch, res) {
-  const info = RARITY_INFO[res.rar];
   const old = document.getElementById("chest-modal"); if (old) old.remove();
+  const finalIdx = Math.max(0, RARITIES.indexOf(res.rar));
+  const plan = chestTapPlan(finalIdx);
+  const final = RARITY_INFO[res.rar];
+  let tier = 0, taps = 0, opened = false;
   const m = document.createElement("div");
-  m.className = "modal-overlay"; m.id = "chest-modal";
-  m.innerHTML = `<div class="modal-sheet chest-sheet" role="dialog" aria-label="Chest">
-      <div class="chest-src">${escapeHtml(CHEST_SRC[ch.src] || "Chest")}</div>
-      <button class="chest-box shaking" id="chest-box" style="--rc:${info.color}" aria-label="Open the chest">🎁</button>
-      <div class="chest-tap" id="chest-tap">Tap to open</div>
-      <div class="chest-reveal" id="chest-reveal" style="display:none">
-        <div class="chest-rar" style="color:${info.color}">${info.icon} ${info.name}</div>
-        <ul class="chest-loot">${res.loot.map(l => `<li>${escapeHtml(l)}</li>`).join("")}</ul>
+  m.className = "modal-overlay chx-overlay"; m.id = "chest-modal";
+  m.innerHTML = `<div class="chx r-common" id="chx" role="dialog" aria-label="Chest">
+      <button class="chx-skip" id="chx-skip">Skip ›</button>
+      <div class="chx-src">${escapeHtml(CHEST_SRC[ch.src] || "Chest")}</div>
+      <div class="chx-rar" id="chx-rar" aria-live="polite">${RARITY_INFO.common.name}</div>
+      <button class="chx-btn" id="chx-btn" aria-label="Tap the chest">
+        <span class="chx-rays"></span><span class="chx-glow"></span><span class="chx-beam"></span>
+        <span class="chx-body">${chestSvg()}</span>
+        <span class="chx-fx"></span>
+      </button>
+      <div class="chx-pips" id="chx-pips">${"<i></i>".repeat(CHEST_TAPS)}</div>
+      <div class="chx-tap" id="chx-tap">Tap the chest!</div>
+      <div class="chx-reveal" id="chx-reveal" hidden>
+        <ul class="chest-loot">${res.loot.map((l, i) => `<li style="animation-delay:${0.25 + i * 0.12}s">${escapeHtml(l)}</li>`).join("")}</ul>
         <div class="modal-actions">${S.quests.pending.length ? `<button class="modal-btn secondary" onclick="closeChestModal();openPendingChest()">Next chest (${S.quests.pending.length}) →</button>` : ""}
-          <button class="modal-btn primary" onclick="closeChestModal()">Nice!</button></div>
+          <button class="modal-btn primary" id="chx-ok" onclick="closeChestModal()">Nice!</button></div>
       </div>
     </div>`;
   document.body.appendChild(m);
-  const box = m.querySelector("#chest-box");
-  const reveal = () => {
-    box.classList.remove("shaking"); box.classList.add("open"); box.textContent = info.icon; box.disabled = true;
-    m.querySelector("#chest-tap").style.display = "none";
-    m.querySelector("#chest-reveal").style.display = "";
+  const stage = m.querySelector("#chx"), btn = m.querySelector("#chx-btn"), label = m.querySelector("#chx-rar");
+  const tapLine = m.querySelector("#chx-tap"), pips = m.querySelector("#chx-pips");
+  const setTier = t => {
+    tier = t;
+    const key = RARITIES[t], info = RARITY_INFO[key];
+    RARITIES.forEach(r => stage.classList.toggle("r-" + r, r === key));
+    label.textContent = info.name + (t ? "!" : "");
+    label.classList.remove("pop"); void label.offsetWidth; label.classList.add("pop");
+    stage.classList.remove("flash"); void stage.offsetWidth; stage.classList.add("flash");
+    chestParticles(stage, info.color, 14 + t * 8, 110 + t * 20);
+    chestSfx("up", t);
+    haptic(t >= 2 ? "heavy" : "correct");
+    if (t === 3) confettiBurst(30);
+  };
+  const open = () => {
+    if (opened) return;
+    opened = true;
+    if (tier !== finalIdx) { tier = finalIdx; RARITIES.forEach(r => stage.classList.toggle("r-" + r, r === res.rar)); }
+    stage.classList.add("open");
+    label.textContent = `${final.icon} ${final.name}`;
+    label.classList.remove("pop"); void label.offsetWidth; label.classList.add("pop");
+    btn.disabled = true;
+    tapLine.style.display = pips.style.display = m.querySelector("#chx-skip").style.display = "none";
+    m.querySelector("#chx-reveal").hidden = false;
+    chestParticles(stage, final.color, 26, 150);
     confettiBurst(res.rar === "legendary" ? 80 : res.rar === "epic" ? 50 : 24);
     if (res.rar === "legendary" || res.rar === "epic") playLevelUp(); else playAchievement();
     haptic("correct");
+    setTimeout(() => { const ok = document.getElementById("chx-ok"); if (ok) ok.focus({ preventScroll: true }); }, 350);
   };
-  box.onclick = reveal;
-  setTimeout(() => { if (box.isConnected) box.focus(); }, 300);
+  btn.onclick = () => {
+    if (opened) return;
+    taps++;
+    const up = plan[taps - 1];
+    if (up === undefined) { open(); return; }
+    stage.style.setProperty("--shake", 1 + taps * 0.35);
+    btn.classList.remove("hit"); void btn.offsetWidth; btn.classList.add("hit");
+    chestSfx("tap", taps);
+    haptic("select");
+    chestParticles(stage, "rgba(255,255,255,0.8)", 5, 70);
+    if (up > 0) setTier(up);
+    // The Legendary surprise earns the extra tap its own pip.
+    if (up === 3 && taps === CHEST_TAPS) pips.insertAdjacentHTML("beforeend", "<i class='extra'></i>");
+    pips.querySelectorAll("i").forEach((p, i) => p.classList.toggle("on", i < taps));
+    const left = plan.length + 1 - taps;
+    tapLine.textContent = left === 1 ? (up === 3 ? "LEGENDARY! One more tap…" : "One more tap — open it!") : "Keep tapping…";
+  };
+  m.querySelector(".chx-body").addEventListener("animationend", e => { if (e.animationName === "chxHit") btn.classList.remove("hit"); });
+  m.querySelector("#chx-skip").onclick = open;
+  setTimeout(() => { if (btn.isConnected) btn.focus({ preventScroll: true }); }, 300);
 }
 function closeChestModal() {
   const m = document.getElementById("chest-modal"); if (m) m.remove();

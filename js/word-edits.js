@@ -9,6 +9,8 @@
 // applyWordEdits() is idempotent: it restores captured originals first,
 // then applies the current set. migrate() calls it after every state
 // load (startup and cloud sync), so edits follow the state everywhere.
+// Edits the deck files already contain are pruned on load (the pruned
+// state is persisted with the next save).
 
 const WORD_EDIT_FIELDS = ["en", WORD_KEY, "hint", "pl"];
 const WORD_EDIT_LABELS = { en: "English prompt", [WORD_KEY]: "Answer", hint: "Hint", pl: "Plural" };
@@ -55,6 +57,14 @@ function applyWordEdits() {
       WORD_EDIT_FIELDS.forEach(f => { if (t.word[f] !== undefined) o[f] = t.word[f]; });
       _wordEditOriginals[key] = o;
     }
+    // Once the deck file itself carries an edit, the override is redundant:
+    // drop that field (and the whole entry when nothing is left) so
+    // "My word edits" only ever lists changes still waiting for the files.
+    const orig = _wordEditOriginals[key];
+    Object.keys(edits[key]).forEach(f => {
+      if (edits[key][f] === orig[f]) delete edits[key][f];
+    });
+    if (!Object.keys(edits[key]).length) { delete edits[key]; return; }
     WORD_EDIT_FIELDS.forEach(f => {
       const v = edits[key][f];
       if (typeof v === "string" && v !== "") t.word[f] = v;

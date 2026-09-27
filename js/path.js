@@ -132,7 +132,12 @@ function planNewWords(max, rng = Math.random, onlyDeck = null) {
     const deck = onlyDeck ? getDeck(onlyDeck) : pickClusterDeck(scan, usedDecks, rng);
     if (!deck) break;
     usedDecks.push(deck.id);
-    const size = Math.min(max - n, PATH.CLUSTER_MIN + Math.floor(rng() * (PATH.CLUSTER_MAX - PATH.CLUSTER_MIN + 1)));
+    let size = Math.min(max - n, PATH.CLUSTER_MIN + Math.floor(rng() * (PATH.CLUSTER_MAX - PATH.CLUSTER_MIN + 1)));
+    // Never leave a lone word or two behind — neither at the end of a
+    // deck nor at the end of this batch: they join this cluster.
+    const deckLeft = scan.decks[deck.id].total - scan.decks[deck.id].met;
+    if (deckLeft - size > 0 && deckLeft - size < PATH.CLUSTER_MIN) size = deckLeft;
+    else if (max - n - size > 0 && max - n - size < PATH.CLUSTER_MIN) size = max - n;
     const idx = unmetIndices(deck, size + 8).filter(i => !taken.has(deck.id + "_" + i)).slice(0, size);
     if (!idx.length) continue;
     const cluster = idx.map(i => { taken.add(deck.id + "_" + i); return pathWord(deck.id, i); });
@@ -144,6 +149,15 @@ function planNewWords(max, rng = Math.random, onlyDeck = null) {
     if (g) g.met += idx.length;
   }
   return out; // array of clusters
+}
+// How many of a deck's last `left` unmet words one Explorer / "finish
+// the deck" session takes: never a lone word or two left over for later.
+// Up to 8 all at once (7 → 7); up to 12 in two even halves (10 → 5 + 5);
+// otherwise the usual batch, which always leaves plenty behind.
+function exploreBatchSize(left, want) {
+  if (left <= 8) return left;
+  if (left <= 12) return Math.ceil(left / 2);
+  return Math.min(want, left);
 }
 // Called when a Learn card is actually shown — only then is a word met
 // and the deck's unlocked prefix extended.
@@ -294,13 +308,6 @@ function pathReviewedToday() {
   }
   return n;
 }
-// Everything today's plan asked for is done: reviews down to the part
-// of the backlog left for later days, and today's new words met.
-function pathPlanDone(scan = pathScan()) {
-  const plan = pathEnsurePlan(scan);
-  if (!plan) return false;
-  return scan.due <= plan.leave && pathNewQuota(scan).left === 0;
-}
 function setPathDeadline(iso) {
   const P = S.path;
   if (iso && !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return;
@@ -348,7 +355,7 @@ function pathSpotCandidates(n = 1, rng = Math.random) {
 // ── ITEM FORMAT ───────────────────────────────
 // What kind of exercise a review becomes, by stage (drill-first):
 //   st ≤ 1  choice (either direction) or listen-pick
-//   st 2–4  typed (hint allowed below 4)
+//   st 2–4  typed
 //   st ≥ 5  typed; every second review typed into its example sentence;
 //           ⭐+ sometimes reversed (type the meaning)
 function pathItemFor(w, ws, rng = Math.random) {
@@ -365,7 +372,7 @@ function pathItemFor(w, ws, rng = Math.random) {
     if (st >= STAGE_STRONG && rng() < 0.25) return { t: "reverse", w };
     if (canCloze && ws.czAlt) return { t: "cloze", w };
   }
-  return { t: "typed", w, hintOk: st < 4 };
+  return { t: "typed", w };
 }
 // The sentence gap for a word, with the exact hidden text to type.
 const _clozeTargetCache = new Map();
@@ -419,7 +426,7 @@ function focusItem(x, focus) {
   if (focus === "cloze") return { t: "cloze", w };
   if (focus === "spot") return { t: "spot", w };
   if (x.due) return pathItemFor(w, x.ws);
-  return { t: "typed", w, hintOk: x.ws.st < 4 };
+  return { t: "typed", w };
 }
 const FOCUS_LABELS = { deck: "Deck focus", level: "Level focus", pos: "Word-type focus", hard: "The hard ones", stale: "Refresh",
   stale30: "Dust-off", oldest: "Oldest first", comeback: "Comeback", reverse: "Mirror", cloze: "Sentences", spot: "Spot checks",
@@ -464,8 +471,8 @@ function buildPathQueue(lenKey, opts = {}) {
   if (focus === "new") {
     // Explorer: a bonus cluster from one deck (on top of today's pace).
     const deck = opts.param && getDeck(opts.param);
-    const left = deck ? unmetIndices(deck, 99).length : 0;
-    const n = Math.min(left, Math.max(3, Math.min(8, q.left || 4)));
+    const left = deck ? unmetIndices(deck, 999).length : 0;
+    const n = exploreBatchSize(left, Math.max(3, Math.min(8, q.left || 4)));
     if (n > q.left) { S.path.extraToday = (S.path.extraToday || 0) + (n - q.left); }
     clusters = planNewWords(n, rng, deck ? deck.id : null);
   } else if (focus) {
@@ -485,7 +492,11 @@ function buildPathQueue(lenKey, opts = {}) {
     // at most a third of the session, spread through it.
     const nudges = opts.reviewOnly ? null : questNudges();
     if (nudges && nudges.focus.length) {
-      const room = Math.min(Math.round(budget / 3), Math.max(Math.round(budget / 5), budget - reviews.length - nNew0 * 3));
+      // With a finish date, today's plan comes first: quest words only
+      // take room the plan's reviews and new words leave free.
+      const spare = budget - reviews.length - nNew0 * 3;
+      const room = pathDeadlineOn() ? Math.max(0, Math.min(Math.round(budget / 3), spare))
+        : Math.min(Math.round(budget / 3), Math.max(Math.round(budget / 5), spare));
       const have = new Set(reviews.map(r => r.w.deckId + "_" + r.w.idx));
       const per = Math.ceil(room / nudges.focus.length), extra = [];
       nudges.focus.forEach(({ focus: f, param }) => {
@@ -505,7 +516,7 @@ function buildPathQueue(lenKey, opts = {}) {
     if (wk && !opts.reviewOnly) {
       const di = wk.lastIndexOf("_"), dId = wk.substring(0, di), idx = +wk.slice(di + 1);
       if (getDeck(dId) && isMet(dId, idx) && !reviews.some(r => r.w.deckId === dId && r.w.idx === idx))
-        reviews.splice(Math.floor(reviews.length * 0.4), 0, { t: "typed", w: pathWord(dId, idx), wotd: true, hintOk: false });
+        reviews.splice(Math.floor(reviews.length * 0.4), 0, { t: "typed", w: pathWord(dId, idx), wotd: true });
     }
   }
   const nNew = clusters.reduce((s, c) => s + c.length, 0);
@@ -533,7 +544,7 @@ function buildPathQueue(lenKey, opts = {}) {
       out.push({ t: "choice", w: cl[cl.length - 1], fresh: true, rev: rng() < 0.5 });
       const base = counted();
       cl.forEach((w, j) => {
-        delayed.push({ minPos: base + 3 + j * 2, item: { t: "typed", w, fresh: true, hintOk: true } });
+        delayed.push({ minPos: base + 3 + j * 2, item: { t: "typed", w, fresh: true } });
         delayed.push({ minPos: base + 9 + j * 2, item: { t: "typed", w, fresh: true, second: true } });
       });
       nextClusterAt = base + clusterEvery;
@@ -544,6 +555,15 @@ function buildPathQueue(lenKey, opts = {}) {
     if (ci < clusters.length) { nextClusterAt = pos; continue; }
     if (!spotDone) { out.push({ t: "spot", w: spots[0] }); spotDone = true; continue; }
     break;
+  }
+  // The length you picked is the length you get: once due and new words
+  // run out, the rest is practice on your least recently seen words
+  // (stages only move for due words, so it's pure extra practice).
+  if (!focus && !opts.reviewOnly && !opts.limit) {
+    const have = new Set(out.map(x => x.w && x.w.deckId + "_" + x.w.idx));
+    const short = budget - counted();
+    if (short > 0) focusWords("stale").filter(x => !have.has(x.d.id + "_" + x.i)).slice(0, short)
+      .forEach(x => out.push({ ...focusItem(x, "stale"), practice: true }));
   }
   // ⚔️ A minion may show up (≈10% of Regular/Long sessions, once a day).
   if (budget >= 30 && !opts.noBonus && !focus && typeof minionDeckPick === "function"

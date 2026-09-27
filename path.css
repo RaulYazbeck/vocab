@@ -304,18 +304,99 @@ tr.unmet td { opacity:0.55; }
 .welcome-row { display:flex; justify-content:space-between; font-size:14px; padding:3px 0; }
 
 /* ── CHESTS ────────────────────── */
-.chest-sheet { text-align:center; }
-.chest-src { font-size:13px; font-weight:800; color:var(--text-2); letter-spacing:0.5px; text-transform:uppercase; }
-.chest-box {
-  --rc:#9fb3c8; display:block; margin:18px auto 6px; width:120px; height:120px; border-radius:28px; font-size:64px; cursor:pointer;
-  border:2px solid var(--rc); background:radial-gradient(circle, rgba(255,255,255,0.08), transparent 70%);
-  box-shadow:0 0 30px color-mix(in srgb, var(--rc) 40%, transparent);
+/* Opening: the chest sits in the middle of the screen; taps shake it
+   and upgrade it (Common → Rare → Epic → Legendary), then it opens. */
+.modal-overlay.chx-overlay { align-items:center; padding:16px; background:rgba(3,5,10,0.88); }
+.chx {
+  --wood:#8B5A2B; --wood-d:#5E3A17; --band:#8E99A6; --band-hi:#C9D2DC; --gem:#C9D2DC; --glow:#9fb3c8; --shake:1;
+  position:relative; width:100%; max-width:360px; text-align:center; display:flex; flex-direction:column; align-items:center;
 }
-.chest-box.shaking { animation:chestShake 1.1s ease-in-out infinite; }
-@keyframes chestShake { 0%,100% { transform:rotate(0); } 10% { transform:rotate(-8deg); } 20% { transform:rotate(8deg); } 30% { transform:rotate(-5deg); } 40% { transform:rotate(5deg); } 50% { transform:rotate(0); } }
-.chest-box.open { animation:resultPop 0.5s var(--spring); cursor:default; }
-.chest-tap { font-size:13px; color:var(--text-3); margin-bottom:10px; }
-.chest-rar { font-size:22px; font-weight:900; margin:4px 0 8px; }
+.chx.r-rare      { --wood:#7A4A22; --wood-d:#4F2E12; --band:#4F7FE0; --band-hi:#A9C4FF; --gem:#7FB0FF; --glow:#5B8DEF; }
+.chx.r-epic      { --wood:#4E3378; --wood-d:#2F1D4D; --band:#A98BF0; --band-hi:#E3D8FF; --gem:#E07BFF; --glow:#9B7FE8; }
+.chx.r-legendary { --wood:#6E3510; --wood-d:#42200A; --band:#F2B92E; --band-hi:#FFEBA6; --gem:#FF5E7E; --glow:#F5A623; }
+.chx-skip {
+  position:absolute; top:-6px; right:0; z-index:3; background:none; border:none; color:var(--text-3);
+  font:inherit; font-size:13px; font-weight:700; padding:8px; cursor:pointer;
+}
+.chx-src { font-size:12px; font-weight:800; color:var(--text-2); letter-spacing:1px; text-transform:uppercase; }
+.chx-rar {
+  font-size:28px; font-weight:900; letter-spacing:0.5px; color:var(--glow); margin-top:4px; min-height:36px;
+  text-shadow:0 0 18px color-mix(in srgb, var(--glow) 60%, transparent); transition:color 0.3s ease;
+}
+.chx-rar.pop { animation:chxPop 0.5s var(--spring); }
+@keyframes chxPop { 0% { transform:scale(0.6); opacity:0.3; } 100% { transform:scale(1); opacity:1; } }
+.chx-btn {
+  position:relative; width:250px; height:230px; margin:6px 0 2px; padding:0; border:none; background:none;
+  cursor:pointer; -webkit-tap-highlight-color:transparent; touch-action:manipulation;
+}
+.chx-btn:focus, .chx-btn:focus-visible { outline:none; }
+.chx-btn:focus-visible .chx-svg { filter:drop-shadow(0 6px 16px rgba(0,0,0,0.45)) drop-shadow(0 0 6px var(--glow)); }
+.chx-btn:disabled { cursor:default; }
+.chx-rays {
+  position:absolute; left:50%; top:50%; width:420px; height:420px; margin:-210px 0 0 -210px; border-radius:50%; pointer-events:none;
+  background:repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--glow) 34%, transparent) 0deg 9deg, transparent 9deg 24deg);
+  -webkit-mask:radial-gradient(circle, #000 18%, transparent 68%); mask:radial-gradient(circle, #000 18%, transparent 68%);
+  opacity:0.28; animation:chxSpin 14s linear infinite; transition:opacity 0.4s ease;
+}
+.chx.r-rare .chx-rays { opacity:0.45; }
+.chx.r-epic .chx-rays { opacity:0.65; animation-duration:10s; }
+.chx.r-legendary .chx-rays, .chx.open .chx-rays { opacity:0.9; animation-duration:7s; }
+@keyframes chxSpin { to { transform:rotate(360deg); } }
+.chx-glow {
+  position:absolute; left:50%; top:55%; width:230px; height:230px; margin:-115px 0 0 -115px; border-radius:50%; pointer-events:none;
+  background:radial-gradient(circle, color-mix(in srgb, var(--glow) 55%, transparent), transparent 65%); opacity:0.6;
+  transition:opacity 0.3s ease;
+}
+.chx.flash .chx-glow { animation:chxFlash 0.6s ease-out; }
+@keyframes chxFlash { 0% { opacity:1; transform:scale(1.35); filter:brightness(2.2); } 100% { opacity:0.6; transform:scale(1); } }
+.chx-body { position:absolute; inset:18px 25px 0; display:block; }
+.chx-svg { width:100%; height:100%; overflow:visible; filter:drop-shadow(0 6px 16px rgba(0,0,0,0.45)); }
+.chx-btn.hit .chx-body { animation:chxHit 0.42s ease-out; }
+@keyframes chxHit {
+  0% { transform:scale(1); }
+  18% { transform:scale(calc(1 + 0.05 * var(--shake)), calc(1 - 0.07 * var(--shake))) rotate(calc(-4deg * var(--shake))); }
+  40% { transform:translateY(calc(-10px * var(--shake))) rotate(calc(4deg * var(--shake))); }
+  65% { transform:rotate(calc(-2deg * var(--shake))); }
+  100% { transform:none; }
+}
+.chx:not(.open) .chx-btn:not(:disabled) .chx-body { animation:chxIdle 2.4s ease-in-out infinite; }
+.chx:not(.open) .chx-btn.hit .chx-body { animation:chxHit 0.42s ease-out; }
+@keyframes chxIdle { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-5px); } }
+.chx-svg .c-wood  { fill:var(--wood); stroke:var(--wood-d); stroke-width:3; transition:fill 0.35s ease; }
+.chx-svg .c-seam  { fill:none; stroke:var(--wood-d); stroke-width:2.5; opacity:0.7; }
+.chx-svg .c-band  { fill:var(--band); stroke:rgba(0,0,0,0.35); stroke-width:1.5; transition:fill 0.35s ease; }
+.chx-svg .c-plate { fill:var(--band-hi); stroke:rgba(0,0,0,0.4); stroke-width:2; transition:fill 0.35s ease; }
+.chx-svg .c-hole  { fill:#1b1208; }
+.chx-svg .c-rivet { fill:var(--band-hi); }
+.chx-svg .c-sheen { fill:none; stroke:rgba(255,255,255,0.28); stroke-width:4; stroke-linecap:round; }
+.chx-svg .c-gem   { fill:var(--gem); opacity:0; transition:opacity 0.3s ease, fill 0.3s ease; }
+.chx.r-epic .c-gem, .chx.r-legendary .c-gem { opacity:1; filter:drop-shadow(0 0 4px var(--gem)); }
+.chx-svg .chx-inner { fill:var(--glow); opacity:0; transition:opacity 0.3s ease 0.1s; filter:blur(3px); }
+.chx-svg .chx-lid { transform-box:view-box; transform-origin:28px 82px; transition:transform 0.55s var(--spring); }
+.chx.open .chx-lid { transform:translate(-4px, -30px) rotate(-26deg); }
+.chx.open .chx-inner { opacity:1; }
+.chx-beam {
+  position:absolute; left:50%; bottom:48%; width:150px; height:0; margin-left:-75px; pointer-events:none; opacity:0;
+  background:linear-gradient(to top, color-mix(in srgb, var(--glow) 75%, #fff), transparent);
+  clip-path:polygon(18% 100%, 82% 100%, 100% 0, 0 0); transition:height 0.5s ease 0.1s, opacity 0.3s ease 0.1s;
+}
+.chx.open .chx-beam { height:170px; opacity:0.75; }
+.chx-fx { position:absolute; left:50%; top:55%; width:0; height:0; pointer-events:none; }
+.chx-fx i {
+  position:absolute; left:calc(var(--ps) / -2); top:calc(var(--ps) / -2); width:var(--ps); height:var(--ps); border-radius:50%;
+  background:var(--pc); box-shadow:0 0 8px var(--pc); animation:chxSpark 0.9s cubic-bezier(0.2,0.7,0.3,1) forwards;
+}
+@keyframes chxSpark { 0% { transform:translate(0,0) scale(1); opacity:1; } 100% { transform:translate(var(--dx), var(--dy)) scale(0.2); opacity:0; } }
+.chx-pips { display:flex; gap:8px; justify-content:center; margin:4px 0 6px; }
+.chx-pips i { width:10px; height:10px; border-radius:50%; background:rgba(255,255,255,0.14); transition:background 0.2s ease, transform 0.2s var(--spring); }
+.chx-pips i.on { background:var(--glow); transform:scale(1.2); box-shadow:0 0 8px var(--glow); }
+.chx-pips i.extra { outline:2px solid var(--glow); outline-offset:1px; }
+.chx-tap { font-size:14px; font-weight:700; color:var(--text-2); min-height:20px; }
+.chx-reveal { width:100%; margin-top:4px; }
+.chx-reveal .chest-loot li { animation:chxLoot 0.45s var(--spring) both; }
+@keyframes chxLoot { from { transform:translateY(14px) scale(0.9); opacity:0; } to { transform:none; opacity:1; } }
+.chx-reveal .modal-actions { display:flex; gap:8px; }
+.chx-reveal .modal-actions .modal-btn { flex:1; }
 .chest-loot { list-style:none; display:flex; flex-direction:column; gap:6px; margin:0 0 16px; }
 .chest-loot li { font-size:15px; font-weight:700; padding:8px 12px; border-radius:var(--r-sm); background:rgba(255,255,255,0.05); border:1px solid var(--border); }
 
@@ -346,7 +427,8 @@ tr.unmet td { opacity:0.55; }
   .quest-go, .quest-mini { width:38px; height:38px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .p-card.p-swap, .p-card.golden, .chest-box.shaking, .tc-chest, .tc-start { animation:none !important; }
+  .p-card.p-swap, .p-card.golden, .tc-chest, .tc-start { animation:none !important; }
+  .chx-rays, .chx-body, .chx-btn.hit .chx-body, .chx:not(.open) .chx-btn:not(:disabled) .chx-body { animation:none !important; }
 }
 
 /* Settings: descriptions sit under the label, never squeezed beside it */
