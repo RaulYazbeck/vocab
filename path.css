@@ -583,3 +583,5 @@ body.grandma .quest { font-size:15px; }
 body.grandma .tc-saga { font-size:14.5px; margin-top:12px; }
 body.grandma .p-card { font-size:17px; }
 body.grandma .english-word, body.grandma .p-learn-prompt { font-size:1.25em; }
+.fr-gender { font-size:13.5px; color:var(--text-2); margin:4px 0 2px; }
+.fr-gender span { font-weight:800; }

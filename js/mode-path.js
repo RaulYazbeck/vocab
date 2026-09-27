@@ -187,6 +187,7 @@ function renderPathLearn(it) {
       <div class="p-kicker">🌱 New word</div>
       <div class="p-learn-target">${colorArticleHtml(w[WORD_KEY])}</div>
       <div class="p-learn-prompt">${escapeHtml(w.en)}</div>
+      ${frGenderNoteHtml(w)}
       ${w.pl ? `<div class="p-learn-hint">plural: ${escapeHtml(w.pl)}</div>` : ""}
       ${w.hint ? `<div class="p-learn-hint">${escapeHtml(w.hint)}</div>` : ""}
       ${examplesHtml(w, "first")}

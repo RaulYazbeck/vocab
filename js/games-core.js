@@ -145,6 +145,9 @@ function _parseNoun(word) {
   const f = gameForm(word);
   if (IS_FRENCH_APP) {
     if (raw.includes("/")) return null;
+    // l'heure: the deck notes the gender the article hides (single words only).
+    if ((word.g === "m" || word.g === "f") && /^l'[\p{L}-]+$/u.test(f))
+      return { answer: word.g === "m" ? "le" : "la", noun: f.slice(2), full: f, elided: true, indef: frIndefinite(word) };
     if (/locución|adverbio|expresión|verbo|adjetivo|pronombre/i.test(hint)) return null; // "un peu"
     const m = f.match(/^(le|la|un|une)\s+(\S.*)$/i);
     if (!m || /[,!?]/.test(m[2])) return null;
