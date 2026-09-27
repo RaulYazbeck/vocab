@@ -281,7 +281,7 @@ body[data-cardback="cb_prism"] .today-card { background-image:conic-gradient(fro
 .jd-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px; margin-top:6px; }
 .jd-tile {
   position:relative; text-align:left; padding:10px; border-radius:var(--r-sm); cursor:pointer; font-family:inherit;
-  background:var(--glass); border:1px solid var(--border); color:var(--text); display:flex; flex-direction:column; gap:2px;
+  background:var(--glass-tile); border:1px solid var(--border); color:var(--text); display:flex; flex-direction:column; gap:2px;
 }
 .jd-tile.unmet { opacity:0.55; }
 .jd-icon { font-size:18px; }
@@ -429,3 +429,25 @@ tr.unmet td { opacity:0.55; }
 .g-results .g-result-actions > .g-big-btn:first-child, .g-results .g-result-actions > :only-child { grid-column:1 / -1; }
 .g-results .g-result-actions > .g-sec-btn:last-child:nth-child(even) { grid-column:1 / -1; }
 .g-results .g-result-actions .g-sec-btn { background:rgba(22,28,42,0.98); }
+
+/* ── AMBIENT GLOWS ─────────────────
+   Pulsing box-shadows repainted every frame. The glow now sits on a
+   pseudo-element whose opacity follows --glow, set by the same slow
+   ticker as the sky (app.js) — and it rests with the sky. */
+.fi-start, .tc-start, .g-result-actions .day-cta, .tc-chest, .p-card.golden { position:relative; animation:none; }
+.fi-start, .tc-start, .g-result-actions .day-cta { box-shadow:0 4px 18px rgba(245,166,35,0.35); }
+.fi-start::before, .tc-start::before, .g-result-actions .day-cta::before, .tc-chest::before, .p-card.golden::before {
+  content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+  opacity:var(--glow, 0.5); will-change:opacity;
+}
+.fi-start::before, .tc-start::before, .g-result-actions .day-cta::before { box-shadow:0 4px 30px rgba(245,166,35,0.55); }
+.tc-chest::before { box-shadow:0 0 18px rgba(255,209,102,0.4); }
+.p-card.golden { box-shadow:0 0 0 2px rgba(255,209,102,0.5), 0 0 18px rgba(255,209,102,0.18); }
+.p-card.golden::before { box-shadow:0 0 0 2px rgba(255,209,102,0.85), 0 0 34px rgba(255,209,102,0.35); }
+
+/* Depth behind sheets: the page (not the sky) blurs once while a modal or
+   Settings is open — a static layer, so it costs nothing per frame. */
+.app { transition:filter 0.22s ease; }
+body:has(> .modal-overlay) > .app, body:has(> #settings-panel[style*="block"]) > .app { filter:blur(6px) saturate(1.08); }
+.modal-overlay { background:rgba(3,5,10,0.6); }
+@media (prefers-reduced-motion: reduce) { .app { transition:none; } }

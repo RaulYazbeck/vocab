@@ -23,9 +23,11 @@ const firebaseConfig = {
   appId: "1:1006513229357:web:dc345b52533cc502df32a4",
   measurementId: "G-JZDZ713FYD"
 };
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const auth = firebase.auth();
+// Offline first load or a blocked CDN: the app still works locally.
+const fbOk = typeof firebase !== "undefined";
+if (fbOk) firebase.initializeApp(firebaseConfig);
+const db = fbOk ? firebase.firestore() : null;
+const auth = fbOk ? firebase.auth() : null;
 </script>
 <script src="german_decks_a1.js"></script>
 <script src="german_decks_a2.js"></script>
@@ -39,6 +41,7 @@ const auth = firebase.auth();
 <link rel="stylesheet" href="../path.css">
 </head>
 <body>
+<div class="sky" aria-hidden="true"><i class="sky-orbs"></i><i class="sky-stars sky-a"></i><i class="sky-stars sky-b"></i></div>
 <div class="app">
   <div class="header">
     <h1>🇩🇪 German Vocabulary</h1>
