@@ -42,9 +42,9 @@ function sayRevealHtml(w, opts = {}) {
     ${opts.sub ? `<div class="say-sub">${opts.sub}</div>` : ""}
     ${w ? frGenderNoteHtml(w) : ""}
     ${audioOk() ? `<div class="say-audio">
-      <button class="say-btn" data-say="${escapeHtml(audio)}" onclick="speak(this.dataset.say)">🔊 Again</button>
-      <button class="say-btn" data-say="${escapeHtml(audio)}" onclick="speak(this.dataset.say, 0.55)">🐢 Slower</button>
-      ${ex && !opts.noSentence ? `<button class="say-btn" data-say="${escapeHtml(ex)}" onclick="speak(this.dataset.say)">▶ In a sentence</button>` : ""}
+      <button class="say-btn" data-say="${escapeHtml(audio)}" onclick="speak(this.dataset.say)" aria-label="Hear it again">🔊 Again</button>
+      <button class="say-btn" data-say="${escapeHtml(audio)}" onclick="speak(this.dataset.say, 0.55)" aria-label="Hear it slower">🐢 Slower</button>
+      ${ex && !opts.noSentence ? `<button class="say-btn" data-say="${escapeHtml(ex)}" onclick="speak(this.dataset.say)" aria-label="Hear it in a sentence">▶ Sentence</button>` : ""}
     </div>` : ""}
   </div>`;
 }
@@ -111,7 +111,7 @@ function _frSoundKey(s) {
     x = x.replace(/(ées?|és|ez|et)$/, "é");               // parlez = parlé(e)(s)
     if (x.length >= 5) x = x.replace(/er$/, "é");         // parler = parlé (not mer, fer)
     x = x.replace(/[sxtdzp]+$/, "");                      // silent final consonants
-    x = x.replace(/(?<=..)e$/, "");                       // silent final e
+    if (x.length > 2) x = x.replace(/e$/, "");           // silent final e
     x = x.replace(/eaux?|aux?/g, "o").replace(/ph/g, "f").replace(/qu/g, "k").replace(/c(?=[aou])/g, "k").replace(/h/g, "");
     return stripAccents(x.replace(/é/g, "É")).replace(/(.)\1+/g, "$1");
   }).join(" ");

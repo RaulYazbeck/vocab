@@ -1336,10 +1336,13 @@ function questIcon(q) {
   if (q.tpl === "d_mystery" && questAllOthersDone(q)) return (byId(q.hidden.tpl) || {}).icon || "❓";
   return (byId(q.tpl) || {}).icon || "✅";
 }
-function questCardsHtml() {
+// simple (👵 Grandma mode): title, a big progress bar and ▶ — no
+// rerolls, no fine print, no weekend or flash extras.
+function questCardsHtml(opts = {}) {
   questEnsureToday();
   const Q = S.quests;
   const quiet = quietActive();
+  if (opts.simple) return questCardsSimpleHtml();
   const rows = Q.list.map((q, i) => {
     const t = byId(q.tpl) || {};
     const inner = q.tpl === "d_mystery" && questAllOthersDone(q) ? q.hidden : q;
@@ -1377,6 +1380,29 @@ function questCardsHtml() {
   const nDone = Q.list.filter(q => q.done).length;
   return `<div class="quests-head"><span>Today's quests</span><small>${nDone}/${Q.list.length} done${nDone < Q.list.length ? " · all four open a 🎁 chest" : " ✓"}</small></div>
     <div class="quests">${rows}${extra.join("")}</div>`;
+}
+function questCardsSimpleHtml() {
+  const Q = S.quests;
+  const rows = Q.list.map((q, i) => {
+    const mystery = q.tpl === "d_mystery" && !questAllOthersDone(q);
+    const inner = q.tpl === "d_mystery" && !mystery ? q.hidden : q;
+    const prog = mystery ? 0 : inner.prog, target = mystery ? 1 : inner.target;
+    const pct = Math.round(Math.min(1, prog / Math.max(1, target)) * 100);
+    return `<div class="gm-quest ${q.done ? "done" : ""}">
+      <div class="gm-q-icon" aria-hidden="true">${q.done ? "✓" : questIcon(q)}</div>
+      <div class="gm-q-body">
+        <div class="gm-q-title">${questTitle(q)}</div>
+        <div class="gm-q-prog">
+          <div class="gm-q-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${target}" aria-valuenow="${Math.min(prog, target)}"><i style="width:${pct}%"></i></div>
+          <span class="gm-q-num">${q.done ? "Done" : mystery ? "?" : `${Math.min(prog, target)} / ${target}`}</span>
+        </div>
+      </div>
+      ${q.done ? "" : `<button class="gm-q-go" onclick="questGo(${i})" aria-label="Start this quest">▶</button>`}
+    </div>`;
+  }).join("");
+  const nDone = Q.list.filter(q => q.done).length;
+  return `<div class="gm-quests-head"><span>Today's quests</span><b>${nDone} / ${Q.list.length}</b></div>
+    <div class="gm-quests">${rows}</div>`;
 }
 function questMiniHtml() {
   if (!S.quests || !S.quests.list.length) return "";

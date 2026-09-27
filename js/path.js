@@ -606,6 +606,60 @@ function buildPathQueue(lenKey, opts = {}) {
   return { items: out, budget, newWords: nNew, reviews: reviews.length, quota: q, focus };
 }
 
+// ── SKIP A LEVEL (⚙️ › 🍪 Cookie) ──────────────
+// "I already know A1": every word of the first level that still has
+// words below 🌳 Known becomes Known, and new words move on to the
+// next level. It only touches word stages:
+//   • words met today (metOn) keep their own progress — today's new
+//     words, quota and quests stay exactly as they were;
+//   • words already Known or higher (⭐ 💎) are left alone;
+//   • no XP, goal, streak, quest or saga credit — nothing was answered;
+//   • reviews are spread over 1–4 weeks so they never land on one day.
+function skipLevelInfo() {
+  const today = studyToday();
+  const groups = vocabGroups();
+  for (let gi = 0; gi < groups.length; gi++) {
+    const g = groups[gi];
+    let lift = 0, today_ = 0;
+    g.decks.forEach(d => d.words.forEach((w, i) => {
+      const ws = S.words[d.id + "_" + i];
+      if (ws && (ws.st || 0) >= STAGE_KNOWN) return;
+      if (ws && ws.st && ws.metOn === today) { today_++; return; }
+      lift++;
+    }));
+    if (lift) return { id: g.id, name: g.name, lift, today: today_, next: (groups[gi + 1] || {}).name || "" };
+  }
+  return null;
+}
+function skipLevel(groupId) {
+  const g = vocabGroups().find(x => x.id === groupId);
+  if (!g) return 0;
+  const today = studyToday(), now = Date.now();
+  let n = 0;
+  g.decks.forEach(d => {
+    d.words.forEach((w, i) => {
+      const key = d.id + "_" + i;
+      const prev = S.words[key];
+      if (prev && (prev.st || 0) >= STAGE_KNOWN) return;
+      if (prev && prev.st && prev.metOn === today) return;
+      const ws = getWS(d.id, i);
+      ws.st = STAGE_KNOWN;
+      ws.pk = Math.max(ws.pk || 0, STAGE_KNOWN);
+      ws.sAt = now;
+      ws.dueAt = studyDayStart(7 + hashString(key) % 22, now); // 1–4 weeks, spread
+      ws.mastered = true;
+      ws.sk = prev && prev.st ? 1 : 2; // skipped, not answered (see srs.js)
+      ["rp", "lrn", "fl", "cf", "rc", "dropDay"].forEach(f => delete ws[f]);
+      n++;
+    });
+    S.unlocked[d.id] = d.words.length;
+  });
+  invalidatePathScan();
+  logEvent("skip_level", { g: groupId, n });
+  saveState();
+  return n;
+}
+
 // ── SUMMARY FOR THE TODAY CARD ────────────────
 function pathTodaySummary() {
   const scan = pathScan();

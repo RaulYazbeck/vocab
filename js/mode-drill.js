@@ -13,8 +13,10 @@ function nextDrillWord() {
 // the user leaves and re-enters drill mode.
 function initDrillScreen() {
   showGameScreen();
-  // Speak, don't spell: say it, Show, grade yourself (say-it.js).
-  const say = speakOn();
+  // Speak, don't spell: say it, Show, grade yourself (say-it.js). The
+  // mode is fixed for the session, so a switch in ⚙️ never leaves a
+  // half-typed, half-spoken screen.
+  const say = drillSay = speakOn();
   if (say) sayKeys = { root: "drill-say-root", state: () => answered ? "done" : drillRevealed ? "revealed" : "prompt",
     reveal: drillSayReveal, grade: drillSayGrade, next: drillGo };
   const el = document.getElementById("main-screen");
@@ -92,7 +94,7 @@ function updateDrillWord() {
   hintBtn.disabled = false;
 
   renderUnlockRow('unlock-row-drill', currentWord.deckId);
-  if (!speakOn()) input.focus();
+  if (!drillSay) input.focus();
   // Auto-scroll keeps the card above the keyboard — installed PWA only,
   // desktop browsers should never jump around.
   if (IS_STANDALONE) {
@@ -134,10 +136,10 @@ function showDrillHint() {
   if (hintBtn) hintBtn.disabled = true;
   drillUsedHint = true;
   const input = document.getElementById('german-input');
-  if (input && !speakOn()) input.focus();
+  if (input && !drillSay) input.focus();
 }
 // ── SAY IT (Speak, don't spell) ───────────────
-let drillRevealed = false, drillFast = false;
+let drillRevealed = false, drillFast = false, drillSay = false;
 function drillSayReveal() {
   if (answered || drillRevealed || !currentWord) return;
   drillRevealed = true;
@@ -227,7 +229,7 @@ function applyAnswerState(ws, correct) {
     applyWrong(ws, { w }); sessionConsecutive = 0;
   }
   const ms = Date.now() - drillShownAt;
-  const say = speakOn() && !voice;
+  const say = drillSay && !voice;
   logEvent("answer", { m: voice ? "drill:voice" : "drill:" + drillSubMode, ok: correct, typed: true, voice, hint, ms, say });
   questEvent("answer", { mode: "drill", ok: correct, typed: true, voice, hint, w, prevAt, ms, said: say });
   drillUsedHint = false;
@@ -297,8 +299,8 @@ function showDrillFeedback(correct, ws) {
   const typed = lastDrillTyped && lastDrillTyped.trim();
   document.getElementById("feedback").innerHTML = `
     <div class="feedback-left">
-      <div class="feedback-text ${cls}">${icon} ${near ? (speakOn() ? "Close — say it once more:" : "Almost — check the spelling:") : correct ? "Correct!" : "Answer:"} <strong>${colorArticleHtml(currentWord[WORD_KEY])}</strong></div>
-      ${speakOn() ? frGenderNoteHtml(currentWord) : ""}
+      <div class="feedback-text ${cls}">${icon} ${near ? (drillSay ? "Close — say it once more:" : "Almost — check the spelling:") : correct ? "Correct!" : "Answer:"} <strong>${colorArticleHtml(currentWord[WORD_KEY])}</strong></div>
+      ${drillSay ? frGenderNoteHtml(currentWord) : ""}
       ${!correct || near ? (typed ? `<div class="p-diff">${diffHtml(typed, currentWord[WORD_KEY])}</div>` : "") : ""}
       ${near ? `<div class="plural-text">No step up, no step down — it comes back soon.</div>` : ""}
       ${currentWord.pl ? `<div class="plural-text">plural: ${currentWord.pl}</div>` : ""}
@@ -315,7 +317,7 @@ function showDrillFeedback(correct, ws) {
   document.getElementById("examples-area").innerHTML = examplesHtml(currentWord, "big");
   document.getElementById("stats-row").innerHTML = miniStats(ws);
   const inp = document.getElementById("german-input");
-  if (inp && !speakOn()) inp.focus();
+  if (inp && !drillSay) inp.focus();
   const actions = document.getElementById("drill-actions");
-  if (actions && speakOn()) actions.style.display = "none";
+  if (actions && drillSay) actions.style.display = "none";
 }

@@ -542,7 +542,7 @@ function resetAnkiProgress() {
 let settingsPage = "main";
 const SETTINGS_PAGES = {
   progress: "📈 Progress", plan: "🎯 Study plan", sound: "🔊 Sound & voice",
-  games: "🎮 Games", anki: "🃏 Anki", account: "☁️ Account & data",
+  games: "🎮 Games", anki: "🃏 Anki", cookie: "🍪 Cookie", account: "☁️ Account & data",
 };
 function initSettingsPanel() {
   const panel = document.createElement("div");
@@ -557,12 +557,26 @@ function openSettingsPage(p) {
   if (sheet) sheet.scrollTop = 0;
 }
 // A row that opens a sub-page or a screen.
+// No onclick: shown greyed out, for a row with nothing to do right now.
 function setNavHtml(icon, label, sub, onclick) {
-  return `<button class="settings-item set-nav" onclick="${onclick}"><span class="set-icon">${icon}</span><span class="set-label">${label}</span><span class="set-chev" aria-hidden="true">›</span>${sub ? `<span class="settings-sub">${sub}</span>` : ""}</button>`;
+  return `<button class="settings-item set-nav" ${onclick ? `onclick="${onclick}"` : "disabled"}><span class="set-icon">${icon}</span><span class="set-label">${label}</span>${onclick ? `<span class="set-chev" aria-hidden="true">›</span>` : ""}${sub ? `<span class="settings-sub">${sub}</span>` : ""}</button>`;
 }
 // An on/off switch row.
 function setSwitchHtml(icon, label, sub, on, onclick) {
   return `<button class="settings-item set-switch ${on ? "on" : ""}" role="switch" aria-checked="${!!on}" onclick="${onclick}"><span class="set-icon">${icon}</span><span class="set-label">${label}</span><span class="set-knob" aria-hidden="true"></span>${sub ? `<span class="settings-sub">${sub}</span>` : ""}</button>`;
+}
+// A setting with a few values: label on top, every value on one line
+// below it (equal widths, never wrapping). `auto` replaces the choices
+// with a note when something else decides (the finish date).
+//   opts: [{ label, on, onclick }]
+function setChoiceHtml(icon, label, sub, opts, auto = "") {
+  return `<div class="set-choice">
+    <div class="set-choice-head"><span class="set-icon">${icon}</span><span class="set-label">${label}</span></div>
+    ${auto ? `<div class="set-auto">${auto}</div>` : `<div class="set-seg" role="radiogroup" aria-label="${escapeHtml(label)}">
+      ${opts.map(o => `<button class="set-seg-btn ${o.on ? "on" : ""}" role="radio" aria-checked="${!!o.on}" onclick="${o.onclick}">${o.label}</button>`).join("")}
+    </div>`}
+    ${sub ? `<div class="set-choice-sub">${sub}</div>` : ""}
+  </div>`;
 }
 function renderSettingsPanel() {
   const page = SETTINGS_PAGES[settingsPage] ? settingsPage : "main";
@@ -571,6 +585,7 @@ function renderSettingsPanel() {
     : page === "sound" ? settingsSoundHtml()
     : page === "games" ? settingsGamesHtml()
     : page === "anki" ? settingsAnkiHtml()
+    : page === "cookie" ? settingsCookieHtml()
     : page === "account" ? settingsAccountHtml()
     : settingsMainHtml();
   document.getElementById("settings-panel").innerHTML = `
@@ -597,17 +612,25 @@ function settingsMainHtml() {
     ? `Finish by ${fmtShortDate(S.path.deadline)} · ${plan.pace} new words today`
     : `${S.path.newPerDay ? S.path.newPerDay + " new words a day" : "New words paused"} · goal ${getDailyGoal()} · ${len[0].toUpperCase() + len.slice(1)} sessions (${lens[len]})`;
   const account = settingsAccountName();
+  const cookie = [grandmaOn() && "👵 Grandma mode", speakOn() && "🗣️ Speak, don't spell"].filter(Boolean);
   return `
-    ${setSwitchHtml("👵", "Grandma mode", "Big buttons, no fuss: just Start, your quests and games. Your grandchildren will be proud.", grandmaOn(), "toggleGrandma()")}
-    ${setSwitchHtml("🗣️", "Speak, don't spell", "For speaking, not writing: instead of typing an answer, say it out loud, tap Show, hear it and grade yourself. Words still climb all the way to 💎. Spelling games and quests are left out.", speakOn(), "toggleSpeakMode()")}
-    <div class="set-group-title">Everything else</div>
     ${setNavHtml("📈", "Progress", "Journey map, stats, collection, achievements" + (chests ? ` · <span class='accent'>${chests} chest${chests > 1 ? "s" : ""} to open</span>` : ""), "openSettingsPage('progress')")}
     ${setNavHtml("🎯", "Study plan", planSub, "openSettingsPage('plan')")}
     ${setNavHtml("🔊", "Sound & voice", soundSummary(), "openSettingsPage('sound')")}
     ${setNavHtml("🎮", "Games", "Surprise rounds and random twists", "openSettingsPage('games')")}
     ${allAnkiDeckIds().length ? setNavHtml("🃏", "Anki", `${ankiNewPerDay()} new cards a day${S.ankiNewPaused ? " · new cards paused" : ""}`, "openSettingsPage('anki')") : ""}
+    ${setNavHtml("🍪", "Cookie", cookie.length ? `<span class='accent'>On: ${cookie.join(" · ")}</span>` : "Grandma mode, speak don't spell, skip a level", "openSettingsPage('cookie')")}
     ${setNavHtml("✏️", `My word edits${editCount ? ` (${editCount})` : ""}`, "Words whose text you corrected", "closeSettings();showScreen('edits')")}
     ${setNavHtml("☁️", "Account & data", account ? `Signed in as ${escapeHtml(account)}` : "Not signed in — progress is saved on this device only", "openSettingsPage('account')")}`;
+}
+// 🍪 The ways of using the app that change it the most.
+function settingsCookieHtml() {
+  const sk = skipLevelInfo();
+  return `
+    ${setSwitchHtml("👵", "Grandma mode", "Big buttons, no fuss: just Start, your quests and games. Your grandchildren will be proud.", grandmaOn(), "toggleGrandma()")}
+    ${setSwitchHtml("🗣️", "Speak, don't spell", "For speaking, not writing: say each answer out loud, tap Show, hear it and grade yourself. Words still climb all the way to 💎. Spelling games and quests are left out.", speakOn(), "toggleSpeakMode()")}
+    ${sk ? setNavHtml("⏭️", `Skip ${escapeHtml(sk.name)}`, `Already know ${escapeHtml(sk.name)}? Its ${sk.lift} remaining word${sk.lift === 1 ? "" : "s"} become 🌳 Known and new words start from ${escapeHtml(sk.next || "the next level")}.`, "confirmSkipLevel()")
+      : setNavHtml("⏭️", "Skip a level", "Nothing left to skip — every level is 🌳 Known or learnt today.", "")}`;
 }
 function settingsProgressHtml() {
   const chests = S.quests && S.quests.pending.length;
@@ -623,23 +646,14 @@ function settingsPlanHtml() {
   const len = S.path.sessionLen || "regular";
   return `
     ${deadlineSettingsHtml()}
-    <div class="settings-goal">
-      <span class="settings-goal-label">🌱&nbsp; New words/day</span>
-      ${plan ? `<span class="settings-auto">Auto · ${plan.pace} today</span>`
-        : PATH.NEW_PER_DAY_OPTIONS.map(n => `<button class="goal-pick ${S.path.newPerDay===n?"active":""}" onclick="setPathNewPerDay(${n});renderSettingsPanel()">${n === 0 ? "⏸" : n}</button>`).join("")}
-      <span class="settings-sub">How many new words Start brings in each day. ⏸ = reviews only.</span>
-    </div>
-    <div class="settings-goal">
-      <span class="settings-goal-label">🎯&nbsp; Daily goal</span>
-      ${plan ? `<span class="settings-auto">Auto · ${plan.goal} today</span>`
-        : GOAL_OPTIONS.map(n => `<button class="goal-pick ${goal===n?"active":""}" onclick="setDailyGoal(${n})">${n}</button>`).join("")}
-      <span class="settings-sub">Correct answers a day — your 4 quests add up to it.</span>
-    </div>
-    <div class="settings-goal">
-      <span class="settings-goal-label">⏱️&nbsp; Session length</span>
-      ${Object.entries(PATH.SESSION_LENGTHS).map(([k, n]) => `<button class="goal-pick ${k === len ? "active" : ""}" onclick="setSessionLen('${k}');renderSettingsPanel()">${k[0].toUpperCase() + k.slice(1)} ${n}</button>`).join("")}
-      <span class="settings-sub">How many questions one Start gives you. Also on the Today card.</span>
-    </div>`;
+    ${setChoiceHtml("🌱", "New words a day", "How many new words Start brings in each day. Off = reviews only.",
+      PATH.NEW_PER_DAY_OPTIONS.map(n => ({ label: n === 0 ? "Off" : n, on: S.path.newPerDay === n, onclick: `setPathNewPerDay(${n});renderSettingsPanel()` })),
+      plan ? `Auto · ${plan.pace} today — set by your finish date` : "")}
+    ${setChoiceHtml("🎯", "Daily goal", "Right answers a day — your 4 quests add up to it.",
+      GOAL_OPTIONS.map(n => ({ label: n, on: goal === n, onclick: `setDailyGoal(${n})` })),
+      plan ? `Auto · ${plan.goal} today — set by your finish date` : "")}
+    ${setChoiceHtml("⏱️", "Session length", "Questions per Start. Also on the Today card.",
+      Object.entries(PATH.SESSION_LENGTHS).map(([k, n]) => ({ label: `${k[0].toUpperCase() + k.slice(1)} <small>${n}</small>`, on: k === len, onclick: `setSessionLen('${k}');renderSettingsPanel()` })))}`;
 }
 // One short line for the main page: what is actually on right now.
 function soundSummary() {
@@ -661,12 +675,9 @@ function settingsSoundHtml() {
     ${setSwitchHtml("🔇", "Mute until tomorrow", "Silences everything above — plus the mic and listening exercises — until tomorrow, then switches itself off. Your switches above are not changed. Same as the button on the Today card.", quiet, "toggleQuiet();renderSettingsPanel()")}
     <div class="set-group-title">Microphone (optional)</div>
     ${setSwitchHtml("🎙️", "Answer with the mic", "In Today sessions, say your answer instead of typing it. You can always type. Also the 🎙️ button during a session.", !!S.path.voiceInput, "pathToggleVoice();renderSettingsPanel()")}
-    <div class="settings-goal">
-      <span class="settings-goal-label">🎧&nbsp; Speech recognition</span>
-      <button class="goal-pick ${voiceEngineChoice === "system" ? "active" : ""}" onclick="setVoiceEngine('system');renderSettingsPanel()">System</button>
-      <button class="goal-pick ${voiceEngineChoice === "whisper" ? "active" : ""}" onclick="setVoiceEngine('whisper');renderSettingsPanel()">Whisper</button>
-      <span class="settings-sub">What listens to the mic. <strong>System</strong>: the browser's own, fast, needs internet. <strong>Whisper</strong>: more accurate, works offline, downloads 40 MB once.</span>
-    </div>`;
+    ${setChoiceHtml("🎧", "Speech recognition", "What listens to the mic. <strong>System</strong>: the browser's own — fast, needs internet. <strong>Whisper</strong>: more accurate, works offline, downloads 40 MB once.",
+      [{ label: "System", on: voiceEngineChoice === "system", onclick: "setVoiceEngine('system');renderSettingsPanel()" },
+       { label: "Whisper", on: voiceEngineChoice === "whisper", onclick: "setVoiceEngine('whisper');renderSettingsPanel()" }])}`;
 }
 function toggleSoundPref(k) { setSoundPref(k, !SOUND[k]); renderSettingsPanel(); }
 function settingsGamesHtml() {
@@ -676,11 +687,8 @@ function settingsGamesHtml() {
 }
 function settingsAnkiHtml() {
   return `
-    <div class="settings-goal">
-      <span class="settings-goal-label">🃏&nbsp; Anki new/day</span>
-      ${ANKI.NEW_PER_DAY_OPTIONS.map(n => `<button class="goal-pick ${ankiNewPerDay()===n?"active":""}" onclick="setAnkiNewPerDay(${n})">${n}</button>`).join("")}
-      <span class="settings-sub">New cards per day across your Anki decks.</span>
-    </div>
+    ${setChoiceHtml("🃏", "New cards a day", "Across all your Anki decks.",
+      ANKI.NEW_PER_DAY_OPTIONS.map(n => ({ label: n, on: ankiNewPerDay() === n, onclick: `setAnkiNewPerDay(${n})` })))}
     ${setSwitchHtml("⏸", "Pause new Anki cards", "Reviews stay owed; only new cards stop." + (S.ankiNewPaused && S.ankiAutoPausedOn ? " Paused automatically after 3 missed days." : ""), !!S.ankiNewPaused, "toggleAnkiPause()")}`;
 }
 function settingsAccountHtml() {
@@ -701,13 +709,15 @@ function deadlineSettingsHtml() {
   const scan = pathScan();
   const need = pathPaceNeeded(scan);
   const late = need > PLAN.MAX_PACE
-    ? `<span class='settings-sub'>At the maximum pace (${PLAN.MAX_PACE}/day) this lands around ${fmtShortDate(addDays(studyToday(), Math.ceil(pathUnmet(scan) / PLAN.MAX_PACE) + 40))} — pick a later date if you like.</span>` : "";
-  return `<div class="settings-goal settings-deadline">
-      <span class="settings-goal-label">🗓️&nbsp; Finish everything by</span>
-      <input type="date" class="settings-date" value="${S.path.deadline}" min="${minDate}" onchange="setDeadlineFromSettings(this.value)" aria-label="Finish date">
-      <button class="goal-pick" onclick="setDeadlineFromSettings('')">Off</button>
-      <span class='settings-sub'>Your quests are sized to it — do your 4 quests and you're on time. Missed days are spread over the weeks after.</span>
-      ${late}
+    ? `<span>At the maximum pace (${PLAN.MAX_PACE}/day) this lands around ${fmtShortDate(addDays(studyToday(), Math.ceil(pathUnmet(scan) / PLAN.MAX_PACE) + 40))} — pick a later date if you like.</span>` : "";
+  return `<div class="set-choice">
+      <div class="set-choice-head"><span class="set-icon">🗓️</span><span class="set-label">Finish everything by</span></div>
+      <div class="set-date-row">
+        <input type="date" class="settings-date" value="${S.path.deadline}" min="${minDate}" onchange="setDeadlineFromSettings(this.value)" aria-label="Finish date">
+        <button class="set-seg-btn" onclick="setDeadlineFromSettings('')">Turn off</button>
+      </div>
+      <div class="set-choice-sub">Your quests are sized to it — do your 4 quests and you're on time. Missed days are spread over the weeks after.</div>
+      ${late ? `<div class="set-choice-sub">${late}</div>` : ""}
     </div>`;
 }
 function deadlineLineHtml(scan) {
@@ -839,7 +849,7 @@ function renderGrandmaHome(home) {
       </div>
       <button class="tc-start gm-start ${nothing ? "calm" : ""}" onclick="startPathSession('${len}'${nothing ? ", { practice: true }" : ""})">${nothing ? "✓ All done · practise more ▶" : "Start ▶"}</button>
       <button class="gm-games" onclick="openGamesHub(null)">🎮 Games</button>
-      ${questCardsHtml()}
+      ${questCardsHtml({ simple: true })}
       ${sg && !sg.done ? `<div class="tc-saga">📜 Weekly saga ${sg.idx + 1}/3 · ${escapeHtml(sg.title)} <span>${sg.prog}/${sg.target}</span></div>` : sg && sg.done ? `<div class="tc-saga done">📜 Weekly saga complete ✓</div>` : ""}
     </div>`;
   maybeShowPathWelcome();
@@ -853,6 +863,23 @@ function toggleGrandma() {
   renderSettingsPanel();
   renderGroups();
   renderExpBar();
+  renderHome();
+}
+async function confirmSkipLevel() {
+  const sk = skipLevelInfo();
+  if (!sk) return;
+  const ok = await appConfirm({
+    title: `Skip ${sk.name}?`,
+    body: `${sk.lift} ${sk.name} word${sk.lift === 1 ? "" : "s"} become 🌳 Known right away, and new words start from ${sk.next || "the next level"}. `
+      + `They come back for a quick check over the next weeks; a slip just gets a 🩹 repair, like any Known word.`
+      + (sk.today ? (sk.today === 1 ? " The word you learnt today keeps its own progress." : ` The ${sk.today} words you learnt today keep their own progress.`) : "")
+      + ` Today's quests, goal, streak and achievements don't change. This can't be undone.`,
+    ok: `Skip ${sk.name}`, cancel: "Cancel", danger: true,
+  });
+  if (!ok) return;
+  const n = skipLevel(sk.id);
+  showCelebrateToast("⏭️", `${sk.name} skipped`, `${n} word${n === 1 ? " is" : "s are"} now 🌳 Known`);
+  renderSettingsPanel();
   renderHome();
 }
 function toggleSpeakMode() {

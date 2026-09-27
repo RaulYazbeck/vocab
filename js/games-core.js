@@ -1478,7 +1478,10 @@ function dailyGameIds(pool) {
   const rng = seededRandom(hashString(todayISO() + "|" + STORAGE_KEY));
   const order = GAMES.map(g => g.id);
   for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
-  const ids = order.filter(usable).slice(0, 3);
+  // A frozen set that stopped fitting (Speak, don't spell hid a game,
+  // sound was switched off): keep the rounds already played.
+  const keep = Array.isArray(d.ids) && d.ids.length === 3 ? d.done.filter(id => d.ids.includes(id) && usable(id)) : [];
+  const ids = [...keep, ...order.filter(id => usable(id) && !keep.includes(id))].slice(0, 3);
   if (ids.length === 3) d.ids = ids.slice();
   return ids;
 }
