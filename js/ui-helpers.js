@@ -162,20 +162,27 @@ function diffHtml(typed, answer) {
 
 // One-letter typo on a longer word, away from the article and the
 // ending (which carry grammar): "Almost" — neither right nor wrong.
-const ARTICLE_TOKENS = /^(der|die|das|den|dem|des|ein|eine|le|la|les|l|un|une)$/;
+// Articles carry the grammar (gender, case): a slip there is never a
+// "typo" — not in the first word, not in the middle of a phrase.
+const ARTICLE_TOKENS = /^(der|die|das|den|dem|des|ein|eine|einen|einem|einer|eines|kein|keine|keinen|keinem|keiner|keines|le|la|les|l|un|une|du|au|aux)$/;
+function articleSeq(s) { return s.split(" ").filter(t => ARTICLE_TOKENS.test(t)).join(" "); }
 function isNearMiss(input, answers) {
   const b = normalize(String(input || ""));
   if (!b) return false;
-  return answers.some(ansRaw => {
-    const a = normalize(String(ansRaw || ""));
+  const alts = answers.flatMap(x => String(x || "").split("/")).map(x => x.trim()).filter(Boolean);
+  return alts.some(ansRaw => {
+    const a = normalize(ansRaw);
     if (a.length < 6 || Math.abs(a.length - b.length) > 1) return false;
     if (levenshtein(a, b) !== 1) return false;
+    if (articleSeq(a) !== articleSeq(b)) return false; // an article changed, went missing or appeared
     let p = 0;
     while (p < a.length && p < b.length && a[p] === b[p]) p++;
     let q = 0;
     while (q < a.length - p && q < b.length - p && a[a.length - 1 - q] === b[b.length - 1 - q]) q++;
-    const firstTok = a.split(" ")[0];
-    if (a.includes(" ") && ARTICLE_TOKENS.test(firstTok) && p <= firstTok.length) return false; // article
+    // The word holding the slip must not be an article (e.g. "dem"→"deem").
+    const start = a.lastIndexOf(" ", Math.max(0, p - 1)) + 1, end = a.indexOf(" ", p);
+    const tok = a.slice(start, end < 0 ? a.length : end);
+    if (ARTICLE_TOKENS.test(tok)) return false;
     if (q < 2) return false; // ending
     return true;
   });

@@ -763,7 +763,8 @@ function questEvent(type, d = {}) {
         m.bosses++; questWeekBump("bosses", 1);
         if (d.perfect) m.bossPerfect++;
         if (d.ms && d.ms < 60000) m.bossFast++;
-        if (d.deck) m.deckBosses[d.deck] = 1; else if (!d.world) m.weakBoss++;
+        if (d.minion) m.minions = (m.minions || 0) + 1;
+        else if (d.deck) m.deckBosses[d.deck] = 1; else if (!d.world) m.weakBoss++;
       }
       break;
     }

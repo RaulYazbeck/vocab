@@ -347,7 +347,9 @@ function pathCheckTyped() {
     const ans = it.cloze.answer;
     if (normalize(val) === normalize(ans) || isCorrect(val, ans)) return pathGradeTyped(val, true);
     if (isNearMiss(val, [ans])) return pathGradeTyped(val, "near");
-    if (pathTypedOk(val, w)) return pathGradeTyped(val, "near", `Right word — in this sentence it's <strong>${escapeHtml(ans)}</strong>.`);
+    // The base form where the sentence needs another article form (den/dem…)
+    // is a grammar slip, not a typo: it counts as wrong, with a pointer.
+    if (pathTypedOk(val, w)) return pathGradeTyped(val, false, `Right word — but in this sentence it's <strong>${escapeHtml(ans)}</strong>.`);
     return pathGradeTyped(val, false);
   }
   if (it.t === "reverse") {
@@ -445,7 +447,7 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     : it.usedHint && ok === true ? `<span class="p-chip">💡 with hint — no step up</span>` : "";
   const head = ok === true ? `<div class="p-ok">✓ Correct! <strong>${colorArticleHtml(answerText)}</strong></div>`
     : ok === "near" ? `<div class="p-near">≈ Almost — check the spelling</div><div class="p-diff">${diffHtml(val, answerText)}</div>${note ? `<div class="p-sub">${note}</div>` : ""}<div class="p-sub">No step up, no step down — it comes back next session.</div>`
-    : `<div class="p-bad">${val.trim() ? "✗ Answer:" : "Answer:"} <strong>${colorArticleHtml(answerText)}</strong></div>${val.trim() ? `<div class="p-diff">${diffHtml(val, answerText)}</div>` : ""}`;
+    : `<div class="p-bad">${val.trim() ? "✗ Answer:" : "Answer:"} <strong>${colorArticleHtml(answerText)}</strong></div>${val.trim() ? `<div class="p-diff">${diffHtml(val, answerText)}</div>` : ""}${note ? `<div class="p-sub">${note}</div>` : ""}`;
   const fb = document.getElementById("p-fb");
   if (fb) fb.innerHTML = `
     <div class="p-fb-main">${head}${chip}${w.pl && it.t !== "cloze" && it.t !== "reverse" ? `<div class="p-sub">plural: ${escapeHtml(w.pl)}</div>` : ""}</div>

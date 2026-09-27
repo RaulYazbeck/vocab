@@ -283,7 +283,10 @@ registerGame({
         rec.minions = (rec.minions || 0) + 1;
         if (typeof questQueueChest === "function") questQueueChest("minion", "common");
       }
-      if (mode !== "minion") questEvent("boss", { won, perfect: won && wrong === 0, ms: Math.round(ctx.clock.elapsed()), deck: mode === "deck" ? ctx.opts.deck : null, world: mode === "world" });
+      // Minions count for the "any boss" quests (and the weekly saga), not
+      // for the 👑 deck-boss or weakest-words ones. Their answers already
+      // count as Today-session answers (they happen inside one).
+      questEvent("boss", { won, perfect: won && wrong === 0, ms: Math.round(ctx.clock.elapsed()), deck: mode === "deck" ? ctx.opts.deck : null, world: mode === "world", minion: mode === "minion" });
       ctx.finish({ score, correct, wrong, maxCombo, won, hearts, world: mode === "world", deck: mode === "deck", minion: mode === "minion", dealt,
         note: mode === "world" ? (won ? "🌋 World boss defeated — an Epic chest is waiting!" : hearts <= 0 ? "🌋 The world boss recovered — it's back to full HP." : `🌋 You dealt ${dealt} damage — the world boss has ${Math.max(0, hp)} HP left this week.`)
           : mode === "deck" ? (won ? `👑 ${boss.name} defeated — the whole deck, flawless. An Epic chest is waiting!` : `👑 ${boss.name} escaped. It's back to full strength — the whole deck, no mistakes.`)
@@ -318,7 +321,7 @@ registerGame({
           sessionConsecutive++;
           addExp(first ? 10 : 5);
           applyCorrect(ws, { w });
-          questEvent("answer", { mode: "boss", ok: true, typed: true, w });
+          questEvent("answer", { mode: mode === "minion" ? "path" : "boss", ok: true, typed: true, w });
         } else addExp(5);
         ctx.award(w, 1);
         saveState();
@@ -339,7 +342,7 @@ registerGame({
       } else {
         const cost = flawless ? hearts : ctx.cost(w);
         wrong++; hearts = Math.max(0, hearts - cost); combo = ctx.comboAfterMiss(combo, w);
-        if (!w.anki) { applyWrong(getWS(w.deckId, w.idx), { w }); questEvent("answer", { mode: "boss", ok: false, typed: true, w }); }
+        if (!w.anki) { applyWrong(getWS(w.deckId, w.idx), { w }); questEvent("answer", { mode: mode === "minion" ? "path" : "boss", ok: false, typed: true, w }); }
         sessionConsecutive = 0;
         saveState();
         ctx.missed(w);

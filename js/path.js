@@ -212,7 +212,7 @@ function setPathNewPerDay(n) {
 // kept for the last words to reach Known, plus slack), reviews from
 // what's due (a backlog from missed days is spread over the next days).
 // The quests are sized from them, so doing the 4 quests = on time.
-const PLAN = { LAG: 75, MIN_PACE: 5, MAX_PACE: 30, SPREAD: 7, SMALL_BACKLOG: 20, GOAL_MIN: 50, GOAL_MAX: 300 };
+const PLAN = { LAG: 75, MIN_PACE: 5, MAX_PACE: 30, SPREAD: 7, SMALL_BACKLOG: 20, GOAL_MIN: 20, GOAL_MAX: 300 };
 function pathDeadlineOn() { return !!(S.path && S.path.deadline); }
 function pathDaysLeft(today = studyToday()) { return pathDeadlineOn() ? daysBetween(today, S.path.deadline) : 0; }
 function pathUnmet(scan = pathScan()) { return scan.total - scan.met; }
