@@ -60,6 +60,34 @@ const GOAL_WEEK_TARGET = 5;
 function getDailyGoal() {
   return GOAL_OPTIONS.includes(S.dailyGoal) ? S.dailyGoal : 20;
 }
+
+// Minigames feed the goal at a discount: every GAME_GOAL_RATIO correct
+// game answers count as one, and games alone can fill at most half the
+// goal — so reaching it always takes some real (typed) recall.
+const GAME_GOAL_RATIO = 3;
+function gameGoalCredit() {
+  if (S.gameCorrectDate !== todayISO()) return 0;
+  return Math.min(Math.floor((S.gameCorrectToday || 0) / GAME_GOAL_RATIO), Math.floor(getDailyGoal() / 2));
+}
+function drillCorrectTodayCount() {
+  return S.drillMilestonesDate === todayISO() ? (S.drillCorrectToday || 0) : 0;
+}
+function goalProgress() {
+  return drillCorrectTodayCount() + gameGoalCredit();
+}
+function markGoalIfReached() {
+  const today = todayISO();
+  if (!S.goalDates) S.goalDates = [];
+  if (goalProgress() >= getDailyGoal() && !S.goalDates.includes(today)) S.goalDates.push(today);
+}
+// Caller saves. n = correct answers given in a game.
+function creditGameAnswers(n) {
+  if (!(n > 0)) return;
+  const today = todayISO();
+  if (S.gameCorrectDate !== today) { S.gameCorrectDate = today; S.gameCorrectToday = 0; }
+  S.gameCorrectToday = (S.gameCorrectToday || 0) + n;
+  markGoalIfReached();
+}
 function goalWeekInfo() {
   const goalDates = new Set(S.goalDates || []);
   const daysHit = monday => {
@@ -81,7 +109,7 @@ function goalWeekInfo() {
 let _goalCelebrated = null; // date the toast fired; seeded on first render
 function dailyGoalHtml() {
   const goal  = getDailyGoal();
-  const done  = S.drillCorrectToday || 0;
+  const done  = goalProgress();
   const today = todayISO();
   const reached = done >= goal;
   if (_goalCelebrated === null) {

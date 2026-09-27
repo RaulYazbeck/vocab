@@ -5,6 +5,7 @@ function startSession() {
   // Anki decks: startAnki manages its own scope and hard-stops when the
   // day's debt is cleared (no fallback into other modes).
   if (activeMode === "anki") { startAnki(); return; }
+  if (activeMode === "games") { openGamesHub([...selectedIds]); return; }
   buildActiveWords();
   if (!activeWords.length) return;
   sessionCorrect = 0; sessionConsecutive = 0;
@@ -22,8 +23,11 @@ function showScreen(name) {
   else if (name === "badges")   renderBadgesScreen();
   else if (name === "edits")    renderWordEditsScreen();
   else if (name === "forecast") renderAnkiForecast();
+  else if (name === "games")    openGamesHub(null);
 }
 function backToMenu() {
+  quitAllGames();
+  closePoolPicker();
   clearInterval(timerInterval);
   clearTimeout(_ankiWaitTimer);
   stopVoiceSession();

@@ -33,12 +33,14 @@ const auth = firebase.auth();
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900;1,9..40,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../core.css">
+<link rel="stylesheet" href="../games.css">
 </head>
 <body>
 <div class="app">
   <div class="header">
     <h1>🇫🇷 French Vocabulary</h1>
     <div class="header-right">
+      <button class="hdr-btn" id="games-btn" onclick="showScreen('games')" aria-label="Games">🎮</button>
       <button class="hdr-btn" id="settings-btn" onclick="openSettings()">⚙️</button>
       <button class="hdr-btn" id="auth-btn" onclick="handleAuth()">Sign in</button>
     </div>
@@ -75,6 +77,17 @@ const APP_CONFIG = {
 <script src="../js/mode-voice.js"></script>
 <script src="../js/mode-timer.js"></script>
 <script src="../js/mode-anki.js"></script>
+<script src="../js/games-core.js"></script>
+<script src="../js/game-match.js"></script>
+<script src="../js/game-blitz.js"></script>
+<script src="../js/game-rain.js"></script>
+<script src="../js/game-gender.js"></script>
+<script src="../js/game-listen.js"></script>
+<script src="../js/game-plural.js"></script>
+<script src="../js/game-cloze.js"></script>
+<script src="../js/game-builder.js"></script>
+<script src="../js/game-scramble.js"></script>
+<script src="../js/game-boss.js"></script>
 <script src="../js/screens.js"></script>
 <script src="../js/app.js"></script>
 </body>

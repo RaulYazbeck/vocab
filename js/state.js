@@ -98,9 +98,30 @@ function migrate() {
   if (!S.ankiSessions)          S.ankiSessions = 0;
   if (!ANKI.NEW_PER_DAY_OPTIONS.includes(S.ankiNewPerDay)) S.ankiNewPerDay = ANKI.NEW_PER_DAY_DEFAULT;
   if (S.ankiNewPaused === undefined) S.ankiNewPaused = false;
+  migrateGames();
   // Re-apply user word-text overrides after every state load — migrate()
   // runs both at startup and after a cloud sync replaces S.
   if (typeof applyWordEdits === "function") applyWordEdits();
   // Auto-pause new Anki words after a long absence (3+ missed days).
   if (typeof checkAnkiAutoPause === "function") checkAnkiAutoPause();
+}
+
+// Minigame records (see games-core.js). Lives in the synced meta doc,
+// so it holds only small aggregates — never per-word data.
+function migrateGames() {
+  if (!S.games || typeof S.games !== "object") S.games = {};
+  const G = S.games;
+  ["best", "stars", "plays"].forEach(k => { if (!G[k] || typeof G[k] !== "object") G[k] = {}; });
+  if (!G.totalPlays)       G.totalPlays = 0;
+  if (!G.bossesDefeated)   G.bossesDefeated = 0;
+  if (!G.bestGenderStreak) G.bestGenderStreak = 0;
+  if (!Array.isArray(G.pool)) G.pool = null;          // null = all known words
+  if (G.surprise === undefined) G.surprise = true;    // bonus rounds in Drill
+  if (!G.daily || typeof G.daily !== "object") G.daily = {};
+  if (typeof G.daily.date !== "string") G.daily.date = "";
+  if (!Array.isArray(G.daily.done)) G.daily.done = [];
+  if (!Array.isArray(G.daily.completedDates)) G.daily.completedDates = [];
+  if (!Array.isArray(G.daily.ids)) G.daily.ids = [];
+  if (S.gameCorrectToday === undefined) S.gameCorrectToday = 0;
+  if (S.gameCorrectDate === undefined)  S.gameCorrectDate = "";
 }
