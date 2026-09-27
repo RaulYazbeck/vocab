@@ -703,3 +703,6 @@ body.grandma .say-ask { font-size:15.5px; }
 body.grandma .say-ex-t { font-size:15px; }
 .cj-say-label { margin:6px 0 4px; }
 .check-btn.say-primary { background:linear-gradient(135deg,var(--accent),var(--accent-hi)); color:#0B0E16; border-color:transparent; font-weight:800; }
+/* Sheets: a drag on the backdrop or past the sheet's end never moves the page */
+.settings-overlay { touch-action:none; }
+.settings-sheet, .modal-sheet { overscroll-behavior:contain; }

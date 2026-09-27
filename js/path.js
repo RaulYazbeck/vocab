@@ -642,16 +642,7 @@ function skipLevel(groupId) {
     d.words.forEach((w, i) => {
       const prev = S.words[d.id + "_" + i];
       if (prev && (prev.st || 0) >= STAGE_KNOWN) return;
-      const ws = getWS(d.id, i);
-      const met = !!ws.st;
-      ws.st = STAGE_KNOWN;
-      ws.pk = Math.max(ws.pk || 0, STAGE_KNOWN);
-      ws.sAt = now;
-      ws.dueAt = null;   // known: no reviews scheduled
-      ws.mastered = true;
-      ws.sk = met ? 1 : 2; // skipped, not answered (see srs.js)
-      if (ws.metOn === today) delete ws.metOn; // frees today's new-word quota
-      ["rp", "lrn", "fl", "cf", "rc", "dropDay"].forEach(f => delete ws[f]);
+      skipLiftWord(getWS(d.id, i), now, today);
       n++;
     });
     S.unlocked[d.id] = d.words.length;
@@ -660,6 +651,40 @@ function skipLevel(groupId) {
   logEvent("skip_level", { g: groupId, n });
   saveState();
   return n;
+}
+function skipLiftWord(ws, now = Date.now(), today = studyToday()) {
+  const met = !!ws.st;
+  ws.st = STAGE_KNOWN;
+  ws.pk = Math.max(ws.pk || 0, STAGE_KNOWN);
+  ws.sAt = now;
+  ws.dueAt = null;   // known: no reviews scheduled
+  ws.mastered = true;
+  ws.sk = met ? 1 : 2; // skipped, not answered (see srs.js)
+  if (ws.metOn === today) delete ws.metOn; // frees today's new-word quota
+  ["rp", "lrn", "fl", "cf", "rc", "dropDay"].forEach(f => delete ws[f]);
+}
+// One-time, for levels skipped with the first version of Skip a level
+// (it left the words learnt that day as they were and scheduled checks
+// for the rest): finish the job the way skipping works now. A level
+// counts as skipped when it holds skipped words. Runs once per state
+// (S.path.skipFixed), so a word that slips later is never lifted again.
+function skipRetrofit() {
+  const P = S.path;
+  if (!P || P.skipFixed) return;
+  const now = Date.now(), today = studyToday();
+  let n = 0;
+  vocabGroups().forEach(g => {
+    const words = [];
+    g.decks.forEach(d => d.words.forEach((w, i) => words.push([d, i, S.words[d.id + "_" + i]])));
+    if (!words.some(([, , ws]) => ws && ws.sk)) return;
+    words.forEach(([d, i, ws]) => {
+      if (ws && ws.sk && ws.st === STAGE_KNOWN && ws.dueAt && !ws.rp) { ws.dueAt = null; n++; } // old checks
+      else if (!ws || (ws.st || 0) < STAGE_KNOWN) { skipLiftWord(getWS(d.id, i), now, today); n++; }
+    });
+    g.decks.forEach(d => { S.unlocked[d.id] = d.words.length; });
+  });
+  P.skipFixed = true;
+  if (n) { invalidatePathScan(); if (typeof logEvent === "function") logEvent("skip_retrofit", { n }); }
 }
 // Skipped words are known — they never fill a session or a game.
 function isSkipped(ws) { return !!(ws && ws.sk); }
