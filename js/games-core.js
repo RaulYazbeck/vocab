@@ -449,20 +449,28 @@ function makeClock() {
 let _deferredToasts = [], _deferredConfetti = 0;
 const _toastNow = showCelebrateToast, _confettiNow = confettiBurst;
 function gameInPlay() { return !!(activeGame && activeGame.ctx.started && !activeGame.ctx.finished && !activeGame.ctx.dead); }
+// A Today session holds them too: they replay on its summary screen.
+function celebrationsHeld() { return gameInPlay() || (typeof pathSession !== "undefined" && !!pathSession); }
 showCelebrateToast = function (icon, title, sub) {
-  if (gameInPlay()) { _deferredToasts.push([icon, title, sub]); return; }
+  if (celebrationsHeld()) { _deferredToasts.push([icon, title, sub]); return; }
   _toastNow(icon, title, sub);
 };
 confettiBurst = function (count) {
-  if (gameInPlay()) { _deferredConfetti = Math.max(_deferredConfetti, count || 36); return; }
+  if (celebrationsHeld()) { _deferredConfetti = Math.max(_deferredConfetti, count || 36); return; }
   _confettiNow(count);
 };
 function flushDeferredCelebrations() {
-  const toasts = _deferredToasts, conf = _deferredConfetti;
+  let toasts = _deferredToasts;
+  const conf = _deferredConfetti;
   _deferredToasts = []; _deferredConfetti = 0;
+  // Many at once: show the first, then one toast that sums up the rest.
+  if (toasts.length > 2) {
+    const rest = toasts.slice(1);
+    toasts = [toasts[0], ["🎉", `+${rest.length} more`, rest.map(t => String(t[1]).replace(/<[^>]*>/g, "")).slice(0, 3).join(" · ") + (rest.length > 3 ? " …" : "")]];
+  }
   // Through the wrappers: if a new round has started by then, they wait again.
   if (conf) setTimeout(() => confettiBurst(conf), 500);
-  toasts.forEach((t, i) => setTimeout(() => showCelebrateToast(...t), 900 + i * 1700));
+  toasts.forEach((t, i) => setTimeout(() => showCelebrateToast(...t), 900 + i * 2400));
 }
 
 // ── EFFECTS ───────────────────────────────────
@@ -770,7 +778,7 @@ function showStartCard(ctx, onGo) {
       <div class="g-card-icon">${d.icon}</div>
       <div class="g-card-title">${escapeHtml(gameName(d))}</div>
       <div class="g-card-skill">${escapeHtml(d.skill)}</div>
-      ${max > 0 ? `<div class="g-ranks" role="radiogroup" aria-label="Rank">${GAME_RANKS.slice(0, max + 1).map((r, i) =>
+      ${max > 0 ? `<div class="g-ranks" role="radiogroup" aria-label="Rank" style="--n:${max + 1}">${GAME_RANKS.slice(0, max + 1).map((r, i) =>
         `<button class="g-rank ${i === ctx.rank ? "on" : ""}" data-r="${i}" role="radio" aria-checked="${i === ctx.rank}">${r.icon}<small>${r.name}</small><span>${starsHtml(gameRankStars(d.id, i))}</span></button>`).join("")}</div>` : ""}
       ${max < 4 ? `<div class="g-rank-next">3★ at ${rankLabel(max)} unlocks ${rankLabel(max + 1)}</div>` : `<div class="g-rank-next">💎 Top rank reached</div>`}
       ${twistLineHtml(ctx)}
@@ -1503,7 +1511,8 @@ function renderGamesHub() {
       ${!req.ok ? `<div class="g-tile-reason">${escapeHtml(req.reason)}</div>`
         : quietOff ? `<div class="g-tile-reason">🔇 Needs sound</div>`
         : `<div class="g-tile-stars">${starsHtml(st)}</div>
-           <div class="g-tile-best">${r < GAME_RANKS.length - 1 ? (st === 3 ? "" : `3★ → ${GAME_RANKS[r + 1].icon}`) : "💎 max rank"}${best !== undefined ? ` · best ${best.toLocaleString()}` : plays ? "" : " ✨ Try it!"}</div>`}
+           <div class="g-tile-best">${!plays && best === undefined ? `<span class="g-tile-new">✨ New — try it</span>`
+             : [r < GAME_RANKS.length - 1 ? (st === 3 ? "" : `3★ → ${GAME_RANKS[r + 1].icon}`) : "💎 max rank", best !== undefined ? `best ${best.toLocaleString()}` : ""].filter(Boolean).join(" · ")}</div>`}
     </button>`;
   }).join("");
 

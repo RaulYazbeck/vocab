@@ -635,3 +635,10 @@ body.g-drag-active { user-select:none; -webkit-user-select:none; cursor:grabbing
 .bst-name { font-size:12px; font-weight:800; }
 .bst-deck { font-size:10.5px; color:var(--text-3); line-height:1.2; }
 .bst-rec { font-size:10.5px; color:var(--accent); font-weight:700; }
+.g-tile-new { color:var(--gold); font-weight:700; }
+/* An odd option count: the last option spans the row instead of dangling. */
+.g-options > .g-opt:last-child:nth-child(odd) { grid-column:1 / -1; }
+/* Rank picker: one row, however many ranks are open. */
+.g-ranks { display:grid; grid-template-columns:repeat(var(--n, 5), minmax(0, 64px)); justify-content:center; }
+.g-rank { min-width:0; }
+.g-rank small { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:9.5px; }

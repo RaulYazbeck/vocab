@@ -654,27 +654,27 @@ function renderHome() {
     <div class="today-card" id="today-card">
       <div class="tc-head">
         <div class="tc-title">Today</div>
-        <div class="tc-streak" title="Days in a row with all quests done">🔥 ${streak}${Q.freezes ? ` <span class="tc-freeze" title="Streak freezes">🧊${Q.freezes}</span>` : ""}</div>
-        <button class="tc-quiet ${quiet ? "on" : ""}" onclick="toggleQuiet()" aria-pressed="${quiet}" title="Quiet mode: no sound or voice today">${quiet ? "🔇 Quiet" : "🔈"}</button>
+        ${streak || Q.freezes ? `<div class="tc-streak" title="Days in a row with all quests done">${streak ? `🔥 ${streak}` : ""}${Q.freezes ? ` <span class="tc-freeze" title="Streak freezes">🧊${Q.freezes}</span>` : ""}</div>` : ""}
+        <button class="tc-quiet ${quiet ? "on" : ""}" onclick="toggleQuiet()" aria-pressed="${quiet}" title="Quiet mode: no sound or voice today">${quiet ? "🔇 Quiet" : "🔈 Sound"}</button>
       </div>
       ${banner}
-      ${questCardsHtml()}
-      ${sg && !sg.done ? `<div class="tc-saga">📜 Weekly saga ${sg.idx + 1}/3 · ${escapeHtml(sg.title)} <span>${sg.prog}/${sg.target}</span></div>` : sg && sg.done ? `<div class="tc-saga done">📜 Weekly saga complete ✓</div>` : ""}
       ${Q.pending.length ? `<button class="tc-chest" onclick="openPendingChest()">🎁 ${Q.pending.length} chest${Q.pending.length > 1 ? "s" : ""} to open</button>` : ""}
       <div class="tc-stats">${stats.join("")}</div>
       <div class="tc-len" role="radiogroup" aria-label="Session length">
         ${Object.entries(PATH.SESSION_LENGTHS).map(([k, n]) => `<button class="tc-len-btn ${k === len ? "on" : ""}" role="radio" aria-checked="${k === len}" onclick="setSessionLen('${k}')">${k[0].toUpperCase() + k.slice(1)} <small>${n}</small></button>`).join("")}
       </div>
-      <button class="tc-start" onclick="startPathSession('${len}')">${nothing ? "✓ All caught up — practise anyway ▶" : "Start ▶"}</button>
+      <button class="tc-start ${nothing ? "calm" : ""}" onclick="startPathSession('${len}'${nothing ? ", { practice: true }" : ""})">${nothing ? "✓ All caught up · extra practice ▶" : "Start ▶"}</button>
       <div class="tc-links">
         ${t.due >= 1 ? `<button class="tc-link" onclick="startQuickFive()">5️⃣ Quick Five</button>` : ""}
         ${t.frontier && !t.newLeft && t.reason !== "autopaused" ? `<button class="tc-link" onclick="pathLearnExtra();startPathSession('quick')">🌱 Learn ${PATH.EXTRA_NEW} extra</button>` : ""}
         <button class="tc-link" onclick="openGamesHub(null)">🎮 Games</button>
       </div>
       ${ankiOwed ? `<div class="tc-anki">🃏 Anki: <strong>${ankiOwed}</strong> owed today <button class="tc-link" onclick="runQuestAction('anki')">Start ▶</button></div>` : ""}
+      ${questCardsHtml()}
+      ${sg && !sg.done ? `<div class="tc-saga">📜 Weekly saga ${sg.idx + 1}/3 · ${escapeHtml(sg.title)} <span>${sg.prog}/${sg.target}</span></div>` : sg && sg.done ? `<div class="tc-saga done">📜 Weekly saga complete ✓</div>` : ""}
     </div>
     ${journeyStripHtml(t.scan)}
-    <div class="library-head"><span>📚 Library</span><small>pick decks yourself — Learn · Drill · Timer · Games</small></div>`;
+    <div class="library-head"><span class="lh-title">📚 Library</span><small>Pick decks yourself — Learn · Drill · Timer · Games</small></div>`;
   maybeShowPathWelcome();
 }
 function setSessionLen(k) { if (!PATH.SESSION_LENGTHS[k]) return; S.path.sessionLen = k; saveState(); renderHome(); }
@@ -699,7 +699,7 @@ function maybeShowPathWelcome() {
     <div class="modal-title">🗺️ Welcome to your Path</div>
     <div class="welcome-body">
       <p><strong>No more choosing.</strong> Tap <em>Start</em> and the app picks for you: words you're about to forget, a few new ones (${S.path.newPerDay}/day, changeable in ⚙️), and fixes for recent slips.</p>
-      <p><strong>Words climb stages:</strong> 🌱 Learning → 🌿 Familiar → 🌳 <strong>Known</strong> (≈2 weeks) → ⭐ Strong → 💎 <strong>Locked in</strong> (≈2 months). Every correct review moves a pip ●●●○○○○.</p>
+      <p><strong>Words climb stages:</strong> 🌱 Learning → 🌿 Familiar → 🌳 <strong>Known</strong> (≈2 weeks) → ⭐ Strong → 💎 <strong>Locked in</strong> (≈2 months), then two quiet check-ins at 4 months and a year. Correct reviews move the pips ●●●○○○○. The gaps adapt to you: easy words stretch out, words you slip on come back sooner and get an extra check.</p>
       <p><strong>Mistakes are gentle.</strong> At most one step down a day. A slip on a Known word keeps its badge and gets 🩹 — fix it next time and nothing is lost.</p>
       <p><strong>4 quests a day</strong>, different every day, add up to your daily goal. Finish them, open your chest, done.</p>
       ${any ? `<div class="welcome-mig"><div class="examples-title">Your progress so far</div>
@@ -764,6 +764,7 @@ function renderJourney() {
       ${tierBarHtml(scan.tiers, scan.total, "big")}
       <div class="tier-legend">${TIERS.map(t => `<span><i class="tb-${t.id}"></i>${t.icon} ${t.name} ${scan.tiers[t.id] || 0}</span>`).join("")}</div>
     </div>
+    ${stageGuideHtml()}
     <div class="stats-section-title" style="margin-top:1rem">Reviews coming up</div>
     <div class="jf">${fc}</div>
     ${levels}
@@ -774,6 +775,21 @@ function renderJourney() {
     </div>
   </div>`;
 }
+// "How does a word move?" — the schedule, in plain words.
+function stageGuideHtml() {
+  const rows = [
+    ["Day 0", "🌱 Meet it", "card · pick it · type it twice, spaced out in the session"],
+    ["Day 1 · 3 · 7", "🌱→🌿", "typed recall each time, just before you'd forget"],
+    ["≈ Day 14", "🌳 Known", "the main finish line"],
+    ["≈ Day 28", "⭐ Strong", "sometimes typed into a sentence, or reversed"],
+    ["≈ Day 58", "💎 Locked in", "badge earned"],
+    ["+4 mo · +1 yr", "💎 Check-ins", "two quiet checks, then it's done for good"],
+  ];
+  return `<details class="stage-guide"><summary>ℹ️ How a word moves</summary>
+    <div class="sg-rows">${rows.map(r => `<div class="sg-row"><b>${r[0]}</b><span>${r[1]}</span><small>${r[2]}</small></div>`).join("")}</div>
+    <div class="p-sub">Every step is a real recall — ≈ 12 in all, more if a word is hard. Gaps adapt per word: ones you answer fast stretch a little; a slip brings the word back tomorrow, shrinks its gaps and, if it keeps slipping, asks for two correct reviews per step. A slip on a 🌳/⭐/💎 word keeps its badge (🩹 repair).</div>
+  </details>`;
+}
 function renderDeckWords(deckId) {
   const d = getDeck(deckId);
   if (!d) return;
@@ -783,8 +799,8 @@ function renderDeckWords(deckId) {
     const st = ws ? ws.st || 0 : 0;
     const due = !st ? "" : ws.rp ? "🩹 repair" : ws.fl ? "⚠️ check" : ws.lrn ? "now" : st >= STAGE_LOCKED ? "💎" :
       ws.dueAt <= now ? "due" : (() => { const n = Math.round((ws.dueAt - dayStart) / 864e5); return n <= 0 ? "today" : n === 1 ? "tomorrow" : `in ${n}d`; })();
-    return `<tr class="${st ? "" : "unmet"}"><td>${escapeHtml(w.en)}</td><td>${st ? colorArticleHtml(w[WORD_KEY]) : `<span class="dw-hidden">not met yet</span>`}</td>
-      <td>${st ? pipsHtml(ws) : ""}</td><td class="dw-due">${due}</td></tr>`;
+    return `<div class="dw-row ${st ? "" : "unmet"}"><div class="dw-en">${escapeHtml(w.en)}</div><div class="dw-de">${st ? colorArticleHtml(w[WORD_KEY]) : `<span class="dw-hidden">not met yet</span>`}</div>
+      <div class="dw-pips">${st ? pipsHtml(ws) : ""}</div><div class="dw-due ${due === "due" || due === "now" ? "now" : ""}">${due}</div></div>`;
   }).join("");
   const ds = pathScan().decks[deckId];
   document.getElementById("main-screen").innerHTML = `<div class="screen">
@@ -793,7 +809,7 @@ function renderDeckWords(deckId) {
     <div class="jh-sub" style="margin:8px 0 12px">${ds ? `${ds.known}/${ds.total} known · ${ds.locked} 💎 · ${ds.total - ds.met} not met` : ""}</div>
     ${typeof deckBossRowHtml === "function" ? deckBossRowHtml(deckId) : ""}
     <div class="g-result-actions" style="margin:0 0 12px"><button class="g-sec-btn" onclick="startPathSession(S.path.sessionLen, { focus: 'deck', param: '${deckId}' })">📖 Practise this deck</button></div>
-    <div class="stats-table-wrap"><table><thead><tr><th>Prompt</th><th>Word</th><th>Stage</th><th>Next</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="dw-list">${rows}</div>
   </div>`;
 }
 

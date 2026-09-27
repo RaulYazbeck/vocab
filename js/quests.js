@@ -1158,7 +1158,9 @@ function questCardsHtml() {
       <div class="quest-body"><div class="quest-title">${questTitle(w)}</div><div class="quest-sub">🎁 Weekend bonus (optional) · ${w.prog}/${w.target}</div></div>
       <div class="quest-acts"><button class="quest-go" onclick="questGoTpl('${w.tpl}', 'W')">▶</button></div></div>`);
   }
-  return `<div class="quests">${rows}${extra.join("")}</div>`;
+  const nDone = Q.list.filter(q => q.done).length;
+  return `<div class="quests-head"><span>Today's quests</span><small>${nDone}/${Q.list.length} done${nDone < Q.list.length ? " · all four open a 🎁 chest" : " ✓"}</small></div>
+    <div class="quests">${rows}${extra.join("")}</div>`;
 }
 function questMiniHtml() {
   if (!S.quests || !S.quests.list.length) return "";
@@ -1239,7 +1241,7 @@ function renderDayComplete() {
       <div class="result-title">Day complete ✓</div>
       <div class="result-sub">All four quests done — see you tomorrow.</div>
       <div class="p-chips">
-        <span class="p-chip gold">🔥 ${st}-day streak</span>
+        ${st ? `<span class="p-chip gold">🔥 ${st}-day streak</span>` : ""}
         ${Q.freezes ? `<span class="p-chip">🧊 ${Q.freezes} freeze${Q.freezes > 1 ? "s" : ""}</span>` : ""}
         <span class="p-chip ok">+100 XP</span>
       </div>

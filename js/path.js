@@ -75,7 +75,7 @@ function pathScan(force = false) {
             ds.due++; res.due++;
             if (ws.rp || ws.fl || (ws.lrn && ws.metOn !== today)) res.fix++;
             else if (ws.dueAt && ws.dueAt < dayStart) res.overdue++;
-          } else if (ws.dueAt && st < STAGE_LOCKED) {
+          } else if (ws.dueAt) {
             const dd = Math.floor((ws.dueAt - dayStart) / 864e5);
             if (dd >= 0 && dd < 8) res.dueByDay[dd]++;
           }
@@ -213,7 +213,7 @@ function pathReviewCandidates(now = Date.now()) {
   vocabGroups().forEach(g => g.decks.forEach(d => {
     for (let i = 0; i < d.words.length; i++) {
       const ws = S.words[d.id + "_" + i];
-      if (!ws || !ws.st || (ws.st >= STAGE_LOCKED && !ws.rp && !ws.fl)) continue;
+      if (!ws || !ws.st || (ws.st >= STAGE_LOCKED && !ws.rp && !ws.fl && !(ws.dueAt && ws.dueAt <= now))) continue;
       if (ws.rp || ws.fl || ws.lrn) fix.push({ d, i, ws });
       else if (ws.dueAt && ws.dueAt <= now) due.push({ d, i, ws });
     }
@@ -228,7 +228,8 @@ function pathSpotCandidates(n = 1, rng = Math.random) {
   vocabGroups().forEach(g => g.decks.forEach(d => {
     for (let i = 0; i < d.words.length; i++) {
       const ws = S.words[d.id + "_" + i];
-      if (ws && ws.st >= STAGE_LOCKED && !ws.rp && (!ws.sAt || ws.sAt < cutoff)) out.push(pathWord(d.id, i));
+      const last = Math.max(ws ? ws.spotAt || 0 : 0, ws ? ws.sAt || 0 : 0);
+      if (ws && ws.st >= STAGE_LOCKED && !ws.rp && !(ws.dueAt && ws.dueAt <= Date.now()) && last < cutoff) out.push(pathWord(d.id, i));
     }
   }));
   return seededShuffle(out, rng).slice(0, n);
@@ -243,6 +244,7 @@ function pathSpotCandidates(n = 1, rng = Math.random) {
 function pathItemFor(w, ws, rng = Math.random) {
   const st = ws ? ws.st || 0 : 0;
   if (ws && (ws.rp || ws.lrn || ws.fl)) return { t: "typed", w, fix: true };
+  if (st >= STAGE_LOCKED) return { t: "spot", w, maint: true };
   if (st <= 1) {
     if (audioOk() && rng() < 0.25) return { t: "listen", w };
     return { t: "choice", w, rev: rng() < 0.5 };
@@ -341,10 +343,12 @@ function buildPathQueue(lenKey, opts = {}) {
     const { fix, due } = pathReviewCandidates(now);
     const reviewsAvail = fix.length + due.length;
     const newSlots = opts.reviewOnly ? 0 : Math.max(Math.round(budget * 0.3), budget - Math.min(reviewsAvail, Math.round(budget * 0.7)));
-    const newCount = opts.reviewOnly ? 0 : Math.min(q.left, Math.floor(newSlots / 2));
+    // Each new word costs ~3 counted items: a choice check and two
+    // spaced typed recalls (successive relearning, criterion 2).
+    const newCount = opts.reviewOnly ? 0 : Math.min(q.left, Math.floor(newSlots / 3));
     clusters = planNewWords(newCount, rng);
     const nNew0 = clusters.reduce((s, c) => s + c.length, 0);
-    const reviewBudget = Math.max(0, budget - nNew0 * 2);
+    const reviewBudget = Math.max(0, budget - nNew0 * 3);
     reviews = [...fix, ...due].slice(0, reviewBudget).map(x => pathItemFor(pathWord(x.d.id, x.i), x.ws, rng));
     // Spot check (at most 2 a day).
     spots = !opts.reviewOnly && (S.path.spotToday || 0) < 2 && budget >= 15 ? pathSpotCandidates(1, rng) : [];
@@ -380,7 +384,10 @@ function buildPathQueue(lenKey, opts = {}) {
       });
       out.push({ t: "choice", w: cl[cl.length - 1], fresh: true, rev: rng() < 0.5 });
       const base = counted();
-      cl.forEach((w, j) => delayed.push({ minPos: base + 3 + j * 2, item: { t: "typed", w, fresh: true, hintOk: true } }));
+      cl.forEach((w, j) => {
+        delayed.push({ minPos: base + 3 + j * 2, item: { t: "typed", w, fresh: true, hintOk: true } });
+        delayed.push({ minPos: base + 9 + j * 2, item: { t: "typed", w, fresh: true, second: true } });
+      });
       nextClusterAt = base + clusterEvery;
       continue;
     }

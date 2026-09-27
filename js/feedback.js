@@ -132,6 +132,9 @@ function buzz(pattern) {
 // ── CELEBRATIONS ──────────────────────────────
 const CONFETTI_COLORS = ["#F5A623", "#FFD166", "#00C9B1", "#9B7FE8", "#00D896", "#FF6363"];
 function confettiBurst(count = 36) {
+  // Never stack bursts into a blizzard: top up to a ceiling instead.
+  const live = document.querySelectorAll(".confetti-piece").length;
+  count = Math.min(count, Math.max(0, 70 - live));
   for (let i = 0; i < count; i++) {
     const piece = document.createElement("div");
     piece.className = "confetti-piece";

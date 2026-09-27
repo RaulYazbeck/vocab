@@ -112,6 +112,15 @@ const STAGE_DAYS = [0, 1, 2, 4, 7, 14, 30, 0]; // interval after reaching st
 const STAGE_KNOWN = 5, STAGE_STRONG = 6, STAGE_LOCKED = 7, STAGE_MAX = 7;
 const STAGE_RECOG_CAP = 3;          // recognition can lift a word up to here
 const RELEARN_MS = 2 * 60 * 1000;   // a missed word comes back this soon
+// Per-word ease (FSRS-inspired personalisation): every interval is
+// scaled by ws.k. Easy words (fast, never slipping) stretch up to ×1.6;
+// words you slip on shrink down to ×0.5 and, below HARD_K, need two
+// correct reviews at a stage before moving up.
+const EASE = { MIN: 0.5, MAX: 1.6, SLIP: 0.2, REPAIR: 0.15, NEAR: 0.05, UP: 0.02, UP_FAST: 0.08, FAST_MS: 5000, HARD_K: 0.8 };
+// 💎 maintenance: a locked-in word keeps its badge and gets two quiet
+// check-ins — 4 months and then a year later — then it's done for good.
+const LOCKED_CHECKS = [120, 365];
+const LOCKED_REPAIR_CHECK = 30; // days: a 💎 word that slipped and was repaired
 const TIERS = [
   { id: "new",      icon: "·",  name: "Not met",    min: 0, max: 0 },
   { id: "learning", icon: "🌱", name: "Learning",   min: 1, max: 2 },

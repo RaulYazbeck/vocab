@@ -299,7 +299,16 @@ function checkAchievements(ev = {}) {
     });
 
     if (!unlocked.length) return;
-    unlocked.forEach((u, i) => setTimeout(() => {
+    // A Today session reports badges apart from the XP its answers earned.
+    if (typeof pathSession !== "undefined" && pathSession) {
+      pathSession.badgeXp = (pathSession.badgeXp || 0) + xpGain;
+      pathSession.badges = (pathSession.badges || 0) + unlocked.length;
+    }
+    // A big batch (e.g. new ladders catching up): two toasts, then one sum-up.
+    const shown = unlocked.length > 3
+      ? [unlocked[0], unlocked[1], { icon: "🏅", name: `+${unlocked.length - 2} more achievements`, sub: "See them all in 🏆 Achievements" }]
+      : unlocked;
+    shown.forEach((u, i) => setTimeout(() => {
       playAchievement();
       confettiBurst(u.sub.startsWith("MAX") ? 50 : 30);
       showCelebrateToast(u.icon, u.name, u.sub);

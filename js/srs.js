@@ -25,6 +25,10 @@ function wilsonLower(correct, total) {
 //            recall to be (re)scheduled, never promotes
 //   fl       1 = ⚠️ flagged by a recognition miss — typed check wanted
 //   dropDay  study day of the last demotion (max one step down a day)
+//   k        personal ease ×0.5–×1.6 on every interval (see EASE)
+//   cf       1 = a hard word passed once at this stage, one more to go
+//   mt       💎 maintenance check-ins done (see LOCKED_CHECKS)
+//   rc       1 = a repaired 💎 word's extra check-in is pending
 //   mastered sticky: reached Known once (achievements never go down)
 function stageOf(ws) { return (ws && ws.st) || 0; }
 function tierOfStage(st) { return TIERS.find(t => st >= t.min && st <= t.max) || TIERS[0]; }
@@ -48,16 +52,29 @@ function isDue(ws, now = Date.now()) {
   if (ws.lrn || ws.rp || ws.fl) return true;
   return !!ws.dueAt && ws.dueAt <= now;
 }
-// Interval (days) for reaching `st`, halved while re-climbing to the peak.
+// Interval (days) for reaching `st`: scaled by the word's ease, halved
+// while re-climbing to the peak.
 function stageIntervalDays(ws, st) {
   let d = STAGE_DAYS[st] || 0;
-  if (d && st < (ws.pk || 0)) d = Math.max(1, Math.round(d / 2));
-  return d;
+  if (!d) return 0;
+  d *= ws.k || 1;
+  if (st < (ws.pk || 0)) d /= 2;
+  return Math.max(1, Math.round(d));
+}
+function isHard(ws) { return (ws.k || 1) < EASE.HARD_K; }
+function nudgeEase(ws, delta) {
+  ws.k = Math.round(Math.max(EASE.MIN, Math.min(EASE.MAX, (ws.k || 1) + delta)) * 100) / 100;
 }
 function scheduleStage(ws, now, halve = false) {
   const st = stageOf(ws);
   ws.sAt = now;
-  if (st >= STAGE_LOCKED) { ws.dueAt = null; return; }
+  if (st >= STAGE_LOCKED) {
+    // Just repaired: one extra check-in a month later (then the usual ones).
+    if (halve) { ws.dueAt = studyDayStart(LOCKED_REPAIR_CHECK, now); return; }
+    const mt = ws.mt || 0;
+    ws.dueAt = mt < LOCKED_CHECKS.length ? studyDayStart(LOCKED_CHECKS[mt], now) : null;
+    return;
+  }
   let d = stageIntervalDays(ws, st);
   if (halve) d = Math.max(1, Math.round(d / 2));
   ws.dueAt = studyDayStart(d, now);
@@ -75,6 +92,12 @@ function pipsHtml(ws, cls = "") {
   for (let i = 1; i <= STAGE_MAX; i++) s += `<i class="pip ${i <= st ? "on" : ""} ${i >= STAGE_KNOWN ? "ck" : ""}"></i>`;
   return `<span class="pips ${cls}" aria-label="stage ${st} of ${STAGE_MAX}">${s}</span>`;
 }
+// Pips for a stage change: the pips just gained glow.
+function pipsMoveHtml(from, to) {
+  let s = "";
+  for (let i = 1; i <= STAGE_MAX; i++) s += `<i class="pip ${i <= to ? "on" : ""} ${i > from && i <= to ? "gain" : ""} ${i >= STAGE_KNOWN ? "ck" : ""}"></i>`;
+  return `<span class="pips" aria-label="stage ${from} to ${to} of ${STAGE_MAX}">${s}</span>`;
+}
 function tierBadgeHtml(ws) {
   const t = tierOf(ws);
   if (t.id === "new") return "";
@@ -88,10 +111,10 @@ function tierBadgeHtml(ws) {
 // Returns { from, to, promoted, demoted, repaired, events:[…] } so
 // callers (Path end screen, quests, games) can report what happened.
 // Never touches ws.correct/wrong — applyCorrect/applyWrong do that.
-function srsReview(ws, ok, kind = "recall", now = Date.now()) {
+function srsReview(ws, ok, kind = "recall", now = Date.now(), opts = {}) {
   const from = stageOf(ws);
   const res = { from, to: from, promoted: false, demoted: false, repaired: false, events: [], pkBefore: ws.pk || 0 };
-  if (ok === "near") return res;
+  if (ok === "near") { if (from && kind === "recall") nudgeEase(ws, -EASE.NEAR); return res; }
   const recall = kind === "recall";
   const today = studyToday();
 
@@ -112,7 +135,10 @@ function srsReview(ws, ok, kind = "recall", now = Date.now()) {
       if (!ws.fl) { ws.fl = 1; res.events.push("flagged"); }
       return res;
     }
-    ws.fl = 0;
+    ws.fl = 0; ws.cf = 0;
+    // A slip on a scheduled word makes its future gaps shorter (once
+    // per day — relearning misses in the same session don't stack).
+    if (!ws.lrn && ws.dropDay !== today) nudgeEase(ws, isCheckpoint(from) && !ws.rp ? -EASE.REPAIR : -EASE.SLIP);
     if (isCheckpoint(from) && !ws.rp && ws.dropDay !== today) {
       // First slip on a checkpoint word: keep the badge, open a repair.
       ws.rp = 1; ws.lrn = 0; ws.sAt = now; ws.dueAt = now + RELEARN_MS;
@@ -133,6 +159,7 @@ function srsReview(ws, ok, kind = "recall", now = Date.now()) {
   if (ws.rp) {
     if (!recall) return res; // repairs need recall
     ws.rp = 0; ws.fl = 0; ws.lrn = 0;
+    if (from >= STAGE_LOCKED) ws.rc = 1;
     scheduleStage(ws, now, true);
     res.repaired = true; res.events.push("repaired");
     return res;
@@ -145,15 +172,32 @@ function srsReview(ws, ok, kind = "recall", now = Date.now()) {
     return res;
   }
   if (recall && ws.fl) { ws.fl = 0; res.events.push("unflagged"); }
-  if (from >= STAGE_LOCKED) { ws.sAt = now; res.events.push("spotcheck"); return res; }
   const due = !!ws.dueAt && ws.dueAt <= now;
+  if (from >= STAGE_LOCKED) {
+    if (due && recall) {
+      if (ws.rc) ws.rc = 0; else ws.mt = (ws.mt || 0) + 1;
+      scheduleStage(ws, now); res.events.push("maintained");
+    }
+    else { ws.spotAt = now; res.events.push("spotcheck"); }
+    return res;
+  }
   if (!due && !(recall && isEarlyOk(ws, now))) return res;
   if (!recall && from >= STAGE_RECOG_CAP) return res;
+  if (recall) nudgeEase(ws, opts.ms > 0 && opts.ms < EASE.FAST_MS ? EASE.UP_FAST : EASE.UP);
+  // Hard words need a second correct review at this stage first.
+  if (recall && isHard(ws) && !ws.cf) {
+    ws.cf = 1;
+    scheduleStage(ws, now, true);
+    res.events.push("confirm");
+    return res;
+  }
+  ws.cf = 0;
   const to = from + 1;
   const firstTime = to > (ws.pk || 0);
   ws.st = to; ws.pk = Math.max(ws.pk || 0, to);
   scheduleStage(ws, now);
   res.to = to; res.promoted = true; res.events.push("up");
+  if (to === STAGE_LOCKED) { ws.mt = 0; scheduleStage(ws, now); }
   if (to === STAGE_KNOWN && !ws.mastered) { ws.mastered = true; res.events.push("known"); }
   if (firstTime && to === STAGE_STRONG) res.events.push("strong");
   if (firstTime && to === STAGE_LOCKED) res.events.push("locked");
@@ -184,7 +228,7 @@ function applyCorrect(ws, opts = {}) {
   ws.lastAnsweredAt = Date.now();
   ws.correct++; ws.streak++; ws.displayStreak++;
   S.totalCorrect++;
-  const res = srsReview(ws, true, opts.kind || "recall");
+  const res = srsReview(ws, true, opts.kind || "recall", Date.now(), { ms: opts.ms });
   res._w = opts.w || null;
   celebrateReview(res, opts.quiet);
   if (sessionConsecutive > (S.bestCombo || 0)) S.bestCombo = sessionConsecutive;

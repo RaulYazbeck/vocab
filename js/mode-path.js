@@ -23,13 +23,20 @@ function startPathSession(lenKey, opts = {}) {
   activeMode = "path";
   sessionCorrect = 0; sessionConsecutive = 0;
   showGameScreen();
-  if (!q.items.length) { renderPathCaughtUp(); return; }
+  if (!q.items.length) {
+    // Nothing due and today's new words met: "practise anyway" gets a
+    // refresh session on your least recently seen words (stages only
+    // move for due words, so this is pure extra practice).
+    if (opts.practice && !opts.focus) { startPathSession(lenKey, { focus: "stale", practice: true }); return; }
+    renderPathCaughtUp(); return;
+  }
   pathSession = {
     lenKey, items: q.items, i: -1, budget: q.budget, startedAt: Date.now(), startExp: S.exp,
     stats: { answered: 0, correct: 0, wrong: 0, near: 0 }, moves: new Map(), met: [], repaired: 0,
     locked: 0, flagged: 0, missed: [], reasks: {}, bonusShown: 0, lastBonus: "", answered: false,
     cur: null, shownAt: 0, pendingReverse: null, typedSeen: 0, quick: !!opts.quick,
-    focus: q.focus ? q.focus : "", ok5: 0, upCount: 0, wotdHit: false, golden: 0,
+    focus: q.focus ? q.focus : "", focusParam: opts.param || "", practice: !!opts.practice,
+    ok5: 0, upCount: 0, wotdHit: false, golden: 0,
   };
   pathMarkActive();
   logEvent("session_start", { kind: opts.quick ? "quick5" : "path", len: lenKey, n: q.items.length, nw: q.newWords, focus: q.focus || "" });
@@ -52,6 +59,7 @@ function renderPathShell() {
         <span class="p-count" id="p-count"></span>
         ${voiceAvail ? `<button class="g-hud-btn p-toggle ${S.path.voiceInput ? "on" : ""}" id="p-voice" onclick="pathToggleVoice()" aria-pressed="${!!S.path.voiceInput}" aria-label="Answer by voice (optional)">🎙️</button>` : ""}
       </div>
+      ${pathFocusLabel() ? `<div class="p-focus">${pathFocusLabel()}</div>` : ""}
       <div id="p-nudge"></div>
       <div class="p-card" id="p-card"></div>
       <div class="p-typed" id="p-typed" style="display:none">
@@ -69,6 +77,18 @@ function renderPathShell() {
   const input = document.getElementById("p-input");
   input.addEventListener("input", () => { if (voiceActive) { cancelListening(); updateMicBtn(); setVoiceStatus("Typing — tap 🎤 to speak instead"); } });
 }
+function pathFocusLabel() {
+  const s = pathSession;
+  if (!s) return "";
+  if (s.quick) return "5️⃣ Quick Five";
+  if (s.practice) return "🧺 Extra practice — nothing is due, so this is just for fun";
+  if (!s.focus) return "";
+  const p = s.focusParam;
+  const extra = s.focus === "deck" || s.focus === "new" ? (getDeck(p) ? " · " + escapeHtml(getDeck(p).name) : "")
+    : s.focus === "level" ? " · " + escapeHtml((ALL_GROUPS.find(g => g.id === p) || {}).name || "")
+    : s.focus === "pos" ? " · " + ({ verb: "verbs", noun: "nouns", adj: "adjectives" }[p] || p) : "";
+  return `🎯 ${FOCUS_LABELS[s.focus] || "Focus"}${extra}`;
+}
 function bindPathKeys() {
   if (_pathKeyBound) return;
   _pathKeyBound = true;
@@ -77,7 +97,11 @@ function bindPathKeys() {
     if (document.getElementById("g-overlay") && document.getElementById("game-screen")) return;
     const it = pathSession.cur;
     if (!it) return;
+    // Any open sheet (word editor, confirm, chest…) owns the keyboard.
+    if (document.querySelector(".modal-overlay") || document.getElementById("settings-panel").style.display === "block") return;
     if (e.key === "Escape") { e.preventDefault(); pathQuit(); return; }
+    // A focused button handles its own Enter (no double advance).
+    if (e.key === "Enter" && e.target && e.target.tagName === "BUTTON") return;
     if (e.key === "Enter") {
       e.preventDefault();
       if (it.t === "learn") pathNext();
@@ -104,10 +128,11 @@ function pathProgress() {
   if (c) c.textContent = `${Math.min(done + 1, total)}/${total}`;
 }
 function pathSetActions(html) { const a = document.getElementById("p-actions"); if (a) a.innerHTML = html; }
-function pathShowTyped(show, placeholder = "type the answer…") {
+function pathShowTyped(show, placeholder = "type the answer…", accents = true) {
   const t = document.getElementById("p-typed"), input = document.getElementById("p-input");
   if (!t || !input) return;
   t.style.display = show ? "" : "none";
+  t.classList.toggle("no-accents", !accents);
   input.value = ""; input.className = "german-input"; input.disabled = false;
   input.placeholder = placeholder;
   if (show) {
@@ -149,7 +174,6 @@ function pathWordHeader(w, ws, extra = "") {
 function renderPathLearn(it) {
   const s = pathSession, w = it.w;
   if (pathMeetWord(w)) { s.met.push(w); addExp(2); }
-  const ws = getWS(w.deckId, w.idx);
   pathShowTyped(false);
   document.getElementById("p-card").innerHTML = `
     <div class="p-learn">
@@ -164,7 +188,6 @@ function renderPathLearn(it) {
   pathSetActions(`<button class="g-big-btn p-main" id="p-go" onclick="pathNext()">Got it →</button>`);
   setTimeout(() => { if (pathSession && pathSession.cur === it) speak(w[WORD_KEY]); }, 250);
   saveState();
-  void ws;
 }
 
 // Choice / listen: recognition. 3 options for fresh / 🌱 words.
@@ -246,8 +269,9 @@ function renderPathTyped(it) {
   const s = pathSession, w = it.w, ws = getWS(w.deckId, w.idx);
   s.typedSeen++;
   let body = "", placeholder = "type the answer…";
-  const kicker = it.t === "spot" ? `<div class="p-kicker spot">🔍 Spot check — a 💎 word</div>`
+  const kicker = it.t === "spot" ? (it.maint ? `<div class="p-kicker spot">💎 Check-in — a locked-in word, ${(ws.mt || 0) ? "a year" : "4 months"} later</div>` : `<div class="p-kicker spot">🔍 Spot check — a 💎 word</div>`)
     : ws.rp ? `<div class="p-kicker repair">🩹 Repair — get it right to keep its badge</div>`
+    : it.second ? `<div class="p-kicker">🌱 Once more, from memory</div>`
     : it.reask ? `<div class="p-kicker">↻ Once more</div>`
     : ws.fl ? `<div class="p-kicker flag">⚠️ Quick check</div>` : "";
   if (it.t === "cloze") {
@@ -268,7 +292,7 @@ function renderPathTyped(it) {
       <div class="word-hint">${escapeHtml(w.hint || "")}</div>`;
   }
   document.getElementById("p-card").innerHTML = `${pathWordHeader(w, it.fresh ? null : ws)}${kicker}<div class="word-display p-word">${body}</div><div id="p-hint"></div>`;
-  pathShowTyped(true, placeholder);
+  pathShowTyped(true, placeholder, it.t !== "reverse");
   const hint = it.hintOk && it.t === "typed" && !it.fix ? buildHint(w) : null;
   it.hintHtml = hint;
   pathSetActions(`
@@ -342,7 +366,7 @@ function pathReverseMismatch(val) {
     <div class="p-sub">You wrote “${escapeHtml(val.trim())}”. Same meaning?</div>`;
   pathSetActions(`
     <button class="g-sec-btn" onclick="pathReverseResolve(true)">✓ I was right</button>
-    <button class="g-big-btn p-main" id="p-go" onclick="pathReverseResolve(false)">✗ I was wrong →</button>`);
+    <button class="g-big-btn p-main" id="p-go" onclick="pathReverseResolve(false)">✗ I was wrong</button>`);
   pathPreventBlur();
 }
 function pathReverseResolve(right) {
@@ -369,7 +393,7 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
   if (ok === true) {
     const kind = it.usedHint ? "recognition" : "recall";
     sessionConsecutive++;
-    res = applyCorrect(ws, { quiet: true, kind, w });
+    res = applyCorrect(ws, { quiet: true, kind, w, ms: Date.now() - s.shownAt });
     addExp(5);
     checkDrillMilestone(); sessionCorrect++;
     s.stats.correct++;
@@ -411,6 +435,10 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     : evs.includes("repair") ? `<span class="p-chip warn">🩹 Badge kept — repair it next time</span>`
     : evs.includes("dropped") ? `<span class="p-chip warn">↓ ${tierOfStage(res.to).icon} back to ${tierOfStage(res.to).name}</span>`
     : res && res.promoted ? `<span class="p-chip ok">↑ ${tierOfStage(res.to).icon} ${tierOfStage(res.to).name}</span>`
+    : evs.includes("confirm") ? `<span class="p-chip">✓ Good — one more check before it moves up</span>`
+    : evs.includes("maintained") ? `<span class="p-chip gold">💎 Check-in passed</span>`
+    : evs.includes("spotcheck") ? `<span class="p-chip gold">💎 Still solid</span>`
+    : evs.includes("confirmed") ? `<span class="p-chip ok">✓ Scheduled — see you ${stageIntervalDays(ws, stageOf(ws)) === 1 ? "tomorrow" : "in " + stageIntervalDays(ws, stageOf(ws)) + " days"}</span>`
     : it.usedHint && ok === true ? `<span class="p-chip">💡 with hint — no step up</span>` : "";
   const head = ok === true ? `<div class="p-ok">✓ Correct! <strong>${colorArticleHtml(answerText)}</strong></div>`
     : ok === "near" ? `<div class="p-near">≈ Almost — check the spelling</div><div class="p-diff">${diffHtml(val, answerText)}</div>${note ? `<div class="p-sub">${note}</div>` : ""}<div class="p-sub">No step up, no step down — it comes back next session.</div>`
@@ -586,8 +614,11 @@ function pathQuit() {
   const s = pathSession;
   if (!s) { backToMenu(); return; }
   if (s.stats.answered === 0 && !s.met.length) { endPathSession(true); backToMenu(); return; }
-  if (!confirm("Leave the session? Everything so far is saved.")) return;
-  renderPathSummary(true);
+  appConfirm({ title: "Leave the session?", body: "Everything you've answered so far is saved.", ok: "Leave", cancel: "Keep going" })
+    .then(yes => {
+      if (yes && pathSession === s) renderPathSummary(true);
+      else if (!yes) { const i = document.getElementById("p-input"); if (i && document.getElementById("p-typed").style.display !== "none") i.focus({ preventScroll: true }); }
+    });
 }
 function endPathSession(abandoned) {
   const s = pathSession;
@@ -604,6 +635,7 @@ function endPathSession(abandoned) {
   }
   pathSession = null;
   invalidatePathScan();
+  if (typeof flushDeferredCelebrations === "function") flushDeferredCelebrations();
 }
 function renderPathSummary(abandoned) {
   const s = pathSession;
@@ -620,12 +652,16 @@ function renderPathSummary(abandoned) {
   const met = s.met.slice();
   const lenKey = s.lenKey;
   endPathSession(abandoned);
-  const xp = Math.max(0, S.exp - s.startExp);
+  const xp = Math.max(0, S.exp - s.startExp - (s.badgeXp || 0));
   if (!abandoned && s.stats.answered >= 5) { if (acc >= 90) confettiBurst(40); playAchievement(); }
-  const upRows = up.slice(0, 30).map(m => `<div class="p-move">
+  const upRow = m => `<div class="p-move">
       <span class="p-move-w">${colorArticleHtml(gameForm(m.w))}<small>${escapeHtml(gamePrompt(m.w))}</small></span>
-      <span class="p-move-t">${tierOfStage(m.from).icon} → ${tierOfStage(m.to).icon}</span>
-    </div>`).join("");
+      <span class="p-move-t">${pipsMoveHtml(m.from, m.to)}${tierOfStage(m.from).id !== tierOfStage(m.to).id ? ` <b>${tierOfStage(m.to).icon}</b>` : ""}</span>
+    </div>`;
+  // Tier changes first; a long list folds after 8.
+  up.sort((a, b) => (tierOfStage(b.to).id !== tierOfStage(b.from).id) - (tierOfStage(a.to).id !== tierOfStage(a.from).id) || b.to - a.to);
+  const upRows = up.slice(0, 8).map(upRow).join("") + (up.length > 8
+    ? `<details class="p-more"><summary>Show ${up.length - 8} more</summary>${up.slice(8, 60).map(upRow).join("")}</details>` : "");
   const el = document.getElementById("main-screen");
   el.innerHTML = `
     <div class="screen game-screen">
@@ -639,8 +675,9 @@ function renderPathSummary(abandoned) {
           ${known ? `<span class="p-chip ok">🌳 ${known} Known</span>` : ""}
           ${repaired ? `<span class="p-chip ok">🩹 ${repaired} repaired</span>` : ""}
           ${locked ? `<span class="p-chip gold">💎 ${locked} locked in</span>` : ""}
-          ${flagged ? `<span class="p-chip warn">🩹 ${flagged} to repair</span>` : ""}
+          ${flagged ? `<span class="p-chip warn">🩹 ${flagged} need another look</span>` : ""}
           <span class="p-chip gold">+${xp} XP${s.boosted ? " (⚡×2)" : ""}</span>
+          ${s.badges ? `<button class="p-chip gold" onclick="showScreen('badges')">🏅 ${s.badges} achievement${s.badges > 1 ? "s" : ""} · +${s.badgeXp} XP</button>` : ""}
           ${s.golden ? `<span class="p-chip gold">🌟 ${s.golden} golden</span>` : ""}
         </div>
         ${typeof questMiniHtml === "function" ? questMiniHtml() : ""}

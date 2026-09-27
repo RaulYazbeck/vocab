@@ -124,8 +124,14 @@ document.addEventListener("pointerdown", e => {
 // Letter-by-letter comparison of what was typed against the answer:
 // matching letters plain, wrong ones red, missing ones underlined.
 function diffHtml(typed, answer) {
-  const a = String(typed || "").trim(), b = String(answer || "").trim();
+  const a = String(typed || "").trim();
+  let b = String(answer || "").trim();
   if (!a) return `<span class="df-miss">${escapeHtml(b)}</span>`;
+  // "Platz / Sitz": diff against the closest alternative.
+  if (b.includes("/")) {
+    const alts = b.split("/").map(x => x.trim()).filter(Boolean);
+    if (alts.length) b = alts.reduce((best, x) => levenshtein(a.toLowerCase(), x.toLowerCase()) < levenshtein(a.toLowerCase(), best.toLowerCase()) ? x : best, alts[0]);
+  }
   if (a.length > 80 || b.length > 80) return escapeHtml(b);
   const la = a.toLowerCase(), lb = b.toLowerCase();
   const n = la.length, m = lb.length;
@@ -134,6 +140,9 @@ function diffHtml(typed, answer) {
   for (let j = 0; j <= m; j++) dp[0][j] = j;
   for (let i = 1; i <= n; i++) for (let j = 1; j <= m; j++)
     dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + (la[i - 1] === lb[j - 1] ? 0 : 1));
+  // A totally different word: a letter diff is noise — just show
+  // what was typed, struck through (the answer is shown next to it).
+  if (dp[n][m] > Math.max(2, Math.ceil(m * 0.4))) return `<span class="df-typed">you typed <s>${escapeHtml(a)}</s></span>`;
   // Walk back: build the answer with marks.
   const out = [];
   let i = n, j = m;
@@ -179,4 +188,29 @@ function colorArticleHtml(text) {
   const cls = a === "der" || a === "le" ? "m" : a === "die" || a === "la" ? "f" : a === "das" ? "n" : "";
   if (!cls || (a === "die" && /,\s*pl\.|^die\s+\S+\s*\(pl/i.test(t))) return escapeHtml(t);
   return `<span class="art ${cls}-text">${escapeHtml(m[1])}</span>${escapeHtml(m[2] + m[3])}`;
+}
+
+// In-app confirmation sheet (instead of the browser's confirm()).
+// Resolves true/false. Esc / tapping outside = cancel.
+function appConfirm({ title, body = "", ok = "OK", cancel = "Cancel", danger = false }) {
+  return new Promise(resolve => {
+    const old = document.getElementById("app-confirm"); if (old) old.remove();
+    const m = document.createElement("div");
+    m.className = "modal-overlay"; m.id = "app-confirm";
+    m.innerHTML = `<div class="modal-sheet confirm-sheet" role="alertdialog" aria-modal="true" aria-labelledby="ac-title">
+      <div class="modal-title" id="ac-title">${escapeHtml(title)}</div>
+      ${body ? `<div class="modal-sub">${escapeHtml(body)}</div>` : ""}
+      <div class="modal-actions">
+        <button class="modal-btn secondary" id="ac-no">${escapeHtml(cancel)}</button>
+        <button class="modal-btn primary ${danger ? "danger" : ""}" id="ac-yes">${escapeHtml(ok)}</button>
+      </div></div>`;
+    const done = v => { document.removeEventListener("keydown", key, true); m.remove(); resolve(v); };
+    const key = e => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); done(false); } };
+    document.addEventListener("keydown", key, true);
+    m.onclick = e => { if (e.target === m) done(false); };
+    document.body.appendChild(m);
+    m.querySelector("#ac-no").onclick = () => done(false);
+    m.querySelector("#ac-yes").onclick = () => done(true);
+    setTimeout(() => m.querySelector("#ac-yes").focus(), 50);
+  });
 }
