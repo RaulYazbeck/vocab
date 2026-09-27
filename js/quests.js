@@ -74,7 +74,7 @@ function freshQuestCounters() {
 function questEnsureToday() {
   migrateQuests();
   const Q = S.quests, today = todayISO();
-  if (Q.day === today && Q.list.length) { questSwapUnusedAnki(); return false; }
+  if (Q.day === today && Q.list.length) { questSwapUnusedAnki(); questSwapForSpeak(); return false; }
   // Quests made before the switch to the 4 AM day (00:00–04:00 that one
   // night) belong to the day that's about to start — keep them.
   if (Q.day > today && Q.list.length) return false;
@@ -172,7 +172,7 @@ function questContext() {
   }));
   const pool = buildGamePool(null);
   if (typeof GAMES !== "undefined") GAMES.forEach(g => {
-    if (gameRequirement(g, pool, "full").ok && (!g.audio || ctx.audio)) ctx.games.push(g.id);
+    if (gameRequirement(g, pool, "full").ok && (!g.audio || ctx.audio) && !gameHiddenNow(g)) ctx.games.push(g.id);
   });
   ctx.gameLast = (S.games && S.games.lastPlayed) || {};
   ctx.bossDecks = typeof deckBossesAvailable === "function" ? deckBossesAvailable() : [];
@@ -193,6 +193,9 @@ const QT = [];
 function qt(def) { QT.push(Object.assign({ w: 1, ok: () => true, params: () => ({}) }, def)); }
 const byId = id => QT.find(t => t.id === id);
 
+// "typed" wording, or its Say-it equivalent with Speak, don't spell on.
+function sayOr(typed, said) { return speakOn() ? said : typed; }
+
 // A · CORE — typed recall, the backbone of the day
 qt({ id: "a_path", slot: "A", fam: "path", icon: "📖", w: 3, target: c => sz(c, 0.45, 10, 90),
   title: q => `Practise ${q.target} words in Today sessions`, prog: m => m.path, go: "path" });
@@ -210,13 +213,13 @@ qt({ id: "a_plan", slot: "A", fam: "plan", icon: "📅", w: 0, fixed: true, ok: 
     return parts.join(" · "); },
   prog: m => m.ok, go: "path" });
 qt({ id: "a_typed", slot: "A", fam: "typed", icon: "⌨️", w: 3, target: c => sz(c, 0.45, 10, 90),
-  title: q => `Type ${q.target} correct answers (any mode)`, prog: m => m.typed, go: "path" });
+  title: q => speakOn() ? `Recall ${q.target} words out loud (any mode)` : `Type ${q.target} correct answers (any mode)`, prog: m => m.typed, go: "path" });
 qt({ id: "a_clear", slot: "A", fam: "clear", icon: "🧹", w: 2,
   ok: c => c.scan.due >= 8 && c.scan.due <= Math.max(12, c.G * 0.6), target: c => c.scan.due,
   title: q => `Clear every review due today (${q.target})`,
   prog: (m, q) => Math.max(0, q.target - pathScan().due), go: "path" });
 qt({ id: "a_nohint", slot: "A", fam: "nohint", icon: "🙈", w: 2, target: c => sz(c, 0.35, 8, 60),
-  title: q => `${q.target} typed answers without a hint`, prog: m => m.typedNoHint, go: "path" });
+  title: q => `${q.target} ${sayOr("typed answers", "words recalled")} without a hint`, prog: m => m.typedNoHint, go: "path" });
 qt({ id: "a_twosess", slot: "A", fam: "sessions", icon: "🕰️", w: 1.5, ok: c => c.hour < 17, target: () => 2,
   title: () => `Two Today sessions at least 3 hours apart`,
   prog: m => { const t = m.sessions.filter(s => !s.ab && s.n >= 8).map(s => s.t); if (!t.length) return 0;
@@ -236,9 +239,9 @@ qt({ id: "a_deck", slot: "A", fam: "deck", icon: "🗂️", w: 1.5, ok: c => c.m
 qt({ id: "a_timer2", slot: "A", fam: "timer", icon: "⏱", w: 1.5, ok: c => c.scan.met >= 25, target: () => 2,
   title: () => `Beat a 25-word Timer twice`, prog: m => (m.timerWins[25] || 0) + (m.timerWins[50] || 0), go: "timer:25" });
 qt({ id: "a_cloze", slot: "A", fam: "sentence", icon: "📝", w: 1.5, ok: c => c.clozeable >= 15, target: c => sz(c, 0.15, 6, 25),
-  title: q => `${q.target} sentence answers (type the word into its sentence)`, prog: m => m.cloze, go: "focus:cloze" });
+  title: q => `${q.target} sentence answers (${sayOr("type the word into its sentence", "say the missing word")})`, prog: m => m.cloze, go: "focus:cloze" });
 qt({ id: "a_reverse", slot: "A", fam: "reverse", icon: "🔁", w: 1, ok: c => c.scan.known >= 15, target: c => sz(c, 0.1, 6, 20),
-  title: q => `${q.target} reversed answers (see the word, type its meaning)`, prog: m => m.rev, go: "focus:reverse" });
+  title: q => speakOn() ? `${q.target} listening answers (hear the word, say its meaning)` : `${q.target} reversed answers (see the word, type its meaning)`, prog: m => m.rev, go: "focus:reverse" });
 qt({ id: "a_long", slot: "A", fam: "sessions", icon: "🏃", w: 1, ok: c => c.G >= 50, target: () => 1,
   title: () => `Finish a Long session`, prog: m => m.sessions.filter(s => s.len === "long" && !s.ab).length, go: "path:long" });
 qt({ id: "a_runs", slot: "A", fam: "run", icon: "🔗", w: 1.5, target: c => 2, params: c => ({ len: c.G >= 50 ? 15 : 8 }),
@@ -247,22 +250,22 @@ qt({ id: "a_acc", slot: "A", fam: "accuracy", icon: "🎯", w: 1.5, target: c =>
   title: q => `${q.target} answers at 90%+ accuracy`, sub: m => m.pathAll ? `now ${Math.round(m.path / m.pathAll * 100)}%` : "",
   prog: (m, q) => m.pathAll && m.path / m.pathAll >= 0.9 ? m.pathAll : Math.min(m.pathAll, q.target - 1), go: "path" });
 qt({ id: "a_nohintday", slot: "A", fam: "nohint", icon: "🧠", w: 1, target: c => sz(c, 0.3, 10, 60),
-  title: q => `No-hint streak: ${q.target} typed answers since your last hint`, prog: m => m.typedSinceHint, go: "path" });
+  title: q => `No-hint streak: ${q.target} ${sayOr("typed answers", "words recalled")} since your last hint`, prog: m => m.typedSinceHint, go: "path" });
 qt({ id: "a_refresh", slot: "A", fam: "stale", icon: "🧺", w: 1.5, ok: c => c.scan.met >= 30, target: c => sz(c, 0.2, 10, 40),
   title: q => `Refresh: ${q.target} of your least recently seen words`, prog: m => m.focus.stale || 0, go: "focus:stale" });
 qt({ id: "a_lookback", slot: "A", fam: "level", icon: "🔙", w: 1.5, ok: c => c.frontierIdx > 0,
   params: (c, rng) => ({ g: c.scan.groups[Math.floor(rng() * c.frontierIdx)].id }), target: c => sz(c, 0.2, 10, 40),
   title: q => `Look back: ${q.target} words from ${groupName(q.p.g)}`, prog: (m, q) => m.levels[q.p.g] || 0, go: q => `focus:level:${q.p.g}` });
 qt({ id: "a_verbs", slot: "A", fam: "pos", icon: "🏃", w: 1, ok: c => c.pos.verb >= 15, target: c => sz(c, 0.15, 8, 30),
-  title: q => `${q.target} verbs typed right`, prog: m => m.pos.verb, go: "focus:pos:verb" });
+  title: q => `${q.target} verbs ${sayOr("typed", "recalled")} right`, prog: m => m.pos.verb, go: "focus:pos:verb" });
 qt({ id: "a_nouns", slot: "A", fam: "pos", icon: "🏷️", w: 1, ok: c => c.pos.noun >= 15, target: c => sz(c, 0.15, 8, 30),
-  title: q => `${q.target} nouns typed with the right article`, prog: m => m.art, go: "focus:pos:noun" });
+  title: q => `${q.target} nouns ${sayOr("typed", "said")} with the right article`, prog: m => m.art, go: "focus:pos:noun" });
 qt({ id: "a_adj", slot: "A", fam: "pos", icon: "🎨", w: 1, ok: c => c.pos.adj >= 15, target: c => sz(c, 0.13, 8, 25),
-  title: q => `${q.target} adjectives typed right`, prog: m => m.pos.adj, go: "focus:pos:adj" });
+  title: q => `${q.target} adjectives ${sayOr("typed", "recalled")} right`, prog: m => m.pos.adj, go: "focus:pos:adj" });
 qt({ id: "a_fix", slot: "A", fam: "fix", icon: "🔧", w: 1.2, target: c => c.G >= 50 ? 8 : 4,
   title: q => `Fix ${q.target} mistakes: get right words you missed earlier today`, prog: m => m.fixedSameDay, go: "path" });
 qt({ id: "a_fast", slot: "A", fam: "fast", icon: "⚡", w: 1.2, target: c => sz(c, 0.15, 8, 25),
-  title: q => `Quick fingers: ${q.target} typed answers in under 5 seconds`, prog: m => m.fast, go: "path" });
+  title: q => speakOn() ? `Quick recall: ${q.target} words in under 5 seconds` : `Quick fingers: ${q.target} typed answers in under 5 seconds`, prog: m => m.fast, go: "path" });
 qt({ id: "a_topic", slot: "A", fam: "deck", icon: "🔎", w: 1.2, ok: c => c.metDecks.some(d => d.met >= 10),
   params: (c, rng) => ({ deck: pickFrom(c.metDecks.filter(d => d.met >= 10), rng).id }), target: c => sz(c, 0.18, 8, 30),
   title: q => `Topic hunt: ${q.target} correct in ${deckName(q.p.deck)}`, prog: (m, q) => m.decks[q.p.deck] || 0, go: q => `focus:deck:${q.p.deck}` });
@@ -273,7 +276,7 @@ qt({ id: "a_twin", slot: "A", fam: "deck", icon: "👯", w: 1, ok: c => c.metDec
   target: c => Math.round(sz(c, 0.2, 8, 30) / 2) * 2,
   title: q => `Twin decks: ${q.target / 2} from ${deckName(q.p.d1)} and ${q.target / 2} from ${deckName(q.p.d2)}`,
   prog: (m, q) => Math.min(q.target / 2, m.decks[q.p.d1] || 0) + Math.min(q.target / 2, m.decks[q.p.d2] || 0), go: q => `focus:deck:${q.p.d1}` });
-qt({ id: "a_special", slot: "A", fam: "spelling", icon: "✒️", w: 1, ok: c => ACCENT_BAR_ON && c.special >= 15, target: c => c.G >= 50 ? 12 : 6,
+qt({ id: "a_special", slot: "A", fam: "spelling", icon: "✒️", w: 1, spell: true, ok: c => ACCENT_BAR_ON && c.special >= 15, target: c => c.G >= 50 ? 12 : 6,
   title: q => `${q.target} words with ${IS_FRENCH_APP ? "accents" : "ä, ö, ü or ß"} typed exactly right`, prog: m => m.umlaut, go: "path" });
 qt({ id: "a_timeattack", slot: "A", fam: "fast", icon: "⏲️", w: 1, target: c => sz(c, 0.25, 10, 40),
   title: q => `Time attack: ${q.target} correct within the first 5 minutes of a session`,
@@ -387,9 +390,9 @@ qt({ id: "c_gold", slot: "C", fam: "gold", icon: "🌟", w: 1, target: () => 3,
   title: q => `Hit ${q.target} golden words`, sub: () => "they shimmer — in sessions and in games", prog: m => m.gold, go: "hub" });
 qt({ id: "c_plural", slot: "C", fam: "plural", icon: "🔢", w: 1.2, ok: c => gameOk(c, "plural"), target: () => 12,
   title: q => `${q.target} plurals right`, prog: m => m.plural, go: "game:plural" });
-qt({ id: "c_scramble", slot: "C", fam: "spelling", icon: "🔤", w: 1, ok: c => gameOk(c, "scramble"), target: () => 8,
+qt({ id: "c_scramble", slot: "C", fam: "spelling", icon: "🔤", w: 1, spell: true, ok: c => gameOk(c, "scramble"), target: () => 8,
   title: q => `Scramble ${q.target} words without hints`, prog: m => m.scrambleNoHint, go: "game:scramble" });
-qt({ id: "c_typerush", slot: "C", fam: "typing", icon: "⌨️", w: 1.2, ok: c => gameOk(c, "typerush"), target: c => c.G >= 50 ? 20 : 10,
+qt({ id: "c_typerush", slot: "C", fam: "typing", icon: "⌨️", w: 1.2, spell: true, ok: c => gameOk(c, "typerush"), target: c => c.G >= 50 ? 20 : 10,
   title: q => `Type Rush: ${q.target} answers with no hints`, prog: m => m.typeRushNoHint, go: "game:typerush" });
 qt({ id: "c_tf", slot: "C", fam: "combo", icon: "✅", w: 1, ok: c => gameOk(c, "truefalse"), target: () => 15,
   title: q => `True / False: ${q.target} in a row`, prog: m => m.tfRun, go: "game:truefalse" });
@@ -425,7 +428,7 @@ qt({ id: "d_lunch", slot: "D", fam: "time", icon: "🥪", w: 1, ok: c => c.hour 
 qt({ id: "d_perfect", slot: "D", fam: "accuracy", icon: "💎", w: 1, target: () => 1,
   title: () => `A perfect Quick session (100%)`, prog: m => m.sessions.filter(s => s.len === "quick" && !s.ab && s.n >= 10 && s.acc === 100).length, go: "path:quick" });
 qt({ id: "d_run", slot: "D", fam: "run", icon: "🔗", w: 1.5, target: c => c.G >= 50 ? 15 : 8,
-  title: q => `${q.target} typed answers in a row without a miss`, prog: m => m.bestRun, go: "path" });
+  title: q => `${q.target} ${sayOr("typed answers", "words recalled")} in a row without a miss`, prog: m => m.bestRun, go: "path" });
 qt({ id: "d_blitzfast", slot: "D", fam: "fast", icon: "💨", w: 1, ok: c => gameOk(c, "blitz"), target: () => 10,
   title: q => `Blitz: ${q.target} answers under 2 seconds each`, prog: m => m.blitzFast, go: "game:blitz" });
 qt({ id: "d_spotrun", slot: "D", fam: "spot", icon: "🔍", w: 1, ok: c => c.scan.locked >= 8, target: () => 5,
@@ -461,10 +464,10 @@ qt({ id: "d_leastgame", slot: "D", fam: "variety", icon: "🆕", w: 1.2, ok: c =
 qt({ id: "d_retro", slot: "D", fam: "twist", icon: "📼", w: 0.8, ok: c => c.games.length >= 2, target: () => 1,
   title: () => `Retro: 3★ at 🥉 Bronze with a twist on`, sub: () => "pick Bronze and a twist in the game's menu", prog: m => m.retro, go: "hub" });
 qt({ id: "d_ear", slot: "D", fam: "ear", icon: "👂", w: 1, audio: "ear", target: () => 20,
-  title: q => `Listening: ${q.target} words by ear`, altTitle: q => `or ${Math.round(q.target * 1.5)} typed answers`,
+  title: q => `Listening: ${q.target} words by ear`, altTitle: q => `or ${Math.round(q.target * 1.5)} ${sayOr("typed answers", "words recalled")}`,
   prog: m => m.ear, alt: m => m.typed, go: "game:listen" });
 qt({ id: "d_voice", slot: "D", fam: "voice", icon: "🎙️", w: 0.8, audio: "voice", target: () => 20,
-  title: q => `Voice: say ${q.target} answers aloud`, altTitle: q => `or type ${Math.round(q.target * 1.5)}`,
+  title: q => `Voice: say ${q.target} answers aloud`, altTitle: q => `or ${sayOr("type", "recall")} ${Math.round(q.target * 1.5)}`,
   prog: m => m.voice, alt: m => m.typed, go: "path" });
 qt({ id: "d_b2b", slot: "D", fam: "variety", icon: "🔂", w: 1, ok: c => c.games.length >= 2, target: () => 1,
   title: () => `Double trouble: two games back to back`, prog: m => m.b2b, go: "hub" });
@@ -501,6 +504,7 @@ function questCandidates(slot, ctx, exclude, famsToday) {
   const recentFams = questRecentFams();
   return QT.filter(t => t.slot === slot && !exclude.has(t.id) && !famsToday.has(t.fam) && !recent.has(t.id)
     && !(t.audio && (ctx.quiet || !ctx.audio && t.audio === "ear"))
+    && !(t.spell && speakOn())
     && (() => { try { return t.ok(ctx); } catch (e) { return false; } })())
     .map(t => ({ t, w: t.w * (recentFams.has(t.fam) ? 1 : 3) }));
 }
@@ -527,7 +531,7 @@ function questGenerate(opts = {}) {
       return;
     }
     let cands = questCandidates(slot, ctx, used, fams);
-    if (!cands.length) cands = QT.filter(t => t.slot === slot && !used.has(t.id) && !t.audio && (() => { try { return t.ok(ctx); } catch (e) { return false; } })()).map(t => ({ t, w: t.w }));
+    if (!cands.length) cands = QT.filter(t => t.slot === slot && !used.has(t.id) && !t.audio && !(t.spell && speakOn()) && (() => { try { return t.ok(ctx); } catch (e) { return false; } })()).map(t => ({ t, w: t.w }));
     const pick = weightedPick(cands, rng);
     const t = pick ? pick.t : byId(slot === "C" ? "c_games" : "a_typed");
     used.add(t.id); fams.add(t.fam);
@@ -597,6 +601,26 @@ function questSwapUnusedAnki() {
     changed = true;
   });
   if (changed) { logEvent("quest_swap", { why: "anki_unused" }); questRecompute(true); saveLocalOnly(); }
+}
+// "Speak, don't spell" switched on: open spelling quests (accents,
+// Scramble, Type Rush) are swapped for free.
+function questSwapForSpeak() {
+  const Q = S.quests;
+  if (!Q || !Q.list.length || !speakOn()) return;
+  const bad = id => { const t = byId(id); return !!(t && t.spell); };
+  let changed = false;
+  Q.list.forEach((q, i) => {
+    if (q.done || !(bad(q.tpl) || (q.hidden && bad(q.hidden.tpl)))) return;
+    const ctx = questContext();
+    const rng = seededRandom(hashString(Q.day + "|speak|" + i));
+    const used = new Set(Q.list.map(x => x.tpl));
+    const fams = new Set(Q.list.filter((x, k) => k !== i).map(x => (byId(x.tpl) || {}).fam));
+    const pick = weightedPick(questCandidates(q.slot, ctx, used, fams).filter(x => !x.t.audio && x.t.id !== "d_mystery"), rng);
+    Q.list[i] = makeQuest(pick ? pick.t : byId(q.slot === "C" ? "c_games" : "a_typed"), ctx, rng, q.slot);
+    changed = true;
+  });
+  if (Q.weekend && !Q.weekend.done && bad(Q.weekend.tpl)) { Q.weekend = null; changed = true; }
+  if (changed) { logEvent("quest_swap", { why: "speak" }); questRecompute(true); saveState(); }
 }
 // Replace one quest (reroll, or free 🔇 swap for sound quests).
 function questReroll(idx, free = false) {
@@ -878,10 +902,10 @@ function questOnGame(m, d) {
 // 30-minute bonus objective (never more than one a day).
 const FLASH_KINDS = [
   { metric: "ok", n: g => Math.max(8, Math.round(g * 0.12)), title: n => `${n} correct answers` },
-  { metric: "typed", n: g => Math.max(6, Math.round(g * 0.1)), title: n => `${n} typed answers` },
+  { metric: "typed", n: g => Math.max(6, Math.round(g * 0.1)), title: n => `${n} ${sayOr("typed answers", "words recalled")}` },
   { metric: "up", n: () => 5, title: n => `${n} words up a stage` },
   { metric: "game", n: () => 12, title: n => `${n} correct in games` },
-  { metric: "typedNoHint", n: () => 10, title: n => `${n} typed, no hints` },
+  { metric: "typedNoHint", n: () => 10, title: n => `${n} ${sayOr("typed", "recalled")}, no hints` },
 ];
 function questMaybeFlash() {
   const Q = S.quests;

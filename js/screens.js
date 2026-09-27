@@ -599,6 +599,7 @@ function settingsMainHtml() {
   const account = settingsAccountName();
   return `
     ${setSwitchHtml("👵", "Grandma mode", "Big buttons, no fuss: just Start, your quests and games. Your grandchildren will be proud.", grandmaOn(), "toggleGrandma()")}
+    ${setSwitchHtml("🗣️", "Speak, don't spell", "For speaking, not writing: instead of typing an answer, say it out loud, tap Show, hear it and grade yourself. Words still climb all the way to 💎. Spelling games and quests are left out.", speakOn(), "toggleSpeakMode()")}
     <div class="set-group-title">Everything else</div>
     ${setNavHtml("📈", "Progress", "Journey map, stats, collection, achievements" + (chests ? ` · <span class='accent'>${chests} chest${chests > 1 ? "s" : ""} to open</span>` : ""), "openSettingsPage('progress')")}
     ${setNavHtml("🎯", "Study plan", planSub, "openSettingsPage('plan')")}
@@ -854,6 +855,15 @@ function toggleGrandma() {
   renderExpBar();
   renderHome();
 }
+function toggleSpeakMode() {
+  S.prefs.speak = !S.prefs.speak;
+  saveState();
+  logEvent("setting", { k: "speak", v: S.prefs.speak });
+  applyPrefClasses();
+  if (typeof questSwapForSpeak === "function") questSwapForSpeak();
+  renderSettingsPanel();
+  renderHome();
+}
 function setSessionLen(k) { if (!PATH.SESSION_LENGTHS[k]) return; S.path.sessionLen = k; saveState(); renderHome(); }
 function onQuietChanged() { renderHome(); }
 function journeyStripHtml(scan) {
@@ -956,10 +966,10 @@ function renderJourney() {
 // "How does a word move?" — the schedule, in plain words.
 function stageGuideHtml() {
   const rows = [
-    ["Day 0", "🌱 Meet it", "card · pick it · type it twice, spaced out in the session"],
-    ["Day 1 · 3 · 7", "🌱→🌿", "typed recall each time, just before you'd forget"],
+    ["Day 0", "🌱 Meet it", `card · pick it · ${sayOr("type", "say")} it twice, spaced out in the session`],
+    ["Day 1 · 3 · 7", "🌱→🌿", `${sayOr("typed", "spoken")} recall each time, just before you'd forget`],
     ["≈ Day 14", "🌳 Known", "the main finish line"],
-    ["≈ Day 28", "⭐ Strong", "sometimes typed into a sentence, or reversed"],
+    ["≈ Day 28", "⭐ Strong", sayOr("sometimes typed into a sentence, or reversed", "sometimes said into a sentence, or heard and explained")],
     ["≈ Day 58", "💎 Locked in", "badge earned"],
     ["+4 mo · +1 yr", "💎 Check-ins", "two quiet checks, then it's done for good"],
   ];

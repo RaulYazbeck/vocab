@@ -114,15 +114,21 @@ function conjSpinFor(v, tenses, notPerson = "") {
   return cell ? { v, tense, person, cell } : null;
 }
 
+// The ✗ / ✓ buttons of a Say-it spin call in here.
+let _conjSayGrade = null;
+function conjSayGrade(v) { if (_conjSayGrade) _conjSayGrade(v); }
+
 registerGame({
-  id: "conj", name: "Conjugation Slots", icon: "🎰", skill: "Grammar · verb forms (typed)",
+  id: "conj", name: "Conjugation Slots", icon: "🎰", get skill() { return speakOn() ? "Grammar · verb forms (said)" : "Grammar · verb forms (typed)"; },
   ranks: [
     { clock: 0 }, { clock: 20000 }, { clock: 15000, meaning: true }, { clock: 12000, meaning: true }, { clock: 9000, meaning: true },
   ],
   twists: ["golden", "turbo", "sudden"],
   howTo: () => [
-    IS_FRENCH_APP ? "The reels spin a verb and a person — type the matching form." : "The reels spin a <strong>verb</strong>, a <strong>person</strong> and a <strong>tense</strong> — type the form (Perfekt: <em>ist gefahren</em>).",
-    "💡 shows the first letter (then it counts as help, not recall).",
+    (IS_FRENCH_APP ? "The reels spin a verb and a person — " : "The reels spin a <strong>verb</strong>, a <strong>person</strong> and a <strong>tense</strong> — ")
+      + (speakOn() ? "say the form out loud, tap Show, and grade yourself." : IS_FRENCH_APP ? "type the matching form." : "type the form (Perfekt: <em>ist gefahren</em>)."),
+    speakOn() ? (IS_FRENCH_APP ? "Forms that sound the same (parle, parles, parlent) are the same answer out loud — spelling doesn't count." : "Say the whole form — Perfekt with its helper: <em>ist gefahren</em>.")
+      : "💡 shows the first letter (then it counts as help, not recall).",
     IS_FRENCH_APP ? "A wrong form costs points (half for 🌱 new verbs). From 🥇 Gold the verb reel may show its meaning instead."
       : "Any verb of the A1–B1 lists, every tense — pick tenses with the chips. <strong>+ all B1 verbs</strong> mixes in verbs you haven't met yet. A form you miss comes back later in the round.",
     "A miss shows the whole row and the rule. Enter checks.",
@@ -145,6 +151,9 @@ registerGame({
     const cards = sampleWords(eligible, nCards);
     let r = 0, score = 0, combo = 0, maxCombo = 0, correct = 0, wrong = 0, goal = 0, cur = null, helped = false, spinT = 0, lastInf = "";
     const perSpin = ctx.size === "full" && rp.clock ? rp.clock * ctx.timeScale : 0;
+    // Speak, don't spell: say the form, Show, then ✗ / ✓ (say-it.js).
+    const sayMode = speakOn();
+    let revealed = false, shownAtMs = 0, revealAtMs = 0;
     // Deck cards and verbs you know count toward the daily goal; extra
     // B1 verbs are practice only.
     const done = () => ctx.finish({ score, correct, wrong, maxCombo, typedCorrect: correct, goalCorrect: goal,
@@ -169,14 +178,15 @@ registerGame({
       <div class="cj-meaning" id="cj-meaning"></div>
       <div class="cj-tail" id="cj-tail"></div>
       <div class="g-typed-wrap">
-        <input type="text" class="german-input" id="cj-input" placeholder="the verb form…"
+        <input type="text" class="german-input" id="cj-input" placeholder="the verb form…" ${sayMode ? `style="display:none" tabindex="-1"` : ""}
           autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="go"/>
-        ${accentBarHtml("cj-input")}
-        <div class="g-typed-actions">
-          <button class="hint-btn" id="cj-hint">💡</button>
+        ${sayMode ? `<div class="g-q-label cj-say-label">Say the form out loud — then Show</div>` : accentBarHtml("cj-input")}
+        <div class="g-typed-actions" id="cj-actions">
+          <button class="hint-btn" id="cj-hint" ${sayMode ? `style="display:none"` : ""}>💡</button>
           <button class="dontknow-btn" id="cj-skip">? Don't know</button>
-          <button class="g-big-btn" id="cj-go">Check</button>
+          <button class="g-big-btn" id="cj-go">${sayMode ? "Show ▶" : "Check"}</button>
         </div>
+        <div id="cj-say"></div>
       </div>
       <div class="tr-fb" id="cj-fb"></div>`;
     const input = document.getElementById("cj-input");
@@ -218,6 +228,11 @@ registerGame({
       helped = false;
       input.value = ""; input.className = "german-input";
       fb.innerHTML = "";
+      if (sayMode) {
+        revealed = false;
+        document.getElementById("cj-say").innerHTML = "";
+        document.getElementById("cj-actions").style.display = "";
+      }
       ctx.teach("");
       ctx.setBar((r - 1) / total, "progress");
       if (!perSpin && !limitAll) ctx.setClock(`${r}/${total}`);
@@ -259,7 +274,8 @@ registerGame({
           if (gameSfxOn()) playNotes([{ freq: 660, at: 0, dur: 0.06 }, { freq: 880, at: 0.06, dur: 0.1 }], 0.12);
           ctx.busy = false;
           spinT = ctx.clock.elapsed();
-          try { input.focus({ preventScroll: true }); } catch (e) {}
+          shownAtMs = Date.now();
+          if (!sayMode) try { input.focus({ preventScroll: true }); } catch (e) {}
         }
       };
       tick();
@@ -268,12 +284,27 @@ registerGame({
     const shownOf = c => c.kind === "card" ? `${c.it.pron} <strong>${escapeHtml(c.it.ans)}</strong>${c.it.tail ? " " + escapeHtml(c.it.tail) : ""}`
       : `${c.tense === "im" ? "" : escapeHtml(PERSON_LABEL[c.person].split("/")[0]) + " "}<strong>${escapeHtml(c.cell.ans)}</strong>${c.cell.tail ? " " + escapeHtml(c.cell.tail.replace(/^… /, "")) : ""}`;
     const sayOf = c => c.kind === "card" ? `${c.it.pron.split("/")[0]} ${c.it.ans}` : `${c.tense === "im" ? "" : PERSON_LABEL[c.person].split("/")[0] + " "}${c.cell.ans}${c.cell.tail ? " " + c.cell.tail.replace(/^… /, "").replace(/!$/, "") : ""}`;
-    const submit = skip => {
+    const reveal = () => {
+      if (!sayMode || revealed || !cur || ctx.busy || ctx.finished || ctx.paused || ctx.waiting) return;
+      revealed = true; revealAtMs = Date.now();
+      document.getElementById("cj-actions").style.display = "none";
+      document.getElementById("cj-say").innerHTML = sayRevealHtml(cur.kind === "card" ? cur.w : null,
+        { html: shownOf(cur), audio: sayOf(cur), noSentence: true }) + sayGradeHtml("conjSayGrade", { close: false });
+      speak(sayOf(cur));
+    };
+    _conjSayGrade = v => { if (sayMode && revealed && !ctx.busy && !ctx.finished) submit(v !== true, v === true); };
+    // said: true = ✓ Got it (right without typing).
+    const submit = (skip, said = false) => {
       if (ctx.waiting) { ctx.continueNow(); return; }
       if (!cur || ctx.busy || ctx.finished || ctx.paused) return;
+      if (sayMode && !revealed && !skip) { reveal(); return; }
       const val = input.value;
-      if (!skip && !val.trim()) { shakeEl(input); return; }
-      const res = skip ? false : gradeTyped(val, answersOf(cur));
+      if (!sayMode && !skip && !val.trim()) { shakeEl(input); return; }
+      if (sayMode) {
+        document.getElementById("cj-say").innerHTML = "";
+        if (said && sayKind(shownAtMs, revealAtMs) === "recognition") helped = true;
+      }
+      const res = skip ? false : sayMode ? said : gradeTyped(val, answersOf(cur));
       if (res === "near") {
         input.classList.add("near");
         fb.innerHTML = `<span class="g-near">≈ Almost — ${diffHtml(val, answersOf(cur)[0])}</span>`;
@@ -295,7 +326,7 @@ registerGame({
         floatScore(input, "+" + pts, !gen && ctx.isGolden(cur.w) ? "gold" : "");
         if (combo >= 3) playCombo(combo); else playSuccess();
         haptic("select");
-        speak(sayOf(cur));
+        if (!revealed) speak(sayOf(cur));
         gTimeout(spin, 900);
       } else {
         wrong++;
@@ -306,7 +337,7 @@ registerGame({
         input.classList.add("wrong");
         fb.innerHTML = `<span class="bb-bad">${val.trim() ? `<s>${escapeHtml(val.trim())}</s> → ` : ""}${shownOf(cur)}</span>`;
         playMiss(); haptic("miss");
-        speak(sayOf(cur));
+        if (!revealed) speak(sayOf(cur));
         if (gen) ctx.teach(`<div class="g-teach-main">${escapeHtml(cur.v.inf)} · ${TENSE_BY_ID[cur.tense].name}${cur.v.en ? ` <span class="g-teach-pl">— ${escapeHtml(cur.v.en)}</span>` : ""}</div>${verbRowHtml(cur.v.F, cur.tense, cur.person)}<div class="g-teach-rule">${verbRuleHtml(cur.v.F, cur.tense, cur.person)}</div>`, "bad");
         else {
           // A deck card whose verb the engine knows: show its whole row too.
@@ -322,7 +353,9 @@ registerGame({
       }
       ctx.setScore(score); ctx.setCombo(combo);
     };
-    ["cj-go", "cj-skip", "cj-hint"].forEach(id => gListen(document.getElementById(id), "pointerdown", e => e.preventDefault()));
+    if (!sayMode) ["cj-go", "cj-skip", "cj-hint"].forEach(id => gListen(document.getElementById(id), "pointerdown", e => e.preventDefault()));
+    else sayKeys = { root: "cj-machine", close: false, state: () => ctx.waiting ? "done" : !revealed ? "prompt" : "revealed",
+      reveal, grade: v => _conjSayGrade(v), next: () => { if (ctx.waiting) ctx.continueNow(); } };
     document.getElementById("cj-go").onclick = () => submit(false);
     document.getElementById("cj-skip").onclick = () => submit(true);
     document.getElementById("cj-hint").onclick = () => {
@@ -360,7 +393,7 @@ registerGame({
         if (left <= 0) done();
         return;
       }
-      if (ctx.busy || ctx.waiting) return;
+      if (ctx.busy || ctx.waiting || (sayMode && revealed)) return;
       const left = Math.max(0, perSpin - (ctx.clock.elapsed() - spinT));
       ctx.setClock(Math.ceil(left / 1000) + "s", left < 4000);
       if (left <= 0) submit(true);

@@ -103,6 +103,12 @@ function bindPathKeys() {
     // A focused, live button handles its own Enter (no double advance);
     // a stale one (an answered option) falls through to Next.
     if (e.key === "Enter" && e.target && e.target.tagName === "BUTTON" && !e.target.disabled && !e.target.closest(".g-options")) return;
+    // Say-it cards: Enter / Space = Show · 1 / 2 / 3 = ✗ / ≈ / ✓.
+    if (it.said && !pathSession.answered && !(e.target && e.target.tagName === "INPUT")) {
+      if ((e.key === "Enter" || e.key === " ") && !it.revealed) { e.preventDefault(); pathSayReveal(); return; }
+      if (it.revealed && ["1", "2", "3"].includes(e.key)) { e.preventDefault(); pathSayGrade(e.key === "1" ? false : e.key === "2" ? "near" : true); return; }
+      if (e.key === "Enter") { e.preventDefault(); return; }
+    }
     if (e.key === "Enter") {
       e.preventDefault();
       if (it.t === "learn") pathNext();
@@ -137,6 +143,7 @@ function pathShowTyped(show, placeholder = "type the answer…", accents = true)
   const t = document.getElementById("p-typed"), input = document.getElementById("p-input");
   if (!t || !input) return;
   t.style.display = show ? "" : "none";
+  t.classList.remove("say-only");
   t.classList.toggle("no-accents", !accents);
   input.value = ""; input.className = "german-input"; input.disabled = false;
   input.placeholder = placeholder;
@@ -209,7 +216,7 @@ function renderPathChoice(it) {
   const text = x => (listen || rev) ? gamePrompt(x) : gameForm(x);
   const pool = pathSession.items.map(x => x.w).filter(Boolean);
   const opts = shuffle([{ text: text(w), correct: true },
-    ...pickDistractors(w, pool, n - 1).map(x => ({ text: text(x), correct: false }))]);
+    ...pickDistractors(w, pool, n - 1, gameForm, null, { ear: listen }).map(x => ({ text: text(x), correct: false }))]);
   it.opts = opts;
   document.getElementById("p-card").innerHTML = `
     ${pathWordHeader(w, it.fresh ? null : ws)}
@@ -275,17 +282,22 @@ function pathAnswerChoice(i) {
   const go = document.getElementById("p-go"); if (go) try { go.focus({ preventScroll: true }); } catch (e) {}
 }
 
-// Typed recall: plain, spot check, sentence (cloze) or reversed.
-function renderPathTyped(it) {
-  const s = pathSession, w = it.w, ws = getWS(w.deckId, w.idx);
-  s.typedSeen++;
-  let body = "", placeholder = "type the answer…";
-  const kicker = it.t === "spot" ? (it.maint ? `<div class="p-kicker spot">💎 Check-in — a locked-in word, ${(ws.mt || 0) ? "a year" : "4 months"} later</div>` : `<div class="p-kicker spot">🔍 Spot check — a 💎 word</div>`)
+function pathKickerHtml(it, ws) {
+  return it.t === "spot" ? (it.maint ? `<div class="p-kicker spot">💎 Check-in — a locked-in word, ${(ws.mt || 0) ? "a year" : "4 months"} later</div>` : `<div class="p-kicker spot">🔍 Spot check — a 💎 word</div>`)
     : ws.rp ? `<div class="p-kicker repair">🩹 Repair — get it right to keep its badge</div>`
     : it.second ? `<div class="p-kicker">🌱 Once more, from memory</div>`
     : it.reask ? `<div class="p-kicker">↻ Once more</div>`
     : ws.fl ? `<div class="p-kicker flag">⚠️ Quick check</div>`
     : it.practice ? `<div class="p-kicker">🧺 Extra practice</div>` : "";
+}
+// Typed recall: plain, spot check, sentence (cloze) or reversed.
+// With "Speak, don't spell" on, the same items are Say-it cards.
+function renderPathTyped(it) {
+  if (speakOn()) return renderPathSay(it);
+  const s = pathSession, w = it.w, ws = getWS(w.deckId, w.idx);
+  s.typedSeen++;
+  let body = "", placeholder = "type the answer…";
+  const kicker = pathKickerHtml(it, ws);
   if (it.t === "cloze") {
     const info = clozeTarget(w);
     if (!info) { it.t = "typed"; return renderPathTyped(it); }
@@ -318,6 +330,82 @@ function renderPathTyped(it) {
   pathMaybeVoice(it);
   pathMaybeNudge();
 }
+// ── SAY IT (Speak, don't spell) ───────────────
+// The typed items without typing: say it, Show, hear it, grade
+// yourself (say-it.js). No text box, so the keyboard never opens.
+function renderPathSay(it) {
+  const s = pathSession, w = it.w, ws = getWS(w.deckId, w.idx);
+  it.said = true; it.revealed = false; it.fast = false; it.micOk = false;
+  let body = "";
+  if (it.t === "cloze") {
+    const info = clozeTarget(w);
+    if (!info) { it.t = "typed"; return renderPathSay(it); }
+    it.cloze = info;
+    body = `<div class="g-q-label">Say the missing word</div>
+      <div class="cz-sentence p-cloze">${info.html}</div>
+      <div class="cz-trans">${escapeHtml(info.example.en || "")}</div>
+      <div class="p-cloze-meaning">(${escapeHtml(gamePrompt(w))})</div>`;
+  } else if (it.t === "reverse") {
+    // By ear when words can be read aloud: hear it, say what it means.
+    it.ear = audioOk();
+    body = it.ear
+      ? `<div class="g-q-label">Listen — what does it mean? Say it</div>
+         <button class="l-play say-play" id="p-say-play" aria-label="Play again">🔊</button>`
+      : `<div class="g-q-label">What does it mean? Say it</div>
+         <div class="english-word p-target">${colorArticleHtml(gameForm(w))}</div>`;
+  } else {
+    body = `<div class="g-q-label">${sayPromptLabel(w)}</div>
+      <div class="english-word">${escapeHtml(w.en)}</div>
+      <div class="word-hint">${escapeHtml(w.hint || "")}</div>`;
+  }
+  document.getElementById("p-card").innerHTML = `${pathWordHeader(w, it.fresh ? null : ws)}${pathKickerHtml(it, ws)}<div class="word-display p-word">${body}</div><div id="p-hint"></div>`;
+  // The typed area stays for the optional 🎤 only — no text box.
+  const t = document.getElementById("p-typed");
+  if (t) { t.classList.add("say-only"); t.style.display = pathVoiceFits(it) ? "" : "none"; }
+  const hint = it.t === "typed" || it.t === "spot" ? buildHint(w) : null;
+  it.hintHtml = hint;
+  pathSetActions(`
+    ${hint ? `<button class="hint-btn" id="p-hint-btn" onclick="pathShowHint()">💡 Hint</button>` : ""}
+    ${sayShowBtnHtml("pathSayReveal()", "p-show")}`);
+  if (it.ear) {
+    const play = () => { speak(gameForm(w)); popEl(document.getElementById("p-say-play")); };
+    document.getElementById("p-say-play").onclick = play;
+    setTimeout(() => { if (pathSession && pathSession.cur === it && !it.revealed) speak(gameForm(w)); }, 200);
+  }
+  pathMaybeVoice(it);
+}
+// Show: the answer, read aloud, then ✗ / ≈ / ✓. `heard` is what the
+// mic caught when it didn't match — shown, never counted against you.
+function pathSayReveal(heard = "") {
+  const s = pathSession;
+  if (!s || s.answered) return;
+  const it = s.cur, w = it.w;
+  if (!it.said || it.revealed) return;
+  it.revealed = true;
+  it.revealedAt = Date.now();
+  it.fast = !heard && !it.spoken && it.revealedAt - s.shownAt < SAY_MIN_MS;
+  stopPathVoice();
+  const form = gameForm(w);
+  let opts;
+  if (it.t === "cloze") opts = { answer: it.cloze.answer, sub: normalize(it.cloze.answer) !== normalize(form) ? `${colorArticleHtml(form)} — in this sentence: <strong>${escapeHtml(it.cloze.answer)}</strong>` : "", audio: it.cloze.example[WORD_KEY] || it.cloze.answer, noSentence: true };
+  else if (it.t === "reverse") {
+    const alike = frSoundAlikes(w);
+    opts = { html: escapeHtml(gamePrompt(w)), audio: form,
+      sub: `${colorArticleHtml(form)}${alike.length ? `<div class="say-alike">🔊 Sounds like: ${alike.map(escapeHtml).join(", ")} — if you thought of one of those, “≈ Close” is fair.</div>` : ""}` };
+  } else opts = {};
+  opts.heard = heard;
+  const fb = document.getElementById("p-fb");
+  if (fb) fb.innerHTML = sayRevealHtml(w, opts);
+  pathSetActions(sayGradeHtml("pathSayGrade"));
+  const sayNow = it.t === "cloze" ? it.cloze.answer : form;
+  setTimeout(() => { if (pathSession && pathSession.cur === it && !s.answered) speak(sayNow); }, 80);
+}
+function pathSayGrade(v) {
+  const s = pathSession;
+  if (!s || s.answered || !s.cur || !s.cur.revealed) return;
+  pathGradeTyped("", v === true ? true : v === "near" ? "near" : false);
+}
+
 // Buttons must not steal focus from the input (keyboard would close).
 function pathPreventBlur() {
   document.querySelectorAll("#p-actions button, #p-fb button").forEach(b => b.addEventListener("pointerdown", e => {
@@ -408,9 +496,10 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
   const input = document.getElementById("p-input");
   let res = null;
   const spoken = !!it.spoken;
-  pathLogAnswer(it, ok === true, { typed: true, near: ok === "near", hint: !!it.usedHint, voice: spoken });
+  pathLogAnswer(it, ok === true, { typed: true, near: ok === "near", hint: !!it.usedHint, voice: spoken, say: !!it.said, fast: !!it.fast });
   if (ok === true) {
-    const kind = it.usedHint ? "recognition" : "recall";
+    // Said aloud: a Show tapped too fast to have recalled anything is a look.
+    const kind = it.usedHint || (it.said && it.fast && !it.micOk) ? "recognition" : "recall";
     sessionConsecutive++;
     res = applyCorrect(ws, { quiet: true, kind, w, ms: Date.now() - s.shownAt });
     addExp(5);
@@ -419,8 +508,8 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     if (Date.now() - s.startedAt < 300000) s.ok5++;
     if (it.t === "spot") S.path.spotToday = (S.path.spotToday || 0) + 1;
     const exact = !/[äöüßéèêàâçôîûùëïœ]/i.test(w[WORD_KEY] || "") || /[äöüßéèêàâçôîûùëïœ]/i.test(val);
-    questEvent("answer", { mode: "path", ok: true, typed: true, st: from, w, it: it.t, hint: !!it.usedHint, voice: spoken,
-      ms: Date.now() - s.shownAt, prevAt, raw: exact });
+    questEvent("answer", { mode: "path", ok: true, typed: true, st: from, w, it: it.t, hint: !!it.usedHint || (it.said && it.fast), voice: spoken,
+      ms: Date.now() - s.shownAt, prevAt, raw: exact, said: !!it.said });
     pathGolden(it);
     playSuccess(); haptic("select");
     if (input) input.classList.add("correct");
@@ -458,13 +547,15 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     : evs.includes("maintained") ? `<span class="p-chip gold">💎 Check-in passed</span>`
     : evs.includes("spotcheck") ? `<span class="p-chip gold">💎 Still solid</span>`
     : evs.includes("confirmed") ? `<span class="p-chip ok">✓ Scheduled — see you ${stageIntervalDays(ws, stageOf(ws)) === 1 ? "tomorrow" : "in " + stageIntervalDays(ws, stageOf(ws)) + " days"}</span>`
-    : it.usedHint && ok === true ? `<span class="p-chip">💡 with hint — no step up</span>` : "";
+    : it.usedHint && ok === true ? `<span class="p-chip">💡 with hint — no step up</span>`
+    : it.said && it.fast && ok === true ? `<span class="p-chip">⚡ Shown straight away — counts as a look, no step up</span>` : "";
   const head = ok === true ? `<div class="p-ok">✓ Correct! <strong>${colorArticleHtml(answerText)}</strong></div>`
+    : ok === "near" && it.said ? `<div class="p-near">≈ Close — say it once more: <strong>${colorArticleHtml(answerText)}</strong></div><div class="p-sub">No step up, no step down — it comes back next session.</div>`
     : ok === "near" ? `<div class="p-near">≈ Almost — check the spelling</div><div class="p-diff">${diffHtml(val, answerText)}</div>${note ? `<div class="p-sub">${note}</div>` : ""}<div class="p-sub">No step up, no step down — it comes back next session.</div>`
     : `<div class="p-bad">${val.trim() ? "✗ Answer:" : "Answer:"} <strong>${colorArticleHtml(answerText)}</strong></div>${val.trim() ? `<div class="p-diff">${diffHtml(val, answerText)}</div>` : ""}${note ? `<div class="p-sub">${note}</div>` : ""}`;
   const fb = document.getElementById("p-fb");
   if (fb) fb.innerHTML = `
-    <div class="p-fb-main">${head}${chip}${w.pl && it.t !== "cloze" && it.t !== "reverse" ? `<div class="p-sub">plural: ${escapeHtml(w.pl)}</div>` : ""}</div>
+    <div class="p-fb-main">${head}${chip}${it.said && it.t !== "reverse" ? frGenderNoteHtml(w) : ""}${w.pl && it.t !== "cloze" && it.t !== "reverse" ? `<div class="p-sub">plural: ${escapeHtml(w.pl)}</div>` : ""}</div>
     ${it.t === "reverse" ? `<div class="p-sub">${colorArticleHtml(gameForm(w))} = ${escapeHtml(gamePrompt(w))}</div>` : ""}
     ${pathCaseNote(it)}
     ${examplesHtml(w, "first")}`;
@@ -475,7 +566,7 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
   pathPreventBlur();
   // The reversed item's mismatch screen already held; "I was wrong" moves on.
   if (ok !== true && !fromReverse) holdAfterMistake("p-go");
-  speak(w[WORD_KEY]);
+  if (!it.revealed) speak(w[WORD_KEY]); // a Say-it reveal has just said it
   if (input) input.focus({ preventScroll: true });
 }
 // Sentence items: why the article in front of the noun has its form
@@ -551,6 +642,16 @@ function pathMaybeVoice(it) {
   voiceCapture = (correct, heard, isSkip) => {
     if (!pathSession || pathSession.cur !== it || pathSession.answered) return;
     cancelListening(); updateMicBtn();
+    // Say-it: a match grades itself; anything else reveals — a mic that
+    // misheard you never counts as a miss.
+    if (it.said) {
+      if (it.revealed) return;
+      if (isSkip && !heard) { setVoiceStatus("Didn't hear anything — tap 🎤 again, or tap Show"); return; }
+      it.spoken = true;
+      if (correct && !isSkip) { it.micOk = true; pathGradeTyped(heard, true); return; }
+      pathSayReveal(isSkip ? "" : heard);
+      return;
+    }
     if (isSkip && !heard) { setVoiceStatus("Didn't hear anything — tap 🎤 or just type"); return; }
     if (isSkip) { pathGradeTyped("", false); return; }
     it.spoken = true;
@@ -559,7 +660,7 @@ function pathMaybeVoice(it) {
     if (correct) pathGradeTyped(heard, true);
     else pathGradeTyped(heard, false);
   };
-  setVoiceStatus("Listening… say it, or type");
+  setVoiceStatus(it.said ? "Listening… say it, or tap Show" : "Listening… say it, or type");
   setTimeout(() => { if (pathSession && pathSession.cur === it && !pathSession.answered) startListening(); }, 350);
 }
 function pathMicTap() { if (voiceActive) stopListening(); else if (pathSession && pathSession.cur) { voiceSessionRunning = true; startListening(); } }
@@ -574,7 +675,7 @@ function pathMaybeNudge() {
   const s = pathSession, el = document.getElementById("p-nudge");
   if (!el) return;
   el.innerHTML = "";
-  if (s.typedSeen !== 4 || S.path.voiceInput || quietActive() || S.path.voiceNudgeDay === todayISO()) return;
+  if (s.typedSeen !== 4 || S.path.voiceInput || quietActive() || speakOn() || S.path.voiceNudgeDay === todayISO()) return;
   if (typeof voiceEngineUsable !== "function" || !voiceEngineUsable()) return;
   el.innerHTML = `<div class="g-notice soft p-nudge">🎙️ Can you speak right now? Saying answers aloud counts the same — totally optional.
     <button class="g-notice-btn" onclick="pathNudge(true)">Try it</button><button class="g-sec-btn p-nudge-no" onclick="pathNudge(false)">Not now</button></div>`;

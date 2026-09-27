@@ -32,10 +32,10 @@ registerGame({
     { replays: 1, typed: true },
   ],
   twists: ["golden", "sudden"], credit: "recognition",
-  howTo: [
+  howTo: () => [
     "Listen to the word, then pick what it means.",
     "Tap 🔊 to hear it again. Answering without a replay earns a bonus.",
-    "From 💠 Platinum, words you know become dictation: type what you hear.",
+    speakOn() ? "From 💠 Platinum: more options to choose from." : "From 💠 Platinum, words you know become dictation: type what you hear.",
     "Words you know get sound-alike options; from 🥇 Gold the answer may be missing — pick <strong>∅ None of these</strong>.",
     "A wrong answer costs points (half for 🌱 new words). Keys 1–4 pick, Space replays.",
   ],
@@ -71,7 +71,7 @@ registerGame({
       const n = Math.min(4, f.options);
       // Words you know: options whose German sounds alike, and from 🥇 Gold
       // sometimes "None of these".
-      const opts = typed ? [] : mcChoices(w, { text: gamePrompt, n, pool: ctx.pool, target: false, hard: !f.rookie,
+      const opts = typed ? [] : mcChoices(w, { text: gamePrompt, n, pool: ctx.pool, target: false, hard: !f.rookie, ear: true,
         none: !f.rookie && ctx.size === "full" && ctx.rank >= 2 });
       q = { w, opts, typed };
       ctx.teach("");

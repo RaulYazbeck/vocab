@@ -215,6 +215,10 @@ function pickDistractors(word, pool, n, formFn = gameForm, filterFn = null, opts
   const target = normKey(gameForm(word)).replace(/^(der|die|das|le|la|l|un|une) /, "");
   const gender = hard && nounParts(word) ? nounParts(word).answer : "";
   const mixed = hard ? confusedWith(word) : null;
+  // French: never two options that sound the same (vert / verre) when
+  // you're listening, or speaking rather than spelling.
+  const noSoundAlike = WORD_KEY === "fr" && (opts.ear || speakOn());
+  const wordForm = gameForm(word);
   const hardScore = w => {
     let s = 0;
     const f = normKey(gameForm(w)).replace(/^(der|die|das|le|la|l|un|une) /, "");
@@ -230,7 +234,7 @@ function pickDistractors(word, pool, n, formFn = gameForm, filterFn = null, opts
   };
   const take = list => {
     const scored = list
-      .filter(w => !sameWord(w, word) && (!filterFn || filterFn(w)))
+      .filter(w => !sameWord(w, word) && (!filterFn || filterFn(w)) && !(noSoundAlike && frSoundsAlike(gameForm(w), wordForm)))
       .map(w => ({ w, s: (posOf(w) === pos ? 3 : 0) + (w.deckId === word.deckId ? 1.5 : 0)
         + (Math.abs(formFn(w).length - len) <= 3 ? 1 : 0) + Math.random() * (hard ? 0.9 : 1.6) + (hard ? hardScore(w) : 0) }))
       .sort((a, b) => b.s - a.s);
@@ -289,7 +293,7 @@ function mcChoices(w, cfg) {
   const none = !!cfg.none;
   const noneRight = none && Math.random() < 0.17;
   const want = noneRight ? n - 1 : n - 1 - (none ? 1 : 0);
-  const ds = pickDistractors(w, cfg.pool, Math.max(1, want), cfg.formFn || gameForm, null, { hard });
+  const ds = pickDistractors(w, cfg.pool, Math.max(1, want), cfg.formFn || gameForm, null, { hard, ear: !!cfg.ear });
   let opts = ds.map(x => ({ text: cfg.text(x), correct: false, word: x }));
   if (hard && cfg.target && opts.length >= 2 && Math.random() < 0.45) {
     const trap = articleTrap(w);
@@ -932,7 +936,11 @@ function makeCtx(def, pool, size, opts) {
     clock: makeClock(),
     busy: false, dead: false, paused: false, started: false, finished: false,
     missedWords: [], hits: new Map(), rank: 0, twist: null, golden: 0, goldenKeys: null,
-    get rp() { const r = def.ranks || []; return r[Math.min(ctx.rank, r.length - 1)] || {}; },
+    // Speak, don't spell: a typed rank stays multiple choice, one more option.
+    get rp() {
+      const r = def.ranks || [], p = r[Math.min(ctx.rank, r.length - 1)] || {};
+      return p.typed && speakOn() ? { ...p, typed: false, options: Math.min(6, (p.options || 4) + 1) } : p;
+    },
     get timeScale() { return ctx.twist === "turbo" ? 0.67 : 1; },
     get speedScale() { return ctx.twist === "turbo" ? 1.5 : 1; },
     get sudden() { return ctx.twist === "sudden"; },
@@ -1339,7 +1347,7 @@ function renderGameResults(sum, ctx) {
         ${size === "full" ? `<div class="g-stars-row">${starsHtml(stars, 3, "big")}</div>` : ""}
         ${size === "full" ? `<div class="g-rank-line">${twist ? `${TWISTS[twist].icon} ${TWISTS[twist].name} round · twists don't change your rank` : rankedUp ? `<span class="g-rankup">${GAME_RANKS[rank + 1].icon} ${GAME_RANKS[rank + 1].name} unlocked!</span>` : maxR < GAME_RANKS.length - 1 && rank === maxR ? `${rankLabel(rank)} · 3★ unlocks ${rankLabel(rank + 1)}` : rankLabel(rank)}</div>` : ""}
         ${newBest ? `<div class="g-newbest">🏅 New personal best!</div>` : ""}
-        ${credit && (credit.up || credit.flagged) ? `<div class="g-credit">${credit.up ? `📈 ${credit.up} word${credit.up > 1 ? "s" : ""} moved up` : ""}${credit.up && credit.flagged ? " · " : ""}${credit.flagged ? `⚠️ ${credit.flagged} flagged for a typed check` : ""}</div>` : ""}
+        ${credit && (credit.up || credit.flagged) ? `<div class="g-credit">${credit.up ? `📈 ${credit.up} word${credit.up > 1 ? "s" : ""} moved up` : ""}${credit.up && credit.flagged ? " · " : ""}${credit.flagged ? `⚠️ ${credit.flagged} flagged for ${sayOr("a typed check", "a check out loud")}` : ""}</div>` : ""}
         <div>
           <div class="result-stat"><strong>${result.score.toLocaleString()}</strong>score</div>
           <div class="result-stat"><strong>${result.correct}</strong>correct</div>
@@ -1396,8 +1404,11 @@ function runLaunchOpts(i) {
   if (gameRun.twists) o.twist = gameRun.twists[i] || null;
   return o;
 }
-// Audio games only when words can be read aloud (switch on, not muted today).
-function gameUsableNow(g) { return !g.audio || audioOk(); }
+// Audio games only when words can be read aloud (switch on, not muted
+// today); spelling games not at all with "Speak, don't spell" on.
+function gameUsableNow(g) { return (!g.audio || audioOk()) && !gameHiddenNow(g); }
+const SPELLING_GAMES = new Set(["typerush", "scramble"]);
+function gameHiddenNow(g) { return !!g && SPELLING_GAMES.has(g.id) && speakOn(); }
 function gameRunRoundDone(sum) {
   const run = gameRun;
   run.summaries.push(sum);
@@ -1650,7 +1661,7 @@ function renderGamesHub() {
         <div class="g-daily-track"><div class="g-daily-fill" style="width:${Math.round(dDone / dIds.length * 100)}%"></div></div>
       </button>`;
 
-  const cards = GAMES.map(g => {
+  const cards = GAMES.filter(g => !gameHiddenNow(g)).map(g => {
     const req = gameRequirement(g, pool, "full");
     const r = gameRankOf(g.id);
     const st = gameRankStars(g.id, r);
