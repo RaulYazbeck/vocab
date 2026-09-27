@@ -76,6 +76,10 @@ function drillCorrectTodayCount() {
   return S.drillMilestonesDate === todayISO() ? (S.drillCorrectToday || 0) : 0;
 }
 function goalProgress() {
+  // With a finish date, one counter everywhere: correct answers while
+  // studying today (Today sessions, Drill, Timer, bosses) — the same
+  // number as "Today's plan".
+  if (S.path && S.path.deadline && S.quests && S.quests.m && S.quests.day === todayISO()) return S.quests.m.ok || 0;
   return drillCorrectTodayCount() + gameGoalCredit();
 }
 function markGoalIfReached() {

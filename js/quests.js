@@ -201,9 +201,12 @@ qt({ id: "a_path", slot: "A", fam: "path", icon: "📖", w: 3, target: c => sz(c
 // It also completes as soon as today's plan is all done.
 qt({ id: "a_plan", slot: "A", fam: "plan", icon: "📅", w: 0, fixed: true, ok: () => false,
   target: c => c.plan ? c.plan.target : sz(c, 0.45, 10, 90),
-  title: q => `Today's plan: ${q.target} right answers in Today sessions`,
-  sub: () => S.path.deadline && pathDaysLeft() >= 0 ? `on course for ${fmtShortDate(S.path.deadline)}` : "",
-  prog: (m, q) => typeof pathPlanDone === "function" && pathPlanDone() ? q.target : m.path, go: "path" });
+  title: q => `Today's plan: ${q.target} right answers`,
+  sub: () => { const p = S.path.plan; const parts = [];
+    if (p && p.day === studyToday()) parts.push(`${p.reviews} reviews + ${p.pace} new words`);
+    if (S.path.deadline && pathDaysLeft() >= 0) parts.push(`on course for ${fmtShortDate(S.path.deadline)}`);
+    return parts.join(" · "); },
+  prog: (m, q) => typeof pathPlanDone === "function" && pathPlanDone() ? q.target : m.ok, go: "path" });
 qt({ id: "a_typed", slot: "A", fam: "typed", icon: "⌨️", w: 3, target: c => sz(c, 0.45, 10, 90),
   title: q => `Type ${q.target} correct answers (any mode)`, prog: m => m.typed, go: "path" });
 qt({ id: "a_clear", slot: "A", fam: "clear", icon: "🧹", w: 2,
@@ -777,6 +780,11 @@ function questEvent(type, d = {}) {
     case "bonus_cleared": m.bonusCleared++; break;
   }
   questRecompute();
+  // With a finish date the goal bar shows this same counter: keep it live.
+  if (type === "answer" && S.path && S.path.deadline) {
+    if (typeof markGoalIfReached === "function") markGoalIfReached();
+    if (typeof renderExpBar === "function") renderExpBar();
+  }
 }
 function deckGroupId(deckId) {
   for (const g of ALL_GROUPS) if (g.decks.some(d => d.id === deckId)) return g.id;
