@@ -666,3 +666,22 @@ body.grandma .say-g { min-height:68px; font-size:15px; }
 #drill-say .say-reveal, #timer-say .say-reveal, #bb-say .say-reveal, #cj-say .say-reveal { padding-top:6px; }
 .drill-say-label, .cj-say-label { margin:4px 0 10px; text-align:center; }
 .settings-sub .accent { color:var(--accent); font-weight:600; }
+/* Quest cards (both modes): ▶ plus the reroll / 🔇 swap outside Grandma */
+.gm-q-acts { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+.gm-q-mini { width:36px; height:36px; border-radius:50%; cursor:pointer; font-size:15px; border:1px solid var(--border); background:rgba(255,255,255,0.05); color:var(--text-2); }
+.gm-q-mini:active { transform:scale(0.94); }
+.gm-q-note { font-size:12px; color:var(--text-3); margin-top:3px; line-height:1.35; }
+.gm-q-tag { display:inline-block; font-size:11px; font-weight:700; color:var(--accent); background:var(--accent-dim); border-radius:10px; padding:1px 7px; margin-left:4px; vertical-align:1px; white-space:nowrap; }
+.gm-quest.muted { border-color:rgba(0,201,177,0.4); }
+.gm-quest.flash { border-color:rgba(255,209,102,0.45); }
+.gm-quest.weekend { border-style:dashed; }
+body:not(.grandma) .gm-quest { padding:10px 10px 10px 12px; }
+body:not(.grandma) .gm-q-title { font-size:14.5px; }
+body:not(.grandma) .gm-q-go { width:42px; height:42px; font-size:16px; }
+@media (max-width:360px) { .gm-q-go { width:40px; height:40px; } .gm-q-mini { width:32px; height:32px; } .gm-quest { gap:10px; } }
+.gm-quest { display:grid; grid-template-columns:auto minmax(0,1fr) auto; column-gap:12px; row-gap:8px; align-items:center; }
+.gm-q-icon { grid-column:1; grid-row:1 / span 2; }
+.gm-q-body { grid-column:2; grid-row:1; }
+.gm-quest.no-acts .gm-q-body { grid-column:2 / -1; }
+.gm-q-acts { grid-column:3; grid-row:1; }
+.gm-q-prog { grid-column:2 / -1; grid-row:2; margin-top:0; }

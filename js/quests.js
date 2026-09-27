@@ -1336,73 +1336,61 @@ function questIcon(q) {
   if (q.tpl === "d_mystery" && questAllOthersDone(q)) return (byId(q.hidden.tpl) || {}).icon || "❓";
   return (byId(q.tpl) || {}).icon || "✅";
 }
-// simple (👵 Grandma mode): title, a big progress bar and ▶ — no
-// rerolls, no fine print, no weekend or flash extras.
+// Quest cards: icon, title, a clear progress bar with "3 / 10", and ▶.
+// simple (👵 Grandma mode) leaves out everything else — rerolls, the
+// 🔇 swap, ✨×2, weekend and flash quests.
+function questRowHtml({ icon, title, prog, target, done, num, note = "", go = "", acts = "", cls = "" }) {
+  const pct = Math.round(Math.min(1, prog / Math.max(1, target)) * 100);
+  const hasActs = !done && !!go;
+  // Grid: icon | title | buttons, and the bar across the full width below.
+  return `<div class="gm-quest ${done ? "done" : ""} ${hasActs ? "" : "no-acts"} ${cls}">
+    <div class="gm-q-icon" aria-hidden="true">${done ? "✓" : icon}</div>
+    <div class="gm-q-body">
+      <div class="gm-q-title">${title}</div>
+      ${note ? `<div class="gm-q-note">${note}</div>` : ""}
+    </div>
+    ${hasActs ? `<div class="gm-q-acts"><button class="gm-q-go" onclick="${go}" aria-label="Start this quest">▶</button>${acts}</div>` : ""}
+    <div class="gm-q-prog">
+      <div class="gm-q-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${target}" aria-valuenow="${Math.min(prog, target)}"><i style="width:${pct}%"></i></div>
+      <span class="gm-q-num">${num != null ? num : done ? "Done" : `${Math.min(prog, target)} / ${target}`}</span>
+    </div>
+  </div>`;
+}
 function questCardsHtml(opts = {}) {
   questEnsureToday();
   const Q = S.quests;
   const quiet = quietActive();
-  if (opts.simple) return questCardsSimpleHtml();
+  const simple = !!opts.simple;
   const rows = Q.list.map((q, i) => {
     const t = byId(q.tpl) || {};
-    const inner = q.tpl === "d_mystery" && questAllOthersDone(q) ? q.hidden : q;
-    const prog = q.tpl === "d_mystery" ? (questAllOthersDone(q) ? inner.prog : 0) : q.prog;
-    const target = q.tpl === "d_mystery" ? (questAllOthersDone(q) ? inner.target : 1) : q.target;
-    const pct = Math.round(Math.min(1, prog / target) * 100);
-    const it = byId(inner.tpl) || t;
-    const sound = !!(it.audio);
-    return `<div class="quest ${q.done ? "done" : ""} ${Q.dbl === i ? "dbl" : ""} ${sound && quiet ? "muted" : ""}">
-      <div class="quest-ring" style="--p:${pct}"><span>${q.done ? "✓" : questIcon(q)}</span></div>
-      <div class="quest-body">
-        <div class="quest-title">${questTitle(q)}${Q.dbl === i ? ` <span class="quest-dbl" title="Double reward">✨×2</span>` : ""}</div>
-        <div class="quest-sub">${escapeHtml(QUEST_SLOT_INFO[q.slot].name)}${questSub(q) ? " · " + questSub(q) : ""}${!q.done && target > 1 ? ` · ${prog}/${target}` : ""}</div>
-      </div>
-      <div class="quest-acts">
-        ${!q.done ? `<button class="quest-go" onclick="questGo(${i})" aria-label="Start">▶</button>` : ""}
-        ${!q.done && sound ? `<button class="quest-mini" onclick="questReroll(${i}, true)" title="Can't use sound now? Swap it (free)">🔇</button>`
-          : !q.done && q.tpl !== "d_mystery" && !t.fixed ? `<button class="quest-mini" onclick="questReroll(${i})" title="Reroll this quest${Q.rerolled ? ` (${Q.tokens} tokens)` : " (1 free today)"}">🎲</button>` : ""}
-      </div>
-    </div>`;
-  }).join("");
-  const extra = [];
-  if (Q.flash && !Q.flash.done && !Q.flash.expired && Date.now() < Q.flash.until) {
-    const mins = Math.max(1, Math.ceil((Q.flash.until - Date.now()) / 60000));
-    extra.push(`<div class="quest flash"><div class="quest-ring" style="--p:${Math.round(Q.flash.prog / Q.flash.target * 100)}"><span>⚡</span></div>
-      <div class="quest-body"><div class="quest-title">Flash quest: ${escapeHtml(Q.flash.title)}</div><div class="quest-sub">${mins} min left · ${Q.flash.prog}/${Q.flash.target} · reward: a chest</div></div>
-      <div class="quest-acts"><button class="quest-go" onclick="startPathSession('quick')">▶</button></div></div>`);
-  }
-  if (Q.weekend && !Q.weekend.done) {
-    const w = Q.weekend, pct = Math.round(Math.min(1, w.prog / w.target) * 100);
-    extra.push(`<div class="quest weekend"><div class="quest-ring" style="--p:${pct}"><span>${questIcon(w)}</span></div>
-      <div class="quest-body"><div class="quest-title">${questTitle(w)}</div><div class="quest-sub">🎁 Weekend bonus (optional) · ${w.prog}/${w.target}</div></div>
-      <div class="quest-acts"><button class="quest-go" onclick="questGoTpl('${w.tpl}', 'W')">▶</button></div></div>`);
-  }
-  const nDone = Q.list.filter(q => q.done).length;
-  return `<div class="quests-head"><span>Today's quests</span><small>${nDone}/${Q.list.length} done${nDone < Q.list.length ? " · all four open a 🎁 chest" : " ✓"}</small></div>
-    <div class="quests">${rows}${extra.join("")}</div>`;
-}
-function questCardsSimpleHtml() {
-  const Q = S.quests;
-  const rows = Q.list.map((q, i) => {
     const mystery = q.tpl === "d_mystery" && !questAllOthersDone(q);
     const inner = q.tpl === "d_mystery" && !mystery ? q.hidden : q;
-    const prog = mystery ? 0 : inner.prog, target = mystery ? 1 : inner.target;
-    const pct = Math.round(Math.min(1, prog / Math.max(1, target)) * 100);
-    return `<div class="gm-quest ${q.done ? "done" : ""}">
-      <div class="gm-q-icon" aria-hidden="true">${q.done ? "✓" : questIcon(q)}</div>
-      <div class="gm-q-body">
-        <div class="gm-q-title">${questTitle(q)}</div>
-        <div class="gm-q-prog">
-          <div class="gm-q-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${target}" aria-valuenow="${Math.min(prog, target)}"><i style="width:${pct}%"></i></div>
-          <span class="gm-q-num">${q.done ? "Done" : mystery ? "?" : `${Math.min(prog, target)} / ${target}`}</span>
-        </div>
-      </div>
-      ${q.done ? "" : `<button class="gm-q-go" onclick="questGo(${i})" aria-label="Start this quest">▶</button>`}
-    </div>`;
-  }).join("");
+    const it = byId(inner.tpl) || t;
+    const sound = !!it.audio;
+    const dbl = !simple && Q.dbl === i ? ` <span class="quest-dbl" title="Double reward">✨×2</span>` : "";
+    // Only what changes how you do it: the text route of a sound quest,
+    // and when the mystery opens.
+    const note = simple ? "" : mystery ? "Revealed when the other three are done"
+      : it.altTitle ? (() => { try { return escapeHtml(it.altTitle(inner)); } catch (e) { return ""; } })() : "";
+    const acts = simple || q.done ? ""
+      : sound ? `<button class="gm-q-mini" onclick="questReroll(${i}, true)" title="Can't use sound now? Swap it (free)" aria-label="Swap this sound quest">🔇</button>`
+      : q.tpl !== "d_mystery" && !t.fixed ? `<button class="gm-q-mini" onclick="questReroll(${i})" title="Reroll this quest${Q.rerolled ? ` (${Q.tokens} tokens)` : " (1 free today)"}" aria-label="Reroll this quest">🎲</button>` : "";
+    return questRowHtml({ icon: questIcon(q), title: questTitle(q) + dbl, prog: mystery ? 0 : inner.prog, target: mystery ? 1 : inner.target,
+      done: q.done, num: mystery && !q.done ? "?" : null, note, go: `questGo(${i})`, acts, cls: sound && quiet ? "muted" : "" });
+  });
+  if (!simple && Q.flash && !Q.flash.done && !Q.flash.expired && Date.now() < Q.flash.until) {
+    const mins = Math.max(1, Math.ceil((Q.flash.until - Date.now()) / 60000));
+    rows.push(questRowHtml({ icon: "⚡", title: `Flash quest: ${escapeHtml(Q.flash.title)} <span class="gm-q-tag">${mins} min left · 🎁</span>`,
+      prog: Q.flash.prog, target: Q.flash.target, go: "startPathSession('quick')", cls: "flash" }));
+  }
+  if (!simple && Q.weekend && !Q.weekend.done) {
+    const w = Q.weekend;
+    rows.push(questRowHtml({ icon: questIcon(w), title: `${questTitle(w)} <span class="gm-q-tag">🎁 weekend bonus</span>`,
+      prog: w.prog, target: w.target, go: `questGoTpl('${w.tpl}', 'W')`, cls: "weekend" }));
+  }
   const nDone = Q.list.filter(q => q.done).length;
   return `<div class="gm-quests-head"><span>Today's quests</span><b>${nDone} / ${Q.list.length}</b></div>
-    <div class="gm-quests">${rows}</div>`;
+    <div class="gm-quests">${rows.join("")}</div>`;
 }
 function questMiniHtml() {
   if (!S.quests || !S.quests.list.length) return "";
