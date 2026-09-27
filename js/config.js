@@ -215,8 +215,10 @@ function isCorrect(input, answer) {
 
 
 // ── DATE HELPERS ──────────────────────────────
+// The app's day rolls over at 4 AM (like Anki): a 1 AM session still
+// counts as yesterday, for quests, goals, streaks and the Path alike.
 function todayISO() {
-  return new Date().toLocaleDateString('en-CA');
+  return ankiToday();
 }
 function daysBetween(a, b) {
   return Math.round((new Date(b) - new Date(a)) / (1000 * 60 * 60 * 24));

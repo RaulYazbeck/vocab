@@ -16,6 +16,9 @@ function startSession() {
 
 // ── SHOW SCREEN ───────────────────────────────
 function showScreen(name) {
+  // Leaving a Today session through the header or Settings ends it
+  // properly (answers are already saved) instead of orphaning it.
+  if (typeof pathSession !== "undefined" && pathSession) endPathSession(true);
   showGameScreen();
   const island = document.getElementById('floating-island');
   if (island) island.style.display = 'none';

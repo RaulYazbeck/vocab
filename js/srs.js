@@ -138,7 +138,8 @@ function srsReview(ws, ok, kind = "recall", now = Date.now(), opts = {}) {
     ws.fl = 0; ws.cf = 0;
     // A slip on a scheduled word makes its future gaps shorter (once
     // per day — relearning misses in the same session don't stack).
-    if (!ws.lrn && ws.dropDay !== today) nudgeEase(ws, isCheckpoint(from) && !ws.rp ? -EASE.REPAIR : -EASE.SLIP);
+    // A word met today is still being learnt: slips on day 0 don't count.
+    if (!ws.lrn && ws.dropDay !== today && ws.metOn !== today) nudgeEase(ws, isCheckpoint(from) && !ws.rp ? -EASE.REPAIR : -EASE.SLIP);
     if (isCheckpoint(from) && !ws.rp && ws.dropDay !== today) {
       // First slip on a checkpoint word: keep the badge, open a repair.
       ws.rp = 1; ws.lrn = 0; ws.sAt = now; ws.dueAt = now + RELEARN_MS;

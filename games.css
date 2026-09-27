@@ -642,3 +642,9 @@ body.g-drag-active { user-select:none; -webkit-user-select:none; cursor:grabbing
 .g-ranks { display:grid; grid-template-columns:repeat(var(--n, 5), minmax(0, 64px)); justify-content:center; }
 .g-rank { min-width:0; }
 .g-rank small { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:9.5px; }
+/* The right answer pops gently — a big scale on a wide button jitters
+   and can push past the screen edge. */
+.g-opt.right { animation:gOptPop 0.32s var(--spring); }
+.g-options > .g-opt.right:last-child:nth-child(odd) { animation-name:gOptPopWide; }
+@keyframes gOptPop { 0% { transform:scale(1); } 45% { transform:scale(1.06); } 100% { transform:scale(1); } }
+@keyframes gOptPopWide { 0% { transform:scale(1); } 45% { transform:scale(1.02); } 100% { transform:scale(1); } }

@@ -75,6 +75,9 @@ function questEnsureToday() {
   migrateQuests();
   const Q = S.quests, today = todayISO();
   if (Q.day === today && Q.list.length) return false;
+  // Quests made before the switch to the 4 AM day (00:00–04:00 that one
+  // night) belong to the day that's about to start — keep them.
+  if (Q.day > today && Q.list.length) return false;
   if (Q.day && Q.day !== today) questCloseDay(Q.day, today);
   Q.day = today;
   Q.m = freshQuestCounters();
@@ -199,7 +202,7 @@ qt({ id: "a_path", slot: "A", fam: "path", icon: "📖", w: 3, target: c => sz(c
 qt({ id: "a_plan", slot: "A", fam: "plan", icon: "📅", w: 0, fixed: true, ok: () => false,
   target: c => c.plan ? c.plan.target : sz(c, 0.45, 10, 90),
   title: q => `Today's plan: ${q.target} right answers in Today sessions`,
-  sub: () => S.path.deadline ? `on course for ${fmtShortDate(S.path.deadline)}` : "",
+  sub: () => S.path.deadline && pathDaysLeft() >= 0 ? `on course for ${fmtShortDate(S.path.deadline)}` : "",
   prog: (m, q) => typeof pathPlanDone === "function" && pathPlanDone() ? q.target : m.path, go: "path" });
 qt({ id: "a_typed", slot: "A", fam: "typed", icon: "⌨️", w: 3, target: c => sz(c, 0.45, 10, 90),
   title: q => `Type ${q.target} correct answers (any mode)`, prog: m => m.typed, go: "path" });
@@ -900,7 +903,12 @@ function questEnsureWeek() {
   if (Q.week.key !== wk) Q.week = { key: wk, ok: 0, bosses: 0, days: 0, up: 0, stars: 0, games: [], locked: 0, quests: 0, weeklyChest: false };
   if (!Q.saga || Q.saga.week !== wk) {
     const rng = seededRandom(hashString(wk + "|saga|" + STORAGE_KEY));
-    const pool = seededShuffle(SAGA_CHAPTERS.slice(), rng).slice(0, 3);
+    // Only chapters that can be reached this week (no "lock in 3 words"
+    // before any word is close to 💎, no bosses before there are words).
+    const scan = pathScan();
+    const nearLock = Object.values(S.words).filter(ws => ws && ws.st === STAGE_STRONG && ws.dueAt && ws.dueAt < Date.now() + 6 * 864e5).length;
+    const fits = c => c.id === "locked" ? nearLock >= 6 : c.id === "bosses" ? scan.met >= 12 : c.id === "stars" || c.id === "games" ? scan.met >= 8 : true;
+    const pool = seededShuffle(SAGA_CHAPTERS.filter(fits), rng).slice(0, 3);
     const G = getDailyGoal();
     Q.saga = { week: wk, idx: 0, done: false, ch: pool.map(c => ({ id: c.id, target: c.n(G), title: c.title(c.n(G)), base: 0 })) };
   }
@@ -1272,8 +1280,20 @@ function questAfterActivity() {
   return false;
 }
 function gameInPlaySafe() { return typeof gameInPlay === "function" && gameInPlay(); }
-function renderDayComplete() {
-  if (gameInPlaySafe() || (typeof pathSession !== "undefined" && pathSession) || document.getElementById("game-screen")) { S.quests._showDayComplete = true; return; }
+// End screens (session summary, game results) keep their content and
+// offer the Day complete moment as their main button instead of being
+// replaced by it.
+function dayCompletePending() { return !!(S.quests && S.quests._showDayComplete); }
+function dayCompleteCtaHtml() {
+  return dayCompletePending() ? `<button class="g-big-btn day-cta" onclick="openDayComplete()">🏁 All 4 quests done — continue</button>` : "";
+}
+function openDayComplete() {
+  S.quests._showDayComplete = false;
+  if (typeof quitAllGames === "function") quitAllGames();
+  renderDayComplete(true);
+}
+function renderDayComplete(force = false) {
+  if (!force && (gameInPlaySafe() || (typeof pathSession !== "undefined" && pathSession) || document.getElementById("game-screen"))) { S.quests._showDayComplete = true; return; }
   const Q = S.quests;
   const st = questStreak();
   showGameScreen();

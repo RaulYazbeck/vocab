@@ -415,3 +415,17 @@ tr.unmet td { opacity:0.55; }
 .settings-date { min-height:36px; padding:0 10px; border-radius:10px; border:1px solid var(--border); background:rgba(255,255,255,0.06); color:var(--text); font-family:inherit; font-size:14px; color-scheme:dark; }
 .settings-deadline .settings-sub { flex-basis:100%; padding-left:0; }
 .jh-plan { font-size:12.5px; color:var(--teal); margin:2px 0 4px; }
+/* "Don't know" is a real choice, not a disabled one: readable at a glance. */
+.p-actions .dontknow-btn, .g-typed-actions .dontknow-btn { color:var(--text-2); border-color:rgba(255,255,255,0.16); background:rgba(255,255,255,0.05); }
+.g-result-actions .day-cta { background:linear-gradient(135deg,#FFD166,#F5A623); animation:startGlow 2.4s ease-in-out infinite; }
+/* End screens: the main buttons stay in thumb reach, whatever the list length. */
+.g-results .g-result-actions {
+  position:sticky; bottom:0; z-index:4; margin-left:-1rem; margin-right:-1rem;
+  padding:14px 1rem calc(12px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg, rgba(9,13,23,0), rgba(9,13,23,0.94) 28%);
+}
+.g-results .g-result-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.g-results .g-result-actions > * { width:100%; max-width:none; margin:0; }
+.g-results .g-result-actions > .g-big-btn:first-child, .g-results .g-result-actions > :only-child { grid-column:1 / -1; }
+.g-results .g-result-actions > .g-sec-btn:last-child:nth-child(even) { grid-column:1 / -1; }
+.g-results .g-result-actions .g-sec-btn { background:rgba(22,28,42,0.98); }

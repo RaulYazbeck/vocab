@@ -450,7 +450,9 @@ let _deferredToasts = [], _deferredConfetti = 0;
 const _toastNow = showCelebrateToast, _confettiNow = confettiBurst;
 function gameInPlay() { return !!(activeGame && activeGame.ctx.started && !activeGame.ctx.finished && !activeGame.ctx.dead); }
 // A Today session holds them too: they replay on its summary screen.
-function celebrationsHeld() { return gameInPlay() || (typeof pathSession !== "undefined" && !!pathSession); }
+function celebrationsHeld() {
+  return gameInPlay() || (typeof pathSession !== "undefined" && !!pathSession && !!document.getElementById("path-screen"));
+}
 showCelebrateToast = function (icon, title, sub) {
   if (celebrationsHeld()) { _deferredToasts.push([icon, title, sub]); return; }
   _toastNow(icon, title, sub);
@@ -1199,6 +1201,7 @@ function renderGameResults(sum, ctx) {
         ${size === "full" && best !== undefined ? `<div class="g-best-line">Personal best${twist ? " (twist)" : ` at ${GAME_RANKS[rank].name}`}: ${best.toLocaleString()}</div>` : ""}
         ${missedListHtml(result.missed)}
         <div class="g-result-actions">
+          ${typeof dayCompleteCtaHtml === "function" ? dayCompleteCtaHtml() : ""}
           <button class="g-big-btn" id="g-again">↻ Play again</button>
           <button class="g-sec-btn" onclick="openGamesHub()">🎮 Games</button>
         </div>
@@ -1209,7 +1212,6 @@ function renderGameResults(sum, ctx) {
   // Guarded: a keypress that ended the round (Enter in Boss Battle)
   // must not immediately restart it.
   armOverlayButton(document.getElementById("g-again"), () => launchGame(def.id, { pool: ctx.pool, size: "full", rank: rankedUp ? rank + 1 : rank }));
-  if (typeof questAfterActivity === "function") questAfterActivity();
   const dm = document.getElementById("g-drill-missed");
   if (dm) dm.onclick = () => drillWords(drillable);
   flushDeferredCelebrations();
@@ -1431,6 +1433,7 @@ function toggleSurpriseRounds() {
 // deckIds: from the start bar (session-only pool), or undefined to use
 // the saved pool preference.
 function openGamesHub(deckIds) {
+  if (typeof pathSession !== "undefined" && pathSession) endPathSession(true);
   quitAllGames();
   closePoolPicker();
   clearGameCaches();

@@ -615,6 +615,12 @@ function deadlineSettingsHtml() {
       ${late}
     </div>`;
 }
+function deadlineLineHtml(scan) {
+  const d = fmtShortDate(S.path.deadline);
+  if (!pathUnmet(scan)) return `🗓️ Every word is met — reviews only from here`;
+  if (pathDaysLeft() < 0) return `🗓️ Your finish date (${d}) has passed — pick a new one in ⚙️ Settings whenever you like`;
+  return `🗓️ Quests are sized to finish everything by <b>${d}</b> · ${pathEnsurePlan().pace} new today`;
+}
 function setDeadlineFromSettings(iso) {
   setPathDeadline(iso);
   if (typeof questPlanChanged === "function") questPlanChanged();
@@ -791,7 +797,7 @@ function renderJourney() {
     <div class="screen-top"><div class="screen-label">🗺️ Journey</div><button class="back-btn" onclick="backToMenu()">← Back</button></div>
     <div class="jh">
       <div class="jh-big"><b>${scan.known.toLocaleString()}</b> / ${scan.total.toLocaleString()} words Known ✓ <span>${pct(scan.known, scan.total)}%</span></div>
-      ${pathDeadlineOn() ? `<div class="jh-plan">🗓️ Quests are sized to finish everything by <b>${fmtShortDate(S.path.deadline)}</b> · ${pathEnsurePlan().pace} new today</div>` : ""}
+      ${pathDeadlineOn() ? `<div class="jh-plan">${deadlineLineHtml(scan)}</div>` : ""}
       <div class="jh-sub">💎 ${scan.locked.toLocaleString()} locked in · 🌱 ${scan.met.toLocaleString()} met${scan.repair ? ` · 🩹 ${scan.repair} in repair` : ""}${scan.flagged ? ` · ⚠️ ${scan.flagged} flagged` : ""}</div>
       ${tierBarHtml(scan.tiers, scan.total, "big")}
       <div class="tier-legend">${TIERS.map(t => `<span><i class="tb-${t.id}"></i>${t.icon} ${t.name} ${scan.tiers[t.id] || 0}</span>`).join("")}</div>

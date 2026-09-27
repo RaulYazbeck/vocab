@@ -106,6 +106,7 @@ function bindPathKeys() {
       e.preventDefault();
       if (it.t === "learn") pathNext();
       else if (it.t === "bonus") return;
+      else if (pathSession.pendingReverse !== null) pathReverseResolve(false);
       else if (pathSession.answered) pathNext();
       else if (["typed", "spot", "cloze", "reverse"].includes(it.t)) pathCheckTyped();
       return;
@@ -684,14 +685,14 @@ function renderPathSummary(abandoned) {
         ${upRows ? `<div class="g-missed p-moves"><div class="examples-title">Moved forward</div>${upRows}</div>` : ""}
         ${missedListHtml(missed)}
         <div class="g-result-actions">
-          <button class="g-big-btn" id="p-again">Another round ▶</button>
+          ${dayCompleteCtaHtml()}
+          <button class="${dayCompletePending() ? "g-sec-btn" : "g-big-btn"}" id="p-again">Another round ▶</button>
           <button class="g-sec-btn" onclick="backToMenu()">Done ✓</button>
         </div>
       </div>
     </div>`;
   window.scrollTo({ top: 0, behavior: "instant" });
   armOverlayButton(document.getElementById("p-again"), () => startPathSession(lenKey));
-  if (typeof questAfterActivity === "function") questAfterActivity();
 }
 function renderPathCaughtUp() {
   const t = pathTodaySummary();
