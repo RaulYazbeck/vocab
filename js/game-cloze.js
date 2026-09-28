@@ -28,6 +28,19 @@ function clozeFormStep(w, info) {
   if (fs.kind === "adj") fs.reason += `<div class="g-teach-rule">${adjRuleFromContext(info.example[WORD_KEY], info.answer)}</div>`;
   return fs;
 }
+// Distractors that can't also fit the sentence: "Haben wir noch ___?"
+// takes Milch, Brot and Käse alike. So at most ONE option shares the
+// answer's part of speech — and it comes from another topic deck — the
+// rest are other kinds of word, which the sentence rules out.
+function clozeDistractors(w, pool, n, formFn, hard) {
+  const pos = posOf(w);
+  const out = [], seen = new Set([normKey(formFn(w))]);
+  const add = list => list.forEach(x => { const k = normKey(formFn(x)); if (out.length < n && !seen.has(k)) { seen.add(k); out.push(x); } });
+  add(pickDistractors(w, pool, 1, formFn, x => posOf(x) === pos && x.deckId !== w.deckId, { hard }));
+  add(pickDistractors(w, pool, n - out.length, formFn, x => posOf(x) !== pos && posOf(x) !== "phrase", { hard }));
+  if (out.length < n) add(pickDistractors(w, pool, n, formFn, x => posOf(x) !== pos, { hard }));
+  return out;
+}
 // Grammar stats (never word stages): S.games.cases[kind] = [right, total].
 function recordGrammar(kind, ok) {
   if (!kind || !S.games) return;
@@ -78,11 +91,13 @@ registerGame({
       // the dictionary article — which is usually not the one in the gap.
       const caseStep = !!step && step.kind === "case";
       const bare = x => { const np = nounParts(x); return np ? np.noun : gameForm(x); };
-      const opts = typed ? [] : mcChoices(w, caseStep
-        ? { text: x => "– " + bare(x), formFn: bare, filter: x => !!nounParts(x), n, pool: ctx.pool, target: false, hard: !f.rookie,
-            none: !f.rookie && ctx.size === "full" && ctx.rank >= 1 }
-        : { text: gameForm, n, pool: ctx.pool, target: true, hard: !f.rookie,
-            none: !f.rookie && ctx.size === "full" && ctx.rank >= 1 });
+      const formFn = caseStep ? bare : gameForm;
+      const opts = typed ? [] : mcChoices(w, {
+        text: caseStep ? x => (nounParts(x) ? "– " : "") + bare(x) : gameForm, formFn, n, pool: ctx.pool, target: !caseStep, hard: !f.rookie, noTrap: true,
+        pick: k => clozeDistractors(w, ctx.pool, k, formFn, !f.rookie),
+        none: !f.rookie && ctx.size === "full" && ctx.rank >= 1 });
+      // The translation hides the word's own meaning (else it's the answer).
+      const transHtml = redactTranslation(info.example.en, gamePrompt(w));
       // Case words hide the article too, so it can't give the word away.
       const gapHtml = step && step.kind === "case" ? step.ci.gapBoth : info.html;
       const typedAnswer = step && step.kind === "case" ? `${step.ci.det} ${step.ci.noun}` : info.answer;
@@ -94,11 +109,11 @@ registerGame({
       const peekOk = rp.peek !== false || ctx.size !== "full";
       ctx.stage.innerHTML = `
         <div class="cz-card g-enter">
-          <div class="g-q-label">${typed ? "Type the missing word" + (caseStep ? "s — with the right article" : "") : caseStep ? "Which noun fits? <small class=\"cz-next\">article next</small>" : "Which word fits?"}${ctx.tag(w)}</div>
+          <div class="g-q-label">${typed ? "Type the missing word" + (caseStep ? "s — with the right article" : "") : caseStep ? "Which word fits? <small class=\"cz-next\">article next</small>" : "Which word fits?"}${ctx.tag(w)}</div>
           <div class="cz-sentence" id="cz-sentence">${gapHtml}</div>
           ${typed ? `<div class="cz-trans">(${escapeHtml(gamePrompt(w))})</div>` : ""}
-          ${peekOk ? `<button class="g-link-btn cz-peek" id="cz-peek">Show translation</button>` : ""}
-          <div class="cz-trans" id="cz-trans" style="display:none">${escapeHtml(info.example.en || "")}</div>
+          ${peekOk && transHtml ? `<button class="g-link-btn cz-peek" id="cz-peek">Show translation</button>` : ""}
+          <div class="cz-trans" id="cz-trans" style="display:none">${transHtml || ""}</div>
           ${step && !typed ? `<div class="cz-steps"><span class="on">1 · word</span><span>2 · ${caseStep ? "article" : "form"}</span></div>` : ""}
         </div>
         <div id="cz-opts">${typed ? gTypedHtml(step && step.kind === "case" ? "article + word, as in the sentence…" : "the word as it appears…") : mcOptionsHtml(opts)}</div>`;
@@ -116,7 +131,8 @@ registerGame({
       const html = q.step && q.step.kind === "case" ? q.step.ci.reveal : q.info.reveal;
       if (sEl) { sEl.innerHTML = html; sEl.classList.remove("ok", "bad"); sEl.classList.add(ok ? "ok" : "bad"); }
       const tr = document.getElementById("cz-trans"), pk = document.getElementById("cz-peek");
-      if (tr) tr.style.display = ""; if (pk) pk.style.display = "none";
+      if (tr) { tr.textContent = q.info.example.en || ""; tr.style.display = ""; }
+      if (pk) pk.style.display = "none";
       speak(q.info.example[WORD_KEY]);
     };
     // count: false when the question isn't settled yet (a two-step item

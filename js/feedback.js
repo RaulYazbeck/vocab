@@ -96,7 +96,7 @@ function playAchievement() {
 }
 
 // ── GAME SOUNDS & HAPTICS ─────────────────────
-// Short arcade effects for the minigames — the same 🔔 Sound effects
+// Short arcade effects for the minigames — the same 🔊 Sound
 // switch as the answer chimes above.
 function gameSfxOn() { return sfxOn(); }
 function playPop() {

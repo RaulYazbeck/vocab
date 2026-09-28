@@ -286,16 +286,18 @@ function articleTrap(w) {
 //   hard distractors · an article trap (target-language options) ·
 //   "None of these" (the right answer left out, ~1 in 6).
 // cfg: { text(x), n, pool, target: options show the target language,
-//        hard, none, formFn?, filter? (which words may be distractors) }
+//        hard, none, formFn?, filter? (which words may be distractors),
+//        pick?(n) (own distractor picker), noTrap? (no article trap) }
 function mcChoices(w, cfg) {
   const n = cfg.n;
   const hard = !!cfg.hard;
   const none = !!cfg.none;
   const noneRight = none && Math.random() < 0.17;
   const want = noneRight ? n - 1 : n - 1 - (none ? 1 : 0);
-  const ds = pickDistractors(w, cfg.pool, Math.max(1, want), cfg.formFn || gameForm, cfg.filter || null, { hard, ear: !!cfg.ear });
+  const ds = cfg.pick ? cfg.pick(Math.max(1, want))
+    : pickDistractors(w, cfg.pool, Math.max(1, want), cfg.formFn || gameForm, cfg.filter || null, { hard, ear: !!cfg.ear });
   let opts = ds.map(x => ({ text: cfg.text(x), correct: false, word: x }));
-  if (hard && cfg.target && opts.length >= 2 && Math.random() < 0.45) {
+  if (hard && cfg.target && !cfg.noTrap && opts.length >= 2 && Math.random() < 0.45) {
     const trap = articleTrap(w);
     if (trap && !opts.some(o => normKey(o.text) === normKey(trap))) opts[opts.length - 1] = { text: trap, correct: false, trap: true };
   }

@@ -658,7 +658,7 @@ function settingsPlanHtml() {
 // One short line for the main page: what is actually on right now.
 function soundSummary() {
   if (quietActive()) return "🔇 Muted until tomorrow";
-  const on = [SOUND.tts && "words read aloud", SOUND.sfx && "sound effects", SOUND.vibe && hasVibration() && "vibration"].filter(Boolean);
+  const on = [SOUND.tts && "sound on", SOUND.vibe && hasVibration() && "vibration"].filter(Boolean);
   const mic = S.path.voiceInput ? " · mic on" : "";
   return (on.length ? on.join(", ")[0].toUpperCase() + on.join(", ").slice(1) : "All sound off") + mic;
 }
@@ -668,8 +668,7 @@ function settingsSoundHtml() {
   return `
     ${quiet ? `<div class="set-note">🔇 <strong>Muted until tomorrow.</strong> Everything below stays silent until the day rolls over (4 AM), whatever the switches say. <button class="goal-pick" onclick="toggleQuiet();renderSettingsPanel()">Unmute now</button></div>` : ""}
     <div class="set-group-title">Always on this device</div>
-    ${setSwitchHtml("🗣️", "Read words aloud", "The app pronounces words and example sentences. Off also hides listening exercises — there would be nothing to hear.", SOUND.tts, "toggleSoundPref('tts')")}
-    ${setSwitchHtml("🔔", "Sound effects", "The chime for a right or wrong answer, and the sounds in games.", SOUND.sfx, "toggleSoundPref('sfx')")}
+    ${setSwitchHtml("🔊", "Sound", "Words and example sentences read aloud, plus the chime for a right or wrong answer and the sounds in games. Off also hides listening exercises — there would be nothing to hear.", SOUND.tts, "toggleSoundPref('sound')")}
     ${hasVibration() ? setSwitchHtml("📳", "Vibration", "A short buzz on answers and in games.", SOUND.vibe, "toggleSoundPref('vibe')") : ""}
     <div class="set-group-title">Just for today</div>
     ${setSwitchHtml("🔇", "Mute until tomorrow", "Silences everything above — plus the mic and listening exercises — until tomorrow, then switches itself off. Your switches above are not changed. Same as the button on the Today card.", quiet, "toggleQuiet();renderSettingsPanel()")}
@@ -679,7 +678,7 @@ function settingsSoundHtml() {
       [{ label: "System", on: voiceEngineChoice === "system", onclick: "setVoiceEngine('system');renderSettingsPanel()" },
        { label: "Whisper", on: voiceEngineChoice === "whisper", onclick: "setVoiceEngine('whisper');renderSettingsPanel()" }])}`;
 }
-function toggleSoundPref(k) { setSoundPref(k, !SOUND[k]); renderSettingsPanel(); }
+function toggleSoundPref(k) { setSoundPref(k, !(k === "vibe" ? SOUND.vibe : SOUND.tts)); renderSettingsPanel(); }
 function settingsGamesHtml() {
   return `
     ${setSwitchHtml("🎁", "Surprise rounds in Drill", `A bonus game every ${SURPRISE_EVERY} correct answers in Library Drill.`, !(S.games && S.games.surprise === false), "toggleSurpriseRounds()")}

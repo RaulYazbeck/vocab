@@ -593,8 +593,15 @@ body.g-drag-active { user-select:none; -webkit-user-select:none; cursor:grabbing
 .tf-card.lean-left { border-color:var(--error); }
 .tf-card.good { border-color:var(--success); background:var(--success-dim); }
 .tf-card.bad { border-color:var(--error); background:var(--error-dim); }
-.tf-card.fly-right { transform:translateX(24px) rotate(2deg) !important; transition:transform 0.18s ease; }
-.tf-card.fly-left { transform:translateX(-24px) rotate(-2deg) !important; transition:transform 0.18s ease; }
+/* The judged card flying off the screen (a fixed copy: nothing clips it). */
+.tf-card.tf-ghost { position:fixed; z-index:60; margin:0; pointer-events:none; box-sizing:border-box; background-color:#161c29; }
+.tf-card.tf-ghost.good { background:linear-gradient(var(--success-dim), var(--success-dim)), #161c29; }
+.tf-card.tf-ghost.bad { background:linear-gradient(var(--error-dim), var(--error-dim)), #161c29; }
+.tf-card.review { cursor:default; }
+.tf-verdict { font-size:12.5px; color:var(--text-2); margin:-8px 0 10px; }
+.tf-verdict b { color:var(--text); }
+.tf-was { text-decoration-color:var(--error); text-decoration-thickness:2px; opacity:0.75; }
+.tf-fix { margin-top:6px; }
 .tf-stamp { position:absolute; top:8px; right:12px; font-size:24px; font-weight:900; }
 .tf-hint { font-size:11px; color:var(--text-3); margin-top:8px; letter-spacing:0.5px; }
 .tf-btns { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
@@ -711,19 +718,10 @@ body.g-drag-active { user-select:none; -webkit-user-select:none; cursor:grabbing
 .cs-noun span { font-weight:500; color:var(--text-2); }
 
 /* ── CONJUGATION SLOTS · tenses & verb track ── */
-.cj-chips { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin:0 0 8px; }
-.cj-chip {
-  padding:5px 10px; border-radius:20px; font-size:12px; font-weight:700; cursor:pointer;
-  border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--text-3);
-  font-family:'DM Sans',sans-serif; transition:all 0.15s var(--ease);
-}
-.cj-chip.on { color:var(--accent-hi); border-color:rgba(245,166,35,0.55); background:var(--accent-dim); }
-.cj-chip.all.on { color:var(--success); border-color:rgba(0,216,150,0.5); background:var(--success-dim); }
 .cj-machine.three { grid-template-columns:1fr 1.3fr; }
 .cj-machine.three .cj-reel.tense { grid-column:1 / -1; height:40px; }
 .cj-reel.tense span { font-size:15px; color:var(--accent-hi); }
 .cj-meaning { text-align:center; font-size:13.5px; color:var(--text-2); min-height:18px; margin-bottom:4px; }
-.cj-new { color:var(--success); font-weight:700; font-size:12px; }
 .vr-row { display:flex; flex-wrap:wrap; gap:4px 12px; margin-top:8px; font-family:'JetBrains Mono',monospace; font-size:13px; }
 .vr-c { color:var(--text-2); }
 .vr-c.on { color:var(--text); font-weight:700; background:var(--accent-dim); border-radius:4px; padding:0 4px; }

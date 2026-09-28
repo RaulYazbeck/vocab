@@ -1,23 +1,20 @@
 // ── GAME: CONJUGATION SLOTS ───────────────────
 // Three reels spin — a person, a verb and (German) a tense — and you
-// type the form. A line under the reels says what shape the answer
-// takes ("auxiliary + Partizip II", "one word"…); typing the pronoun
-// too is accepted.
+// type the form. A line under the reels says how many words the answer
+// takes (never which auxiliary); typing the pronoun too is accepted.
 //
 // Two sources of spins:
 //   • DECK CARDS from the conjugation decks ("sein — ich ___"): as
 //     before, a right form gives recall credit on that card.
-//   • UNLIMITED (German): any verb of the A1–B1 lists × any person ×
-//     Präsens, Präteritum, Perfekt, Plusquamperfekt, Futur I,
-//     Konjunktiv II, Imperativ — conjugated by grammar-de.js, which only
+//   • UNLIMITED (German): any verb you've met × any person × the
+//     tenses of your level — conjugated by grammar-de.js, which only
 //     serves verbs/tenses it reproduced from the decks' own data.
 //     These spins never touch word stages, your decks or the plan, and
 //     nothing about them is shown as progress — your decks are the one
 //     track. Behind the scenes a small record per verb × tense
 //     (S.games.vf: level 0–5, last day) steers what comes up: weak and
 //     unpractised forms more, solid ones less. A form you miss also
-//     comes back later in the same round. "+ all B1 verbs" mixes in
-//     verbs you haven't met yet (meaning shown).
+//     comes back later in the same round.
 //
 // Clock: never inside a Today session (bonus) or a Daily / Mix round —
 // this is a thinking game. In the Games hub a clock per spin starts at
@@ -49,17 +46,12 @@ function conjWords(pool) { return dedupeWords(pool.filter(w => conjItem(w))); }
 
 // ── The unlimited verb track ──────────────────
 const CONJ_TENSE_IDS = () => (typeof TENSES !== "undefined" ? TENSES.map(t => t.id) : []);
-function conjTenses() {
-  const all = CONJ_TENSE_IDS();
-  const on = Array.isArray(S.games.conjTenses) ? S.games.conjTenses.filter(t => all.includes(t)) : all;
-  return on.length ? on : all;
-}
 function conjUnlimitedOn() { return typeof GR_DE !== "undefined" && GR_DE && verbBank().verbs.length >= 4; }
-// Inside a Today session (bonus rounds) the machine is a learning tool:
-// only verbs you've met, only the tenses of the level you're on —
+// The machine only asks what you've learned — in Today, in the Daily
+// challenge and in the Games hub alike: verbs you've met, and only the
+// tenses of the level you're on —
 //   A1: Präsens, Perfekt, Imperativ · A2: + Präteritum, Futur I,
 //   Konjunktiv II · B1 and beyond: all of them.
-// The Games hub keeps the full machine (all tenses, "+ all B1 verbs").
 const CONJ_LEVEL_TENSES = { a1: ["pr", "pf", "im"], a2: ["pr", "pf", "im", "pt", "fu", "k2"] };
 function conjLevelTenses() {
   const fg = typeof pathFrontier === "function" ? pathFrontier() : null;
@@ -67,12 +59,7 @@ function conjLevelTenses() {
   const lv = fg && CONJ_LEVEL_TENSES[fg.id];
   return lv ? lv.filter(t => all.includes(t)) : all;
 }
-function conjRoundTenses(size) {
-  if (size !== "bonus") return conjTenses();
-  const lv = conjLevelTenses();
-  const on = conjTenses().filter(t => lv.includes(t));
-  return on.length ? on : lv;
-}
+function conjRoundTenses() { return conjLevelTenses(); }
 // Met verbs that have at least one of these tenses.
 function conjMineFor(pool, tenses) { return conjVerbSplit(pool).mine.filter(v => v.tenses.some(t => tenses.includes(t))); }
 const CONJ_CARD_TENSE = it => /präteritum/i.test(it.verb) ? "pt" : "pr";
@@ -151,32 +138,26 @@ registerGame({
   ],
   twists: ["golden", "turbo", "sudden"],
   howTo: () => [(speakOn() ? "Say" : "Type") + (IS_FRENCH_APP ? " the verb form for the person shown" : " the verb form for the person and tense shown") + (speakOn() ? ", then tap Show." : "."),
-    ...(IS_FRENCH_APP ? [] : ["Type only the verb part — the pronoun is optional. The line under the reels shows the shape: <em>habe gespielt</em> (Perfekt), <em>werde spielen</em> (Futur), <em>spiel</em> (Imperativ)…"]),
-    "In a Today session: verbs you've met, tenses of your level, no clock. In the Games hub: every tense, extra verbs, and a clock per spin from 🥈 Silver."],
-  requirement(pool, size) {
-    // Today: only with 4 verbs you've met (or 4 deck cards) — never a
-    // machine full of verbs you've never seen.
-    if (size === "bonus") {
-      const on = conjUnlimitedOn(), ts = on ? conjRoundTenses("bonus") : [];
-      const n = on ? conjMineFor(pool, ts).length : 0;
-      const cards = conjWords(pool).filter(w => !on || ts.includes(CONJ_CARD_TENSE(conjItem(w)))).length;
-      return n >= 4 || cards >= 4 ? { ok: true } : { ok: false, reason: `Needs 4 verbs you've met — you have ${Math.max(n, cards)}` };
-    }
-    if (conjUnlimitedOn()) return { ok: true };
-    const n = conjWords(pool).length;
-    return n >= 4 ? { ok: true } : { ok: false, reason: `Needs 4 verb forms from the conjugation decks — you have ${n}` };
+    ...(IS_FRENCH_APP ? [] : ["Type only the verb part — the pronoun is optional. The line under the reels says how many words."]),
+    "Only verbs you've met, in the tenses of your level. In the Games hub, a clock per spin from 🥈 Silver."],
+  requirement(pool) {
+    // Only with 4 verbs you've met (or 4 deck cards) — never a machine
+    // full of verbs you've never seen.
+    const on = conjUnlimitedOn(), ts = on ? conjRoundTenses() : [];
+    const n = on ? conjMineFor(pool, ts).length : 0;
+    const cards = conjWords(pool).filter(w => !on || ts.includes(CONJ_CARD_TENSE(conjItem(w)))).length;
+    return n >= 4 || cards >= 4 ? { ok: true } : { ok: false, reason: `Needs 4 verbs you've met — you have ${Math.max(n, cards)}` };
   },
   stars: [90, 150, 200],
   start(ctx) {
     const rp = ctx.rp;
     const unlimited = conjUnlimitedOn();
-    const learning = ctx.size === "bonus"; // Today: met verbs, your level's tenses
-    const tenses = () => conjRoundTenses(ctx.size);
-    const eligible = conjWords(ctx.pool).filter(w => !learning || !unlimited || tenses().includes(CONJ_CARD_TENSE(conjItem(w))));
-    const split = !unlimited ? { mine: [], extra: [] } : learning ? { mine: conjMineFor(ctx.pool, tenses()), extra: [] } : conjVerbSplit(ctx.pool);
-    // Today with fewer than 4 met verbs (it opened on deck cards): cards only.
-    const cardsOnly = !unlimited || (learning && split.mine.length < 4);
-    const total = cardsOnly && learning ? Math.min(ctx.rounds(10, 5, 6), eligible.length) : ctx.rounds(10, 5, 6);
+    const tenses = () => conjRoundTenses(); // met verbs, your level's tenses
+    const eligible = conjWords(ctx.pool).filter(w => !unlimited || tenses().includes(CONJ_CARD_TENSE(conjItem(w))));
+    const mine = unlimited ? conjMineFor(ctx.pool, tenses()) : [];
+    // Fewer than 4 met verbs (it opened on deck cards): cards only.
+    const cardsOnly = !unlimited || mine.length < 4;
+    const total = cardsOnly ? Math.min(ctx.rounds(10, 5, 6), eligible.length) : ctx.rounds(10, 5, 6);
     // Deck cards keep their share (and their credit): up to 40% of spins.
     const nCards = cardsOnly ? total : Math.min(eligible.length, Math.round(total * 0.4));
     const cards = sampleWords(eligible, nCards);
@@ -185,8 +166,7 @@ registerGame({
     // Speak, don't spell: say the form, Show, then ✗ / ✓ (say-it.js).
     const sayMode = speakOn();
     let revealed = false, shownAtMs = 0, revealAtMs = 0;
-    // Deck cards and verbs you know count toward the daily goal; extra
-    // B1 verbs are practice only.
+    // Deck cards and verbs count toward the daily goal.
     const done = () => ctx.finish({ score, correct, wrong, maxCombo, typedCorrect: correct, goalCorrect: goal,
       cleared: ctx.size === "bonus" ? correct >= 4 : true });
     const retry = []; // missed verb × tense: back later this round, another person
@@ -195,13 +175,8 @@ registerGame({
     for (let i = 0; i < total; i++) plan.push(i < cards.length ? "card" : "gen");
     const order = unlimited ? shuffle(plan) : plan;
 
-    // Tense chips and "+ all B1 verbs" belong to the Games hub; in Today
-    // a quiet line names the tenses in play instead.
-    const chips = () => unlimited && learning ? `<div class="cj-level">${escapeHtml(tenses().map(t => TENSE_BY_ID[t].name).join(" · "))}</div>`
-      : unlimited ? `<div class="cj-chips" id="cj-chips">
-        ${TENSES.map(t => `<button class="cj-chip ${conjTenses().includes(t.id) ? "on" : ""}" data-t="${t.id}">${t.name}</button>`).join("")}
-        <button class="cj-chip all ${S.games.conjAll !== false ? "on" : ""}" data-all="1" title="Mix in verbs you haven't met yet — practice only, never added to your decks">+ all B1 verbs</button>
-      </div>` : "";
+    // A quiet line names the tenses in play.
+    const chips = () => unlimited ? `<div class="cj-level">${escapeHtml(tenses().map(t => TENSE_BY_ID[t].name).join(" · "))}</div>` : "";
     ctx.stage.innerHTML = `
       ${chips()}
       <div class="cj-machine ${unlimited ? "three" : ""}" id="cj-machine">
@@ -229,8 +204,7 @@ registerGame({
     const tenseEl = document.querySelector("#cj-tense span");
     const fb = document.getElementById("cj-fb");
     const reelPool = eligible.map(conjItem);
-    const genPool = () => (S.games.conjAll !== false ? split.mine.concat(split.extra) : split.mine);
-    const reelVerbs = [...reelPool.map(x => x.verb), ...genPool().slice(0, 60).map(v => v.inf)];
+    const reelVerbs = [...reelPool.map(x => x.verb), ...mine.slice(0, 60).map(v => v.inf)];
     const reelProns = ["ich", "du", "er/sie/es", "wir", "ihr", "sie/Sie"];
 
     // One spin → cur = { kind: "card", w, it } | { kind: "gen", v, tense, person, cell, extra }
@@ -246,13 +220,10 @@ registerGame({
         const again = conjSpinFor(m.v, [m.tense], m.person);
         if (again) { lastInf = m.v.inf; return { kind: "gen", ...again, extra: m.extra }; }
       }
-      // Mine first (~65%), extra B1 verbs mixed in when switched on.
-      const useExtra = !learning && S.games.conjAll !== false && split.extra.length && (split.mine.length < 4 || Math.random() < 0.35);
-      const list = useExtra ? split.extra : split.mine.length >= 4 || learning ? split.mine : split.mine.concat(split.extra);
-      const pick = conjPickSpin(list, tenses(), lastInf) || conjPickSpin(learning ? split.mine : verbBank().verbs, tenses(), "");
+      const pick = conjPickSpin(mine, tenses(), lastInf) || conjPickSpin(mine, tenses(), "");
       if (!pick) return null;
       lastInf = pick.v.inf;
-      return { kind: "gen", ...pick, extra: useExtra || !split.mine.includes(pick.v) };
+      return { kind: "gen", ...pick, extra: false };
     };
 
     const spin = () => {
@@ -289,7 +260,7 @@ registerGame({
         pronTxt = tense === "im" ? (person === "Sie" ? "Sie (formal)" : person + " — command") : PERSON_LABEL[person];
         tenseTxt = TENSE_BY_ID[tense].name;
         tail = cell.tail ? `___ ${escapeHtml(cell.tail)}` : "";
-        if (!useMeaning) meaning = `${cur.extra ? `<span class="cj-new">🆕 new verb</span> ` : ""}${escapeHtml(v.en || "")}`;
+        if (!useMeaning) meaning = escapeHtml(v.en || "");
       }
       document.getElementById("cj-tail").innerHTML = tail;
       document.getElementById("cj-meaning").innerHTML = meaning;
@@ -330,32 +301,19 @@ registerGame({
       if (bare && bare !== String(val).trim()) { const r2 = gradeTyped(bare, answers); if (r2) return r2; }
       return res;
     };
-    // What shape the answer takes, with an example from another verb
-    // for the same person and tense (so the example never gives it away).
+    // How many words to type — nothing more: no auxiliary, no example
+    // (an example like "habe gespielt" gives the haben / sein away).
     const formatOf = c => {
+      const verbWord = sayMode ? "🗣️ Say" : "✍️ Type";
       if (c.kind === "card") {
         const nw = c.it.ans.trim().split(/\s+/).length;
-        return { html: `${sayMode ? "🗣️ Say" : "✍️ Type"} <strong>${nw === 1 ? "one word" : nw + " words"}</strong> — the verb form only, no pronoun needed`, placeholder: "the verb form…" };
+        return { html: `${verbWord} <strong>${nw === 1 ? "one word" : nw + " words"}</strong>`, placeholder: "the verb form…" };
       }
       if (IS_FRENCH_APP) return { html: "", placeholder: "the verb form…" };
-      const F = c.v.F, t = c.tense;
-      const own = t === "k2" && F.k2special;
-      const shape = { pr: "one word", pt: "one word", pf: "haben/sein + Partizip II", pq: "hatte/war + Partizip II",
-        fu: "werden + infinitive", k2: own ? "one word — its own form (no würde)" : "würde + infinitive", im: "the command form — no du / ihr" }[t];
-      let ex = null;
-      if (!own) {
-        const exV = ["spielen", "machen", "kaufen", "lernen"].map(i => verbBank().byInf.get(i)).find(v => v && v.inf !== c.v.inf);
-        const cell = exV ? verbCell(exV.F, t, c.person) : null;
-        if (cell) ex = cell.ans;
-      }
-      const notes = [];
-      if (/…/.test(c.cell.tail || "")) notes.push("the prefix is shown, no need to type it");
-      if (F.refl && ["pf", "pq", "fu", "k2"].includes(t) && !own) notes.push("mich / dich / sich… after the first word is optional");
+      const t = c.tense, own = t === "k2" && c.v.F.k2special;
       const two = ["pf", "pq", "fu"].includes(t) || (t === "k2" && !own);
-      return {
-        html: `${sayMode ? "🗣️ Say" : "✍️ Type"}: <strong>${escapeHtml(shape)}</strong>${ex ? ` — e.g. <em>${escapeHtml(ex)}</em>` : ""}${notes.length ? `<div class="cj-format-note">${escapeHtml(notes.join(" · "))}</div>` : ""}`,
-        placeholder: two ? "two words…" : "one word…", // the example is on the line above
-      };
+      const note = /…/.test(c.cell.tail || "") ? `<div class="cj-format-note">the prefix is shown — no need to type it</div>` : "";
+      return { html: `${verbWord} <strong>${two ? "two words" : "one word"}</strong>${note}`, placeholder: two ? "two words…" : "one word…" };
     };
     const shownOf = c => c.kind === "card" ? `${c.it.pron} <strong>${escapeHtml(c.it.ans)}</strong>${c.it.tail ? " " + escapeHtml(c.it.tail) : ""}`
       : `${c.tense === "im" ? "" : escapeHtml(PERSON_LABEL[c.person].split("/")[0]) + " "}<strong>${escapeHtml(c.cell.ans)}</strong>${c.cell.tail ? " " + escapeHtml(c.cell.tail.replace(/^… /, "")) : ""}`;
@@ -444,24 +402,6 @@ registerGame({
       if (!sayMode) try { input.focus({ preventScroll: true }); } catch (e) {}
     };
     gListen(input, "keydown", e => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); submit(false); } });
-    // Tense chips and the "+ all B1 verbs" switch apply from the next spin.
-    const chipBox = document.getElementById("cj-chips");
-    if (chipBox) gListen(chipBox, "click", e => {
-      const b = e.target.closest(".cj-chip"); if (!b) return;
-      e.preventDefault();
-      if (b.dataset.all) { S.games.conjAll = S.games.conjAll === false; b.classList.toggle("on", S.games.conjAll !== false); }
-      else {
-        const t = b.dataset.t, on = conjTenses();
-        const nextOn = on.includes(t) ? on.filter(x => x !== t) : [...on, t];
-        if (!nextOn.length) { shakeEl(b); return; }
-        S.games.conjTenses = nextOn;
-        chipBox.querySelectorAll(".cj-chip[data-t]").forEach(c => c.classList.toggle("on", nextOn.includes(c.dataset.t)));
-      }
-      saveState();
-      try { input.focus({ preventScroll: true }); } catch (err) {}
-    });
-    gListen(chipBox || document.body, "pointerdown", e => { if (e.target.closest && e.target.closest(".cj-chip")) e.preventDefault(); });
-
     if (perSpin) gInterval(() => {
       if (ctx.finished || ctx.paused) return;
       if (ctx.busy || ctx.waiting || (sayMode && revealed)) return;

@@ -96,9 +96,18 @@ function buildHintInfo(word, tight = false) {
     if (!main.size) continue; // unsafe: the main word can't be hidden here
     let hidden = matched;
     if (tight) {
-      // Grow outward from the main word through directly neighbouring
-      // matches only ("s'il vous plaît", "auf Wiedersehen").
-      hidden = new Set(main);
+      // One gap: only the sentence word closest to the main token
+      // ("Ich kann nicht kommen, ich bin krank" hides krank, not the
+      // look-alike kann too), then grow outward through directly
+      // neighbouring matches only ("s'il vous plaît", "auf Wiedersehen").
+      const closeness = i => {
+        const n = normalize(parts[i]);
+        if (n === mainToken) return 99;
+        return commonPrefixLen(n, mainToken) - levenshtein(n, mainToken);
+      };
+      const best = [...main].reduce((a, b) => (closeness(b) > closeness(a) ? b : a));
+      matched.forEach(i => { if (main.has(i) && i !== best) matched.delete(i); });
+      hidden = new Set([best]);
       let grew = true;
       while (grew) {
         grew = false;
@@ -123,4 +132,25 @@ function buildHintInfo(word, tight = false) {
     if (!best || groups < best.groups) best = { info, groups };
   }
   return best ? best.info : null;
+}
+
+// The example's translation with the word's own meaning hidden, so a
+// peek at the translation helps with the sentence without giving the
+// answer away. Null when the meaning can't be found in it (then the
+// translation isn't offered — better none than a leak).
+const HINT_EN_STOP = /^(the|a|an|to|be|of|one|ones|oneself|someone|something|sb|sth|sich|it|up|out|off|on|in|at|for|with|and|or|is|are|get)$/;
+function redactTranslation(sentence, prompt) {
+  if (!sentence || !prompt) return null;
+  const toks = String(prompt).replace(/\(.*?\)/g, " ").split(/[^\p{L}']+/u)
+    .map(t => t.toLowerCase()).filter(t => t.length >= 2 && !HINT_EN_STOP.test(t));
+  if (!toks.length) return null;
+  const parts = String(sentence).split(/(\p{L}+)/u);
+  let hit = false;
+  const html = parts.map((part, i) => {
+    if (i % 2 === 0) return escapeHtml(part);
+    const n = part.toLowerCase();
+    if (!HINT_EN_STOP.test(n) && toks.some(t => hintTokenMatches(n, t))) { hit = true; return `<span class="hint-redacted"></span>`; }
+    return escapeHtml(part);
+  }).join("");
+  return hit ? html : null;
 }

@@ -6,25 +6,31 @@ let activeMode    = "drill";
 let drillSubMode  = "classic"; // 'classic' | 'focus' | 'refresh'
 let timerSubMode  = "classic"; // 'classic' | 'focus'
 // Sound switches live on this device (a phone and a laptop can differ).
-// Each one names what it controls; "Mute until tomorrow" (quietActive,
-// path.js) silences all three for the day without touching them.
+// One "Sound" switch covers both words read aloud and the answer /
+// game sounds (they are always on or off together, on by default);
+// vibration has its own. "Mute until tomorrow" (quietActive, path.js)
+// silences everything for the day without touching them.
 const SOUND = loadSoundPrefs();
 function loadSoundPrefs() {
   let p = null;
   try { p = JSON.parse(localStorage.getItem("gv_sound") || "null"); } catch (e) {}
-  if (!p || typeof p !== "object") {
-    // The old single "Sound off" switch silenced speech, game sounds and
-    // vibration: carry it over as those switches off.
-    const muted = localStorage.getItem("gv_mute") === "true";
-    p = { tts: !muted, sfx: !muted, vibe: !muted };
+  // v2: speech and sound effects became one switch, on for everyone
+  // once (older saves could have one on and the other off).
+  if (!p || typeof p !== "object" || p.v !== 2) {
+    p = { tts: true, sfx: true, vibe: !(p && p.vibe === false), v: 2 };
+    try { localStorage.setItem("gv_sound", JSON.stringify(p)); } catch (e) {}
   }
-  return { tts: p.tts !== false, sfx: p.sfx !== false, vibe: p.vibe !== false };
+  const on = p.tts !== false && p.sfx !== false;
+  return { tts: on, sfx: on, vibe: p.vibe !== false, v: 2 };
 }
+// k: "sound" (speech + sound effects together) or "vibe". The old keys
+// "tts" / "sfx" also switch both.
 function setSoundPref(k, v) {
-  SOUND[k] = !!v;
+  v = !!v;
+  if (k === "vibe") SOUND.vibe = v; else { SOUND.tts = v; SOUND.sfx = v; }
   try { localStorage.setItem("gv_sound", JSON.stringify(SOUND)); } catch (e) {}
-  if (k === "tts" && !v && window.speechSynthesis) try { speechSynthesis.cancel(); } catch (e) {}
-  if (typeof logEvent === "function") logEvent("setting", { k: "sound_" + k, v: !!v });
+  if (k !== "vibe" && !v && window.speechSynthesis) try { speechSynthesis.cancel(); } catch (e) {}
+  if (typeof logEvent === "function") logEvent("setting", { k: "sound_" + (k === "vibe" ? "vibe" : "sound"), v });
 }
 let activeWords = [];
 let currentWord = null;
