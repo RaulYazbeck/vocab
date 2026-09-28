@@ -1192,7 +1192,7 @@ function showChestModal(ch, res) {
     haptic("correct");
     setTimeout(() => { const ok = document.getElementById("chx-ok"); if (ok) ok.focus({ preventScroll: true }); }, 350);
   };
-  btn.onclick = () => {
+  const tap = () => {
     if (opened) return;
     taps++;
     const up = plan[taps - 1];
@@ -1209,6 +1209,22 @@ function showChestModal(ch, res) {
     const left = plan.length + 1 - taps;
     tapLine.textContent = left === 1 ? (up === 3 ? "LEGENDARY! One more tap…" : "One more tap — open it!") : "Keep tapping…";
   };
+  // Rapid taps must never zoom the page (iOS double-tap zoom): the chest
+  // reacts on touch-down, and within the chest sheet a touch that ends
+  // anywhere but a live button (Skip, Nice!, Next chest) has its default
+  // — zoom — cancelled. Mouse and keyboard still use click.
+  let touchTapAt = 0;
+  btn.addEventListener("pointerdown", e => {
+    if (e.pointerType === "mouse") return;
+    touchTapAt = Date.now();
+    tap();
+  });
+  btn.addEventListener("click", () => { if (Date.now() - touchTapAt > 700) tap(); });
+  m.addEventListener("touchend", e => {
+    const b = e.target.closest && e.target.closest("button");
+    if ((!b || b === btn || b.disabled) && e.cancelable) e.preventDefault();
+  }, { passive: false });
+  m.addEventListener("dblclick", e => e.preventDefault());
   m.querySelector(".chx-body").addEventListener("animationend", e => { if (e.animationName === "chxHit") btn.classList.remove("hit"); });
   m.querySelector("#chx-skip").onclick = open;
   setTimeout(() => { if (btn.isConnected) btn.focus({ preventScroll: true }); }, 300);

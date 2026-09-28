@@ -354,16 +354,15 @@ function poolWordsForDeck(deck, explicit) {
   return out;
 }
 function validDeckIds(ids) { return (ids || []).filter(id => !!getDeck(id)); }
-// Words skipped with Skip a level stay out of the default pool (they're
-// known, and would crowd out what you're learning) — unless too few
-// words would be left to play at all.
+// Skipped words (Skip a level) are part of the pool: you know them, and
+// games that need a level's words (Conjugation Slots, Le·La…) must work
+// after a skip. Being ⭐ Strong, they're rarely the ones picked first.
 function buildGamePool(deckIds) {
   const out = [];
   const ids = deckIds ? validDeckIds(deckIds) : null;
-  if (ids && ids.length) { ids.forEach(id => out.push(...poolWordsForDeck(getDeck(id), true))); return out; }
-  ALL_GROUPS.forEach(g => g.decks.forEach(d => out.push(...poolWordsForDeck(d, false))));
-  const own = out.filter(w => !isSkipped(S.words[wordKey(w)]));
-  return own.length >= 12 ? own : out;
+  if (ids && ids.length) ids.forEach(id => out.push(...poolWordsForDeck(getDeck(id), true)));
+  else ALL_GROUPS.forEach(g => g.decks.forEach(d => out.push(...poolWordsForDeck(d, false))));
+  return out;
 }
 
 // How much a word needs practice — higher = shows up more.
@@ -1631,7 +1630,7 @@ function renderGamesHub() {
       <div class="screen-label">🎮 Games</div>
       <button class="back-btn" onclick="backToMenu()">← Menu</button>
     </div>
-    <button class="g-pool-chip" onclick="openPoolPicker()">📚 ${escapeHtml(poolLabel(ids, pool))} <span class="g-pool-edit">change</span></button>`;
+    ${grandmaOn() ? "" : `<button class="g-pool-chip" onclick="openPoolPicker()">📚 ${escapeHtml(poolLabel(ids, pool))} <span class="g-pool-edit">change</span></button>`}`;
 
   if (!pool.length) {
     const names = ids ? ids.map(id => getDeck(id).name).join(", ") : "";
@@ -1668,7 +1667,9 @@ function renderGamesHub() {
         <div class="g-daily-track"><div class="g-daily-fill" style="width:${Math.round(dDone / dIds.length * 100)}%"></div></div>
       </button>`;
 
-  const cards = GAMES.filter(g => !gameHiddenNow(g)).map(g => {
+  // 👵 Grandma mode: just the games — no bosses, Bestiary, Arcade Mix or pool menu.
+  const gm = grandmaOn();
+  const cards = GAMES.filter(g => !gameHiddenNow(g) && !(gm && g.id === "boss")).map(g => {
     const req = gameRequirement(g, pool, "full");
     const r = gameRankOf(g.id);
     const st = gameRankStars(g.id, r);
@@ -1693,8 +1694,8 @@ function renderGamesHub() {
   el.innerHTML = `<div class="screen game-screen">${top}
     ${pick ? `<button class="g-today-btn" onclick="playForToday()"><span class="g-today-main">▶ Play for today</span><span class="g-today-sub">${pick.icon} ${escapeHtml(gameName(pick))} with the words you need most</span></button>` : ""}
     ${dailyHtml}
-    ${typeof bossRowHtml === "function" ? bossRowHtml() : ""}
-    <button class="g-mix-btn" onclick="startArcadeMix()" ${mixOk ? "" : "disabled"}>🕹️ Arcade Mix <span>4 quick rounds, back to back</span></button>
+    ${!gm && typeof bossRowHtml === "function" ? bossRowHtml() : ""}
+    ${gm ? "" : `<button class="g-mix-btn" onclick="startArcadeMix()" ${mixOk ? "" : "disabled"}>🕹️ Arcade Mix <span>4 quick rounds, back to back</span></button>`}
     <div class="g-grid">${cards}</div>
   </div>`;
 }

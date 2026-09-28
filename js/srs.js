@@ -30,8 +30,9 @@ function wilsonLower(correct, total) {
 //   mt       💎 maintenance check-ins done (see LOCKED_CHECKS)
 //   rc       1 = a repaired 💎 word's extra check-in is pending
 //   mastered sticky: reached Known once (achievements never go down)
-//   sk       ⏭️ lifted by Skip a level, not yet answered right (1 = was
-//            met before, 2 = never met) — left out of achievements
+//   sk       ⏭️ lifted to ⭐ by Skip a level, not yet answered right (1 =
+//            met before, 2 = never met, 3 = already Known) — no reviews,
+//            left out of sessions and of achievements it didn't earn
 function stageOf(ws) { return (ws && ws.st) || 0; }
 function tierOfStage(st) { return TIERS.find(t => st >= t.min && st <= t.max) || TIERS[0]; }
 function tierOf(ws) { return tierOfStage(stageOf(ws)); }
