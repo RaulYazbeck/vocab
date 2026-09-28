@@ -33,12 +33,7 @@ registerGame({
     { decoys: 0 }, { decoys: 1 }, { decoys: 2 }, { decoys: 2, typed: true }, { decoys: 3, typed: true },
   ],
   twists: ["golden", "sudden"],
-  howTo: [
-    "Tap the letters in order to spell the word — or drag a letter onto any box. Drag between boxes to swap.",
-    "Tap a filled box or ⌫ to take a letter back. On a keyboard, just type.",
-    "💡 reveals the next letter (costs points). Three wrong tries reveal the word.",
-    "From 🥈 Silver some letters don't belong; from 💠 Platinum you spell words you know from memory.",
-  ],
+  howTo: ["Tap the letters in order to spell the word."],
   requirement(pool) {
     const n = scrambleWords(pool).length;
     return n >= 4 ? { ok: true } : { ok: false, reason: `Needs 4 single words (3–12 letters) — you have ${n}` };

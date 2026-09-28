@@ -75,12 +75,7 @@ registerGame({
     { range: [6, 12], decoy: 2, noReveal: true },
   ],
   twists: ["golden", "sudden"],
-  howTo: [
-    "Put the word tiles in order to build the sentence that matches the translation.",
-    "Tap a tile to add it at the end — or <strong>drag it into any gap</strong>. Drag placed tiles to reorder, or back down to remove them.",
-    "Get it right first time for a bonus. Two misses reveal the answer. From 🥇 Gold there's a decoy tile that doesn't belong.",
-    "On a keyboard: Enter checks, Backspace takes back the last tile.",
-  ],
+  howTo: ["Tap the tiles in order to build the sentence."],
   requirement(pool) {
     const n = builderWords(pool).length;
     return n >= 3 ? { ok: true } : { ok: false, reason: `Needs 3 words with short example sentences — you have ${n}` };

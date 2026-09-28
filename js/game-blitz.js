@@ -18,14 +18,7 @@ registerGame({
     { limit: 45000, options: 6, pen: 4000, audio: true },
   ],
   twists: ["mirror", "golden", "turbo", "sudden"], credit: "recognition",
-  howTo: [
-    "Pick the right translation — as many as you can before time runs out.",
-    "Questions alternate direction for words you know; 🌱 new words stay easy.",
-    "Streaks multiply your points (×2 at 5, ×3 at 10, ×4 at 20). A miss costs seconds — half for new words.",
-    "Words you know get tricky options: look-alikes, a wrong article, your own past mix-ups. From 🥈 Silver, sometimes the answer isn't there — pick <strong>∅ None of these</strong>.",
-    "After a miss the clock stops while you read why.",
-    "Keys 1–6 work too.",
-  ],
+  howTo: ["Pick the right translation before time runs out. Streaks score more."],
   requirement(pool) {
     const n = distinctCount(pool);
     return n >= 4 ? { ok: true } : { ok: false, reason: `Needs 4 words — you have ${n}` };

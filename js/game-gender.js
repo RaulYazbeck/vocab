@@ -30,12 +30,7 @@ registerGame({
     { limit: 30000, pen: 2000, sudden: true },
   ],
   twists: ["golden", "turbo", "sudden"],
-  howTo: () => [
-    `A noun appears without its article — tap <strong>${GENDER_BUCKETS.map(b => b.a).join("</strong>, <strong>")}</strong>, or fling the card into a bucket.`,
-    "Every correct answer in a row builds your streak and multiplier. A miss breaks it (a 🌱 new word only halves it).",
-    `Colours stick in memory: ${GENDER_BUCKETS.map(b => `<span class="gd-inline ${b.cls}">${b.a}</span>`).join(" ")}`,
-    "Right on three different days → the noun joins your Gender collection.",
-  ],
+  howTo: () => [`Tap <strong>${GENDER_BUCKETS.map(b => b.a).join("</strong> or <strong>")}</strong> for each noun.`],
   requirement(pool) {
     const need = 6, n = genderNouns(pool).length;
     return n >= need ? { ok: true } : { ok: false, reason: `Needs ${need} nouns — you have ${n}` };

@@ -710,3 +710,14 @@ body.grandma .say-ex-t { font-size:15px; }
    touch-action on SVG shapes, so a quick double tap there zoomed). */
 button svg, button svg *, .chx-btn * { pointer-events:none; }
 .chx-overlay, .chx-overlay * { touch-action:manipulation; -webkit-user-select:none; user-select:none; }
+/* The day's chest under the quests */
+.gm-quest.chest { border-style:dashed; border-color:rgba(255,209,102,0.45); background:rgba(255,209,102,0.05); }
+.gm-quest.chest .gm-q-bar i { background:linear-gradient(90deg, #FFD166, #F5A623); }
+.gm-chest-open {
+  width:100%; min-height:58px; border-radius:var(--r); cursor:pointer; border:none; font-family:inherit;
+  font-size:18px; font-weight:900; color:#0B0E16; background:linear-gradient(135deg,#FFD166,#F5A623);
+  box-shadow:0 0 0 1px rgba(255,209,102,0.6), 0 8px 24px rgba(245,166,35,0.35); animation:startGlow 3s ease-in-out infinite;
+}
+.gm-chest-open:active { transform:scale(0.97); }
+.gm-chest-done { text-align:center; font-size:13.5px; font-weight:700; color:var(--success); padding:10px; border-radius:var(--r-sm); background:var(--success-dim); }
+@media (prefers-reduced-motion: reduce) { .gm-chest-open { animation:none; } }

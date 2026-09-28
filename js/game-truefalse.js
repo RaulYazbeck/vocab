@@ -15,13 +15,7 @@ registerGame({
     { limit: 36000, pen: 3000 }, { limit: 32000, pen: 3500 },
   ],
   twists: ["mirror", "golden", "turbo", "sudden"],
-  howTo: [
-    "A word and a translation: do they match?",
-    "Swipe right (or tap ✓, or →) for TRUE · swipe left (✗, ←) for FALSE.",
-    "Streaks multiply your points. A miss costs seconds — half for 🌱 new words.",
-    "For words you know the false pairs are sneaky: the right noun with the wrong article, a look-alike, or a word you've mixed up before.",
-    "After a miss the clock stops while you read why.",
-  ],
+  howTo: ["Do the word and the translation match? Tap ✓ or ✗ — or swipe."],
   requirement(pool) {
     const n = distinctCount(pool);
     return n >= 4 ? { ok: true } : { ok: false, reason: `Needs 4 words — you have ${n}` };

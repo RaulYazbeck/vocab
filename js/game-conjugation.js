@@ -124,15 +124,7 @@ registerGame({
     { clock: 0 }, { clock: 20000 }, { clock: 15000, meaning: true }, { clock: 12000, meaning: true }, { clock: 9000, meaning: true },
   ],
   twists: ["golden", "turbo", "sudden"],
-  howTo: () => [
-    (IS_FRENCH_APP ? "The reels spin a verb and a person — " : "The reels spin a <strong>verb</strong>, a <strong>person</strong> and a <strong>tense</strong> — ")
-      + (speakOn() ? "say the form out loud, tap Show, and grade yourself." : IS_FRENCH_APP ? "type the matching form." : "type the form (Perfekt: <em>ist gefahren</em>)."),
-    speakOn() ? (IS_FRENCH_APP ? "Forms that sound the same (parle, parles, parlent) are the same answer out loud — spelling doesn't count." : "Say the whole form — Perfekt with its helper: <em>ist gefahren</em>.")
-      : "💡 shows the first letter (then it counts as help, not recall).",
-    IS_FRENCH_APP ? "A wrong form costs points (half for 🌱 new verbs). From 🥇 Gold the verb reel may show its meaning instead."
-      : "Any verb of the A1–B1 lists, every tense — pick tenses with the chips. <strong>+ all B1 verbs</strong> mixes in verbs you haven't met yet. A form you miss comes back later in the round.",
-    "A miss shows the whole row and the rule. Enter checks.",
-  ],
+  howTo: () => [(speakOn() ? "Say" : "Type") + (IS_FRENCH_APP ? " the verb form for the person shown" : " the verb form for the person and tense shown") + (speakOn() ? ", then tap Show." : ".")],
   requirement(pool) {
     if (conjUnlimitedOn()) return { ok: true };
     const n = conjWords(pool).length;

@@ -50,13 +50,7 @@ registerGame({
     { peek: true }, { peek: true }, { peek: false }, { peek: false, typed: true }, { peek: false, typed: true, options: 5 },
   ],
   twists: ["golden", "sudden"],
-  howTo: () => [
-    "A sentence is missing a word. Pick the one that fits.",
-    IS_FRENCH_APP ? "The sentence may use a different form — pick the dictionary form."
-      : "Then a second step: which <strong>form</strong> does the sentence need? The article in the right case (der → <em>den</em> Mund), the verb form (gehen → <em>geht</em>), the adjective ending. Every answer shows why.",
-    "Need help? Show the translation (costs the bonus; gone from 🥇 Gold). From 💠 Platinum, " + (speakOn() ? "more options to choose from." : "type the missing words yourself."),
-    "A wrong answer costs points (half for 🌱 new words). Keys 1–5 work too.",
-  ],
+  howTo: () => ["Pick the word that fits the sentence."],
   requirement(pool) {
     const n = clozeWords(pool).length;
     return n >= 4 ? { ok: true } : { ok: false, reason: `Needs 4 words with example sentences — you have ${n}` };

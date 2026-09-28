@@ -33,12 +33,7 @@ registerGame({
     { fall: 5.2, ramp: 0.16, reverse: true },
   ],
   twists: ["mirror", "golden", "turbo", "sudden"], credit: "recognition",
-  howTo: [
-    "Words fall from the sky. Tap the one that matches the prompt at the bottom.",
-    "A wrong tap or a word hitting the ground costs a ❤️ — half a heart for 🌱 new words, which also fall slower.",
-    "Every 5 hits the rain gets faster — and your multiplier grows.",
-    "Keys 1–3 pick the lanes.",
-  ],
+  howTo: ["Tap the falling word that matches the prompt before it lands."],
   requirement(pool) {
     const n = rainWords(pool).length;
     return n >= 6 ? { ok: true } : { ok: false, reason: `Needs 6 short words — you have ${n}` };

@@ -23,12 +23,7 @@ if (!IS_FRENCH_APP) registerGame({
     { options: 4 }, { options: 5 }, { options: 6, bare: true }, { options: 6, typed: true }, { options: 6, typed: true, bare: true },
   ],
   twists: ["golden", "sudden"],
-  howTo: () => [
-    "A sentence from your decks is missing its article. Pick the form it needs: <strong>der, den, dem, des</strong>, <strong>ein, einen, einem</strong>, <strong>im, zum</strong>…",
-    "Every answer shows <strong>why</strong>: the noun's gender, the case, and what decides it (mit → Dativ, für → Akkusativ, in + wo? / wohin?…).",
-    "From 🥇 Gold the noun appears without its article — you need the gender too. From 💠 Platinum " + (speakOn() ? "there are more forms to choose from." : "you type the article."),
-    "Your weakest case comes up more often. Keys 1–6 work too.",
-  ],
+  howTo: () => ["Pick the article the sentence needs — each answer shows why."],
   requirement(pool) {
     const n = caseWords(pool).length;
     return n >= 4 ? { ok: true } : { ok: false, reason: `Needs 4 nouns whose example sentence has an article — you have ${n}` };

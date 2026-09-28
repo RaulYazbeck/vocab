@@ -32,13 +32,7 @@ registerGame({
     { replays: 1, typed: true },
   ],
   twists: ["golden", "sudden"], credit: "recognition",
-  howTo: () => [
-    "Listen to the word, then pick what it means.",
-    "Tap 🔊 to hear it again. Answering without a replay earns a bonus.",
-    speakOn() ? "From 💠 Platinum: more options to choose from." : "From 💠 Platinum, words you know become dictation: type what you hear.",
-    "Words you know get sound-alike options; from 🥇 Gold the answer may be missing — pick <strong>∅ None of these</strong>.",
-    "A wrong answer costs points (half for 🌱 new words). Keys 1–4 pick, Space replays.",
-  ],
+  howTo: () => ["Listen, then pick what it means. 🔊 plays it again."],
   requirement(pool) {
     if (!window.speechSynthesis) return { ok: false, reason: "Needs text-to-speech, which this browser doesn't offer" };
     const n = distinctCount(pool);

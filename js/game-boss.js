@@ -188,11 +188,7 @@ function bossSayGrade(v) { if (_bossSayGrade) _bossSayGrade(v); }
 registerGame({
   id: "boss", name: "Boss Battle", icon: "👾", get skill() { return speakOn() ? "Recall out loud · counts for stages" : "Typed recall · counts for stages"; },
   inRuns: false, liveCredit: true, ranks: BOSS_RANKS, twists: ["sudden", "golden"],
-  howTo: () => [
-    speakOn() ? "Your weakest words have teamed up. Say each answer out loud, tap Show, and a ✓ hits the boss." : "Your weakest words have teamed up. Type each answer to hit the boss.",
-    "A miss costs a ❤️ (half a heart for 🌱 new words) and the word comes back later. Lose them all and the boss escapes.",
-    "Answers count toward your word stages, just like Drill. Deck bosses and the weekly world boss live in the hub.",
-  ],
+  howTo: () => [speakOn() ? "Say each answer out loud and tap Show — every ✓ hits the boss, every miss costs a ❤️." : "Type each answer to hit the boss — every miss costs a ❤️."],
   requirement(pool) {
     const n = distinctCount(pool);
     return n >= 4 ? { ok: true } : { ok: false, reason: `Needs 4 words — you have ${n}` };

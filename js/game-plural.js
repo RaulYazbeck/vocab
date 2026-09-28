@@ -61,12 +61,7 @@ if (!IS_FRENCH_APP) registerGame({
     { options: 4 }, { options: 4 }, { options: 5 }, { options: 6, typed: true }, { options: 6, typed: true },
   ],
   twists: ["golden", "sudden"],
-  howTo: () => [
-    "You see a noun in the singular. Pick its plural.",
-    "The wrong answers follow real German patterns (-e, -en, -er, -s, umlauts…) — trust your ear!",
-    (speakOn() ? "From 💠 Platinum there are more plurals to choose from." : "From 💠 Platinum you type the plural of nouns you know.") + " A miss costs points (half for 🌱 new words).",
-    "Right on three different days → the plural joins your collection. Keys 1–6 work too.",
-  ],
+  howTo: () => ["Pick the plural of each noun."],
   requirement(pool) {
     const n = pluralWords(pool).length;
     return n >= 4 ? { ok: true } : { ok: false, reason: `Needs 4 nouns with plurals — you have ${n}` };
