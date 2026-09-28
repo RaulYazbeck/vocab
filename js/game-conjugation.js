@@ -36,12 +36,29 @@ function conjItem(w) {
     if (m && ans && ans.length <= 30) {
       const verb = m[1].trim(), pron = m[2].trim(), tail = (m[3] || "").trim();
       const meaning = String(w.hint || "").replace(/^[^—–]{1,14}\s+[—–]\s+(?=to\s)/i, "").split(/[,—–]/)[0].trim();
-      res = { verb, pron, tail, ans, meaning: meaning && meaning.length <= 24 && !/sg\.|pl\./.test(meaning) ? meaning : "" };
+      res = { verb, pron: IS_FRENCH_APP ? frElide(pron, verb, ans) : pron, tail, ans, meaning: meaning && meaning.length <= 24 && !/sg\.|pl\./.test(meaning) ? meaning : "" };
+      if (IS_FRENCH_APP) res.tense = frCardTense(verb);
     }
   }
   _conjCache.set(k, res);
   return res;
 }
+// French: "je" → "j'" before a vowel or a mute h (j'aime, j'habite),
+// never before an aspirated h (je hais).
+const FR_H_ASPIRE = /^(ha[iï]r|hach|hâ?t|han[dt]|harc|haus|heurt|his|hoch|hont|hu[eé]r|hurl)/i;
+function frElide(pron, verb, ans) {
+  if (pron.toLowerCase() !== "je") return pron;
+  const inf = verb.replace(/\s*\(.*?\)\s*/g, "").trim();
+  return /^[aeiouyàâäéèêëîïôöùûüœæh]/i.test(ans) && !FR_H_ASPIRE.test(inf) && !FR_H_ASPIRE.test(ans) ? "j'" : pron;
+}
+// The tense a French card asks, from its label: "être (imparfait) — j'".
+const FR_CARD_TENSES = [[/imparfait/i, "Imparfait"], [/pass[ée] compos[ée]/i, "Passé composé"], [/futur/i, "Futur"], [/conditionnel/i, "Conditionnel"], [/subjonctif/i, "Subjonctif"]];
+function frCardTense(verb) {
+  const hit = FR_CARD_TENSES.find(([re]) => re.test(verb));
+  return hit ? hit[1] : "Présent";
+}
+// "je aime" → "j'aime": no space after an elided pronoun.
+const conjJoin = (pron, form) => /(['’]|&#39;)$/.test(pron) ? pron + form : pron + " " + form;
 function conjWords(pool) { return dedupeWords(pool.filter(w => conjItem(w))); }
 
 // ── The unlimited verb track ──────────────────
@@ -137,7 +154,7 @@ registerGame({
     { clock: 0 }, { clock: 45000 }, { clock: 35000, meaning: true }, { clock: 30000, meaning: true }, { clock: 25000, meaning: true },
   ],
   twists: ["golden", "turbo", "sudden"],
-  howTo: () => [(speakOn() ? "Say" : "Type") + (IS_FRENCH_APP ? " the verb form for the person shown" : " the verb form for the person and tense shown") + (speakOn() ? ", then tap Show." : "."),
+  howTo: () => [(speakOn() ? "Say" : "Type") + " the verb form for the person and tense shown" + (speakOn() ? ", then tap Show." : "."),
     ...(IS_FRENCH_APP ? [] : ["Type only the verb part — the pronoun is optional. The line under the reels says how many words."]),
     "Only verbs you've met, in the tenses of your level. In the Games hub, a clock per spin from 🥈 Silver."],
   requirement(pool) {
@@ -175,14 +192,18 @@ registerGame({
     for (let i = 0; i < total; i++) plan.push(i < cards.length ? "card" : "gen");
     const order = unlimited ? shuffle(plan) : plan;
 
+    // French cards carry their tense ("Présent", "Imparfait"): a tense reel too.
+    const frTenses = IS_FRENCH_APP ? [...new Set(eligible.map(w => conjItem(w).tense))] : [];
+    const tenseReel = unlimited || frTenses.length > 0;
     // A quiet line names the tenses in play.
-    const chips = () => unlimited ? `<div class="cj-level">${escapeHtml(tenses().map(t => TENSE_BY_ID[t].name).join(" · "))}</div>` : "";
+    const chips = () => unlimited ? `<div class="cj-level">${escapeHtml(tenses().map(t => TENSE_BY_ID[t].name).join(" · "))}</div>`
+      : frTenses.length ? `<div class="cj-level">${escapeHtml(frTenses.join(" · "))}</div>` : "";
     ctx.stage.innerHTML = `
       ${chips()}
-      <div class="cj-machine ${unlimited ? "three" : ""}" id="cj-machine">
+      <div class="cj-machine ${tenseReel ? "three" : ""}" id="cj-machine">
         <div class="cj-reel pron" id="cj-pron"><span></span></div>
         <div class="cj-reel" id="cj-verb"><span></span></div>
-        ${unlimited ? `<div class="cj-reel tense" id="cj-tense"><span></span></div>` : ""}
+        ${tenseReel ? `<div class="cj-reel tense" id="cj-tense"><span></span></div>` : ""}
       </div>
       <div class="cj-meaning" id="cj-meaning"></div>
       <div class="cj-tail" id="cj-tail"></div>
@@ -204,8 +225,10 @@ registerGame({
     const tenseEl = document.querySelector("#cj-tense span");
     const fb = document.getElementById("cj-fb");
     const reelPool = eligible.map(conjItem);
-    const reelVerbs = [...reelPool.map(x => x.verb), ...mine.slice(0, 60).map(v => v.inf)];
-    const reelProns = ["ich", "du", "er/sie/es", "wir", "ihr", "sie/Sie"];
+    const cleanVerb = v => IS_FRENCH_APP ? v.replace(/\s*\(.*?\)\s*/g, " ").trim() : v;
+    const reelVerbs = [...reelPool.map(x => cleanVerb(x.verb)), ...mine.slice(0, 60).map(v => v.inf)];
+    const reelProns = IS_FRENCH_APP ? ["je", "tu", "il", "elle", "nous", "vous", "ils"] : ["ich", "du", "er/sie/es", "wir", "ihr", "sie/Sie"];
+    const reelTenses = unlimited ? TENSES.map(t => t.name) : frTenses.length > 1 ? frTenses : ["Présent", "Imparfait", "Passé composé", "Futur"];
 
     // One spin → cur = { kind: "card", w, it } | { kind: "gen", v, tense, person, cell, extra }
     const nextSpin = () => {
@@ -247,9 +270,9 @@ registerGame({
       if (cur.kind === "card") {
         const it = cur.it, f = ctx.fmt(cur.w);
         const useMeaning = !!rp.meaning && ctx.size === "full" && f.st >= 3 && !!it.meaning;
-        verbTxt = useMeaning ? `“${it.meaning}”` : unlimited ? it.verb.replace(/\s*\((Präteritum|Präsens)\)/i, "") : it.verb;
+        verbTxt = useMeaning ? `“${it.meaning}”` : unlimited ? it.verb.replace(/\s*\((Präteritum|Präsens)\)/i, "") : cleanVerb(it.verb);
         pronTxt = it.pron;
-        tenseTxt = /präteritum/i.test(it.verb) ? "Präteritum" : "Präsens";
+        tenseTxt = IS_FRENCH_APP ? it.tense : /präteritum/i.test(it.verb) ? "Präteritum" : "Präsens";
         tail = it.tail ? `… ___ ${escapeHtml(it.tail)}` : "";
         tail += ctx.tag(cur.w);
       } else {
@@ -275,7 +298,7 @@ registerGame({
         if (ctx.finished) return;
         verbEl.textContent = reelVerbs[Math.floor(Math.random() * reelVerbs.length)] || "";
         pronEl.textContent = reelProns[Math.floor(Math.random() * reelProns.length)];
-        if (tenseEl) tenseEl.textContent = TENSES[Math.floor(Math.random() * TENSES.length)].name;
+        if (tenseEl) tenseEl.textContent = reelTenses[Math.floor(Math.random() * reelTenses.length)];
         if (++n < (REDUCED_MOTION ? 1 : 7)) gTimeout(tick, 60);
         else {
           verbEl.textContent = verbTxt; pronEl.textContent = pronTxt;
@@ -318,9 +341,9 @@ registerGame({
         : two && c.v.F.refl ? `<div class="cj-format-note">+ mich / dich / sich… if you like</div>` : "";
       return { html: `${verbWord} <strong>${two ? "two words" : "one word"}</strong>${note}`, placeholder: two ? "two words…" : "one word…" };
     };
-    const shownOf = c => c.kind === "card" ? `${c.it.pron} <strong>${escapeHtml(c.it.ans)}</strong>${c.it.tail ? " " + escapeHtml(c.it.tail) : ""}`
+    const shownOf = c => c.kind === "card" ? `${conjJoin(escapeHtml(c.it.pron), `<strong>${escapeHtml(c.it.ans)}</strong>`)}${c.it.tail ? " " + escapeHtml(c.it.tail) : ""}`
       : `${c.tense === "im" ? "" : escapeHtml(PERSON_LABEL[c.person].split("/")[0]) + " "}<strong>${escapeHtml(c.cell.ans)}</strong>${c.cell.tail ? " " + escapeHtml(c.cell.tail.replace(/^… /, "")) : ""}`;
-    const sayOf = c => c.kind === "card" ? `${c.it.pron.split("/")[0]} ${c.it.ans}` : `${c.tense === "im" ? "" : PERSON_LABEL[c.person].split("/")[0] + " "}${c.cell.ans}${c.cell.tail ? " " + c.cell.tail.replace(/^… /, "").replace(/!$/, "") : ""}`;
+    const sayOf = c => c.kind === "card" ? conjJoin(c.it.pron.split("/")[0], c.it.ans) : `${c.tense === "im" ? "" : PERSON_LABEL[c.person].split("/")[0] + " "}${c.cell.ans}${c.cell.tail ? " " + c.cell.tail.replace(/^… /, "").replace(/!$/, "") : ""}`;
     const reveal = () => {
       if (!sayMode || revealed || !cur || ctx.busy || ctx.finished || ctx.paused || ctx.waiting) return;
       revealed = true; revealAtMs = Date.now();

@@ -347,6 +347,8 @@ function renderPathTyped(it) {
 // ── SAY IT (Speak, don't spell) ───────────────
 // The typed items without typing: say it, Show, hear it, grade
 // yourself (say-it.js). No text box, so the keyboard never opens.
+// Show stays off for the first PATH_SAY_COOLDOWN_MS of each card.
+const PATH_SAY_COOLDOWN_MS = 800;
 function renderPathSay(it) {
   const s = pathSession, w = it.w, ws = getWS(w.deckId, w.idx);
   it.said = true; it.revealed = false; it.fast = false; it.micOk = false;
@@ -384,6 +386,12 @@ function renderPathSay(it) {
   pathSetActions(`
     ${it.hintHtml ? `<button class="hint-btn" id="p-hint-btn" onclick="pathShowHint()">💡 Hint</button>` : ""}
     ${sayShowBtnHtml("pathSayReveal()", "p-show")}`);
+  // A short cool-down before Show works — a beat to actually try saying it.
+  const show = document.getElementById("p-show");
+  if (show) {
+    show.disabled = true;
+    setTimeout(() => { if (pathSession && pathSession.cur === it && !it.revealed) show.disabled = false; }, PATH_SAY_COOLDOWN_MS);
+  }
   if (it.ear) {
     const play = () => { speak(gameForm(w)); popEl(document.getElementById("p-say-play")); };
     document.getElementById("p-say-play").onclick = play;
@@ -398,6 +406,7 @@ function pathSayReveal(heard = "") {
   if (!s || s.answered) return;
   const it = s.cur, w = it.w;
   if (!it.said || it.revealed) return;
+  if (!heard && !it.spoken && Date.now() - s.shownAt < PATH_SAY_COOLDOWN_MS) return; // cool-down (Enter / Space too)
   it.revealed = true;
   it.revealedAt = Date.now();
   it.fast = !heard && !it.spoken && it.revealedAt - s.shownAt < SAY_MIN_MS;
