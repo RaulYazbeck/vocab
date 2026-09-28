@@ -60,7 +60,9 @@ function clozeDeterminer(before) {
   if (!/^\p{L}+$/u.test(toks[i])) return null;
   let g = read(toks[i]);
   if (!g && i > 0 && /^[a-zäöüß]+(e|en|er|es|em)$/.test(toks[i]) && /^\p{L}+$/u.test(toks[i - 1])) g = read(toks[--i]);
-  return g ? { det: toks[i], genders: g } : null;
+  // Not an article: "habt ihr ___" (you), ", der ___ hat" (who).
+  if (!g || toks[i] === "ihr" || toks[i - 1] === ",") return null;
+  return { det: toks[i], genders: g };
 }
 const CZ_GENDER = { der: "m", die: "f", das: "n" };
 const CZ_GENDER_NAME = { m: "masculine", f: "feminine", n: "neuter" };

@@ -312,7 +312,10 @@ registerGame({
       if (IS_FRENCH_APP) return { html: "", placeholder: "the verb form…" };
       const t = c.tense, own = t === "k2" && c.v.F.k2special;
       const two = ["pf", "pq", "fu"].includes(t) || (t === "k2" && !own);
-      const note = /…/.test(c.cell.tail || "") ? `<div class="cj-format-note">the prefix is shown — no need to type it</div>` : "";
+      // Reflexive compounds are three words (habe mich gefreut); the
+      // pronoun is optional, so the count stays two.
+      const note = /…/.test(c.cell.tail || "") ? `<div class="cj-format-note">the prefix is shown — no need to type it</div>`
+        : two && c.v.F.refl ? `<div class="cj-format-note">+ mich / dich / sich… if you like</div>` : "";
       return { html: `${verbWord} <strong>${two ? "two words" : "one word"}</strong>${note}`, placeholder: two ? "two words…" : "one word…" };
     };
     const shownOf = c => c.kind === "card" ? `${c.it.pron} <strong>${escapeHtml(c.it.ans)}</strong>${c.it.tail ? " " + escapeHtml(c.it.tail) : ""}`
