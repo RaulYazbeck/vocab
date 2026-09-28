@@ -76,7 +76,7 @@ registerGame({
       for (let k = 0; k < nDecoy; k++) order.splice(Math.floor(Math.random() * (order.length + 1)), 0, DECOY_LETTERS[Math.floor(Math.random() * DECOY_LETTERS.length)]);
       tiles = order.map(ch => ({ ch, used: false }));
       ctx.setBar((r - 1) / words.length, "progress");
-      ctx.setClock(`${r}/${words.length}`);
+      ctx.setRound(r, words.length);
       ctx.stage.innerHTML = `
         <div class="g-question g-enter">
           <div class="g-q-label">${typed ? "Spell it from memory" : "Spell it"}${nDecoy ? ` · ${nDecoy} extra letter${nDecoy > 1 ? "s" : ""}` : ""}${ctx.tag(w)}</div>
@@ -209,7 +209,8 @@ registerGame({
         if (input) input.classList.add("near");
         document.getElementById("sc-slots").innerHTML = `<span class="g-near">≈ ${diffHtml(v, cur.t.word)}</span>`;
         ctx.say("Almost — check the spelling");
-        gTimeout(round, 1800);
+        ctx.teach(`≈ Almost — ${diffHtml(v, cur.t.word)}`, "near");
+        ctx.waitContinue(round);
         return;
       }
       if (input) input.classList.add("wrong");
@@ -217,7 +218,8 @@ registerGame({
       wrong++; combo = ctx.comboAfterMiss(combo, cur.w); ctx.setCombo(combo);
       ctx.missed(cur.w);
       speak(gameForm(cur.w)); playMiss(); haptic("miss");
-      gTimeout(ctx.sudden ? done : round, 1800);
+      ctx.teach(wordLessonHtml(cur.w), "bad");
+      ctx.waitContinue(ctx.sudden ? done : round);
     };
 
     gListen(ctx.stage, "click", e => {

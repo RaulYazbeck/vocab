@@ -29,7 +29,7 @@ const BOSSES = [
   { icon: "🗿", name: "Golem of Genders" },
 ];
 const BOSS_RANKS = [
-  { hp: 8, hearts: 3 }, { hp: 10, hearts: 3 }, { hp: 12, hearts: 2 }, { hp: 14, hearts: 2 }, { hp: 16, hearts: 1, timer: 12000 },
+  { hp: 8, hearts: 3 }, { hp: 10, hearts: 3 }, { hp: 12, hearts: 2 }, { hp: 14, hearts: 2 }, { hp: 16, hearts: 1, timer: 20000 },
 ];
 const DECK_BOSS_UNLOCK = 12; // legacy (quests); the 👑 boss now needs the whole deck met
 const BOSS_CREATURES = [
@@ -385,7 +385,7 @@ registerGame({
         ctx.say(`Ouch — it was ${w[WORD_KEY]}${cost < 1 && !ctx.sudden ? " (new word: half a heart)" : ""}`);
         updateHp();
         ctx.teach(wordLessonHtml(w), "bad");
-        if (hearts <= 0) gTimeout(() => end(false), 1800);
+        if (hearts <= 0) ctx.waitContinue(() => end(false), "See results");
         else ctx.waitContinue(show);
       }
     };

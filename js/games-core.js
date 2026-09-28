@@ -286,14 +286,14 @@ function articleTrap(w) {
 //   hard distractors · an article trap (target-language options) ·
 //   "None of these" (the right answer left out, ~1 in 6).
 // cfg: { text(x), n, pool, target: options show the target language,
-//        hard, none }
+//        hard, none, formFn?, filter? (which words may be distractors) }
 function mcChoices(w, cfg) {
   const n = cfg.n;
   const hard = !!cfg.hard;
   const none = !!cfg.none;
   const noneRight = none && Math.random() < 0.17;
   const want = noneRight ? n - 1 : n - 1 - (none ? 1 : 0);
-  const ds = pickDistractors(w, cfg.pool, Math.max(1, want), cfg.formFn || gameForm, null, { hard, ear: !!cfg.ear });
+  const ds = pickDistractors(w, cfg.pool, Math.max(1, want), cfg.formFn || gameForm, cfg.filter || null, { hard, ear: !!cfg.ear });
   let opts = ds.map(x => ({ text: cfg.text(x), correct: false, word: x }));
   if (hard && cfg.target && opts.length >= 2 && Math.random() < 0.45) {
     const trap = articleTrap(w);
@@ -365,11 +365,14 @@ function buildGamePool(deckIds) {
   return out;
 }
 
+// Words a round should favour (a Today bonus: the ones you just missed).
+// Set by launchGame from opts.prefer, cleared with the game.
+let gamePreferKeys = null;
 // How much a word needs practice — higher = shows up more.
 function wordWeakness(w) {
   const ws = S.words[wordKey(w)];
   if (!ws) return 1;
-  let s = 1;
+  let s = gamePreferKeys && gamePreferKeys.has(wordKey(w)) ? 10 : 1;
   if (w.anki) {
     const a = ws.anki || {};
     s += (a.lapses || 0) * 1.5 + (a.phase === "learning" || a.phase === "relearning" ? 2 : 0) + ((a.ease || 2.5) < 2.3 ? 1 : 0);
@@ -523,6 +526,7 @@ function stopActiveGame() {
   _gt.listeners = [];
   if (activeGame && activeGame.ctx) activeGame.ctx.dead = true;
   activeGame = null;
+  gamePreferKeys = null;
 }
 // Full exit (Menu button / backToMenu): also abandons any sequence.
 function quitAllGames() { stopActiveGame(); gameRun = null; flushDeferredCelebrations(); }
@@ -772,7 +776,8 @@ function mcReveal(container, options, chosen) {
 
 // ── SCREEN SHELL & CONTEXT ────────────────────
 // sizes: "full" (hub, sets bests/stars), "short" (Daily/Mix rounds),
-// "bonus" (20-second Surprise Round inside Drill).
+// "bonus" (a short round inside a Today session or Drill — learning
+// first: thinking games have no clock there, see BONUS_TIME).
 function launchGame(id, opts = {}) {
   const def = getGame(id);
   if (!def) return;
@@ -816,6 +821,7 @@ function launchGame(id, opts = {}) {
 
   const ctx = makeCtx(def, pool, size, opts);
   activeGame = { def, ctx };
+  gamePreferKeys = opts.prefer && opts.prefer.size ? opts.prefer : null;
   const maxRank = gameRankOf(def.id);
   ctx.rank = opts.rank !== undefined ? Math.min(opts.rank, maxRank) : size === "bonus" ? Math.min(maxRank, 1) : maxRank;
   // Deferred: the keypress that opened this screen (e.g. Enter in Drill
@@ -971,8 +977,10 @@ function makeCtx(def, pool, size, opts) {
       return false;
     },
     // Points for a hit: 🌱 words ×1.5 (they take longer), golden ×3.
-    award(w, pts) {
-      if (size === "bonus") {
+    // count: false for extra points on an answer already counted (Gap
+    // Fill's second step), so the 🎯 target shows real answers.
+    award(w, pts, count = true) {
+      if (size === "bonus" && count) {
         ctx.bonusHits = (ctx.bonusHits || 0) + 1;
         const b = document.getElementById("g-bonus-goal");
         if (b) { b.textContent = `🎯 ${Math.min(ctx.bonusHits, bonusGoal(def.id))}/${bonusGoal(def.id)}`; b.classList.toggle("done", ctx.bonusHits >= bonusGoal(def.id)); }
@@ -1003,6 +1011,8 @@ function makeCtx(def, pool, size, opts) {
       e.className = "g-bar-fill " + cls;
     },
     setClock(text, urgent = false) { const e = $("g-clock"); if (e) { e.textContent = text; e.classList.toggle("urgent", urgent); } },
+    // Question counter — worded so it can't be read as a score ("5/5").
+    setRound(r, total) { ctx.setClock(`Q${r} of ${total}`); },
     say(text) { const e = $("g-live"); if (e) e.textContent = text; },
     // ── Teaching panel (under the stage): the why behind an answer.
     teach(html, cls = "") {
@@ -1010,15 +1020,21 @@ function makeCtx(def, pool, size, opts) {
       e.innerHTML = html ? `<div class="g-teach-card ${cls}">${html}</div>` : "";
       e.classList.toggle("on", !!html);
     },
-    // After a miss in an untimed game: wait for Continue (Enter / tap),
-    // held for a moment so a confident Enter can't skip the lesson.
+    // After a miss: wait for Continue (Enter / tap), held for a moment so
+    // a confident Enter can't skip the lesson. Never moves on by itself —
+    // in every game and every round size — and the clock stands still
+    // while you read.
     waitContinue(fn, label = "Continue") {
       const e = $("g-teach"); if (!e) { fn(); return; }
-      // 20-second bonus rounds keep moving: read it, it moves on by itself.
-      if (size === "bonus") { gTimeout(fn, 1800); return; }
+      if (ctx.waiting) return; // already waiting: one lesson, one button
       ctx.waiting = fn;
+      ctx.clockHeld = true;
+      ctx.clock.pause();
+      // Timed games say so: the HUD clock greys out with ⏸.
+      const scr = $("game-screen");
+      if (scr && def.timed) scr.classList.add("g-held");
       const card = e.querySelector(".g-teach-card") || (ctx.teach(" "), e.querySelector(".g-teach-card"));
-      card.insertAdjacentHTML("beforeend", `<button class="g-big-btn g-continue" id="g-continue">${escapeHtml(label)} ⏎</button>`);
+      card.insertAdjacentHTML("beforeend", `${def.timed ? `<div class="g-held-note">⏸ Clock paused while you read</div>` : ""}<button class="g-big-btn g-continue" id="g-continue">${escapeHtml(label)} ⏎</button>`);
       const b = $("g-continue");
       b.onclick = () => ctx.continueNow();
       gListen(b, "pointerdown", ev => ev.preventDefault()); // keep the phone keyboard up
@@ -1030,18 +1046,12 @@ function makeCtx(def, pool, size, opts) {
       if (mistakeHeld("g-teach")) return;
       const f = ctx.waiting;
       ctx.waiting = null;
+      ctx.clockHeld = false;
+      const scr = $("game-screen");
+      if (scr) scr.classList.remove("g-held");
+      if (!ctx.paused && !ctx.finished) ctx.clock.start();
       ctx.teach("");
       f();
-    },
-    // Timed games: the clock stands still while a lesson shows.
-    pauseClockFor(ms, fn) {
-      ctx.clockHeld = true;
-      ctx.clock.pause();
-      gTimeout(() => {
-        ctx.clockHeld = false;
-        if (!ctx.paused && !ctx.finished) ctx.clock.start();
-        fn();
-      }, ms);
     },
     missed(word) { if (word && !ctx.missedWords.some(w => sameWord(w, word))) ctx.missedWords.push(word); },
     finish(result) {
@@ -1086,7 +1096,7 @@ function showGameIntro(ctx, onGo) {
 }
 function showRoundSplash(ctx, onGo) {
   const d = ctx.def;
-  const sub = ctx.size === "bonus" ? "🎁 Bonus round — 20 seconds!" : escapeHtml(d.skill);
+  const sub = ctx.size === "bonus" ? `🎁 Bonus round — ${escapeHtml(bonusGoalText(d.id))}${bonusUntimed(d.id) ? " · no clock, take your time" : ""}` : escapeHtml(d.skill);
   const render = () => {
     const o = overlay(`<div class="g-card">
         <div class="g-card-icon">${d.icon}</div>
@@ -1250,12 +1260,18 @@ function applyGameCredit(ctx) {
 
 // Bonus rounds (inside Today sessions and Drill): one clear target per
 // game — the same number on the offer card, in the HUD and at the end.
-const BONUS_GOALS = { boss: 10, listen: 4, cloze: 4, cases: 4, builder: 3, scramble: 4, plural: 4, conj: 4, gender: 5, blitz: 6, truefalse: 8, typerush: 5, rain: 6, match: 4 };
+const BONUS_GOALS = { boss: 10, listen: 4, cloze: 4, cases: 4, builder: 3, scramble: 4, plural: 4, conj: 4, gender: 5, blitz: 6, truefalse: 8, typerush: 5, rain: 6, match: 10 };
 function bonusGoal(id) { return BONUS_GOALS[id] || 4; }
+// Timed games' bonus clock. Thinking games (Conjugation Slots, Gap Fill…)
+// have none inside a Today session — the clock is for the Games hub.
+const BONUS_TIME = { match: 60000 };
+function bonusTime(id) { return BONUS_TIME[id] || 20000; }
 function bonusGoalText(id) {
   const g = getGame(id), n = bonusGoal(id);
-  return g && g.timed ? `get ${n} right in 20 s` : `get ${n} right`;
+  return g && g.timed ? `get ${n} right in ${Math.round(bonusTime(id) / 1000)} s` : `get ${n} right`;
 }
+// "no clock" for untimed games — said on the offer and the splash.
+function bonusUntimed(id) { const g = getGame(id); return !!g && !g.timed; }
 function finishGame(ctx, result) {
   const def = ctx.def, size = ctx.size, rank = ctx.rank, twist = ctx.twist;
   stopActiveGame();
@@ -1317,10 +1333,10 @@ function starsHtml(n, max = 3, cls = "") {
   for (let i = 0; i < max; i++) s += `<span class="g-star ${i < n ? "on" : ""} ${cls}" style="animation-delay:${0.25 + i * 0.18}s">★</span>`;
   return s;
 }
-function missedListHtml(words) {
+function missedListHtml(words, title = "") {
   if (!words.length) return "";
   return `<div class="g-missed">
-    <div class="examples-title">Words to review (${words.length})</div>
+    <div class="examples-title">${title || `Words to review (${words.length})`}</div>
     ${words.map(w => `<div class="g-missed-row">
       <span class="g-missed-en">${escapeHtml(gamePrompt(w))}</span>
       <span class="g-missed-target">${escapeHtml(gameForm(w))}</span>
@@ -1354,6 +1370,7 @@ function renderGameResults(sum, ctx) {
         <div>
           <div class="result-stat"><strong>${result.score.toLocaleString()}</strong>score</div>
           <div class="result-stat"><strong>${result.correct}</strong>correct</div>
+          <div class="result-stat"><strong>${result.wrong || 0}</strong>mistake${result.wrong === 1 ? "" : "s"}</div>
           ${result.maxCombo >= 3 ? `<div class="result-stat"><strong>🔥${result.maxCombo}</strong>best combo</div>` : ""}
           <div class="result-stat"><strong>+${xp} XP</strong>earned${twist ? " (×1.5)" : ""}</div>
           ${result.golden ? `<div class="result-stat"><strong>🌟${result.golden}</strong>golden</div>` : ""}
@@ -1427,7 +1444,7 @@ function gameRunRoundDone(sum) {
   const totalXp = run.summaries.reduce((s, x) => s + x.xp, 0) + dailyBonus;
   const rows = run.summaries.map((x, i) => `<div class="g-run-row">
       <span>${i + 1}. ${x.def.icon} ${escapeHtml(gameName(x.def))}</span>
-      <span>${x.result.correct} ✓ · +${x.xp} XP</span>
+      <span>${x.result.correct} ✓ · ${x.result.wrong || 0} ✗ · +${x.xp} XP</span>
     </div>`).join("");
   const next = last ? null : getGame(run.ids[run.i + 1]);
   el.innerHTML = `<div class="screen game-screen">
@@ -1438,7 +1455,7 @@ function gameRunRoundDone(sum) {
       <div class="result-screen g-results">
         <div class="result-emoji">${last ? (run.kind === "daily" ? "📆" : "🕹️") : sum.def.icon}</div>
         <div class="result-title">${last ? (run.kind === "daily" ? (dailyBonus || S.games.daily.completedDates.includes(todayISO()) ? "Daily Challenge complete!" : "Daily rounds finished") : "Arcade Mix complete!") : `Round ${run.i + 1} of ${run.ids.length} done`}</div>
-        <div class="result-sub">${last ? `+${totalXp} XP in total${dailyBonus ? ` (incl. +${dailyBonus} challenge bonus)` : ""}` : `${sum.result.correct} correct · +${sum.xp} XP`}</div>
+        <div class="result-sub">${last ? `+${totalXp} XP in total${dailyBonus ? ` (incl. +${dailyBonus} challenge bonus)` : ""}` : `${sum.result.correct} correct · ${sum.result.wrong || 0} mistake${sum.result.wrong === 1 ? "" : "s"} · +${sum.xp} XP`}</div>
         ${dailyMissed ? `<div class="g-notice">This round didn't count — get at least one answer right. You can replay it from the hub.</div>` : ""}
         <div class="g-run-list">${rows}</div>
         ${last ? missedListHtml(uniqWords(run.summaries.flatMap(x => x.result.missed))) : ""}
@@ -1547,7 +1564,7 @@ function startArcadeMix() {
 
 // ── SURPRISE ROUNDS (inside Drill) ────────────
 // After every 10th correct answer in typed Drill, pressing Next offers
-// a 20-second bonus round on the drill's own words.
+// a short bonus round on the drill's own words.
 const SURPRISE_EVERY = 10;
 const SURPRISE_GAMES = ["match", "gender", "blitz"];
 let _surpriseShownAt = 0;
@@ -1579,10 +1596,11 @@ function renderSurpriseResult(sum, run) {
   if (cleared) { confettiBurst(minion ? 50 : 30); playAchievement(); }
   document.getElementById("main-screen").innerHTML = `<div class="screen game-screen">
       <div class="result-screen g-results">
-        <div class="result-emoji">${minion ? (cleared ? "⚔️" : "💨") : cleared ? "🎁" : "⏰"}</div>
-        <div class="result-title">${minion ? (cleared ? "Minion defeated!" : "The minion escaped") : cleared ? "Bonus cleared ✓" : "So close!"}</div>
+        <div class="result-emoji">${minion ? (cleared ? "⚔️" : "💨") : cleared ? "🎁" : sum.def && sum.def.timed ? "⏰" : "💪"}</div>
+        <div class="result-title">${minion ? (cleared ? "Minion defeated!" : "The minion escaped") : cleared ? "Bonus cleared ✓"
+          : (sum.result.correct || 0) >= bonusGoal(sum.def && sum.def.id) - 1 ? "So close!" : "Good practice"}</div>
         ${sum.result.note ? `<div class="g-best-line">${escapeHtml(sum.result.note)}</div>` : ""}
-        <div class="result-sub">${sum.result.correct}/${bonusGoal(sum.id || (sum.def && sum.def.id))} right${cleared ? "" : " — nearly there"} · +${sum.xp} XP</div>
+        <div class="result-sub">${bonusScoreLine(sum)} · +${sum.xp} XP</div>
         ${missedListHtml(sum.result.missed)}
         <div class="g-result-actions"><button class="g-big-btn" id="g-back-drill">${label}</button></div>
       </div>
@@ -1590,6 +1608,15 @@ function renderSurpriseResult(sum, run) {
   window.scrollTo({ top: 0, behavior: "instant" });
   armOverlayButton(document.getElementById("g-back-drill"), () => back());
   flushDeferredCelebrations();
+}
+// "5 right · 1 mistake · target 4 ✓" — right answers and mistakes are
+// always shown separately, never folded into one "x/y".
+function bonusScoreLine(sum) {
+  const r = sum.result, id = sum.id || (sum.def && sum.def.id);
+  const ok = r.correct || 0, bad = r.wrong || 0;
+  if (r.minion) return `${ok} right · ${bad} mistake${bad === 1 ? "" : "s"}`;
+  const goal = bonusGoal(id);
+  return `${ok} right · ${bad} mistake${bad === 1 ? "" : "s"} · ${r.cleared ? `target ${goal} ✓` : `${Math.max(1, goal - ok)} short of the target (${goal})`}`;
 }
 function toggleSurpriseRounds() {
   S.games.surprise = !S.games.surprise;

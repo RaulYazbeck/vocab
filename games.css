@@ -280,6 +280,9 @@
   transition:transform 0.15s var(--ease), background 0.15s, border-color 0.15s, opacity 0.3s;
 }
 .m-tile.target { font-family:'JetBrains Mono',monospace; font-weight:500; }
+.m-board.dense .m-col { gap:6px; }
+.m-board.dense .m-tile { min-height:46px; padding:6px 8px; font-size:13px; }
+.m-board.dense .m-tile.long { font-size:12px; }
 .m-tile.long { font-size:12px; }
 .m-tile:hover:not(:disabled) { border-color:var(--border-hi); }
 .m-tile:active:not(:disabled) { transform:scale(0.96); }
@@ -557,7 +560,7 @@ body.g-drag-active { user-select:none; -webkit-user-select:none; cursor:grabbing
 
 /* ── CONJUGATION SLOTS ─────────── */
 .cj-machine {
-  display:grid; grid-template-columns:1.3fr 1fr; gap:8px; padding:10px; margin:4px 0 8px;
+  display:grid; grid-template-columns:1fr 1.3fr; gap:8px; padding:10px; margin:4px 0 8px;
   border-radius:var(--r); border:2px solid rgba(245,166,35,0.45);
   background:linear-gradient(180deg, rgba(245,166,35,0.10), rgba(155,127,232,0.08));
   box-shadow:inset 0 2px 12px rgba(0,0,0,0.35);
@@ -569,6 +572,11 @@ body.g-drag-active { user-select:none; -webkit-user-select:none; cursor:grabbing
 .cj-reel span { font-family:'JetBrains Mono',monospace; font-size:19px; font-weight:700; color:var(--text); line-height:1.15; overflow-wrap:anywhere; }
 .cj-machine.spinning .cj-reel span { filter:blur(1.2px); color:var(--text-2); }
 .cj-tail { text-align:center; font-size:13px; color:var(--text-3); min-height:18px; margin-bottom:8px; font-family:'JetBrains Mono',monospace; }
+.cj-level { text-align:center; font-size:12px; color:var(--text-3); margin:0 0 6px; }
+.cj-format { text-align:center; font-size:13px; color:var(--text-2); margin:-2px 0 10px; line-height:1.4; }
+.cj-format:empty { display:none; }
+.cj-format em { font-family:'JetBrains Mono',monospace; font-style:normal; color:var(--accent-hi); }
+.cj-format-note { font-size:12px; color:var(--text-3); }
 
 /* ── TRUE / FALSE ──────────────── */
 .tf-wrap { text-align:center; margin:6px 0 14px; }
@@ -677,6 +685,10 @@ body.g-drag-active { user-select:none; -webkit-user-select:none; cursor:grabbing
 }
 .g-teach-ex span { display:block; margin-top:2px; font-family:'DM Sans',sans-serif; font-style:italic; color:var(--text-2); font-size:13px; }
 .g-teach-card .g-continue { margin:12px auto 0; display:flex; max-width:none; min-height:46px; }
+.g-held-note { margin-top:10px; text-align:center; font-size:12px; color:var(--text-3); }
+.game-screen.g-held .g-clock { color:var(--text-3); }
+.game-screen.g-held .g-clock::after { content:" ⏸"; }
+.game-screen.g-held .g-bar-fill { opacity:0.45; }
 .g-teach-card .g-link-btn { margin-top:6px; }
 @keyframes gTeachIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
 @media (prefers-reduced-motion: reduce) { .g-teach-card { animation:none; } }
@@ -690,6 +702,7 @@ body.g-drag-active { user-select:none; -webkit-user-select:none; cursor:grabbing
 .cz-steps span { padding:3px 9px; border-radius:20px; border:1px solid var(--border); color:var(--text-3); }
 .cz-steps span.on { color:var(--accent-hi); border-color:rgba(245,166,35,0.5); background:var(--accent-dim); }
 .cz-steps span.done { color:var(--success); border-color:rgba(0,216,150,0.4); }
+.cz-next { font-size:11px; font-weight:600; color:var(--text-3); margin-left:6px; text-transform:none; letter-spacing:0; }
 .cz-lemma { font-family:'JetBrains Mono',monospace; text-transform:none; letter-spacing:0; color:var(--text); }
 .cz-sentence .cg-gap { display:inline-block; min-width:3.2em; border-bottom:2px solid var(--accent); color:transparent; line-height:1.1; }
 
@@ -706,7 +719,7 @@ body.g-drag-active { user-select:none; -webkit-user-select:none; cursor:grabbing
 }
 .cj-chip.on { color:var(--accent-hi); border-color:rgba(245,166,35,0.55); background:var(--accent-dim); }
 .cj-chip.all.on { color:var(--success); border-color:rgba(0,216,150,0.5); background:var(--success-dim); }
-.cj-machine.three { grid-template-columns:1.3fr 1fr; }
+.cj-machine.three { grid-template-columns:1fr 1.3fr; }
 .cj-machine.three .cj-reel.tense { grid-column:1 / -1; height:40px; }
 .cj-reel.tense span { font-size:15px; color:var(--accent-hi); }
 .cj-meaning { text-align:center; font-size:13.5px; color:var(--text-2); min-height:18px; margin-bottom:4px; }

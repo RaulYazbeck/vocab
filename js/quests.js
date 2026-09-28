@@ -209,7 +209,10 @@ qt({ id: "a_plan", slot: "A", fam: "plan", icon: "📅", w: 0, fixed: true, ok: 
   title: q => `Today's plan: ${q.target} right answers`,
   sub: () => { const p = S.path.plan; const parts = [];
     if (p && p.day === studyToday()) parts.push(`${p.reviews} reviews + ${p.pace} new words`);
-    if (S.path.deadline && pathDaysLeft() >= 0) parts.push(`on course for ${fmtShortDate(S.path.deadline)}`);
+    if (S.path.deadline && pathDaysLeft() >= 0) {
+      const st = pathDeadlineStatus();
+      parts.push(st.ok ? `on course for ${fmtShortDate(S.path.deadline)}` : `⚠️ at most ${PLAN.MAX_PACE} new/day: ≈ ${fmtShortDate(st.eta)}`);
+    }
     return parts.join(" · "); },
   prog: m => m.ok, go: "path" });
 qt({ id: "a_typed", slot: "A", fam: "typed", icon: "⌨️", w: 3, target: c => sz(c, 0.45, 10, 90),

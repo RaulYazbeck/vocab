@@ -3,25 +3,28 @@
 // to pair them, or drag a tile onto its partner. Boards never hold two
 // pairs with the same form or prompt, so every match is unambiguous.
 // Score rewards speed and punishes wrong pairings (a 🌱 word's miss
-// costs half); the clock counts up (bonus rounds: 20 s cap).
+// costs half); the clock counts up (bonus rounds: two boards of 6 with
+// a 60 s cap). Each board is built around one part of speech with
+// look-alike words, so pairs can't be matched by elimination alone.
 //
-// Ranks: bigger boards and a tighter time par; 💎 Diamond is memory
-// mode — the target column flips face-down after a short preview.
+// Ranks: bigger boards (6 → 9 pairs) and a tighter time par; 💎 Diamond
+// is memory mode — the target column flips face-down after a preview.
 
 const MATCH_RANKS = [
-  { boards: 3, per: 5, par: 4.0 },
-  { boards: 3, per: 6, par: 3.7 },
-  { boards: 4, per: 6, par: 3.4 },
-  { boards: 4, per: 6, par: 3.0 },
-  { boards: 4, per: 6, par: 3.4, memory: true },
+  { boards: 3, per: 6, par: 3.8 },
+  { boards: 3, per: 7, par: 3.6 },
+  { boards: 3, per: 8, par: 3.4 },
+  { boards: 3, per: 9, par: 3.2 },
+  { boards: 3, per: 8, par: 3.6, memory: true },
 ];
+const MATCH_MIN = 6;
 
 registerGame({
   id: "match", name: "Match Pairs", icon: "🧩", skill: "Recognition", timed: true,
   ranks: MATCH_RANKS, twists: ["mirror", "golden", "turbo", "sudden"], credit: "recognition",
-  howTo: ["Tap each word, then its translation."],
-  requirement(pool, size) {
-    const need = size === "full" ? 5 : 4, n = distinctCount(pool);
+  howTo: ["Tap each word, then its translation.", "Each board sticks to one kind of word where it can — all nouns, all verbs… — so look closely."],
+  requirement(pool) {
+    const need = MATCH_MIN, n = distinctCount(pool);
     return n >= need ? { ok: true } : { ok: false, reason: `Needs ${need} words — you have ${n}` };
   },
   // Thresholds were tuned for 15 pairs; they scale with the board size.
@@ -31,10 +34,10 @@ registerGame({
   },
   start(ctx) {
     const rp = ctx.rp;
-    const boards = ctx.rounds(rp.boards, 2, 1), per = Math.min(ctx.rounds(rp.per, 4, 4), 6);
+    const boards = ctx.rounds(rp.boards, 2, 2), per = Math.min(ctx.rounds(rp.per, MATCH_MIN, MATCH_MIN), 9);
     const memory = ctx.size === "full" && !!rp.memory;
     const total = boards * per;
-    const limit = ctx.size === "bonus" ? 20000 : 0;
+    const limit = ctx.size === "bonus" ? bonusTime("match") : 0;
     const candidates = sampleWords(ctx.pool, total * 3);
     const used = new Set();
     const boardSets = [];
@@ -42,9 +45,15 @@ registerGame({
       const forms = new Set(), prompts = new Set(), set = [];
       const fits = w => !forms.has(normKey(gameForm(w))) && !prompts.has(normKey(gamePrompt(w)))
         && !set.some(x => sharesPromptAlt(x, w));
-      const fallback = shuffle(dedupeWords(ctx.pool).slice());
+      // One part of speech per board where the pool allows (all nouns,
+      // all verbs…): no pairing by shape — "to …" can't only go with a verb.
+      const seed = candidates.find(w => !used.has(wordKey(w)));
+      const seedPos = seed ? posOf(seed) : "";
+      const byPos = list => [...list.filter(w => posOf(w) === seedPos), ...list.filter(w => posOf(w) !== seedPos)];
+      const ordered = byPos(candidates);
+      const fallback = byPos(shuffle(dedupeWords(ctx.pool).slice()));
       for (const pass of [0, 1, 2]) {
-        for (const w of pass < 2 ? candidates : fallback) {
+        for (const w of pass < 2 ? ordered : fallback) {
           if (set.length >= per) break;
           if (set.includes(w) || !fits(w) || (pass === 0 && used.has(wordKey(w)))) continue;
           set.push(w); forms.add(normKey(gameForm(w))); prompts.add(normKey(gamePrompt(w)));
@@ -63,6 +72,7 @@ registerGame({
 
     const renderBoard = () => {
       const set = boardSets[b];
+      ctx.teach(""); // a "Not a pair" note belongs to the board it was made on
       byKey = new Map(set.map(w => [wordKey(w), w]));
       const left = shuffle(set.slice()), right = shuffle(set.slice());
       const tile = (w, side) => {
@@ -73,7 +83,7 @@ registerGame({
       const colL = left.map(w => tile(w, leftSide)).join(""), colR = right.map(w => tile(w, leftSide === "L" ? "R" : "L")).join("");
       ctx.stage.innerHTML = `
         <div class="m-board-label">${boardSets.length > 1 ? `Board ${b + 1} of ${boardSets.length}` : ""}${memory ? " · 🧠 memorise the answers!" : ""}</div>
-        <div class="m-board g-enter">
+        <div class="m-board g-enter ${set.length >= 8 ? "dense" : ""}">
           <div class="m-col">${colL}</div>
           <div class="m-col">${colR}</div>
         </div>`;
@@ -84,7 +94,7 @@ registerGame({
           ctx.busy = false;
           const lab = ctx.stage.querySelector(".m-board-label");
           if (lab) lab.textContent = (boardSets.length > 1 ? `Board ${b + 1} of ${boardSets.length} · ` : "") + "🧠 from memory";
-        }, 3000);
+        }, 2000 + set.length * 350); // a longer look for a bigger board
       }
     };
 

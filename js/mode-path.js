@@ -100,6 +100,12 @@ function bindPathKeys() {
     // Any open sheet (word editor, confirm, chest…) owns the keyboard.
     if (document.querySelector(".modal-overlay") || document.getElementById("settings-panel").style.display === "block") return;
     if (e.key === "Escape") { e.preventDefault(); pathQuit(); return; }
+    if (it.t === "repairOffer") {
+      // Guarded: the Enter that pressed the last Next must not also start it.
+      // A focused button (Later / Repair now) handles its own Enter.
+      if (e.key === "Enter" && !(e.target && e.target.tagName === "BUTTON") && Date.now() - pathSession.shownAt > 400) { e.preventDefault(); pathRepair(true); }
+      return;
+    }
     // A focused, live button handles its own Enter (no double advance);
     // a stale one (an answered option) falls through to Next.
     if (e.key === "Enter" && e.target && e.target.tagName === "BUTTON" && !e.target.disabled && !e.target.closest(".g-options")) return;
@@ -128,15 +134,18 @@ function bindPathKeys() {
 }
 function pathProgress() {
   const s = pathSession;
-  // Learn cards and bonus offers aren't questions: a Regular session
-  // reads x/30, like the length you picked.
-  const q = x => x.t !== "bonus" && x.t !== "learn" && !x.warm;
+  // Learn cards, bonus offers and warm-ups aren't questions: a Regular
+  // session reads x/30, like the length you picked — and the total never
+  // grows. Mistakes wait for the repair round at the end, which has its
+  // own count (🩹 x/N).
+  const rep = !!s.repairPhase;
+  const q = x => x.t !== "bonus" && x.t !== "learn" && !x.warm && !!x.repair === rep;
   const total = s.items.filter(q).length;
   const done = s.items.slice(0, s.i).filter(q).length;
   const f = document.getElementById("p-prog");
-  if (f) f.style.width = Math.round(done / Math.max(1, total) * 100) + "%";
+  if (f) { f.style.width = Math.round(done / Math.max(1, total) * 100) + "%"; f.classList.toggle("repair", rep); }
   const c = document.getElementById("p-count");
-  if (c) c.textContent = `${Math.min(done + 1, total)}/${total}`;
+  if (c) c.textContent = `${rep ? "🩹 " : ""}${Math.min(done + 1, total)}/${total}`;
 }
 function pathSetActions(html) { const a = document.getElementById("p-actions"); if (a) a.innerHTML = html; }
 function pathShowTyped(show, placeholder = "type the answer…", accents = true) {
@@ -161,7 +170,11 @@ function pathNext() {
   s.i++;
   s.answered = false; s.pendingReverse = null;
   const fb = document.getElementById("p-fb"); if (fb) fb.innerHTML = "";
-  if (s.i >= s.items.length) { renderPathSummary(false); return; }
+  if (s.i >= s.items.length) {
+    const list = s.repairOffered ? [] : pathRepairList();
+    if (list.length) { renderPathRepairOffer(list); return; }
+    renderPathSummary(false); return;
+  }
   const it = s.items[s.i];
   // A spot check / review whose word changed meanwhile (e.g. a re-ask
   // already fixed it) is still fine to show — every answer is valid.
@@ -283,6 +296,7 @@ function pathAnswerChoice(i) {
 }
 
 function pathKickerHtml(it, ws) {
+  if (it.repair) return `<div class="p-kicker repair">🩹 Repair round — one more try</div>`;
   return it.t === "spot" ? (it.maint ? `<div class="p-kicker spot">💎 Check-in — a locked-in word, ${(ws.mt || 0) ? "a year" : "4 months"} later</div>` : `<div class="p-kicker spot">🔍 Spot check — a 💎 word</div>`)
     : ws.rp ? `<div class="p-kicker repair">🩹 Repair — get it right to keep its badge</div>`
     : it.second ? `<div class="p-kicker">🌱 Once more, from memory</div>`
@@ -506,6 +520,8 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     const kind = it.usedHint || (it.said && it.fast && !it.micOk) ? "recognition" : "recall";
     sessionConsecutive++;
     res = applyCorrect(ws, { quiet: true, kind, w, ms: Date.now() - s.shownAt });
+    // Fixed = back on schedule (a hint-aided answer leaves it to fix later).
+    if (it.repair && !(ws.lrn || ws.rp || ws.fl)) s.repairFixed = (s.repairFixed || 0) + 1;
     addExp(5);
     checkDrillMilestone(); sessionCorrect++;
     s.stats.correct++;
@@ -528,8 +544,9 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     res = applyWrong(ws, { w });
     s.stats.wrong++;
     if (it.t === "spot") S.path.spotToday = (S.path.spotToday || 0) + 1;
+    // No re-ask mid-session (the count stays fixed): the word waits for
+    // the repair round offered at the end.
     pathMissed(w);
-    pathReask(w, 3 + Math.floor(Math.random() * 3));
     questEvent("answer", { mode: "path", ok: false, typed: true, st: from, w, it: it.t });
     playFailure(); haptic("miss");
     if (input) input.classList.add("wrong");
@@ -601,14 +618,69 @@ function pathMissed(w) {
   const s = pathSession;
   if (!s.missed.some(x => sameWord(x, w))) s.missed.push(w);
 }
-// Bring a missed word back a few items later (at most twice).
-function pathReask(w, gap, type = "typed") {
+// A new word missed at its first multiple choice comes back as another
+// choice a few items later (at most twice) — a warm-up, not counted, so
+// the session length never grows. Typed misses wait for the repair round.
+function pathReask(w, gap) {
   const s = pathSession, k = wordKey(w);
   s.reasks[k] = (s.reasks[k] || 0) + 1;
   if (s.reasks[k] > 2) return;
   let pos = s.i + 1, n = 0;
   while (pos < s.items.length && n < gap) { if (s.items[pos].t !== "bonus" && s.items[pos].t !== "learn") n++; pos++; }
-  s.items.splice(pos, 0, type === "choice" ? { t: "choice", w, reask: true, warm: true, rev: Math.random() < 0.5 } : { t: "typed", w, reask: true, fix: true });
+  s.items.splice(pos, 0, { t: "choice", w, reask: true, warm: true, rev: Math.random() < 0.5 });
+}
+
+// ── REPAIR ROUND (end of session, optional) ───
+// Words missed this session that still need a correct recall. Offered
+// once the session's questions are done: now, or they open the next
+// session (and, with a finish date, count in tomorrow's plan — the plan
+// is made each morning from what's due, so skipping never breaks it; it
+// just moves the work).
+function pathRepairList() {
+  const s = pathSession;
+  return s.missed.filter(w => { const ws = S.words[wordKey(w)]; return ws && ws.st && (ws.lrn || ws.rp || ws.fl); });
+}
+function renderPathRepairOffer(list) {
+  const s = pathSession;
+  s.repairOffered = true;
+  s.cur = { t: "repairOffer", list }; s.shownAt = Date.now();
+  pathShowTyped(false);
+  const n = list.length;
+  const mins = Math.max(1, Math.round(n * 12 / 60));
+  const goal = getDailyGoal(), got = goalProgress();
+  const f = document.getElementById("p-prog"); if (f) f.style.width = "100%";
+  const c = document.getElementById("p-count"); if (c) c.textContent = "✓";
+  document.getElementById("p-card").innerHTML = `
+    <div class="p-bonus p-repair">
+      <div class="p-bonus-icon">🩹</div>
+      <div class="p-bonus-title">Repair ${n} mistake${n > 1 ? "s" : ""}?</div>
+      <div class="p-bonus-sub">One more try at ${n > 1 ? "each word" : "the word"} you missed · about ${mins} min</div>
+      <ul class="p-repair-why">
+        <li><strong>Now</strong> — each fix counts toward today's goal${got < goal ? ` (${got}/${goal})` : ""} and puts the word back on schedule.</li>
+        <li><strong>Later</strong> — ${pathDeadlineOn()
+          ? "they open your next session, and tomorrow's plan grows to fit them so your finish date holds."
+          : "they open your next session."}</li>
+      </ul>
+    </div>`;
+  pathSetActions(`
+    <button class="g-sec-btn" id="p-later">Later</button>
+    <button class="g-big-btn p-main" id="p-repair-go">Repair now ▶</button>`);
+  armOverlayButton(document.getElementById("p-repair-go"), () => pathRepair(true));
+  // Same guard as Repair: a double tap on the last Next can't land here.
+  document.getElementById("p-later").onclick = () => { if (Date.now() - s.shownAt > 400) pathRepair(false); };
+}
+function pathRepair(yes) {
+  const s = pathSession;
+  if (!s || !s.cur || s.cur.t !== "repairOffer") return;
+  const list = s.cur.list;
+  logEvent("repair_offer", { n: list.length, yes });
+  if (!yes) { renderPathSummary(false); return; }
+  s.repairPhase = true;
+  s.repairN = list.length; s.repairFixed = 0;
+  const start = s.items.length;
+  list.forEach(w => s.items.push({ t: "typed", w, fix: true, repair: true }));
+  s.i = start - 1; // pathNext steps onto the first repair item
+  pathNext();
 }
 function pathRecordMove(w, from, res) {
   const s = pathSession;
@@ -697,19 +769,24 @@ function pathBonusGame() {
   const s = pathSession;
   const pool = uniqWords(s.items.map(x => x.w).filter(Boolean)).filter(w => isMet(w.deckId, w.idx)).map(w => ({ ...w, anki: false }));
   const ids = PATH_BONUS_IDS;
+  const met = pathScan().met;
   const ok = ids.filter(id => {
     const g = getGame(id);
     if (!g || id === s.lastBonus) return false;
+    if (met < (PATH_BONUS_UNLOCK[id] || 0)) return false;
     if (g.audio && !audioOk()) return false;
     return gameRequirement(g, pool, "bonus").ok;
   });
   if (!ok.length) return null;
+  // Words missed this session come up first in the round.
+  const prefer = new Set(s.missed.map(wordKey));
   // A game an open quest asks for comes first.
   const wanted = questNudges().games.filter(id => ok.includes(id));
-  if (wanted.length) return { id: wanted[0], pool };
-  // Prefer games that fit the words: nouns → gender, verb forms → conj.
-  const weights = ok.map(id => ({ id, w: id === "gender" || id === "conj" ? 2 : 1 }));
-  return { id: weightedPick(weights).id, pool };
+  if (wanted.length) return { id: wanted[0], pool, prefer };
+  // Otherwise alternate: after a speed game a thinking one, and back.
+  const lastSpeed = s.lastBonus ? PATH_BONUS_SPEED.has(s.lastBonus) : null;
+  const weights = ok.map(id => ({ id, w: lastSpeed === null || PATH_BONUS_SPEED.has(id) !== lastSpeed ? 3 : 1 }));
+  return { id: weightedPick(weights).id, pool, prefer };
 }
 function renderPathMinionOffer(it) {
   const s = pathSession, b = deckBoss(it.minion), d = getDeck(it.minion);
@@ -747,7 +824,7 @@ function renderPathBonusOffer(it) {
       <div class="p-bonus-icon">🎁</div>
       <div class="p-bonus-title">Bonus round?</div>
       <div class="p-bonus-sub">${g.icon} ${escapeHtml(gameName(g))} — <strong>${bonusGoalText(pick.id)}</strong> to clear it</div>
-      <div class="p-sub">With this session's words · optional</div>
+      <div class="p-sub">${pick.prefer.size ? "The words you missed come first" : "With this session's words"} · optional${bonusUntimed(pick.id) ? " · no clock" : ""}</div>
     </div>`;
   pathSetActions(`
     <button class="g-sec-btn" onclick="pathBonus(false)">Skip</button>
@@ -759,10 +836,10 @@ function pathBonus(take) {
   if (s.cur.minion) return pathMinion(take);
   logEvent("bonus", { taken: take, id: s.cur.pick && s.cur.pick.id });
   if (!take) { pathNext(); return; }
-  const { id, pool } = s.cur.pick;
+  const { id, pool, prefer } = s.cur.pick;
   s.lastBonus = id;
   gameRun = { kind: "surprise", ids: [id], i: 0, summaries: [], pool, size: "bonus", title: "🎁 Bonus", onDone: resumePathAfterBonus };
-  launchGame(id, { pool, size: "bonus" });
+  launchGame(id, { pool, size: "bonus", prefer });
 }
 function resumePathAfterBonus() {
   gameRun = null;
@@ -813,6 +890,13 @@ function renderPathSummary(abandoned) {
   const missed = s.missed.slice();
   const met = s.met.slice();
   const lenKey = s.lenKey;
+  // Mistakes still open (skipped or missed again) wait for next time.
+  const openLeft = pathRepairList().length;
+  // Small rewards for good habits, no fuss: every mistake repaired, or
+  // a session with none at all.
+  const cleanSlate = !abandoned && s.repairN > 0 && s.repairFixed === s.repairN;
+  const flawless = !abandoned && stats.answered >= 10 && stats.wrong === 0;
+  if (cleanSlate || flawless) addExp(10);
   endPathSession(abandoned);
   const xp = Math.max(0, S.exp - s.startExp - (s.badgeXp || 0));
   if (!abandoned && s.stats.answered >= 5) { if (acc >= 90) confettiBurst(40); playAchievement(); }
@@ -837,14 +921,18 @@ function renderPathSummary(abandoned) {
           ${known ? `<span class="p-chip ok">🌳 ${known} Known</span>` : ""}
           ${repaired ? `<span class="p-chip ok">🩹 ${repaired} repaired</span>` : ""}
           ${locked ? `<span class="p-chip gold">💎 ${locked} locked in</span>` : ""}
-          ${flagged ? `<span class="p-chip warn">🩹 ${flagged} need another look</span>` : ""}
+          ${flawless ? `<span class="p-chip gold">✨ Flawless</span>` : ""}
+          ${cleanSlate ? `<span class="p-chip gold">🧹 Clean slate — all ${s.repairN} repaired</span>`
+            : s.repairN ? `<span class="p-chip ok">🩹 ${s.repairFixed}/${s.repairN} repaired</span>` : ""}
+          ${openLeft ? `<span class="p-chip warn">⏭️ ${openLeft} to fix next time</span>` : flagged ? `<span class="p-chip warn">🩹 ${flagged} need another look</span>` : ""}
           <span class="p-chip gold">+${xp} XP${s.boosted ? " (⚡×2)" : ""}</span>
           ${s.badges ? `<button class="p-chip gold" onclick="showScreen('badges')">🏅 ${s.badges} achievement${s.badges > 1 ? "s" : ""} · +${s.badgeXp} XP</button>` : ""}
           ${s.golden ? `<span class="p-chip gold">🌟 ${s.golden} golden</span>` : ""}
         </div>
         ${typeof questMiniHtml === "function" ? questMiniHtml() : ""}
         ${upRows ? `<div class="g-missed p-moves"><div class="examples-title">Moved forward</div>${upRows}</div>` : ""}
-        ${missedListHtml(missed)}
+        ${missedListHtml(missed, !openLeft && s.repairN ? `Missed today (${missed.length}) — all repaired ✓`
+          : openLeft && openLeft < missed.length ? `Missed today (${missed.length}) — ${openLeft} still to fix` : "")}
         <div class="g-result-actions">
           ${dayCompleteCtaHtml()}
           <button class="${dayCompletePending() ? "g-sec-btn" : "g-big-btn"}" id="p-again">Another round ▶</button>

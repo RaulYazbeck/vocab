@@ -60,6 +60,7 @@
 .p-top { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
 .p-progress { flex:1; height:8px; background:rgba(255,255,255,0.08); border-radius:4px; overflow:hidden; }
 .p-progress-fill { height:100%; width:0; border-radius:4px; background:linear-gradient(90deg,var(--teal),var(--teal-hi)); transition:width 0.35s var(--ease); }
+.p-progress-fill.repair { background:linear-gradient(90deg,#FF9A3C,#FFB86B); }
 .p-count { font-size:12px; color:var(--text-3); font-variant-numeric:tabular-nums; min-width:38px; text-align:right; }
 .p-toggle.on { border-color:var(--accent); background:var(--accent-dim); color:var(--accent); }
 .p-card { position:relative; border-radius:var(--r-sm); }
@@ -123,6 +124,10 @@ button.p-chip { cursor:pointer; min-height:32px; }
 .p-bonus-icon { font-size:56px; animation:resultPop 0.5s var(--spring); }
 .p-bonus-title { font-size:22px; font-weight:900; margin:6px 0 4px; }
 .p-bonus-sub { font-size:14px; color:var(--text-2); }
+.p-repair-why { list-style:none; margin:14px auto 0; padding:0; max-width:420px; text-align:left; font-size:13.5px; line-height:1.5; color:var(--text-2); }
+.p-repair-why li { padding:8px 12px; border:1px solid var(--border); border-radius:var(--r-sm); background:rgba(255,255,255,0.03); }
+.p-repair-why li + li { margin-top:8px; }
+.p-repair-why strong { color:var(--text); }
 
 .p-moves { max-width:460px; margin:1rem auto 0; }
 .p-move { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.06); }

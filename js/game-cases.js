@@ -57,7 +57,7 @@ if (!IS_FRENCH_APP) registerGame({
       q = { w, ci, opts, typed };
       ctx.teach("");
       ctx.setBar((r - 1) / words.length, "progress");
-      ctx.setClock(`${r}/${words.length}`);
+      ctx.setRound(r, words.length);
       const np = nounParts(w);
       const nounLine = bare ? `<strong>${escapeHtml(np.noun)}</strong>` : colorArticleHtml(np.full);
       ctx.stage.innerHTML = `

@@ -238,6 +238,20 @@ function pathPaceNeeded(scan = pathScan(), today = studyToday()) {
   if (!unmet) return 0;
   return Math.ceil(unmet / Math.max(14, pathDaysLeft(today) - PLAN.LAG));
 }
+// Is the finish date still reachable? Never say "on course" when it
+// isn't: { ok, eta } — eta is when everything would be Known at the
+// maximum pace: the last word met, then KNOWN_LAG days to climb to 🌳
+// Known (1+2+4+7 days of stage gaps, plus slack). PLAN.LAG is
+// the plan's own, deliberately generous margin: the pace aims to meet
+// every word 75 days early, so a date can be reachable at the maximum
+// pace even when that margin no longer fits.
+const KNOWN_LAG = 30; // simulated: last word met → 99% Known in ~11 days, plus the slower last weeks
+function pathDeadlineStatus(scan = pathScan(), today = studyToday()) {
+  if (!pathDeadlineOn() || !pathUnmet(scan)) return { ok: true, eta: S.path.deadline || "" };
+  const eta = addDays(today, Math.ceil(pathUnmet(scan) / PLAN.MAX_PACE) + KNOWN_LAG);
+  const ok = pathDaysLeft(today) >= 0 && eta <= S.path.deadline;
+  return { ok, eta: ok ? S.path.deadline : eta };
+}
 function pathPace(scan = pathScan(), today = studyToday()) {
   if (!pathUnmet(scan)) return 0;
   return Math.max(PLAN.MIN_PACE, Math.min(PLAN.MAX_PACE, pathPaceNeeded(scan, today)));
@@ -439,6 +453,12 @@ const FOCUS_LABELS = { deck: "Deck focus", level: "Level focus", pos: "Word-type
 // towards your open quests — words for focus quests (the hard ones, a
 // deck, verbs…) and, as the bonus round, the game a quest asks for.
 const PATH_BONUS_IDS = ["gender", "match", "blitz", "cloze", "rain", "truefalse", "listen", "conj", "cases"];
+// Bonus games open up as your vocabulary grows (words met): recognition
+// games from day one, sentence and grammar games once there's enough to
+// work with.
+const PATH_BONUS_UNLOCK = { cloze: 40, cases: 80, conj: 80 };
+// Speed games vs thinking games: bonus rounds alternate between them.
+const PATH_BONUS_SPEED = new Set(["gender", "match", "blitz", "rain", "truefalse"]);
 function questNudges() {
   const out = { focus: [], games: [], quests: [] };
   if (!S.quests || !S.quests.list || typeof byId !== "function") return out;
@@ -587,20 +607,24 @@ function buildPathQueue(lenKey, opts = {}) {
     choiced.add(k);
     i++;
   }
-  // ⚔️ A minion may show up (≈10% of Regular/Long sessions, once a day).
-  if (budget >= 30 && !opts.noBonus && !focus && !grandmaOn() && typeof minionDeckPick === "function"
-      && S.games && S.games.minionDay !== todayISO() && Math.random() < MINION_CHANCE) {
-    const deck = out.filter(x => x.t !== "learn").length >= 10 ? minionDeckPick() : null;
-    if (deck) out.splice(Math.floor(out.length * 0.55), 0, { t: "bonus", minion: deck });
-  }
-  // Bonus-round offers: one every 9 questions (Quick gets one too;
-  // never while muted for audio games; never in Grandma mode).
+  // Bonus-round offers: a few, spread evenly, the last one near the end
+  // as a reward — Quick 1, Regular 2, Long 4 (never in Grandma mode).
+  // ⚔️ A minion (≈10% of Regular/Long sessions, once a day) takes the
+  // slot nearest the middle.
   if (budget >= 15 && !opts.noBonus && !focus && !grandmaOn()) {
+    let slots = budget >= 60 ? [0.25, 0.5, 0.75, 0.92] : budget >= 30 ? [0.45, 0.9] : [0.6];
+    let minion = null;
+    if (budget >= 30 && typeof minionDeckPick === "function" && S.games && S.games.minionDay !== todayISO()
+        && Math.random() < MINION_CHANCE && out.filter(x => x.t !== "learn").length >= 10) minion = minionDeckPick();
+    const mid = minion ? slots.reduce((a, b) => Math.abs(b - 0.55) < Math.abs(a - 0.55) ? b : a) : -1;
+    const isQ = x => x.t !== "learn" && x.t !== "bonus" && !x.warm;
+    const total = out.filter(isQ).length;
+    const marks = slots.map(f => ({ at: Math.max(1, Math.round(total * f)), item: f === mid ? { t: "bonus", minion } : { t: "bonus" } }));
     let n = 0;
-    for (let i = 0; i < out.length; i++) {
-      if (out[i].t === "learn" || out[i].t === "bonus" || out[i].warm) { if (out[i].minion) n = 0; continue; }
+    for (let i = 0; i < out.length && marks.length; i++) {
+      if (!isQ(out[i])) continue;
       n++;
-      if (n % 9 === 0 && i < out.length - 3) { out.splice(i + 1, 0, { t: "bonus" }); i++; }
+      if (n >= marks[0].at && i < out.length - 1) { out.splice(i + 1, 0, marks.shift().item); i++; }
     }
   }
   return { items: out, budget, newWords: nNew, reviews: reviews.length, quota: q, focus };

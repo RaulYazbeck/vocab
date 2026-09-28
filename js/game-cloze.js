@@ -73,8 +73,16 @@ registerGame({
       const step = clozeFormStep(w, info);
       const typed = !!rp.typed && f.typed && ctx.size === "full" && !!info.answer;
       const n = Math.min(f.options, 5);
-      const opts = typed ? [] : mcChoices(w, { text: gameForm, n, pool: ctx.pool, target: true, hard: !f.rookie,
-        none: !f.rookie && ctx.size === "full" && ctx.rank >= 1 });
+      // Case words: step 1 asks only for the noun ("– Mund"); the article
+      // the sentence needs is step 2. Showing "der Mund" first would give
+      // the dictionary article — which is usually not the one in the gap.
+      const caseStep = !!step && step.kind === "case";
+      const bare = x => { const np = nounParts(x); return np ? np.noun : gameForm(x); };
+      const opts = typed ? [] : mcChoices(w, caseStep
+        ? { text: x => "– " + bare(x), formFn: bare, filter: x => !!nounParts(x), n, pool: ctx.pool, target: false, hard: !f.rookie,
+            none: !f.rookie && ctx.size === "full" && ctx.rank >= 1 }
+        : { text: gameForm, n, pool: ctx.pool, target: true, hard: !f.rookie,
+            none: !f.rookie && ctx.size === "full" && ctx.rank >= 1 });
       // Case words hide the article too, so it can't give the word away.
       const gapHtml = step && step.kind === "case" ? step.ci.gapBoth : info.html;
       const typedAnswer = step && step.kind === "case" ? `${step.ci.det} ${step.ci.noun}` : info.answer;
@@ -82,16 +90,16 @@ registerGame({
       peeked = false;
       ctx.teach("");
       ctx.setBar((r - 1) / words.length, "progress");
-      ctx.setClock(`${r}/${words.length}`);
+      ctx.setRound(r, words.length);
       const peekOk = rp.peek !== false || ctx.size !== "full";
       ctx.stage.innerHTML = `
         <div class="cz-card g-enter">
-          <div class="g-q-label">${typed ? "Type the missing word" + (step && step.kind === "case" ? "s — with the right article" : "") : "Which word fits?"}${ctx.tag(w)}</div>
+          <div class="g-q-label">${typed ? "Type the missing word" + (caseStep ? "s — with the right article" : "") : caseStep ? "Which noun fits? <small class=\"cz-next\">article next</small>" : "Which word fits?"}${ctx.tag(w)}</div>
           <div class="cz-sentence" id="cz-sentence">${gapHtml}</div>
           ${typed ? `<div class="cz-trans">(${escapeHtml(gamePrompt(w))})</div>` : ""}
           ${peekOk ? `<button class="g-link-btn cz-peek" id="cz-peek">Show translation</button>` : ""}
           <div class="cz-trans" id="cz-trans" style="display:none">${escapeHtml(info.example.en || "")}</div>
-          ${step && !typed ? `<div class="cz-steps"><span class="on">1 · word</span><span>2 · form</span></div>` : ""}
+          ${step && !typed ? `<div class="cz-steps"><span class="on">1 · word</span><span>2 · ${caseStep ? "article" : "form"}</span></div>` : ""}
         </div>
         <div id="cz-opts">${typed ? gTypedHtml(step && step.kind === "case" ? "article + word, as in the sentence…" : "the word as it appears…") : mcOptionsHtml(opts)}</div>`;
       const pk = document.getElementById("cz-peek");
@@ -111,16 +119,19 @@ registerGame({
       if (tr) tr.style.display = ""; if (pk) pk.style.display = "none";
       speak(q.info.example[WORD_KEY]);
     };
-    const award = (btn, base) => {
-      const pts = ctx.award(q.w, base);
+    // count: false when the question isn't settled yet (a two-step item
+    // counts as right only once its second step is right too).
+    const award = (btn, base, count = true) => {
+      const pts = ctx.award(q.w, base, count);
       score += pts;
       floatScore(btn, "+" + pts, ctx.isGolden(q.w) ? "gold" : "");
       return pts;
     };
-    const good = (btn, base) => {
-      correct++; combo++; maxCombo = Math.max(maxCombo, combo);
+    const good = (btn, base, count = true) => {
+      if (count) correct++;
+      combo++; maxCombo = Math.max(maxCombo, combo);
       if (!peeked) noPeek++;
-      award(btn, base + (peeked ? 0 : 5));
+      award(btn, base + (peeked ? 0 : 5), count);
       playPop(); haptic("select");
       ctx.say("Correct!");
     };
@@ -172,11 +183,16 @@ registerGame({
       reveal(opt.correct);
       tallyAdd(st.kind === "case" ? st.c : st.kind, opt.correct);
       if (opt.correct) {
+        correct++;
         award(btn, 8);
         playSuccess(); haptic("select");
         ctx.teach(`✓ ${st.reason}`, "ok");
         gTimeout(next, 2200);
       } else {
+        // The word was right, the form wasn't: a mistake on this question
+        // (grammar only — the word's stage is untouched).
+        wrong++; q.failed = true;
+        combo = ctx.comboAfterMiss(combo, q.w);
         if (btn) shakeEl(btn);
         playMiss(); haptic("miss");
         ctx.teach(`✗ Not <s>${escapeHtml(opt.text)}</s> — it's ${st.reason}`, "bad");
@@ -193,7 +209,7 @@ registerGame({
       const btn = ctx.stage.querySelector(`.g-opt[data-i="${i}"]`);
       mcReveal(ctx.stage, q.opts, i);
       if (opt.correct) {
-        ctx.hit(q.w); good(btn, 10);
+        ctx.hit(q.w); good(btn, 10, !q.step);
         ctx.setScore(score); ctx.setCombo(combo);
         if (q.step) { gTimeout(showStep2, 650); return; }
         reveal(true);
@@ -235,7 +251,8 @@ registerGame({
         if (wordRight) {
           typedOk++; ctx.hit(q.w, "recall");
           if (input) input.classList.add("near");
-          award(input, 5);
+          award(input, 5, false);
+          wrong++;
           if (st && st.kind === "case") tallyAdd(st.c, false);
           ctx.say(`Right word — here it's ${q.typedAnswer}`);
           ctx.teach(`Right word — but this sentence needs <strong>${escapeHtml(q.typedAnswer)}</strong>.${st ? `<div class="g-teach-rule">${st.reason}</div>` : ""}`, "near");

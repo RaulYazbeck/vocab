@@ -707,9 +707,9 @@ function deadlineSettingsHtml() {
   const minDate = addDays(studyToday(), 30);
   if (!on) return setSwitchHtml("🗓️", "Finish date", "Optional. Set one and your quests are sized so you finish every word by then.", false, "setDeadlineFromSettings(addDays(studyToday(), 365))");
   const scan = pathScan();
-  const need = pathPaceNeeded(scan);
-  const late = need > PLAN.MAX_PACE
-    ? `<span>At the maximum pace (${PLAN.MAX_PACE}/day) this lands around ${fmtShortDate(addDays(studyToday(), Math.ceil(pathUnmet(scan) / PLAN.MAX_PACE) + 40))} — pick a later date if you like.</span>` : "";
+  const st = pathDeadlineStatus(scan);
+  const late = !st.ok
+    ? `<span>⚠️ Out of reach: even at the maximum pace (${PLAN.MAX_PACE} new words a day) you'd finish around ${fmtShortDate(st.eta)}. Pick a later date to get an honest daily plan.</span>` : "";
   return `<div class="set-choice">
       <div class="set-choice-head"><span class="set-icon">🗓️</span><span class="set-label">Finish everything by</span></div>
       <div class="set-date-row">
@@ -724,6 +724,8 @@ function deadlineLineHtml(scan) {
   const d = fmtShortDate(S.path.deadline);
   if (!pathUnmet(scan)) return `🗓️ Every word is met — reviews only from here`;
   if (pathDaysLeft() < 0) return `🗓️ Your finish date (${d}) has passed — pick a new one in ⚙️ Settings whenever you like`;
+  const st = pathDeadlineStatus(scan);
+  if (!st.ok) return `⚠️ ${d} is out of reach — at the maximum pace (${PLAN.MAX_PACE} new a day) you'd finish around <b>${fmtShortDate(st.eta)}</b>. Pick a later date in ⚙️ Settings`;
   return `🗓️ Quests are sized to finish everything by <b>${d}</b> · ${pathEnsurePlan().pace} new today`;
 }
 function setDeadlineFromSettings(iso) {
