@@ -145,9 +145,30 @@ function clozeDistractors(w, info, pool, n, formFn, hard, useDet, useCase) {
       return pre >= 4 && pre >= 0.6 * Math.min(f.length, g.length);
     }, true));
   }
+  const sentence = String(info.example[WORD_KEY] || "");
+  const after = sentence.slice(String(info.before || "").length + String(info.answer || "").length);
+  const vp = kind === "verb" && !IS_FRENCH_APP && typeof verbParse === "function" ? verbParse(gameForm(w)) : null;
+  const hasWord = (s, p) => new RegExp(`(^|[^\\p{L}])${p}([^\\p{L}]|$)`, "iu").test(s);
+  if (vp && vp.sep && !gapN.startsWith(normalize(vp.sep)) && hasWord(after, vp.sep)) {
+    // PARTICLE: the verb is split ("Füllen Sie bitte das Formular aus"),
+    // so it's plainly a verb — the traps are verbs too, ones that can't
+    // end in that particle: another particle (anrufen) or a prefix that
+    // never splits (bezahlen).
+    const sep = escapeHtml(vp.sep);
+    add(pick(2, x => {
+      if (posOf(x) !== "verb") return false;
+      const q = verbParse(gameForm(x));
+      return !!q && (q.sep ? q.sep !== vp.sep && !hasWord(after, q.sep) : !!q.insep);
+    }, true).map(x => { const q = verbParse(gameForm(x)), f = escapeHtml(gameForm(x));
+      return { opt: { text: gameForm(x), correct: false, word: x,
+        why: q.sep ? `${f} splits off <b>${escapeHtml(q.sep)}</b> — this sentence ends in <b>${sep}</b>`
+          : `${f} never splits — the <b>${sep}</b> here belongs to the verb in the gap` } }; }));
+  }
   // LOOK-ALIKES of a kind that can't take the slot (hard mode scores
-  // spelling similarity).
-  const others = CZ_OTHER_KINDS[kind] || CZ_OTHER_KINDS.other;
+  // spelling similarity). A verb closing its clause next to another
+  // ("noch ___ gehen") could be an adverb too: noch einmal gehen.
+  let others = CZ_OTHER_KINDS[kind] || CZ_OTHER_KINDS.other;
+  if (kind === "verb" && /^\s+[a-zäöüß]+\s*([.,!?;:–-]|$)/.test(after)) others = others.filter(k => k !== "mod");
   add(pick(n - out.length, x => others.includes(clozeKind(x))));
   if (out.length < n) add(pick(n, x => others.includes(clozeKind(x)), false));
   return out;
