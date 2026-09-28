@@ -706,3 +706,7 @@ body.grandma .say-ex-t { font-size:15px; }
 /* Sheets: a drag on the backdrop or past the sheet's end never moves the page */
 .settings-overlay { touch-action:none; }
 .settings-sheet, .modal-sheet { overscroll-behavior:contain; }
+/* Taps on a button's drawing count as taps on the button (iOS ignores
+   touch-action on SVG shapes, so a quick double tap there zoomed). */
+button svg, button svg *, .chx-btn * { pointer-events:none; }
+.chx-overlay, .chx-overlay * { touch-action:manipulation; -webkit-user-select:none; user-select:none; }
