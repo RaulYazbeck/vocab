@@ -106,7 +106,9 @@ function buildHintInfo(word, tight = false) {
         return commonPrefixLen(n, mainToken) - levenshtein(n, mainToken);
       };
       const best = [...main].reduce((a, b) => (closeness(b) > closeness(a) ? b : a));
-      matched.forEach(i => { if (main.has(i) && i !== best) matched.delete(i); });
+      // (A word of the answer itself stays: "tous" in "tous les jours" only
+      // looks like "jours".)
+      matched.forEach(i => { if (main.has(i) && i !== best && !tokens.includes(normalize(parts[i]))) matched.delete(i); });
       hidden = new Set([best]);
       let grew = true;
       while (grew) {
@@ -114,7 +116,11 @@ function buildHintInfo(word, tight = false) {
         matched.forEach(i => { if (!hidden.has(i) && (hidden.has(i - 2) || hidden.has(i + 2))) { hidden.add(i); grew = true; } });
       }
     }
-    const html = parts.map((part, i) => hidden.has(i) ? `<span class="hint-redacted"></span>` : part).join("");
+    let html = parts.map((part, i) => hidden.has(i) ? `<span class="hint-redacted"></span>` : part).join("");
+    // tight: one blank per gap, however many words it hides — "___ ___ ___"
+    // would tell you the answer is the one three-word option.
+    const two = /<span class="hint-redacted"><\/span>[\s'’-]*<span class="hint-redacted"><\/span>/;
+    if (tight) while (two.test(html)) html = html.replace(two, `<span class="hint-redacted"></span>`);
     // Same sentence with the hidden words highlighted (Gap Fill reveal).
     const reveal = parts.map((part, i) => hidden.has(i) ? `<mark class="hint-reveal">${part}</mark>` : part).join("");
     // The exact text that was hidden (first to last hidden word), for
