@@ -104,7 +104,7 @@ registerGame({
           : q.trap ? `<div class="g-teach-sub">✗ <s>${escapeHtml(q.trap)}</s> — wrong article.${GR_DE ? " " + genderRuleHtml(nounParts(q.w).noun, nounParts(q.w).answer) : ""}</div>`
           : q.other ? `<div class="g-teach-sub">✗ ${colorArticleHtml(gameForm(q.other))} = ${escapeHtml(gamePrompt(q.other))}</div>` : "";
         ctx.teach(wordLessonHtml(q.w, null, why), "bad");
-        if (ctx.sudden) gTimeout(end, 1500); else ctx.pauseClockFor(1900, next);
+        ctx.waitContinue(ctx.sudden ? end : next, ctx.sudden ? "See results" : "Continue");
       }
       ctx.setScore(score); ctx.setCombo(combo);
       if (ctx.size === "bonus" && correct >= 8) gTimeout(end, 250);

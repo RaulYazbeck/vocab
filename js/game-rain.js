@@ -122,7 +122,8 @@ registerGame({
       speak(gameForm(target));
       if (drop && drop.w) recordConfusion(target, drop.w);
       ctx.teach(wordLessonHtml(target, drop && !drop.ok ? { word: drop.w } : null), "bad");
-      gTimeout(() => { if (lives <= 0) end(); else wave(); }, 2000);
+      // Read it first: the rain waits (and the clock stands still) until Continue.
+      if (lives <= 0) ctx.waitContinue(end, "See results"); else ctx.waitContinue(wave);
     };
 
     const hit = drop => {

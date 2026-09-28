@@ -1,6 +1,8 @@
 // ── GAME: CONJUGATION SLOTS ───────────────────
-// Three reels spin — a verb, a person and (German) a tense — and you
-// type the form.
+// Three reels spin — a person, a verb and (German) a tense — and you
+// type the form. A line under the reels says what shape the answer
+// takes ("auxiliary + Partizip II", "one word"…); typing the pronoun
+// too is accepted.
 //
 // Two sources of spins:
 //   • DECK CARDS from the conjugation decks ("sein — ich ___"): as
@@ -17,8 +19,11 @@
 //     comes back later in the same round. "+ all B1 verbs" mixes in
 //     verbs you haven't met yet (meaning shown).
 //
-// Ranks: a clock per spin from 🥈 Silver; from 🥇 Gold, verbs you know
-// show their MEANING on the reel ("to be") instead of the infinitive.
+// Clock: never inside a Today session (bonus) or a Daily / Mix round —
+// this is a thinking game. In the Games hub a clock per spin starts at
+// 🥈 Silver, sized for reading three reels and typing two words (45 s
+// down to 25 s at 💎). From 🥇 Gold, verbs you know show their MEANING
+// on the reel ("to be") instead of the infinitive.
 
 const CONJ_DECK_RE = /conj|praet|präter|imparfait|futur|passe|passé|perfekt/i;
 const CONJ_RE = /^(.+?)\s+—\s+(.+?)(?:\s+___\s*(.*))?$/;
@@ -50,6 +55,27 @@ function conjTenses() {
   return on.length ? on : all;
 }
 function conjUnlimitedOn() { return typeof GR_DE !== "undefined" && GR_DE && verbBank().verbs.length >= 4; }
+// Inside a Today session (bonus rounds) the machine is a learning tool:
+// only verbs you've met, only the tenses of the level you're on —
+//   A1: Präsens, Perfekt, Imperativ · A2: + Präteritum, Futur I,
+//   Konjunktiv II · B1 and beyond: all of them.
+// The Games hub keeps the full machine (all tenses, "+ all B1 verbs").
+const CONJ_LEVEL_TENSES = { a1: ["pr", "pf", "im"], a2: ["pr", "pf", "im", "pt", "fu", "k2"] };
+function conjLevelTenses() {
+  const fg = typeof pathFrontier === "function" ? pathFrontier() : null;
+  const all = CONJ_TENSE_IDS();
+  const lv = fg && CONJ_LEVEL_TENSES[fg.id];
+  return lv ? lv.filter(t => all.includes(t)) : all;
+}
+function conjRoundTenses(size) {
+  if (size !== "bonus") return conjTenses();
+  const lv = conjLevelTenses();
+  const on = conjTenses().filter(t => lv.includes(t));
+  return on.length ? on : lv;
+}
+// Met verbs that have at least one of these tenses.
+function conjMineFor(pool, tenses) { return conjVerbSplit(pool).mine.filter(v => v.tenses.some(t => tenses.includes(t))); }
+const CONJ_CARD_TENSE = it => /präteritum/i.test(it.verb) ? "pt" : "pr";
 // Verbs you've met (a word record exists for the verb's own card, or it
 // is in the game pool) vs the rest of the A1–B1 list.
 function conjVerbSplit(pool) {
@@ -121,11 +147,21 @@ function conjSayGrade(v) { if (_conjSayGrade) _conjSayGrade(v); }
 registerGame({
   id: "conj", name: "Conjugation Slots", icon: "🎰", get skill() { return speakOn() ? "Grammar · verb forms (said)" : "Grammar · verb forms (typed)"; },
   ranks: [
-    { clock: 0 }, { clock: 20000 }, { clock: 15000, meaning: true }, { clock: 12000, meaning: true }, { clock: 9000, meaning: true },
+    { clock: 0 }, { clock: 45000 }, { clock: 35000, meaning: true }, { clock: 30000, meaning: true }, { clock: 25000, meaning: true },
   ],
   twists: ["golden", "turbo", "sudden"],
-  howTo: () => [(speakOn() ? "Say" : "Type") + (IS_FRENCH_APP ? " the verb form for the person shown" : " the verb form for the person and tense shown") + (speakOn() ? ", then tap Show." : ".")],
-  requirement(pool) {
+  howTo: () => [(speakOn() ? "Say" : "Type") + (IS_FRENCH_APP ? " the verb form for the person shown" : " the verb form for the person and tense shown") + (speakOn() ? ", then tap Show." : "."),
+    ...(IS_FRENCH_APP ? [] : ["Type only the verb part — the pronoun is optional. The line under the reels shows the shape: <em>habe gespielt</em> (Perfekt), <em>werde spielen</em> (Futur), <em>spiel</em> (Imperativ)…"]),
+    "In a Today session: verbs you've met, tenses of your level, no clock. In the Games hub: every tense, extra verbs, and a clock per spin from 🥈 Silver."],
+  requirement(pool, size) {
+    // Today: only with 4 verbs you've met (or 4 deck cards) — never a
+    // machine full of verbs you've never seen.
+    if (size === "bonus") {
+      const on = conjUnlimitedOn(), ts = on ? conjRoundTenses("bonus") : [];
+      const n = on ? conjMineFor(pool, ts).length : 0;
+      const cards = conjWords(pool).filter(w => !on || ts.includes(CONJ_CARD_TENSE(conjItem(w)))).length;
+      return n >= 4 || cards >= 4 ? { ok: true } : { ok: false, reason: `Needs 4 verbs you've met — you have ${Math.max(n, cards)}` };
+    }
     if (conjUnlimitedOn()) return { ok: true };
     const n = conjWords(pool).length;
     return n >= 4 ? { ok: true } : { ok: false, reason: `Needs 4 verb forms from the conjugation decks — you have ${n}` };
@@ -133,13 +169,16 @@ registerGame({
   stars: [90, 150, 200],
   start(ctx) {
     const rp = ctx.rp;
-    const total = ctx.rounds(10, 5, 6);
-    const limitAll = ctx.size === "bonus" ? 20000 * ctx.timeScale : 0;
-    const eligible = conjWords(ctx.pool);
     const unlimited = conjUnlimitedOn();
-    const split = unlimited ? conjVerbSplit(ctx.pool) : { mine: [], extra: [] };
+    const learning = ctx.size === "bonus"; // Today: met verbs, your level's tenses
+    const tenses = () => conjRoundTenses(ctx.size);
+    const eligible = conjWords(ctx.pool).filter(w => !learning || !unlimited || tenses().includes(CONJ_CARD_TENSE(conjItem(w))));
+    const split = !unlimited ? { mine: [], extra: [] } : learning ? { mine: conjMineFor(ctx.pool, tenses()), extra: [] } : conjVerbSplit(ctx.pool);
+    // Today with fewer than 4 met verbs (it opened on deck cards): cards only.
+    const cardsOnly = !unlimited || (learning && split.mine.length < 4);
+    const total = cardsOnly && learning ? Math.min(ctx.rounds(10, 5, 6), eligible.length) : ctx.rounds(10, 5, 6);
     // Deck cards keep their share (and their credit): up to 40% of spins.
-    const nCards = unlimited ? Math.min(eligible.length, Math.round(total * 0.4)) : total;
+    const nCards = cardsOnly ? total : Math.min(eligible.length, Math.round(total * 0.4));
     const cards = sampleWords(eligible, nCards);
     let r = 0, score = 0, combo = 0, maxCombo = 0, correct = 0, wrong = 0, goal = 0, cur = null, helped = false, spinT = 0, lastInf = "";
     const perSpin = ctx.size === "full" && rp.clock ? rp.clock * ctx.timeScale : 0;
@@ -156,19 +195,23 @@ registerGame({
     for (let i = 0; i < total; i++) plan.push(i < cards.length ? "card" : "gen");
     const order = unlimited ? shuffle(plan) : plan;
 
-    const chips = () => unlimited ? `<div class="cj-chips" id="cj-chips">
+    // Tense chips and "+ all B1 verbs" belong to the Games hub; in Today
+    // a quiet line names the tenses in play instead.
+    const chips = () => unlimited && learning ? `<div class="cj-level">${escapeHtml(tenses().map(t => TENSE_BY_ID[t].name).join(" · "))}</div>`
+      : unlimited ? `<div class="cj-chips" id="cj-chips">
         ${TENSES.map(t => `<button class="cj-chip ${conjTenses().includes(t.id) ? "on" : ""}" data-t="${t.id}">${t.name}</button>`).join("")}
         <button class="cj-chip all ${S.games.conjAll !== false ? "on" : ""}" data-all="1" title="Mix in verbs you haven't met yet — practice only, never added to your decks">+ all B1 verbs</button>
       </div>` : "";
     ctx.stage.innerHTML = `
       ${chips()}
       <div class="cj-machine ${unlimited ? "three" : ""}" id="cj-machine">
+        <div class="cj-reel pron" id="cj-pron"><span></span></div>
         <div class="cj-reel" id="cj-verb"><span></span></div>
-        <div class="cj-reel" id="cj-pron"><span></span></div>
         ${unlimited ? `<div class="cj-reel tense" id="cj-tense"><span></span></div>` : ""}
       </div>
       <div class="cj-meaning" id="cj-meaning"></div>
       <div class="cj-tail" id="cj-tail"></div>
+      <div class="cj-format" id="cj-format"></div>
       <div class="g-typed-wrap">
         <input type="text" class="german-input" id="cj-input" placeholder="the verb form…" ${sayMode ? `style="display:none" tabindex="-1"` : ""}
           autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="go"/>
@@ -204,9 +247,9 @@ registerGame({
         if (again) { lastInf = m.v.inf; return { kind: "gen", ...again, extra: m.extra }; }
       }
       // Mine first (~65%), extra B1 verbs mixed in when switched on.
-      const useExtra = S.games.conjAll !== false && split.extra.length && (split.mine.length < 4 || Math.random() < 0.35);
-      const list = useExtra ? split.extra : split.mine.length >= 4 ? split.mine : split.mine.concat(split.extra);
-      const pick = conjPickSpin(list, conjTenses(), lastInf) || conjPickSpin(verbBank().verbs, conjTenses(), lastInf);
+      const useExtra = !learning && S.games.conjAll !== false && split.extra.length && (split.mine.length < 4 || Math.random() < 0.35);
+      const list = useExtra ? split.extra : split.mine.length >= 4 || learning ? split.mine : split.mine.concat(split.extra);
+      const pick = conjPickSpin(list, tenses(), lastInf) || conjPickSpin(learning ? split.mine : verbBank().verbs, tenses(), "");
       if (!pick) return null;
       lastInf = pick.v.inf;
       return { kind: "gen", ...pick, extra: useExtra || !split.mine.includes(pick.v) };
@@ -228,7 +271,7 @@ registerGame({
       }
       ctx.teach("");
       ctx.setBar((r - 1) / total, "progress");
-      if (!perSpin && !limitAll) ctx.setClock(`${r}/${total}`);
+      if (!perSpin) ctx.setRound(r, total);
       let verbTxt, pronTxt, tenseTxt = "", tail = "", meaning = "";
       if (cur.kind === "card") {
         const it = cur.it, f = ctx.fmt(cur.w);
@@ -250,6 +293,9 @@ registerGame({
       }
       document.getElementById("cj-tail").innerHTML = tail;
       document.getElementById("cj-meaning").innerHTML = meaning;
+      const fmt = formatOf(cur);
+      document.getElementById("cj-format").innerHTML = fmt.html;
+      input.placeholder = fmt.placeholder;
       const machine = document.getElementById("cj-machine");
       machine.classList.add("spinning");
       ctx.busy = true;
@@ -274,6 +320,43 @@ registerGame({
       tick();
     };
     const answersOf = c => c.kind === "card" ? [c.it.ans] : verbCellAnswers(c.cell);
+    // Typing the pronoun too ("ich habe gespielt", "spielen Sie!") is
+    // fine: it's stripped before grading if the bare form doesn't match.
+    const gradeConj = (val, c) => {
+      const answers = answersOf(c);
+      const res = gradeTyped(val, answers);
+      if (res === true) return res;
+      const bare = String(val).trim().replace(/!+$/, "").replace(/^(ich|du|er|sie|es|wir|ihr|je|tu|il|elle|on|nous|vous|ils|elles)\s+|^j[’']\s*/i, "").replace(/\s+Sie$/, "").trim();
+      if (bare && bare !== String(val).trim()) { const r2 = gradeTyped(bare, answers); if (r2) return r2; }
+      return res;
+    };
+    // What shape the answer takes, with an example from another verb
+    // for the same person and tense (so the example never gives it away).
+    const formatOf = c => {
+      if (c.kind === "card") {
+        const nw = c.it.ans.trim().split(/\s+/).length;
+        return { html: `${sayMode ? "🗣️ Say" : "✍️ Type"} <strong>${nw === 1 ? "one word" : nw + " words"}</strong> — the verb form only, no pronoun needed`, placeholder: "the verb form…" };
+      }
+      if (IS_FRENCH_APP) return { html: "", placeholder: "the verb form…" };
+      const F = c.v.F, t = c.tense;
+      const own = t === "k2" && F.k2special;
+      const shape = { pr: "one word", pt: "one word", pf: "haben/sein + Partizip II", pq: "hatte/war + Partizip II",
+        fu: "werden + infinitive", k2: own ? "one word — its own form (no würde)" : "würde + infinitive", im: "the command form — no du / ihr" }[t];
+      let ex = null;
+      if (!own) {
+        const exV = ["spielen", "machen", "kaufen", "lernen"].map(i => verbBank().byInf.get(i)).find(v => v && v.inf !== c.v.inf);
+        const cell = exV ? verbCell(exV.F, t, c.person) : null;
+        if (cell) ex = cell.ans;
+      }
+      const notes = [];
+      if (/…/.test(c.cell.tail || "")) notes.push("the prefix is shown, no need to type it");
+      if (F.refl && ["pf", "pq", "fu", "k2"].includes(t) && !own) notes.push("mich / dich / sich… after the first word is optional");
+      const two = ["pf", "pq", "fu"].includes(t) || (t === "k2" && !own);
+      return {
+        html: `${sayMode ? "🗣️ Say" : "✍️ Type"}: <strong>${escapeHtml(shape)}</strong>${ex ? ` — e.g. <em>${escapeHtml(ex)}</em>` : ""}${notes.length ? `<div class="cj-format-note">${escapeHtml(notes.join(" · "))}</div>` : ""}`,
+        placeholder: two ? "two words…" : "one word…", // the example is on the line above
+      };
+    };
     const shownOf = c => c.kind === "card" ? `${c.it.pron} <strong>${escapeHtml(c.it.ans)}</strong>${c.it.tail ? " " + escapeHtml(c.it.tail) : ""}`
       : `${c.tense === "im" ? "" : escapeHtml(PERSON_LABEL[c.person].split("/")[0]) + " "}<strong>${escapeHtml(c.cell.ans)}</strong>${c.cell.tail ? " " + escapeHtml(c.cell.tail.replace(/^… /, "")) : ""}`;
     const sayOf = c => c.kind === "card" ? `${c.it.pron.split("/")[0]} ${c.it.ans}` : `${c.tense === "im" ? "" : PERSON_LABEL[c.person].split("/")[0] + " "}${c.cell.ans}${c.cell.tail ? " " + c.cell.tail.replace(/^… /, "").replace(/!$/, "") : ""}`;
@@ -298,7 +381,7 @@ registerGame({
         document.getElementById("cj-say").innerHTML = "";
         if (said && sayKind(shownAtMs, revealAtMs, helped) === "recognition") helped = true;
       }
-      const res = skip ? false : sayMode ? said : gradeTyped(val, answersOf(cur));
+      const res = skip ? false : sayMode ? said : gradeConj(val, cur);
       if (res === "near") {
         input.classList.add("near");
         fb.innerHTML = `<span class="g-near">≈ Almost — ${diffHtml(val, answersOf(cur)[0])}</span>`;
@@ -379,15 +462,8 @@ registerGame({
     });
     gListen(chipBox || document.body, "pointerdown", e => { if (e.target.closest && e.target.closest(".cj-chip")) e.preventDefault(); });
 
-    if (perSpin || limitAll) gInterval(() => {
+    if (perSpin) gInterval(() => {
       if (ctx.finished || ctx.paused) return;
-      if (limitAll) {
-        const left = Math.max(0, limitAll - ctx.clock.elapsed());
-        ctx.setClock(Math.ceil(left / 1000) + "s", left < 5000);
-        ctx.setBar(left / limitAll, left < 5000 ? "urgent" : "");
-        if (left <= 0) done();
-        return;
-      }
       if (ctx.busy || ctx.waiting || (sayMode && revealed)) return;
       const left = Math.max(0, perSpin - (ctx.clock.elapsed() - spinT));
       ctx.setClock(Math.ceil(left / 1000) + "s", left < 4000);

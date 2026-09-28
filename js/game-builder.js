@@ -127,7 +127,7 @@ registerGame({
         (gd ? [gd, ...pool] : pool).slice(0, decoys).forEach(t => bank.splice(Math.floor(Math.random() * (bank.length + 1)), 0, { text: t, used: false, decoy: true }));
       }
       ctx.setBar((r - 1) / words.length, "progress");
-      ctx.setClock(`${r}/${words.length}`);
+      ctx.setRound(r, words.length);
       const noReveal = ctx.size === "full" && rp.noReveal;
       ctx.stage.innerHTML = `
         <div class="sb-card g-enter">

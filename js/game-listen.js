@@ -71,7 +71,7 @@ registerGame({
       ctx.teach("");
       replays = 0;
       ctx.setBar((r - 1) / words.length, "progress");
-      ctx.setClock(`${r}/${words.length}`);
+      ctx.setRound(r, words.length);
       ctx.stage.innerHTML = `
         ${!SOUND.tts ? `<div class="g-notice" id="l-muted">🔇 Reading words aloud is off. <button class="g-notice-btn" onclick="listenUnmute()">Turn it on</button></div>` : ""}
         ${listenVoiceMissing() ? `<div class="g-notice soft">No ${langName} voice found on this device — pronunciation may sound off.</div>` : ""}

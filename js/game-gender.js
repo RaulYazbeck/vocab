@@ -109,7 +109,7 @@ registerGame({
         // Why: an ending rule when there is one (-ung → die, -chen → das…).
         const rule = typeof genderRuleHtml === "function" ? genderRuleHtml(np.noun, np.answer) : "";
         ctx.teach(`<div class="g-teach-main">${colorArticleHtml(np.full)} = ${escapeHtml(gamePrompt(cur))}</div>${rule ? `<div class="g-teach-rule">${rule}</div>` : `<div class="g-teach-sub">No ending rule here — picture it in its colour.</div>`}`, "bad");
-        if (sudden) gTimeout(end, 1500); else ctx.pauseClockFor(1700, next);
+        ctx.waitContinue(sudden ? end : next, sudden ? "See results" : "Continue");
       }
       ctx.setScore(score); ctx.setCombo(combo);
     };

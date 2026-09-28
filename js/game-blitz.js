@@ -91,8 +91,7 @@ registerGame({
         noteWrongPick(q.w, opt);
         ctx.say(`Answer: ${gameForm(q.w)} = ${gamePrompt(q.w)}`);
         ctx.teach(wordLessonHtml(q.w, opt), "bad");
-        if (ctx.sudden) { gTimeout(end, 1500); }
-        else ctx.pauseClockFor(1900, next);
+        ctx.waitContinue(ctx.sudden ? end : next, ctx.sudden ? "See results" : "Continue");
       }
       ctx.setScore(score); ctx.setCombo(combo);
       if (ctx.size === "bonus" && correct >= 6) end();

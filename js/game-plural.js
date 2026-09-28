@@ -87,7 +87,7 @@ if (!IS_FRENCH_APP) registerGame({
         ...shuffle(item.others.slice()).slice(0, n - 1).map(o => ({ text: "die " + o, correct: false }))]);
       q = { w, item, opts, typed };
       ctx.setBar((r - 1) / words.length, "progress");
-      ctx.setClock(`${r}/${words.length}`);
+      ctx.setRound(r, words.length);
       ctx.stage.innerHTML = `
         <div class="g-question g-enter">
           <div class="g-q-label">One → many${ctx.tag(w)}</div>

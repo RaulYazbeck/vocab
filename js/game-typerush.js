@@ -72,6 +72,7 @@ registerGame({
     const end = () => ctx.finish({ score, correct, wrong, maxCombo, typedCorrect: correct, cleared: ctx.size === "bonus" ? correct >= 5 : true, stats: { noHint } });
 
     const submit = skip => {
+      if (ctx.waiting) { ctx.continueNow(); return; } // Enter after a miss = Continue
       if (!cur || ctx.busy || ctx.paused || ctx.finished) return;
       const val = input.value;
       if (!skip && !val.trim()) { shakeEl(input); return; }
@@ -109,7 +110,7 @@ registerGame({
         playMiss(); haptic("miss");
         ctx.say(`It was ${target(cur)}`);
         ctx.teach(wordLessonHtml(cur), "bad");
-        if (ctx.sudden) gTimeout(end, 1500); else ctx.pauseClockFor(1900, next);
+        ctx.waitContinue(ctx.sudden ? end : next, ctx.sudden ? "See results" : "Continue");
       }
       ctx.setScore(score); ctx.setCombo(combo);
       if (ctx.size === "bonus" && correct >= 5) gTimeout(end, 300);
