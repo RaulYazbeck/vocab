@@ -52,7 +52,7 @@ function frElide(pron, verb, ans) {
   return /^[aeiouyàâäéèêëîïôöùûüœæh]/i.test(ans) && !FR_H_ASPIRE.test(inf) && !FR_H_ASPIRE.test(ans) ? "j'" : pron;
 }
 // The tense a French card asks, from its label: "être (imparfait) — j'".
-const FR_CARD_TENSES = [[/imparfait/i, "Imparfait"], [/pass[ée] compos[ée]/i, "Passé composé"], [/futur/i, "Futur"], [/conditionnel/i, "Conditionnel"], [/subjonctif/i, "Subjonctif"]];
+const FR_CARD_TENSES = [[/plus-que-parfait/i, "Plus-que-parfait"], [/imparfait/i, "Imparfait"], [/pass[ée] compos[ée]/i, "Passé composé"], [/futur/i, "Futur"], [/conditionnel/i, "Conditionnel"], [/subjonctif/i, "Subjonctif"]];
 function frCardTense(verb) {
   const hit = FR_CARD_TENSES.find(([re]) => re.test(verb));
   return hit ? hit[1] : "Présent";
