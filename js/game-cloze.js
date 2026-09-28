@@ -28,17 +28,126 @@ function clozeFormStep(w, info) {
   if (fs.kind === "adj") fs.reason += `<div class="g-teach-rule">${adjRuleFromContext(info.example[WORD_KEY], info.answer)}</div>`;
   return fs;
 }
-// Distractors that can't also fit the sentence: "Haben wir noch ___?"
-// takes Milch, Brot and Käse alike. So at most ONE option shares the
-// answer's part of speech — and it comes from another topic deck — the
-// rest are other kinds of word, which the sentence rules out.
-function clozeDistractors(w, pool, n, formFn, hard) {
-  const pos = posOf(w);
+// Distractors: hard, but never a second right answer. "Haben wir noch
+// ___?" takes Milch, Brot and Käse alike, so a same-topic noun is only
+// offered when the grammar rules it out:
+//   • GENDER: the article in front of the gap decides ("Öffnen Sie bitte
+//     den ___" → only a masculine noun) — same-topic nouns of another
+//     gender are wrong, however well they'd fit the meaning.
+//   • NUMBER: the right noun in the plural after "einen", "das", "dem"…
+//   • ARTICLE: no article in the sentence — die / der / das Milch.
+//   • SAME WORD, WRONG FORM: schlafen for "Ich ___ acht Stunden".
+//   • LOOK-ALIKES: words spelled like the answer (krank · kann) of a
+//     kind that can't take the slot.
+// Case nouns and verbs also have a step 2 (the article / the form).
+const CZ_DET_FIXED = { der: "mf", die: "f", das: "n", den: "m", dem: "mn" };
+const CZ_EIN_END = { "": "mn", e: "f", en: "m", em: "mn", er: "f" };
+const CZ_DIES_END = { er: "mf", e: "f", es: "n", en: "m", em: "mn" };
+// The article/determiner right in front of the gap (an adjective may sit
+// between: "einen großen ___") → { det, genders: "mfn" subset } or null.
+function clozeDeterminer(before) {
+  const toks = String(before || "").match(/\p{L}+|[^\p{L}\s]+/gu) || [];
+  if (!toks.length || !/\s$/.test(before)) return null;
+  const read = t => {
+    const x = t.toLowerCase();
+    if (CZ_DET_FIXED[x]) return CZ_DET_FIXED[x];
+    let m = x.match(/^(ein|kein|mein|dein|sein|ihr|unser|euer)(e|en|em|er)?$/) || x.match(/^(eur)(e|en|em|er)$/);
+    if (m) return CZ_EIN_END[m[2] || ""];
+    m = x.match(/^(dies|jed|welch|jen|manch)(e|en|em|er|es)$/);
+    return m ? CZ_DIES_END[m[2]] : null;
+  };
+  let i = toks.length - 1;
+  if (!/^\p{L}+$/u.test(toks[i])) return null;
+  let g = read(toks[i]);
+  if (!g && i > 0 && /^[a-zäöüß]+(e|en|er|es|em)$/.test(toks[i]) && /^\p{L}+$/u.test(toks[i - 1])) g = read(toks[--i]);
+  return g ? { det: toks[i], genders: g } : null;
+}
+const CZ_GENDER = { der: "m", die: "f", das: "n" };
+const CZ_GENDER_NAME = { m: "masculine", f: "feminine", n: "neuter" };
+// The gap's own article, when it pins the noun's gender — or null.
+function clozeDetFor(w, info) {
+  const np = !IS_FRENCH_APP && posOf(w) === "noun" ? nounParts(w) : null;
+  if (!np || normalize(info.answer || "") !== normalize(np.noun)) return null;
+  const det = clozeDeterminer(info.before);
+  return det && det.genders.includes(CZ_GENDER[np.answer]) ? det : null;
+}
+// Word kinds, by the slots they can stand in: adjectives and adverbs
+// swap freely ("Ich möchte nur / kurz ein Glas"), so they are one kind;
+// conjugation-deck forms ("schlafe") are verbs.
+function clozeKind(x) {
+  const p = posOf(x);
+  if (p === "verb" || p === "participle") return "verb";
+  if (p === "adj" || p === "adv") return "mod";
+  if (p === "other") return /conj|praet|präter|perfekt|imparfait|futur|pass/i.test(x.deckId || "") ? "verb" : "func";
+  return p;
+}
+// Which kinds may be a wrong option for which: never one that could take
+// the slot too. Adverbs stand where time nouns do ("Freitag / pünktlich
+// fahren wir"), nouns after "ich bin" (Arzt), function words next to
+// greetings — so those pairs are out.
+const CZ_OTHER_KINDS = { noun: ["verb", "func"], verb: ["noun", "mod", "func"], mod: ["verb", "func"], num: ["noun", "verb", "func"],
+  func: ["noun", "verb"], phrase: ["noun", "verb"], other: ["noun", "verb"] };
+const CZ_PAST_RE = /präteritum|praeteritum|past|partizip|perfekt|plusquam/i;
+// useDet: the gap's article is visible (see clozeDetFor). useCase: the
+// article is hidden too and asked in step 2.
+function clozeDistractors(w, info, pool, n, formFn, hard, useDet, useCase) {
+  const kind = clozeKind(w);
+  const gapN = normalize(info.answer || "");
+  // Never the gap's own word under another card ("erlaubt" for erlauben).
+  const fillsGap = x => [formFn(x), gameForm(x), nounParts(x) ? nounParts(x).noun : ""].some(f => f && normalize(f) === gapN);
   const out = [], seen = new Set([normKey(formFn(w))]);
-  const add = list => list.forEach(x => { const k = normKey(formFn(x)); if (out.length < n && !seen.has(k)) { seen.add(k); out.push(x); } });
-  add(pickDistractors(w, pool, 1, formFn, x => posOf(x) === pos && x.deckId !== w.deckId, { hard }));
-  add(pickDistractors(w, pool, n - out.length, formFn, x => posOf(x) !== pos && posOf(x) !== "phrase", { hard }));
-  if (out.length < n) add(pickDistractors(w, pool, n, formFn, x => posOf(x) !== pos, { hard }));
+  const add = list => list.forEach(x => {
+    const k = normKey(x.opt ? x.opt.text : formFn(x));
+    if (out.length < n && !seen.has(k)) { seen.add(k); out.push(x); }
+  });
+  const pick = (k, filter, h = hard) => k > 0 ? pickDistractors(w, pool, k, formFn, x => !fillsGap(x) && filter(x), { hard: h }) : [];
+  const np = nounParts(w), det = useDet ? clozeDetFor(w, info) : null;
+  if (det) {
+    // GENDER: same-topic nouns the article rules out. A noun whose plural
+    // looks like its singular (der Lehrer, die Lehrer) could still fit
+    // as a plural — never a trap.
+    const clean = x => { const p = nounParts(x), pl = germanPluralNoun(x); return p && pl && pl !== p.noun; };
+    const dLow = escapeHtml(det.det.toLowerCase());
+    add(pick(2, x => clean(x) && !det.genders.includes(CZ_GENDER[nounParts(x).answer]), true).map(x => { const p = nounParts(x);
+      return { opt: { text: p.noun, correct: false, word: x,
+        why: `${escapeHtml(p.noun)} is ${CZ_GENDER_NAME[CZ_GENDER[p.answer]]} (${colorArticleHtml(p.full)}) — it can't follow <b>${dLow}</b>` } }; }));
+    // NUMBER: the plural can't follow ein / einen / das / dem…
+    const pl = germanPluralNoun(w), d = det.det.toLowerCase();
+    const plBlocked = /^(das|dem|ein|eine|einen|einem|einer)$/.test(d) || /em$/.test(d) || /^(kein|mein|dein|sein|ihr|unser|euer)$/.test(d)
+      || ((d === "den" || /en$/.test(d)) && pl && !/[ns]$/.test(pl));
+    if (pl && pl !== np.noun && plBlocked && Math.random() < 0.6)
+      add([{ opt: { text: pl, correct: false, why: `${escapeHtml(pl)} is the plural — <b>${dLow}</b> needs one ${escapeHtml(np.noun)}` } }]);
+  } else if (np && !useCase && normalize(info.answer || "") === normalize(np.noun)) {
+    // ARTICLE: no article in front of the gap ("Haben wir noch ___?"),
+    // so the options carry theirs — the same noun with a wrong one is a
+    // trap (only one of die / der / das Milch is German). Another noun
+    // is never offered: Milch, Fisch and Brot would all fit.
+    // Only articles no case can give this noun: "mit der Karte" is
+    // right (Dativ), so never der for a feminine noun; die / der for
+    // m / n only when the plural looks different (die Zimmer is plural).
+    const pl = germanPluralNoun(w), plDiffers = !!pl && pl !== np.noun;
+    const ok = { m: { die: plDiffers, das: true }, f: { das: true }, n: { die: plDiffers, der: plDiffers } }[CZ_GENDER[np.answer]] || {};
+    const wrong = IS_FRENCH_APP ? [articleTrap(w)].filter(Boolean) : shuffle(Object.keys(ok).filter(a => ok[a])).map(a => `${a} ${np.noun}`);
+    add(wrong.map(text => ({ opt: { text, correct: false, trap: true } })));
+  } else if (kind === "verb" && !IS_FRENCH_APP && /\p{L}/u.test(info.before || "")
+      && !/(^|[^\p{L}])(sie|Sie)([^\p{L}]|$)/u.test(info.example[WORD_KEY] || "")) {
+    // SAME WORD, WRONG FORM: another present-tense form or the
+    // infinitive (schlafen for "Ich ___ acht Stunden") — the sentence's
+    // person rules it out. Never past forms (they could fit too), never
+    // with sie / Sie (she plays / they play) or a verb-first sentence
+    // (Komm / Kommt bitte!), where two forms can be right.
+    const g = gapN.split(" ")[0];
+    add(pick(2, x => {
+      if (clozeKind(x) !== kind || CZ_PAST_RE.test((x.hint || "") + " " + (x.deckId || ""))) return false;
+      const f = normalize(formFn(x)), pre = commonPrefixLen(f, g);
+      return pre >= 4 && pre >= 0.6 * Math.min(f.length, g.length);
+    }, true));
+  }
+  // LOOK-ALIKES of a kind that can't take the slot (hard mode scores
+  // spelling similarity).
+  const others = CZ_OTHER_KINDS[kind] || CZ_OTHER_KINDS.other;
+  add(pick(n - out.length, x => others.includes(clozeKind(x))));
+  if (out.length < n) add(pick(n, x => others.includes(clozeKind(x)), false));
   return out;
 }
 // Grammar stats (never word stages): S.games.cases[kind] = [right, total].
@@ -83,7 +192,10 @@ registerGame({
       const w = words[r++];
       const info = clozeInfo(w);
       const f = ctx.fmt(w);
-      const step = clozeFormStep(w, info);
+      let step = clozeFormStep(w, info);
+      // Variety for case nouns: half the time the article stays in the
+      // sentence and the traps are nouns of the wrong gender instead.
+      if (step && step.kind === "case" && !f.rookie && clozeDetFor(w, info) && Math.random() < 0.5) step = null;
       const typed = !!rp.typed && f.typed && ctx.size === "full" && !!info.answer;
       const n = Math.min(f.options, 5);
       // Case words: step 1 asks only for the noun ("– Mund"); the article
@@ -91,10 +203,13 @@ registerGame({
       // the dictionary article — which is usually not the one in the gap.
       const caseStep = !!step && step.kind === "case";
       const bare = x => { const np = nounParts(x); return np ? np.noun : gameForm(x); };
-      const formFn = caseStep ? bare : gameForm;
+      // The gap's article is in the sentence: nouns show without theirs
+      // (it would give the gender away).
+      const detMode = !caseStep && !!clozeDetFor(w, info);
+      const formFn = caseStep || detMode ? bare : gameForm;
       const opts = typed ? [] : mcChoices(w, {
-        text: caseStep ? x => (nounParts(x) ? "– " : "") + bare(x) : gameForm, formFn, n, pool: ctx.pool, target: !caseStep, hard: !f.rookie, noTrap: true,
-        pick: k => clozeDistractors(w, ctx.pool, k, formFn, !f.rookie),
+        text: caseStep ? x => (nounParts(x) ? "– " : "") + bare(x) : formFn, formFn, n, pool: ctx.pool, target: !caseStep, hard: !f.rookie, noTrap: true,
+        pick: k => clozeDistractors(w, info, ctx.pool, k, formFn, !f.rookie, detMode, caseStep),
         none: !f.rookie && ctx.size === "full" && ctx.rank >= 1 });
       // The translation hides the word's own meaning (else it's the answer).
       const transHtml = redactTranslation(info.example.en, gamePrompt(w));

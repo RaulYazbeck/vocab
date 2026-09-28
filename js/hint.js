@@ -121,7 +121,9 @@ function buildHintInfo(word, tight = false) {
     // typed sentence recall in the Path.
     const hid = [...hidden].sort((a, b) => a - b);
     const answer = parts.slice(hid[0], hid[hid.length - 1] + 1).join("");
-    const info = { html, reveal, example: ex, answer };
+    // before: the sentence up to the gap (Gap Fill reads the article
+    // right in front of it).
+    const info = { html, reveal, example: ex, answer, before: parts.slice(0, hid[0]).join("") };
     if (!tight) return info;
     // tight: prefer an example whose blanks form one group (a fuzzy
     // match like "Haben" ≈ "Abend" elsewhere adds a second, stray gap).
