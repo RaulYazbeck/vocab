@@ -1006,7 +1006,7 @@ const DECKS_A1 = {
         { en:"partir — ils", fr:"partent", hint:"irse/salir", examples:[{fr:"Ils partent demain.",en:"Se van mañana."}] },
 
         // ATTENDRE
-        { en:"attendre — je", fr:"attends", hint:"esperar", examples:[{fr:"J'attends le bus.",en:"Espero el camión."}] },
+        { en:"attendre — j'", fr:"attends", hint:"esperar", examples:[{fr:"J'attends le bus.",en:"Espero el camión."}] },
         { en:"attendre — tu", fr:"attends", hint:"esperar", examples:[{fr:"Tu attends depuis longtemps ?",en:"¿Llevas mucho tiempo esperando?"}] },
         { en:"attendre — il", fr:"attend", hint:"esperar", examples:[{fr:"Il attend toujours.",en:"Sigue esperando."}] },
         { en:"attendre — nous", fr:"attendons", hint:"esperar", examples:[{fr:"Nous attendons ensemble.",en:"Esperamos juntos."}] },
