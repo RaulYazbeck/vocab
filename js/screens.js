@@ -629,8 +629,8 @@ function settingsCookieHtml() {
   return `
     ${setSwitchHtml("👵", "Grandma mode", "Big buttons, no fuss: just Start, your quests and games. Your grandchildren will be proud.", grandmaOn(), "toggleGrandma()")}
     ${setSwitchHtml("🗣️", "Speak, don't spell", "For speaking, not writing: say each answer out loud, tap Show, hear it and grade yourself. Words still climb all the way to 💎. Spelling games and quests are left out.", speakOn(), "toggleSpeakMode()")}
-    ${sk ? setNavHtml("⏭️", `Skip ${escapeHtml(sk.name)}`, `Already know ${escapeHtml(sk.name)}? Its ${sk.lift} remaining word${sk.lift === 1 ? "" : "s"} become 🌳 Known and you move straight on to ${escapeHtml(sk.next || "the next level")}.`, "confirmSkipLevel()")
-      : setNavHtml("⏭️", "Skip a level", "Nothing left to skip — every level is 🌳 Known.", "")}`;
+    ${sk ? setNavHtml("⏭️", `Skip ${escapeHtml(sk.name)}`, `Already know ${escapeHtml(sk.name)}? Its ${sk.lift} word${sk.lift === 1 ? "" : "s"} below ⭐ Strong become Strong and you move straight on to ${escapeHtml(sk.next || "the next level")}.`, "confirmSkipLevel()")
+      : setNavHtml("⏭️", "Skip a level", "Nothing left to skip — every level is ⭐ Strong or better.", "")}`;
 }
 function settingsProgressHtml() {
   const chests = S.quests && S.quests.pending.length;
@@ -839,8 +839,7 @@ function renderGrandmaHome(home) {
     <div class="today-card gm-card" id="today-card">
       <div class="gm-progress" role="img" aria-label="${scan.known} of ${scan.total} words known">
         <div class="gm-line"><span>🌳 <b>${scan.known.toLocaleString()}</b> of ${scan.total.toLocaleString()} words known</span>${streak ? `<span class="gm-streak">🔥 ${streak}</span>` : ""}</div>
-        <div class="gm-bar"><i class="gm-met" style="width:${scan.total ? Math.max(Math.round(scan.met / scan.total * 100), scan.met ? 1 : 0) : 0}%"></i><i style="width:${Math.max(pct, scan.known ? 1 : 0)}%"></i></div>
-        ${scan.met > scan.known ? `<div class="gm-sub">🌱 ${(scan.met - scan.known).toLocaleString()} more on their way</div>` : ""}
+        <div class="gm-bar"><i style="width:${Math.max(pct, scan.known ? 1 : 0)}%"></i></div>
       </div>
       ${banner}
       ${Q.pending.length ? `<button class="tc-chest" onclick="openPendingChest()">🎁 ${Q.pending.length} chest${Q.pending.length > 1 ? "s" : ""} to open</button>` : ""}
@@ -870,14 +869,14 @@ async function confirmSkipLevel() {
   if (!sk) return;
   const ok = await appConfirm({
     title: `Skip ${sk.name}?`,
-    body: `All ${sk.lift} ${sk.name} word${sk.lift === 1 ? "" : "s"} you haven't reached 🌳 Known yet become Known — including any you learnt today. `
-      + `They won't come up in your sessions or games any more, and Start moves on to new ${sk.next || "words"} right away. `
-      + `You can still practise them on purpose in the Library. Today's quests, goal, streak and achievements don't change. This can't be undone.`,
+    body: `All ${sk.lift} ${sk.name} word${sk.lift === 1 ? "" : "s"} below ⭐ Strong become Strong (between 🌳 Known and 💎 Locked in) — including any you learnt today. `
+      + `They won't come up in your sessions any more, and Start moves on to new ${sk.next || "words"} right away. `
+      + `Games still use them, and you can practise them on purpose in the Library. Today's quests, goal, streak and achievements don't change. This can't be undone.`,
     ok: `Skip ${sk.name}`, cancel: "Cancel", danger: true,
   });
   if (!ok) return;
   const n = skipLevel(sk.id);
-  showCelebrateToast("⏭️", `${sk.name} skipped`, `${n} word${n === 1 ? " is" : "s are"} now 🌳 Known`);
+  showCelebrateToast("⏭️", `${sk.name} skipped`, `${n} word${n === 1 ? " is" : "s are"} now ⭐ Strong`);
   renderSettingsPanel();
   renderHome();
 }

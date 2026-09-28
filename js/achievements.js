@@ -39,7 +39,7 @@ const ACHIEVEMENTS = [
   { id:"comeback", icon:"🎢", name:"Comeback Kid", category:"Vocabulary",
     desc:t => `Master ${t} word${t>1?"s":""} you failed 5+ times`,
     tiers:[1, 3, 7, 12, 20, 30, 45, 60, 80, 100],
-    value:() => Object.values(S.words).filter(ws => (ws.wrong || 0) >= 5 && isMastered(ws) && !ws.sk).length },
+    value:() => Object.values(S.words).filter(ws => (ws.wrong || 0) >= 5 && isMastered(ws) && !skipUnearned(ws)).length },
 
   { id:"locked_in", icon:"💎", name:"Locked In", category:"Vocabulary",
     desc:t => `Lock in ${t.toLocaleString()} word${t>1?"s":""} for good`,
@@ -201,10 +201,13 @@ const SECRET_ACHIEVEMENTS = [
 // ── COUNTING HELPERS ──────────────────────────
 // Counters read S.words directly — looking must never create records.
 // Words lifted by ⏭️ Skip a level (ws.sk) count for achievements only
-// once they've been answered right for real (srsReview clears sk).
+// once they've been answered right for real (srsReview clears sk) — a
+// word that was already Known (sk 3) keeps counting as Known, but its
+// ⭐ from the skip isn't earned.
+function skipUnearned(ws) { return !!(ws && (ws.sk === 1 || ws.sk === 2)); }
 function groupMasteredCount(group) {
   let n = 0;
-  group.decks.forEach(d => d.words.forEach((_, i) => { const ws = S.words[d.id + "_" + i]; if (isMastered(ws) && !ws.sk) n++; }));
+  group.decks.forEach(d => d.words.forEach((_, i) => { const ws = S.words[d.id + "_" + i]; if (isMastered(ws) && !skipUnearned(ws)) n++; }));
   return n;
 }
 function countLockedIn() {
@@ -225,7 +228,7 @@ function countMastered(forAch = false) {
   let n = 0;
   ALL_GROUPS.forEach(g => g.decks.forEach(d => d.words.forEach((_, i) => {
     const ws = S.words[d.id + "_" + i];
-    if (isMastered(ws) && !(forAch && ws.sk)) n++;
+    if (isMastered(ws) && !(forAch && skipUnearned(ws))) n++;
   })));
   return n;
 }
@@ -233,7 +236,7 @@ function countMasteryPlus() {
   let n = 0;
   ALL_GROUPS.forEach(g => g.decks.forEach(d => d.words.forEach((_, i) => {
     const ws = S.words[d.id + "_" + i];
-    if (ws && isMasteryPlus(ws)) n++;
+    if (ws && isMasteryPlus(ws) && !ws.sk) n++;
   })));
   return n;
 }
