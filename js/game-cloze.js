@@ -17,7 +17,7 @@ function clozeInfo(word) {
   if (!_clozeCache.has(k)) _clozeCache.set(k, buildHintInfo(word, true));
   return _clozeCache.get(k);
 }
-function clozeWords(pool) { return dedupeWords(pool.filter(w => clozeInfo(w))); }
+function clozeWords(pool) { return dedupeWords(pool.filter(w => { const i = clozeInfo(w); return i && czFormMatchesGap(w, i); })); }
 // The second step for a word, or null: { kind: "case"|"verb"|"adj", … }.
 function clozeFormStep(w, info) {
   if (typeof GR_DE === "undefined" || !GR_DE || !info) return null;
@@ -37,41 +37,119 @@ function clozeFormStep(w, info) {
 //   • NUMBER: the right noun in the plural after "einen", "das", "dem"…
 //   • ARTICLE: no article in the sentence — die / der / das Milch.
 //   • SAME WORD, WRONG FORM: schlafen for "Ich ___ acht Stunden".
+//   • PARTICLE: "Füllen Sie … aus" → verbs with another particle (anrufen).
 //   • LOOK-ALIKES: words spelled like the answer (krank · kann) of a
 //     kind that can't take the slot.
+// Both languages (French: une ___ → not a masculine noun). Never the
+// answer's own verb on another card (sprang for springen), never a word
+// that fits any slot of its kind (days, colours), and a wrong pick you
+// say fits too ("That fits too") never comes back for that sentence.
 // Case nouns and verbs also have a step 2 (the article / the form).
 const CZ_DET_FIXED = { der: "mf", die: "f", das: "n", den: "m", dem: "mn" };
 const CZ_EIN_END = { "": "mn", e: "f", en: "m", em: "mn", er: "f" };
 const CZ_DIES_END = { er: "mf", e: "f", es: "n", en: "m", em: "mn" };
-// The article/determiner right in front of the gap (an adjective may sit
-// between: "einen großen ___") → { det, genders: "mfn" subset } or null.
+// Contractions carry an article too: am / im = an / in dem…
+const CZ_CONTR = { am: "mn", im: "mn", vom: "mn", beim: "mn", zum: "mn", zur: "f", ins: "n", ans: "n", aufs: "n", ums: "n", fürs: "n", durchs: "n", übers: "n" };
+// Words that stand where an article would, but say nothing of gender.
+const CZ_QUANT = /^(\d+|zwei|drei|vier|fünf|sechs|sieben|acht|neun|zehn|elf|zwölf|zwanzig|dreißig|hundert|tausend|viele|vielen|wenige|einige|mehrere|alle|beide|manche|andere|welche|paar)$/i;
+const CZ_INTENS = /^(sehr|so|ganz|ziemlich|besonders|wirklich|echt|total|zu|recht|richtig|extrem|super)$/i;
+// Look like adjectives (-e / -en / -er…) but aren't.
+const CZ_NOT_ADJ = /^(immer|oder|aber|hier|wieder|unter|über|hinter|oben|unten|außer|später|vorher|nachher|sonst|gern|gerne|bitte|heute|morgen|gestern|dann|wenn|denn|wann|nie|eben|ohne|gegen|neben|zwischen|seit|während|wegen|trotz|innen|außen|draußen|drinnen|leider|lieber|etwa|zuerst|zuletzt|sogar|schon|selten|danke|ne|je|zwar|daher|woher|weiter|nun|nachdem|ob)$/i;
+const CZ_ADJ_END = /^[a-zäöüß]+(e|en|er|es|em)$/i;
+function czReadDet(t) {
+  const x = t.toLowerCase();
+  if (CZ_DET_FIXED[x]) return CZ_DET_FIXED[x];
+  let m = x.match(/^(ein|kein|mein|dein|sein|ihr|unser|euer)(e|en|em|er)?$/) || x.match(/^(eur)(e|en|em|er)$/);
+  if (m) return CZ_EIN_END[m[2] || ""];
+  m = x.match(/^(dies|jed|welch|jen|manch)(e|en|em|er|es)$/);
+  return m ? CZ_DIES_END[m[2]] : null;
+}
+// What stands in front of the gap (adjectives, and the adverbs before
+// them, may sit between: "einen sehr guten ___") →
+//   { det, genders }  an article or contraction: genders ⊂ "mfn"
+//   { det, genders: "" }  a number, "viele", or an article-less adjective
+//                         ("Vielen ___", "Sehr geehrte ___"): no gender
+//   null  nothing of the kind — the gap takes its own article.
 function clozeDeterminer(before) {
+  if (IS_FRENCH_APP) return frDeterminer(before);
   const toks = String(before || "").match(/\p{L}+|[^\p{L}\s]+/gu) || [];
   if (!toks.length || !/\s$/.test(before)) return null;
-  const read = t => {
-    const x = t.toLowerCase();
-    if (CZ_DET_FIXED[x]) return CZ_DET_FIXED[x];
-    let m = x.match(/^(ein|kein|mein|dein|sein|ihr|unser|euer)(e|en|em|er)?$/) || x.match(/^(eur)(e|en|em|er)$/);
-    if (m) return CZ_EIN_END[m[2] || ""];
-    m = x.match(/^(dies|jed|welch|jen|manch)(e|en|em|er|es)$/);
-    return m ? CZ_DIES_END[m[2]] : null;
-  };
+  const isWord = t => /^\p{L}+$/u.test(t || "");
   let i = toks.length - 1;
-  if (!/^\p{L}+$/u.test(toks[i])) return null;
-  let g = read(toks[i]);
-  if (!g && i > 0 && /^[a-zäöüß]+(e|en|er|es|em)$/.test(toks[i]) && /^\p{L}+$/u.test(toks[i - 1])) g = read(toks[--i]);
+  if (!isWord(toks[i])) return null;
+  // Walk back over adjectives. A capitalised one only at the start of the
+  // sentence ("Vielen ___"), not a verb ("Ich trinke ___").
+  let adj = 0;
+  const adjAt = k => isWord(toks[k]) && CZ_ADJ_END.test(toks[k]) && !CZ_NOT_ADJ.test(toks[k]) && !czReadDet(toks[k]) && !CZ_QUANT.test(toks[k])
+    && (/^[a-zäöüß]/.test(toks[k]) || k === 0 || !isWord(toks[k - 1]));
+  while (i >= 0 && adjAt(i)) {
+    i--; adj++;
+    while (i >= 0 && CZ_INTENS.test(toks[i] || "")) i--;
+  }
+  if (i < 0 || !isWord(toks[i])) return adj && (i < 0 || /[.!?:;–]/.test(toks[i])) ? { det: toks[i + 1], genders: "" } : null;
+  const t = toks[i], low = t.toLowerCase();
   // Not an article: "habt ihr ___" (you), ", der ___ hat" (who).
-  if (!g || toks[i] === "ihr" || toks[i - 1] === ",") return null;
-  return { det: toks[i], genders: g };
+  const g = czReadDet(t);
+  if (g && !(low === "ihr" || toks[i - 1] === ",")) return { det: t, genders: g };
+  if (CZ_CONTR[low]) return { det: t, genders: CZ_CONTR[low] };
+  if (CZ_QUANT.test(t)) return { det: t, genders: "" };
+  // "Ich trinke ___": trinke only looked like an adjective — nothing
+  // stands in front of the gap.
+  return null;
 }
-const CZ_GENDER = { der: "m", die: "f", das: "n" };
+// French: the determiner right in front of the gap (a short adjective may
+// sit between: "une nouvelle ___").
+const FR_DET = { un: "m", une: "f", le: "m", la: "f", ce: "m", cet: "m", cette: "f", au: "m", du: "m", ma: "f", ta: "f", sa: "f", quel: "m", quelle: "f" };
+const FR_DET_ANY = /^(mon|ton|son|notre|votre|leur|les|des|mes|tes|ses|nos|vos|leurs|ces|aux|quels|quelles|de|chaque|quelques|plusieurs|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|onze|douze|vingt|trente|cent|mille|\d+)$/i;
+const FR_PRE_ADJ = /^(beau|bel|belle|bon|bonne|grand|grande|petit|petite|nouveau|nouvel|nouvelle|vieux|vieil|vieille|jeune|joli|jolie|gros|grosse|premier|première|dernier|dernière|mauvais|mauvaise|autre|même|prochain|prochaine|seul|seule|long|longue|haut|haute|meilleur|meilleure)$/i;
+function frDeterminer(before) {
+  const b = String(before || "");
+  if (/(^|[^\p{L}])[ldLD]['’]$/u.test(b)) return { det: b.slice(-2), genders: "" }; // l' / d'
+  if (!/\s$/.test(b)) return null;
+  const toks = b.match(/[\p{L}]+|[^\p{L}\s]+/gu) || [];
+  let i = toks.length - 1;
+  while (i > 0 && FR_PRE_ADJ.test(toks[i])) i--;
+  const t = toks[i] || "", low = t.toLowerCase();
+  if (FR_DET[low]) return { det: t, genders: FR_DET[low] };
+  if (FR_DET_ANY.test(low)) return { det: t, genders: "" };
+  return null;
+}
+const CZ_GENDER = { der: "m", die: "f", das: "n", le: "m", la: "f" };
 const CZ_GENDER_NAME = { m: "masculine", f: "feminine", n: "neuter" };
 // The gap's own article, when it pins the noun's gender — or null.
 function clozeDetFor(w, info) {
-  const np = !IS_FRENCH_APP && posOf(w) === "noun" ? nounParts(w) : null;
+  const np = posOf(w) === "noun" ? nounParts(w) : null;
   if (!np || normalize(info.answer || "") !== normalize(np.noun)) return null;
   const det = clozeDeterminer(info.before);
-  return det && det.genders.includes(CZ_GENDER[np.answer]) ? det : null;
+  return det && det.genders && det.genders.includes(CZ_GENDER[np.answer]) ? det : null;
+}
+// A noun's article and bare noun: nounParts(), or — for nouns it leaves
+// out (irregular or unchanged plural) — just what the card shows.
+function czNounBits(w) {
+  if (posOf(w) !== "noun") return null;
+  const np = nounParts(w);
+  if (np) return np;
+  const f = String(gameForm(w)).trim();
+  const m = IS_FRENCH_APP ? f.match(/^(le|la|les)\s+([^,;!?]+)$/i) || f.match(/^(l)['’]([^,;!?]+)$/i) : f.match(/^(der|die|das)\s+([A-ZÄÖÜ][\p{L}-]*)$/u);
+  return m ? { answer: m[1].toLowerCase(), noun: m[2], full: f, loose: true } : null;
+}
+// How a noun's options look:
+//   "det"      the sentence's article pins the gender: bare nouns, and
+//              nouns of the wrong gender as traps (den ___ → not Tasche)
+//   "article"  the gap takes the article too (no article in the
+//              sentence; French: the article is hidden): options with
+//              their article, the wrong article as a trap
+//   "bare"     something else stands there (fünf / ma / l' / a plural
+//              form): bare nouns — "fünf die Minute" makes no sense
+//   null       not a noun
+function clozeNounMode(w, info) {
+  const np = czNounBits(w);
+  if (!np) return null;
+  const gap = normalize(info.answer || "");
+  if (gap === normalize(np.full)) return "article"; // the gap hides the article too
+  if (gap !== normalize(np.noun)) return "bare";
+  if (clozeDetFor(w, info)) return "det";
+  return IS_FRENCH_APP || clozeDeterminer(info.before) ? "bare" : "article";
 }
 // Word kinds, by the slots they can stand in: adjectives and adverbs
 // swap freely ("Ich möchte nur / kurz ein Glas"), so they are one kind;
@@ -90,36 +168,196 @@ function clozeKind(x) {
 const CZ_OTHER_KINDS = { noun: ["verb", "func"], verb: ["noun", "mod", "func"], mod: ["verb", "func"], num: ["noun", "verb", "func"],
   func: ["noun", "verb"], phrase: ["noun", "verb"], other: ["noun", "verb"] };
 const CZ_PAST_RE = /präteritum|praeteritum|past|partizip|perfekt|plusquam/i;
-// useDet: the gap's article is visible (see clozeDetFor). useCase: the
-// article is hidden too and asked in step 2.
-function clozeDistractors(w, info, pool, n, formFn, hard, useDet, useCase) {
+// ── Same verb, another card ───────────────────
+// Verb forms have cards of their own (sprang, besaß, attendez, été), so
+// "another word" can be the answer's own verb. czVerb(x) →
+//   { lemmas: Set of infinitives, shape: "inf" | "form" }, or null.
+const CZ_FORM_DECK = /conj|praet|präter|partizip|p2|konjunktiv|imparfait|futur|pass|participio|plusq/i;
+const CZ_VERB_HINT = /·\s*(hat|ist)\s|präteritum|partizip|participio|\bverb|\bverbo/i;
+const CZ_PRON = /^(ich|du|er|sie|es|wir|ihr|je|j|tu|il|elle|on|nous|vous|ils|elles)\s+/i;
+let _czFormIdx = null;
+const _czVerbCache = new Map();
+_gameCacheClearers.push(() => { _czFormIdx = null; _czVerbCache.clear(); });
+// German: every form the grammar knows → its infinitives.
+function czFormIndex() {
+  if (_czFormIdx) return _czFormIdx;
+  const m = _czFormIdx = new Map();
+  if (IS_FRENCH_APP || typeof verbBank !== "function" || typeof GR_DE === "undefined" || !GR_DE) return m;
+  const put = (f, inf) => { if (!f || /\s/.test(f)) return; const k = normalize(f); if (!m.has(k)) m.set(k, new Set()); m.get(k).add(normalize(inf)); };
+  verbBank().verbs.forEach(({ inf, F }) => {
+    const pre = F.sep || "";
+    [F.pr, F.pt, F.k2].forEach(t => Object.values(t || {}).forEach(f => { put(f, inf); if (pre) put(pre + f, inf); }));
+    put(F.p2, inf); put(F.inf, inf);
+    if (F.im) put(F.im.du, inf);
+  });
+  return m;
+}
+function czVerb(x) {
+  const key = wordKey(x) + "|" + gameForm(x);
+  if (_czVerbCache.has(key)) return _czVerbCache.get(key);
+  let res = null;
+  const kind = clozeKind(x), formDeck = CZ_FORM_DECK.test(x.deckId || "");
+  if (kind === "verb" || (kind === "func" && (formDeck || CZ_VERB_HINT.test(x.hint || "")))) {
+    const form = String(gameForm(x)).trim().replace(/^(sich|se)\s+/i, "").replace(/^s['’]/i, "");
+    const lemmas = new Set();
+    const addL = l => { if (l) lemmas.add(normalize(String(l).replace(/^(sich|se)\s+/i, "").replace(/^s['’]/i, ""))); };
+    // "müssen — sie ___", "abbiegen (Partizip II) — er ist ___", "attendre — vous"
+    const en = String(x.en || "").match(/^(?:(?:sich|se)\s+)?([\p{Ll}]+)\s*(?:\([^)]*\)\s*)?—/u);
+    if (en) addL(en[1]);
+    const part = String(x.hint || "").match(/participio de ([\p{L}]+)/u);
+    if (part) addL(part[1]);
+    // "je vais venir", "ich wäre"
+    const bare = form.replace(CZ_PRON, "");
+    const fut = IS_FRENCH_APP && bare.match(/^(?:vais|vas|va|allons|allez|vont)\s+(\S+)$/);
+    if (fut) addL(fut[1]);
+    const isInf = !formDeck && (IS_FRENCH_APP ? /^[\p{L}'’-]+(er|ir|re|oir)$/u.test(form)
+      : /^[a-zäöüß]+(en|ern|eln|n)$/.test(form) && (kind === "verb" || CZ_VERB_HINT.test(x.hint || "")));
+    if (isInf) addL(form);
+    if (!lemmas.size && !IS_FRENCH_APP) {
+      // A German form: by the grammar (a split verb: lade ein → einlade).
+      const toks = bare.split(/\s+/), idx = czFormIndex();
+      const hit = idx.get(normalize(toks.length === 2 ? toks[1] + toks[0] : toks[0]));
+      if (hit) hit.forEach(l => lemmas.add(l));
+    }
+    if (!lemmas.size) addL(form);
+    res = { lemmas, shape: isInf ? "inf" : "form" };
+  }
+  _czVerbCache.set(key, res);
+  return res;
+}
+const czSameVerb = (a, b) => !!a && !!b && [...a.lemmas].some(l => b.lemmas.has(l));
+// Options you said also fit this sentence ("That fits too").
+function czAlsoFits(w) { const m = S.games && S.games.czFits; return (m && m[wordKey(w)]) || []; }
+function czMarkFits(w, text) {
+  if (!S.games) return;
+  const m = S.games.czFits || (S.games.czFits = {});
+  const k = wordKey(w), list = (m[k] || []).filter(t => t !== normKey(text));
+  list.push(normKey(text));
+  delete m[k];
+  m[k] = list.slice(-6);
+  const keys = Object.keys(m);
+  if (keys.length > 300) keys.slice(0, keys.length - 300).forEach(x => delete m[x]);
+}
+// A mix-up you said wasn't one: it stops coming back as a trap.
+function czForgetConfusion(w, other) {
+  const m = S.games && S.games.confuse;
+  if (!m) return;
+  const a = wordKey(w), b = wordKey(other);
+  if (m[a]) m[a] = m[a].filter(x => x !== b);
+  if (m[b]) m[b] = m[b].filter(x => x !== a);
+}
+// A form card is only worth a gap when the sentence uses that form
+// ("abgebogen" over "…links abbiegen" would make the answer wrong).
+function czFormMatchesGap(w, info) {
+  // German capitals tell a noun from a verb: das Frühstück can't fill
+  // "Ich ___ jeden Morgen" (frühstücke), essen can't fill "Das ___ ist gut".
+  if (!IS_FRENCH_APP) {
+    const last = String(info.answer || "").trim().split(/\s+/).pop() || "";
+    const midSentence = /\p{L}[^.!?:;–]*$/u.test(info.before || "");
+    if (czNounBits(w) && /^[a-zäöüß]/.test(last)) return false;
+    if (["verb", "mod"].includes(clozeKind(w)) && midSentence && /^[A-ZÄÖÜ]/.test(last) && !/^[A-ZÄÖÜ]/.test(gameForm(w))) return false;
+  }
+  // A phrase only when the gap holds all of it: "Tu as ___" can't take
+  // "avoir raison". (Nouns lose their article, reflexives their sich / se,
+  // split verbs their particle — those are handled elsewhere.)
+  const np = czNounBits(w);
+  const core = String(np ? np.noun : gameForm(w)).trim().replace(/^(sich|se)\s+/i, "").replace(/^s['’]/i, "");
+  const words = t => (String(t).trim().match(/[\p{L}\d]+/gu) || []).length;
+  const v = czVerb(w);
+  if (!(v && v.shape === "form") && words(info.answer || "") < words(core)) return false;
+  // French l'est: the gap must be that noun, so something a noun takes
+  // stands before it ("Strasbourg ___ à l'est" hid the verb est).
+  if (IS_FRENCH_APP && np && /^l['’]/i.test(np.full) && normalize(info.answer || "") !== normalize(np.full)
+    && !frDeterminer(info.before) && !/(^|\s)(en|à|de|pour|sans|avec|par|chez|sur|sous|dans|entre|vers|après|avant|suis|es|est|sommes|êtes|sont)\s+$/i.test(info.before || "")) return false;
+  if (!v || v.shape !== "form") return true;
+  const form = normalize(String(gameForm(w)).replace(/^(sich|se)\s+/i, "")), gap = normalize(info.answer || "");
+  if (gap === form || gap === form.split(" ")[0]) return true; // split: "lade ein" → Lade
+  return IS_FRENCH_APP && gap.startsWith(form) && gap.length - form.length <= 2; // partie, montées
+}
+// Words that fit almost any slot of their kind: days, months, seasons
+// ("Chaque ___" → matin / mai), colours ("Das Glas ist ___" → grau),
+// frequencies ("hat ___ geöffnet" → zweimal).
+const CZ_CALENDAR = /^(day|month|season|calendar|colou?r|frequency)$|día de la semana|mes del año|^estación|^color|^frecuencia/i;
+const FR_INF_TAKER = /^(vais|vas|va|allons|allez|vont|peux|peut|pouvons|pouvez|peuvent|dois|doit|devons|devez|doivent|veux|veut|voulons|voulez|veulent|sais|sait|savons|savez|savent|faut|aime|aimes|aiment|aimons|aimez|adore|adores|préfère|préfères|préférons|préférez|préfèrent|voudrais|voudrait|pourrais|pourrait|devrais|devrait)$/i;
+const DE_INF_TAKER = /(^|[^\p{L}])(muss|musst|müssen|müsst|kann|kannst|können|könnt|will|willst|wollen|wollt|soll|sollst|sollen|sollt|darf|darfst|dürfen|dürft|möchte|möchtest|möchten|möchtet|werde|wirst|wird|werden|werdet|könnte|könntest|könnten|sollte|solltest|sollten|müsste|müssten|würde|würdest|würden|lass|lasse|lässt|lassen)([^\p{L}]|$)/iu;
+// mode: how a noun's options look (clozeNounMode). useCase: the article
+// is hidden too and asked in step 2.
+function clozeDistractors(w, info, pool, n, formFn, hard, mode, useCase) {
   const kind = clozeKind(w);
   const gapN = normalize(info.answer || "");
   // Never the gap's own word under another card ("erlaubt" for erlauben).
   const fillsGap = x => [formFn(x), gameForm(x), nounParts(x) ? nounParts(x).noun : ""].some(f => f && normalize(f) === gapN);
+  const banned = new Set(czAlsoFits(w));
+  const wv = czVerb(w);
+  // Verbs: never the answer's own verb in another form (sprang for
+  // springen, besitzen for besaß), and the same shape as the answer —
+  // infinitives with an infinitive, forms with a form — so the answer
+  // isn't the one infinitive among past forms.
+  const fitsShape = x => {
+    const xv = czVerb(x);
+    if (!xv) return true;
+    if (czSameVerb(wv, xv)) return false;
+    return !wv || xv.shape === wv.shape;
+  };
+  // A gap that holds its own subject ("___ demain" = je vais venir,
+  // "___ gern reich" = ich wäre) takes any clause: never another one.
+  const clause = t => CZ_PRON.test(String(t).trim());
+  const wClause = clause(gameForm(w));
+  // Days, months, colours…: never a trap, unless the answer is a verb.
+  const calendar = x => !wv && CZ_CALENDAR.test(String(x.hint || "").trim());
+  // An infinitive fits after aller / pouvoir / pour… and at the end of a
+  // clause with a modal ("Je vais ___" → mieux / fumer): no infinitive
+  // traps there when the answer isn't a verb.
+  const afterGap = String(info.example[WORD_KEY] || "").slice(String(info.before || "").length + String(info.answer || "").length);
+  const infSlot = !wv && (IS_FRENCH_APP
+    ? FR_INF_TAKER.test((String(info.before || "").trim().split(/\s+/).pop() || "")) || /(^|\s)(pour|sans|de|d['’])\s*$/i.test(info.before || "")
+    : /(^|\s)zu\s+$/i.test(info.before || "") || (DE_INF_TAKER.test(info.before || "") && /^\s*([.,!?;:–]|$)/.test(afterGap)));
+  const infHere = x => infSlot && (czVerb(x) || {}).shape === "inf";
+  // Never the answer with a word added or taken away (ärgerlich über).
+  const wToks = normKey(formFn(w)).split(" ");
+  const nearCopy = x => { const t = normKey(formFn(x)).split(" "); return t.length !== wToks.length && t.some(a => a.length >= 4 && wToks.includes(a)); };
   const out = [], seen = new Set([normKey(formFn(w))]);
   const add = list => list.forEach(x => {
     const k = normKey(x.opt ? x.opt.text : formFn(x));
-    if (out.length < n && !seen.has(k)) { seen.add(k); out.push(x); }
+    if (out.length < n && !seen.has(k) && !banned.has(k)) { seen.add(k); out.push(x); }
   });
-  const pick = (k, filter, h = hard) => k > 0 ? pickDistractors(w, pool, k, formFn, x => !fillsGap(x) && filter(x), { hard: h }) : [];
-  const np = nounParts(w), det = useDet ? clozeDetFor(w, info) : null;
+  // A split verb ("Füllen Sie … aus"): the particle is in the sentence,
+  // so any verb with that particle could fill the gap (auswählen).
+  const after = afterGap;
+  const vp = wv && wv.shape === "inf" && !IS_FRENCH_APP && typeof verbParse === "function" ? verbParse(gameForm(w)) : null;
+  const hasWord = (t, p) => new RegExp(`(^|[^\\p{L}])${p}([^\\p{L}]|$)`, "iu").test(t);
+  const split = !!(vp && vp.sep && !gapN.startsWith(normalize(vp.sep)) && hasWord(after, vp.sep));
+  const sameParticle = x => { if (!split || !czVerb(x)) return false; const q = verbParse(String(gameForm(x)).replace(/^sich\s+/, "")); return !!q && q.sep === vp.sep; };
+  // sameOk: the answer's own verb may come back (SAME WORD, WRONG FORM).
+  const pick = (k, filter, h = hard, sameOk = false) => k > 0 ? pickDistractors(w, pool, k, formFn,
+    x => !fillsGap(x) && !banned.has(normKey(formFn(x))) && !nearCopy(x) && !(wClause && clause(gameForm(x))) && !calendar(x) && !infHere(x) && !sameParticle(x)
+      && (sameOk || fitsShape(x)) && filter(x), { hard: h }) : [];
+  const np = czNounBits(w), det = mode === "det" ? clozeDetFor(w, info) : null;
   if (det) {
     // GENDER: same-topic nouns the article rules out. A noun whose plural
     // looks like its singular (der Lehrer, die Lehrer) could still fit
-    // as a plural — never a trap.
-    const clean = x => { const p = nounParts(x), pl = germanPluralNoun(x); return p && pl && pl !== p.noun; };
+    // as a plural — never a trap. French: le / la / ma… only stand
+    // before a consonant (l' / mon before a vowel), so the trap does too.
     const dLow = escapeHtml(det.det.toLowerCase());
-    add(pick(2, x => clean(x) && !det.genders.includes(CZ_GENDER[nounParts(x).answer]), true).map(x => { const p = nounParts(x);
+    const vowel = /^[aeiouyhàâéèêëîïôûœ]/i;
+    const clean = x => {
+      const p = nounParts(x);
+      if (!p) return false;
+      if (IS_FRENCH_APP) return p.full !== p.noun && !(/^(le|la|ma|ta|sa|ce|du|au)$/i.test(det.det) && vowel.test(p.noun));
+      const pl = germanPluralNoun(x);
+      return pl && pl !== p.noun;
+    };
+    const gOf = p => CZ_GENDER[p.answer];
+    add(pick(2, x => clean(x) && !det.genders.includes(gOf(nounParts(x))), true).map(x => { const p = nounParts(x);
       return { opt: { text: p.noun, correct: false, word: x,
-        why: `${escapeHtml(p.noun)} is ${CZ_GENDER_NAME[CZ_GENDER[p.answer]]} (${colorArticleHtml(p.full)}) — it can't follow <b>${dLow}</b>` } }; }));
+        why: `${escapeHtml(p.noun)} is ${CZ_GENDER_NAME[gOf(p)]} (${colorArticleHtml(p.full)}) — it can't follow <b>${dLow}</b>` } }; }));
     // NUMBER: the plural can't follow ein / einen / das / dem…
     const pl = germanPluralNoun(w), d = det.det.toLowerCase();
     const plBlocked = /^(das|dem|ein|eine|einen|einem|einer)$/.test(d) || /em$/.test(d) || /^(kein|mein|dein|sein|ihr|unser|euer)$/.test(d)
       || ((d === "den" || /en$/.test(d)) && pl && !/[ns]$/.test(pl));
-    if (pl && pl !== np.noun && plBlocked && Math.random() < 0.6)
+    if (pl && pl !== np.noun && plBlocked && !CZ_CONTR[d] && Math.random() < 0.6)
       add([{ opt: { text: pl, correct: false, why: `${escapeHtml(pl)} is the plural — <b>${dLow}</b> needs one ${escapeHtml(np.noun)}` } }]);
-  } else if (np && !useCase && normalize(info.answer || "") === normalize(np.noun)) {
+  } else if (mode === "article" && !useCase) {
     // ARTICLE: no article in front of the gap ("Haben wir noch ___?"),
     // so the options carry theirs — the same noun with a wrong one is a
     // trap (only one of die / der / das Milch is German). Another noun
@@ -131,32 +369,30 @@ function clozeDistractors(w, info, pool, n, formFn, hard, useDet, useCase) {
     const ok = { m: { die: plDiffers, das: true }, f: { das: true }, n: { die: plDiffers, der: plDiffers } }[CZ_GENDER[np.answer]] || {};
     const wrong = IS_FRENCH_APP ? [articleTrap(w)].filter(Boolean) : shuffle(Object.keys(ok).filter(a => ok[a])).map(a => `${a} ${np.noun}`);
     add(wrong.map(text => ({ opt: { text, correct: false, trap: true } })));
-  } else if (kind === "verb" && !IS_FRENCH_APP && /\p{L}/u.test(info.before || "")
-      && !/(^|[^\p{L}])(sie|Sie)([^\p{L}]|$)/u.test(info.example[WORD_KEY] || "")) {
+  } else if (kind === "verb" && !IS_FRENCH_APP && wv && wv.shape === "form" && !CZ_PAST_RE.test((w.hint || "") + " " + (w.deckId || ""))
+      && /\p{L}/u.test(info.before || "") && !/(^|[^\p{L}])(sie|Sie)([^\p{L}]|$)/u.test(info.example[WORD_KEY] || "")) {
     // SAME WORD, WRONG FORM: another present-tense form or the
     // infinitive (schlafen for "Ich ___ acht Stunden") — the sentence's
-    // person rules it out. Never past forms (they could fit too), never
-    // with sie / Sie (she plays / they play) or a verb-first sentence
-    // (Komm / Kommt bitte!), where two forms can be right.
+    // person rules it out. Only when the answer itself is a present
+    // form: never past forms (they could fit too), never with sie / Sie
+    // (she plays / they play) or a verb-first sentence (Komm / Kommt
+    // bitte!), where two forms can be right.
     const g = gapN.split(" ")[0];
     add(pick(2, x => {
       if (clozeKind(x) !== kind || CZ_PAST_RE.test((x.hint || "") + " " + (x.deckId || ""))) return false;
       const f = normalize(formFn(x)), pre = commonPrefixLen(f, g);
       return pre >= 4 && pre >= 0.6 * Math.min(f.length, g.length);
-    }, true));
+    }, true, true));
   }
-  const sentence = String(info.example[WORD_KEY] || "");
-  const after = sentence.slice(String(info.before || "").length + String(info.answer || "").length);
-  const vp = kind === "verb" && !IS_FRENCH_APP && typeof verbParse === "function" ? verbParse(gameForm(w)) : null;
-  const hasWord = (s, p) => new RegExp(`(^|[^\\p{L}])${p}([^\\p{L}]|$)`, "iu").test(s);
-  if (vp && vp.sep && !gapN.startsWith(normalize(vp.sep)) && hasWord(after, vp.sep)) {
+  if (split) {
     // PARTICLE: the verb is split ("Füllen Sie bitte das Formular aus"),
     // so it's plainly a verb — the traps are verbs too, ones that can't
     // end in that particle: another particle (anrufen) or a prefix that
     // never splits (bezahlen).
     const sep = escapeHtml(vp.sep);
     add(pick(2, x => {
-      if (posOf(x) !== "verb") return false;
+      const xv = czVerb(x);
+      if (!xv || xv.shape !== "inf") return false;
       const q = verbParse(gameForm(x));
       return !!q && (q.sep ? q.sep !== vp.sep && !hasWord(after, q.sep) : !!q.insep);
     }, true).map(x => { const q = verbParse(gameForm(x)), f = escapeHtml(gameForm(x));
@@ -168,7 +404,7 @@ function clozeDistractors(w, info, pool, n, formFn, hard, useDet, useCase) {
   // spelling similarity). A verb closing its clause next to another
   // ("noch ___ gehen") could be an adverb too: noch einmal gehen.
   let others = CZ_OTHER_KINDS[kind] || CZ_OTHER_KINDS.other;
-  if (kind === "verb" && /^\s+[a-zäöüß]+\s*([.,!?;:–-]|$)/.test(after)) others = others.filter(k => k !== "mod");
+  if (wv && /^\s+[a-zäöüß]+\s*([.,!?;:–-]|$)/.test(after)) others = others.filter(k => k !== "mod");
   add(pick(n - out.length, x => others.includes(clozeKind(x))));
   if (out.length < n) add(pick(n, x => others.includes(clozeKind(x)), false));
   return out;
@@ -225,14 +461,15 @@ registerGame({
       // the sentence needs is step 2. Showing "der Mund" first would give
       // the dictionary article — which is usually not the one in the gap.
       const caseStep = !!step && step.kind === "case";
-      const bare = x => { const np = nounParts(x); return np ? np.noun : gameForm(x); };
-      // The gap's article is in the sentence: nouns show without theirs
-      // (it would give the gender away).
-      const detMode = !caseStep && !!clozeDetFor(w, info);
-      const formFn = caseStep || detMode ? bare : gameForm;
+      const bare = x => { const np = czNounBits(x); return np ? np.noun : gameForm(x); };
+      // Nouns show without their article when the sentence has one in
+      // front of the gap (it would give the gender away) or anything else
+      // that stands there (fünf / ma / l'): see clozeNounMode.
+      const nounMode = caseStep ? null : clozeNounMode(w, info);
+      const formFn = caseStep || nounMode === "det" || nounMode === "bare" ? bare : gameForm;
       const opts = typed ? [] : mcChoices(w, {
         text: caseStep ? x => (nounParts(x) ? "– " : "") + bare(x) : formFn, formFn, n, pool: ctx.pool, target: !caseStep, hard: !f.rookie, noTrap: true,
-        pick: k => clozeDistractors(w, info, ctx.pool, k, formFn, !f.rookie, detMode, caseStep),
+        pick: k => clozeDistractors(w, info, ctx.pool, k, formFn, !f.rookie, nounMode, caseStep),
         none: !f.rookie && ctx.size === "full" && ctx.rank >= 1 });
       // The translation hides the word's own meaning (else it's the answer).
       const transHtml = redactTranslation(info.example.en, gamePrompt(w));
@@ -370,12 +607,35 @@ registerGame({
         gTimeout(next, 1500);
         return;
       }
+      const before = { score, combo, missed: ctx.missedWords.some(x => sameWord(x, q.w)) };
       reveal(false);
       q.failed = true;
       noteWrongPick(q.w, opt);
       bad(btn);
-      ctx.teach(wordLessonHtml(q.w, opt, q.step && q.step.kind === "case" ? `<div class="g-teach-rule">${q.step.reason}</div>` : ""), "bad");
+      // Not for a wrong article (das Milch): that one is certain.
+      const fitsBtn = opt.none || opt.trap ? "" : `<button class="g-link-btn cz-fits" id="cz-fits">🤔 That fits too? Count it</button>`;
+      ctx.teach(wordLessonHtml(q.w, opt, q.step && q.step.kind === "case" ? `<div class="g-teach-rule">${q.step.reason}</div>` : "") + fitsBtn, "bad");
       ctx.waitContinue(next);
+      const fb = document.getElementById("cz-fits");
+      if (fb) fb.onclick = () => alsoFits(opt, btn, before, fb);
+      ctx.setScore(score); ctx.setCombo(combo);
+    };
+    // "That fits too": the option you picked works in this sentence as
+    // well — no option can be checked for meaning, so you get the last
+    // word. The miss is undone and that option never comes back here.
+    const alsoFits = (opt, btn, before, el) => {
+      if (!q || !q.failed) return;
+      czMarkFits(q.w, opt.text);
+      if (opt.word) czForgetConfusion(q.w, opt.word);
+      if (typeof logEvent === "function") logEvent("cloze_also_fits", { word: wordKey(q.w), opt: opt.text, ex: q.info.example[WORD_KEY] });
+      wrong--; correct++; q.failed = false;
+      if (!before.missed) ctx.missedWords = ctx.missedWords.filter(x => !sameWord(x, q.w));
+      ctx.hit(q.w);
+      combo = before.combo + 1; maxCombo = Math.max(maxCombo, combo);
+      score = before.score + ctx.award(q.w, 10);
+      if (btn) { btn.classList.remove("wrong"); btn.classList.add("right"); }
+      el.outerHTML = `<div class="g-teach-sub">✓ Counted — ${escapeHtml(opt.text)} won't be offered for this sentence again.</div>`;
+      ctx.say("Counted");
       ctx.setScore(score); ctx.setCombo(combo);
     };
     const answerTyped = v => {
