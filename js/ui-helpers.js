@@ -168,6 +168,14 @@ function diffHtml(typed, answer) {
 // "typo" — not in the first word, not in the middle of a phrase.
 const ARTICLE_TOKENS = /^(der|die|das|den|dem|des|ein|eine|einen|einem|einer|eines|kein|keine|keinen|keinem|keiner|keines|le|la|les|l|un|une|du|au|aux)$/;
 function articleSeq(s) { return s.split(" ").filter(t => ARTICLE_TOKENS.test(t)).join(" "); }
+// b is a with exactly one pair of neighbouring (different) letters swapped.
+function isTransposition(a, b) {
+  if (a.length !== b.length) return false;
+  let i = 0;
+  while (i < a.length && a[i] === b[i]) i++;
+  return i < a.length - 1 && a[i] === b[i + 1] && a[i + 1] === b[i] && a[i] !== a[i + 1]
+    && a.slice(i + 2) === b.slice(i + 2) && !/\s/.test(a[i] + a[i + 1]);
+}
 function isNearMiss(input, answers) {
   const b = normalize(String(input || ""));
   if (!b) return false;
@@ -175,6 +183,9 @@ function isNearMiss(input, answers) {
   return alts.some(ansRaw => {
     const a = normalize(ansRaw);
     if (a.length < 6 || Math.abs(a.length - b.length) > 1) return false;
+    // Two neighbouring letters swapped (Anrufbeatnworter) is a typo,
+    // not a spelling error — anywhere but inside an article.
+    if (isTransposition(a, b)) return articleSeq(a) === articleSeq(b);
     if (levenshtein(a, b) !== 1) return false;
     if (articleSeq(a) !== articleSeq(b)) return false; // an article changed, went missing or appeared
     let p = 0;

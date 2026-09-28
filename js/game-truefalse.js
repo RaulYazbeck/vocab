@@ -1,7 +1,10 @@
 // ── GAME: TRUE / FALSE FLASH ──────────────────
 // A word and a translation flash up: is the pair right? Swipe right for
-// true, left for false (or tap ✓ / ✗, or ← →). About half the pairs are
-// false, built from real distractors. Very quick — a perfect warm-up.
+// true, left for false (or tap ✓ / ✗, or ← →): the card flies all the
+// way off the screen that way. About half the pairs are false, built
+// from real distractors or (words you know) the wrong article. After a
+// mistake the card comes back showing exactly what you judged — the
+// pair as shown, struck through if it was false, and the right one.
 //
 // Credit: only a right "true" earns recognition credit (a correct
 // "false" says little about the word). Saying true to a wrong pair — or
@@ -69,16 +72,43 @@ registerGame({
       bot.innerHTML = ctx.mirror ? promptHtml : formHtml;
       card.className = "tf-card g-enter";
       card.style.transform = "";
+      card.style.visibility = "";
       stamp.textContent = "";
+      const v = card.querySelector(".tf-verdict");
+      if (v) v.remove();
       ctx.busy = false;
+    };
+    // The judged card leaves the screen for good: a copy of it, fixed to
+    // the viewport (so no game panel clips it), flies off from wherever
+    // the finger left it; the real card is free for what comes next.
+    const flyOff = (dir, ok) => {
+      stamp.textContent = ok ? "✓" : "✗";
+      card.classList.remove("lean-right", "lean-left", "g-enter");
+      card.classList.add(ok ? "good" : "bad");
+      if (!REDUCED_MOTION) {
+        const from = card.style.transform || "none";
+        card.style.transform = "none";
+        const r = card.getBoundingClientRect();
+        const ghost = card.cloneNode(true);
+        ghost.removeAttribute("id");
+        ghost.querySelectorAll("[id]").forEach(el => el.removeAttribute("id"));
+        ghost.classList.add("tf-ghost");
+        Object.assign(ghost.style, { left: r.left + "px", top: r.top + "px", width: r.width + "px", height: r.height + "px", transform: from });
+        document.body.appendChild(ghost);
+        void ghost.offsetWidth;
+        ghost.style.transition = "transform 0.38s cubic-bezier(0.4,0,0.9,0.6), opacity 0.38s ease-in";
+        ghost.style.transform = `translateX(${dir * (window.innerWidth + r.width)}px) translateY(40px) rotate(${dir * 28}deg)`;
+        ghost.style.opacity = "0.4";
+        setTimeout(() => ghost.remove(), 450);
+      }
+      card.style.transform = "";
+      card.style.visibility = "hidden";
     };
     const answer = said => {
       if (!q || ctx.busy || ctx.paused || ctx.finished) return;
       ctx.busy = true;
       const ok = said === q.truth;
-      card.classList.add(said ? "fly-right" : "fly-left");
-      stamp.textContent = ok ? "✓" : "✗";
-      card.classList.add(ok ? "good" : "bad");
+      flyOff(said ? 1 : -1, ok);
       if (ok) {
         correct++; combo++; maxCombo = Math.max(maxCombo, combo);
         if (q.truth) ctx.hit(q.w);
@@ -88,7 +118,7 @@ registerGame({
         if (combo >= 5) playCombo(combo); else playPop();
         haptic("select");
         ctx.say("Right!");
-        gTimeout(next, 230);
+        gTimeout(next, REDUCED_MOTION ? 230 : 140);
       } else {
         wrong++;
         combo = ctx.comboAfterMiss(combo, q.w);
@@ -98,9 +128,18 @@ registerGame({
         floatScore(card, `−${(pen / 1000).toFixed(1)}s`, "bad");
         playMiss(); haptic("miss");
         ctx.say(`${gamePrompt(q.w)} = ${gameForm(q.w)}`);
-        bot.innerHTML = `<span class="tf-target">${colorArticleHtml(gameForm(q.w))}</span>`;
+        // The card comes back with what you judged: the pair exactly as
+        // it was shown (struck through when it was false) and the fix.
+        const shown = `<span class="tf-target">${colorArticleHtml(q.shownForm)}</span>`;
+        top.innerHTML = escapeHtml(gamePrompt(q.w));
+        bot.innerHTML = q.truth ? shown
+          : `<s class="tf-was">${shown}</s><div class="tf-fix">→ <span class="tf-target">${colorArticleHtml(gameForm(q.w))}</span></div>`;
+        card.insertAdjacentHTML("afterbegin", `<div class="tf-verdict">You said <b>${said ? "true" : "false"}</b> — this pair was <b>${q.truth ? "true" : "false"}</b></div>`);
+        card.className = "tf-card bad review g-enter";
+        card.style.visibility = "";
+        stamp.textContent = "";
         if (q.other) recordConfusion(q.w, q.other);
-        const why = q.truth ? `<div class="g-teach-sub">✓ That pair was right.</div>`
+        const why = q.truth ? ""
           : q.trap ? `<div class="g-teach-sub">✗ <s>${escapeHtml(q.trap)}</s> — wrong article.${GR_DE ? " " + genderRuleHtml(nounParts(q.w).noun, nounParts(q.w).answer) : ""}</div>`
           : q.other ? `<div class="g-teach-sub">✗ ${colorArticleHtml(gameForm(q.other))} = ${escapeHtml(gamePrompt(q.other))}</div>` : "";
         ctx.teach(wordLessonHtml(q.w, null, why), "bad");

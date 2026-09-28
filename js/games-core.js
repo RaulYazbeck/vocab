@@ -113,9 +113,11 @@ function posOf(word) {
   const h = String(word.hint || "").toLowerCase();
   if (/noun|sustantivo|nombre/.test(h)) return "noun";
   if (/partizip/.test(h)) return "participle";
+  // Before "verb": "time adverb" and "conjunction — verb goes to the end".
+  if (/adverb|adverbio/.test(h)) return "adv";
+  if (/^(conjunction|conjunción|preposition|preposición|particle|pronoun|pronombre)|conjunction/.test(h)) return "other";
   if (/verb|verbo/.test(h)) return "verb";
   if (/adjecti|adjetivo/.test(h)) return "adj";
-  if (/adverb|adverbio/.test(h)) return "adv";
   if (/number|número|numero/.test(h)) return "num";
   if (/phrase|frase|expresión|expresion|locución/.test(h)) return "phrase";
   return f.split(" ").length >= 3 ? "phrase" : "other";
@@ -138,7 +140,7 @@ function _parseNoun(word) {
   const raw = String(word[WORD_KEY] || "");
   const hint = String(word.hint || "");
   const en = String(word.en || "");
-  if (/plural|always pl|\bpl\.\)/i.test(hint) || /always pl/i.test(raw) || /\(pl(\.|ural)?\)/i.test(en)) return null;
+  if (/plural|always pl|\bpl\.\)/i.test(hint.replace(/\bno plural\b/gi, "")) || /always pl/i.test(raw) || /\(pl(\.|ural)?\)/i.test(en)) return null;
   // Grammar-deck case forms ("der Frau" = of the woman, Genitiv) show a
   // declined article, not the noun's gender.
   if (/genitiv|dativ|akkusativ|nominativ|genitive|dative|accusative|nominative/i.test(en + " " + hint)) return null;
@@ -286,16 +288,20 @@ function articleTrap(w) {
 //   hard distractors · an article trap (target-language options) ·
 //   "None of these" (the right answer left out, ~1 in 6).
 // cfg: { text(x), n, pool, target: options show the target language,
-//        hard, none, formFn?, filter? (which words may be distractors) }
+//        hard, none, formFn?, filter? (which words may be distractors),
+//        pick?(n) (own distractor picker: words, or { opt } for a ready
+//        option), noTrap? (no article trap) }
 function mcChoices(w, cfg) {
   const n = cfg.n;
   const hard = !!cfg.hard;
   const none = !!cfg.none;
   const noneRight = none && Math.random() < 0.17;
   const want = noneRight ? n - 1 : n - 1 - (none ? 1 : 0);
-  const ds = pickDistractors(w, cfg.pool, Math.max(1, want), cfg.formFn || gameForm, cfg.filter || null, { hard, ear: !!cfg.ear });
-  let opts = ds.map(x => ({ text: cfg.text(x), correct: false, word: x }));
-  if (hard && cfg.target && opts.length >= 2 && Math.random() < 0.45) {
+  const ds = cfg.pick ? cfg.pick(Math.max(1, want))
+    : pickDistractors(w, cfg.pool, Math.max(1, want), cfg.formFn || gameForm, cfg.filter || null, { hard, ear: !!cfg.ear });
+  // pick() may hand back ready options ({ opt }) — e.g. a plural form.
+  let opts = ds.map(x => x.opt ? x.opt : ({ text: cfg.text(x), correct: false, word: x }));
+  if (hard && cfg.target && !cfg.noTrap && opts.length >= 2 && Math.random() < 0.45) {
     const trap = articleTrap(w);
     if (trap && !opts.some(o => normKey(o.text) === normKey(trap))) opts[opts.length - 1] = { text: trap, correct: false, trap: true };
   }
@@ -312,7 +318,8 @@ function wordLessonHtml(w, picked = null, extra = "") {
   const ex = (w.examples || [])[0];
   const pl = w.pl ? ` <span class="g-teach-pl">· pl. ${escapeHtml(w.pl)}</span>` : "";
   let pick = "";
-  if (picked && picked.trap) pick = `<div class="g-teach-sub">✗ <s>${escapeHtml(picked.text)}</s> — wrong article: it's ${colorArticleHtml(gameForm(w))}</div>`;
+  if (picked && picked.why) pick = `<div class="g-teach-sub">✗ <s>${escapeHtml(picked.text)}</s> — ${picked.why}</div>`;
+  else if (picked && picked.trap) pick = `<div class="g-teach-sub">✗ <s>${escapeHtml(picked.text)}</s> — wrong article: it's ${colorArticleHtml(gameForm(w))}</div>`;
   else if (picked && picked.none) pick = `<div class="g-teach-sub">✗ It was there: ${colorArticleHtml(gameForm(w))}</div>`;
   else if (picked && picked.word && !sameWord(picked.word, w)) pick = `<div class="g-teach-sub">✗ You picked ${colorArticleHtml(gameForm(picked.word))} = ${escapeHtml(gamePrompt(picked.word))}</div>`;
   return `<div class="g-teach-main">${colorArticleHtml(gameForm(w))} = ${escapeHtml(gamePrompt(w))}${pl}</div>${pick}${extra}
