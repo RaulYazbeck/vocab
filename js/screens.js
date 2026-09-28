@@ -802,7 +802,6 @@ function renderHome() {
         <button class="tc-quiet ${quiet ? "on" : ""}" onclick="toggleQuiet()" aria-pressed="${quiet}" title="Silence everything until tomorrow — your sound settings stay as they are">${quiet ? "🔇 Muted until tomorrow" : "🔈 Mute until tomorrow"}</button>
       </div>
       ${banner}
-      ${Q.pending.length ? `<button class="tc-chest" onclick="openPendingChest()">🎁 ${Q.pending.length} chest${Q.pending.length > 1 ? "s" : ""} to open</button>` : ""}
       <div class="tc-stats">${stats.join("")}</div>
       <div class="tc-len" role="radiogroup" aria-label="Session length">
         ${Object.entries(PATH.SESSION_LENGTHS).map(([k, n]) => `<button class="tc-len-btn ${k === len ? "on" : ""}" role="radio" aria-checked="${k === len}" onclick="setSessionLen('${k}')">${k[0].toUpperCase() + k.slice(1)} <small>${n}</small></button>`).join("")}
@@ -820,7 +819,6 @@ function renderHome() {
     </div>
     ${journeyStripHtml(t.scan)}
     <div class="library-head"><span class="lh-title">📚 Library</span><small>Pick decks yourself — Learn · Drill · Timer · Games</small></div>`;
-  maybeShowPathWelcome();
 }
 // 👵 Grandma mode: one progress line, Start (with its length), the
 // quests, the weekly saga and Games. Everything else waits in ⚙️.
@@ -842,7 +840,6 @@ function renderGrandmaHome(home) {
         <div class="gm-bar"><i style="width:${Math.max(pct, scan.known ? 1 : 0)}%"></i></div>
       </div>
       ${banner}
-      ${Q.pending.length ? `<button class="tc-chest" onclick="openPendingChest()">🎁 ${Q.pending.length} chest${Q.pending.length > 1 ? "s" : ""} to open</button>` : ""}
       <div class="tc-len" role="radiogroup" aria-label="Session length">
         ${Object.entries(PATH.SESSION_LENGTHS).map(([k, n]) => `<button class="tc-len-btn ${k === len ? "on" : ""}" role="radio" aria-checked="${k === len}" onclick="setSessionLen('${k}')">${k[0].toUpperCase() + k.slice(1)} <small>${n}</small></button>`).join("")}
       </div>
@@ -851,7 +848,6 @@ function renderGrandmaHome(home) {
       ${questCardsHtml({ simple: true })}
       ${sg && !sg.done ? `<div class="tc-saga">📜 Weekly saga ${sg.idx + 1}/3 · ${escapeHtml(sg.title)} <span>${sg.prog}/${sg.target}</span></div>` : sg && sg.done ? `<div class="tc-saga done">📜 Weekly saga complete ✓</div>` : ""}
     </div>`;
-  maybeShowPathWelcome();
 }
 function toggleGrandma() {
   S.prefs.grandma = !S.prefs.grandma;
@@ -900,33 +896,6 @@ function journeyStripHtml(scan) {
     </button>`;
 }
 
-// One-time explanation of the Path (and of what migration did).
-function maybeShowPathWelcome() {
-  if (S.path.welcomed || document.getElementById("welcome-modal")) return;
-  const c = (S.path.migrated && S.path.migrated.counts) || {};
-  const any = Object.values(c).some(n => n > 0);
-  const m = document.createElement("div");
-  m.className = "modal-overlay"; m.id = "welcome-modal";
-  m.innerHTML = `<div class="modal-sheet welcome-sheet" role="dialog" aria-label="Welcome to your Path">
-    <div class="modal-title">🗺️ Welcome to your Path</div>
-    <div class="welcome-body">
-      <p><strong>No more choosing.</strong> Tap <em>Start</em> and the app picks for you: words you're about to forget, a few new ones (${S.path.newPerDay}/day, changeable in ⚙️), and fixes for recent slips.</p>
-      <p><strong>Words climb stages:</strong> 🌱 Learning → 🌿 Familiar → 🌳 <strong>Known</strong> (≈2 weeks) → ⭐ Strong → 💎 <strong>Locked in</strong> (≈2 months), then two quiet check-ins at 4 months and a year. Correct reviews move the pips ●●●○○○○. The gaps adapt to you: easy words stretch out, words you slip on come back sooner and get an extra check.</p>
-      <p><strong>Mistakes are gentle.</strong> At most one step down a day. A slip on a Known word keeps its badge and gets 🩹 — fix it next time and nothing is lost.</p>
-      <p><strong>4 quests a day</strong>, different every day, add up to your daily goal. Finish them, open your chest, done.</p>
-      ${any ? `<div class="welcome-mig"><div class="examples-title">Your progress so far</div>
-        ${[[1, 2, "🌱 Learning"], [3, 4, "🌿 Familiar"], [5, 5, "🌳 Known"], [6, 6, "⭐ Strong"]].map(([a, b, l]) => {
-          let n = 0; for (let i = a; i <= b; i++) n += c[i] || 0; return n ? `<div class="welcome-row"><span>${l}</span><strong>${n}</strong></div>` : ""; }).join("")}
-        <div class="p-sub">Your mastered words start as 🌳 Known — every trophy is kept.</div></div>` : ""}
-    </div>
-    <div class="modal-actions"><button class="modal-btn primary" onclick="closePathWelcome()">Let's go →</button></div>
-  </div>`;
-  document.body.appendChild(m);
-}
-function closePathWelcome() {
-  S.path.welcomed = true; saveState();
-  const m = document.getElementById("welcome-modal"); if (m) m.remove();
-}
 
 // ── JOURNEY (completion map) ──────────────────
 function tierBarHtml(tiers, total, cls = "") {

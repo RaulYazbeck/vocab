@@ -1405,8 +1405,15 @@ function questCardsHtml(opts = {}) {
       prog: w.prog, target: w.target, go: `questGoTpl('${w.tpl}', 'W')`, cls: "weekend" }));
   }
   const nDone = Q.list.filter(q => q.done).length;
+  // The day's chest, right under the quests: its progress (one step per
+  // quest), then a big button once it — or any other chest — is waiting.
+  const pend = Q.pending.length;
+  const chest = pend
+    ? `<button class="gm-chest-open" onclick="openPendingChest()">🎁 Open your chest${pend > 1 ? `s (${pend})` : ""}</button>`
+    : Q.dayDone ? `<div class="gm-chest-done">✓ Today's chest is opened — new quests tomorrow</div>`
+    : questRowHtml({ icon: "🎁", title: `Chest — finish all ${Q.list.length} quests to open it`, prog: nDone, target: Q.list.length, cls: "chest" });
   return `<div class="gm-quests-head"><span>Today's quests</span><b>${nDone} / ${Q.list.length}</b></div>
-    <div class="gm-quests">${rows.join("")}</div>`;
+    <div class="gm-quests">${rows.join("")}${chest}</div>`;
 }
 function questMiniHtml() {
   if (!S.quests || !S.quests.list.length) return "";

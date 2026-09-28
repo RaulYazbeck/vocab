@@ -18,12 +18,7 @@ registerGame({
     { limit: 45000, hint: 0, pen: 3000 },
   ],
   twists: ["golden", "turbo", "sudden"],
-  howTo: [
-    "Type the word for each prompt — as many as you can before time runs out.",
-    "Hesitate and letters appear one by one. No letters used = full credit for the word.",
-    "Streaks multiply your points. A miss costs seconds (half for 🌱 new words). “Almost” lets you fix a typo.",
-    "Enter checks · Tab skips.",
-  ],
+  howTo: ["Type as many words as you can before time runs out."],
   requirement(pool) {
     const n = distinctCount(pool);
     return n >= 4 ? { ok: true } : { ok: false, reason: `Needs 4 words — you have ${n}` };

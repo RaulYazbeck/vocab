@@ -19,12 +19,7 @@ const MATCH_RANKS = [
 registerGame({
   id: "match", name: "Match Pairs", icon: "🧩", skill: "Recognition", timed: true,
   ranks: MATCH_RANKS, twists: ["mirror", "golden", "turbo", "sudden"], credit: "recognition",
-  howTo: [
-    "Tap a word on the left, then its translation on the right — or drag one onto the other.",
-    "Clear every board as fast as you can.",
-    "Wrong pairs cost points (half for 🌱 new words) — accuracy beats frantic tapping.",
-    "Higher ranks: bigger boards, a tighter clock, and at 💎 Diamond the answers flip face-down.",
-  ],
+  howTo: ["Tap each word, then its translation."],
   requirement(pool, size) {
     const need = size === "full" ? 5 : 4, n = distinctCount(pool);
     return n >= need ? { ok: true } : { ok: false, reason: `Needs ${need} words — you have ${n}` };
