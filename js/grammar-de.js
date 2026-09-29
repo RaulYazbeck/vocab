@@ -777,13 +777,25 @@ function verbFormStep(word, tok) {
   const v = verbBank().byInf.get(inf);
   if (!v) return null;
   const F = v.F, t = norm1(tok);
+  // A separable Partizip II card (ein·ge·laden) isn't an infinitive to
+  // conjugate — its ge- only looks like a prefix. (bekommen, vergessen
+  // are both, and fine.)
+  if (/^partizip/i.test(word.hint || "") && F.sep && F.insep === "ge") return null;
+  // Separable verbs: the gap holds the particle ("Ich muss noch einkaufen
+  // gehen", "…, weil ich einkaufe") or not ("Füllen Sie … aus"). Every
+  // option keeps that shape — kaufen / kaufte are another verb there,
+  // ausfüllen / ausgefüllt a doubled particle here.
+  const glued = !!F.sep && t.startsWith(norm1(F.sep));
+  const pre = glued ? F.sep : "";
   const cells = [];
   const add = (tense, person, form) => { if (form && !/\s/.test(form)) cells.push({ tense, person, form }); };
-  if (v.tenses.includes("pr")) PERSONS.forEach(p => add("pr", p, F.pr[p]));
-  if (v.tenses.includes("pt")) PERSONS.forEach(p => add("pt", p, F.pt[p]));
-  if (F.p2 && (v.tenses.includes("pf") || v.tenses.includes("pq"))) add("p2", "", F.p2);
-  add("inf", "", F.inf);
-  if (F.im && v.tenses.includes("im")) add("im", "du", F.im.du);
+  if (v.tenses.includes("pr")) PERSONS.forEach(p => add("pr", p, F.pr[p] && pre + F.pr[p]));
+  if (v.tenses.includes("pt")) PERSONS.forEach(p => add("pt", p, F.pt[p] && pre + F.pt[p]));
+  if (!F.sep || glued) {
+    if (F.p2 && (v.tenses.includes("pf") || v.tenses.includes("pq"))) add("p2", "", F.p2);
+    add("inf", "", F.inf);
+  }
+  if (F.im && v.tenses.includes("im") && !glued) add("im", "du", F.im.du);
   const hits = cells.filter(c => norm1(c.form) === t);
   if (!hits.length) return null;
   const answer = capLike(tok, hits[0].form);
