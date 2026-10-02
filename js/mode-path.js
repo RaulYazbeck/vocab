@@ -116,8 +116,9 @@ function bindPathKeys() {
       if (e.key === "Enter") { e.preventDefault(); return; }
     }
     // Private override: Shift+Enter ×3 within 1.5s on a wrong typed answer.
-    // Swallowed on every answered typed card, so a 4th press never advances.
-    if (e.key === "Enter" && e.shiftKey && pathSession.answered && ["typed", "spot", "cloze"].includes(it.t)) {
+    // Swallowed while an override is possible or was just used, so a stray
+    // 4th press never advances.
+    if (e.key === "Enter" && e.shiftKey && pathSession.answered && (pathSession.undo || pathSession.secretUsed)) {
       e.preventDefault();
       if (pathSession.undo) pathSecretPress(3, 1500);
       return;
@@ -175,7 +176,7 @@ function pathNext() {
   if (!s) return;
   stopPathVoice();
   s.i++;
-  s.answered = false; s.pendingReverse = null; s.undo = null;
+  s.answered = false; s.pendingReverse = null; s.undo = null; s.secretUsed = false; _secretTaps = [];
   const fb = document.getElementById("p-fb"); if (fb) fb.innerHTML = "";
   if (s.i >= s.items.length) {
     const list = s.repairOffered ? [] : pathRepairList();
@@ -536,7 +537,7 @@ function pathSecretOk() {
   if (!P.secretOk || P.secretOk.d !== today) P.secretOk = { d: today, n: 0 };
   if (P.secretOk.n >= SECRET_OK_PER_DAY) { shakeEl(document.getElementById("p-fb")); return; }
   const u = s.undo, w = s.cur.w, it = s.cur, k = wordKey(w);
-  s.undo = null;
+  s.undo = null; s.secretUsed = true;
   // Roll the wrong back…
   const ws = getWS(w.deckId, w.idx);
   Object.keys(ws).forEach(key => delete ws[key]);
@@ -559,6 +560,7 @@ function pathSecretOk() {
   const input = document.getElementById("p-input");
   if (input) input.classList.remove("wrong");
   pathGradeTyped(u.val, true, "", true);
+  _mistakeHoldUntil = 0; // it is a success now: Next must not wait on the old miss
   const ok = document.querySelector("#p-fb .p-ok");
   if (ok) ok.innerHTML = ok.innerHTML.replace("✓ Correct!", "✓ Counted");
 }
@@ -601,7 +603,7 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     haptic("select");
   } else {
     // Snapshot for the private "my typo" override (pathSecretOk).
-    if (!fromReverse && !it.said && ["typed", "spot", "cloze"].includes(it.t)) {
+    if (!fromReverse && !it.said && val.trim() && ["typed", "spot", "cloze"].includes(it.t)) {
       const Q = S.quests;
       s.undo = { val, ws: JSON.parse(JSON.stringify(ws)), consec: sessionConsecutive, move: s.moves.get(wordKey(w)),
         qm: Q && Q.m ? JSON.stringify(Q.m) : null, qw: Q && Q.week ? JSON.stringify(Q.week) : null,
@@ -640,7 +642,7 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
   const head = ok === true ? `<div class="p-ok">✓ Correct! <strong>${colorArticleHtml(answerText)}</strong></div>`
     : ok === "near" && it.said ? `<div class="p-near">≈ Close — say it once more: <strong>${colorArticleHtml(answerText)}</strong></div><div class="p-sub">No step up, no step down — it comes back next session.</div>`
     : ok === "near" ? `<div class="p-near">≈ Almost — check the spelling</div><div class="p-diff">${diffHtml(val, answerText)}</div>${note ? `<div class="p-sub">${note}</div>` : ""}<div class="p-sub">No step up, no step down — it comes back next session.</div>`
-    : `<div class="p-bad">${val.trim() ? `<span onclick="pathSecretTap()" style="user-select:none;-webkit-user-select:none;display:inline-block;padding:4px 2px;margin:-4px 0">✗</span> Answer:` : "Answer:"} <strong>${colorArticleHtml(answerText)}</strong></div>${val.trim() ? `<div class="p-diff">${diffHtml(val, answerText)}</div>` : ""}${note ? `<div class="p-sub">${note}</div>` : ""}`;
+    : `<div class="p-bad">${val.trim() ? `<span onclick="pathSecretTap()" style="user-select:none;-webkit-user-select:none;touch-action:manipulation;display:inline-block;padding:4px 2px;margin:-4px 0">✗</span> Answer:` : "Answer:"} <strong>${colorArticleHtml(answerText)}</strong></div>${val.trim() ? `<div class="p-diff">${diffHtml(val, answerText)}</div>` : ""}${note ? `<div class="p-sub">${note}</div>` : ""}`;
   const fb = document.getElementById("p-fb");
   if (fb) fb.innerHTML = `
     <div class="p-fb-main">${head}${chip}${it.said && it.t !== "reverse" ? frGenderNoteHtml(w) : ""}${w.pl && it.t !== "cloze" && it.t !== "reverse" ? `<div class="p-sub">plural: ${escapeHtml(w.pl)}</div>` : ""}</div>
