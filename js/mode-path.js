@@ -115,6 +115,14 @@ function bindPathKeys() {
       if (it.revealed && ["1", "2", "3"].includes(e.key)) { e.preventDefault(); pathSayGrade(e.key === "1" ? false : e.key === "2" ? "near" : true); return; }
       if (e.key === "Enter") { e.preventDefault(); return; }
     }
+    // Private override: Shift+Enter ×3 within 1.5s on a wrong typed answer.
+    // Swallowed while an override is possible or was just used, so a stray
+    // 4th press never advances.
+    if (e.key === "Enter" && e.shiftKey && pathSession.answered && (pathSession.undo || pathSession.secretUsed)) {
+      e.preventDefault();
+      if (pathSession.undo) pathSecretPress(3, 1500);
+      return;
+    }
     if (e.key === "Enter") {
       e.preventDefault();
       if (it.t === "learn") pathNext();
@@ -168,7 +176,7 @@ function pathNext() {
   if (!s) return;
   stopPathVoice();
   s.i++;
-  s.answered = false; s.pendingReverse = null;
+  s.answered = false; s.pendingReverse = null; s.undo = null; s.secretUsed = false; _secretTaps = [];
   const fb = document.getElementById("p-fb"); if (fb) fb.innerHTML = "";
   if (s.i >= s.items.length) {
     const list = s.repairOffered ? [] : pathRepairList();
@@ -511,6 +519,51 @@ function pathReverseResolve(right) {
   pathGradeTyped(val, right, "", true);
   if (!right) pathNext();
 }
+// ── PRIVATE "MY TYPO" OVERRIDE ────────────────
+// A deliberate triple gesture (tap the ✗ ×3, or Shift+Enter ×3) on a wrong
+// typed answer turns it into a full success. Honour system, max 2 a day.
+const SECRET_OK_PER_DAY = 2;
+let _secretTaps = [];
+function pathSecretPress(need, windowMs) {
+  const now = Date.now();
+  _secretTaps = _secretTaps.filter(t => now - t < windowMs).concat(now);
+  if (_secretTaps.length >= need) { _secretTaps = []; pathSecretOk(); }
+}
+function pathSecretTap() { pathSecretPress(3, 800); }
+function pathSecretOk() {
+  const s = pathSession;
+  if (!s || !s.answered || !s.undo || s.pendingReverse !== null) return;
+  const P = S.path, today = studyToday();
+  if (!P.secretOk || P.secretOk.d !== today) P.secretOk = { d: today, n: 0 };
+  if (P.secretOk.n >= SECRET_OK_PER_DAY) { shakeEl(document.getElementById("p-fb")); return; }
+  const u = s.undo, w = s.cur.w, it = s.cur, k = wordKey(w);
+  s.undo = null; s.secretUsed = true;
+  // Roll the wrong back…
+  const ws = getWS(w.deckId, w.idx);
+  Object.keys(ws).forEach(key => delete ws[key]);
+  Object.assign(ws, u.ws);
+  sessionConsecutive = u.consec;
+  // Quest counters the wrong answer touched (attempt count, run, clean
+  // streak, missed list, weekly tally) go back too.
+  const Q = S.quests;
+  if (Q && u.qm && Q.m) { Object.keys(Q.m).forEach(key => delete Q.m[key]); Object.assign(Q.m, JSON.parse(u.qm)); }
+  if (Q && u.qw && Q.week) { Object.keys(Q.week).forEach(key => delete Q.week[key]); Object.assign(Q.week, JSON.parse(u.qw)); }
+  if (typeof invalidatePathScan === "function") invalidatePathScan();
+  s.stats.wrong--; s.stats.answered--;
+  if (it.t === "spot") S.path.spotToday = Math.max(0, (S.path.spotToday || 1) - 1);
+  if (!u.wasMissed) s.missed = s.missed.filter(x => !sameWord(x, w));
+  if (u.move) s.moves.set(k, u.move); else s.moves.delete(k);
+  P.secretOk.n++;
+  logEvent("secretOk", { m: "path:" + it.t, n: P.secretOk.n });
+  // …and grade it as correct (fromReverse = bypass the already-answered guard).
+  s.answered = false;
+  const input = document.getElementById("p-input");
+  if (input) input.classList.remove("wrong");
+  pathGradeTyped(u.val, true, "", true);
+  _mistakeHoldUntil = 0; // it is a success now: Next must not wait on the old miss
+  const ok = document.querySelector("#p-fb .p-ok");
+  if (ok) ok.innerHTML = ok.innerHTML.replace("✓ Correct!", "✓ Counted");
+}
 // ok: true / false / "near". Applies bookkeeping and shows feedback.
 function pathGradeTyped(val, ok, note = "", fromReverse = false) {
   const s = pathSession, it = s.cur, w = it.w;
@@ -549,6 +602,13 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     if (input) input.classList.add("near");
     haptic("select");
   } else {
+    // Snapshot for the private "my typo" override (pathSecretOk).
+    if (!fromReverse && !it.said && val.trim() && ["typed", "spot", "cloze"].includes(it.t)) {
+      const Q = S.quests;
+      s.undo = { val, ws: JSON.parse(JSON.stringify(ws)), consec: sessionConsecutive, move: s.moves.get(wordKey(w)),
+        qm: Q && Q.m ? JSON.stringify(Q.m) : null, qw: Q && Q.week ? JSON.stringify(Q.week) : null,
+        wasMissed: s.missed.some(x => sameWord(x, w)) };
+    }
     sessionConsecutive = 0;
     res = applyWrong(ws, { w });
     s.stats.wrong++;
@@ -582,7 +642,7 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
   const head = ok === true ? `<div class="p-ok">✓ Correct! <strong>${colorArticleHtml(answerText)}</strong></div>`
     : ok === "near" && it.said ? `<div class="p-near">≈ Close — say it once more: <strong>${colorArticleHtml(answerText)}</strong></div><div class="p-sub">No step up, no step down — it comes back next session.</div>`
     : ok === "near" ? `<div class="p-near">≈ Almost — check the spelling</div><div class="p-diff">${diffHtml(val, answerText)}</div>${note ? `<div class="p-sub">${note}</div>` : ""}<div class="p-sub">No step up, no step down — it comes back next session.</div>`
-    : `<div class="p-bad">${val.trim() ? "✗ Answer:" : "Answer:"} <strong>${colorArticleHtml(answerText)}</strong></div>${val.trim() ? `<div class="p-diff">${diffHtml(val, answerText)}</div>` : ""}${note ? `<div class="p-sub">${note}</div>` : ""}`;
+    : `<div class="p-bad">${val.trim() ? `<span onclick="pathSecretTap()" style="user-select:none;-webkit-user-select:none;touch-action:manipulation;display:inline-block;padding:4px 2px;margin:-4px 0">✗</span> Answer:` : "Answer:"} <strong>${colorArticleHtml(answerText)}</strong></div>${val.trim() ? `<div class="p-diff">${diffHtml(val, answerText)}</div>` : ""}${note ? `<div class="p-sub">${note}</div>` : ""}`;
   const fb = document.getElementById("p-fb");
   if (fb) fb.innerHTML = `
     <div class="p-fb-main">${head}${chip}${it.said && it.t !== "reverse" ? frGenderNoteHtml(w) : ""}${w.pl && it.t !== "cloze" && it.t !== "reverse" ? `<div class="p-sub">plural: ${escapeHtml(w.pl)}</div>` : ""}</div>
