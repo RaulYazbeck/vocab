@@ -61,16 +61,18 @@ it with the text, retrying with a new seed); clips that never pass go to
 `work/<lang>/failures.json` and are left out of the pack, so those words keep
 the phone voice rather than teaching a wrong pronunciation. It cannot judge
 *accent*, only your ears can. To redo a clip: delete `work/<lang>/wav/<key>.wav`
-and re-run synth.
+and re-run synth. To retry the clips listed in `failures.json` (with a different
+`--min-score`, say), add `--retry-failures`.
 
 ## Size and format
 
 `pack.mjs` trims silence, evens out loudness, and encodes mono Opus at
-24 kbps (`--bitrate`). My estimate from the text lengths is roughly
-**55 MB for German and 40 MB for French** with sentences, about a third of
-that for words only — but the script prints the real figure, and these tools
-were only run with test tones, so trust that number, not mine. The app lets
-people download words only or everything.
+24 kbps (`--bitrate`). I ran the whole pipeline at full size with test
+tones of speech-like length (not real speech): **German 66 MB** (words
+20 MB, sentences 46 MB) and **French 44 MB** (13 + 31 MB), 33 and 23 shard
+files, manifest 326 KB and 231 KB. Real speech at the same bitrate should come
+out similar or somewhat smaller, and the script prints the real figure. The
+app lets people download words only or everything.
 
 Opus-in-Ogg plays in current Chrome, Firefox and Edge, and in recent
 Safari/iOS (18.4 and later, as far as I know — not verified here). If older

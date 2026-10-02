@@ -94,7 +94,8 @@ function _audioCanPlay(m) {
 // ── MANIFEST + CACHE ──────────────────────────
 function _audioUrl(file) { return new URL(file, AUDIO.base).href; }
 async function _audioFetchManifest() {
-  const res = await fetch(_audioUrl("manifest.json"), { cache: "no-store" });
+  // "no-cache" = ask the server if it changed (a tiny 304 reply), never serve a stale copy.
+  const res = await fetch(_audioUrl("manifest.json"), { cache: "no-cache" });
   if (!res.ok) throw new Error("no pack (" + res.status + ")");
   const m = await res.json();
   if (!m || m.fmt !== 1 || !Array.isArray(m.shards) || !m.idx) throw new Error("bad manifest");
@@ -132,6 +133,7 @@ async function audioInit() {
     AUDIO.ready = true;
     _audioEmit();
     audioInstallUnlock();
+    _audioSweepSw();
     // Is there a pack (or a newer one) on the server? Quiet, best-effort.
     if (navigator.onLine !== false) {
       try {
@@ -203,9 +205,10 @@ function audioUpdateAvailable() {
 // skipped, so an interrupted download just continues next time. The
 // manifest is stored last, so a half-finished download never changes
 // what plays.
-// Resolves "done", "cancelled" or "error" (the reason is in AUDIO.error).
+// Resolves "done", "cancelled", "error" (the reason is in AUDIO.error) or
+// "busy" (one is already running; nothing was started).
 async function audioDownload(kinds) {
-  if (AUDIO.dl) return "error";
+  if (AUDIO.dl) return "busy";
   kinds = (kinds || ["w", "s"]).filter(k => k === "w" || k === "s");
   if (!kinds.length || !AUDIO.base) return "error";
   AUDIO.error = "";
@@ -221,6 +224,7 @@ async function audioDownload(kinds) {
     AUDIO.remote = M;
     // Keep what the user already has, plus what they ask for now.
     const want = Array.from(new Set([...audioPrefs().want, ...kinds]));
+    const firstInstall = !AUDIO.manifest;
     const cache = await _audioCache();
     const todo = [];
     for (let i = 0; i < M.shards.length; i++) {
@@ -249,7 +253,7 @@ async function audioDownload(kinds) {
         const bytes = await _audioFetchShard(s, job, n => { job.done += n - last; last = n; _audioEmit("progress"); });
         if (job.cancelled) return;
         await cache.put(_audioUrl(s.f), new Response(bytes, { headers: { "Content-Type": "application/octet-stream" } }));
-        _audioForgetInSw(_audioUrl(s.f));
+        _audioForgetInSw();
       }
     };
     await Promise.all(Array.from({ length: Math.min(AUDIO_PARALLEL, todo.length) }, worker));
@@ -264,17 +268,25 @@ async function audioDownload(kinds) {
     AUDIO.have = await _audioScanHave(M);
     AUDIO.mem.clear();
     const p = audioPrefs();
-    p.want = want; p.asked = true; p.use = true;
+    p.want = want; p.asked = true;
+    if (firstInstall) p.use = true;                    // an update must not undo "use the system voice"
     audioSavePrefs();
     audioInstallUnlock();
   } catch (e) {
-    if (e.cancelled || job.cancelled) outcome = "cancelled";   // an aborted fetch rejects too
-    else { outcome = "error"; AUDIO.error = e.message || "Download failed."; }
+    const byUser = e.cancelled || job.cancelled;       // an aborted fetch rejects too
+    job.cancel();                                      // stop the other workers; nothing may continue in the background
+    if (byUser) outcome = "cancelled";
+    else {
+      outcome = "error";
+      AUDIO.error = e && e.name === "QuotaExceededError" ? "This device ran out of storage. Free some space and try again — what already downloaded is kept."
+        : (e && e.message) || "Download failed.";
+    }
     // A partly finished download still lets the first words play when a
     // manifest is in place; otherwise nothing changes.
   } finally {
     AUDIO.dl = null;
     _audioEmit();
+    setTimeout(_audioSweepSw, 1500);                   // the old worker's late copies
   }
   return outcome;
 }
@@ -306,10 +318,20 @@ async function _audioFetchShard(s, job, onBytes) {
   return buf;
 }
 // An already-installed older service worker caches every same-origin
-// GET, which would store each shard twice. Drop that copy.
-function _audioForgetInSw(url) {
-  try { ["app-v1", "pages-v1"].forEach(n => caches.open(n).then(c => c.delete(url)).catch(() => {})); } catch (e) {}
+// GET, which would store each shard a second time (and finishes doing so
+// a moment after we have the bytes). Sweep those copies out of its
+// caches: after each shard, again once the download ends, and at start-up.
+// The current worker never touches /audio/, so this is a no-op for it.
+async function _audioSweepSw() {
+  try {
+    for (const n of ["app-v1", "pages-v1", "cdn-v1"]) {
+      if (!(await caches.has(n))) continue;
+      const c = await caches.open(n);
+      for (const req of await c.keys()) if (req.url.includes("/audio/")) await c.delete(req);
+    }
+  } catch (e) {}
 }
+function _audioForgetInSw() { _audioSweepSw(); }
 function audioCancelDownload() { if (AUDIO.dl) AUDIO.dl.cancel(); }
 
 async function audioRemove() {
@@ -342,7 +364,9 @@ function audioInstallUnlock() {
       if (el.paused && !el.src) {
         el.src = _SILENT_WAV;
         const p = el.play();
-        const done = () => { try { el.pause(); } catch (e) {} if (el.src === _SILENT_WAV) el.removeAttribute("src"); };
+        // Only undo our own silent clip: if a real recording took the element
+        // in the meantime (the first tap was also a 🔊 tap), leave it playing.
+        const done = () => { if (el.src === _SILENT_WAV) { try { el.pause(); } catch (e) {} el.removeAttribute("src"); } };
         if (p && p.then) p.then(done, done); else done();
       }
     } catch (e) {}
@@ -482,6 +506,7 @@ function audioOfferSheet() {
 // Start a download and show a small progress pill at the bottom until
 // it ends (the Settings page shows the same progress).
 function audioDownloadWithPill(kinds) {
+  if (AUDIO.dl) return;                                // already running: its pill and toast stay
   audioPill(true);
   audioDownload(kinds).then(outcome => {
     audioPill(false);

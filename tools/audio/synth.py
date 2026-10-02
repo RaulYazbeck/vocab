@@ -163,6 +163,7 @@ def main():
     ap.add_argument("--limit", type=int, help="only the first N texts (try this first!)")
     ap.add_argument("--kind", choices=["w", "s"], help="only words or only sentences")
     ap.add_argument("--part", help="i/n: do the i-th of n slices, to split work across machines (e.g. 1/2)")
+    ap.add_argument("--retry-failures", action="store_true", help="forget failures.json and try those clips again")
     ap.add_argument("--verify", action="store_true", help="check each clip with Whisper and retry bad ones")
     ap.add_argument("--whisper-model", default="large-v3")
     ap.add_argument("--min-score", type=float, default=0.88, help="similarity (0-1) a clip needs to pass --verify")
@@ -190,7 +191,7 @@ def main():
     os.makedirs(wav_dir, exist_ok=True)
     fail_path = os.path.join(work, "failures.json")
     failures = {}
-    if os.path.exists(fail_path):
+    if os.path.exists(fail_path) and not args.retry_failures:
         failures = {f["key"]: f for f in json.load(open(fail_path, encoding="utf8"))}
 
     todo = [t for t in texts if not os.path.exists(os.path.join(wav_dir, t["key"] + ".wav")) and t["key"] not in failures]
@@ -207,22 +208,26 @@ def main():
         for n, t in enumerate(todo, 1):
             key, text, kind = t["key"], t["text"], t["kind"]
             path = os.path.join(wav_dir, key + ".wav")
+            # Attempts are written to a scratch file and only moved into place
+            # once they pass, so a stop in the middle never leaves an
+            # unverified clip that a later run would take for finished.
+            attempt_path = os.path.join(work, "attempt.wav")
             last = None
             for attempt in range(args.retries + 1 if verifier else 1):
                 pcm, sr = engine.synth(tts_text(text, kind, args), kind, seed=1000 * attempt + (zlib.crc32(key.encode()) & 0xFFFF))
-                write_wav(path, pcm, sr)
+                write_wav(attempt_path, pcm, sr)
                 if not verifier:
                     break
-                score, heard = verifier.score(text, path)
+                score, heard = verifier.score(text, attempt_path)
                 last = {"key": key, "text": text, "heard": heard, "score": round(score, 3)}
                 if score >= args.min_score:
                     last = None
                     break
             if last:                                   # never passed
-                os.remove(path)
                 failures[key] = last
                 bad += 1
             else:
+                os.replace(attempt_path, path)
                 ok += 1
             if n % 25 == 0 or n == len(todo):
                 rate = n / max(1e-6, time.time() - started)
