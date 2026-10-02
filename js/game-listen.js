@@ -1,6 +1,7 @@
 // ── GAME: LISTEN & PICK ───────────────────────
-// Text-to-speech says a word; pick its meaning. Needs speechSynthesis
-// words read aloud, so it's never auto-picked while that switch is off
+// A voice says a word (the recorded natural voice, else the browser's
+// text-to-speech); pick its meaning. It needs words read aloud, so it's
+// never auto-picked while that switch is off
 // or muted until tomorrow (games-core: gameUsableNow). speak() is then
 // silent, so the game offers an inline "Turn it on" instead.
 //
@@ -10,7 +11,7 @@
 // Voices load asynchronously; only warn once the list is known and has
 // nothing for this language.
 function listenVoiceMissing() {
-  if (targetVoice || !window.speechSynthesis) return false;
+  if (targetVoice || !window.speechSynthesis || (typeof audioReady === "function" && audioReady())) return false;
   const voices = speechSynthesis.getVoices();
   const prefix = APP_CONFIG.speechLang.split("-")[0];
   return voices.length > 0 && !voices.some(v => v.lang && v.lang.startsWith(prefix));
@@ -34,7 +35,7 @@ registerGame({
   twists: ["golden", "sudden"], credit: "recognition",
   howTo: () => ["Listen, then pick what it means. 🔊 plays it again."],
   requirement(pool) {
-    if (!window.speechSynthesis) return { ok: false, reason: "Needs text-to-speech, which this browser doesn't offer" };
+    if (!ttsAvailable()) return { ok: false, reason: "Needs text-to-speech, which this browser doesn't offer" };
     const n = distinctCount(pool);
     return n >= 4 ? { ok: true } : { ok: false, reason: `Needs 4 words — you have ${n}` };
   },

@@ -29,7 +29,10 @@ function setSoundPref(k, v) {
   v = !!v;
   if (k === "vibe") SOUND.vibe = v; else { SOUND.tts = v; SOUND.sfx = v; }
   try { localStorage.setItem("gv_sound", JSON.stringify(SOUND)); } catch (e) {}
-  if (k !== "vibe" && !v && window.speechSynthesis) try { speechSynthesis.cancel(); } catch (e) {}
+  if (k !== "vibe" && !v) {
+    if (window.speechSynthesis) try { speechSynthesis.cancel(); } catch (e) {}
+    if (typeof audioStop === "function") audioStop();
+  }
   if (typeof logEvent === "function") logEvent("setting", { k: "sound_" + (k === "vibe" ? "vibe" : "sound"), v });
 }
 let activeWords = [];

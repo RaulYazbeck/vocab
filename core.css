@@ -1021,3 +1021,20 @@ tr:hover td { background:rgba(255,255,255,0.03); }
 }
 @keyframes mistakeHold { from { transform:scaleX(0); } to { transform:scaleX(1); } }
 @media (prefers-reduced-motion: reduce) { .mistake-hold::after { animation:none; display:none; } }
+
+/* ── NATURAL VOICES (js/audio.js) ──
+   First-launch offer sheet and the little progress pill. */
+.audio-sheet .modal-sub { line-height:1.5; }
+.audio-offer-btns { display:flex; flex-direction:column; gap:8px; margin:4px 0 10px; }
+.audio-offer-btns .modal-btn { flex:none; width:100%; }
+.audio-offer-note { font-size:11.5px; color:var(--text-3); text-align:center; line-height:1.4; }
+.audio-pill {
+  position:fixed; left:50%; bottom:calc(14px + env(safe-area-inset-bottom, 0px)); transform:translateX(-50%);
+  z-index:150; display:flex; align-items:center; gap:10px; max-width:calc(100vw - 24px);
+  padding:8px 8px 8px 14px; border-radius:22px; font-size:12.5px; font-weight:700; color:var(--text);
+  background:rgba(11,16,28,0.95); border:1px solid var(--border-hi); box-shadow:var(--shadow-sm);
+}
+.audio-pill > span:first-child { white-space:nowrap; }
+.audio-pill-bar { width:64px; height:5px; border-radius:3px; background:rgba(255,255,255,0.14); overflow:hidden; flex:none; }
+.audio-pill-bar i { display:block; height:100%; background:var(--accent); transition:width 0.25s linear; }
+.audio-pill-x { width:26px; height:26px; border-radius:50%; border:none; cursor:pointer; background:rgba(255,255,255,0.08); color:var(--text-2); font-size:12px; }

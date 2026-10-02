@@ -121,6 +121,7 @@ document.querySelector("h1").textContent = APP_CONFIG.title;
 migrate();
 initVoice();
 initSettingsPanel();
+if (typeof audioInit === "function") audioInit();
 recordLogin();
 questEnsureToday();
 applyCosmetics();

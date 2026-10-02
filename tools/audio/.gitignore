@@ -1,0 +1,3 @@
+# Intermediate files: texts, raw WAVs, encoded clips, review pages.
+work/
+__pycache__/
