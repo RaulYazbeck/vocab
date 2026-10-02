@@ -8,8 +8,8 @@
   Records your voice saying vocab words, then runs the same recordings
   through several speech models in the browser and compares them.
   Audio never leaves your device (models download once, then run locally).
-  Recording + matching code mirrors js/voice-engine.js so results reflect
-  what the real app would do.
+  Recording mirrors js/voice-engine.js. Matching is accent-SENSITIVE (unlike the
+  app's typing matcher), because for speech an umlaut/accent error is a real error.
 -->
 <html lang="en">
 <head>
@@ -22,10 +22,10 @@
 </script>
 <style>
   :root { --bg:#fafafa; --fg:#1d1d1f; --mut:#6b6b70; --card:#fff; --line:#dcdce0; --acc:#2563eb;
-          --ok:#15803d; --okbg:#dcfce7; --mid:#a16207; --midbg:#fef3c7; --bad:#b91c1c; --badbg:#fee2e2; --warn:#b91c1c; }
+          --accbg:#ffedd5; --ok:#15803d; --okbg:#dcfce7; --mid:#a16207; --midbg:#fef3c7; --bad:#b91c1c; --badbg:#fee2e2; --warn:#b91c1c; }
   @media (prefers-color-scheme: dark) {
     :root { --bg:#141416; --fg:#ececf0; --mut:#9a9aa3; --card:#1e1e22; --line:#33333a; --acc:#60a5fa;
-            --ok:#4ade80; --okbg:#14301f; --mid:#fbbf24; --midbg:#3a2e0e; --bad:#f87171; --badbg:#3b1717; }
+            --accbg:#3d2410; --ok:#4ade80; --okbg:#14301f; --mid:#fbbf24; --midbg:#3a2e0e; --bad:#f87171; --badbg:#3b1717; }
   }
   * { box-sizing: border-box; }
   body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.45 system-ui, sans-serif; }
@@ -53,7 +53,7 @@
   table { border-collapse:collapse; width:100%; font-size:.9rem; }
   th, td { border:1px solid var(--line); padding:5px 7px; text-align:left; vertical-align:top; }
   th { background:var(--bg); position:sticky; top:42px; }
-  .v-exact { background:var(--okbg); } .v-app { background:var(--midbg); } .v-wrong { background:var(--badbg); }
+  .v-exact { background:var(--okbg); } .v-near { background:var(--midbg); } .v-accent { background:var(--accbg); } .v-wrong { background:var(--badbg); }
   .scroll { overflow-x:auto; }
   pre { white-space:pre-wrap; word-break:break-word; background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:10px; max-height:260px; overflow:auto; font-size:.8rem; }
   .log { font-size:.85rem; color:var(--mut); max-height:140px; overflow:auto; }
@@ -123,7 +123,7 @@
   <section class="card" id="results">
     <h2>4 · Results</h2>
     <div class="legend mut">
-      <span class="v-exact">exact match</span><span class="v-app">app would accept (fuzzy)</span><span class="v-wrong">wrong / empty</span>
+      <span class="v-exact">exact (accents count)</span><span class="v-near">near-miss</span><span class="v-accent">accent slip = wrong</span><span class="v-wrong">wrong / empty</span>
     </div>
     <div class="scroll" id="summary"></div>
     <div class="scroll" id="detail" style="margin-top:12px"></div>
@@ -188,10 +188,12 @@ const WORDS = {
        "beaucoup","peut-être","grenouille","écureuil","encore","passer"],
 };
 
-// ── MATCHING (copied from the app so verdicts mirror real behaviour) ──
-function stripAccents(s) { return s.normalize("NFD").replace(/[̀-ͯ]/g, ""); }
+// ── MATCHING ──
+// Based on the app's matcher, with ONE deliberate change: accents/umlauts are NOT ignored.
+// When speaking, "schön" ≠ "schon" and "clé" ≠ "cle", so an accent-only mismatch counts as wrong.
+function stripAccents(s) { return s.normalize("NFD").replace(/[̀-ͯ]/g, ""); }   // used only to *detect* accent slips
 function normalizeChars(s) { return s.replace(/ß/g, "ss").replace(/['\-]/g, " ").replace(/\s+/g, " "); }
-function normalize(s) { return normalizeChars(stripAccents(s.trim().toLowerCase())); }
+function normalize(s) { return normalizeChars(s.trim().toLowerCase().normalize("NFC")); }
 const ARTICLE_TOKENS = /^(der|die|das|den|dem|des|ein|eine|einen|einem|einer|eines|kein|keine|keinen|keinem|keiner|keines|le|la|les|l|un|une|du|au|aux)$/;
 function articleSeq(s) { return s.split(" ").filter(t => ARTICLE_TOKENS.test(t)).join(" "); }
 function levenshtein(a, b) {
@@ -232,11 +234,17 @@ function voiceIsCorrect(transcript, answer) {          // same logic as js/voice
   });
 }
 function cleanHeard(s) { return (s || "").replace(/[.,!?;:¡¿"“”«»…]/g, " ").replace(/\s+/g, " ").trim(); }
+// exact   = same words, same accents
+// accent  = right letters but wrong/missing accent (e.g. "schon" for "schön") → counted WRONG
+// near    = small slip the app's fuzzy matcher would still let through
+// wrong   = anything else (including empty)
 function verdict(heard, expected) {
-  const h = cleanHeard(heard);
+  const h = normalize(cleanHeard(heard));
   if (!h) return "wrong";
-  if (normalize(h) === normalize(expected)) return "exact";
-  return voiceIsCorrect(h, expected) ? "app" : "wrong";
+  const answers = expected.split("/").map(a => normalize(a.trim())).filter(Boolean);
+  if (answers.some(a => a === h)) return "exact";
+  if (answers.some(a => !h.includes(a) && stripAccents(h).includes(stripAccents(a)))) return "accent";
+  return voiceIsCorrect(h, expected) ? "near" : "wrong";
 }
 
 // ── STATE + STORAGE ───────────────────────────
@@ -491,20 +499,21 @@ function heardFor(l, colId, word) {
   return x || null;
 }
 function summarize(l, col, words) {
-  let n = 0, exact = 0, app = 0, empty = 0, digits = 0, long = 0; const ms = [];
+  let n = 0, exact = 0, near = 0, accent = 0, empty = 0, digits = 0, long = 0; const ms = [];
   for (const w of words) {
     const h = heardFor(l, col.id, w);
     if (!h) continue;
     n++;
     const v = verdict(h.heard, w);
     if (v === "exact") exact++;
-    if (v !== "wrong") app++;
+    if (v === "near") near++;
+    if (v === "accent") accent++;
     if (!cleanHeard(h.heard)) empty++;
     if (/\d/.test(h.heard) && !/\d/.test(w)) digits++;
     if (cleanHeard(h.heard).split(" ").length > w.split(" ").length + 2) long++;
     if (h.ms) ms.push(h.ms);
   }
-  return { n, exact, app, empty, digits, long, medMs: median(ms) };
+  return { n, exact, near, accent, empty, digits, long, medMs: median(ms) };
 }
 function renderResults() {
   const langsWithData = Object.keys(LANGS).filter(l => columnsFor(l).length);
@@ -513,11 +522,11 @@ function renderResults() {
   for (const l of langsWithData) {
     const words = wordList0(l).filter(w => recs[`${l}|${w}`]);
     const cols = columnsFor(l);
-    sh += `<h3>${LANGS[l].name} — ${words.length} words</h3><table><tr><th>Model</th><th>exact</th><th>app accepts</th><th>empty</th><th>digits instead of word</th><th>rambling</th><th>median ms</th><th>load s</th></tr>`;
+    sh += `<h3>${LANGS[l].name} — ${words.length} words</h3><table><tr><th>Model</th><th>exact</th><th>+ near-miss</th><th>accent slip (wrong)</th><th>empty</th><th>digits instead of word</th><th>rambling</th><th>median ms</th><th>load s</th></tr>`;
     for (const c of cols) {
       const s = summarize(l, c, words), r = (results[l] || {})[c.id];
       const pct = x => s.n ? `${x}/${s.n} (${Math.round(x / s.n * 100)}%)` : "–";
-      sh += `<tr><td><b>${c.label}</b>${r && r.error ? `<br><span style="color:var(--bad)">failed: ${esc(r.error)}</span>` : ""}</td><td>${pct(s.exact)}</td><td>${pct(s.app)}</td><td>${s.empty}</td><td>${s.digits}</td><td>${s.long}</td><td>${s.medMs || "–"}</td><td>${r ? r.loadSec : "–"}</td></tr>`;
+      sh += `<tr><td><b>${c.label}</b>${r && r.error ? `<br><span style="color:var(--bad)">failed: ${esc(r.error)}</span>` : ""}</td><td>${pct(s.exact)}</td><td>${s.near}</td><td>${s.accent}</td><td>${s.empty}</td><td>${s.digits}</td><td>${s.long}</td><td>${s.medMs || "–"}</td><td>${r ? r.loadSec : "–"}</td></tr>`;
     }
     sh += "</table>";
     dh += `<h3>${LANGS[l].name} — per word</h3><table><tr><th>Word</th>${cols.map(c => `<th>${c.label}</th>`).join("")}</tr>`;
@@ -539,7 +548,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;",
 
 function buildReport() {
   const out = [];
-  out.push("ASR TEST REPORT (temporary harness v1)");
+  out.push("ASR TEST REPORT (temporary harness v2, accent-sensitive)");
   out.push(`date: ${new Date().toISOString()}`);
   out.push(`note: ${$("note").value || "(none)"}`);
   out.push(`browser: ${navigator.userAgent}`);
@@ -549,19 +558,19 @@ function buildReport() {
     if (!cols.length) continue;
     const words = wordList0(l).filter(w => recs[`${l}|${w}`]);
     out.push("", `=== ${LANGS[l].name.toUpperCase()} — ${words.length} words recorded ===`);
-    out.push("SUMMARY  model | exact | app-accepts | empty | digits | rambling | median ms | load s");
+    out.push("SUMMARY  model | exact | near-miss | accent-slip | empty | digits | rambling | median ms | load s");
     for (const c of cols) {
       const s = summarize(l, c, words), r = (results[l] || {})[c.id];
-      out.push(`${c.label} | ${s.exact}/${s.n} | ${s.app}/${s.n} | ${s.empty} | ${s.digits} | ${s.long} | ${s.medMs} | ${r ? r.loadSec : "-"}${r && r.error ? " | FAILED: " + r.error : ""}`);
+      out.push(`${c.label} | ${s.exact}/${s.n} | ${s.near} | ${s.accent} | ${s.empty} | ${s.digits} | ${s.long} | ${s.medMs} | ${r ? r.loadSec : "-"}${r && r.error ? " | FAILED: " + r.error : ""}`);
     }
-    out.push("PER WORD  word [dur ms, peak] -> " + cols.map(c => c.label).join(" | ") + "   (E=exact, A=app-accepts, X=wrong)");
+    out.push("PER WORD  word [dur ms, peak] -> " + cols.map(c => c.label).join(" | ") + "   (E=exact, N=near-miss, C=accent-only slip, X=wrong)");
     for (const w of words) {
       const rec = recs[`${l}|${w}`];
       const cells = cols.map(c => {
         const h = heardFor(l, c.id, w);
         if (!h) return "-";
         const v = verdict(h.heard, w);
-        return `${h.heard || "(empty)"} ${v === "exact" ? "E" : v === "app" ? "A" : "X"}`;
+        return `${h.heard || "(empty)"} ${{ exact: "E", near: "N", accent: "C", wrong: "X" }[v]}`;
       });
       out.push(`${w} [${rec.durMs}, ${rec.peak}, ${rec.endedBy}] -> ${cells.join(" | ")}`);
     }
@@ -640,7 +649,7 @@ $("btnWipe").onclick = async () => {
   for (const r of (saved || [])) { if (r && r.samples) recs[r.key] = { ...r, samples: new Float32Array(r.samples) }; }
   setLang("de");
   renderResults();
-  window.__asrtest = { recs, get results() { return results; }, buildReport }; // for debugging
+  window.__asrtest = { verdict, recs, get results() { return results; }, buildReport }; // for debugging
 })();
 </script>
 </body>
