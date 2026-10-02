@@ -116,9 +116,10 @@ function bindPathKeys() {
       if (e.key === "Enter") { e.preventDefault(); return; }
     }
     // Private override: Shift+Enter ×3 within 1.5s on a wrong typed answer.
-    if (e.key === "Enter" && e.shiftKey && pathSession.answered && pathSession.undo) {
+    // Swallowed on every answered typed card, so a 4th press never advances.
+    if (e.key === "Enter" && e.shiftKey && pathSession.answered && ["typed", "spot", "cloze"].includes(it.t)) {
       e.preventDefault();
-      pathSecretPress(3, 1500);
+      if (pathSession.undo) pathSecretPress(3, 1500);
       return;
     }
     if (e.key === "Enter") {
@@ -541,6 +542,12 @@ function pathSecretOk() {
   Object.keys(ws).forEach(key => delete ws[key]);
   Object.assign(ws, u.ws);
   sessionConsecutive = u.consec;
+  // Quest counters the wrong answer touched (attempt count, run, clean
+  // streak, missed list, weekly tally) go back too.
+  const Q = S.quests;
+  if (Q && u.qm && Q.m) { Object.keys(Q.m).forEach(key => delete Q.m[key]); Object.assign(Q.m, JSON.parse(u.qm)); }
+  if (Q && u.qw && Q.week) { Object.keys(Q.week).forEach(key => delete Q.week[key]); Object.assign(Q.week, JSON.parse(u.qw)); }
+  if (typeof invalidatePathScan === "function") invalidatePathScan();
   s.stats.wrong--; s.stats.answered--;
   if (it.t === "spot") S.path.spotToday = Math.max(0, (S.path.spotToday || 1) - 1);
   if (!u.wasMissed) s.missed = s.missed.filter(x => !sameWord(x, w));
@@ -595,7 +602,9 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
   } else {
     // Snapshot for the private "my typo" override (pathSecretOk).
     if (!fromReverse && !it.said && ["typed", "spot", "cloze"].includes(it.t)) {
+      const Q = S.quests;
       s.undo = { val, ws: JSON.parse(JSON.stringify(ws)), consec: sessionConsecutive, move: s.moves.get(wordKey(w)),
+        qm: Q && Q.m ? JSON.stringify(Q.m) : null, qw: Q && Q.week ? JSON.stringify(Q.week) : null,
         wasMissed: s.missed.some(x => sameWord(x, w)) };
     }
     sessionConsecutive = 0;
