@@ -63,6 +63,7 @@
     <p class="mut" style="margin-top:0">The app will <b>check</b> your spoken answer against the expected word (and its article) instead of guessing freely.
       This page does that live, so you can see whether it works — including whether it <b>catches a wrong article</b> and a <b>wrong similar-sounding word</b>.</p>
     <ol style="margin:0 0 8px 18px; padding:0">
+      <li><b>Mic check (15 s).</b> Say "hallo" 3 times at your <b>normal</b> volume — the page learns how loud <i>you</i> are, so you never have to shout.</li>
       <li><b>Part 1 — 30 vocabulary words.</b> Like the app: see the English, say the German with its article. Honest attempts, hesitate if you would.</li>
       <li><b>Part 2 — 24 article trials.</b> The screen tells you exactly what to say. Half have a <b>wrong article on purpose</b> (orange). Say them like you'd really answer.</li>
       <li><b>Part 3 — 8 wrong-word trials.</b> Say a different, similar-sounding word on purpose.</li>
@@ -87,15 +88,18 @@
     <div class="instr hide" id="instr"></div>
     <div class="status" id="status">Loading…</div>
     <div class="meter"><i id="meterBar"></i><b id="thrMark"></b></div>
+    <div class="row" style="justify-content:center; gap:8px"><span class="mut">needs louder</span><input type="range" id="sens" min="0" max="100" value="50" style="flex:1; max-width:320px"><span class="mut">picks up quieter</span></div>
+    <div class="mut" style="text-align:center" id="thrTxt"></div>
     <div id="verdict" class="verdict hide"></div>
     <div class="row" style="justify-content:center">
       <button id="btnContinue" class="primary hide">Continue</button>
+      <button id="btnMicSkip" class="hide">Skip mic check</button>
       <button id="btnRedo">↺ Redo previous</button>
       <button id="btnSkip">Skip (don't know)</button>
       <button id="btnPause">Pause</button>
       <button id="btnFinish">Finish early</button>
     </div>
-    <p class="mut" style="text-align:center">Red line = how loud you must be to count as speaking.</p>
+    <p class="mut" style="text-align:center">Red line = how loud you must be to count as speaking. If it misses you (or reacts to noise), drag the slider — right picks up quieter sounds, left needs a louder voice.</p>
   </section>
 
   <section class="card hide" id="done">
@@ -145,6 +149,10 @@ const cards = {};   // idx → stored record
 // ── CAPTURE (mic opened once and kept open; ring buffer gives pre-roll) ──
 let ctx = null, stream = null, proc = null, track = null, wake = null, sessionSettings = null;
 let noise = 0.002, thr = 0.01, calibVals = [], calibUntil = 0, ring = [], chunkDur = 0.04, lastChunkAt = 0;
+let voiceLevel = null, manualThr = null, mc = null, mcTimer = null;       // your normal voice level (from the mic check) and a manual slider override
+const SENS = { lo: 0.003, hi: 0.05 };
+const thrFromSlider = v => SENS.lo * Math.pow(SENS.hi / SENS.lo, (100 - v) / 100);
+const sliderFromThr = t => Math.max(0, Math.min(100, 100 - 100 * Math.log(t / SENS.lo) / Math.log(SENS.hi / SENS.lo)));
 let state = "off";     // off | loading | calibrating | idle | armed | speaking | checking | between | paused
 let cur = [], above = 0, speechStartIdx = -1, lastLoudIdx = -1, armedAt = 0, leadChunks = 0;
 let idx = 0, advanceTimer = null, busyFinishing = false, scorer = null, liveCheck = true, seenBlocks = new Set(), modelInfo = {};
@@ -171,7 +179,15 @@ async function openMic() {            // must be called inside the tap (iOS)
   try { if (navigator.wakeLock) wake = await navigator.wakeLock.request("screen"); } catch (e) {}
   setInterval(() => { if (["armed", "speaking", "idle"].includes(state) && performance.now() - lastChunkAt > 1500) setStatus("⚠ No audio coming from the mic — tap Pause then Resume"); }, 1000);
 }
-function recomputeThr() { thr = Math.min(0.04, Math.max(0.006, noise * 4)); $("thrMark").style.left = meterW(thr) + "%"; }
+// Threshold = a fraction of how loud YOU are (never needs shouting); room noise can only nudge it within 20–35% of that.
+function recomputeThr() {
+  if (manualThr !== null) thr = manualThr;
+  else if (voiceLevel) thr = Math.min(0.03, Math.max(0.004, 0.2 * voiceLevel, Math.min(3 * noise, 0.35 * voiceLevel)));
+  else thr = Math.min(0.02, Math.max(0.006, noise * 4));
+  $("thrMark").style.left = meterW(thr) + "%";
+  if (manualThr === null) $("sens").value = Math.round(sliderFromThr(thr));
+  $("thrTxt").textContent = `threshold ${thr.toFixed(3)}` + (voiceLevel ? ` · your normal voice ≈ ${voiceLevel.toFixed(3)}` : "") + (manualThr !== null ? " · set by you" : "");
+}
 
 function onChunk(d) {
   lastChunkAt = performance.now(); chunkDur = d.length / ctx.sampleRate;
@@ -179,19 +195,61 @@ function onChunk(d) {
   ring.push(d); const keep = Math.ceil(1.5 / chunkDur); if (ring.length > keep) ring.shift();
   if (state === "calibrating") {
     calibVals.push(r);
-    if (performance.now() > calibUntil) { const s = calibVals.slice().sort((a, b) => a - b); noise = s[Math.floor(s.length * 0.3)] || 0.002; recomputeThr(); state = "idle"; nextStep(); }
+    if (performance.now() > calibUntil) { const s = calibVals.slice().sort((a, b) => a - b); noise = s[Math.floor(s.length * 0.3)] || 0.002; recomputeThr(); startMicCheck(); }
     return;
   }
+  if (state === "micCheck") { micCheckChunk(r); return; }
   if (state === "armed" || state === "speaking") cur.push(d);
   if (state === "armed") {
     if (r > thr) { above++; if (above >= 2) { state = "speaking"; speechStartIdx = Math.max(0, cur.length - 2); lastLoudIdx = cur.length - 1; setStatus("Hearing you…"); } }
-    else { above = 0; noise = 0.98 * noise + 0.02 * r; recomputeThr(); }
+    else { above = 0; if (r < 0.5 * thr) { noise = 0.98 * noise + 0.02 * r; recomputeThr(); } }
     if (state === "armed" && performance.now() - armedAt > P.startTimeoutMs) finish("timeout");
   } else if (state === "speaking") {
     if (r > thr) lastLoudIdx = cur.length - 1;
-    if ((cur.length - 1 - lastLoudIdx) * chunkDur * 1000 >= P.silenceEndMs) finish("silence");
+    if ((cur.length - 1 - lastLoudIdx) * chunkDur * 1000 >= P.silenceEndMs) {
+      // a click, breath or bump (< 200 ms; your shortest word so far was ~370 ms) is not an answer: keep listening instead of ending the card
+      if ((lastLoudIdx - speechStartIdx + 1) * chunkDur * 1000 < 200) { state = "armed"; above = 0; speechStartIdx = -1; lastLoudIdx = -1; setStatus("Listening…"); }
+      else finish("silence");
+    }
     else if ((cur.length - speechStartIdx) * chunkDur * 1000 > P.maxSpeechMs) finish("max-length");
-  } else if (state === "idle" && r < thr) { noise = 0.98 * noise + 0.02 * r; recomputeThr(); }
+  } else if (state === "idle" && r < 0.5 * thr) { noise = 0.98 * noise + 0.02 * r; recomputeThr(); }
+}
+
+// ── MIC CHECK: learn how loud you normally are ──
+function startMicCheck() {
+  state = "micCheck"; mc = { peaks: [], inBurst: false, above: 0, burstChunks: 0, quiet: 0, peak: 0, all: [] };
+  $("partTxt").textContent = "Mic check"; $("prompt").textContent = "Say “hallo” at your normal volume";
+  $("instr").className = "instr say"; $("instr").textContent = "3 times, with a short pause in between — as quiet or loud as you normally speak";
+  setStatus("0 / 3"); $("btnMicSkip").classList.remove("hide");
+  ["btnRedo", "btnSkip", "btnPause", "btnFinish"].forEach(id => $(id).classList.add("hide"));
+  mcTimer = setTimeout(finishMicCheck, 20000);
+}
+function micCheckChunk(r) {
+  mc.all.push(r);
+  const low = Math.max(0.004, noise * 2.2);
+  if (!mc.inBurst) {
+    if (r > low) { if (++mc.above >= 2) { mc.inBurst = true; mc.burstChunks = mc.above; mc.quiet = 0; mc.peak = r; } } else mc.above = 0;
+  } else {
+    mc.burstChunks++; mc.peak = Math.max(mc.peak, r);
+    if (r < low) {
+      if (++mc.quiet * chunkDur > 0.4) {
+        if (mc.burstChunks * chunkDur > 0.12) { mc.peaks.push(mc.peak); setStatus(`${mc.peaks.length} / 3`); }
+        mc.inBurst = false; mc.above = 0; if (mc.peaks.length >= 3) finishMicCheck();
+      }
+    } else mc.quiet = 0;
+  }
+}
+function finishMicCheck() {
+  clearTimeout(mcTimer); if (state !== "micCheck") return;
+  if (mc.peaks.length >= 2) { const sorted = mc.peaks.slice().sort((a, b) => a - b); voiceLevel = sorted[Math.floor(sorted.length / 2)]; }
+  else if (mc.all.length > 40) {      // fallback: the loudest 5% of everything heard, if clearly above the quiet part
+    const a = mc.all.slice().sort((x, y) => x - y), p20 = a[Math.floor(a.length * 0.2)], p95 = a[Math.floor(a.length * 0.95)];
+    if (p95 > 2 * p20 && p95 > 0.01) voiceLevel = p95;
+  }
+  $("btnMicSkip").classList.add("hide"); $("instr").className = "instr hide";
+  ["btnRedo", "btnSkip", "btnPause", "btnFinish"].forEach(id => $(id).classList.remove("hide"));
+  if (sessionSettings) { sessionSettings.voiceLevel = voiceLevel; sessionSettings.noiseAtStart = +noise.toFixed(5); try { localStorage.setItem("asrtest5_session", JSON.stringify(sessionSettings)); } catch (e) {} }
+  recomputeThr(); state = "idle"; nextStep();
 }
 
 // ── SESSION FLOW ──────────────────────────────
@@ -258,7 +316,7 @@ async function finish(reason) {
   const localIdx = idx, c = CARDS[localIdx];
   state = (reason === "silence" || reason === "max-length") ? "checking" : "idle";
   const rec = { idx: localIdx, id: c.id, block: c.block, en: c.en, expected: c.expected, say: c.say, expect: c.expect, endedBy: reason, hesitationMs: null, speechMs: null, preMs: 0,
-                peak: 0, rms: 0, startAbrupt: null, noise: +noise.toFixed(5), thr: +thr.toFixed(4), pcm: null, result: null, decision: null, procMs: null, error: null };
+                peak: 0, rms: 0, startAbrupt: null, noise: +noise.toFixed(5), thr: +thr.toFixed(4), voiceLevel: voiceLevel, manualThr: manualThr, pcm: null, result: null, decision: null, procMs: null, error: null };
   let x16 = null;
   if (state === "checking") {
     setStatus(liveCheck ? "Checking…" : "Saving…");
@@ -374,9 +432,11 @@ $("btnStart").onclick = async () => {
     $("intro").classList.remove("hide"); $("session").classList.add("hide"); $("btnStart").disabled = false;
   }
 };
+$("btnMicSkip").onclick = finishMicCheck;
+$("sens").oninput = e => { manualThr = thrFromSlider(+e.target.value); recomputeThr(); };
 $("btnSkip").onclick = () => { if (state === "armed" || state === "speaking") finish("skip"); };
 $("btnRedo").onclick = async () => {
-  if (state === "paused" || state === "checking" || state === "loading" || state === "calibrating") return;
+  if (["paused", "checking", "loading", "calibrating", "micCheck"].includes(state)) return;
   clearTimeout(advanceTimer); busyFinishing = false; $("verdict").classList.add("hide");
   const last = Math.max(...Object.keys(cards).map(Number)); if (!isFinite(last)) return;
   delete cards[last]; await idb.del(last); idx = last; state = "idle"; nextStep();
