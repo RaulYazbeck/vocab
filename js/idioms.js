@@ -1,0 +1,146 @@
+// ── IDIOM CARDS ───────────────────────────────
+// Collectibles from Epic and Legendary chests (alongside cosmetics): real
+// idioms of the language you learn, each with its word-for-word meaning,
+// what it really means and an example. Shown in 🎨 Collection → 📜 Idioms.
+// Fields: id, rar (epic | legendary), icon, p (the idiom), lit (word for
+// word), mean (what it means), ex (example), exT (its translation).
+// Ids are stable — owned cards are stored by id in S.quests.idioms.
+
+const IDIOMS_DE = [
+  // legendary
+  { id: "de_schwein_pfeift", rar: "legendary", icon: "🐷", p: "Ich glaub, mein Schwein pfeift!", lit: "I think my pig is whistling!", mean: "I can't believe it!", ex: "Du hast die Prüfung bestanden? Ich glaub, mein Schwein pfeift!", exT: "You passed the exam? I can't believe it!" },
+  { id: "de_baer_steppt", rar: "legendary", icon: "🐻", p: "Da steppt der Bär", lit: "The bear tap-dances there", mean: "It's a great party, lots going on", ex: "Komm heute Abend mit, da steppt der Bär!", exT: "Come along tonight, it's going to be a blast!" },
+  { id: "de_wurst_zwei", rar: "legendary", icon: "🌭", p: "Alles hat ein Ende, nur die Wurst hat zwei", lit: "Everything has an end, only the sausage has two", mean: "All good things come to an end", ex: "Der Urlaub ist vorbei – alles hat ein Ende, nur die Wurst hat zwei.", exT: "The holiday is over — all good things come to an end." },
+  { id: "de_affe_tot", rar: "legendary", icon: "🐒", p: "Klappe zu, Affe tot", lit: "Flap shut, monkey dead", mean: "And that's that — it's settled", ex: "Wir nehmen das blaue Auto. Klappe zu, Affe tot.", exT: "We're taking the blue car. End of story." },
+  { id: "de_hummeln", rar: "legendary", icon: "🐝", p: "Hummeln im Hintern haben", lit: "To have bumblebees in your bottom", mean: "To be restless, unable to sit still", ex: "Das Kind hat heute Hummeln im Hintern.", exT: "The child can't sit still today." },
+  { id: "de_laus_leber", rar: "legendary", icon: "🐜", p: "Ist dir eine Laus über die Leber gelaufen?", lit: "Did a louse run over your liver?", mean: "Why are you in such a bad mood?", ex: "Du bist so schlecht gelaunt – ist dir eine Laus über die Leber gelaufen?", exT: "You're so grumpy — what's eating you?" },
+  { id: "de_fuchs_hase", rar: "legendary", icon: "🦊", p: "Wo sich Fuchs und Hase gute Nacht sagen", lit: "Where fox and hare say good night", mean: "In the middle of nowhere", ex: "Meine Oma wohnt, wo sich Fuchs und Hase gute Nacht sagen.", exT: "My grandma lives in the middle of nowhere." },
+  { id: "de_bahnhof", rar: "legendary", icon: "🚉", p: "Ich verstehe nur Bahnhof", lit: "I only understand 'train station'", mean: "It's all Greek to me", ex: "Er erklärt mir Physik, aber ich verstehe nur Bahnhof.", exT: "He explains physics to me, but it's all Greek to me." },
+  { id: "de_tomaten", rar: "legendary", icon: "🍅", p: "Tomaten auf den Augen haben", lit: "To have tomatoes on your eyes", mean: "To miss something obvious", ex: "Die Brille liegt vor dir! Hast du Tomaten auf den Augen?", exT: "The glasses are right in front of you! Are you blind?" },
+  { id: "de_baer_aufbinden", rar: "legendary", icon: "🧸", p: "Jemandem einen Bären aufbinden", lit: "To tie a bear onto someone", mean: "To pull someone's leg", ex: "Du willst mir einen Bären aufbinden!", exT: "You're pulling my leg!" },
+  { id: "de_gott_frankreich", rar: "legendary", icon: "🥂", p: "Leben wie Gott in Frankreich", lit: "To live like God in France", mean: "To live in luxury", ex: "Im Hotel haben wir gelebt wie Gott in Frankreich.", exT: "At the hotel we lived like kings." },
+  { id: "de_wurst", rar: "legendary", icon: "🥨", p: "Das ist mir Wurst", lit: "That's sausage to me", mean: "I don't care", ex: "Pizza oder Pasta? Das ist mir Wurst.", exT: "Pizza or pasta? I don't mind." },
+  // epic
+  { id: "de_schwein_haben", rar: "epic", icon: "🐖", p: "Schwein haben", lit: "To have pig", mean: "To be lucky", ex: "Der Bus war noch da – Schwein gehabt!", exT: "The bus was still there — lucky!" },
+  { id: "de_daumen", rar: "epic", icon: "👍", p: "Jemandem die Daumen drücken", lit: "To press your thumbs for someone", mean: "To keep your fingers crossed", ex: "Ich drücke dir morgen die Daumen!", exT: "I'll keep my fingers crossed for you tomorrow!" },
+  { id: "de_katze_sack", rar: "epic", icon: "🐈", p: "Die Katze im Sack kaufen", lit: "To buy the cat in the sack", mean: "To buy something without seeing it first", ex: "Ich will das Auto erst testen – ich kaufe keine Katze im Sack.", exT: "I want to test the car first — I won't buy blind." },
+  { id: "de_nagel", rar: "epic", icon: "🔨", p: "Den Nagel auf den Kopf treffen", lit: "To hit the nail on the head", mean: "To be exactly right", ex: "Mit deiner Antwort hast du den Nagel auf den Kopf getroffen.", exT: "You hit the nail on the head with your answer." },
+  { id: "de_bier", rar: "epic", icon: "🍺", p: "Das ist nicht mein Bier", lit: "That's not my beer", mean: "That's not my business", ex: "Wie er sein Geld ausgibt, ist nicht mein Bier.", exT: "How he spends his money is none of my business." },
+  { id: "de_brei", rar: "epic", icon: "🥣", p: "Um den heißen Brei herumreden", lit: "To talk around the hot porridge", mean: "To beat around the bush", ex: "Red nicht um den heißen Brei herum – was ist los?", exT: "Stop beating around the bush — what's wrong?" },
+  { id: "de_kater", rar: "epic", icon: "😿", p: "Einen Kater haben", lit: "To have a tomcat", mean: "To have a hangover", ex: "Nach der Party hatte ich einen schlimmen Kater.", exT: "After the party I had a terrible hangover." },
+  { id: "de_nase_voll", rar: "epic", icon: "👃", p: "Die Nase voll haben", lit: "To have your nose full", mean: "To be fed up", ex: "Ich habe die Nase voll vom Regen.", exT: "I'm fed up with the rain." },
+  { id: "de_keks", rar: "epic", icon: "🍪", p: "Jemandem auf den Keks gehen", lit: "To walk on someone's biscuit", mean: "To get on someone's nerves", ex: "Dein Handy geht mir echt auf den Keks.", exT: "Your phone is really getting on my nerves." },
+  { id: "de_fettnaepfchen", rar: "epic", icon: "🫕", p: "Ins Fettnäpfchen treten", lit: "To step into the little pot of fat", mean: "To put your foot in it", ex: "Mit der Frage nach seiner Ex bin ich voll ins Fettnäpfchen getreten.", exT: "Asking about his ex, I really put my foot in it." },
+  { id: "de_affe", rar: "epic", icon: "🙈", p: "Sich zum Affen machen", lit: "To make yourself into a monkey", mean: "To make a fool of yourself", ex: "Beim Karaoke habe ich mich zum Affen gemacht.", exT: "I made a fool of myself at karaoke." },
+  { id: "de_hund_begraben", rar: "epic", icon: "🐕", p: "Da liegt der Hund begraben", lit: "That's where the dog is buried", mean: "That's the heart of the problem", ex: "Wir haben kein Geld – da liegt der Hund begraben.", exT: "We have no money — that's the real problem." },
+  { id: "de_holzweg", rar: "epic", icon: "🪵", p: "Auf dem Holzweg sein", lit: "To be on the wood path", mean: "To be on the wrong track", ex: "Wenn du das glaubst, bist du auf dem Holzweg.", exT: "If you believe that, you're barking up the wrong tree." },
+  { id: "de_hals_bein", rar: "epic", icon: "🦵", p: "Hals- und Beinbruch!", lit: "Neck and leg break!", mean: "Good luck! (break a leg)", ex: "Morgen ist dein Konzert? Hals- und Beinbruch!", exT: "Your concert is tomorrow? Break a leg!" },
+  { id: "de_huehnchen", rar: "epic", icon: "🐔", p: "Mit jemandem ein Hühnchen rupfen", lit: "To pluck a little chicken with someone", mean: "To have a bone to pick with someone", ex: "Mit dir habe ich noch ein Hühnchen zu rupfen!", exT: "I've got a bone to pick with you!" },
+  { id: "de_kohldampf", rar: "epic", icon: "🥬", p: "Kohldampf haben", lit: "To have cabbage steam", mean: "To be starving", ex: "Nach der Wanderung hatten alle Kohldampf.", exT: "After the hike everyone was starving." },
+  { id: "de_gelbe_ei", rar: "epic", icon: "🥚", p: "Nicht das Gelbe vom Ei", lit: "Not the yellow of the egg", mean: "Not ideal, not great", ex: "Das Hotel war nicht gerade das Gelbe vom Ei.", exT: "The hotel wasn't exactly great." },
+  { id: "de_extrawurst", rar: "epic", icon: "🌭", p: "Eine Extrawurst bekommen", lit: "To get an extra sausage", mean: "To get special treatment", ex: "Warum bekommt er immer eine Extrawurst?", exT: "Why does he always get special treatment?" },
+  { id: "de_sau", rar: "epic", icon: "🐗", p: "Unter aller Sau", lit: "Below every sow", mean: "Absolutely terrible", ex: "Das Essen war unter aller Sau.", exT: "The food was absolutely awful." },
+  { id: "de_fliegen", rar: "epic", icon: "🪰", p: "Zwei Fliegen mit einer Klappe schlagen", lit: "To swat two flies with one swatter", mean: "To kill two birds with one stone", ex: "Ich jogge zur Arbeit – so schlage ich zwei Fliegen mit einer Klappe.", exT: "I jog to work — two birds with one stone." },
+  { id: "de_wein", rar: "epic", icon: "🍷", p: "Jemandem reinen Wein einschenken", lit: "To pour someone pure wine", mean: "To tell someone the plain truth", ex: "Ich muss dir jetzt reinen Wein einschenken.", exT: "I have to be honest with you now." },
+  { id: "de_teufel", rar: "epic", icon: "😈", p: "Den Teufel an die Wand malen", lit: "To paint the devil on the wall", mean: "To imagine the worst", ex: "Mal nicht gleich den Teufel an die Wand!", exT: "Don't assume the worst right away!" },
+  { id: "de_grossem_fuss", rar: "epic", icon: "🦶", p: "Auf großem Fuß leben", lit: "To live on a big foot", mean: "To live extravagantly", ex: "Seit dem Lottogewinn lebt er auf großem Fuß.", exT: "Since winning the lottery he lives the high life." },
+  { id: "de_lange_bank", rar: "epic", icon: "🪑", p: "Etwas auf die lange Bank schieben", lit: "To push something onto the long bench", mean: "To put something off", ex: "Schieb die Steuererklärung nicht auf die lange Bank!", exT: "Don't put off your tax return!" },
+  { id: "de_katzensprung", rar: "epic", icon: "🐾", p: "Ein Katzensprung", lit: "A cat's jump", mean: "A stone's throw away", ex: "Der Bahnhof ist nur einen Katzensprung entfernt.", exT: "The station is just a stone's throw away." },
+  { id: "de_sturmfrei", rar: "epic", icon: "🏠", p: "Sturmfreie Bude haben", lit: "To have a storm-free den", mean: "To have the place to yourself", ex: "Meine Eltern sind weg – ich habe sturmfreie Bude!", exT: "My parents are away — I've got the place to myself!" },
+  { id: "de_senf", rar: "epic", icon: "🟡", p: "Seinen Senf dazugeben", lit: "To add your mustard", mean: "To give your two cents", ex: "Muss er immer seinen Senf dazugeben?", exT: "Does he always have to put his two cents in?" },
+  { id: "de_blau", rar: "epic", icon: "🔵", p: "Blau sein", lit: "To be blue", mean: "To be drunk", ex: "Nach drei Bier war er schon blau.", exT: "After three beers he was already drunk." },
+  { id: "de_fix_fertig", rar: "epic", icon: "😵", p: "Fix und fertig sein", lit: "To be fixed and finished", mean: "To be completely exhausted", ex: "Nach dem Umzug war ich fix und fertig.", exT: "After the move I was completely worn out." },
+  { id: "de_kirche", rar: "epic", icon: "⛪", p: "Die Kirche im Dorf lassen", lit: "To leave the church in the village", mean: "Not to get carried away", ex: "Lass mal die Kirche im Dorf – es war nur ein kleiner Fehler.", exT: "Let's not overreact — it was just a small mistake." },
+  { id: "de_brett", rar: "epic", icon: "🧱", p: "Ein Brett vor dem Kopf haben", lit: "To have a board in front of your head", mean: "To be slow on the uptake", ex: "Heute habe ich echt ein Brett vor dem Kopf.", exT: "My brain just isn't working today." },
+  { id: "de_muecke", rar: "epic", icon: "🐘", p: "Aus einer Mücke einen Elefanten machen", lit: "To make an elephant out of a mosquito", mean: "To make a mountain out of a molehill", ex: "Mach doch aus einer Mücke keinen Elefanten!", exT: "Don't make a mountain out of a molehill!" },
+  { id: "de_um_die_wurst", rar: "epic", icon: "🏁", p: "Jetzt geht's um die Wurst", lit: "Now it's about the sausage", mean: "Now it really counts", ex: "Letztes Spiel der Saison – jetzt geht's um die Wurst!", exT: "Last game of the season — this is it!" },
+  { id: "de_tote_hose", rar: "epic", icon: "👖", p: "Tote Hose", lit: "Dead trousers", mean: "Nothing going on, boring", ex: "Am Sonntag ist in der Stadt tote Hose.", exT: "On Sundays there's nothing going on in town." },
+  { id: "de_spanisch", rar: "epic", icon: "💃", p: "Das kommt mir spanisch vor", lit: "That seems Spanish to me", mean: "That seems strange to me", ex: "Sein Verhalten kommt mir spanisch vor.", exT: "His behaviour seems fishy to me." },
+  { id: "de_kalte_schulter", rar: "epic", icon: "🧊", p: "Jemandem die kalte Schulter zeigen", lit: "To show someone the cold shoulder", mean: "To ignore someone on purpose", ex: "Seit dem Streit zeigt sie mir die kalte Schulter.", exT: "Since the argument she's been giving me the cold shoulder." },
+];
+
+const IDIOMS_FR = [
+  // legendary
+  { id: "fr_lapin", rar: "legendary", icon: "🐇", p: "Poser un lapin", lit: "To put down a rabbit", mean: "To stand someone up", ex: "Je l'ai attendu une heure : il m'a posé un lapin !", exT: "I waited an hour for him: he stood me up!" },
+  { id: "fr_poules_dents", rar: "legendary", icon: "🐔", p: "Quand les poules auront des dents", lit: "When hens have teeth", mean: "When pigs fly — never", ex: "Lui, ranger sa chambre ? Quand les poules auront des dents !", exT: "Him, tidy his room? When pigs fly!" },
+  { id: "fr_carottes", rar: "legendary", icon: "🥕", p: "Les carottes sont cuites", lit: "The carrots are cooked", mean: "It's all over, nothing more can be done", ex: "On a raté le dernier train, les carottes sont cuites.", exT: "We missed the last train, it's game over." },
+  { id: "fr_poil_main", rar: "legendary", icon: "✋", p: "Avoir un poil dans la main", lit: "To have a hair in your hand", mean: "To be very lazy", ex: "Il ne fait jamais rien, il a un poil dans la main.", exT: "He never does anything, he's bone idle." },
+  { id: "fr_pommes", rar: "legendary", icon: "🍎", p: "Tomber dans les pommes", lit: "To fall into the apples", mean: "To faint", ex: "Il faisait si chaud qu'elle est tombée dans les pommes.", exT: "It was so hot that she fainted." },
+  { id: "fr_langue_chat", rar: "legendary", icon: "😼", p: "Donner sa langue au chat", lit: "To give your tongue to the cat", mean: "To give up guessing", ex: "Je ne trouve pas la réponse, je donne ma langue au chat.", exT: "I can't find the answer, I give up." },
+  { id: "fr_haricots", rar: "legendary", icon: "🫘", p: "C'est la fin des haricots", lit: "It's the end of the beans", mean: "It's the last straw, all is lost", ex: "Plus de café au bureau ? C'est la fin des haricots !", exT: "No more coffee at the office? It's the end of the world!" },
+  { id: "fr_chat_gorge", rar: "legendary", icon: "🐱", p: "Avoir un chat dans la gorge", lit: "To have a cat in your throat", mean: "To have a frog in your throat", ex: "Excusez-moi, j'ai un chat dans la gorge.", exT: "Sorry, I have a frog in my throat." },
+  { id: "fr_doigts_nez", rar: "legendary", icon: "👃", p: "Les doigts dans le nez", lit: "Fingers in the nose", mean: "Very easily, hands down", ex: "Il a gagné la course les doigts dans le nez.", exT: "He won the race hands down." },
+  { id: "fr_moutons", rar: "legendary", icon: "🐑", p: "Revenons à nos moutons", lit: "Let's get back to our sheep", mean: "Let's get back to the subject", ex: "Bon, revenons à nos moutons : le budget.", exT: "Right, back to the point: the budget." },
+  { id: "fr_anguille", rar: "legendary", icon: "🐍", p: "Il y a anguille sous roche", lit: "There's an eel under the rock", mean: "Something fishy is going on", ex: "Ils chuchotent depuis ce matin, il y a anguille sous roche.", exT: "They've been whispering all morning, something's up." },
+  { id: "fr_trois_pommes", rar: "legendary", icon: "🧒", p: "Haut comme trois pommes", lit: "As tall as three apples", mean: "Very small (of a child)", ex: "Je le connais depuis qu'il est haut comme trois pommes.", exT: "I've known him since he was knee-high." },
+  // epic
+  { id: "fr_cafard", rar: "epic", icon: "🪳", p: "Avoir le cafard", lit: "To have the cockroach", mean: "To feel down", ex: "Le dimanche soir, j'ai souvent le cafard.", exT: "On Sunday evenings I often feel blue." },
+  { id: "fr_yeux_tete", rar: "epic", icon: "👀", p: "Coûter les yeux de la tête", lit: "To cost the eyes of your head", mean: "To cost an arm and a leg", ex: "Cette voiture coûte les yeux de la tête.", exT: "This car costs an arm and a leg." },
+  { id: "fr_salades", rar: "epic", icon: "🥗", p: "Raconter des salades", lit: "To tell salads", mean: "To tell tall tales, to lie", ex: "Arrête de me raconter des salades !", exT: "Stop telling me stories!" },
+  { id: "fr_peche", rar: "epic", icon: "🍑", p: "Avoir la pêche", lit: "To have the peach", mean: "To be full of energy", ex: "Ce matin, j'ai vraiment la pêche !", exT: "This morning I'm really full of beans!" },
+  { id: "fr_grain_sel", rar: "epic", icon: "🧂", p: "Mettre son grain de sel", lit: "To put in your grain of salt", mean: "To butt in with your opinion", ex: "Il faut toujours qu'elle mette son grain de sel.", exT: "She always has to stick her oar in." },
+  { id: "fr_cordes", rar: "epic", icon: "🌧️", p: "Il pleut des cordes", lit: "It's raining ropes", mean: "It's pouring", ex: "Prends un parapluie, il pleut des cordes.", exT: "Take an umbrella, it's pouring down." },
+  { id: "fr_foudre", rar: "epic", icon: "⚡", p: "Avoir le coup de foudre", lit: "To get the lightning strike", mean: "To fall in love at first sight", ex: "Quand je l'ai vue, j'ai eu le coup de foudre.", exT: "When I saw her, it was love at first sight." },
+  { id: "fr_lune", rar: "epic", icon: "🌙", p: "Être dans la lune", lit: "To be in the moon", mean: "To be daydreaming", ex: "Tu ne m'écoutes pas, tu es encore dans la lune.", exT: "You're not listening, you're daydreaming again." },
+  { id: "fr_chats_fouetter", rar: "epic", icon: "🐈", p: "Avoir d'autres chats à fouetter", lit: "To have other cats to whip", mean: "To have other fish to fry", ex: "Désolé, j'ai d'autres chats à fouetter.", exT: "Sorry, I have more important things to do." },
+  { id: "fr_grasse_matinee", rar: "epic", icon: "🛌", p: "Faire la grasse matinée", lit: "To do the fat morning", mean: "To sleep in", ex: "Le samedi, je fais la grasse matinée.", exT: "On Saturdays I have a lie-in." },
+  { id: "fr_chat_chat", rar: "epic", icon: "🐾", p: "Appeler un chat un chat", lit: "To call a cat a cat", mean: "To call a spade a spade", ex: "Appelons un chat un chat : c'est un échec.", exT: "Let's call a spade a spade: it's a failure." },
+  { id: "fr_pieds_plat", rar: "epic", icon: "🍽️", p: "Mettre les pieds dans le plat", lit: "To put your feet in the dish", mean: "To put your foot in it", ex: "En parlant de son divorce, j'ai mis les pieds dans le plat.", exT: "Mentioning his divorce, I really put my foot in it." },
+  { id: "fr_casser_pieds", rar: "epic", icon: "🦶", p: "Casser les pieds à quelqu'un", lit: "To break someone's feet", mean: "To get on someone's nerves", ex: "Tu me casses les pieds avec tes questions !", exT: "You're driving me mad with your questions!" },
+  { id: "fr_melon", rar: "epic", icon: "🍈", p: "Avoir le melon", lit: "To have the melon", mean: "To be big-headed", ex: "Depuis sa promotion, il a le melon.", exT: "Since his promotion he's got a big head." },
+  { id: "fr_soupe_lait", rar: "epic", icon: "🥛", p: "Être soupe au lait", lit: "To be milk soup", mean: "To be quick-tempered", ex: "Attention, mon père est un peu soupe au lait.", exT: "Careful, my dad flares up easily." },
+  { id: "fr_vers_nez", rar: "epic", icon: "🪱", p: "Tirer les vers du nez", lit: "To pull the worms out of someone's nose", mean: "To worm information out of someone", ex: "J'ai dû lui tirer les vers du nez pour savoir la vérité.", exT: "I had to drag the truth out of him." },
+  { id: "fr_poire", rar: "epic", icon: "🍐", p: "Être une bonne poire", lit: "To be a good pear", mean: "To be a pushover", ex: "Il prête toujours son argent, c'est une bonne poire.", exT: "He always lends his money, he's a soft touch." },
+  { id: "fr_mer_boire", rar: "epic", icon: "🌊", p: "Ce n'est pas la mer à boire", lit: "It's not the sea to drink", mean: "It's not that hard", ex: "Allez, deux pages à lire, ce n'est pas la mer à boire.", exT: "Come on, two pages to read, it's no big deal." },
+  { id: "fr_faim_loup", rar: "epic", icon: "🐺", p: "Avoir une faim de loup", lit: "To have a wolf's hunger", mean: "To be starving", ex: "Après le sport, j'ai une faim de loup.", exT: "After sport I'm starving." },
+  { id: "fr_pierre_coups", rar: "epic", icon: "🪨", p: "Faire d'une pierre deux coups", lit: "To make two hits with one stone", mean: "To kill two birds with one stone", ex: "Je passe à la poste en allant au travail : d'une pierre deux coups.", exT: "I'll stop at the post office on my way to work: two birds, one stone." },
+  { id: "fr_rateau", rar: "epic", icon: "🧹", p: "Se prendre un râteau", lit: "To take a rake", mean: "To get turned down (romantically)", ex: "Il l'a invitée à danser et il s'est pris un râteau.", exT: "He asked her to dance and got turned down." },
+  { id: "fr_dents_longues", rar: "epic", icon: "🦷", p: "Avoir les dents longues", lit: "To have long teeth", mean: "To be very ambitious", ex: "La nouvelle stagiaire a les dents longues.", exT: "The new intern is very ambitious." },
+  { id: "fr_main_pate", rar: "epic", icon: "🥖", p: "Mettre la main à la pâte", lit: "To put your hand in the dough", mean: "To pitch in, to help", ex: "Tout le monde a mis la main à la pâte pour la fête.", exT: "Everyone pitched in for the party." },
+  { id: "fr_mouche", rar: "epic", icon: "🪰", p: "Prendre la mouche", lit: "To take the fly", mean: "To take offence quickly", ex: "Ne prends pas la mouche, c'était une blague !", exT: "Don't get touchy, it was a joke!" },
+  { id: "fr_fauche", rar: "epic", icon: "🌾", p: "Être fauché comme les blés", lit: "To be mown like the wheat", mean: "To be completely broke", ex: "À la fin du mois, je suis fauché comme les blés.", exT: "At the end of the month I'm flat broke." },
+  { id: "fr_canard", rar: "epic", icon: "🦆", p: "Un froid de canard", lit: "A duck's cold", mean: "Freezing cold weather", ex: "Mets ton bonnet, il fait un froid de canard.", exT: "Put your hat on, it's freezing outside." },
+  { id: "fr_pain_planche", rar: "epic", icon: "🍞", p: "Avoir du pain sur la planche", lit: "To have bread on the board", mean: "To have a lot of work to do", ex: "On a du pain sur la planche avant les vacances.", exT: "We've got our work cut out before the holidays." },
+  { id: "fr_coq_ane", rar: "epic", icon: "🐓", p: "Passer du coq à l'âne", lit: "To go from the rooster to the donkey", mean: "To jump from one topic to another", ex: "Il passe toujours du coq à l'âne, je ne le suis plus.", exT: "He keeps jumping from topic to topic, I can't follow." },
+  { id: "fr_assiette", rar: "epic", icon: "🍲", p: "Ne pas être dans son assiette", lit: "Not to be in your plate", mean: "To feel off, under the weather", ex: "Je ne suis pas dans mon assiette aujourd'hui.", exT: "I'm not feeling myself today." },
+  { id: "fr_farine", rar: "epic", icon: "🎭", p: "Rouler quelqu'un dans la farine", lit: "To roll someone in flour", mean: "To con someone", ex: "Le vendeur nous a roulés dans la farine.", exT: "The salesman took us for a ride." },
+  { id: "fr_chair_poule", rar: "epic", icon: "🐥", p: "Avoir la chair de poule", lit: "To have hen's flesh", mean: "To have goosebumps", ex: "Cette chanson me donne la chair de poule.", exT: "This song gives me goosebumps." },
+  { id: "fr_petite_bete", rar: "epic", icon: "🐞", p: "Chercher la petite bête", lit: "To look for the little beast", mean: "To nitpick", ex: "Arrête de chercher la petite bête, c'est très bien.", exT: "Stop nitpicking, it's very good." },
+  { id: "fr_coeur_main", rar: "epic", icon: "💗", p: "Avoir le cœur sur la main", lit: "To have your heart on your hand", mean: "To be very generous", ex: "Ma grand-mère a le cœur sur la main.", exT: "My grandmother is so generous." },
+  { id: "fr_chocolat", rar: "epic", icon: "🍫", p: "Être chocolat", lit: "To be chocolate", mean: "To be left empty-handed, fooled", ex: "Plus de billets ! On est chocolat.", exT: "No tickets left! We've missed out." },
+  { id: "fr_pain", rar: "epic", icon: "🥐", p: "Ça ne mange pas de pain", lit: "That doesn't eat bread", mean: "It costs nothing to try", ex: "Demande-lui, ça ne mange pas de pain.", exT: "Ask him, there's no harm in trying." },
+  { id: "fr_charrue", rar: "epic", icon: "🐂", p: "Mettre la charrue avant les bœufs", lit: "To put the plough before the oxen", mean: "To put the cart before the horse", ex: "Acheter la robe avant la bague ? C'est mettre la charrue avant les bœufs.", exT: "Buying the dress before the ring? That's putting the cart before the horse." },
+];
+
+function idiomList() { return typeof IS_FRENCH_APP !== "undefined" && IS_FRENCH_APP ? IDIOMS_FR : IDIOMS_DE; }
+function idiomOwned(id) { return !!(S.quests && S.quests.idioms && S.quests.idioms.includes(id)); }
+// Unowned cards of a rarity (what a chest can still give).
+function idiomPool(rar) { return idiomList().filter(c => c.rar === rar && !idiomOwned(c.id)); }
+function idiomSectionHtml() {
+  const list = idiomList();
+  // Only the cards you own (legendary first); the rest is one line, not
+  // a wall of locked tiles.
+  const own = list.filter(c => idiomOwned(c.id)).sort((a, b) => (b.rar === "legendary") - (a.rar === "legendary"));
+  const left = list.length - own.length, leftLeg = list.filter(c => c.rar === "legendary" && !idiomOwned(c.id)).length;
+  return `<div class="stats-section-title" style="margin-top:14px">📜 Idioms · ${own.length}/${list.length}</div>
+    ${own.length ? `<div class="idiom-grid">${own.map(c => `<button class="idiom-card r-${c.rar}" onclick="openIdiom('${c.id}')"><span class="idiom-icon">${c.icon}</span><span class="idiom-p">${escapeHtml(c.p)}</span><span class="idiom-mean">${escapeHtml(c.mean)}</span></button>`).join("")}</div>` : ""}
+    ${left ? `<div class="idiom-left">🔒 ${left} still to find${leftLeg ? ` · ${leftLeg} legendary` : ""} — in Epic and Legendary chests</div>` : `<div class="idiom-left">✓ Every idiom collected!</div>`}`;
+}
+function openIdiom(id) {
+  const c = idiomList().find(x => x.id === id);
+  if (!c || !idiomOwned(id)) return;
+  const old = document.getElementById("idiom-modal"); if (old) old.remove();
+  const m = document.createElement("div");
+  m.className = "modal-overlay"; m.id = "idiom-modal";
+  m.onclick = e => { if (e.target === m) m.remove(); };
+  m.innerHTML = `<div class="modal-sheet idiom-modal r-${c.rar}" role="dialog" aria-modal="true" aria-label="Idiom card">
+    <div class="idiom-big-icon">${c.icon}</div>
+    <div class="idiom-rar">${RARITY_INFO[c.rar].name} idiom</div>
+    <div class="idiom-big-p">${escapeHtml(c.p)} ${typeof audioOk === "function" && audioOk() ? `<button class="audio-btn" ${speakBtnAttrs(c.p)}>🔊</button>` : ""}</div>
+    <div class="idiom-row"><b>Word for word</b><span>${escapeHtml(c.lit)}</span></div>
+    <div class="idiom-row"><b>Means</b><span>${escapeHtml(c.mean)}</span></div>
+    <div class="idiom-ex">${escapeHtml(c.ex)} ${typeof audioOk === "function" && audioOk() ? `<button class="audio-btn" ${speakBtnAttrs(c.ex)}>🔊</button>` : ""}<small>${escapeHtml(c.exT)}</small></div>
+    <div class="modal-actions"><button class="modal-btn primary" onclick="document.getElementById('idiom-modal').remove()">Close</button></div>
+  </div>`;
+  document.body.appendChild(m);
+}

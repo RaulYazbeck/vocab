@@ -92,6 +92,16 @@ function startMinion(deckId, onDone) {
   gameRun = { kind: "surprise", ids: ["boss"], i: 0, summaries: [], pool, size: "bonus", title: "⚔️ Minion", onDone };
   launchGame("boss", { pool, size: "bonus", bossMode: "minion", deck: deckId });
 }
+// 🗝️ Boss key (chest item): a minion fight on demand, from the hub.
+function useBossKey() {
+  if (!S.quests || !(S.quests.keys > 0)) return;
+  const deck = minionDeckPick();
+  if (!deck) { showCelebrateToast("🗝️", "No minion yet", `Meet ${MINION_WORDS} words of a deck first`); return; }
+  S.quests.keys--;
+  logEvent("boss_key", { deck });
+  saveState();
+  startMinion(deck, () => openGamesHub());
+}
 function deckBossBadge(deckId) {
   const rec = S.games.bestiary[deckId];
   if (!rec || !rec.wins) return "";
@@ -143,6 +153,7 @@ function bossRowHtml() {
   const show = (unbeaten.length ? unbeaten : avail).slice(0, 8);
   return `<div class="boss-hub">
     <div class="boss-hub-head"><span>⚔️ Bosses</span><button class="tc-link" onclick="renderBestiary()">📖 Bestiary ${beaten}</button></div>
+    ${S.quests && S.quests.keys > 0 ? `<button class="boss-key-btn" onclick="useBossKey()">🗝️ Summon a minion <small>${S.quests.keys} key${S.quests.keys > 1 ? "s" : ""} · 10 words, 3 lives</small></button>` : ""}
     <button class="boss-world ${W.defeated ? "done" : ""}" onclick="startWorldBoss()" ${W.defeated ? "disabled" : ""}>
       <span class="boss-world-icon">${W.icon}</span>
       <span class="boss-world-body"><b>World boss: ${escapeHtml(W.name)}</b>

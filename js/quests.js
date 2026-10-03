@@ -38,6 +38,11 @@ function migrateQuests() {
   if (!(Q.freezes >= 0)) Q.freezes = 0;
   if (!(Q.tokens >= 0)) Q.tokens = 0;
   if (!(Q.boosts >= 0)) Q.boosts = 0;
+  if (!(Q.shields >= 0)) Q.shields = 0;
+  if (!(Q.keys >= 0)) Q.keys = 0;
+  if (Q.freezes > FREEZE_CAP) Q.freezes = FREEZE_CAP;
+  if (Q.shields > SHIELD_CAP) Q.shields = SHIELD_CAP;
+  if (!Array.isArray(Q.idioms)) Q.idioms = [];
   if (!Q.chest || typeof Q.chest !== "object") Q.chest = { opened: 0, sinceRare: 0, sinceEpic: 0, sinceLeg: 0 };
   if (!Array.isArray(Q.pending)) Q.pending = [];
   if (!Q.cos || typeof Q.cos !== "object") Q.cos = { owned: [], on: {} };
@@ -633,7 +638,7 @@ function questReroll(idx, free = false) {
   if (t && t.fixed) return;
   const isSound = t && t.audio || (q.hidden && byId(q.hidden.tpl) && byId(q.hidden.tpl).audio);
   if (!free) {
-    if (Q.rerolled && Q.tokens <= 0) { showCelebrateToast("🎟️", "No rerolls left", "Chests sometimes contain reroll tokens"); return; }
+    if (Q.rerolled && Q.tokens <= 0) { showCelebrateToast("🎟️", "No rerolls left", "Chests often contain reroll tokens"); return; }
     if (Q.rerolled) Q.tokens--; else Q.rerolled = true;
   } else if (!isSound) return;
   const ctx = questContext();
@@ -732,9 +737,6 @@ function questDayComplete() {
   questEnsureWeek();
   Q.week.days = daysThisWeek;
   if (daysThisWeek >= 5 && !Q.week.weeklyChest) { Q.week.weeklyChest = true; questQueueChest("weekly", "epic"); }
-  // One freeze earned for every 7-day streak.
-  const st = questStreak();
-  if (st > 0 && st % 7 === 0 && Q.freezes < 3) { Q.freezes++; showCelebrateToast("🧊", "Streak freeze earned", `${st}-day streak!`); }
   checkAchievements({ type: "day_complete" });
   saveState();
   Q._showDayComplete = true;
@@ -1040,33 +1042,66 @@ function rollRarity(min = "common", rng = Math.random) {
   C.sinceLeg = rar === "legendary" ? 0 : C.sinceLeg + 1;
   return rar;
 }
+// Loot: XP plus at most one item. Tuned with tools/chest-sim.js for a
+// player doing every quest with ~4 sessions/games a day (≈2.9 chests a
+// day, pity timers included): rerolls ≈0.7/day, ⚡ boosts ≈0.4/day,
+// 🛡️ shields ≈0.15/day, 🗝️ keys ≈1/week, 🧊 freezes ≈1 every 10 days.
+// Epic and Legendary chests also hold a collectible (idiom card or
+// cosmetic). A freeze or shield past its cap turns into XP.
+const FREEZE_CAP = 2, SHIELD_CAP = 2, BOOST_RATE = 0.2;
+const CHEST_LOOT = {
+  common:    { xp: [15, 25],   items: [[0.35, "token"], [0.15, "boost"]] },
+  rare:      { xp: [40, 60],   items: [[0.28, "token"], [0.22, "boost"], [0.14, "shield"], [0.135, "key"]] },
+  epic:      { xp: [90, 110],  items: [[0.10, "freeze"]], collectible: "epic" },
+  legendary: { xp: [250, 250], items: [[0.30, "freeze"]], collectible: "legendary" },
+};
+const CHEST_ITEMS = {
+  token:  { field: "tokens",  label: "🎟️ Reroll token" },
+  boost:  { field: "boosts",  label: "⚡ XP boost — your next session ×1.2" },
+  shield: { field: "shields", label: "🛡️ Memory shield", full: "🛡️ Shields full", cap: SHIELD_CAP, capXp: 30 },
+  key:    { field: "keys",    label: "🗝️ Boss key — summon a minion" },
+  freeze: { field: "freezes", label: "🧊 Streak freeze", full: "🧊 Freezes full", cap: FREEZE_CAP, capXp: 50 },
+};
 function openChest(ch) {
+  const Q = S.quests;
   const rar = rollRarity(ch.min);
+  const L = CHEST_LOOT[rar];
   const loot = [];
   const r = Math.random;
-  if (rar === "common") {
-    const xp = 30 + Math.floor(r() * 31); addExp(xp); loot.push(`+${xp} XP`);
-    if (r() < 0.25) { S.quests.tokens++; loot.push("🎟️ Reroll token"); }
-  } else if (rar === "rare") {
-    const xp = 80 + Math.floor(r() * 41); addExp(xp); loot.push(`+${xp} XP`);
-    const x = r();
-    if (x < 0.34 && S.quests.freezes < 3) { S.quests.freezes++; loot.push("🧊 Streak freeze"); }
-    else if (x < 0.67) { S.quests.tokens++; loot.push("🎟️ Reroll token"); }
-    else { S.quests.boosts++; loot.push("⚡ XP boost (next session ×2)"); }
-  } else if (rar === "epic") {
-    const xp = 150 + Math.floor(r() * 101); addExp(xp); loot.push(`+${xp} XP`);
-    const c = grantCosmetic(null, "epic"); loot.push(c ? `${c.icon} ${c.name}` : "+100 XP");
-    if (!c) addExp(100);
-    if (r() < 0.5 && S.quests.freezes < 3) { S.quests.freezes++; loot.push("🧊 Streak freeze"); } else { S.quests.boosts++; loot.push("⚡ XP boost"); }
-  } else {
-    addExp(400); loot.push("+400 XP");
-    const c = grantCosmetic(null, "legendary"); loot.push(c ? `${c.icon} ${c.name} (legendary)` : "+200 XP");
-    if (!c) addExp(200);
-    const f = Math.min(2, 3 - S.quests.freezes); if (f > 0) { S.quests.freezes += f; loot.push(`🧊 ${f} streak freeze${f > 1 ? "s" : ""}`); }
+  let xp = L.xp[0] + Math.floor(r() * (L.xp[1] - L.xp[0] + 1));
+  if (L.collectible) {
+    const got = grantCollectible(L.collectible);
+    if (got) loot.push(got);
+    else xp += 100;
   }
+  let x = r();
+  for (const [p, id] of L.items) {
+    if (x >= p) { x -= p; continue; }
+    const it = CHEST_ITEMS[id];
+    if (it.cap && Q[it.field] >= it.cap) { xp += it.capXp; loot.push(`${it.full} (${it.cap}/${it.cap}) → +${it.capXp} XP`); }
+    else { Q[it.field]++; loot.push(it.label); }
+    break;
+  }
+  addExp(xp);
+  loot.unshift(`+${xp} XP`);
   logEvent("chest", { src: ch.src, rar });
   checkAchievements({ type: "chest" });
-  return { rar, loot };
+  // 👵 Grandma mode never sees the items (they're still kept): just XP.
+  return { rar, loot: grandmaOn() ? loot.slice(0, 1) : loot };
+}
+// Epic/Legendary collectible: an idiom card or a cosmetic, whichever
+// collection still has pieces of that rarity (a coin flip when both do).
+function grantCollectible(rar) {
+  const idioms = idiomPool(rar), cos = COSMETICS.filter(c => !c.free && c.rar === rar && !S.quests.cos.owned.includes(c.id));
+  if (!idioms.length && !cos.length) return rar === "legendary" ? grantCollectible("epic") : null;
+  if (idioms.length && (!cos.length || Math.random() < 0.5)) {
+    const c = idioms[Math.floor(Math.random() * idioms.length)];
+    S.quests.idioms.push(c.id);
+    logEvent("idiom", { id: c.id });
+    return `📜 ${rar === "legendary" ? "Legendary idiom" : "Idiom card"}: “${c.p}” — ${c.mean}`;
+  }
+  const c = grantCosmetic(null, rar);
+  return c ? `${c.icon} ${c.name}${rar === "legendary" ? " (legendary)" : ""}` : null;
 }
 function openPendingChest() {
   const Q = S.quests;
@@ -1534,9 +1569,11 @@ function renderCollection() {
   document.getElementById("main-screen").innerHTML = `<div class="screen">
     <div class="screen-top"><div class="screen-label">🎨 Collection · ${owned}/${total}</div><button class="back-btn" onclick="backToMenu()">← Back</button></div>
     <div class="coll-stats">
-      <span class="p-chip">🧊 ${Q.freezes} freeze${Q.freezes === 1 ? "" : "s"}</span>
-      <span class="p-chip">🎟️ ${Q.tokens} reroll${Q.tokens === 1 ? "" : "s"}</span>
-      <span class="p-chip">⚡ ${Q.boosts} boost${Q.boosts === 1 ? "" : "s"}</span>
+      <span class="p-chip" title="Covers a missed day automatically">🧊 ${Q.freezes}/${FREEZE_CAP} freeze${Q.freezes === 1 ? "" : "s"}</span>
+      <span class="p-chip" title="Tap 🎲 on a quest to swap it">🎟️ ${Q.tokens} reroll${Q.tokens === 1 ? "" : "s"}</span>
+      <span class="p-chip" title="Each one adds ×1.2 XP to your next Today session, automatically">⚡ ${Q.boosts} boost${Q.boosts === 1 ? "" : "s"}</span>
+      <span class="p-chip" title="After a miss in a Today session, tap “🛡️ Shield it” to keep the word's stage">🛡️ ${Q.shields}/${SHIELD_CAP} shield${Q.shields === 1 ? "" : "s"}</span>
+      <span class="p-chip" title="Games → Bosses: summon a minion whenever you like">🗝️ ${Q.keys} key${Q.keys === 1 ? "" : "s"}</span>
       <span class="p-chip">📦 ${Q.chest.opened} chests opened</span>
       ${Q.pending.length ? `<button class="p-chip gold" onclick="openPendingChest()">🎁 ${Q.pending.length} to open</button>` : ""}
     </div>
@@ -1548,7 +1585,8 @@ function renderCollection() {
           <span class="coll-icon">${own ? c.icon : "🔒"}</span><span class="coll-name">${own ? escapeHtml(c.name) : "???"}</span>
           <span class="coll-rar">${RARITY_INFO[c.rar].name}${on ? " · on" : ""}</span></button>`;
       }).join("")}</div>`).join("")}
-    <div class="p-sub" style="margin-top:14px">Epic and Legendary chests hold new pieces. Weekly sagas always give one.</div>
+    ${typeof idiomSectionHtml === "function" ? idiomSectionHtml() : ""}
+    <div class="p-sub" style="margin-top:14px">Epic and Legendary chests hold a new idiom card or cosmetic. Weekly sagas always give a cosmetic.</div>
   </div>`;
 }
 function questWotdKey() {
