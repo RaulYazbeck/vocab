@@ -1,731 +1,454 @@
 <!doctype html>
 <!--
   ╔════════════════════════════════════════════════════════════════╗
-  ║  TEMPORARY — speech-recognition bake-off page.                 ║
-  ║  NOT part of the app. Nothing here is imported by /de or /fr.  ║
+  ║  TEMPORARY — speak-mode capture test (v4).                     ║
+  ║  NOT part of the app. Nothing in /de or /fr uses this.         ║
   ║  When the tests are done, delete the whole  asr-test/  folder. ║
   ╚════════════════════════════════════════════════════════════════╝
-  Records your voice saying vocab words, then runs the same recordings
-  through several speech models in the browser and compares them.
-  Audio never leaves your device (models download once, then run locally).
-  Recording mirrors js/voice-engine.js. Matching is accent-SENSITIVE (unlike the
-  app's typing matcher), because for speech an umlaut/accent error is a real error.
+  Simulates the app's voice drill: you see the English word, say the German
+  word, it moves on by itself. Unlike the app's current recorder, the mic is
+  opened ONCE and kept open, and ~0.7 s of audio from *before* you start
+  speaking is kept — so the first sound of a word can't be cut off.
+  Audio never leaves your device. The main output is the exported .json.
 -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>TEMP – ASR test</title>
-<script type="importmap">
-{ "imports": { "onnxruntime-web": "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.24.1/dist/ort.webgpu.bundle.min.mjs" } }
-</script>
+<title>TEMP – speak test</title>
 <style>
   :root { --bg:#fafafa; --fg:#1d1d1f; --mut:#6b6b70; --card:#fff; --line:#dcdce0; --acc:#2563eb;
-          --accbg:#ffedd5; --hombg:#e0f2fe; --ok:#15803d; --okbg:#dcfce7; --mid:#a16207; --midbg:#fef3c7; --bad:#b91c1c; --badbg:#fee2e2; --warn:#b91c1c; }
+          --ok:#15803d; --okbg:#dcfce7; --mid:#a16207; --midbg:#fef3c7; --bad:#b91c1c; --badbg:#fee2e2; --hombg:#e0f2fe; --accbg:#ffedd5; --warn:#b91c1c; }
   @media (prefers-color-scheme: dark) {
     :root { --bg:#141416; --fg:#ececf0; --mut:#9a9aa3; --card:#1e1e22; --line:#33333a; --acc:#60a5fa;
-            --accbg:#3d2410; --hombg:#0e2a3d; --ok:#4ade80; --okbg:#14301f; --mid:#fbbf24; --midbg:#3a2e0e; --bad:#f87171; --badbg:#3b1717; }
+            --ok:#4ade80; --okbg:#14301f; --mid:#fbbf24; --midbg:#3a2e0e; --bad:#f87171; --badbg:#3b1717; --hombg:#0e2a3d; --accbg:#3d2410; }
   }
-  * { box-sizing: border-box; }
+  * { box-sizing:border-box; }
   body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.45 system-ui, sans-serif; }
-  .banner { position:sticky; top:0; z-index:10; background:var(--warn); color:#fff; padding:10px 16px; font-weight:600; text-align:center; }
-  main { max-width:980px; margin:0 auto; padding:16px; }
-  h1 { font-size:1.3rem; margin:8px 0 4px; } h2 { font-size:1.1rem; margin:0 0 8px; }
+  .banner { position:sticky; top:0; z-index:10; background:var(--warn); color:#fff; padding:8px 16px; font-weight:600; text-align:center; font-size:.9rem; }
+  main { max-width:760px; margin:0 auto; padding:16px; }
+  h1 { font-size:1.25rem; margin:6px 0 4px; } h2 { font-size:1.05rem; margin:0 0 8px; }
   .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; margin:14px 0; }
   .mut { color:var(--mut); font-size:.9rem; }
-  button { font:inherit; padding:8px 14px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--fg); cursor:pointer; }
+  button { font:inherit; padding:10px 16px; border-radius:10px; border:1px solid var(--line); background:var(--card); color:var(--fg); cursor:pointer; }
   button.primary { background:var(--acc); border-color:var(--acc); color:#fff; }
-  button.rec { background:#dc2626; border-color:#dc2626; color:#fff; font-size:1.1rem; padding:12px 22px; }
   button:disabled { opacity:.5; cursor:not-allowed; }
-  input[type=text], textarea, select { font:inherit; width:100%; padding:8px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--fg); }
-  textarea { min-height:80px; }
+  select, input[type=text] { font:inherit; padding:8px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--fg); width:100%; }
   .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-  .models label { display:flex; gap:8px; align-items:flex-start; padding:6px 0; border-bottom:1px solid var(--line); }
-  .models label:last-child { border-bottom:0; }
-  .word { font-size:2.4rem; font-weight:700; text-align:center; margin:12px 0 4px; word-break:break-word; }
-  .meter { height:10px; background:var(--line); border-radius:6px; overflow:hidden; margin:10px 0; }
-  .meter > i { display:block; height:100%; width:0; background:var(--ok); transition:width .05s; }
-  .chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
-  .chip { padding:3px 9px; border-radius:99px; border:1px solid var(--line); font-size:.85rem; cursor:pointer; background:var(--card); }
-  .chip.done { background:var(--okbg); border-color:var(--ok); }
-  .chip.cur { outline:2px solid var(--acc); }
-  table { border-collapse:collapse; width:100%; font-size:.9rem; }
-  th, td { border:1px solid var(--line); padding:5px 7px; text-align:left; vertical-align:top; }
-  th { background:var(--bg); position:sticky; top:42px; }
+  .prompt { font-size:2.2rem; font-weight:700; text-align:center; margin:18px 0 6px; word-break:break-word; }
+  .sub { text-align:center; color:var(--mut); }
+  .status { text-align:center; font-weight:600; min-height:1.6em; margin:10px 0; }
+  .meter { position:relative; height:12px; background:var(--line); border-radius:6px; overflow:hidden; margin:10px 0; }
+  .meter > i { display:block; height:100%; width:0; background:var(--ok); }
+  .meter > b { position:absolute; top:0; bottom:0; width:2px; background:var(--bad); left:10%; }
+  .bar { height:6px; background:var(--line); border-radius:4px; overflow:hidden; } .bar > i { display:block; height:100%; background:var(--acc); width:0; }
+  table { border-collapse:collapse; width:100%; font-size:.85rem; }
+  th, td { border:1px solid var(--line); padding:4px 6px; text-align:left; vertical-align:top; }
   .v-exact { background:var(--okbg); } .v-homophone { background:var(--hombg); } .v-near { background:var(--midbg); } .v-accent { background:var(--accbg); } .v-wrong { background:var(--badbg); }
   .scroll { overflow-x:auto; }
-  pre { white-space:pre-wrap; word-break:break-word; background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:10px; max-height:260px; overflow:auto; font-size:.8rem; }
-  .log { font-size:.85rem; color:var(--mut); max-height:140px; overflow:auto; }
-  .legend span { padding:2px 8px; border-radius:6px; margin-right:6px; font-size:.85rem; }
-  ol li { margin:4px 0; }
+  pre { white-space:pre-wrap; word-break:break-word; background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:10px; max-height:240px; overflow:auto; font-size:.78rem; }
+  .hide { display:none; }
+  .warn { border:1px solid var(--mid); background:var(--midbg); border-radius:8px; padding:8px; }
+  .log { font-size:.85rem; color:var(--mut); max-height:120px; overflow:auto; }
 </style>
 </head>
 <body>
 <div class="banner">⚠ TEMPORARY TEST PAGE — not part of the app. Delete the <code>asr-test/</code> folder when finished.</div>
 <main>
-  <h1>Speech-recognition bake-off</h1>
-  <p class="mut">Say vocab words → run the same recordings through several models → copy the report back to Claude.
-     Your real target is the <b>iPhone</b>, so record on the iPhone. Big models only run on a computer (desktop Chrome) — export
-     the recordings from the phone and import them there. Recordings are saved on this device, but a refresh interrupts a model run.</p>
+  <h1>Speak-mode test · German A1 · 50 words</h1>
 
-  <section class="card" id="setup">
-    <h2>1 · Setup</h2>
-    <div class="row">
-      <label><input type="radio" name="lang" value="de" checked> German</label>
-      <label><input type="radio" name="lang" value="fr"> French</label>
-      <span class="mut">(do one language fully, then switch and do the other)</span>
-    </div>
-    <p><label>About you / setup — native language, accent, microphone, room noise (goes into the report):
-      <input type="text" id="note" placeholder="e.g. Spanish native, laptop mic, quiet room"></label></p>
-    <div class="models" id="models"></div>
-    <p class="mut">Models download once and are cached. They are large — Wi-Fi recommended.
-       The "system" option listens live through Chrome's own recogniser while you record
-       (it can't replay audio, so it only works at recording time).</p>
+  <section class="card" id="intro">
+    <h2>How this works</h2>
+    <ol style="margin:0 0 8px 18px; padding:0">
+      <li>Tap <b>Start</b> once. The mic then stays on for the whole session.</li>
+      <li>You see an English word. <b>Say the German word, with its article</b> ("der Tisch"), exactly as you would in the app.</li>
+      <li>It detects the end of your answer and moves on by itself. Think, hesitate, say "ähm" — behave normally.
+          If you don't know it, tap <b>Skip</b>. Don't retry words to make them pass.</li>
+      <li>After 50 words: <b>Export</b> the .json and send it to Claude. That file is what matters.</li>
+    </ol>
+    <div id="iosNote" class="warn mut hide">iPhone: open in a normal <b>Safari tab</b> (not a home-screen icon), keep the screen awake, quiet room, phone held how you normally hold it.</div>
+    <p class="row"><label class="mut" style="flex:1 1 220px">Mic processing
+      <select id="proc">
+        <option value="raw" selected>Raw — no noise suppression / auto-gain (recommended)</option>
+        <option value="default">Browser default</option>
+      </select></label>
+      <label class="mut" style="flex:1 1 220px">About you / setup (goes in the report)
+      <input type="text" id="note" placeholder="e.g. French native, iPhone 14, quiet room"></label></p>
+    <div class="row"><button class="primary" id="btnStart">Start</button><span id="startMsg" class="mut"></span></div>
+    <p class="mut">Already have an export? <input type="file" id="fileImport" accept=".json,application/json"> (loads it so you can run the small models on a laptop)</p>
   </section>
 
-  <section class="card" id="record">
-    <h2>2 · Record the words</h2>
-    <div id="iosNote" class="mut" style="display:none; border:1px solid var(--mid); border-radius:8px; padding:8px; margin-bottom:8px">
-      <b>iPhone detected.</b> Open this in <b>Safari (a normal tab, not a home-screen icon)</b>. Record here — your iPhone mic is the real target.
-      Only one model is ticked (tiny): the bigger ones are likely to crash Safari. Run one model at a time and <b>reload between models</b>
-      (recordings and results are kept). To test the big models on the <i>same</i> recordings, use "Export recordings" below and import them on a computer.</div>
-    <p class="mut">Say each word <b>the way you would in the app</b> (including the article, e.g. "der Tisch").
-       Press <b>Space</b> or the red button, say the word, and it stops by itself after ~1 s of silence.
-       If you fumble a word, just record it again — the new take replaces the old one.</p>
-    <div class="word" id="curWord">…</div>
-    <div class="mut" style="text-align:center" id="curInfo"></div>
-    <div class="meter"><i id="meterBar"></i></div>
+  <section class="card hide" id="session">
+    <div class="row" style="justify-content:space-between"><span class="mut" id="progTxt">0 / 50</span><span class="mut" id="micTxt"></span></div>
+    <div class="bar"><i id="progBar"></i></div>
+    <div class="prompt" id="prompt">…</div>
+    <div class="sub" id="promptSub">say it in German</div>
+    <div class="status" id="status">Calibrating — stay quiet for a second…</div>
+    <div class="meter"><i id="meterBar"></i><b id="thrMark"></b></div>
     <div class="row" style="justify-content:center">
-      <button id="btnPrev">◀ Prev</button>
-      <button id="btnRec" class="rec">● Record (Space)</button>
-      <button id="btnPlay" disabled>▶ Play</button>
-      <button id="btnNext">Next ▶</button>
+      <button id="btnRedo">↺ Redo previous</button>
+      <button id="btnSkip">Skip (don't know)</button>
+      <button id="btnPause">Pause</button>
+      <button id="btnFinish">Finish early</button>
     </div>
-    <div class="row" style="justify-content:center; margin-top:8px">
-      <label><input type="checkbox" id="autoAdv" checked> jump to next word after each take</label>
-    </div>
-    <p id="recMsg" class="mut" style="text-align:center"></p>
-    <div id="progressTxt" class="mut"></div>
-    <div class="chips" id="chips"></div>
-    <div class="row" style="margin-top:12px">
-      <button id="btnExport">Export recordings (.json)</button>
-      <label class="mut">Import recordings: <input type="file" id="fileImport" accept=".json,application/json"></label>
-    </div>
-    <details style="margin-top:12px">
-      <summary>Add your own words (e.g. ones the real app keeps mishearing)</summary>
-      <textarea id="customWords" placeholder="One per line, exactly as in the deck (with article)"></textarea>
-      <button id="btnAddWords" style="margin-top:6px">Add to list</button>
-    </details>
+    <p class="mut" style="text-align:center">Red line = how loud you must be to count as speaking. The bar should jump past it when you speak.</p>
   </section>
 
-  <section class="card" id="run">
-    <h2>3 · Run the models</h2>
+  <section class="card hide" id="done">
+    <h2>Done — export your recordings</h2>
     <div class="row">
-      <button id="btnRun" class="primary">Run selected models on my recordings</button>
-      <span id="runStatus" class="mut"></span>
+      <button class="primary" id="btnExport">Export recordings (.json)</button>
+      <button id="btnCopy">Copy session summary</button>
     </div>
+    <p class="mut">Send the .json to Claude (that's the important file). On iPhone it lands in Files → Downloads.</p>
+    <pre id="summaryBox"></pre>
+  </section>
+
+  <section class="card hide" id="models">
+    <h2>Optional — run the small models right here</h2>
+    <p class="mut">Only the two sizes that can realistically run in an iPhone browser. The bigger models and the "score the expected word" method
+       can't run on a phone, so Claude runs those from your .json.
+       <b>On iPhone: tick one, run, then reload the page between models</b> (your recordings are kept).</p>
+    <label><input type="checkbox" id="m_tiny" checked> Whisper tiny (q8) — ~40 MB · the app's current model</label><br>
+    <label><input type="checkbox" id="m_base"> Whisper base (q8) — ~80 MB</label>
+    <p class="row"><button id="btnRun">Run on my recordings</button><span id="runStatus" class="mut"></span></p>
     <div class="log" id="runLog"></div>
+    <div class="scroll" id="resTable"></div>
   </section>
 
-  <section class="card" id="results">
-    <h2>4 · Results</h2>
-    <div class="legend mut">
-      <span class="v-exact">exact (accents count)</span><span class="v-homophone">homophone = correct</span><span class="v-near">near-miss</span><span class="v-accent">accent slip = wrong</span><span class="v-wrong">wrong / empty</span>
-    </div>
-    <div class="scroll" id="summary"></div>
-    <div class="scroll" id="detail" style="margin-top:12px"></div>
-  </section>
-
-  <section class="card" id="send">
-    <h2>5 · Send the report back</h2>
-    <div class="row">
-      <button id="btnCopy" class="primary">Copy report</button>
-      <button id="btnDownload">Download as .txt</button>
-    </div>
-    <p class="mut">Paste the copied report into the chat. If you did both languages, one report contains both.</p>
-    <pre id="reportBox"></pre>
-  </section>
-
-  <section class="card" id="cleanup">
-    <h2>6 · Clean up (when done)</h2>
-    <button id="btnWipe">Delete my recordings &amp; results from this browser</button>
-    <p class="mut">Then ask Claude to delete the <code>asr-test/</code> folder from the repo. Downloaded model files stay in the
-       browser cache — clear site data for this site if you want them gone.</p>
+  <section class="card hide" id="cleanup">
+    <h2>Clean up</h2>
+    <button id="btnWipe">Delete my recordings from this browser &amp; start over</button>
+    <p class="mut">Afterwards ask Claude to delete the <code>asr-test/</code> folder from the repo.</p>
   </section>
 </main>
 
 <script type="module">
 // ── CONFIG ────────────────────────────────────
-const TJS_CDN = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3"; // same version as the app
-const PARAKEET_CDN = "https://cdn.jsdelivr.net/npm/parakeet.js@1.4.4/src/index.js";
-const LANGS = {
-  de: { name: "German", whisper: "german", speech: "de-DE" },
-  fr: { name: "French", whisper: "french", speech: "fr-FR" },
-};
-const HAS_WEBGPU = !!navigator.gpu;
+const TJS_CDN = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3";   // same version as the app
 const IS_IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+// Same timings as the app's voice drill (js/state.js, js/voice-engine.js) except a longer start timeout so hesitation is allowed.
+const P = { silenceEndMs: 1100, maxSpeechMs: 8000, startTimeoutMs: 8000, preRollMs: 700, tailKeepMs: 500, cardLeadMs: 250, advanceMs: 700, calibMs: 1000 };
 
-const MODELS = [
-  { id: "whisper-tiny",  label: "Whisper tiny (q8)", note: "what the app uses today — the baseline", size: "~40 MB", on: true,
-    kind: "tjs", repo: "onnx-community/whisper-tiny",  opts: { dtype: "q8" } },
-  { id: "whisper-base",  label: "Whisper base (q8)", note: "next size up, still small", size: "~80 MB", on: !IS_IOS,
-    kind: "tjs", repo: "onnx-community/whisper-base",  opts: { dtype: "q8" } },
-  { id: "whisper-small", label: "Whisper small (q8)", note: "much better than tiny, slower", size: "~250 MB", on: !IS_IOS,
-    kind: "tjs", repo: "onnx-community/whisper-small", opts: { dtype: "q8" } },
-  { id: "parakeet-v3",   label: "NVIDIA Parakeet TDT 0.6B v3 (int8, WASM)", note: "non-Whisper model, 25 European languages. Experimental in-browser build.", size: "several hundred MB", on: !IS_IOS,
-    kind: "parakeet" },
-  { id: "whisper-large-v3-turbo", label: "Whisper large-v3-turbo (WebGPU)", note: "best Whisper; needs desktop Chrome with WebGPU", size: "~1 GB", on: false, needsGpu: true,
-    kind: "tjs", repo: "onnx-community/whisper-large-v3-turbo", opts: { device: "webgpu", dtype: { encoder_model: "fp16", decoder_model_merged: "q4" } } },
-  { id: "system", label: "Browser system recogniser (live)", note: "the browser's built-in dictation (on iPhone: Siri dictation); runs while you record", size: "none", on: false, live: true },
+// 50 real A1 cards from de/german_decks_a1.js (English prompt → German answer), shuffled with a fixed seed.
+const CARDS_RAW = [
+ ["the mother","die Mutter"],["the father","der Vater"],["the brother","der Bruder"],["the sister","die Schwester"],["the child","das Kind"],
+ ["the house","das Haus"],["the kitchen","die Küche"],["the room","das Zimmer"],["the table","der Tisch"],["the window","das Fenster"],["the door","die Tür"],["the bed","das Bett"],
+ ["the water","das Wasser"],["the coffee","der Kaffee"],["the bread","das Brot"],["the cheese","der Käse"],["the apple","der Apfel"],["the milk","die Milch"],["the beer","das Bier"],
+ ["the car","das Auto"],["the bus","der Bus"],["the train","der Zug"],["the street / road","die Straße"],["the city / town","die Stadt"],
+ ["the head","der Kopf"],["the hand","die Hand"],["the eye","das Auge"],
+ ["red","rot"],["blue","blau"],["green","grün"],["large / big","groß"],["small","klein"],["beautiful / nice","schön"],["tired","müde"],["cold","kalt"],
+ ["to do / make","machen"],["to eat","essen"],["to drink","trinken"],["to swim","schwimmen"],["to sleep","schlafen"],
+ ["I","ich"],["we","wir"],["two","zwei"],["four","vier"],["five","fünf"],["ten","zehn"],
+ ["the day","der Tag"],["the week","die Woche"],["the sun","die Sonne"],["the dog","der Hund"]
 ];
+function seededShuffle(a, seed) { a = a.slice(); let s = seed; for (let i = a.length - 1; i > 0; i--) { s = (s * 1664525 + 1013904223) % 4294967296; const j = s % (i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const CARDS = seededShuffle(CARDS_RAW, 20261003).map(([en, de]) => ({ en, de }));
 
-// Built-in word lists — spoken exactly as the decks store them (articles included).
-// Mix of: greetings, numbers (digit-vs-word risk), short words, umlauts/nasals, near-homophones, app voice commands.
-const WORDS = {
-  de: ["hallo","tschüss","guten Morgen","auf Wiedersehen","Entschuldigung","danke","bitte",
-       "eins","zwei","drei","vier","fünf","zwölf","sechzehn","siebzig",
-       "der Tisch","die Katze","der Hund","das Bett","die Küche","die Tür","die Brücke","der Löffel","der Käse",
-       "das Mädchen","der Flughafen","die Zeitung","das Wasser","das Fenster","der Schlüssel","der Bahnhof",
-       "die Wohnung","der Apfel","die Straße","der Glückwunsch","das Meer","die Seite",
-       "schön","müde","vielleicht","zurück","Achtung","nochmal","keine Ahnung"],
-  fr: ["bonjour","au revoir","salut","merci","s'il vous plaît","excusez-moi",
-       "un","deux","trois","quatre","cinq","six","sept","huit","neuf","dix","vingt","quatre-vingts",
-       "le pain","la rue","le cheval","la fille","l'eau","le poisson","l'oiseau","la fenêtre","la voiture",
-       "le chien","le chat","la maison","le livre","la clé","l'école",
-       "le verre","la mère","la mer","cent","sans",
-       "beaucoup","peut-être","grenouille","écureuil","encore","passer"],
-};
-
-// ── MATCHING ──
-// Based on the app's matcher, with ONE deliberate change: accents/umlauts are NOT ignored.
-// When speaking, "schön" ≠ "schon" and "clé" ≠ "cle", so an accent-only mismatch counts as wrong.
-function stripAccents(s) { return s.normalize("NFD").replace(/[̀-ͯ]/g, ""); }   // used only to *detect* accent slips
+// ── MATCHING (accent-sensitive; homophones count as correct; same fuzzy rule as the app) ──
+function stripAccents(s) { return s.normalize("NFD").replace(/[̀-ͯ]/g, ""); }
 function normalizeChars(s) { return s.replace(/ß/g, "ss").replace(/['\-]/g, " ").replace(/\s+/g, " "); }
 function normalize(s) { return normalizeChars(s.trim().toLowerCase().normalize("NFC")); }
 const ARTICLE_TOKENS = /^(der|die|das|den|dem|des|ein|eine|einen|einem|einer|eines|kein|keine|keinen|keinem|keiner|keines|le|la|les|l|un|une|du|au|aux)$/;
 function articleSeq(s) { return s.split(" ").filter(t => ARTICLE_TOKENS.test(t)).join(" "); }
 function levenshtein(a, b) {
-  if (a === b) return 0;
-  if (!a.length) return b.length;
-  if (!b.length) return a.length;
+  if (a === b) return 0; if (!a.length) return b.length; if (!b.length) return a.length;
   let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
-  for (let i = 1; i <= a.length; i++) {
-    const row = [i];
-    for (let j = 1; j <= b.length; j++) {
-      row[j] = Math.min(prev[j] + 1, row[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
-    }
-    prev = row;
-  }
+  for (let i = 1; i <= a.length; i++) { const row = [i]; for (let j = 1; j <= b.length; j++) row[j] = Math.min(prev[j] + 1, row[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = row; }
   return prev[b.length];
 }
-function voiceIsCorrect(transcript, answer) {          // same logic as js/voice-engine.js
-  const normT = normalize(transcript);
-  if (!normT) return false;
+function voiceIsCorrect(transcript, answer) {
+  const normT = normalize(transcript); if (!normT) return false;
   return answer.split("/").some(alt => {
-    const normA = normalize(alt.trim());
-    if (!normA) return false;
+    const normA = normalize(alt.trim()); if (!normA) return false;
     const arts = articleSeq(normA).split(" ").filter(Boolean);
-    if (arts.length) {
-      let k = 0;
-      for (const t of normT.split(" ")) if (t === arts[k]) k++;
-      if (k < arts.length) return false;
-    }
+    if (arts.length) { let k = 0; for (const t of normT.split(" ")) if (t === arts[k]) k++; if (k < arts.length) return false; }
     if (normT.includes(normA)) return true;
-    if (normA.includes(normT) && normT.length > 2 && normT.length >= normA.length * 0.6 &&
-        normT.split(" ").some(t => !ARTICLE_TOKENS.test(t))) return true;
+    if (normA.includes(normT) && normT.length > 2 && normT.length >= normA.length * 0.6 && normT.split(" ").some(t => !ARTICLE_TOKENS.test(t))) return true;
     if (normA.length >= 4) {
-      const whole = 1 - levenshtein(normT, normA) / Math.max(normT.length, normA.length);
-      if (whole >= 0.8) return true;
+      if (1 - levenshtein(normT, normA) / Math.max(normT.length, normA.length) >= 0.8) return true;
       if (normT.split(" ").some(tok => tok.length >= 4 && 1 - levenshtein(tok, normA) / Math.max(tok.length, normA.length) >= 0.8)) return true;
     }
     return false;
   });
 }
-function cleanHeard(s) { return (s || "").replace(/[.,!?;:¡¿"“”«»…]/g, " ").replace(/\s+/g, " ").trim(); }
-// Words that SOUND identical. A recogniser cannot tell them apart, and a learner who
-// pronounced the target correctly must not be marked wrong, so these count as correct.
-const HOMOPHONE_GROUPS = {
-  fr: [["verre","vert","vers","ver"],["mère","mer","maire"],["cent","sans","sang","sent"],["pain","pin","peint"],["mois","moi"],
-       ["cou","coup","coût"],["dix","dis"],["cinq","sain","saint","sein"],["sept","set"],["vingt","vin","vain","vins"],
-       ["clé","clef"],["passer","passé","passez"],["la","là"],["ou","où"],["chat","chas"]],
-  de: [["meer","mehr"],["seite","saite"],["wahl","wal"],["mal","mahl"],["leere","lehre"],["moor","mohr"],["stil","stiel"],
-       ["lied","lid"],["rat","rad"],["das","dass"],["wieder","wider"],["bund","bunt"]],
-};
-function homophoneForms(l, normAnswer) {
+const HOMOPHONES = [["meer","mehr"],["seite","saite"],["wahl","wal"],["mal","mahl"],["leere","lehre"],["moor","mohr"],["stil","stiel"],["lied","lid"],["rat","rad"],["das","dass"],["wieder","wider"],["bund","bunt"]];
+function homophoneForms(normAnswer) {
   const toks = normAnswer.split(" "), forms = new Set();
-  for (const g of HOMOPHONE_GROUPS[l] || []) {
-    const ng = g.map(normalize);
-    toks.forEach((t, i) => { if (ng.includes(t)) ng.forEach(m => { if (m !== t) { const c = [...toks]; c[i] = m; forms.add(c.join(" ")); } }); });
-  }
+  for (const g of HOMOPHONES) { const ng = g.map(normalize); toks.forEach((t, i) => { if (ng.includes(t)) ng.forEach(m => { if (m !== t) { const c = [...toks]; c[i] = m; forms.add(c.join(" ")); } }); }); }
   return forms;
 }
-// exact   = same words, same accents
-// homophone = a different word that sounds identical (e.g. "vert" for "verre") → counted CORRECT
-// accent  = right letters but wrong/missing accent (e.g. "schon" for "schön") → counted WRONG
-// near    = small slip the app's fuzzy matcher would still let through
-// wrong   = anything else (including empty)
-function verdict(heard, expected, l = lang) {
-  const h = normalize(cleanHeard(heard));
-  if (!h) return "wrong";
+function cleanHeard(s) { return (s || "").replace(/[.,!?;:¡¿"“”«»…]/g, " ").replace(/\s+/g, " ").trim(); }
+function verdict(heard, expected) {
+  const h = normalize(cleanHeard(heard)); if (!h) return "wrong";
   const answers = expected.split("/").map(a => normalize(a.trim())).filter(Boolean);
   if (answers.some(a => a === h)) return "exact";
-  if (answers.some(a => homophoneForms(l, a).has(h))) return "homophone";
+  if (answers.some(a => homophoneForms(a).has(h))) return "homophone";
   if (answers.some(a => !h.includes(a) && stripAccents(h).includes(stripAccents(a)))) return "accent";
   return voiceIsCorrect(h, expected) ? "near" : "wrong";
 }
 
-// ── STATE + STORAGE ───────────────────────────
+// ── STORAGE (IndexedDB) ───────────────────────
 const $ = id => document.getElementById(id);
-let lang = "de";
-let cur = 0;
-let busy = false;           // recording or running models
-let currentStop = null;
-let audioCtxInst = null;
-const recs = {};            // `${lang}|${word}` → recording
-let results = {};           // results[lang][modelId] = {loadSec, error, words:{word:{heard, ms}}}
-try { results = JSON.parse(localStorage.getItem("asrtest_results") || "{}"); } catch (e) {}
-const saveResults = () => { try { localStorage.setItem("asrtest_results", JSON.stringify(results)); } catch (e) {} };
-
 let db = null;
 const idb = {
-  open() {
-    return new Promise(res => {
-      try {
-        const r = indexedDB.open("asrtest", 1);
-        r.onupgradeneeded = () => r.result.createObjectStore("rec", { keyPath: "key" });
-        r.onsuccess = () => { db = r.result; res(true); };
-        r.onerror = () => res(false);
-      } catch (e) { res(false); }
-    });
-  },
-  tx(mode, fn) {
-    return new Promise(res => {
-      if (!db) { res(null); return; }
-      const t = db.transaction("rec", mode);
-      const out = fn(t.objectStore("rec"));
-      t.oncomplete = () => res(out && out.result !== undefined ? out.result : true);
-      t.onerror = () => res(null);
-    });
-  },
-  put(rec) { return this.tx("readwrite", s => s.put({ ...rec, samples: rec.samples.slice().buffer })); },
-  all() { return this.tx("readonly", s => s.getAll()); },
-  clear() { return this.tx("readwrite", s => s.clear()); },
+  open() { return new Promise(res => { try { const r = indexedDB.open("asrtest4", 1); r.onupgradeneeded = () => r.result.createObjectStore("cards", { keyPath: "idx" }); r.onsuccess = () => { db = r.result; res(true); }; r.onerror = () => res(false); } catch (e) { res(false); } }); },
+  tx(mode, fn) { return new Promise(res => { if (!db) { res(null); return; } const t = db.transaction("cards", mode); const out = fn(t.objectStore("cards")); t.oncomplete = () => res(out && out.result !== undefined ? out.result : true); t.onerror = () => res(null); }); },
+  put(c) { return this.tx("readwrite", s => s.put(c)); }, del(i) { return this.tx("readwrite", s => s.delete(i)); },
+  all() { return this.tx("readonly", s => s.getAll()); }, clear() { return this.tx("readwrite", s => s.clear()); },
 };
+const results = {};   // results[modelId][idx] = {heard, ms}
+const cards = {};     // idx → stored record: {idx, en, de, endedBy, hesitationMs, speechMs, preMs, peak, rms, startAbrupt, pcm(Int16Array buffer) | null}
 
-function customList(l) { try { return JSON.parse(localStorage.getItem("asrtest_custom_" + l) || "[]"); } catch (e) { return []; } }
-const wordList = () => [...WORDS[lang], ...customList(lang)];
-const key = w => `${lang}|${w}`;
-const audioCtx = () => audioCtxInst || (audioCtxInst = new (window.AudioContext || window.webkitAudioContext)());
+// ── CAPTURE (mic opened once, kept open; ring buffer gives pre-roll) ──
+let ctx = null, stream = null, proc = null, track = null, wake = null;
+let sessionSettings = null, noise = 0.002, thr = 0.01, calibVals = [], calibUntil = 0;
+let ring = [], chunkDur = 0.04, lastChunkAt = 0;
+let state = "off";           // off | calibrating | idle | armed | speaking | paused
+let cur = [], above = 0, speechStartIdx = -1, lastLoudIdx = -1, armedAt = 0, shownAt = 0;
+let idx = 0, advanceTimer = null, busyFinishing = false, leadChunks = 0;
 
-// ── RECORDING (same approach as the app: MediaRecorder + RMS silence endpointing + 16 kHz resample) ──
-function recordOnce({ maxMs = 8000, silenceMs = 1100, startTimeoutMs = 6000, onLevel } = {}) {
-  return new Promise(async (resolve, reject) => {
-    let stream;
-    try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e) { reject(e); return; }
-    const ctx = audioCtx();
-    try { await ctx.resume(); } catch (e) {}
-    const source = ctx.createMediaStreamSource(stream);
-    const analyser = ctx.createAnalyser();
-    analyser.fftSize = 2048;
-    source.connect(analyser);
-    const buf = new Float32Array(analyser.fftSize);
-    const recorder = new MediaRecorder(stream);
-    const chunks = [];
-    recorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+const rmsOf = d => { let s = 0; for (let i = 0; i < d.length; i++) s += d[i] * d[i]; return Math.sqrt(s / d.length); };
+const setStatus = t => { $("status").textContent = t; };
+const meterW = v => Math.min(100, 100 * Math.sqrt(v / 0.2));
 
-    let spoke = false, endedBy = "", silentSince = Date.now();
-    const startedAt = Date.now();
-    const stop = reason => { if (recorder.state !== "inactive") { endedBy = reason; recorder.stop(); } };
-    const meter = setInterval(() => {
-      analyser.getFloatTimeDomainData(buf);
-      let rms = 0;
-      for (let i = 0; i < buf.length; i++) rms += buf[i] * buf[i];
-      rms = Math.sqrt(rms / buf.length);
-      onLevel && onLevel(rms);
-      const now = Date.now();
-      if (rms > 0.02) { spoke = true; silentSince = now; }
-      if (!spoke && now - startedAt > startTimeoutMs) stop("no-speech");
-      else if (spoke && now - silentSince > silenceMs) stop("auto-silence");
-      else if (now - startedAt > maxMs) stop("max-length");
-    }, 50);
-    currentStop = () => stop("manual");
+async function startMic() {
+  ctx = new (window.AudioContext || window.webkitAudioContext)();
+  try { ctx.resume(); } catch (e) {}                       // must happen inside the tap (iOS)
+  const raw = $("proc").value === "raw";
+  const audio = raw ? { echoCancellation: { ideal: false }, noiseSuppression: { ideal: false }, autoGainControl: { ideal: false } } : true;
+  stream = await navigator.mediaDevices.getUserMedia({ audio });
+  track = stream.getAudioTracks()[0];
+  sessionSettings = { requestedProcessing: raw ? "raw" : "default", applied: track.getSettings ? track.getSettings() : {}, sampleRate: ctx.sampleRate, ua: navigator.userAgent, ios: IS_IOS, note: $("note").value || "" };
+  const src = ctx.createMediaStreamSource(stream);
+  proc = ctx.createScriptProcessor(2048, 1, 1);
+  const mute = ctx.createGain(); mute.gain.value = 0;
+  src.connect(proc); proc.connect(mute); mute.connect(ctx.destination);   // Safari only fires the callback if connected to the destination
+  proc.onaudioprocess = e => onChunk(new Float32Array(e.inputBuffer.getChannelData(0)));
+  ctx.onstatechange = () => { if (ctx.state !== "running" && state !== "off") setStatus("⚠ Audio was interrupted — tap Pause then Resume"); };
+  try { localStorage.setItem("asrtest4_session", JSON.stringify(sessionSettings)); } catch (e) {}
+  try { if (navigator.wakeLock) wake = await navigator.wakeLock.request("screen"); } catch (e) {}
+  setInterval(() => { if (state !== "off" && state !== "paused" && performance.now() - lastChunkAt > 1500) setStatus("⚠ No audio coming from the mic — tap Pause then Resume"); }, 1000);
+}
 
-    recorder.onstop = async () => {
-      clearInterval(meter);
-      try { source.disconnect(); } catch (e) {}
-      stream.getTracks().forEach(t => t.stop());
-      currentStop = null;
-      if (!spoke || !chunks.length) { resolve({ samples: null, spoke, endedBy }); return; }
-      try {
-        const blob = new Blob(chunks, { type: recorder.mimeType });
-        const decoded = await ctx.decodeAudioData(await blob.arrayBuffer());
-        const off = new OfflineAudioContext(1, Math.ceil(decoded.duration * 16000), 16000);
-        const src = off.createBufferSource();
-        src.buffer = decoded; src.connect(off.destination); src.start();
-        const rendered = await off.startRendering();
-        resolve({ samples: rendered.getChannelData(0), spoke, endedBy });
-      } catch (e) { reject(e); }
-    };
-    recorder.start();
+function recomputeThr() { thr = Math.min(0.04, Math.max(0.006, noise * 4)); $("thrMark").style.left = meterW(thr) + "%"; }
+
+function onChunk(d) {
+  lastChunkAt = performance.now();
+  chunkDur = d.length / ctx.sampleRate;
+  const r = rmsOf(d);
+  $("meterBar").style.width = meterW(r) + "%";
+  ring.push(d); const keep = Math.ceil(1.5 / chunkDur); if (ring.length > keep) ring.shift();
+
+  if (state === "calibrating") {
+    calibVals.push(r);
+    if (performance.now() > calibUntil) {
+      const s = calibVals.slice().sort((a, b) => a - b); noise = s[Math.floor(s.length * 0.3)] || 0.002; recomputeThr();
+      state = "idle"; showCard();
+    }
+    return;
+  }
+  if (state === "armed" || state === "speaking") cur.push(d);
+
+  if (state === "armed") {
+    if (r > thr) { above++; if (above >= 2) { state = "speaking"; speechStartIdx = Math.max(0, cur.length - 2); lastLoudIdx = cur.length - 1; setStatus("Hearing you…"); } }
+    else { above = 0; noise = 0.98 * noise + 0.02 * r; recomputeThr(); }
+    if (state === "armed" && performance.now() - armedAt > P.startTimeoutMs) finish("timeout");
+  } else if (state === "speaking") {
+    if (r > thr) lastLoudIdx = cur.length - 1;
+    const quiet = (cur.length - 1 - lastLoudIdx) * chunkDur * 1000;
+    if (quiet >= P.silenceEndMs) finish("silence");
+    else if ((cur.length - speechStartIdx) * chunkDur * 1000 > P.maxSpeechMs) finish("max-length");
+  } else if (state === "idle" && r < thr) { noise = 0.98 * noise + 0.02 * r; recomputeThr(); }
+}
+
+// ── SESSION FLOW (mirrors the app's voice drill) ──
+function showCard() {
+  clearTimeout(advanceTimer); busyFinishing = false;
+  while (idx < CARDS.length && cards[idx]) idx++;           // resume after reload: skip cards already captured
+  if (idx >= CARDS.length) { endSession(); return; }
+  const c = CARDS[idx];
+  $("prompt").textContent = c.en; $("promptSub").textContent = "say it in German";
+  $("progTxt").textContent = `${Object.keys(cards).length} / ${CARDS.length}`;
+  $("progBar").style.width = (100 * Object.keys(cards).length / CARDS.length) + "%";
+  $("btnRedo").disabled = !Object.keys(cards).length;
+  setStatus("Listening…");
+  cur = ring.slice(-Math.ceil(P.cardLeadMs / 1000 / chunkDur));   // a quarter-second before the card, in case you're quick
+  leadChunks = cur.length;
+  above = 0; speechStartIdx = -1; lastLoudIdx = -1; armedAt = shownAt = performance.now();
+  state = "armed";
+}
+
+async function finish(reason) {
+  if (busyFinishing) return; busyFinishing = true;
+  state = "idle";
+  const c = CARDS[idx], localIdx = idx;
+  const rec = { idx: localIdx, en: c.en, de: c.de, endedBy: reason, hesitationMs: null, speechMs: null, preMs: 0, peak: 0, rms: 0, startAbrupt: null, noise: +noise.toFixed(5), thr: +thr.toFixed(4), pcm: null };
+  if (reason === "silence" || reason === "max-length") {
+    const preChunks = Math.ceil(P.preRollMs / 1000 / chunkDur), tailChunks = Math.ceil(P.tailKeepMs / 1000 / chunkDur);
+    const from = Math.max(0, speechStartIdx - preChunks), to = Math.min(cur.length, lastLoudIdx + 1 + tailChunks);
+    const parts = cur.slice(from, to); const n = parts.reduce((a, p) => a + p.length, 0); const flat = new Float32Array(n);
+    let o = 0; for (const p of parts) { flat.set(p, o); o += p.length; }
+    const x16 = await to16k(flat, ctx.sampleRate);
+    let pk = 0; for (let i = 0; i < x16.length; i++) { const a = Math.abs(x16[i]); if (a > pk) pk = a; }
+    const fr = 320, nf = Math.floor(x16.length / fr); let mx = 0, f1 = 0;
+    for (let f = 0; f < nf; f++) { let s = 0; for (let i = 0; i < fr; i++) s += x16[f * fr + i] ** 2; const e = Math.sqrt(s / fr); if (e > mx) mx = e; if (f === 1) f1 = e; }
+    rec.pcm = f32ToI16(x16).buffer; rec.peak = +pk.toFixed(3); rec.rms = +rmsOf(x16).toFixed(4);
+    rec.hesitationMs = Math.max(0, Math.round((speechStartIdx - leadChunks) * chunkDur * 1000));   // card shown → you start speaking
+    rec.speechMs = Math.round((lastLoudIdx - speechStartIdx + 1) * chunkDur * 1000);
+    rec.preMs = Math.round((speechStartIdx - from) * chunkDur * 1000);
+    rec.startAbrupt = mx > 0 && f1 / mx > 0.5;        // true = the very first frames are already loud (start probably cut)
+  }
+  cards[localIdx] = rec; await idb.put(rec);
+  setStatus(reason === "timeout" ? "No speech — skipped" : reason === "skip" ? "Skipped" : "Got it ✓");
+  $("progTxt").textContent = `${Object.keys(cards).length} / ${CARDS.length}`;
+  $("progBar").style.width = (100 * Object.keys(cards).length / CARDS.length) + "%";
+  advanceTimer = setTimeout(() => { if (state === "paused") return; idx++; showCard(); }, P.advanceMs);
+}
+
+function to16k(f32, srcRate) {
+  return new Promise((resolve, reject) => {
+    try {
+      const buf = ctx.createBuffer(1, f32.length, srcRate); buf.copyToChannel(f32, 0);
+      const off = new OfflineAudioContext(1, Math.max(1, Math.ceil(f32.length * 16000 / srcRate)), 16000);
+      const s = off.createBufferSource(); s.buffer = buf; s.connect(off.destination); s.start();
+      off.startRendering().then(r => resolve(r.getChannelData(0)), reject);
+    } catch (e) { reject(e); }
   });
 }
+const f32ToI16 = f => { const o = new Int16Array(f.length); for (let i = 0; i < f.length; i++) o[i] = Math.max(-1, Math.min(1, f[i])) * 32767; return o; };
+const i16ToF32 = b => { const i = new Int16Array(b), o = new Float32Array(i.length); for (let k = 0; k < i.length; k++) o[k] = i[k] / 32767; return o; };
 
-function startSystemRecognizer(l) {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) return null;
-  try {
-    const r = new SR();
-    r.lang = LANGS[l].speech; r.continuous = false; r.interimResults = false; r.maxAlternatives = 3;
-    const done = new Promise(res => {
-      r.onresult = e => res({ alts: Array.from(e.results[0]).map(a => ({ t: a.transcript, c: +(a.confidence || 0).toFixed(2) })) });
-      r.onerror = e => res({ error: e.error });
-      r.onend = () => res({ alts: [] });
-    });
-    r.start();
-    return { done, abort() { try { r.abort(); } catch (e) {} } };
-  } catch (e) { return null; }
+function endSession() {
+  state = "idle"; $("session").classList.add("hide");
+  ["done", "models", "cleanup"].forEach(id => $(id).classList.remove("hide"));
+  $("summaryBox").textContent = buildSummary();
+  try { if (wake) wake.release(); } catch (e) {}
+  try { stream && stream.getTracks().forEach(t => t.stop()); } catch (e) {}
 }
 
-function levelStats(samples) {
-  let peak = 0, sum = 0;
-  for (let i = 0; i < samples.length; i++) { const a = Math.abs(samples[i]); if (a > peak) peak = a; sum += samples[i] * samples[i]; }
-  return { peak: +peak.toFixed(3), rms: +Math.sqrt(sum / Math.max(1, samples.length)).toFixed(4), durMs: Math.round(samples.length / 16) };
-}
-
-async function doRecord() {
-  if (busy) { if (currentStop) currentStop(); return; }
-  try { audioCtx().resume(); } catch (e) {}   // iOS only allows this inside the tap itself, before any await
-  const word = wordList()[cur];
-  busy = true; setRecUi(true);
-  $("recMsg").textContent = "Listening… say it now";
-  const sys = $("m_system") && $("m_system").checked ? startSystemRecognizer(lang) : null;
-  try {
-    const r = await recordOnce({ onLevel: v => { $("meterBar").style.width = Math.min(100, v * 600) + "%"; } });
-    if (!r.samples) {
-      sys && sys.abort();
-      $("recMsg").textContent = "Didn't hear anything — check the mic level and try again.";
-    } else {
-      let system = null;
-      if (sys) {
-        const out = await Promise.race([sys.done, new Promise(res => setTimeout(() => res({ error: "timeout" }), 1800))]);
-        sys.abort();
-        system = out;
-      }
-      const rec = { key: key(word), lang, word, ua: navigator.userAgent, samples: r.samples, endedBy: r.endedBy, ...levelStats(r.samples), system };
-      recs[rec.key] = rec;
-      for (const m of Object.values(results[lang] || {})) delete m.words[word]; // old results no longer match this take
-      saveResults();
-      await idb.put(rec);
-      $("recMsg").textContent = `Saved (${rec.durMs} ms, peak ${rec.peak}${rec.peak < 0.08 ? " — quiet, speak up / move closer" : ""}${rec.peak > 0.98 ? " — clipping, too loud" : ""})`;
-      if ($("autoAdv").checked && cur < wordList().length - 1) cur++;
-    }
-  } catch (e) {
-    $("recMsg").textContent = "Mic error: " + (e.message || e);
-  } finally {
-    busy = false; setRecUi(false); $("meterBar").style.width = "0";
-    renderRecord();
-  }
-}
-function setRecUi(on) {
-  $("btnRec").textContent = on ? "■ Stop" : "● Record (Space)";
-  ["btnPrev", "btnNext", "btnPlay", "btnRun"].forEach(id => { $(id).disabled = on; });
-}
-function playCurrent() {
-  const rec = recs[key(wordList()[cur])];
-  if (!rec) return;
-  const ctx = audioCtx();
-  const b = ctx.createBuffer(1, rec.samples.length, 16000);
-  b.copyToChannel(rec.samples, 0);
-  const s = ctx.createBufferSource();
-  s.buffer = b; s.connect(ctx.destination); s.start();
-}
-
-// ── EXPORT / IMPORT RECORDINGS (so audio recorded on the phone can be tested on a computer) ──
-function f32ToB64(f32) {
-  const i16 = new Int16Array(f32.length);
-  for (let i = 0; i < f32.length; i++) i16[i] = Math.max(-1, Math.min(1, f32[i])) * 32767;
-  const bytes = new Uint8Array(i16.buffer); let bin = "";
-  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
-  return btoa(bin);
-}
-function b64ToF32(b64) {
-  const bin = atob(b64), bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  const i16 = new Int16Array(bytes.buffer), f32 = new Float32Array(i16.length);
-  for (let i = 0; i < i16.length; i++) f32[i] = i16[i] / 32767;
-  return f32;
-}
-function exportRecordings() {
-  const list = Object.values(recs).map(r => ({ key: r.key, lang: r.lang, word: r.word, ua: r.ua || "", endedBy: r.endedBy, pcm16: f32ToB64(r.samples) }));
-  if (!list.length) { alert("Nothing recorded yet."); return; }
+// ── EXPORT / IMPORT ───────────────────────────
+function toB64(buf) { const b = new Uint8Array(buf); let s = ""; for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(s); }
+function fromB64(s) { const bin = atob(s), b = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) b[i] = bin.charCodeAt(i); return b.buffer; }
+function exportJson() {
+  const list = Object.values(cards).sort((a, b) => a.idx - b.idx).map(c => ({ ...c, pcm16: c.pcm ? toB64(c.pcm) : null, pcm: undefined }));
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([JSON.stringify({ v: 1, recs: list })], { type: "application/json" }));
-  a.download = "asr-test-recordings.json"; a.click();
+  a.href = URL.createObjectURL(new Blob([JSON.stringify({ v: 2, kind: "speak-mode", params: P, session: sessionSettings, cards: list })], { type: "application/json" }));
+  a.download = "asr-speak-test.json"; a.click();
 }
-async function importRecordings(file) {
-  try {
-    const data = JSON.parse(await file.text());
-    let n = 0;
-    for (const r of data.recs || []) {
-      const samples = b64ToF32(r.pcm16);
-      const rec = { key: r.key, lang: r.lang, word: r.word, ua: r.ua, endedBy: r.endedBy, samples, ...levelStats(samples), system: null };
-      recs[rec.key] = rec; await idb.put(rec); n++;
-      const cl = customList(r.lang);
-      if (!WORDS[r.lang].includes(r.word) && !cl.includes(r.word)) { try { localStorage.setItem("asrtest_custom_" + r.lang, JSON.stringify([...cl, r.word])); } catch (e) {} }
-    }
-    results = {}; saveResults();   // results from other audio no longer apply
-    $("recMsg").textContent = `Imported ${n} recordings.`;
-    renderRecord(); renderResults();
-  } catch (e) { alert("Couldn't read that file: " + (e.message || e)); }
+async function importJson(file) {
+  const d = JSON.parse(await file.text());
+  sessionSettings = d.session || sessionSettings;
+  for (const c of d.cards || []) { const rec = { ...c, pcm: c.pcm16 ? fromB64(c.pcm16) : null }; delete rec.pcm16; cards[rec.idx] = rec; await idb.put(rec); }
 }
 
-// ── MODEL RUNNERS ─────────────────────────────
-let tjsModule = null;
-async function loadRunner(m, onProgress) {
-  if (m.kind === "tjs") {
-    tjsModule = tjsModule || await import(TJS_CDN);
-    tjsModule.env.allowLocalModels = false;
-    const pipe = await tjsModule.pipeline("automatic-speech-recognition", m.repo, {
-      ...m.opts,
-      progress_callback: p => { if (p.status === "progress" && p.total) onProgress(Math.round(p.loaded / p.total * 100)); },
-    });
-    return {
-      run: async (samples, l) => ((await pipe(samples, { language: LANGS[l].whisper, task: "transcribe" })).text || "").trim(),
-      dispose: async () => { try { await pipe.dispose(); } catch (e) {} },
-    };
+// ── SUMMARY ───────────────────────────────────
+const med = a => { if (!a.length) return 0; const s = [...a].sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
+const pct = (a, p) => { if (!a.length) return 0; const s = [...a].sort((x, y) => x - y); return s[Math.min(s.length - 1, Math.floor(s.length * p))]; };
+function buildSummary() {
+  const list = Object.values(cards).sort((a, b) => a.idx - b.idx), got = list.filter(c => c.pcm);
+  const out = ["SPEAK-MODE CAPTURE SUMMARY (temporary page v4)", `date: ${new Date().toISOString()}`,
+    `note: ${(sessionSettings && sessionSettings.note) || $("note").value || "(none)"}`, `device: ${(sessionSettings && sessionSettings.ua) || navigator.userAgent}`,
+    `mic processing requested: ${sessionSettings && sessionSettings.requestedProcessing} | applied by browser: ${JSON.stringify(sessionSettings && sessionSettings.applied)} | sampleRate: ${sessionSettings && sessionSettings.sampleRate}`,
+    `cards: ${list.length}/${CARDS.length} | captured: ${got.length} | timeouts: ${list.filter(c => c.endedBy === "timeout").length} | skipped: ${list.filter(c => c.endedBy === "skip").length}`,
+    `time before you started speaking (ms): median ${med(got.map(c => c.hesitationMs))}, 90th pct ${pct(got.map(c => c.hesitationMs), 0.9)}`,
+    `speech length (ms): median ${med(got.map(c => c.speechMs))} | peak level median: ${med(got.map(c => c.peak)).toFixed(2)}`,
+    `clips whose first frames are already loud (start possibly cut): ${got.filter(c => c.startAbrupt).length} of ${got.length}   [old recorder: 21 of 44]`];
+  const models = Object.keys(results);
+  for (const m of models) {
+    const r = results[m]; let ex = 0, ho = 0, ne = 0, ac = 0, n = 0; const ms = [];
+    for (const c of got) { const x = r[c.idx]; if (!x) continue; n++; const v = verdict(x.heard, c.de); if (v === "exact") ex++; if (v === "homophone") ho++; if (v === "near") ne++; if (v === "accent") ac++; if (x.ms) ms.push(x.ms); }
+    out.push(`MODEL ${m}: correct ${ex + ho}/${n} (homophone ${ho}) | near-miss ${ne} | accent-slip ${ac} | median ms ${med(ms)}${r._loadSec ? " | load s " + r._loadSec : ""}${r._error ? " | FAILED: " + r._error : ""}`);
   }
-  if (m.kind === "parakeet") {
-    const mod = await import(PARAKEET_CDN);
-    const seen = {};
-    const model = await mod.fromHub("parakeet-tdt-0.6b-v3", {
-      backend: "wasm", encoderQuant: "int8", decoderQuant: "int8",
-      progress: p => { seen[p.file] = p; const L = Object.values(seen).reduce((a, x) => a + x.loaded, 0), T = Object.values(seen).reduce((a, x) => a + x.total, 0); if (T) onProgress(Math.round(L / T * 100)); },
-    });
-    return {
-      run: async samples => { const r = await model.transcribe(samples, 16000, {}); return (r.utterance_text || "").trim(); },
-      dispose: async () => {},
-    };
-  }
-  throw new Error("unknown model kind");
-}
-
-const log = msg => { const d = document.createElement("div"); d.textContent = msg; $("runLog").prepend(d); };
-const tick = () => new Promise(r => setTimeout(r, 20));
-
-async function runModels() {
-  const words = wordList().filter(w => recs[key(w)]);
-  if (words.length < 5) { alert("Record at least ~10 words first."); return; }
-  const chosen = MODELS.filter(m => !m.live && $("m_" + m.id).checked);
-  if (IS_IOS && chosen.length > 1) { alert("On iPhone, run ONE model at a time: Safari doesn't free model memory, so a second model can crash the tab.\n\nTick one, run it, then reload the page (recordings and results are kept) and do the next."); return; }
-  if (!chosen.length) { alert("Tick at least one model in step 1 (the system recogniser can't be re-run)."); return; }
-  busy = true; $("btnRun").disabled = true; $("btnRec").disabled = true;
-  results[lang] = results[lang] || {};
-  for (const m of chosen) {
-    const res = { loadSec: 0, error: null, words: {} };
-    results[lang][m.id] = res;
-    let runner = null;
-    try {
-      $("runStatus").textContent = `Loading ${m.label}…`;
-      const t0 = performance.now();
-      runner = await loadRunner(m, pct => { $("runStatus").textContent = `Downloading ${m.label}… ${pct}%`; });
-      res.loadSec = +((performance.now() - t0) / 1000).toFixed(1);
-      log(`${m.label}: loaded in ${res.loadSec}s`);
-      await runner.run(new Float32Array(16000), lang).catch(() => {}); // warm-up, not scored
-      let i = 0;
-      for (const w of words) {
-        $("runStatus").textContent = `${m.label}: ${++i}/${words.length}`;
-        await tick();
-        const t = performance.now();
-        let heard = "";
-        try { heard = await runner.run(recs[key(w)].samples, lang); } catch (e) { heard = ""; res.words[w] = { heard, ms: 0, err: String(e.message || e) }; continue; }
-        res.words[w] = { heard, ms: Math.round(performance.now() - t) };
-      }
-      log(`${m.label}: done`);
-    } catch (e) {
-      res.error = String(e && e.message || e);
-      log(`${m.label}: FAILED — ${res.error}`);
-    } finally {
-      if (runner) await runner.dispose();
-    }
-    saveResults(); renderResults();
-  }
-  busy = false; $("btnRun").disabled = false; $("btnRec").disabled = false;
-  $("runStatus").textContent = "Finished.";
-}
-
-// ── RESULTS ───────────────────────────────────
-const median = a => { if (!a.length) return 0; const s = [...a].sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
-function columnsFor(l) {
-  const cols = MODELS.filter(m => !m.live && results[l] && results[l][m.id]).map(m => ({ id: m.id, label: m.label.split(" (")[0] }));
-  const hasSys = Object.values(recs).some(r => r.lang === l && r.system);
-  if (hasSys) cols.push({ id: "system", label: "Chrome system" });
-  return cols;
-}
-function heardFor(l, colId, word) {
-  if (colId === "system") { const r = recs[`${l}|${word}`]; if (!r || !r.system) return null; return r.system.error ? { heard: "", err: r.system.error } : { heard: (r.system.alts[0] || {}).t || "", alts: r.system.alts }; }
-  const x = results[l] && results[l][colId] && results[l][colId].words[word];
-  return x || null;
-}
-function summarize(l, col, words) {
-  let n = 0, exact = 0, homo = 0, near = 0, accent = 0, empty = 0, digits = 0, long = 0; const ms = [];
-  for (const w of words) {
-    const h = heardFor(l, col.id, w);
-    if (!h) continue;
-    n++;
-    const v = verdict(h.heard, w, l);
-    if (v === "exact") exact++;
-    if (v === "homophone") homo++;
-    if (v === "near") near++;
-    if (v === "accent") accent++;
-    if (!cleanHeard(h.heard)) empty++;
-    if (/\d/.test(h.heard) && !/\d/.test(w)) digits++;
-    if (cleanHeard(h.heard).split(" ").length > w.split(" ").length + 2) long++;
-    if (h.ms) ms.push(h.ms);
-  }
-  return { n, exact, homo, near, accent, empty, digits, long, medMs: median(ms) };
-}
-function renderResults() {
-  const langsWithData = Object.keys(LANGS).filter(l => columnsFor(l).length);
-  if (!langsWithData.length) { $("summary").innerHTML = '<p class="mut">No results yet — finish step 3.</p>'; $("detail").innerHTML = ""; $("reportBox").textContent = ""; return; }
-  let sh = "", dh = "";
-  for (const l of langsWithData) {
-    const words = wordList0(l).filter(w => recs[`${l}|${w}`]);
-    const cols = columnsFor(l);
-    sh += `<h3>${LANGS[l].name} — ${words.length} words</h3><table><tr><th>Model</th><th>correct (exact + homophone)</th><th>of which homophone</th><th>near-miss</th><th>accent slip (wrong)</th><th>empty</th><th>digits instead of word</th><th>rambling</th><th>median ms</th><th>load s</th></tr>`;
-    for (const c of cols) {
-      const s = summarize(l, c, words), r = (results[l] || {})[c.id];
-      const pct = x => s.n ? `${x}/${s.n} (${Math.round(x / s.n * 100)}%)` : "–";
-      sh += `<tr><td><b>${c.label}</b>${r && r.error ? `<br><span style="color:var(--bad)">failed: ${esc(r.error)}</span>` : ""}</td><td>${pct(s.exact + s.homo)}</td><td>${s.homo}</td><td>${s.near}</td><td>${s.accent}</td><td>${s.empty}</td><td>${s.digits}</td><td>${s.long}</td><td>${s.medMs || "–"}</td><td>${r ? r.loadSec : "–"}</td></tr>`;
-    }
-    sh += "</table>";
-    dh += `<h3>${LANGS[l].name} — per word</h3><table><tr><th>Word</th>${cols.map(c => `<th>${c.label}</th>`).join("")}</tr>`;
-    for (const w of words) {
-      dh += `<tr><td><b>${esc(w)}</b></td>` + cols.map(c => {
-        const h = heardFor(l, c.id, w);
-        if (!h) return "<td>–</td>";
-        const v = verdict(h.heard, w, l);
-        return `<td class="v-${v}">${esc(h.heard) || (h.err ? "<i>err " + esc(h.err) + "</i>" : "<i>(empty)</i>")}</td>`;
-      }).join("") + "</tr>";
-    }
-    dh += "</table>";
-  }
-  $("summary").innerHTML = sh; $("detail").innerHTML = dh;
-  $("reportBox").textContent = buildReport();
-}
-const wordList0 = l => [...WORDS[l], ...customList(l)];
-const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-
-function buildReport() {
-  const out = [];
-  out.push("ASR TEST REPORT (temporary harness v3: accent-sensitive, homophones count as correct)");
-  out.push(`date: ${new Date().toISOString()}`);
-  out.push(`note: ${$("note").value || "(none)"}`);
-  out.push(`browser: ${navigator.userAgent}`);
-  out.push(`ios: ${IS_IOS}`);
-  const uas = [...new Set(Object.values(recs).map(r => r.ua).filter(Boolean))];
-  out.push(`audio recorded on: ${uas.join("  ||  ") || "(unknown)"}`);
-  out.push(`webgpu: ${HAS_WEBGPU} | cores: ${navigator.hardwareConcurrency || "?"} | memGB: ${navigator.deviceMemory || "?"}`);
-  for (const l of Object.keys(LANGS)) {
-    const cols = columnsFor(l);
-    if (!cols.length) continue;
-    const words = wordList0(l).filter(w => recs[`${l}|${w}`]);
-    out.push("", `=== ${LANGS[l].name.toUpperCase()} — ${words.length} words recorded ===`);
-    out.push("SUMMARY  model | correct(exact+homophone) | of-which-homophone | near-miss | accent-slip | empty | digits | rambling | median ms | load s");
-    for (const c of cols) {
-      const s = summarize(l, c, words), r = (results[l] || {})[c.id];
-      out.push(`${c.label} | ${s.exact + s.homo}/${s.n} | ${s.homo} | ${s.near} | ${s.accent} | ${s.empty} | ${s.digits} | ${s.long} | ${s.medMs} | ${r ? r.loadSec : "-"}${r && r.error ? " | FAILED: " + r.error : ""}`);
-    }
-    out.push("PER WORD  word [dur ms, peak] -> " + cols.map(c => c.label).join(" | ") + "   (E=exact, H=homophone [correct], N=near-miss, C=accent-only slip, X=wrong)");
-    for (const w of words) {
-      const rec = recs[`${l}|${w}`];
-      const cells = cols.map(c => {
-        const h = heardFor(l, c.id, w);
-        if (!h) return "-";
-        const v = verdict(h.heard, w, l);
-        return `${h.heard || "(empty)"} ${{ exact: "E", homophone: "H", near: "N", accent: "C", wrong: "X" }[v]}`;
-      });
-      out.push(`${w} [${rec.durMs}, ${rec.peak}, ${rec.endedBy}] -> ${cells.join(" | ")}`);
-    }
+  out.push("", "PER CARD  german | english | hesitation ms | speech ms | peak | ended | start-loud" + (models.length ? " | " + models.join(" | ") : ""));
+  for (const c of list) {
+    const cells = models.map(m => { const x = results[m][c.idx]; if (!x) return "-"; const v = verdict(x.heard, c.de); return `${x.heard || "(empty)"} ${{ exact: "E", homophone: "H", near: "N", accent: "C", wrong: "X" }[v]}`; });
+    out.push(`${c.de} | ${c.en} | ${c.hesitationMs ?? "-"} | ${c.speechMs ?? "-"} | ${c.peak} | ${c.endedBy} | ${c.startAbrupt ? "LOUD-START" : "ok"}${cells.length ? " | " + cells.join(" | ") : ""}`);
   }
   return out.join("\n");
 }
 
-// ── UI ────────────────────────────────────────
-function renderModels() {
-  $("models").innerHTML = MODELS.map(m => {
-    const disabled = m.needsGpu && !HAS_WEBGPU;
-    return `<label><input type="checkbox" id="m_${m.id}" ${m.on && !disabled ? "checked" : ""} ${disabled ? "disabled" : ""}>
-      <span><b>${m.label}</b> <span class="mut">· ${m.size}</span><br><span class="mut">${m.note}${disabled ? " — WebGPU not available in this browser" : ""}</span></span></label>`;
-  }).join("");
+// ── OPTIONAL: RUN SMALL MODELS IN THE BROWSER ──
+const RUN_MODELS = { "whisper-tiny": { repo: "onnx-community/whisper-tiny" }, "whisper-base": { repo: "onnx-community/whisper-base" } };
+let tjs = null;
+const log = m => { const d = document.createElement("div"); d.textContent = m; $("runLog").prepend(d); };
+async function runModels() {
+  const chosen = [["whisper-tiny", $("m_tiny").checked], ["whisper-base", $("m_base").checked]].filter(x => x[1]).map(x => x[0]);
+  if (!chosen.length) { alert("Tick a model."); return; }
+  if (IS_IOS && chosen.length > 1) { alert("On iPhone run ONE model at a time (Safari doesn't free model memory). Run one, reload the page, then the next."); return; }
+  const got = Object.values(cards).filter(c => c.pcm).sort((a, b) => a.idx - b.idx);
+  if (!got.length) { alert("Nothing recorded."); return; }
+  $("btnRun").disabled = true;
+  for (const id of chosen) {
+    const res = results[id] = { _loadSec: 0, _error: null };
+    let pipe = null;
+    try {
+      $("runStatus").textContent = `Loading ${id}…`; const t0 = performance.now();
+      tjs = tjs || await import(TJS_CDN); tjs.env.allowLocalModels = false;
+      pipe = await tjs.pipeline("automatic-speech-recognition", RUN_MODELS[id].repo, { dtype: "q8", progress_callback: p => { if (p.status === "progress" && p.total) $("runStatus").textContent = `Downloading ${id}… ${Math.round(p.loaded / p.total * 100)}%`; } });
+      res._loadSec = +((performance.now() - t0) / 1000).toFixed(1); log(`${id}: loaded in ${res._loadSec}s`);
+      await pipe(new Float32Array(16000), { language: "german", task: "transcribe" }).catch(() => {});
+      let i = 0;
+      for (const c of got) {
+        $("runStatus").textContent = `${id}: ${++i}/${got.length}`; await new Promise(r => setTimeout(r, 15));
+        const t = performance.now(); let heard = "";
+        try { heard = ((await pipe(i16ToF32(c.pcm), { language: "german", task: "transcribe" })).text || "").trim(); } catch (e) { heard = ""; }
+        res[c.idx] = { heard, ms: Math.round(performance.now() - t) };
+      }
+      log(`${id}: done`);
+    } catch (e) { res._error = String((e && e.message) || e); log(`${id}: FAILED — ${res._error}`); }
+    finally { try { pipe && await pipe.dispose(); } catch (e) {} }
+    renderResults();
+  }
+  $("btnRun").disabled = false; $("runStatus").textContent = "Finished.";
 }
-function renderRecord() {
-  const list = wordList();
-  if (cur >= list.length) cur = list.length - 1;
-  if (cur < 0) cur = 0;
-  const w = list[cur];
-  const done = list.filter(x => recs[key(x)]).length;
-  $("curWord").textContent = w;
-  $("curInfo").textContent = recs[key(w)] ? "✓ recorded — Space re-records" : `word ${cur + 1} of ${list.length}`;
-  $("btnPlay").disabled = !recs[key(w)] || busy;
-  $("progressTxt").textContent = `${done} / ${list.length} recorded (aim for all; at least ~25).`;
-  $("chips").innerHTML = list.map((x, i) => `<span class="chip ${recs[key(x)] ? "done" : ""} ${i === cur ? "cur" : ""}" data-i="${i}">${esc(x)}</span>`).join("");
-}
-function setLang(l) {
-  lang = l; cur = 0;
-  const first = wordList().findIndex(x => !recs[key(x)]);
-  if (first >= 0) cur = first;
-  renderRecord();
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function renderResults() {
+  const models = Object.keys(results); if (!models.length) return;
+  const got = Object.values(cards).filter(c => c.pcm).sort((a, b) => a.idx - b.idx);
+  let h = `<table><tr><th>German</th>${models.map(m => `<th>${m}</th>`).join("")}</tr>`;
+  for (const c of got) h += `<tr><td><b>${esc(c.de)}</b><br><span class="mut">${esc(c.en)}</span></td>` + models.map(m => { const x = results[m][c.idx]; if (!x) return "<td>–</td>"; return `<td class="v-${verdict(x.heard, c.de)}">${esc(x.heard) || "<i>(empty)</i>"}</td>`; }).join("") + "</tr>";
+  $("resTable").innerHTML = h + "</table>"; $("summaryBox").textContent = buildSummary();
 }
 
-document.querySelectorAll('input[name=lang]').forEach(r => r.addEventListener("change", e => { if (!busy) setLang(e.target.value); else { document.querySelector(`input[name=lang][value=${lang}]`).checked = true; } }));
-$("btnRec").onclick = doRecord;
-$("btnPlay").onclick = playCurrent;
-$("btnPrev").onclick = () => { cur--; renderRecord(); };
-$("btnNext").onclick = () => { cur++; renderRecord(); };
-$("chips").onclick = e => { if (busy) return; const i = e.target.dataset && e.target.dataset.i; if (i !== undefined) { cur = +i; renderRecord(); } };
+// ── UI WIRING ─────────────────────────────────
+$("btnStart").onclick = async () => {
+  $("btnStart").disabled = true; $("startMsg").textContent = "Asking for the microphone…";
+  try { await startMic(); } catch (e) { $("startMsg").textContent = "Mic error: " + (e.message || e); $("btnStart").disabled = false; return; }
+  $("intro").classList.add("hide"); $("session").classList.remove("hide");
+  $("micTxt").textContent = `mic on · ${ctx.sampleRate} Hz · ${sessionSettings.requestedProcessing}`;
+  state = "calibrating"; calibVals = []; calibUntil = performance.now() + P.calibMs; setStatus("Calibrating — stay quiet for a second…");
+};
+$("btnSkip").onclick = () => { if (state === "armed" || state === "speaking") finish("skip"); };
+$("btnRedo").onclick = async () => {
+  if (state === "paused") return;
+  clearTimeout(advanceTimer); busyFinishing = false;
+  const last = Math.max(...Object.keys(cards).map(Number)); if (!isFinite(last)) return;
+  delete cards[last]; await idb.del(last); idx = last; state = "idle"; showCard();
+};
+$("btnPause").onclick = () => {
+  if (state === "paused") { $("btnPause").textContent = "Pause"; state = "idle"; try { ctx.resume(); } catch (e) {} showCard(); }
+  else { clearTimeout(advanceTimer); state = "paused"; $("btnPause").textContent = "Resume"; setStatus("Paused"); }
+};
+$("btnFinish").onclick = () => { if (confirm("Stop here and go to the export?")) { clearTimeout(advanceTimer); endSession(); renderResults(); } };
+$("btnExport").onclick = exportJson;
+$("btnCopy").onclick = async () => { const t = buildSummary(); try { await navigator.clipboard.writeText(t); $("btnCopy").textContent = "Copied ✓"; } catch (e) { $("btnCopy").textContent = "Select the text below"; } setTimeout(() => { $("btnCopy").textContent = "Copy session summary"; }, 2500); };
 $("btnRun").onclick = runModels;
-$("btnExport").onclick = exportRecordings;
-$("fileImport").onchange = e => { if (e.target.files[0]) importRecordings(e.target.files[0]); e.target.value = ""; };
-document.addEventListener("keydown", e => {
-  if (e.code === "Space" && !/INPUT|TEXTAREA|SELECT/.test((e.target.tagName || ""))) { e.preventDefault(); if (!e.repeat) doRecord(); }
-});
-$("btnAddWords").onclick = () => {
-  const add = $("customWords").value.split("\n").map(s => s.trim()).filter(Boolean);
-  const all = [...new Set([...customList(lang), ...add])];
-  try { localStorage.setItem("asrtest_custom_" + lang, JSON.stringify(all)); } catch (e) {}
-  $("customWords").value = ""; renderRecord();
-};
-$("btnCopy").onclick = async () => {
-  const t = buildReport();
-  try { await navigator.clipboard.writeText(t); $("btnCopy").textContent = "Copied ✓"; }
-  catch (e) { const r = document.createRange(); r.selectNodeContents($("reportBox")); getSelection().removeAllRanges(); getSelection().addRange(r); $("btnCopy").textContent = "Select + copy manually ↓"; }
-  setTimeout(() => { $("btnCopy").textContent = "Copy report"; }, 2500);
-};
-$("btnDownload").onclick = () => {
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([buildReport()], { type: "text/plain" }));
-  a.download = "asr-test-report.txt"; a.click();
-};
-$("btnWipe").onclick = async () => {
-  if (!confirm("Delete all recordings and results stored by this test page?")) return;
-  await idb.clear();
-  Object.keys(recs).forEach(k => delete recs[k]); results = {};
-  ["asrtest_results", "asrtest_custom_de", "asrtest_custom_fr"].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
-  renderRecord(); renderResults();
-};
+$("fileImport").onchange = async e => { const f = e.target.files[0]; if (!f) return; try { await importJson(f); $("intro").classList.add("hide"); endSession(); renderResults(); } catch (err) { alert("Couldn't read that file: " + (err.message || err)); } e.target.value = ""; };
+$("btnWipe").onclick = async () => { if (!confirm("Delete all recordings stored by this test page and start over?")) return; await idb.clear(); try { localStorage.removeItem("asrtest4_session"); } catch (e) {} location.reload(); };
 
-// ── BOOT ──────────────────────────────────────
 (async () => {
-  renderModels();
-  if (IS_IOS) $("iosNote").style.display = "block";
+  if (IS_IOS) $("iosNote").classList.remove("hide");
   const ok = await idb.open();
-  if (!ok) $("recMsg").textContent = "Note: this browser blocks local storage — recordings will be lost on refresh.";
+  if (!ok) $("startMsg").textContent = "Note: this browser blocks local storage — a reload would lose recordings.";
+  try { sessionSettings = JSON.parse(localStorage.getItem("asrtest4_session") || "null"); } catch (e) {}
   const saved = ok ? await idb.all() : [];
-  for (const r of (saved || [])) { if (r && r.samples) recs[r.key] = { ...r, samples: new Float32Array(r.samples) }; }
-  setLang("de");
-  renderResults();
-  window.__asrtest = { verdict, exportRecordings, importRecordings, recs, get results() { return results; }, buildReport }; // for debugging
+  for (const c of saved || []) cards[c.idx] = c;
+  const n = Object.keys(cards).length;
+  if (n >= CARDS.length) { $("intro").classList.add("hide"); endSession(); renderResults(); }
+  else if (n > 0) $("startMsg").textContent = `${n} cards already captured — Start continues from where you stopped.`;
+  window.__t = { cards, results, buildSummary, verdict, P, CARDS, get state() { return state; }, get idx() { return idx; } };   // debugging hook
 })();
 </script>
 </body>
