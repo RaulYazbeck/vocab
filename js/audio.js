@@ -44,12 +44,12 @@ function audioKey(text) {
 }
 
 // ── STATE ─────────────────────────────────────
-// Persisted (localStorage, this device): { asked, use, want }
+// Persisted (localStorage, this device): { asked, want }
 //   asked — the first-launch offer has been shown (once per language)
-//   use   — play recordings when available (the "Natural voice" switch)
 //   want  — shard kinds the user downloaded: "w" (words), "s" (sentences)
-//   respectSilent — iPhone only: let the ringer's silent switch mute the
-//                   recordings (default off: they play regardless)
+// There is deliberately no "use the natural voice" switch: a downloaded
+// pack is simply used, and the system voice is only the fallback. The one
+// on/off for voice and sounds is the Sound switch (state.js).
 // In memory: the manifest in force, which of its shards are on the
 // device, the download in progress, and a listener list for the UI.
 let _aPrefs = null;
@@ -58,7 +58,7 @@ function audioPrefs() {
   let p = null;
   try { p = JSON.parse(localStorage.getItem(AUDIO_PREF) || "null"); } catch (e) {}
   if (!p || typeof p !== "object") p = {};
-  _aPrefs = { asked: !!p.asked, use: p.use !== false, respectSilent: p.respectSilent === true, want: Array.isArray(p.want) ? p.want.filter(k => k === "w" || k === "s") : [] };
+  _aPrefs = { asked: !!p.asked, want: Array.isArray(p.want) ? p.want.filter(k => k === "w" || k === "s") : [] };
   return _aPrefs;
 }
 function audioSavePrefs() { try { localStorage.setItem(AUDIO_PREF, JSON.stringify(audioPrefs())); } catch (e) {} }
@@ -137,8 +137,8 @@ async function audioInit() {
     _audioEmit();
     // Playing any <audio> makes iOS treat the page as a media player: it can
     // pause the user's music and let the app's chimes through the silent
-    // switch. So nothing audio-related is touched unless the recorded voice
-    // is actually in use on this device.
+    // switch. So nothing audio-related is touched unless a voice pack is
+    // installed on this device.
     if (audioReady()) { audioInstallUnlock(); _audioApplySession(); }
     _audioSweepSw();
     // Is there a pack (or a newer one) on the server? Quiet, best-effort.
@@ -195,7 +195,7 @@ function audioInstalledKinds() {
 // A pack is published and this browser could play it.
 function audioOffered() { return !!(AUDIO.remote || AUDIO.manifest); }
 // Recordings will actually be used right now.
-function audioReady() { return audioPrefs().use && !!AUDIO.manifest && AUDIO.have.size > 0; }
+function audioReady() { return !!AUDIO.manifest && AUDIO.have.size > 0; }
 // "w"/"s" the user asked for but whose shards are not all on the device
 // (storage got cleared, or an update is waiting).
 function audioNeedsRepair() {
@@ -238,7 +238,6 @@ async function audioDownload(kinds) {
     AUDIO.remote = M;
     // Keep what the user already has, plus what they ask for now.
     const want = Array.from(new Set([...audioPrefs().want, ...kinds]));
-    const firstInstall = !AUDIO.manifest;
     const cache = await _audioCache();
     const todo = [];
     for (let i = 0; i < M.shards.length; i++) {
@@ -283,7 +282,6 @@ async function audioDownload(kinds) {
     AUDIO.mem.clear();
     const p = audioPrefs();
     p.want = want; p.asked = true;
-    if (firstInstall) p.use = true;                    // an update must not undo "use the system voice"
     audioSavePrefs();
     if (audioReady()) { audioInstallUnlock(); _audioApplySession(); }
   } catch (e) {
@@ -360,31 +358,20 @@ async function audioRemove() {
   _audioApplySession();
   _audioEmit();
 }
-function audioSetUse(on) {
-  audioPrefs().use = !!on; audioSavePrefs();
-  if (on) { if (audioReady()) audioInstallUnlock(); } else audioStop();
-  _audioApplySession();
-  _audioEmit();
-}
 
 // ── SILENT SWITCH (iPhone) ────────────────────
-// By default recordings play even when the ringer switch is on silent
-// (iOS' "playback" audio category, which is also what <audio> gets). With
-// "Respect the silent switch" on, the page asks for the "ambient" category,
-// which the switch mutes. Only Safari has navigator.audioSession; elsewhere
-// there is nothing to set and the row is not shown. Touched only while the
-// recorded voice is in use: otherwise the category is handed back to "auto".
+// Recordings play even when the ringer switch is on silent (iOS' "playback"
+// audio category, which an <audio> element gets anyway; asking for it
+// explicitly keeps the app's chimes consistent with it). There is no
+// setting for this: the Sound switch is the one way to silence the app.
+// Only Safari has navigator.audioSession. Touched only while a pack is
+// installed; otherwise the category is left on (or handed back to) "auto".
 function audioSessionSupported() {
   try { return !!(navigator.audioSession && "type" in navigator.audioSession); } catch (e) { return false; }
 }
 function _audioApplySession() {
   if (!audioSessionSupported()) return;
-  try { navigator.audioSession.type = audioReady() ? (audioPrefs().respectSilent ? "ambient" : "playback") : "auto"; } catch (e) {}
-}
-function audioToggleSilent() {
-  const p = audioPrefs(); p.respectSilent = !p.respectSilent; audioSavePrefs();
-  _audioApplySession(); _audioEmit();
-  if (typeof renderSettingsPanel === "function") renderSettingsPanel();
+  try { navigator.audioSession.type = audioReady() ? "playback" : "auto"; } catch (e) {}
 }
 
 // ── PLAYBACK ──────────────────────────────────
@@ -625,7 +612,7 @@ function audioSettingsHtml() {
     status = _audioProgressText(j);
     buttons = `<button class="set-seg-btn" onclick="audioCancelDownload()">Stop</button>`;
   } else if (!kinds.length) {
-    status = `Not on this device. Recorded words and sentences sound far more natural than the system voice, and work offline.`;
+    status = `Not on this device. Recorded words and sentences sound far more natural than the phone's voice, and work offline.`;
     buttons = `<button class="set-seg-btn on" onclick="audioDownloadWithPill(['w','s'])">Download all · ${audioFmtMB(allB)}</button>` +
       (wordsB < allB ? `<button class="set-seg-btn" onclick="audioDownloadWithPill(['w'])">Words only · ${audioFmtMB(wordsB)}</button>` : "");
   } else {
@@ -642,8 +629,6 @@ function audioSettingsHtml() {
   const misses = audioMissCount();
   return `
     <div class="set-group-title">Natural ${lang} voice</div>
-    ${kinds.length ? setSwitchHtml("🗣️", "Use the natural voice", "Off = the phone's own voice, like before. Anything without a recording uses it too.", p.use, "audioToggleUse()") : ""}
-    ${kinds.length && audioSessionSupported() ? setSwitchHtml("🔕", "Mute with the silent switch", "Off: recordings play even when your iPhone's ringer switch is on silent. On: the switch mutes them, like the phone's own voice.", p.respectSilent, "audioToggleSilent()") : ""}
     <div class="set-choice">
       <div class="set-choice-head"><span class="set-icon">⬇️</span><span class="set-label">Voice pack</span></div>
       <div class="set-choice-sub" id="audio-status">${status}</div>
@@ -655,7 +640,6 @@ function audioSettingsHtml() {
 }
 // ["w","s"] as a JS literal that is safe inside a double-quoted onclick.
 function _audioKindsJs(kinds) { return "[" + kinds.map(k => `'${k}'`).join(",") + "]"; }
-function audioToggleUse() { audioSetUse(!audioPrefs().use); if (typeof renderSettingsPanel === "function") renderSettingsPanel(); }
 async function audioRemoveConfirm() {
   const ok = await appConfirm({ title: "Remove the natural voices?", body: "This frees the space. You can download them again any time.", ok: "Remove", cancel: "Keep", danger: true });
   if (ok) { await audioRemove(); if (typeof renderSettingsPanel === "function") renderSettingsPanel(); }

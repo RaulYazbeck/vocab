@@ -660,7 +660,6 @@ function soundSummary() {
   if (quietActive()) return "🔇 Muted until tomorrow";
   const on = [SOUND.tts && "sound on", SOUND.vibe && hasVibration() && "vibration"].filter(Boolean);
   const mic = S.path.voiceInput ? " · mic on" : "";
-  if (typeof audioReady === "function" && audioReady() && SOUND.tts) on.push("natural voice");
   return (on.length ? on.join(", ")[0].toUpperCase() + on.join(", ").slice(1) : "All sound off") + mic;
 }
 function hasVibration() { return typeof navigator.vibrate === "function"; }
