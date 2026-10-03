@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Step 2 - turn every text from extract.mjs into a WAV file.
 
-    python tools/audio/synth.py --lang de --engine chatterbox --ref voices/de.wav --verify
-    python tools/audio/synth.py --lang fr --engine chatterbox --ref voices/fr.wav --verify
+    python tools/audio/synth.py --lang de --engine chatterbox --verify
+    python tools/audio/synth.py --lang fr --engine chatterbox --verify
 
 Reads  tools/audio/work/<lang>/texts.json
 Writes tools/audio/work/<lang>/wav/<key>.wav   (one per text, resumable:
@@ -10,8 +10,7 @@ Writes tools/audio/work/<lang>/wav/<key>.wav   (one per text, resumable:
        tools/audio/work/<lang>/failures.json   (clips that never passed --verify)
 
 Engines
-  chatterbox  Resemble AI's open multilingual model (MIT), cloned from a
-              short reference recording of the voice you want. Needs a GPU.
+  chatterbox  Resemble AI's open multilingual model (MIT), using its own built-in voice. Needs a GPU.
               ASSUMES the Chatterbox Multilingual API as documented at
               github.com/resemble-ai/chatterbox -- UNTESTED here (no GPU,
               no Hugging Face access in the sandbox this was written in).
@@ -99,21 +98,17 @@ class ChatterboxEngine:
             self.model = ChatterboxMultilingualTTS.from_pretrained(device=device)
             print(f"Loaded Chatterbox Multilingual (package default; no t3_model option) on {device}")
         self.sr = self.model.sr
-        self.ref = args.ref
         self.lang = args.lang
         # Pass only the options this installed version understands.
         params = inspect.signature(self.model.generate).parameters
         takes_any = any(p.kind == inspect.Parameter.VAR_KEYWORD for p in params.values())
         wanted = {"language_id": self.lang, "exaggeration": args.exaggeration,
                   "cfg_weight": args.cfg_weight, "temperature": args.temperature}
-        if self.ref:
-            wanted["audio_prompt_path"] = self.ref
         self.kwargs = {k: v for k, v in wanted.items() if takes_any or k in params}
         skipped = sorted(set(wanted) - set(self.kwargs))
         if skipped:
             print(f"NOTE: this Chatterbox version ignores: {', '.join(skipped)}", file=sys.stderr)
-        if not self.ref:
-            print("Using the model's built-in voice (no --ref given; that is fine and the default).")
+        print("Using the model's built-in voice.")
 
     def synth(self, text, kind, seed):
         torch = self.torch
@@ -198,7 +193,6 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--lang", required=True, choices=["de", "fr"])
     ap.add_argument("--engine", default="chatterbox", choices=sorted(ENGINES))
-    ap.add_argument("--ref", help="OPTIONAL: copy the voice in this short WAV (10-20 s). Default: the model's built-in voice.")
     ap.add_argument("--device", help="cuda / cpu / mps (default: auto)")
     ap.add_argument("--limit", type=int, help="only the first N texts (try this first!)")
     ap.add_argument("--kind", choices=["w", "s"], help="only words or only sentences")
@@ -252,8 +246,6 @@ def main():
     if not todo:
         return
 
-    if args.ref and not os.path.isfile(args.ref):
-        sys.exit(f"--ref {args.ref}: no such file. (--ref is optional: leave it out to use the model's built-in voice.)")
     engine = ENGINES[args.engine](args)
     verifier = Verifier(args.lang, args.device, args.whisper_model) if args.verify else None
 

@@ -5,8 +5,7 @@
     python tools/audio/run_all.py full             # everything (hours; safe to stop and re-run)
     python tools/audio/run_all.py pack             # re-pack only (after fixing clips)
 
-The AI model speaks with its own built-in voice: nothing needs recording or
-uploading. (--ref de=file.wav is an optional extra to copy a specific voice.)
+The AI model speaks with its own built-in voice: nothing to record or upload.
 
 pilot  A small sample (25 words + 25 sentences per language), plus a listening
        page, so you can judge the voice BEFORE the long run. Prints a time
@@ -53,8 +52,6 @@ def node(script, *a):
 
 def synth(lang, args, *extra):
     cmd = [sys.executable, os.path.join(HERE, "synth.py"), "--lang", lang, "--engine", args.engine]
-    if args.ref.get(lang):
-        cmd += ["--ref", args.ref[lang]]
     if args.device:
         cmd += ["--device", args.device]
     if args.verify:
@@ -167,7 +164,6 @@ def main():
     ap.add_argument("stage", choices=["pilot", "full", "pack"])
     ap.add_argument("--langs", default="de,fr")
     ap.add_argument("--engine", default="chatterbox", choices=["chatterbox", "tone"])
-    ap.add_argument("--ref", action="append", default=[], metavar="LANG=FILE", help="OPTIONAL: copy the voice in a short WAV, per language (repeatable). Default: the model's built-in voice.")
     ap.add_argument("--device")
     ap.add_argument("--no-verify", dest="verify", action="store_false", help="skip the Whisper check (not recommended)")
     ap.add_argument("--whisper-model", default="large-v3", help="the checker (large-v3 is the most accurate; medium is faster)")
@@ -178,7 +174,6 @@ def main():
     ap.add_argument("--voice", default="", help="short name of the voice, recorded in the manifest")
     args = ap.parse_args()
     args.langs = [l.strip() for l in args.langs.split(",") if l.strip()]
-    args.ref = dict(r.split("=", 1) for r in args.ref)
     if shutil.which("node") is None or shutil.which("ffmpeg") is None:
         sys.exit("node and ffmpeg are needed (see tools/audio/README.md).")
     if args.verify and args.engine == "chatterbox":

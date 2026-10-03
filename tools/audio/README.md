@@ -23,22 +23,21 @@ runtime type → T4 GPU*, and go down the cells:
 
 1. **Setup**: installs everything, mounts your Google Drive. Everything that
    must survive lives in `MyDrive/vocab-voices`, so a disconnect loses nothing.
-2. **Voice**: nothing to do. The AI model speaks both languages with its own built-in voice. (An optional switch lets you use a different voice if you ever want one.)
-3. **Pilot**: ~50 clips per language you can *listen to inside the notebook*, and
+2. **Pilot**: ~50 clips per language you can *listen to inside the notebook*, and
    a time estimate for the full run. **Listen before continuing.**
-4. **Full run**: leave it overnight. For every one of the ~10.8k German and
+3. **Full run**: leave it overnight. For every one of the ~10.8k German and
    ~7.7k French clips it: generates → transcribes it back with Whisper and
    compares → retries bad ones with a new seed (up to 3×) → a second, more
    careful pass over any that still fail → packs → writes `REPORT.md`.
    Stop or reconnect at any time and run the cell again: finished clips are
    never redone.
-5. **Results**: the report, 10 more random clips to hear, and a zip to download.
-6. *(optional)* push the packs to a new GitHub branch from the notebook.
+4. **Results**: the report, 10 more random clips to hear, and a zip to download.
+5. *(optional)* push the packs to a new GitHub branch from the notebook.
 
 Then commit the `audio/` folders (or merge that branch). The app offers the
 download on its next launch.
 
-**About the voice.** You don't record or upload anything. Chatterbox is a free (MIT licence) AI text-to-speech model that speaks German and French with a built-in voice. The one thing I can't know from here is how *native* that built-in voice sounds in each language, which is exactly what the pilot step is for: ~50 clips per language you listen to in a few minutes, before committing to the long run. If it sounds foreign or robotic, don't run the full job; the pipeline can use a different AI voice or model (that is a small change, and costs only the pilot). Optionally you can make the model copy a specific voice from a short recording (`--ref`), but that is only for people who want that.
+**About the voice.** You don't record or upload anything. Chatterbox is a free (MIT licence) AI text-to-speech model that speaks German and French with a built-in voice. The one thing I can't know from here is how *native* that built-in voice sounds in each language, which is exactly what the pilot step is for: ~50 clips per language you listen to in a few minutes, before committing to the long run. If it sounds foreign or robotic, don't run the full job; the pipeline can use a different AI voice or model (that is a small change, and costs only the pilot).
 
 The free Colab tier can cut long sessions. If that keeps happening, Colab Pro or
 a rented GPU (RunPod, Vast.ai; roughly a few dollars) avoids it. The notebook
@@ -52,7 +51,6 @@ export AUDIO_WORK=/some/folder/that/survives         # optional: where progress 
 
 python tools/audio/run_all.py pilot        # listen, check the estimate
 python tools/audio/run_all.py full         # the long one
-# (optional: --ref de=voices/de.wav --ref fr=voices/fr.wav to copy a specific voice instead)
 ```
 `run_all.py` calls the individual steps below; you can also run those by hand.
 
@@ -117,7 +115,7 @@ was fixed, adding one word near the start changed 22 of 38 shards.)
 ```bash
 node tools/audio/extract.mjs --lang de        # every text the app can say → work/de/texts.json (+ what changed)
 node tools/audio/status.mjs  --lang de        # coverage of the published pack (no GPU)
-python tools/audio/synth.py  --lang de --verify     # make the clips (resumable; add --ref file.wav only to copy a voice)
+python tools/audio/synth.py  --lang de --verify     # make the clips (resumable)
 node tools/audio/review.mjs  --lang de        # a page of random clips to listen to
 node tools/audio/pack.mjs    --lang de        # → audio/de/  (and a report of what changed for existing users)
 ```
