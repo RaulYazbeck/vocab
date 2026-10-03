@@ -64,16 +64,43 @@ export class AnswerScorer {
     return { past: this.model.getPastKeyValues(out, undefined), firstLP: logSoftmaxRow(out.logits.data, ids.length - 1, V), V, n: ids.length };
   }
 
-  /** log P(tokens + <eot> | audio, prompt). `pr` comes from runPrompt(). */
-  async scoreTokens(enc, pr, tokens) {
-    let lp = pr.firstLP[tokens[0]];
-    const out = await this.model.forward({ encoder_outputs: enc, decoder_input_ids: this._ids(tokens), past_key_values: pr.past, ...this._extra(pr.n, tokens.length) });
-    const V = out.logits.dims[2], d = out.logits.data;
-    for (let j = 0; j < tokens.length; j++) {
-      const row = logSoftmaxRow(d, j, V);
-      lp += row[j + 1 < tokens.length ? tokens[j + 1] : this.prompt.eot];
+  // Build the "next" cache without ever disposing the parent's (siblings in the walk below still need it).
+  _nextPast(out, past) {
+    const p = Object.create(null);
+    for (const name in out) {
+      if (!name.startsWith("present")) continue;
+      const key = name.replace("present", "past_key_values");
+      p[key] = name.includes("encoder") ? past[key] : out[name];     // encoder (audio) keys/values never change
     }
-    return lp;
+    return p;
+  }
+
+  /**
+   * log P(form + <eot> | audio, prompt) for many token sequences at once.
+   * IMPORTANT: the decoder is fed ONE token per pass. Feeding several new tokens at once with a cache gave wrong scores with the
+   * real browser model files (their cached-decoder graph does not mask future tokens; measured on a real iPhone run), while
+   * single-token passes are exact. Sequences that share a beginning share the passes (prefix tree).
+   */
+  async scoreForms(enc, pr, forms) {
+    const root = { kids: new Map(), ends: [] };
+    forms.forEach((ids, fi) => {
+      let n = root;
+      for (const t of ids) { if (!n.kids.has(t)) n.kids.set(t, { kids: new Map(), ends: [] }); n = n.kids.get(t); }
+      n.ends.push(fi);
+    });
+    const scores = new Array(forms.length).fill(0), eot = this.prompt.eot; let passes = 0;
+    const walk = async (node, past, lp, acc, pos) => {
+      for (const fi of node.ends) scores[fi] = acc + lp[eot];
+      for (const [t, child] of node.kids) {
+        const out = await this.model.forward({ encoder_outputs: enc, decoder_input_ids: this._ids([t]), past_key_values: past, ...this._extra(pos, 1) });
+        passes++; if (this.yield) await this.yield();
+        const V = out.logits.dims[2];
+        await walk(child, this._nextPast(out, past), logSoftmaxRow(out.logits.data, 0, V), acc + lp[t], pos + 1);
+      }
+    };
+    await walk(root, pr.past, pr.firstLP, 0, pr.n);
+    this.lastPasses = passes;
+    return scores;
   }
 
   /**
@@ -84,17 +111,14 @@ export class AnswerScorer {
     const t0 = performance.now();
     const enc = await this.encode(audio16k); const t1 = performance.now();
     const pr = await this.runPrompt(enc);
-    const cache = new Map(); let calls = 0;
-    const res = [];
-    for (const c of cands) {
-      const fs = [];
-      for (const ids of c.forms) {
-        const k = ids.join(",");
-        if (!cache.has(k)) { cache.set(k, await this.scoreTokens(enc, pr, ids)); calls++; if (this.yield) await this.yield(); }
-        fs.push(cache.get(k));
-      }
-      res.push({ text: c.text, role: c.role, formScores: fs, score: logSumExp(fs) });
-    }
+    // one prefix tree over every spelling of every candidate
+    const flat = [], where = [];
+    cands.forEach((c, ci) => c.forms.forEach((ids, fi) => { flat.push(ids); where.push([ci, fi]); }));
+    const sc = await this.scoreForms(enc, pr, flat);
+    const res = cands.map(c => ({ text: c.text, role: c.role, formScores: new Array(c.forms.length), score: 0 }));
+    where.forEach(([ci, fi], k) => { res[ci].formScores[fi] = sc[k]; });
+    res.forEach(r => { r.score = logSumExp(r.formScores); });
+    const calls = this.lastPasses;
     const artLP = {};
     if (articleFirst) for (const a of Object.keys(articleFirst)) artLP[a] = logSumExp(articleFirst[a].map(id => pr.firstLP[id]));
     return { cands: res, artLP, calls, encMs: Math.round(t1 - t0), totalMs: Math.round(performance.now() - t0) };

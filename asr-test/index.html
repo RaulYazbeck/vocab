@@ -125,8 +125,10 @@ const TJS_CDN = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3"; 
 const IS_IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 // Same timings as the app's voice drill, but a longer start timeout so hesitation is allowed.
 const P = { silenceEndMs: 1100, maxSpeechMs: 8000, startTimeoutMs: 8000, preRollMs: 700, tailKeepMs: 500, cardLeadMs: 250, advanceMs: 1400, calibMs: 1000 };
-// Live decision rule (the exported scores let Claude re-tune this offline).
-const D = { simMargin: 2.0, artVarMargin: 1.0, requireArticleToken: true };
+// Live decision rule, tuned offline on the first iPhone run (the exported scores let Claude re-tune it again):
+//   word    — the expected word must score at least as high as the best similar-sounding word (simMargin = how much slack, in log-prob)
+//   article — from the very first sound: the chance that the spoken article is the expected one must be at least articlePmin
+const D = { simMargin: 0, articlePmin: 0.15 };
 
 const $ = id => document.getElementById(id);
 const BLOCKS = {
@@ -303,11 +305,15 @@ function decide(card, r) {
   const maxSim = Math.max(-Infinity, ...sims.map(c => c.score)), maxArt = Math.max(-Infinity, ...arts.map(c => c.score));
   const targetArt = card.expected.split(" ")[0], hasArt = arts.length > 0;
   const wordOK = t.score >= maxSim - D.simMargin;
-  const artPhraseOK = !hasArt || t.score >= maxArt - D.artVarMargin;
-  const artTok = r.artLP || {}; const bestArt = hasArt ? Object.keys(artTok).sort((a, b) => artTok[b] - artTok[a])[0] : null;
-  const artTokOK = !hasArt || !D.requireArticleToken || bestArt === targetArt;
+  let pTarget = null, heardArticle = null;
+  if (hasArt) {
+    const e = ["der", "die", "das"].map(k => [k, Math.exp((r.artLP || {})[k])]), sum = e.reduce((a, x) => a + x[1], 0) || 1;
+    pTarget = e.find(x => x[0] === targetArt)[1] / sum; heardArticle = e.sort((a, b) => b[1] - a[1])[0][0];
+  }
+  const artTokOK = !hasArt || pTarget >= D.articlePmin;
+  const artPhraseOK = !hasArt || t.score >= maxArt - 1.0;         // information only (not used in the decision)
   const closest = r.cands.slice().sort((a, b) => b.score - a.score)[0].text;
-  return { accept: wordOK && artPhraseOK && artTokOK, wordOK, artPhraseOK, artTokOK, heardArticle: bestArt, closest, maxSim: +maxSim.toFixed(2), maxArt: isFinite(maxArt) ? +maxArt.toFixed(2) : null };
+  return { accept: wordOK && artTokOK, wordOK, artPhraseOK, artTokOK, heardArticle, pTarget: pTarget === null ? null : +pTarget.toFixed(3), closest, maxSim: +maxSim.toFixed(2), maxArt: isFinite(maxArt) ? +maxArt.toFixed(2) : null };
 }
 function artPct(artLP) { const e = Object.fromEntries(Object.entries(artLP || {}).map(([k, v]) => [k, Math.exp(v)])); const s = Object.values(e).reduce((a, b) => a + b, 0) || 1; return Object.entries(e).map(([k, v]) => `${k} ${Math.round(100 * v / s)}%`).join(" · "); }
 
@@ -359,7 +365,7 @@ function showVerdict(rec, c) {
   setStatus("");
   v.className = "verdict " + (d.accept ? "ok" : "no");
   const as = c.block === "vocab" ? "" : c.expect === "accept" ? (d.accept ? " — correct, as expected" : " — that was a CORRECT trial: false reject") : (d.accept ? " — WRONGLY ACCEPTED (it should reject this)" : " — correctly rejected");
-  const lines = [`closest match: <b>${d.closest}</b>`, `word ${d.wordOK ? "✓" : "✗"}${hasArt ? ` · article ${d.artTokOK && d.artPhraseOK ? "✓" : "✗"} (${artPct(rec.result.artLP)})` : ""} · ${rec.procMs} ms`];
+  const lines = [`closest match: <b>${d.closest}</b>`, `word ${d.wordOK ? "✓" : "✗"}${hasArt ? ` · article ${d.artTokOK ? "✓" : "✗"} (${artPct(rec.result.artLP)})` : ""} · ${rec.procMs} ms`];
   v.innerHTML = `${d.accept ? "✓ Accepted" : "✗ Rejected"}${as}<small>${lines.join("<br>")}</small>`;
 }
 
@@ -392,7 +398,7 @@ function buildSummary() {
   out.push("PER TRIAL  # | block | expected | said (if prompted) | expect | RESULT | word | article | closest | hesitation ms | speech ms | proc ms");
   for (const c of list) {
     const d = c.decision;
-    out.push(`${c.idx} | ${c.block} | ${c.expected} | ${c.say || "-"} | ${c.expect} | ${c.endedBy !== "silence" ? c.endedBy : (d ? (d.accept ? "ACCEPT" : "reject") : c.error ? "error" : "-")} | ${d ? (d.wordOK ? "ok" : "no") : "-"} | ${d ? ((d.artTokOK && d.artPhraseOK) ? "ok" : "no") + "(" + (d.heardArticle || "-") + ")" : "-"} | ${d ? d.closest : "-"} | ${c.hesitationMs ?? "-"} | ${c.speechMs ?? "-"} | ${c.procMs ?? "-"}`);
+    out.push(`${c.idx} | ${c.block} | ${c.expected} | ${c.say || "-"} | ${c.expect} | ${c.endedBy !== "silence" ? c.endedBy : (d ? (d.accept ? "ACCEPT" : "reject") : c.error ? "error" : "-")} | ${d ? (d.wordOK ? "ok" : "no") : "-"} | ${d ? (d.artTokOK ? "ok" : "no") + "(" + (d.heardArticle || "-") + ")" : "-"} | ${d ? d.closest : "-"} | ${c.hesitationMs ?? "-"} | ${c.speechMs ?? "-"} | ${c.procMs ?? "-"}`);
   }
   return out.join("\n");
 }
