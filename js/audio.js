@@ -26,8 +26,9 @@ const AUDIO_MEM_SHARDS = 4;          // decoded-free: raw bytes of the last few 
 const AUDIO_PARALLEL = 3;
 const AUDIO_NATURAL_RATE = 0.85;     // speak()'s default rate = the recording at normal speed
 
-// Same text → same key in the browser and in tools/audio (a test
-// compares them). cyrb53, 53 bits, base 36. Case and punctuation count
+// Same text → same key in the browser and in tools/audio (tools/audio
+// loads this very function). NEVER change it: every pack already built
+// and downloaded would stop matching. cyrb53, 53 bits, base 36. Case and punctuation count
 // (they change how a sentence is read); only whitespace is normalised.
 function audioKey(text) {
   const s = String(text == null ? "" : text).normalize("NFC").replace(/\s+/g, " ").trim();
@@ -132,7 +133,11 @@ async function audioInit() {
     }
     AUDIO.ready = true;
     _audioEmit();
-    audioInstallUnlock();
+    // Playing any <audio> makes iOS treat the page as a media player: it can
+    // pause the user's music and let the app's chimes through the silent
+    // switch. So nothing audio-related is touched unless the recorded voice
+    // is actually in use on this device.
+    if (audioReady()) audioInstallUnlock();
     _audioSweepSw();
     // Is there a pack (or a newer one) on the server? Quiet, best-effort.
     if (navigator.onLine !== false) {
@@ -217,6 +222,13 @@ async function audioDownload(kinds) {
   job.abort = typeof AbortController === "function" ? new AbortController() : null;
   AUDIO.dl = job;
   _audioEmit();
+  // Keep the screen awake while downloading (a locked phone suspends the page).
+  // The lock is dropped whenever the page is hidden, so ask again on return.
+  let lock = null;
+  const takeLock = async () => { try { if (navigator.wakeLock && document.visibilityState === "visible") lock = await navigator.wakeLock.request("screen"); } catch (e) {} };
+  const onVisible = () => { if (AUDIO.dl === job) takeLock(); };
+  document.addEventListener("visibilitychange", onVisible);
+  takeLock();
   try {
     let M = null;
     try { M = await _audioFetchManifest(); } catch (e) { throw new Error(navigator.onLine === false ? "You're offline — connect and try again." : "The voice pack isn't available right now."); }
@@ -271,7 +283,7 @@ async function audioDownload(kinds) {
     p.want = want; p.asked = true;
     if (firstInstall) p.use = true;                    // an update must not undo "use the system voice"
     audioSavePrefs();
-    audioInstallUnlock();
+    if (audioReady()) audioInstallUnlock();
   } catch (e) {
     const byUser = e.cancelled || job.cancelled;       // an aborted fetch rejects too
     job.cancel();                                      // stop the other workers; nothing may continue in the background
@@ -279,11 +291,14 @@ async function audioDownload(kinds) {
     else {
       outcome = "error";
       AUDIO.error = e && e.name === "QuotaExceededError" ? "This device ran out of storage. Free some space and try again — what already downloaded is kept."
+        : e instanceof TypeError ? "The connection dropped. Tap Download to carry on — what already downloaded is kept."   // fetch() failures are TypeErrors ("Load failed" on Safari)
         : (e && e.message) || "Download failed.";
     }
     // A partly finished download still lets the first words play when a
     // manifest is in place; otherwise nothing changes.
   } finally {
+    document.removeEventListener("visibilitychange", onVisible);
+    try { if (lock) lock.release(); } catch (e) {}
     AUDIO.dl = null;
     _audioEmit();
     setTimeout(_audioSweepSw, 1500);                   // the old worker's late copies
@@ -342,7 +357,11 @@ async function audioRemove() {
   audioStop();
   _audioEmit();
 }
-function audioSetUse(on) { audioPrefs().use = !!on; audioSavePrefs(); if (!on) audioStop(); _audioEmit(); }
+function audioSetUse(on) {
+  audioPrefs().use = !!on; audioSavePrefs();
+  if (on) { if (audioReady()) audioInstallUnlock(); } else audioStop();
+  _audioEmit();
+}
 
 // ── PLAYBACK ──────────────────────────────────
 // iOS Safari lets an <audio> element play from a timer only after the
@@ -353,23 +372,27 @@ function _audioEl() {
   if (!AUDIO.el) { AUDIO.el = new Audio(); AUDIO.el.preload = "auto"; }
   return AUDIO.el;
 }
+// Start (and at once drop) a silent clip, inside a tap.
+function _audioUnlockNow() {
+  AUDIO.unlocked = true;
+  try {
+    const el = _audioEl();
+    if (el.paused && !el.src) {
+      el.src = _SILENT_WAV;
+      const p = el.play();
+      // Only undo our own silent clip: if a real recording took the element
+      // in the meantime (the first tap was also a 🔊 tap), leave it playing.
+      const done = () => { if (el.src === _SILENT_WAV) { try { el.pause(); } catch (e) {} el.removeAttribute("src"); } };
+      if (p && p.then) p.then(done, done); else done();
+    }
+  } catch (e) {}
+}
 function audioInstallUnlock() {
   if (AUDIO.unlockHooked || AUDIO.unlocked) return;
   AUDIO.unlockHooked = true;
   const unlock = () => {
     ["pointerdown", "touchend", "click", "keydown"].forEach(ev => window.removeEventListener(ev, unlock, true));
-    AUDIO.unlocked = true;
-    try {
-      const el = _audioEl();
-      if (el.paused && !el.src) {
-        el.src = _SILENT_WAV;
-        const p = el.play();
-        // Only undo our own silent clip: if a real recording took the element
-        // in the meantime (the first tap was also a 🔊 tap), leave it playing.
-        const done = () => { if (el.src === _SILENT_WAV) { try { el.pause(); } catch (e) {} el.removeAttribute("src"); } };
-        if (p && p.then) p.then(done, done); else done();
-      }
-    } catch (e) {}
+    _audioUnlockNow();
   };
   ["pointerdown", "touchend", "click", "keydown"].forEach(ev => window.addEventListener(ev, unlock, true));
 }
@@ -407,9 +430,18 @@ function audioSpeak(text, rate = AUDIO_NATURAL_RATE) {
   const e = audioFind(text);
   if (!e) { audioNoteMiss(text); return false; }
   if (!AUDIO.have.has(e[0])) return false;             // that shard isn't downloaded
-  const my = ++AUDIO.seq;
+  _audioPlayEntry(e, rate, ++AUDIO.seq, () => _audioFallback(text, rate));
+  try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (err) {}
+  return true;
+}
+// Plays one clip on the shared element. `my` is the request number: if a
+// newer request has replaced it by the time the bytes are read, nothing
+// happens. onFail(reason) is called, once, if the clip can't be read or
+// played (reason = a DOMException name, e.g. NotAllowedError).
+function _audioPlayEntry(e, rate, my, onFail) {
   const m = AUDIO.manifest;
-  _audioShardBytes(e[0]).then(buf => {
+  const fail = why => { if (my === AUDIO.seq) onFail(why); };
+  return _audioShardBytes(e[0]).then(buf => {
     if (my !== AUDIO.seq) return;                      // a newer request replaced this one
     const blob = new Blob([buf.slice(e[1], e[1] + e[2])], { type: _audioMime(m) });
     const url = URL.createObjectURL(blob);
@@ -420,12 +452,28 @@ function audioSpeak(text, rate = AUDIO_NATURAL_RATE) {
     if (old) URL.revokeObjectURL(old);
     el.preservesPitch = true; el.mozPreservesPitch = true; el.webkitPreservesPitch = true;
     el.playbackRate = Math.max(0.5, Math.min(1.25, rate / AUDIO_NATURAL_RATE));
-    el.onerror = () => { if (my === AUDIO.seq) _audioFallback(text, rate); };
+    el.onerror = () => fail(el.error && el.error.code === 4 ? "NotSupportedError" : "MediaError");
     const p = el.play();
-    if (p && p.catch) p.catch(() => { if (my === AUDIO.seq) _audioFallback(text, rate); });
-  }).catch(() => { if (my === AUDIO.seq) _audioFallback(text, rate); });
+    if (p && p.catch) return p.catch(err => fail((err && err.name) || "PlayError"));
+  }).catch(() => fail("ReadError"));
+}
+// Settings → "Hear a sample": plays one recorded word and says plainly
+// whether the phone accepted it, so a new device can be checked in one tap.
+function audioSample() {
+  const m = AUDIO.manifest;
+  const key = m && Object.keys(m.idx).find(k => AUDIO.have.has(m.idx[k][0]));
+  if (!key) return;
+  const toast = (i, a, b) => { if (typeof showCelebrateToast === "function") showCelebrateToast(i, a, b); };
+  _audioUnlockNow();                                   // we are inside a tap
   try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (err) {}
-  return true;
+  const my = ++AUDIO.seq;
+  let failed = false;
+  _audioPlayEntry(m.idx[key], AUDIO_NATURAL_RATE, my, why => {
+    failed = true;
+    toast("⚠️", "Couldn't play the recording", `${why}. The system voice will be used instead.`);
+  }).then(() => {
+    if (!failed && my === AUDIO.seq) toast("▶", "Sample played", "Didn't hear it? Check the volume and the silent switch.");
+  });
 }
 // Recording failed at the last moment (evicted, blocked): system voice.
 function _audioFallback(text, rate) {
@@ -564,7 +612,7 @@ function audioSettingsHtml() {
     const fix = audioNeedsRepair() ? `<button class="set-seg-btn on" onclick="audioDownloadWithPill(${_audioKindsJs(p.want)})">Repair</button>` : "";
     const upd = audioUpdateAvailable() ? `<button class="set-seg-btn on" onclick="audioDownloadWithPill(${_audioKindsJs(p.want.length ? p.want : kinds)})">Update</button>` : "";
     const more = !kinds.includes("s") && r && audioCount(r, "s") ? `<button class="set-seg-btn" onclick="audioDownloadWithPill(['w','s'])">Add sentences · ${audioFmtMB(audioBytes(r, ["s"]))}</button>` : "";
-    buttons = upd + fix + more + `<button class="set-seg-btn" onclick="audioRemoveConfirm()">Remove</button>`;
+    buttons = upd + fix + more + `<button class="set-seg-btn" onclick="audioSample()">▶ Hear a sample</button><button class="set-seg-btn" onclick="audioRemoveConfirm()">Remove</button>`;
   }
   const err = AUDIO.error && !j ? `<div class="set-choice-sub audio-err">⚠️ ${escapeHtml(AUDIO.error)}</div>` : "";
   const misses = audioMissCount();

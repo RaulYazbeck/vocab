@@ -74,8 +74,8 @@ files, manifest 326 KB and 231 KB. Real speech at the same bitrate should come
 out similar or somewhat smaller, and the script prints the real figure. The
 app lets people download words only or everything.
 
-Opus-in-Ogg plays in current Chrome, Firefox and Edge, and in recent
-Safari/iOS (18.4 and later, as far as I know — not verified here). If older
+Opus-in-Ogg plays in current Chrome, Firefox and Edge, and in Safari/iOS from
+18.4 (WebKit's release notes; see the iPhone section below). If older
 iPhones matter, build with `--format aac --bitrate 40` (about 1.7× larger,
 plays everywhere). The format is written into `manifest.json`; the app needs
 no change, and a browser that can't play it simply keeps the phone voice.
@@ -101,6 +101,43 @@ of changed shards adds to the git history, so batch your changes.
 `texts.json` named `<key>.wav`, then run `pack.mjs`. To add an engine to
 `synth.py`, add a class with `synth(text, kind, seed) → (pcm16 bytes, sample_rate)`.
 
+## iPhone / iPad (Safari and the home-screen app)
+
+- **iOS 18.4 or later is needed for the default Opus pack.** Before 18.4
+  Safari can't play Opus in an Ogg file (it only did in Apple's CAF format,
+  which no other browser reads). On such a phone the app simply hides the
+  feature and keeps the system voice; nothing breaks. For older iPhones build
+  with `--format aac --bitrate 40` (about 1.7× larger, plays everywhere).
+  The AAC pack builds and is correctly hidden by browsers that can't decode it,
+  but I could not run AAC playback anywhere (the test browser has no AAC
+  decoder), so check it on a real phone before relying on it.
+- **Silent switch and music.** The recordings play through an HTML `<audio>`
+  element. iOS treats that as media playback: it plays even when the ringer
+  switch is on silent (the system voice does not), and it can pause music or a
+  podcast that is playing. Once a recording has been played, the app's own
+  chimes may also sound on silent. None of this happens for someone who hasn't
+  downloaded the pack or has switched the natural voice off: the app then never
+  touches audio.
+- **Storage.** The home-screen app is exempt from Safari's rule that deletes a
+  website's stored data after 7 days without a visit; a plain Safari tab is not.
+  The app notices missing files and offers "Repair". The home-screen app also
+  has its own storage, separate from Safari: a pack downloaded in a tab must
+  be downloaded again inside the installed app.
+- **Download while locked/backgrounded.** iOS suspends a backgrounded page, so
+  the download pauses. The app keeps the screen awake while it downloads, shows
+  "Keep the app open", and resumes from where it stopped.
+
+### Checking a real iPhone (5 minutes)
+1. Open the app (ideally the home-screen version), accept the download offer on
+   Wi-Fi. Watch the progress pill; lock/unlock the phone once midway, then
+   tap Download again if it stopped.
+2. Settings → Sound & voice → **▶ Hear a sample**. It reports plainly if the
+   phone won't play it.
+3. Play a Today session: words and sentences should sound natural; tap 🐢
+   Slower; with the ringer switch on silent, note whether you hear it.
+4. Turn on airplane mode, force-quit the app, reopen: words should still play.
+5. With music playing in the background, note whether it pauses.
+
 ## What was and wasn't tested
 Tested: extraction against the real decks, packing, and the whole app side
 in Chromium (first-launch offer, download with progress/cancel/resume,
@@ -108,6 +145,5 @@ corrupt-file rejection, offline playback, updates, repair after eviction,
 words-only, fallback to the system voice).
 **Not tested:** the Chatterbox adapter in `synth.py` (no GPU or Hugging Face
 access where this was written; it follows the project's documented API and
-may need small changes), and playback on iOS Safari (needs a real device —
-check that the first tap unlocks audio and that offline play works from the
-home-screen app).
+may need small changes), anything on a real iPhone (everything above was
+simulated in Chromium; use the checklist), and AAC playback.

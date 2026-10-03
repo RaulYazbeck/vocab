@@ -33,7 +33,7 @@ if (!lang) { console.error("usage: pack.mjs --lang de|fr [--bitrate 24] [--forma
 
 const FORMATS = {
   opus: { ext: "opus", mime: "audio/ogg; codecs=opus", args: b => ["-c:a", "libopus", "-b:a", `${b}k`, "-vbr", "on", "-application", "audio", "-f", "ogg"] },
-  aac:  { ext: "m4a",  mime: "audio/mp4",              args: b => ["-c:a", "aac", "-b:a", `${b}k`, "-movflags", "+faststart", "-f", "mp4"] },
+  aac:  { ext: "m4a",  mime: 'audio/mp4; codecs="mp4a.40.2"', args: b => ["-c:a", "aac", "-b:a", `${b}k`, "-movflags", "+faststart", "-f", "mp4"] },
   mp3:  { ext: "mp3",  mime: "audio/mpeg",             args: b => ["-c:a", "libmp3lame", "-b:a", `${b}k`, "-f", "mp3"] },
 };
 const fmtName = opt("format", "opus");
