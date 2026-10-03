@@ -63,8 +63,16 @@ export function loadApp(lang) {
 }
 export function evalIn(ctx, code) { return vm.runInContext(code, ctx); }
 
+// Languages whose bare verb forms are read wrongly on their own, so a
+// conjugation card's form is spoken WITH its pronoun ("as" → "tu as",
+// "ai" → "j'ai", "puissent" → "qu'ils puissent"). French: silent endings and
+// homographs ("as" alone is the noun "ace"). German forms read fine alone.
+export const SAY_WITH_PRONOUN = new Set(["fr"]);
+
 // Everything the app can ask speak() to say for one language, de-duplicated:
-// [{ key, text, kind: "w"|"s", deck }]. Words come first, in deck order.
+// [{ key, text, kind: "w"|"s", deck, say? }]. Words come first, in deck order.
+// say: what is actually sent to the voice when it differs from text (the
+// clip is still found under text).
 //   w = a word or short phrase, s = an example sentence;
 //   deck = the deck it belongs to (used to keep a deck's clips together in the
 //   pack, so editing one deck only changes that deck's files).
@@ -73,11 +81,16 @@ export function collectTexts(lang, extraTexts = []) {
   const app = loadApp(lang);
   const audioKey = evalIn(app, "audioKey");
   const found = evalIn(app, `(() => {
-    const out = [];
+    const out = [], conjCtx = {}, vocab = new Set();
     const add = (text, kind, deck) => { text = String(text == null ? "" : text).replace(/\\s+/g, " ").trim(); if (text) out.push([text, kind, deck]); };
     for (const g of ALL_GROUPS) for (const d of g.decks) d.words.forEach((w, i) => {
       w.deckId = d.id; w.idx = i;
       add(gameForm(w), "w", d.id);
+      try {
+        const it = conjItem(w);
+        if (it) { const f = gameForm(w); (conjCtx[f] = conjCtx[f] || []).push(conjJoin(it.pron.split("/")[0], it.ans)); }
+        else vocab.add(gameForm(w));
+      } catch (e) {}
       try { const np = typeof nounParts === "function" ? nounParts(w) : null; if (np && np.full) add(np.full, "w", d.id); } catch (e) {}
       if (WORD_KEY === "de") try {
         const np = nounParts(w);
@@ -87,8 +100,23 @@ export function collectTexts(lang, extraTexts = []) {
       try { const it = conjItem(w); if (it) add(conjJoin(it.pron.split("/")[0], it.ans), "w", d.id); } catch (e) {}
       (w.examples || []).forEach(ex => { if (ex && ex[WORD_KEY]) add(ex[WORD_KEY], "s", d.id); });
     });
+    out.conjCtx = conjCtx; out.vocab = [...vocab];
     return out;
   })()`);
+  // Which bare verb forms to say with their pronoun (see SAY_WITH_PRONOUN):
+  // one pronoun → always; several (e.g. "parle": je/il) → only when the bare
+  // word is risky (≤ 3 letters, or a silent "-ent"), with the first card's
+  // pronoun; a text that is also an ordinary vocabulary word → never.
+  const sayFor = new Map();
+  if (SAY_WITH_PRONOUN.has(lang)) {
+    const vocab = new Set(found.vocab);
+    for (const [form, ctxs] of Object.entries(found.conjCtx)) {
+      const uniq = [...new Set(ctxs)];
+      if (vocab.has(form) || !uniq.length) continue;
+      const risky = form.length <= 3 || /ent$/.test(form);
+      if (uniq.length === 1 || risky) sayFor.set(form, uniq[0]);
+    }
+  }
   for (const t of extraTexts) {
     const x = String(t).trim();
     if (x) found.push([x, x.length > 28 && /\s/.test(x) && /[.!?]$/.test(x) || x.split(/\s+/).length > 4 ? "s" : "w", "_extra"]);
@@ -101,7 +129,7 @@ export function collectTexts(lang, extraTexts = []) {
     if (prev) {
       if (norm(prev.text) !== norm(text)) throw new Error(`Key collision between "${prev.text}" and "${text}"`);
       if (kind === "w") prev.kind = "w";            // used as a word anywhere = a word
-    } else byKey.set(key, { key, text, kind, deck });
+    } else byKey.set(key, sayFor.has(text) ? { key, text, kind, deck, say: sayFor.get(text) } : { key, text, kind, deck });
   }
   const all = [...byKey.values()];
   return [...all.filter(x => x.kind === "w"), ...all.filter(x => x.kind === "s")];

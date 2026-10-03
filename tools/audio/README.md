@@ -110,14 +110,32 @@ In the first real run this caught 45 of 18,477 clips, all fixed: some by a plain
 retry, the rest by a full stop or exclamation mark. The listening page has a
 section with the ones that needed a changed spelling, to check by ear.
 
+### French verb forms are said with their pronoun
+A conjugation card's bare form, said alone, is often read as a different word:
+"as" came out as "ass" (like the playing card, *un as*), "ai" as "aï", "es" as "ess", "est"
+as "east", and "puissent" was clipped. So for French, `extract` gives every
+bare verb form that belongs to one pronoun its pronoun ("as" → "tu as", "ai" →
+"j'ai", "puissent" → "qu'ils puissent"), and a form shared by several
+pronouns too when it is short (≤ 3 letters) or ends in a silent "-ent"
+(337 forms). A form that is also an ordinary vocabulary word ("fait", "dit",
+"écrit") stays bare. German forms are fine alone, so German is unchanged
+(`SAY_WITH_PRONOUN` in `lib.mjs`).
+
 ### Fixing one clip or a pronunciation
 - **A clip sounds wrong:** put its text (one per line) in a file, run
   `python tools/audio/synth.py --lang de --redo-file list.txt`, then
   `python tools/audio/run_all.py pack`.
 - **Google keeps mispronouncing a word:** add it to `tools/audio/overrides/<lang>.json`,
   e.g. `{"Hallo": "Halo"}` (the deck text → how to say it). It's used for
-  synthesis only; the app still finds the clip under the original text. Then
-  `--redo-file` it.
+  synthesis only; the app still finds the clip under the original text. The
+  next `synth.py` / `run_all.py full` re-makes it by itself: `work/<lang>/spoken.json`
+  remembers what each clip was made from, and a clip whose wording changed is
+  made again. The German overrides also spell out dictionary shorthand
+  ("jmd. etw. versprechen" → "jemandem etwas versprechen", "die Vokabeln always
+  pl." → "die Vokabeln") and placeholders ("Ich heiße (name).").
+- **To hear chosen clips:** list them in a JSON file
+  (`{"de": {"Abbreviations": ["z.B.", "d.h."]}}`) and run
+  `node tools/audio/samples.mjs --check list.json --out check.html`.
 - **Phrases the app had to speak with the phone voice** (a verb form a game
   made up, say): Settings → Sound & voice → "Copy N phrases…", save as
   `missing.txt`, then `node tools/audio/extract.mjs --lang de --extra missing.txt`

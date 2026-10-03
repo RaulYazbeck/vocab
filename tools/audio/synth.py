@@ -27,6 +27,12 @@ up what it is about to send plus what this work folder already sent this month,
 and refuses to start if that would pass --max-chars-month (default 900,000).
 It also stays under Google's default limit of 200 requests a minute.
 
+What is sent for each text: an override (below) if there is one, else the
+text's "say" from extract.mjs (French conjugation forms go with their pronoun:
+"as" → "tu as"), else the text itself. work/<lang>/spoken.json remembers what
+each clip was made from; when that changes (new rule, override added or
+removed) the clip is made again automatically.
+
 Fixing individual clips
   overrides/<lang>.json  {"text as written in the deck": "how to say it"}: used for
                          synthesis only; the app still finds the clip under the
@@ -335,10 +341,26 @@ def main():
         print(f"--redo-file: {len(redo)} of {len(want)} listed texts found, will be made again")
 
     overrides = load_overrides(args.lang)
-    say = lambda t: overrides.get(t["text"], t["text"])
-    todo = [t for t in texts if not os.path.exists(os.path.join(wav_dir, t["key"] + ".wav")) and t["key"] not in failures]
+    say = lambda t: overrides.get(t["text"]) or t.get("say") or t["text"]
+    # What each existing clip was made from. Clips from before this record
+    # existed count as made from the override or the plain text.
+    spoken_path = os.path.join(work, "spoken.json")
+    spoken = load_json(spoken_path, {})
+    made_from = lambda t: spoken.get(t["key"], overrides.get(t["text"]) or t["text"])
+    stale = [t for t in texts if os.path.exists(os.path.join(wav_dir, t["key"] + ".wav")) and made_from(t) != say(t)]
+    if stale:
+        print(f"{len(stale)} clips will be made again because what they should say changed "
+              f"(e.g. {', '.join(repr(t['text']) + ' → ' + repr(say(t)) for t in stale[:4])})")
+        for t in stale:
+            failures.pop(t["key"], None)
+    stale_keys = {t["key"] for t in stale}
+    todo = [t for t in texts if (t["key"] in stale_keys or not os.path.exists(os.path.join(wav_dir, t["key"] + ".wav"))) and t["key"] not in failures]
     chars = sum(len(say(t)) for t in todo)
     refused = sum(1 for t in texts if t["key"] in failures)
+    for t in texts:                              # record clips that are fine as they are
+        if t["key"] not in stale_keys and os.path.exists(os.path.join(wav_dir, t["key"] + ".wav")):
+            spoken.setdefault(t["key"], made_from(t))
+    save_json(spoken_path, spoken)
     print(f"{len(texts)} texts: {len(texts) - len(todo) - refused} already done, "
           + (f"{refused} refused earlier (see failures.json), " if refused else "")
           + f"{len(todo)} to go ({chars:,} characters)")
@@ -373,15 +395,14 @@ def main():
                 ledger.take(len(text))
             if stop.is_set():
                 return
-            audio = engine.synth(text)
+            audio, used = engine.synth(text), None
             if args.engine == "google" and peak_db(audio) < SILENT_DB:
                 for v in variants(text):
                     if ledger:
                         ledger.take(len(v))
                     audio = engine.synth(v)
                     if peak_db(audio) >= SILENT_DB:
-                        with lock:
-                            used_variants[t["text"]] = v
+                        used = v
                         break
                 else:
                     raise Refused("Google returned near-silence for every way of sending it")
@@ -389,6 +410,12 @@ def main():
             with open(path + ".part", "wb") as f:
                 f.write(audio)
             os.replace(path + ".part", path)
+            with lock:
+                spoken[t["key"]] = text
+                if used:
+                    used_variants[t["text"]] = used
+                else:
+                    used_variants.pop(t["text"], None)   # a re-made clip no longer needs its old variant
             ok = True
         except Refused as e:
             ok = False
@@ -406,6 +433,7 @@ def main():
                 rate = n / max(1e-6, time.time() - state["t0"])
                 print(f"  {n}/{len(todo)}  ok {state['ok']}  failed {state['bad']}  ({rate:.1f}/s, ~{(len(todo) - n) / max(rate, 1e-6) / 60:.0f} min left)", flush=True)
                 save_json(fail_path, list(failures.values()))
+                save_json(spoken_path, spoken)
                 save_json(os.path.join(work, "speed.json"), {"per_second": round(rate, 3), "done": n, "of": len(todo), "ok": state["ok"], "failed": state["bad"]})
 
     try:
@@ -416,6 +444,7 @@ def main():
         print("\nstopped - run the same command again to continue")
     save_json(fail_path, list(failures.values()))
     save_json(var_path, used_variants)
+    save_json(spoken_path, spoken)
     if fatal:
         sys.exit(f"\nSTOPPED: {fatal[0]}\n(finished clips are kept; fix the problem and run the same command again)")
     if failures:

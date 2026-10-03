@@ -4,6 +4,9 @@
 // Made at the end of a run so the voices can be judged before merging.
 //
 //   node tools/audio/samples.mjs [--langs de,fr] [--n 24] [--seed 7] [--out work/samples.html]
+//   node tools/audio/samples.mjs --check list.json [--title "…"] [--out …]
+//       a page of chosen clips instead of random ones; list.json is
+//       {"de": {"Section title": ["text", …], …}, "fr": {…}}
 
 import fs from "node:fs";
 import path from "node:path";
@@ -12,7 +15,8 @@ import { workDir } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf("--" + n); return i >= 0 ? args[i + 1] : d; };
-const langs = opt("langs", "de,fr").split(",").map(s => s.trim()).filter(Boolean);
+const check = opt("check", "") ? JSON.parse(fs.readFileSync(opt("check"), "utf8")) : null;
+const langs = check ? Object.keys(check) : opt("langs", "de,fr").split(",").map(s => s.trim()).filter(Boolean);
 const n = +opt("n", 24);
 let seed = +opt("seed", 7);
 const out = path.resolve(opt("out", path.join(path.dirname(workDir("x")), "samples.html")));
@@ -33,12 +37,23 @@ for (const lang of langs) {
   const dir = workDir(lang);
   const texts = JSON.parse(fs.readFileSync(path.join(dir, "texts.json"), "utf8"))
     .filter(t => fs.existsSync(path.join(dir, "wav", t.key + ".wav")));
+  const overrides = readJson(path.join(path.dirname(new URL(import.meta.url).pathname), "overrides", lang + ".json"));
+  const variantsUsed = readJson(path.join(dir, "variants.json"));
   const pick = kind => shuffle(texts.filter(t => t.kind === kind)).slice(0, Math.ceil(n / 2));
-  const row = t => { total++; return `<li><p>${esc(t.text)}</p><audio controls preload="none" src="data:audio/mpeg;base64,${mp3(path.join(dir, "wav", t.key + ".wav"))}"></audio></li>`; };
+  const sent = t => (overrides[t.text] && !t.text.startsWith("_") ? overrides[t.text] : t.say) || "";
+  const row = t => { total++; const v = variantsUsed[t.text] || sent(t);
+    return `<li><p>${esc(t.text)}${v && v !== t.text ? ` <small>sent to Google as “${esc(v)}”</small>` : ""}</p><audio controls preload="none" src="data:audio/mpeg;base64,${mp3(path.join(dir, "wav", t.key + ".wav"))}"></audio></li>`; };
+  if (check) {
+    const byText = new Map(texts.map(t => [t.text, t]));
+    sections += `<section><h2>${NAMES[lang] || lang}</h2>` + Object.entries(check[lang]).map(([title, list]) => {
+      const items = list.map(x => byText.get(x)).filter(Boolean);
+      return `<h3>${esc(title)} (${items.length})</h3><ul>${items.map(row).join("\n")}</ul>`;
+    }).join("\n") + `</section>\n`;
+    continue;
+  }
   // Short words Google first returned as near-silence, re-made with a full stop or
   // an exclamation mark: worth hearing on purpose.
-  const helped = new Set([...Object.keys(readJson(path.join(dir, "variants.json"))),
-    ...Object.keys(readJson(path.join(path.dirname(new URL(import.meta.url).pathname), "overrides", lang + ".json"))).filter(k => !k.startsWith("_"))]);
+  const helped = new Set([...Object.keys(variantsUsed), ...Object.keys(overrides).filter(k => !k.startsWith("_"))]);
   const fixed = texts.filter(t => helped.has(t.text));
   sections += `<section><h2>${NAMES[lang] || lang}</h2><ul>${[...pick("w"), ...pick("s")].map(row).join("\n")}</ul>` +
     (fixed.length ? `<h3>Short words that needed a second try (${fixed.length})</h3><ul>${fixed.map(row).join("\n")}</ul>` : "") + `</section>\n`;
@@ -46,7 +61,7 @@ for (const lang of langs) {
 
 const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Voice samples</title>
+<title>${check ? "Pronunciation check" : "Voice samples"}</title>
 <style>
 :root { --bg:#f7f7f5; --card:#fff; --text:#1c1c1c; --muted:#666; --line:#e4e4e0; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#121314; --card:#1c1d1f; --text:#ececec; --muted:#a0a0a0; --line:#2c2d30; } }
@@ -58,11 +73,11 @@ h1 { font-size:1.5rem; margin:0 0 4px; } .lead { color:var(--muted); margin:0 0 
 h2 { font-size:1.15rem; margin:28px 0 10px; } h3 { font-size:1rem; margin:22px 0 8px; color:var(--muted); }
 ul { list-style:none; margin:0; padding:0; display:grid; gap:10px; }
 li { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 14px; }
-li p { margin:0 0 8px; } audio { width:100%; height:36px; }
+li p { margin:0 0 8px; } li small { color:var(--muted); } audio { width:100%; height:36px; }
 </style></head>
 <body><main>
-<h1>Voice samples</h1>
-<p class="lead">${total} clips of the new AI voice (Google Chirp 3 HD, "Aoede"): random words and example sentences, then the short words that needed a second try. Exactly as the app will play them. Listen for a smooth, native-sounding accent.</p>
+<h1>${esc(opt("title", check ? "Pronunciation check" : "Voice samples"))}</h1>
+<p class="lead">${check ? `${total} chosen clips of the AI voice (Google Chirp 3 HD, "Aoede"), exactly as the app will play them. When a text was sent to Google differently, it says so under the text.` : `${total} clips of the new AI voice (Google Chirp 3 HD, "Aoede"): random words and example sentences, then the short words that needed a second try. Exactly as the app will play them. Listen for a smooth, native-sounding accent.`}</p>
 ${sections}</main></body></html>
 `;
 fs.mkdirSync(path.dirname(out), { recursive: true });
