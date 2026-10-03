@@ -613,6 +613,8 @@ body.g-drag-active { user-select:none; -webkit-user-select:none; cursor:grabbing
 /* ── BOSSES IN THE HUB · BESTIARY ─ */
 .boss-hub { margin:0 0 14px; padding:12px; border-radius:var(--r); border:1px solid rgba(255,99,99,0.3); background:rgba(255,99,99,0.05); }
 .boss-hub-head { display:flex; justify-content:space-between; align-items:center; font-weight:900; font-size:15px; margin-bottom:8px; }
+.boss-key-btn { display:flex; flex-direction:column; align-items:flex-start; gap:2px; width:100%; margin-bottom:8px; padding:10px 12px; border-radius:var(--r-sm); border:1px dashed var(--accent); background:var(--accent-dim); color:var(--text); font-family:inherit; font-weight:800; font-size:14px; cursor:pointer; text-align:left; }
+.boss-key-btn small { font-weight:500; font-size:11.5px; color:var(--text-2); }
 .boss-world {
   width:100%; display:flex; align-items:center; gap:10px; text-align:left; padding:10px; min-height:60px; margin-bottom:8px;
   border-radius:var(--r-sm); border:1px solid rgba(255,154,60,0.45); background:rgba(255,154,60,0.08); color:var(--text); cursor:pointer; font-family:inherit;

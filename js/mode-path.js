@@ -176,7 +176,7 @@ function pathNext() {
   if (!s) return;
   stopPathVoice();
   s.i++;
-  s.answered = false; s.pendingReverse = null; s.undo = null; s.secretUsed = false; _secretTaps = [];
+  s.answered = false; s.pendingReverse = null; s.undo = null; s.shield = null; s.secretUsed = false; _secretTaps = [];
   const fb = document.getElementById("p-fb"); if (fb) fb.innerHTML = "";
   if (s.i >= s.items.length) {
     const list = s.repairOffered ? [] : pathRepairList();
@@ -537,7 +537,7 @@ function pathSecretOk() {
   if (!P.secretOk || P.secretOk.d !== today) P.secretOk = { d: today, n: 0 };
   if (P.secretOk.n >= SECRET_OK_PER_DAY) { shakeEl(document.getElementById("p-fb")); return; }
   const u = s.undo, w = s.cur.w, it = s.cur, k = wordKey(w);
-  s.undo = null; s.secretUsed = true;
+  s.undo = null; s.shield = null; s.secretUsed = true;
   // Roll the wrong back…
   const ws = getWS(w.deckId, w.idx);
   Object.keys(ws).forEach(key => delete ws[key]);
@@ -610,7 +610,12 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
         wasMissed: s.missed.some(x => sameWord(x, w)) };
     }
     sessionConsecutive = 0;
+    const before = JSON.parse(JSON.stringify(ws)), moveBefore = s.moves.get(wordKey(w));
     res = applyWrong(ws, { w });
+    // 🛡️ A memory shield (chest item) can take back a stage loss or a
+    // repair — you pick the word: the button sits on this feedback.
+    if ((res.demoted || res.events.includes("repair")) && S.quests && S.quests.shields > 0 && !grandmaOn())
+      s.shield = { key: wordKey(w), ws: before, move: moveBefore };
     s.stats.wrong++;
     if (it.t === "spot") S.path.spotToday = (S.path.spotToday || 0) + 1;
     // No re-ask mid-session (the count stays fixed): the word waits for
@@ -630,8 +635,8 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     : evs.includes("strong") ? `<span class="p-chip gold">⭐ Strong!</span>`
     : evs.includes("known") ? `<span class="p-chip ok">🌳 Known!</span>`
     : evs.includes("repaired") ? `<span class="p-chip ok">🩹 Repaired</span>`
-    : evs.includes("repair") ? `<span class="p-chip warn">🩹 Badge kept — repair it next time</span>`
-    : evs.includes("dropped") ? `<span class="p-chip warn">↓ ${tierOfStage(res.to).icon} back to ${tierOfStage(res.to).name}</span>`
+    : evs.includes("repair") ? `<span class="p-chip warn">🩹 Badge kept — repair it next time</span>${pathShieldBtnHtml()}`
+    : evs.includes("dropped") ? `<span class="p-chip warn">↓ ${tierOfStage(res.to).icon} back to ${tierOfStage(res.to).name}</span>${pathShieldBtnHtml()}`
     : res && res.promoted ? `<span class="p-chip ok">↑ ${tierOfStage(res.to).icon} ${tierOfStage(res.to).name}</span>`
     : evs.includes("confirm") ? `<span class="p-chip">✓ Good — one more check before it moves up</span>`
     : evs.includes("maintained") ? `<span class="p-chip gold">💎 Check-in passed</span>`
@@ -658,6 +663,34 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
   if (ok !== true && !fromReverse) holdAfterMistake("p-go");
   if (!it.revealed) speak(w[WORD_KEY]); // a Say-it reveal has just said it
   if (input) input.focus({ preventScroll: true });
+}
+function pathShieldBtnHtml() {
+  const s = pathSession;
+  if (!s || !s.shield) return "";
+  return ` <button class="p-chip shield-btn" id="p-shield" onclick="pathUseShield()" title="Use a memory shield: this miss won't cost the word its stage">🛡️ Shield it <small>(${S.quests.shields} left)</small></button>`;
+}
+// Undo what the miss did to the word's schedule (its stage, repair,
+// ease) — the miss itself still counts and the word stays in the
+// end-of-session repair round.
+const SHIELD_FIELDS = ["st", "dueAt", "sAt", "pk", "rp", "lrn", "fl", "dropDay", "k", "cf", "mt", "rc"];
+function pathUseShield() {
+  const s = pathSession;
+  if (!s || !s.shield || !(S.quests.shields > 0)) return;
+  const sh = s.shield, w = s.cur.w;
+  if (wordKey(w) !== sh.key) return;
+  s.shield = null; s.undo = null;
+  const ws = getWS(w.deckId, w.idx);
+  SHIELD_FIELDS.forEach(f => { if (sh.ws[f] === undefined) delete ws[f]; else ws[f] = sh.ws[f]; });
+  if (sh.move) s.moves.set(sh.key, sh.move); else s.moves.delete(sh.key);
+  S.quests.shields--;
+  logEvent("shield_used", { key: sh.key, st: stageOf(ws) });
+  if (typeof invalidatePathScan === "function") invalidatePathScan();
+  saveState();
+  const fb = document.getElementById("p-fb");
+  const warn = fb && fb.querySelector(".p-chip.warn");
+  if (warn) { warn.className = "p-chip ok"; warn.textContent = `🛡️ Shielded — still ${tierOf(ws).icon} ${tierOf(ws).name}`; }
+  const btn = document.getElementById("p-shield"); if (btn) btn.remove();
+  haptic("select");
 }
 // Sentence items: why the article in front of the noun has its form
 // (display only — grading is unchanged).
@@ -935,11 +968,11 @@ function endPathSession(abandoned) {
   logEvent("session_end", { kind: s.quick ? "quick5" : "path", abandoned, n: s.stats.answered, ok: s.stats.correct, ms: Date.now() - s.startedAt, at: s.i });
   questEvent("session_end", { kind: "path", len: s.lenKey, abandoned, stats: s.stats, ms: Date.now() - s.startedAt, quick: s.quick,
     ok5: s.ok5, up: s.upCount || 0, wotdHit: !!s.wotdHit });
-  // ⚡ XP boost from a chest: doubles this session's XP.
+  // ⚡ XP boost from a chest: +50% of this session's XP (achievements
+  // aside), used up automatically by the next finished session.
   if (!abandoned && S.quests && S.quests.boosts > 0 && s.stats.answered >= 5) {
-    S.quests.boosts--;
-    const gained = Math.max(0, S.exp - s.startExp);
-    if (gained) { addExp(gained); s.boosted = gained; }
+    const bonus = Math.round(Math.max(0, S.exp - s.startExp - (s.badgeXp || 0)) * (typeof BOOST_RATE === "number" ? BOOST_RATE : 0.5));
+    if (bonus) { S.quests.boosts--; addExp(bonus); s.boosted = bonus; }
   }
   pathSession = null;
   invalidatePathScan();
@@ -994,7 +1027,7 @@ function renderPathSummary(abandoned) {
           ${cleanSlate ? `<span class="p-chip gold">🧹 Clean slate — all ${s.repairN} repaired</span>`
             : s.repairN ? `<span class="p-chip ok">🩹 ${s.repairFixed}/${s.repairN} repaired</span>` : ""}
           ${openLeft ? `<span class="p-chip warn">⏭️ ${openLeft} to fix next time</span>` : flagged ? `<span class="p-chip warn">🩹 ${flagged} need another look</span>` : ""}
-          <span class="p-chip gold">+${xp} XP${s.boosted ? " (⚡×2)" : ""}</span>
+          <span class="p-chip gold">+${xp} XP${s.boosted && !grandmaOn() ? ` (⚡ boost +${s.boosted})` : ""}</span>
           ${s.badges ? `<button class="p-chip gold" onclick="showScreen('badges')">🏅 ${s.badges} achievement${s.badges > 1 ? "s" : ""} · +${s.badgeXp} XP</button>` : ""}
           ${s.golden ? `<span class="p-chip gold">🌟 ${s.golden} golden</span>` : ""}
         </div>

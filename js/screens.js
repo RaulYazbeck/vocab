@@ -809,6 +809,7 @@ function renderHome() {
         ${Object.entries(PATH.SESSION_LENGTHS).map(([k, n]) => `<button class="tc-len-btn ${k === len ? "on" : ""}" role="radio" aria-checked="${k === len}" onclick="setSessionLen('${k}')">${k[0].toUpperCase() + k.slice(1)} <small>${n}</small></button>`).join("")}
       </div>
       <button class="tc-start ${nothing ? "calm" : ""}" onclick="startPathSession('${len}'${nothing ? ", { practice: true }" : ""})">${nothing ? "✓ All caught up · extra practice ▶" : "Start ▶"}</button>
+      ${Q.boosts ? `<div class="tc-boost" title="A chest boost: used automatically when your next Today session ends (5+ answers)">⚡ Next session: ×1.5 XP${Q.boosts > 1 ? ` <small>(${Q.boosts} boosts)</small>` : ""}</div>` : ""}
       ${(() => { const m = nothing ? [] : questNudges().quests; return m.length ? `<div class="tc-moves">Start moves ${m.length === 1 ? "a quest" : `${m.length} of your quests`} <span>${m.slice(0, 5).map(q => questIcon(q)).join(" ")}</span></div>` : ""; })()}
       <div class="tc-links">
         ${t.due >= 1 ? `<button class="tc-link" onclick="startQuickFive()">5️⃣ Quick Five</button>` : ""}
