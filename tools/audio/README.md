@@ -1,63 +1,65 @@
 # Natural voices — how the voice packs are made and kept up to date
 
-The app reads words and example sentences aloud. By default that is the
-phone's own text-to-speech, which is often robotic. This folder makes
-**recorded** audio instead: every word and example sentence is generated
-once with a natural AI voice, packed into `audio/<lang>/`, and the app
-downloads it (first-launch offer, or Settings → Sound & voice) so it plays
-offline. Anything without a recording still uses the phone's voice.
+The app reads words and example sentences aloud. Instead of the phone's robotic
+text-to-speech, every word and sentence is spoken once by a natural **AI voice**,
+**Google "Chirp 3 HD", voice "Aoede"** (the same voice for German and French),
+packed into `audio/<lang>/`, and downloaded inside the app (first-launch offer,
+or Settings → Sound & voice) so it plays offline. Anything without a recording
+still uses the phone's voice.
 
 ```
-decks ─extract─▶ texts.json ─synth (GPU)─▶ wav/ ─pack─▶ audio/de/   (served by GitHub Pages)
-                                                         manifest.json + shard files
+decks ─extract─▶ texts.json ─synth (Google)─▶ wav/ ─pack─▶ audio/de/   (served by GitHub Pages)
+                                                            manifest.json + shard files
 ```
 
-The app side (`js/audio.js`) needs nothing from you. Generating the audio needs
-a GPU: a Google Colab T4 (free tier) or a rented one.
+No GPU and no model download: each text is one request to Google. The app side
+(`js/audio.js`) needs nothing from you.
 
-## 1. The overnight run (recommended): the Colab notebook
+## 1. One-time setup (about 10 minutes)
 
-Open **`tools/audio/overnight.ipynb`** in [Google Colab](https://colab.research.google.com)
-(File → Open notebook → GitHub tab → `RaulYazbeck/vocab`), set *Runtime → Change
-runtime type → T4 GPU*, and go down the cells:
+1. [console.cloud.google.com](https://console.cloud.google.com): create a project
+   (e.g. `vocab-voices`).
+2. **Billing**: link a billing account (Google asks for a card even for the free
+   tier), then **Billing → Budgets & alerts**: a budget of €1 with an email alert.
+3. **APIs & Services → Library**: enable **Cloud Text-to-Speech API**.
+4. **APIs & Services → Credentials → Create credentials → API key**. Edit it:
+   **API restrictions → Restrict key → Cloud Text-to-Speech API**.
+5. Give the key to the scripts as the environment variable **`GOOGLE_TTS_API_KEY`**:
+   in Claude's cloud environment settings (environment menu in the session title
+   bar → Edit), or `export GOOGLE_TTS_API_KEY=…` on your own computer. Never
+   commit it or paste it anywhere.
 
-1. **Setup**: installs everything, mounts your Google Drive. Everything that
-   must survive lives in `MyDrive/vocab-voices`, so a disconnect loses nothing.
-2. **Pilot**: ~50 clips per language you can *listen to inside the notebook*, and
-   a time estimate for the full run. **Listen before continuing.**
-3. **Full run**: leave it overnight. For every one of the ~10.8k German and
-   ~7.7k French clips it: generates → transcribes it back with Whisper and
-   compares → retries bad ones with a new seed (up to 3×) → a second, more
-   careful pass over any that still fail → packs → writes `REPORT.md`.
-   Stop or reconnect at any time and run the cell again: finished clips are
-   never redone.
-4. **Results**: the report, 10 more random clips to hear, and a zip to download.
-5. *(optional)* push the packs to a new GitHub branch from the notebook.
+**Cost.** Google's free tier for Chirp 3 HD is 1,000,000 characters a month.
+Both decks together are about **405,000** (German 244k, French 161k), so a full
+run is free, and later updates only send the new texts. As a guard, the scripts
+keep a monthly count in `work/usage.json` and **refuse to start** a run that
+would take that month past 900,000 characters (checked before anything is sent;
+safe even with two runs at once). That count only knows about this work folder,
+so keep the budget alert too.
 
-Then commit the `audio/` folders (or merge that branch). The app offers the
-download on its next launch.
+## 2. Make the packs
 
-**About the voice.** You don't record or upload anything. Chatterbox is a free (MIT licence) AI text-to-speech model that speaks German and French with a built-in voice. The one thing I can't know from here is how *native* that built-in voice sounds in each language, which is exactly what the pilot step is for: ~50 clips per language you listen to in a few minutes, before committing to the long run. If it sounds foreign or robotic, don't run the full job; the pipeline can use a different AI voice or model (that is a small change, and costs only the pilot).
+Needs node 18+, Python 3 and ffmpeg (with libopus).
 
-The free Colab tier can cut long sessions. If that keeps happening, Colab Pro or
-a rented GPU (RunPod, Vast.ai; roughly a few dollars) avoids it. The notebook
-cannot keep a sleeping computer connected: keep the tab open.
-
-### Or run it yourself
 ```bash
-git clone https://github.com/RaulYazbeck/vocab && cd vocab
-pip install chatterbox-tts faster-whisper            # node 18+ and ffmpeg (with libopus) too
-export AUDIO_WORK=/some/folder/that/survives         # optional: where progress is kept
-
-python tools/audio/run_all.py pilot        # listen, check the estimate
-python tools/audio/run_all.py full         # the long one
+python tools/audio/run_all.py smoke    # 3 clips per language: is the key OK? (seconds)
+python tools/audio/run_all.py full     # everything: about 1.5–2 hours
 ```
-`run_all.py` calls the individual steps below; you can also run those by hand.
 
-## 2. Changing the decks later: add, edit, remove
+`full` extracts every text the app can say, checks the character budget, makes
+every clip (resumable: stop and re-run any time; nothing is made or paid for
+twice), retries anything Google refused, packs both languages, checks coverage,
+and writes `work/REPORT.md` and a listening page **`work/samples.html`** (48 random
+clips with their text). Listen to it, then commit the `audio/` folders. The app
+offers the download on its next launch.
 
-This is covered: the packs are built so that **only what changed** is made again,
-and only what changed is downloaded again by people who already have the pack.
+`run_all.py pilot` makes ~20 clips per language and the listening page, to judge
+the voice before a full run.
+
+## 3. Changing the decks later: add, edit, remove
+
+The packs are built so that **only what changed** is made again, and only what
+changed is downloaded again by people who already have the pack.
 
 | You change the decks… | What happens |
 |---|---|
@@ -68,17 +70,15 @@ and only what changed is downloaded again by people who already have the pack.
 | **Add a deck / level** | Only the new clips are made; a few new shard files appear. |
 | **Rename** a deck | That deck's clips move to another shard: a few shards change, nothing is re-recorded. |
 
-### The routine (about 10 minutes, plus GPU time for the new clips)
+### The routine (a few minutes)
 
 ```bash
-node tools/audio/status.mjs --lang de        # no GPU needed: how many texts have no recording yet?
-python tools/audio/run_all.py full         # makes ONLY the new ones, repacks
+node tools/audio/status.mjs --lang de     # how many texts have no recording yet? (no key needed)
+python tools/audio/run_all.py full        # makes ONLY the new ones, repacks
 git add audio && git commit -m "Update voice packs" && git push
 ```
-Run `status` after editing a deck (add `--strict` to make it exit 1 when anything
-is missing, if you want a CI check). `extract` also prints "+N new, −M no longer
-used" each time. Keep the same voice settings (and the same model version) between runs, or
-new clips can sound different from old ones.
+`extract` also prints "+N new, −M no longer used" each time. Add `--strict` to
+`status` to make it exit 1 when anything is missing (for a CI check).
 
 ### What people get
 On launch the app compares versions. If the update is **small** (under 8 MB,
@@ -91,15 +91,14 @@ How the packs stay small to update: each deck's clips always live in the same
 shard file (chosen from the deck's name, clips sorted by key), and encoding is
 byte-for-byte reproducible, so editing a deck changes that deck's shard and
 nothing else. Measured at full size: adding a word and changing a sentence in
-one deck changed **2 of 33 shards (4.4 MB)**, the deck's words shard and its
-sentences shard; rebuilding everything from scratch changed **0**. (Before this
-was fixed, adding one word near the start changed 22 of 38 shards.)
+one deck changed **2 of 33 shards (4.4 MB)**; rebuilding everything from scratch
+changed **0**.
 
-### Fixing one clip, a pronunciation, or the voice
-- **A clip sounds wrong:** put its text (one per line) in a file and run
-  `python tools/audio/synth.py --lang de --verify --redo-file list.txt` then repack. It
-  gets a new random seed.
-- **The model keeps mispronouncing a word:** add it to `tools/audio/overrides/<lang>.json`,
+### Fixing one clip or a pronunciation
+- **A clip sounds wrong:** put its text (one per line) in a file, run
+  `python tools/audio/synth.py --lang de --redo-file list.txt`, then
+  `python tools/audio/run_all.py pack`.
+- **Google keeps mispronouncing a word:** add it to `tools/audio/overrides/<lang>.json`,
   e.g. `{"Hallo": "Halo"}` (the deck text → how to say it). It's used for
   synthesis only; the app still finds the clip under the original text. Then
   `--redo-file` it.
@@ -107,50 +106,32 @@ was fixed, adding one word near the start changed 22 of 38 shards.)
   made up, say): Settings → Sound & voice → "Copy N phrases…", save as
   `missing.txt`, then `node tools/audio/extract.mjs --lang de --extra missing.txt`
   and run as above.
-- **Changing the voice itself** (a different voice or model) means redoing
-  every clip, and everyone re-downloads everything. Do that rarely.
 
-## 3. The individual steps
+## 4. The individual steps
 
 ```bash
-node tools/audio/extract.mjs --lang de        # every text the app can say → work/de/texts.json (+ what changed)
-node tools/audio/status.mjs  --lang de        # coverage of the published pack (no GPU)
-python tools/audio/synth.py  --lang de --verify     # make the clips (resumable)
-node tools/audio/review.mjs  --lang de        # a page of random clips to listen to
-node tools/audio/pack.mjs    --lang de        # → audio/de/  (and a report of what changed for existing users)
+node tools/audio/extract.mjs --lang de     # every text the app can say → work/de/texts.json (+ what changed)
+node tools/audio/status.mjs  --lang de     # coverage of the published pack
+python tools/audio/synth.py  --lang de     # make the clips with Google (resumable; --engine tone = test beeps)
+node tools/audio/pack.mjs    --lang de     # → audio/de/  (and what changed for existing users)
+node tools/audio/samples.mjs               # → work/samples.html, a listening page
 ```
 German is about 10.8k clips, French about 7.7k (words and short phrases 5.8k /
 4.0k, sentences 5.0k / 3.7k).
 
-`--verify` transcribes each clip back with Whisper and compares it with the text
-(garbled words, extra babble, wrong language), retrying with a new seed. Clips
-that never pass go to `work/<lang>/failures.json` and are left out of the pack,
-so those words keep the phone voice rather than teaching a wrong pronunciation.
-It cannot judge *accent*; only your ears can. What to listen for: French liaison
-and nasal vowels; German *ch*, *ü*, *ö*, word stress; clips that stumble or sound
-like another language. `--retry-failures` tries the failed ones again.
-
-## 4. Size and format
+## 5. Size and format
 
 `pack.mjs` trims silence, evens out loudness, and encodes mono Opus at 24 kbps
-(`--bitrate`). I ran the whole pipeline at full size with test tones of speech-like length (not
-real speech): **German 65.6 MB** (words 20 MB, sentences 46 MB, 33 shard files,
-manifest 326 KB) and **French 43.7 MB** (13 + 31 MB, 22 shard files, manifest
-231 KB). Real speech at the same bitrate should come out similar or somewhat
-smaller, and the script prints the real figure. The app lets people download words
+(`--bitrate`). The full pipeline at full size with test tones of speech-like length
+gave **German 65.6 MB** (words 20, sentences 46; 33 shard files) and **French
+43.7 MB** (13 + 31; 22 files). Real speech at the same bitrate should come out
+similar or smaller; `pack` prints the real figure. People can download words
 only or everything.
 
 Opus-in-Ogg plays in current Chrome, Firefox and Edge, and in Safari/iOS from
-18.4 (WebKit's release notes; see the iPhone section below). If older iPhones
-matter, build with `--format aac --bitrate 40` (about 1.7× larger, plays
-everywhere). The format is written into `manifest.json`; the app needs no
+18.4. If older iPhones matter, build with `--format aac --bitrate 40` (about
+1.7× larger). The format is written into `manifest.json`; the app needs no
 change, and a browser that can't play it simply keeps the phone voice.
-
-## Any other voice engine
-`synth.py` is only one way to fill `work/<lang>/wav/<key>.wav`. Any engine
-(Piper, Qwen3-TTS, a cloud API …) works: write a 16-bit mono WAV per entry of
-`texts.json` named `<key>.wav`, then run `pack.mjs`. To add an engine to
-`synth.py`, add a class with `synth(text, kind, seed) → (pcm16 bytes, sample_rate)`.
 
 ## iPhone / iPad (Safari and the home-screen app)
 
@@ -192,30 +173,24 @@ change, and a browser that can't play it simply keeps the phone voice.
 5. With music playing in the background, note whether it pauses.
 
 ## What was and wasn't tested
-Tested (with test tones standing in for the voice, since there is no GPU where
-this was written):
-- The whole overnight flow at full size for both languages (18,477 clips),
-  including **killing it midway and restarting** (it resumed: "4496 already
-  done"), the pilot with its time estimate, packing, status and the report.
-- A real deck edit through the maintenance routine (see above).
-- Byte-identical re-encoding; stable shards; the Chatterbox adapter against fake
-  modules imitating three API variants (new, old without `t3_model`, `**kwargs`).
-- Pronunciation overrides, `--redo-file`, resume after a stop.
+Tested here:
+- The Google generator against a fake Google server that misbehaves on purpose:
+  rate-limit and server errors (retried), a refused text (recorded, the rest
+  carries on), audio without a WAV header (wrapped), a wrong or missing key (stops
+  at once with what to check), the budget cap (refuses before sending anything;
+  holds with six processes at once, no lost counts), the request rate (retries
+  included), resume without re-sending, and the key never appearing in output,
+  files or URLs.
+- The whole pipeline at full size for both languages with test tones (18,477
+  clips), including killing it midway and restarting; a real deck edit through
+  the maintenance routine; byte-identical rebuilds; stable shards.
 - The whole app side in Chromium: first-launch offer, download with progress,
   stop and resume, damaged-file rejection, storage full, a dropped connection,
   offline playback, quiet auto-update (and not for big updates, offline, or with
-  no pack), repair after the browser drops files, words-only, fallback to the
-  phone voice, old and new service workers, every game in both languages with no
-  errors, every one of the 18,477 clips decoding, and 100% of deck texts finding
-  their recording.
+  no pack), repair, words-only, fallback to the phone voice, old and new service
+  workers, every game in both languages with no errors, every clip decoding, and
+  100% of deck texts finding their recording.
 
-**Not tested:**
-- **Chatterbox itself** (needs a GPU and Hugging Face): the adapter follows the
-  project's own example and is checked against fakes, but it has never loaded the
-  real model. The notebook's pilot step is where that shows up first; if it fails
-  there, it fails in minutes, not overnight.
-- **The Colab notebook** was validated (every cell parses) but never run on Colab.
-  Its commands are the ones tested above.
-- **Anything on a real iPhone** (everything iPhone-related was simulated in
-  Chromium; use the checklist), and AAC playback.
-- **How the voices sound.** Whisper can catch wrong words, not a wrong accent.
+**Not tested:** a call to the real Google service (that needs your key: the
+`smoke` step does it in seconds), anything on a real iPhone (use the checklist),
+AAC playback, and how the voice sounds (listen to `samples.html`).

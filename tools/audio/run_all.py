@@ -1,30 +1,22 @@
 #!/usr/bin/env python3
-"""The whole voice-pack job in one command, built to run unattended overnight.
+"""The whole voice-pack job in one command. No GPU: Google makes the audio.
 
-    python tools/audio/run_all.py pilot            # a small sample to listen to first
-    python tools/audio/run_all.py full             # everything (hours; safe to stop and re-run)
-    python tools/audio/run_all.py pack             # re-pack only (after fixing clips)
+    export GOOGLE_TTS_API_KEY=...        # see tools/audio/README.md
+    python tools/audio/run_all.py smoke  # 3 clips per language: is the key/voice OK?
+    python tools/audio/run_all.py pilot  # ~20 clips per language + a listening page
+    python tools/audio/run_all.py full   # everything (about 1.5-2 hours)
+    python tools/audio/run_all.py pack   # re-pack only (after fixing clips)
 
-The AI model speaks with its own built-in voice: nothing to record or upload.
+full:
+  1. extract every text the app can say (both languages)
+  2. check the total characters against the monthly cap BEFORE sending anything
+  3. make every clip with Google's Chirp 3 HD voice "Aoede" (resumable)
+  4. one more pass over any texts Google refused
+  5. pack into audio/<lang>/  (stable shards: see pack.mjs)
+  6. status check, REPORT.md, and a listening page (samples.html)
 
-pilot  A small sample (25 words + 25 sentences per language), plus a listening
-       page, so you can judge the voice BEFORE the long run. Prints a time
-       estimate for the full run.
-full   Everything, exhaustively:
-         1. extract every text the app can say
-         2. make every clip, checking each one by transcribing it back with
-            Whisper and retrying bad ones (new random seed, up to 3 times)
-         3. a second, more careful pass over any clips that still failed
-            (more retries, lower randomness)
-         4. pack into audio/<lang>/  (stable shards: see pack.mjs)
-         5. status check, and a REPORT.md
-pack   Steps 4-5 only.
-
-It is resumable: stop it any time (or let Colab disconnect) and run the same
-command again; finished clips are never redone. Set AUDIO_WORK to a folder that
-survives (Google Drive on Colab) so progress isn't lost.
-
-Nothing is committed or published: you listen first, then commit audio/.
+Resumable: stop it any time and run the same command again; finished clips are
+never redone (and never paid for twice). Nothing is committed or published.
 """
 import argparse
 import json
@@ -37,11 +29,12 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 WORK = os.environ.get("AUDIO_WORK") or os.path.join(HERE, "work")
+VOICE_LABEL = "Google Chirp 3 HD · Aoede"
 
 
-def run(cmd, **kw):
+def run(cmd):
     print("\n$ " + " ".join(cmd), flush=True)
-    r = subprocess.run(cmd, **kw)
+    r = subprocess.run(cmd)
     if r.returncode != 0:
         sys.exit(f"\nStopped: command failed (exit {r.returncode}). Fix the problem and run the same command again; finished work is kept.")
 
@@ -51,12 +44,8 @@ def node(script, *a):
 
 
 def synth(lang, args, *extra):
-    cmd = [sys.executable, os.path.join(HERE, "synth.py"), "--lang", lang, "--engine", args.engine]
-    if args.device:
-        cmd += ["--device", args.device]
-    if args.verify:
-        cmd += ["--verify", "--whisper-model", args.whisper_model]
-    run(cmd + list(extra))
+    run([sys.executable, os.path.join(HERE, "synth.py"), "--lang", lang, "--engine", args.engine,
+         "--max-chars-month", str(args.max_chars_month), *extra])
 
 
 def read_json(path, default=None):
@@ -70,123 +59,120 @@ def lang_dir(lang):
     return os.path.join(WORK, lang)
 
 
-def count_wavs(lang):
-    d = os.path.join(lang_dir(lang), "wav")
-    return len([f for f in os.listdir(d) if f.endswith(".wav")]) if os.path.isdir(d) else 0
+def to_go(lang):
+    """(clips, characters) not made yet for this language."""
+    texts = read_json(os.path.join(lang_dir(lang), "texts.json"), [])
+    fails = {f["key"] for f in read_json(os.path.join(lang_dir(lang), "failures.json"), [])}
+    wav = os.path.join(lang_dir(lang), "wav")
+    left = [t for t in texts if t["key"] not in fails and not os.path.exists(os.path.join(wav, t["key"] + ".wav"))]
+    return len(left), sum(len(t["text"]) for t in left)
 
 
-def eta_line(lang, remaining):
-    sp = read_json(os.path.join(lang_dir(lang), "speed.json"))
-    if not sp or not sp.get("per_second"):
-        return ""
-    secs = remaining / sp["per_second"]
-    return f"{lang}: {sp['per_second']:.2f} clips/s  →  about {secs / 3600:.1f} h for the {remaining} clips still to make"
+def preflight(args):
+    if args.engine == "google" and not os.environ.get("GOOGLE_TTS_API_KEY", "").strip():
+        sys.exit("STOPPED: GOOGLE_TTS_API_KEY is not set (see tools/audio/README.md).")
+
+
+def budget_check(args):
+    """All languages together must fit under the monthly cap before we start."""
+    used = read_json(os.path.join(WORK, "usage.json"), {}).get(time.strftime("%Y-%m", time.gmtime()), 0)
+    need = sum(to_go(l)[1] for l in args.langs)
+    print(f"\ncharacters to send: {need:,}   already sent this month: {used:,}   cap: {args.max_chars_month:,}")
+    if args.engine == "google" and used + need > args.max_chars_month:
+        sys.exit("STOPPED before sending anything: that would pass the monthly cap (Google's free tier is 1,000,000).")
+
+
+def stage_smoke(args):
+    preflight(args)
+    for lang in args.langs:
+        node("extract.mjs", "--lang", lang)
+        synth(lang, args, "--limit", "3")
+        wav = os.path.join(lang_dir(lang), "wav")
+        files = sorted(os.listdir(wav))[:3] if os.path.isdir(wav) else []
+        print(f"{lang}: {len(files)} clip(s): " + ", ".join(f"{os.path.getsize(os.path.join(wav, f)) // 1024} KB" for f in files))
 
 
 def stage_pilot(args):
-    print("PILOT: a small sample to judge the voice before the long run.")
+    preflight(args)
     for lang in args.langs:
         node("extract.mjs", "--lang", lang)
         synth(lang, args, "--kind", "w", "--limit", str(args.pilot))
         synth(lang, args, "--kind", "s", "--limit", str(args.pilot))
-        node("review.mjs", "--lang", lang, "--n", str(args.pilot))
-    print("\n" + "=" * 70)
-    for lang in args.langs:
-        texts = read_json(os.path.join(lang_dir(lang), "texts.json"), [])
-        remaining = len(texts) - count_wavs(lang)
-        print(eta_line(lang, remaining) or f"{lang}: (no speed measured)")
-        print(f"   listen: {os.path.join(lang_dir(lang), 'review.html')}")
-    print("Happy with how it sounds? Run the same command with 'full'.")
+    node("samples.mjs", "--langs", ",".join(args.langs), "--n", str(args.pilot * 2))
 
 
 def stage_full(args):
+    preflight(args)
     t0 = time.time()
     for lang in args.langs:
         node("extract.mjs", "--lang", lang)
-        texts = read_json(os.path.join(lang_dir(lang), "texts.json"), [])
-        print(f"\n{lang}: {len(texts)} clips to make ({count_wavs(lang)} already done)")
-        synth(lang, args)                                           # pass 1
-        failures = read_json(os.path.join(lang_dir(lang), "failures.json"), [])
-        if failures and args.verify:
-            print(f"\n{lang}: {len(failures)} clips failed the check — second, more careful pass")
-            synth(lang, args, "--retry-failures", "--retries", "6", "--temperature", "0.6", "--cfg-weight", "0.7")
+    budget_check(args)
+    for lang in args.langs:
+        n, c = to_go(lang)
+        print(f"\n{lang}: {n} clips to make ({c:,} characters)")
+        synth(lang, args)
+        if read_json(os.path.join(lang_dir(lang), "failures.json"), []):
+            print(f"\n{lang}: some texts were refused; one more try")
+            synth(lang, args, "--retry-failures")
     stage_pack(args, t0)
 
 
 def stage_pack(args, t0=None):
     t0 = t0 or time.time()
     for lang in args.langs:
-        cmd = ["--lang", lang, "--out", os.path.join(args.out_root, lang), "--bitrate", str(args.bitrate), "--format", args.format]
-        if args.voice:
-            cmd += ["--voice", args.voice]
-        node("pack.mjs", *cmd)
+        node("pack.mjs", "--lang", lang, "--out", os.path.join(args.out_root, lang), "--voice", VOICE_LABEL)
         node("status.mjs", "--lang", lang, "--manifest", os.path.join(args.out_root, lang, "manifest.json"))
+    node("samples.mjs", "--langs", ",".join(args.langs), "--n", "24")
     write_report(args, time.time() - t0)
 
 
 def write_report(args, seconds):
-    lines = ["# Voice pack report", "", f"Run time this session: {seconds / 3600:.1f} h  (engine: {args.engine})", ""]
+    used = read_json(os.path.join(WORK, "usage.json"), {}).get(time.strftime("%Y-%m", time.gmtime()), 0)
+    lines = ["# Voice pack report", "",
+             f"Voice: {VOICE_LABEL}. Run time this session: {seconds / 60:.0f} min. "
+             f"Characters sent to Google this month: {used:,} (free tier: 1,000,000).", ""]
+    mb = lambda b: f"{b / 1048576:.1f} MB"
     for lang in args.langs:
         texts = read_json(os.path.join(lang_dir(lang), "texts.json"), [])
         fails = read_json(os.path.join(lang_dir(lang), "failures.json"), [])
         man = read_json(os.path.join(args.out_root, lang, "manifest.json"), {})
         tot = man.get("tot", {})
-        have = len(man.get("idx", {}))
-        mb = lambda b: f"{b / 1048576:.1f} MB"
         lines += [
             f"## {lang}",
             f"- texts the app can say: **{len(texts)}**",
-            f"- recorded and in the pack: **{have}**",
-            f"- failed the check (use the phone voice): **{len(fails)}**",
+            f"- recorded and in the pack: **{len(man.get('idx', {}))}**",
+            f"- refused by Google (keep the phone voice): **{len(fails)}**",
             f"- pack size: words {mb(tot.get('w', {}).get('b', 0))} ({tot.get('w', {}).get('n', 0)} clips), "
-            f"sentences {mb(tot.get('s', {}).get('b', 0))} ({tot.get('s', {}).get('n', 0)} clips)",
-            f"- shards: {len(man.get('shards', []))}, version `{man.get('v', '?')}`",
-            f"- listen: `{os.path.join(lang_dir(lang), 'review.html')}` (make a fresh one: `node tools/audio/review.mjs --lang {lang}`)",
+            f"sentences {mb(tot.get('s', {}).get('b', 0))} ({tot.get('s', {}).get('n', 0)} clips), "
+            f"{len(man.get('shards', []))} files",
             "",
         ]
+        for f in fails[:30]:
+            lines.append(f"  - `{f['text']}`: {f.get('error', '')}")
         if fails:
-            lines += ["Clips that never passed (first 40) — fix with an override or `--redo-file`, see the README:", ""]
-            for f in fails[:40]:
-                lines.append(f"- `{f['text']}` — heard: “{f.get('heard', '')}” (similarity {f.get('score')})")
             lines.append("")
-    lines += ["## Next", "1. Listen to a sample (review pages above) — especially accent, liaison, ü/ö/ch.",
-              "2. If happy: commit the `audio/` folders and push. The app offers the download on its next launch.",
-              "3. Anything wrong: fix it, then `run_all.py pack` again (only changed shards re-download for people)."]
+    lines += [f"Listening page: `{os.path.join(WORK, 'samples.html')}`"]
     path = os.path.join(WORK, "REPORT.md")
     os.makedirs(WORK, exist_ok=True)
     open(path, "w", encoding="utf8").write("\n".join(lines) + "\n")
-    print("\n" + "\n".join(lines))
-    print(f"(saved to {path})")
+    print("\n" + "\n".join(lines) + f"\n(saved to {path})")
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("stage", choices=["pilot", "full", "pack"])
+    ap.add_argument("stage", choices=["smoke", "pilot", "full", "pack"])
     ap.add_argument("--langs", default="de,fr")
-    ap.add_argument("--engine", default="chatterbox", choices=["chatterbox", "tone"])
-    ap.add_argument("--device")
-    ap.add_argument("--no-verify", dest="verify", action="store_false", help="skip the Whisper check (not recommended)")
-    ap.add_argument("--whisper-model", default="large-v3", help="the checker (large-v3 is the most accurate; medium is faster)")
-    ap.add_argument("--pilot", type=int, default=25, help="clips per kind in the pilot")
+    ap.add_argument("--engine", default="google", choices=["google", "tone"])
+    ap.add_argument("--pilot", type=int, default=10, help="clips per kind in the pilot")
+    ap.add_argument("--max-chars-month", type=int, default=900_000)
     ap.add_argument("--out-root", default=os.path.join(ROOT, "audio"), help="where the packs go (default: <repo>/audio)")
-    ap.add_argument("--bitrate", type=int, default=24)
-    ap.add_argument("--format", default="opus", choices=["opus", "aac", "mp3"])
-    ap.add_argument("--voice", default="", help="short name of the voice, recorded in the manifest")
     args = ap.parse_args()
     args.langs = [l.strip() for l in args.langs.split(",") if l.strip()]
     if shutil.which("node") is None or shutil.which("ffmpeg") is None:
         sys.exit("node and ffmpeg are needed (see tools/audio/README.md).")
-    if args.verify and args.engine == "chatterbox":
-        try:
-            import faster_whisper  # noqa: F401
-        except ImportError:
-            print("NOTE: faster-whisper isn't installed, so clips won't be checked (pip install faster-whisper).", file=sys.stderr)
-            args.verify = False
-    elif args.engine == "tone":
-        args.verify = False
     os.makedirs(WORK, exist_ok=True)
     print(f"work folder: {WORK}\npacks go to: {args.out_root}")
-    {"pilot": stage_pilot, "full": stage_full, "pack": stage_pack}[args.stage](args)
+    {"smoke": stage_smoke, "pilot": stage_pilot, "full": stage_full, "pack": stage_pack}[args.stage](args)
 
 
 if __name__ == "__main__":

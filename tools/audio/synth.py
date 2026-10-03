@@ -1,213 +1,245 @@
 #!/usr/bin/env python3
-"""Step 2 - turn every text from extract.mjs into a WAV file.
+"""Step 2 - make one WAV per text with Google's "Chirp 3: HD" AI voice.
 
-    python tools/audio/synth.py --lang de --engine chatterbox --verify
-    python tools/audio/synth.py --lang fr --engine chatterbox --verify
+    export GOOGLE_TTS_API_KEY=...          # never commit it, never paste it anywhere
+    python tools/audio/synth.py --lang de
+    python tools/audio/synth.py --lang fr
 
-Reads  tools/audio/work/<lang>/texts.json
-Writes tools/audio/work/<lang>/wav/<key>.wav   (one per text, resumable:
-       files that already exist are skipped, so you can stop and restart)
-       tools/audio/work/<lang>/failures.json   (clips that never passed --verify)
+Reads  work/<lang>/texts.json  (from extract.mjs)
+Writes work/<lang>/wav/<key>.wav   one per text. Resumable: clips that exist are
+                                   skipped, so stop and re-run any time.
+       work/<lang>/failures.json  texts Google refused (they keep the phone voice)
+       work/usage.json            characters sent per month (the free-tier guard)
 
-Engines
-  chatterbox  Resemble AI's open multilingual model (MIT), using its own built-in voice. Needs a GPU.
-              ASSUMES the Chatterbox Multilingual API as documented at
-              github.com/resemble-ai/chatterbox -- UNTESTED here (no GPU,
-              no Hugging Face access in the sandbox this was written in).
-              If the API has moved, only ChatterboxEngine below changes.
-  tone        Test engine: a short beep per text. Proves the rest of the
-              pipeline (pack, app) without a model. Not for real use.
-  <your own>  Skip this script: put <key>.wav files in work/<lang>/wav/
-              from any other engine and go straight to pack.mjs.
+The voice: Google Cloud Text-to-Speech, Chirp 3: HD, voice "Aoede", the same
+voice for German (de-DE-Chirp3-HD-Aoede) and French (fr-FR-Chirp3-HD-Aoede).
+No GPU, no model download: each text is one HTTPS request.
+
+Cost guard: Google's free tier for Chirp 3: HD is 1,000,000 characters a month.
+Both decks together are about 405,000. Before sending anything this script adds
+up what it is about to send plus what this work folder already sent this month,
+and refuses to start if that would pass --max-chars-month (default 900,000).
+It also stays under Google's default limit of 200 requests a minute.
 
 Fixing individual clips
-  overrides/<lang>.json   {"text as written in the deck": "how to say it"} —
-                          used for synthesis only; the app still looks the clip up
-                          under the original text. Use it for a word the model
-                          mispronounces (respell it), then --redo-file it.
-  --redo-file list.txt    one deck text per line: delete those clips and make
-                          them again (new random seed each time).
+  overrides/<lang>.json  {"text as written in the deck": "how to say it"}: used for
+                         synthesis only; the app still finds the clip under the
+                         original text. Then --redo-file it.
+  --redo-file list.txt   one deck text per line: delete those clips and make them again.
 
---verify (recommended): transcribes each clip back with Whisper
-(faster-whisper) and compares it with the text. A clip that doesn't
-match (garbled word, extra babble, wrong language) is retried with a
-new random seed, up to --retries times, then listed in failures.json
-and left out of the pack, so those words keep the system voice instead
-of teaching you a wrong pronunciation.
+Engines: "google" (the real one) and "tone" (a beep per text, for testing the
+pipeline without a key).
 """
 import argparse
-import difflib
-import inspect
+import base64
+import fcntl
+import io
 import json
 import math
 import os
-import re
 import struct
 import sys
+import threading
 import time
-import unicodedata
+import urllib.error
+import urllib.request
 import wave
-import zlib
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timezone
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-# AUDIO_WORK: keep intermediate files somewhere that survives (Drive on Colab).
+# AUDIO_WORK: keep intermediate files somewhere else (optional).
 WORK = os.environ.get("AUDIO_WORK") or os.path.join(HERE, "work")
+LOCALES = {"de": "de-DE", "fr": "fr-FR"}
+ENDPOINT = os.environ.get("GOOGLE_TTS_ENDPOINT", "https://texttospeech.googleapis.com/v1/text:synthesize")
+SAMPLE_RATE = 24000
+
+
+class Fatal(Exception):
+    """Stop everything (bad key, API off, budget reached)."""
+
+
+class Refused(Exception):
+    """Google won't say this one text; record it and carry on."""
 
 
 # ---------------------------------------------------------------- engines
 
-class ToneEngine:
-    """A beep whose length follows the text. Pipeline test only."""
-    sr = 24000
-
-    def __init__(self, args):
-        pass
-
-    def synth(self, text, kind, seed):
-        secs = min(8.0, 0.35 + 0.055 * len(text))
-        f = 300 + (sum(map(ord, text)) % 400)
-        n = int(self.sr * secs)
-        frames = bytearray()
-        for i in range(n):
-            env = min(1.0, i / 800, (n - i) / 800)
-            frames += struct.pack("<h", int(9000 * env * math.sin(2 * math.pi * f * i / self.sr)))
-        return bytes(frames), self.sr
-
-
-class ChatterboxEngine:
-    """Chatterbox Multilingual (github.com/resemble-ai/chatterbox, MIT).
-
-    API as in the project's example_tts.py:
-        ChatterboxMultilingualTTS.from_pretrained(device=..., t3_model="v3")
-        model.generate(text, language_id="fr", audio_prompt_path=...)  -> tensor
-        model.sr
-    """
-
-    def __init__(self, args):
-        import torch
-        from chatterbox.mtl_tts import ChatterboxMultilingualTTS
-        self.torch = torch
-        device = args.device or ("cuda" if torch.cuda.is_available() else "cpu")
-        if device == "cpu":
-            print("WARNING: no GPU found - this will be very slow.", file=sys.stderr)
-        try:
-            self.model = ChatterboxMultilingualTTS.from_pretrained(device=device, t3_model=args.t3_model)
-            print(f"Loaded Chatterbox Multilingual ({args.t3_model}) on {device}")
-        except TypeError:
-            # an older package without the t3_model option
-            self.model = ChatterboxMultilingualTTS.from_pretrained(device=device)
-            print(f"Loaded Chatterbox Multilingual (package default; no t3_model option) on {device}")
-        self.sr = self.model.sr
-        self.lang = args.lang
-        # Pass only the options this installed version understands.
-        params = inspect.signature(self.model.generate).parameters
-        takes_any = any(p.kind == inspect.Parameter.VAR_KEYWORD for p in params.values())
-        wanted = {"language_id": self.lang, "exaggeration": args.exaggeration,
-                  "cfg_weight": args.cfg_weight, "temperature": args.temperature}
-        self.kwargs = {k: v for k, v in wanted.items() if takes_any or k in params}
-        skipped = sorted(set(wanted) - set(self.kwargs))
-        if skipped:
-            print(f"NOTE: this Chatterbox version ignores: {', '.join(skipped)}", file=sys.stderr)
-        print("Using the model's built-in voice.")
-
-    def synth(self, text, kind, seed):
-        torch = self.torch
-        torch.manual_seed(seed)
-        if torch.cuda.is_available():
-            torch.cuda.manual_seed_all(seed)
-        wav = self.model.generate(text, **self.kwargs)     # tensor, shape (1, n)
-        samples = wav.squeeze().detach().cpu().clamp(-1, 1).numpy()
-        pcm = (samples * 32767).astype("<i2").tobytes()
-        return pcm, self.sr
-
-
-ENGINES = {"tone": ToneEngine, "chatterbox": ChatterboxEngine}
-
-
-# ----------------------------------------------------------------- helpers
-
-def load_overrides(lang):
-    path = os.path.join(HERE, "overrides", lang + ".json")
-    if not os.path.exists(path):
-        return {}
-    data = json.load(open(path, encoding="utf8"))
-    return {k: v for k, v in data.items() if isinstance(v, str) and not k.startswith("_")}
-
-
-def tts_text(text, kind, args, overrides=None):
-    text = (overrides or {}).get(text, text)
-    t = text.replace("…", "...").replace("¨", "").replace("’", "'")
-    t = re.sub(r"\s+", " ", t).strip()
-    # Models read a bare single word better with a full stop after it.
-    if kind == "w" and args.word_suffix and not re.search(r"[.!?]$", t):
-        t += args.word_suffix
-    return t
-
-
-def write_wav(path, pcm, sr):
-    tmp = path + ".part"
-    with wave.open(tmp, "wb") as w:
+def wav_bytes(pcm, sr):
+    buf = io.BytesIO()
+    with wave.open(buf, "wb") as w:
         w.setnchannels(1)
         w.setsampwidth(2)
         w.setframerate(sr)
         w.writeframes(pcm)
+    return buf.getvalue()
+
+
+class ToneEngine:
+    """A beep whose length follows the text. Pipeline test only."""
+
+    def __init__(self, args):
+        pass
+
+    def synth(self, text):
+        secs = min(8.0, 0.35 + 0.055 * len(text))
+        f = 300 + (sum(map(ord, text)) % 400)
+        n = int(SAMPLE_RATE * secs)
+        pcm = b"".join(struct.pack("<h", int(9000 * min(1.0, i / 800, (n - i) / 800) * math.sin(2 * math.pi * f * i / SAMPLE_RATE))) for i in range(n))
+        return wav_bytes(pcm, SAMPLE_RATE)
+
+
+class GoogleEngine:
+    """Google Cloud Text-to-Speech REST API, Chirp 3: HD voices."""
+
+    RETRY = {408, 429, 500, 502, 503, 504}
+
+    def __init__(self, args):
+        self.key = os.environ.get("GOOGLE_TTS_API_KEY", "").strip()
+        if not self.key:
+            raise Fatal("GOOGLE_TTS_API_KEY is not set. Add it as an environment variable (see tools/audio/README.md).")
+        self.voice = {"languageCode": LOCALES[args.lang], "name": f"{LOCALES[args.lang]}-Chirp3-HD-{args.voice}"}
+        self.rate = args.speaking_rate
+        self.limiter = None          # set by main(): every attempt, retries included, waits its turn
+        print(f"Google voice: {self.voice['name']}")
+
+    def synth(self, text):
+        body = json.dumps({
+            "input": {"text": text},
+            "voice": self.voice,
+            "audioConfig": {"audioEncoding": "LINEAR16", "sampleRateHertz": SAMPLE_RATE, "speakingRate": self.rate},
+        }).encode()
+        delay = 2.0
+        detail = ""
+        for attempt in range(8):
+            if self.limiter:
+                self.limiter.wait()
+            req = urllib.request.Request(ENDPOINT, data=body, method="POST", headers={
+                "Content-Type": "application/json; charset=utf-8",
+                "X-Goog-Api-Key": self.key,          # in a header: never in a URL or a log
+            })
+            try:
+                with urllib.request.urlopen(req, timeout=60) as res:
+                    audio = base64.b64decode(json.load(res)["audioContent"])
+                # LINEAR16 comes back as a WAV file; wrap it if it is bare PCM.
+                return audio if audio[:4] == b"RIFF" else wav_bytes(audio, SAMPLE_RATE)
+            except urllib.error.HTTPError as e:
+                detail = _error_text(e)
+                if e.code in (401, 403):
+                    raise Fatal(f"Google refused the key (HTTP {e.code}): {detail}\n"
+                                "Check: the key is right, Cloud Text-to-Speech API is enabled, billing is linked, "
+                                "and the key's API restriction allows Text-to-Speech.")
+                if e.code == 400:
+                    raise Refused(f"HTTP 400: {detail}")
+                if e.code not in self.RETRY:
+                    raise Fatal(f"Unexpected HTTP {e.code}: {detail}")
+                try:
+                    wait = float(e.headers.get("Retry-After") or delay)
+                except ValueError:
+                    wait = delay
+            except (urllib.error.URLError, TimeoutError, ConnectionError, OSError, ValueError, KeyError) as e:
+                wait = delay
+                detail = f"{type(e).__name__}: {e}"
+            time.sleep(min(wait, 60))
+            delay = min(delay * 2, 60)
+        raise Refused(f"gave up after 8 tries: {detail}")
+
+
+def _error_text(e):
+    try:
+        err = json.loads(e.read()).get("error", {})
+        return f"{err.get('status', '')} {err.get('message', '')}".strip()[:300]
+    except Exception:
+        return str(getattr(e, "reason", ""))
+
+
+ENGINES = {"google": GoogleEngine, "tone": ToneEngine}
+
+
+# ----------------------------------------------------------------- helpers
+
+class RateLimiter:
+    """At most `per_minute` request starts per minute, shared by all threads."""
+
+    def __init__(self, per_minute):
+        self.gap = 60.0 / per_minute
+        self.next = time.monotonic()
+        self.lock = threading.Lock()
+
+    def wait(self):
+        with self.lock:
+            now = time.monotonic()
+            t = max(now, self.next)
+            self.next = t + self.gap
+        if t > now:
+            time.sleep(t - now)
+
+
+class Ledger:
+    """Characters sent this month from this work folder (the free-tier guard).
+
+    Safe across processes: every update locks the file and re-reads it, so two
+    runs at once (German and French in parallel, say) can't both slip under the
+    cap and pass it together."""
+
+    def __init__(self, cap):
+        self.path = os.path.join(WORK, "usage.json")
+        self.cap = cap
+        self.month = datetime.now(timezone.utc).strftime("%Y-%m")
+        self.lock = threading.Lock()
+        os.makedirs(WORK, exist_ok=True)
+
+    @property
+    def used(self):
+        return load_json(self.path, {}).get(self.month, 0)
+
+    def take(self, n):
+        with self.lock, open(self.path + ".lock", "w") as lf:
+            fcntl.flock(lf, fcntl.LOCK_EX)
+            data = load_json(self.path, {})
+            used = data.get(self.month, 0)
+            if used + n > self.cap:
+                raise Fatal(f"Monthly character cap reached ({used:,} sent + {n} > {self.cap:,}). "
+                            "Stopping so this stays inside Google's free tier. Next month, or raise --max-chars-month.")
+            data[self.month] = used + n
+            save_json(self.path, data)
+
+
+def load_json(path, default):
+    try:
+        return json.load(open(path, encoding="utf8"))
+    except Exception:
+        return default
+
+
+def save_json(path, data):
+    tmp = path + ".part"
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    json.dump(data, open(tmp, "w", encoding="utf8"), ensure_ascii=False, indent=1)
     os.replace(tmp, path)
 
 
-def norm_for_compare(s):
-    s = unicodedata.normalize("NFC", s).lower().replace("’", "'")
-    s = re.sub(r"[^\w\s']", " ", s)
-    return re.sub(r"\s+", " ", s).strip()
-
-
-class Verifier:
-    """Whisper round-trip: does the clip say what it should?"""
-
-    def __init__(self, lang, device, size):
-        from faster_whisper import WhisperModel
-        dev = device
-        if not dev:
-            try:
-                import torch
-                dev = "cuda" if torch.cuda.is_available() else "cpu"
-            except ImportError:
-                dev = "cpu"
-        # float16 on a GPU; int8 keeps a CPU run feasible
-        self.model = WhisperModel(size, device=dev, compute_type="float16" if dev == "cuda" else "int8")
-        self.lang = lang
-
-    def heard(self, wav_path):
-        segs, _ = self.model.transcribe(wav_path, language=self.lang, beam_size=5,
-                                        vad_filter=False, condition_on_previous_text=False)
-        return " ".join(s.text for s in segs).strip()
-
-    def score(self, text, wav_path):
-        want = norm_for_compare(text)
-        got = norm_for_compare(self.heard(wav_path))
-        return difflib.SequenceMatcher(None, want, got).ratio(), got
+def load_overrides(lang):
+    data = load_json(os.path.join(HERE, "overrides", lang + ".json"), {})
+    return {k: v for k, v in data.items() if isinstance(v, str) and not k.startswith("_")}
 
 
 # -------------------------------------------------------------------- main
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--lang", required=True, choices=["de", "fr"])
-    ap.add_argument("--engine", default="chatterbox", choices=sorted(ENGINES))
-    ap.add_argument("--device", help="cuda / cpu / mps (default: auto)")
-    ap.add_argument("--limit", type=int, help="only the first N texts (try this first!)")
+    ap.add_argument("--lang", required=True, choices=sorted(LOCALES))
+    ap.add_argument("--engine", default="google", choices=sorted(ENGINES))
+    ap.add_argument("--voice", default="Aoede", help="Chirp 3: HD voice name (the same for every language)")
+    ap.add_argument("--speaking-rate", type=float, default=1.0)
+    ap.add_argument("--limit", type=int, help="only the first N texts")
     ap.add_argument("--kind", choices=["w", "s"], help="only words or only sentences")
-    ap.add_argument("--part", help="i/n: do the i-th of n slices, to split work across machines (e.g. 1/2)")
-    ap.add_argument("--retry-failures", action="store_true", help="forget failures.json and try those clips again")
-    ap.add_argument("--verify", action="store_true", help="check each clip with Whisper and retry bad ones")
-    ap.add_argument("--whisper-model", default="large-v3")
-    ap.add_argument("--min-score", type=float, default=0.88, help="similarity (0-1) a clip needs to pass --verify")
-    ap.add_argument("--retries", type=int, default=3)
-    ap.add_argument("--word-suffix", default=".", help='appended to bare single words before synthesis ("" to disable)')
-    ap.add_argument("--t3-model", default="v3", help='Chatterbox multilingual checkpoint ("v3" = newest; falls back to the package default)')
+    ap.add_argument("--part", help="i/n: do the i-th of n slices")
+    ap.add_argument("--workers", type=int, default=6)
+    ap.add_argument("--per-minute", type=int, default=180, help="request rate (Google's default limit is 200/min)")
+    ap.add_argument("--max-chars-month", type=int, default=900_000, help="stop before sending more than this per month")
+    ap.add_argument("--retry-failures", action="store_true", help="forget failures.json and try those texts again")
     ap.add_argument("--redo-file", help="text file, one deck text per line: make those clips again")
-    ap.add_argument("--exaggeration", type=float, default=0.5)
-    ap.add_argument("--cfg-weight", type=float, default=0.5)
-    ap.add_argument("--temperature", type=float, default=0.8)
     args = ap.parse_args()
 
     work = os.path.join(WORK, args.lang)
@@ -226,66 +258,90 @@ def main():
     wav_dir = os.path.join(work, "wav")
     os.makedirs(wav_dir, exist_ok=True)
     fail_path = os.path.join(work, "failures.json")
-    failures = {}
-    if os.path.exists(fail_path) and not args.retry_failures:
-        failures = {f["key"]: f for f in json.load(open(fail_path, encoding="utf8"))}
+    failures = {} if args.retry_failures else {f["key"]: f for f in load_json(fail_path, [])}
 
     if args.redo_file:
         want = {line.strip() for line in open(args.redo_file, encoding="utf8") if line.strip()}
         redo = [t for t in texts if t["text"] in want]
         for t in redo:
-            for pth in (os.path.join(wav_dir, t["key"] + ".wav"),):
-                if os.path.exists(pth):
-                    os.remove(pth)
+            p = os.path.join(wav_dir, t["key"] + ".wav")
+            if os.path.exists(p):
+                os.remove(p)
             failures.pop(t["key"], None)
-        print(f"--redo-file: {len(redo)} of {len(want)} listed texts found in texts.json, will be made again")
+        print(f"--redo-file: {len(redo)} of {len(want)} listed texts found, will be made again")
 
     overrides = load_overrides(args.lang)
+    say = lambda t: overrides.get(t["text"], t["text"])
     todo = [t for t in texts if not os.path.exists(os.path.join(wav_dir, t["key"] + ".wav")) and t["key"] not in failures]
-    print(f"{len(texts)} texts, {len(texts) - len(todo)} already done, {len(todo)} to go")
+    chars = sum(len(say(t)) for t in todo)
+    refused = sum(1 for t in texts if t["key"] in failures)
+    print(f"{len(texts)} texts: {len(texts) - len(todo) - refused} already done, "
+          + (f"{refused} refused earlier (see failures.json), " if refused else "")
+          + f"{len(todo)} to go ({chars:,} characters)")
     if not todo:
         return
 
-    engine = ENGINES[args.engine](args)
-    verifier = Verifier(args.lang, args.device, args.whisper_model) if args.verify else None
-
-    started = time.time()
-    ok = bad = 0
     try:
-        for n, t in enumerate(todo, 1):
-            key, text, kind = t["key"], t["text"], t["kind"]
-            path = os.path.join(wav_dir, key + ".wav")
-            # Attempts are written to a scratch file and only moved into place
-            # once they pass, so a stop in the middle never leaves an
-            # unverified clip that a later run would take for finished.
-            attempt_path = os.path.join(work, "attempt.wav")
-            last = None
-            for attempt in range(args.retries + 1 if verifier else 1):
-                pcm, sr = engine.synth(tts_text(text, kind, args, overrides), kind, seed=1000 * attempt + (zlib.crc32(key.encode()) & 0xFFFF))
-                write_wav(attempt_path, pcm, sr)
-                if not verifier:
-                    break
-                score, heard = verifier.score(text, attempt_path)
-                last = {"key": key, "text": text, "heard": heard, "score": round(score, 3)}
-                if score >= args.min_score:
-                    last = None
-                    break
-            if last:                                   # never passed
-                failures[key] = last
-                bad += 1
-            else:
-                os.replace(attempt_path, path)
-                ok += 1
-            if n % 25 == 0 or n == len(todo):
-                rate = n / max(1e-6, time.time() - started)
-                print(f"  {n}/{len(todo)}  ok {ok}  failed {bad}  ({rate:.1f}/s, ~{(len(todo) - n) / max(rate, 1e-6) / 60:.0f} min left)", flush=True)
-                json.dump(list(failures.values()), open(fail_path, "w", encoding="utf8"), ensure_ascii=False, indent=1)
-                json.dump({"per_second": round(rate, 3), "done": n, "of": len(todo), "ok": ok, "failed": bad}, open(os.path.join(work, "speed.json"), "w"))
+        engine = ENGINES[args.engine](args)
+    except Fatal as e:
+        sys.exit(f"\nSTOPPED: {e}")
+    ledger = Ledger(args.max_chars_month) if args.engine == "google" else None
+    if ledger and ledger.used + chars > ledger.cap:
+        sys.exit(f"\nSTOPPED before sending anything: this would send {chars:,} characters and {ledger.used:,} were "
+                 f"already sent this month (cap {ledger.cap:,}). The free tier is 1,000,000 a month.")
+    if ledger:
+        print(f"characters sent this month so far: {ledger.used:,} (cap {ledger.cap:,})")
+
+    engine.limiter = RateLimiter(args.per_minute) if args.engine == "google" else None
+    stop = threading.Event()
+    fatal = []
+    lock = threading.Lock()
+    state = {"n": 0, "ok": 0, "bad": 0, "t0": time.time()}
+
+    def one(t):
+        if stop.is_set():
+            return
+        text = say(t)
+        try:
+            if ledger:
+                ledger.take(len(text))
+            if stop.is_set():
+                return
+            audio = engine.synth(text)
+            path = os.path.join(wav_dir, t["key"] + ".wav")
+            with open(path + ".part", "wb") as f:
+                f.write(audio)
+            os.replace(path + ".part", path)
+            ok = True
+        except Refused as e:
+            ok = False
+            with lock:
+                failures[t["key"]] = {"key": t["key"], "text": t["text"], "error": str(e)}
+        except Fatal as e:
+            fatal.append(str(e))
+            stop.set()
+            return
+        with lock:
+            state["n"] += 1
+            state["ok" if ok else "bad"] += 1
+            n = state["n"]
+            if n % 50 == 0 or n == len(todo):
+                rate = n / max(1e-6, time.time() - state["t0"])
+                print(f"  {n}/{len(todo)}  ok {state['ok']}  failed {state['bad']}  ({rate:.1f}/s, ~{(len(todo) - n) / max(rate, 1e-6) / 60:.0f} min left)", flush=True)
+                save_json(fail_path, list(failures.values()))
+                save_json(os.path.join(work, "speed.json"), {"per_second": round(rate, 3), "done": n, "of": len(todo), "ok": state["ok"], "failed": state["bad"]})
+
+    try:
+        with ThreadPoolExecutor(max_workers=max(1, args.workers)) as pool:
+            list(pool.map(one, todo))
     except KeyboardInterrupt:
+        stop.set()
         print("\nstopped - run the same command again to continue")
-    json.dump(list(failures.values()), open(fail_path, "w", encoding="utf8"), ensure_ascii=False, indent=1)
+    save_json(fail_path, list(failures.values()))
+    if fatal:
+        sys.exit(f"\nSTOPPED: {fatal[0]}\n(finished clips are kept; fix the problem and run the same command again)")
     if failures:
-        print(f"{len(failures)} clips failed verification (see {fail_path}); they will use the system voice.")
+        print(f"{len(failures)} texts were refused (see {fail_path}); they keep the phone's voice.")
 
 
 if __name__ == "__main__":

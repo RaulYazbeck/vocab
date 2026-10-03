@@ -16,9 +16,8 @@ export const LANGS = {
         groups: "[DECKS_A1, DECKS_A2, DECKS_B1]", speech: "fr-FR" },
 };
 
-// Intermediate files (texts, WAVs, encoded clips). Set AUDIO_WORK to keep
-// them somewhere that survives (e.g. Google Drive on Colab) so a run can be
-// stopped and resumed.
+// Intermediate files (texts, WAVs, encoded clips). AUDIO_WORK puts them
+// somewhere else (optional; tests use it).
 export function workDir(lang) {
   return path.join(process.env.AUDIO_WORK || path.join(ROOT, "tools/audio/work"), lang);
 }
