@@ -12,7 +12,7 @@ Voice: Google Chirp 3 HD · Aoede. Generated in about 2 hours (Oct 3, 2026). Cha
 - texts the app can say: **7692**
 - recorded and in the pack: **7692**
 - refused by Google (keep the phone voice): **0**
-- pack size: words 10.2 MB (4042 clips), sentences 19.3 MB (3650 clips), 15 files
+- pack size: words 10.3 MB (4042 clips), sentences 19.3 MB (3650 clips), 15 files
 
 Listening page: `tools/audio/last-run/samples.html` (download it and open it in a browser; it plays on phones too).
 
@@ -41,3 +41,16 @@ with a phone recognizer (allosaurus) on every word clip, plus a hiss measure on 
 
 Pages to check by ear: `check-fr.html` (the fixes, 136 clips) and `check-de.html` (German edge
 cases, 163 clips).
+
+## Third pass: German "…" pairs and cut-off endings
+Reported by ear: "je … desto" sounded French, "um … zu" had something at the end.
+- The "…" made Google add a stray sound or clip the end; every "…" is now sent as "...".
+  "je … desto" is sent as "je ..., desto ..." (German "je"); for it and "um / ohne … zu",
+  "entweder … oder" the take with a clear pause and clean ending was picked from several.
+- A wider check found clips whose last sound was cut off (still loud in the last 50 ms):
+  **343 German and 105 French**, all re-made; 2 borderline ones remain. synth.py now checks
+  this on every clip (and `--redo-cut` re-checks old ones).
+- Still 100% coverage; every packed clip decodes in the app (browser test 12/12).
+  Characters sent this month: 418,534 (free tier 1,000,000).
+
+Page: `check-cutoff.html` (the "…" phrases and examples of re-made endings, 51 clips).

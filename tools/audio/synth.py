@@ -45,6 +45,11 @@ one is made again as "word.", "Word.", "word!", "Word!" until one is audible
 (recorded in work/<lang>/variants.json). If none is, the text is listed as
 refused and keeps the phone voice; it never ends up in the pack as silence.
 
+Cut-off guard: Google sometimes stops a clip mid-sound (the last syllable is
+clipped: "puissent", "die Standpunkte"). A clip whose last 50 ms is still within
+25 dB of its peak is asked for again, then as "text." and "text,"; the cleanest
+ending is kept. --redo-cut re-checks every existing clip the same way.
+
 Engines: "google" (the real one) and "tone" (a beep per text, for testing the
 pipeline without a key).
 """
@@ -218,6 +223,30 @@ def peak_db(wav):
     return 20 * math.log10(peak / 32768) if peak else -120.0
 
 
+CUT_DB = -25.0         # a clip that ends this close to its peak was cut off mid-sound
+
+
+def end_db(wav):
+    """Level of the last 50 ms of a 16-bit mono WAV, relative to its peak (dB)."""
+    with wave.open(io.BytesIO(wav)) as w:
+        rate = w.getframerate()
+        a = array.array("h", w.readframes(w.getnframes()))
+    if sys.byteorder == "big":
+        a.byteswap()
+    tail = a[-max(1, rate // 20):]
+    peak = max((abs(x) for x in a), default=0)
+    rms = math.sqrt(sum(x * x for x in tail) / len(tail)) if tail else 0
+    return 20 * math.log10(rms / peak) if rms and peak else -120.0
+
+
+def cut_variants(text):
+    """Other ways to send a text whose clip comes back cut off (never shouted)."""
+    base = text.rstrip(".,!?… ")
+    if text[-1:] in "?!":
+        return [text]                            # a question stays a question: plain retries only
+    return [v for v in (text, base + ".", base + ",") if v]
+
+
 def variants(text):
     """Other ways to send a text that comes back near-silent."""
     cap = text[:1].upper() + text[1:]
@@ -309,6 +338,7 @@ def main():
     ap.add_argument("--per-minute", type=int, default=180, help="request rate (Google's default limit is 200/min)")
     ap.add_argument("--max-chars-month", type=int, default=900_000, help="stop before sending more than this per month")
     ap.add_argument("--retry-failures", action="store_true", help="forget failures.json and try those texts again")
+    ap.add_argument("--redo-cut", action="store_true", help="re-check every existing clip and make again the ones cut off mid-sound")
     ap.add_argument("--redo-file", help="text file, one deck text per line: make those clips again")
     args = ap.parse_args()
 
@@ -341,7 +371,9 @@ def main():
         print(f"--redo-file: {len(redo)} of {len(want)} listed texts found, will be made again")
 
     overrides = load_overrides(args.lang)
-    say = lambda t: overrides.get(t["text"]) or t.get("say") or t["text"]
+    # The typographic "…" makes Google add a stray sound or clip the end ("um … zu");
+    # three plain dots give a clean pause.
+    say = lambda t: (overrides.get(t["text"]) or t.get("say") or t["text"]).replace("…", "...")
     # What each existing clip was made from. Clips from before this record
     # existed count as made from the override or the plain text.
     spoken_path = os.path.join(work, "spoken.json")
@@ -353,6 +385,12 @@ def main():
               f"(e.g. {', '.join(repr(t['text']) + ' → ' + repr(say(t)) for t in stale[:4])})")
         for t in stale:
             failures.pop(t["key"], None)
+    if args.redo_cut and args.engine == "google":
+        cut = [t for t in texts if t not in stale and os.path.exists(os.path.join(wav_dir, t["key"] + ".wav"))
+               and end_db(open(os.path.join(wav_dir, t["key"] + ".wav"), "rb").read()) > CUT_DB]
+        print(f"--redo-cut: {len(cut)} clips end cut off and will be made again"
+              + (f" (e.g. {', '.join(repr(t['text']) for t in cut[:4])})" if cut else ""))
+        stale += cut
     stale_keys = {t["key"] for t in stale}
     todo = [t for t in texts if (t["key"] in stale_keys or not os.path.exists(os.path.join(wav_dir, t["key"] + ".wav"))) and t["key"] not in failures]
     chars = sum(len(say(t)) for t in todo)
@@ -406,6 +444,18 @@ def main():
                         break
                 else:
                     raise Refused("Google returned near-silence for every way of sending it")
+            if args.engine == "google" and end_db(audio) > CUT_DB:
+                best, best_v = (end_db(audio), audio), used
+                for v in cut_variants(used or text):
+                    if ledger:
+                        ledger.take(len(v))
+                    a = engine.synth(v)
+                    e = end_db(a)
+                    if peak_db(a) >= SILENT_DB and e < best[0]:
+                        best, best_v = (e, a), (None if v == text else v)
+                    if e <= CUT_DB:
+                        break
+                audio, used = best[1], best_v
             path = os.path.join(wav_dir, t["key"] + ".wav")
             with open(path + ".part", "wb") as f:
                 f.write(audio)

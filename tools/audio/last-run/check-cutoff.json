@@ -1,0 +1,67 @@
+{
+ "de": {
+  "The two you reported": [
+   "je … desto",
+   "um … zu"
+  ],
+  "The other pairs with “…” (now a clean pause, no stray sound at the end)": [
+   "ohne … zu",
+   "anstatt … zu",
+   "weder … noch",
+   "entweder … oder",
+   "zwar … aber",
+   "sowohl … als auch",
+   "nicht nur … sondern auch"
+  ],
+  "Other phrases with “…” or a placeholder": [
+   "Sehr geehrte Damen und Herren, …",
+   "Ich heiße (name).",
+   "„Ich nehme die/das/den... bitte.“",
+   "„Einmal die/das/den... bitte.“",
+   "„Ich hätte gerne... bitte.“",
+   "Eins, zwei, drei..."
+  ],
+  "Words whose last sound had been cut off (re-made: 343 in German)": [
+   "die Standpunkte",
+   "der November",
+   "die Söhne",
+   "das Baby",
+   "die Toilette",
+   "die Tische",
+   "die Säfte",
+   "oben",
+   "bei",
+   "wieder",
+   "ob",
+   "die Nerven",
+   "die Einrichtung",
+   "die Versicherung",
+   "die Regierung",
+   "die Übersetzung",
+   "das Haar",
+   "die Methode",
+   "meinen",
+   "entschuldigen",
+   "der Glückwunsch",
+   "der Tag"
+  ]
+ },
+ "fr": {
+  "Words whose last sound had been cut off (re-made: 105 in French)": [
+   "ils tiendront",
+   "ayez",
+   "tu serais",
+   "que nous prenions",
+   "la confirmation",
+   "s'il vous plaît",
+   "le prénom",
+   "le petit-déjeuner",
+   "en espèces",
+   "la comparaison",
+   "la plupart du temps",
+   "l'immigration",
+   "devons",
+   "prenons"
+  ]
+ }
+}

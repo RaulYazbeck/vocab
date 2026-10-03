@@ -110,6 +110,23 @@ In the first real run this caught 45 of 18,477 clips, all fixed: some by a plain
 retry, the rest by a full stop or exclamation mark. The listening page has a
 section with the ones that needed a changed spelling, to check by ear.
 
+### Cut-off endings (handled automatically)
+Google sometimes stops a clip in the middle of its last sound (the end of
+"puissent", "die Standpunkte", "um … zu"). `synth.py` checks how loud the last
+50 ms of every clip is: if it is within 25 dB of the clip's peak, the text is
+asked for again, then sent as "text." and "text,", and the cleanest ending is
+kept. `python tools/audio/synth.py --lang de --redo-cut` re-checks every clip
+already made (this re-made 343 German and 105 French clips in the first pass).
+Google's takes also vary from one request to the next, so asking again often
+gives a better clip.
+
+### "…" in a text
+The typographic "…" made Google add a stray sound or clip the end, so it is
+always sent as three plain dots "...", which give a clean pause. "je … desto"
+alone was read with a French "je"; it is sent as "je ..., desto ..." (an
+override), and for it and "um / ohne … zu", "entweder … oder" the take with a
+clear pause was picked by measuring several takes.
+
 ### French verb forms are said with their pronoun
 A conjugation card's bare form, said alone, is often read as a different word:
 "as" came out as "ass" (like the playing card, *un as*), "ai" as "aï", "es" as "ess", "est"

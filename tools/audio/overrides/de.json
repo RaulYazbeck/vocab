@@ -1,5 +1,5 @@
 {
- "_note": "Very short single words: Google returned near-silence for the bare word, so it is sent with a full stop. Texts with dictionary shorthand or a placeholder are sent as they should be read.",
+ "_note": "Very short single words: Google returned near-silence for the bare word, so it is sent with a full stop. Texts with dictionary shorthand or a placeholder are sent as they should be read. \"je … desto\" needs the commas, or Google reads the French \"je\". (Every \"…\" is sent as \"...\": see synth.py.)",
  "ja": "Ja.",
  "machen": "Machen.",
  "es": "es.",
@@ -15,5 +15,6 @@
  "die Vokabeln always pl.": "die Vokabeln",
  "„Ich nehme die/das/den... bitte.“": "Ich nehme den … bitte.",
  "„Einmal die/das/den... bitte.“": "Einmal den … bitte.",
- "Ich heiße (name).": "Ich heiße …"
+ "Ich heiße (name).": "Ich heiße …",
+ "je … desto": "je ..., desto ..."
 }
