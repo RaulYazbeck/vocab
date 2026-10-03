@@ -28,7 +28,7 @@ const QUEST_NO_REPEAT_DAYS = 5;
 // Chest items you can hold at most (⚡ boosts have no cap: they're used
 // up by themselves). One past its cap turns into XP — the other items'
 // odds never change.
-const FREEZE_CAP = 2, SHIELD_CAP = 2, TOKEN_CAP = 5, BOOST_RATE = 0.2;
+const FREEZE_CAP = 2, SHIELD_CAP = 2, TOKEN_CAP = 5, BOOST_RATE = 0.5;
 
 function migrateQuests() {
   if (!S.quests || typeof S.quests !== "object") S.quests = {};
@@ -1061,7 +1061,7 @@ const CHEST_LOOT = {
 };
 const CHEST_ITEMS = {
   token:  { field: "tokens",  label: "🎟️ Reroll token", full: "🎟️ Rerolls full", cap: TOKEN_CAP, capXp: 13 },
-  boost:  { field: "boosts",  label: "⚡ XP boost — your next session ×1.2" },
+  boost:  { field: "boosts",  label: "⚡ XP boost — your next session ×1.5" },
   shield: { field: "shields", label: "🛡️ Memory shield", full: "🛡️ Shields full", cap: SHIELD_CAP, capXp: 25 },
   key:    { field: "keys",    label: "🗝️ Boss key — summon a minion" },
   freeze: { field: "freezes", label: "🧊 Streak freeze", full: "🧊 Freezes full", cap: FREEZE_CAP, capXp: 42 },
@@ -1115,7 +1115,7 @@ function openPendingChest() {
   saveState();
   showChestModal(ch, res);
 }
-const CHEST_SRC = { daily: "Daily chest", weekly: "Weekly chest", flash: "Flash quest chest", lucky: "Lucky drop", double: "✨ Double reward", weekend: "Weekend bonus", world: "World boss chest", saga: "Saga chest", boss: "👑 Deck boss chest", minion: "⚔️ Minion chest" };
+const CHEST_SRC = { daily: "Daily chest", weekly: "Weekly chest", flash: "Flash quest chest", lucky: "Lucky drop", double: "✨ Double reward", weekend: "Weekend bonus", world: "World boss chest", saga: "Saga chest", boss: "👑 Deck boss chest", rematch: "⚔️ Rematch chest", minion: "⚔️ Minion chest" };
 // The opening: the chest lands in the middle of the screen as a plain
 // Common chest and takes a few taps. Some taps upgrade it — Rare, Epic,
 // Legendary — up to the rarity it already rolled (rollRarity decides,
@@ -1575,7 +1575,7 @@ function renderCollection() {
     <div class="coll-stats">
       <span class="p-chip" title="Covers a missed day automatically">🧊 ${Q.freezes}/${FREEZE_CAP} freezes</span>
       <span class="p-chip" title="Tap 🎲 on a quest to swap it (one free reroll a day, then tokens)">🎟️ ${Q.tokens}/${TOKEN_CAP} rerolls</span>
-      <span class="p-chip" title="Each one adds ×1.2 XP to your next Today session, automatically">⚡ ${Q.boosts} boost${Q.boosts === 1 ? "" : "s"}</span>
+      <span class="p-chip" title="Each one gives ×1.5 XP to your next Today session, automatically">⚡ ${Q.boosts} boost${Q.boosts === 1 ? "" : "s"}</span>
       <span class="p-chip" title="After a miss in a Today session, tap “🛡️ Shield it” to keep the word's stage">🛡️ ${Q.shields}/${SHIELD_CAP} shields</span>
       <span class="p-chip" title="Games → Bosses: summon a minion whenever you like">🗝️ ${Q.keys} key${Q.keys === 1 ? "" : "s"}</span>
       <span class="p-chip">📦 ${Q.chest.opened} chests opened</span>

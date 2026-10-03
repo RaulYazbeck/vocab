@@ -968,10 +968,10 @@ function endPathSession(abandoned) {
   logEvent("session_end", { kind: s.quick ? "quick5" : "path", abandoned, n: s.stats.answered, ok: s.stats.correct, ms: Date.now() - s.startedAt, at: s.i });
   questEvent("session_end", { kind: "path", len: s.lenKey, abandoned, stats: s.stats, ms: Date.now() - s.startedAt, quick: s.quick,
     ok5: s.ok5, up: s.upCount || 0, wotdHit: !!s.wotdHit });
-  // ⚡ XP boost from a chest: +20% of this session's XP (achievements
+  // ⚡ XP boost from a chest: +50% of this session's XP (achievements
   // aside), used up automatically by the next finished session.
   if (!abandoned && S.quests && S.quests.boosts > 0 && s.stats.answered >= 5) {
-    const bonus = Math.round(Math.max(0, S.exp - s.startExp - (s.badgeXp || 0)) * (typeof BOOST_RATE === "number" ? BOOST_RATE : 0.2));
+    const bonus = Math.round(Math.max(0, S.exp - s.startExp - (s.badgeXp || 0)) * (typeof BOOST_RATE === "number" ? BOOST_RATE : 0.5));
     if (bonus) { S.quests.boosts--; addExp(bonus); s.boosted = bonus; }
   }
   pathSession = null;

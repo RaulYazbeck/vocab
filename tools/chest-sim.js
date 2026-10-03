@@ -10,7 +10,8 @@ const A = {
   double: 0.25,       // ✨ double-reward quest (one quest a day pays a chest)
   flash: 0.20 * 0.8,  // ⚡ flash quest offered (20%) × finished in time
   minion: 0.10,       // ⚔️ surprise minion offered and beaten
-  deckBoss: 0.10,     // 👑 first win over a deck's boss (only the first pays; ~95 decks)
+  deckBoss: 0.10,     // 👑 first win over a deck's boss: Epic chest (~95 decks)
+  rematch: 0.05,      // 👑 rematch wins a day: a normal chest
   keyWin: 0.7,        // 🗝️ minion summoned with a key and beaten
 };
 const R = ["common", "rare", "epic", "legendary"];
@@ -63,6 +64,7 @@ function run(capped) {
     if (wd === 0) open("epic", "world");         // world boss, once a week
     if (Math.random() < A.minion) open("common", "minion");
     if (Math.random() < A.deckBoss) open("epic", "deck boss");
+    if (Math.random() < A.rematch) open("common", "rematch");
     while (keys > 0) { keys--; if (Math.random() < A.keyWin) open("common", "key minion"); }
     for (let e = 0; e < A.events; e++) { lucky++; if (lucky >= 7 || Math.random() < 0.1) { lucky = 0; open("common", "lucky"); } }
   }
