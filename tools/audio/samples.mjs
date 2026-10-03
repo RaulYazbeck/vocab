@@ -8,7 +8,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
-import { workDir, ROOT } from "./lib.mjs";
+import { workDir } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf("--" + n); return i >= 0 ? args[i + 1] : d; };
@@ -20,6 +20,7 @@ const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 42
 const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const NAMES = { de: "German", fr: "French" };
+const readJson = p => { try { return JSON.parse(fs.readFileSync(p, "utf8")); } catch (e) { return {}; } };
 
 function mp3(wav) {
   const r = spawnSync("ffmpeg", ["-v", "error", "-i", wav, "-ac", "1", "-ar", "24000", "-c:a", "libmp3lame", "-b:a", "64k", "-f", "mp3", "-"], { maxBuffer: 1 << 26 });
@@ -33,11 +34,14 @@ for (const lang of langs) {
   const texts = JSON.parse(fs.readFileSync(path.join(dir, "texts.json"), "utf8"))
     .filter(t => fs.existsSync(path.join(dir, "wav", t.key + ".wav")));
   const pick = kind => shuffle(texts.filter(t => t.kind === kind)).slice(0, Math.ceil(n / 2));
-  const rows = [...pick("w"), ...pick("s")].map(t => {
-    total++;
-    return `<li><p>${esc(t.text)}</p><audio controls preload="none" src="data:audio/mpeg;base64,${mp3(path.join(dir, "wav", t.key + ".wav"))}"></audio></li>`;
-  }).join("\n");
-  sections += `<section><h2>${NAMES[lang] || lang}</h2><ul>${rows}</ul></section>\n`;
+  const row = t => { total++; return `<li><p>${esc(t.text)}</p><audio controls preload="none" src="data:audio/mpeg;base64,${mp3(path.join(dir, "wav", t.key + ".wav"))}"></audio></li>`; };
+  // Short words Google first returned as near-silence, re-made with a full stop or
+  // an exclamation mark: worth hearing on purpose.
+  const helped = new Set([...Object.keys(readJson(path.join(dir, "variants.json"))),
+    ...Object.keys(readJson(path.join(path.dirname(new URL(import.meta.url).pathname), "overrides", lang + ".json"))).filter(k => !k.startsWith("_"))]);
+  const fixed = texts.filter(t => helped.has(t.text));
+  sections += `<section><h2>${NAMES[lang] || lang}</h2><ul>${[...pick("w"), ...pick("s")].map(row).join("\n")}</ul>` +
+    (fixed.length ? `<h3>Short words that needed a second try (${fixed.length})</h3><ul>${fixed.map(row).join("\n")}</ul>` : "") + `</section>\n`;
 }
 
 const html = `<!doctype html>
@@ -51,14 +55,14 @@ const html = `<!doctype html>
 body { margin:0; background:var(--bg); color:var(--text); font:16px/1.45 system-ui, -apple-system, Segoe UI, sans-serif; }
 main { max-width:720px; margin:0 auto; padding:24px 16px 48px; }
 h1 { font-size:1.5rem; margin:0 0 4px; } .lead { color:var(--muted); margin:0 0 24px; }
-h2 { font-size:1.15rem; margin:28px 0 10px; }
+h2 { font-size:1.15rem; margin:28px 0 10px; } h3 { font-size:1rem; margin:22px 0 8px; color:var(--muted); }
 ul { list-style:none; margin:0; padding:0; display:grid; gap:10px; }
 li { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 14px; }
 li p { margin:0 0 8px; } audio { width:100%; height:36px; }
 </style></head>
 <body><main>
 <h1>Voice samples</h1>
-<p class="lead">${total} random clips of the new AI voice (Google Chirp 3 HD, "Aoede"), words and example sentences, exactly as the app will play them. Listen for a smooth, native-sounding accent.</p>
+<p class="lead">${total} clips of the new AI voice (Google Chirp 3 HD, "Aoede"): random words and example sentences, then the short words that needed a second try. Exactly as the app will play them. Listen for a smooth, native-sounding accent.</p>
 ${sections}</main></body></html>
 `;
 fs.mkdirSync(path.dirname(out), { recursive: true });

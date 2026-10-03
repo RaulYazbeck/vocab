@@ -100,6 +100,16 @@ nothing else. Measured at full size: adding a word and changing a sentence in
 one deck changed **2 of 33 shards (4.4 MB)**; rebuilding everything from scratch
 changed **0**.
 
+### Near-silent clips (handled automatically)
+For some very short words ("oui", "et", "bist", "ja"…) Google sometimes returns
+a quarter second of near-silence instead of speech. `synth.py` checks every clip's
+level and re-makes a near-silent one as "word.", "Word.", "word!" or "Word!" until
+one is audible (`work/<lang>/variants.json` lists which). `pack.mjs` also refuses
+any clip quieter than −30 dB, so the worst case is the phone voice, never silence.
+In the first real run this caught 45 of 18,477 clips, all fixed: some by a plain
+retry, the rest by a full stop or exclamation mark. The listening page has a
+section with the ones that needed a changed spelling, to check by ear.
+
 ### Fixing one clip or a pronunciation
 - **A clip sounds wrong:** put its text (one per line) in a file, run
   `python tools/audio/synth.py --lang de --redo-file list.txt`, then

@@ -61,7 +61,7 @@ const texts = JSON.parse(fs.readFileSync(path.join(work, "texts.json"), "utf8"))
 fs.mkdirSync(encDir, { recursive: true });
 
 // Re-encode everything when any encoding setting changes.
-const settings = JSON.stringify({ fmtName, bitrate, sampleRate, TARGET_DB, v: 2 });
+const settings = JSON.stringify({ fmtName, bitrate, sampleRate, TARGET_DB, v: 2 });   // (the silence threshold doesn't change the encoding)
 const settingsFile = path.join(encDir, ".settings");
 if (!fs.existsSync(settingsFile) || fs.readFileSync(settingsFile, "utf8") !== settings) {
   for (const f of fs.readdirSync(encDir)) if (!f.startsWith(".")) fs.unlinkSync(path.join(encDir, f));
@@ -86,7 +86,9 @@ async function encode(wav, dest) {
   const log = await ffmpeg(["-i", wav, "-af", `${TRIM},volumedetect`, "-f", "null", "-"]);
   const mean = parseFloat((log.match(/mean_volume:\s*(-?[\d.]+) dB/) || [])[1]);
   const peak = parseFloat((log.match(/max_volume:\s*(-?[\d.]+) dB/) || [])[1]);
-  if (!isFinite(mean) || !isFinite(peak) || peak < -60) throw new Error("silent clip");
+  // Real speech peaks around -10..0 dB. Below -30 it is a near-silent clip (a
+  // TTS glitch): leave it out, so that word uses the phone voice, never silence.
+  if (!isFinite(mean) || !isFinite(peak) || peak < -30) throw new Error(`near-silent clip (peak ${isFinite(peak) ? peak : "?"} dB)`);
   // Pass 2: gain to the target mean, never past -1 dB peak.
   const gain = Math.max(-15, Math.min(20, TARGET_DB - mean, -1 - peak));
   // bitexact: no random Ogg serial number / version tags, so the same WAV

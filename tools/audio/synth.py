@@ -33,10 +33,17 @@ Fixing individual clips
                          original text. Then --redo-file it.
   --redo-file list.txt   one deck text per line: delete those clips and make them again.
 
+Near-silence guard: for some very short words Google returns a quarter second of
+near-silence instead of speech. Every clip is checked (peak level); a near-silent
+one is made again as "word.", "Word.", "word!", "Word!" until one is audible
+(recorded in work/<lang>/variants.json). If none is, the text is listed as
+refused and keeps the phone voice; it never ends up in the pack as silence.
+
 Engines: "google" (the real one) and "tone" (a beep per text, for testing the
 pipeline without a key).
 """
 import argparse
+import array
 import base64
 import fcntl
 import io
@@ -192,6 +199,29 @@ ENGINES = {"google": GoogleEngine, "tone": ToneEngine}
 
 # ----------------------------------------------------------------- helpers
 
+SILENT_DB = -30.0      # real speech peaks around -10..0 dBFS; Google's glitch is about -35..-55
+
+
+def peak_db(wav):
+    """Peak level of a 16-bit mono WAV, in dBFS."""
+    with wave.open(io.BytesIO(wav)) as w:
+        a = array.array("h", w.readframes(w.getnframes()))
+    if sys.byteorder == "big":
+        a.byteswap()
+    peak = max((abs(x) for x in a), default=0)
+    return 20 * math.log10(peak / 32768) if peak else -120.0
+
+
+def variants(text):
+    """Other ways to send a text that comes back near-silent."""
+    cap = text[:1].upper() + text[1:]
+    out = []
+    for v in (text + ".", cap + ".", text + "!", cap + "!"):
+        if v != text and v not in out:
+            out.append(v)
+    return out
+
+
 class RateLimiter:
     """At most `per_minute` request starts per minute, shared by all threads."""
 
@@ -331,6 +361,8 @@ def main():
     fatal = []
     lock = threading.Lock()
     state = {"n": 0, "ok": 0, "bad": 0, "t0": time.time()}
+    var_path = os.path.join(work, "variants.json")
+    used_variants = load_json(var_path, {})
 
     def one(t):
         if stop.is_set():
@@ -342,6 +374,17 @@ def main():
             if stop.is_set():
                 return
             audio = engine.synth(text)
+            if args.engine == "google" and peak_db(audio) < SILENT_DB:
+                for v in variants(text):
+                    if ledger:
+                        ledger.take(len(v))
+                    audio = engine.synth(v)
+                    if peak_db(audio) >= SILENT_DB:
+                        with lock:
+                            used_variants[t["text"]] = v
+                        break
+                else:
+                    raise Refused("Google returned near-silence for every way of sending it")
             path = os.path.join(wav_dir, t["key"] + ".wav")
             with open(path + ".part", "wb") as f:
                 f.write(audio)
@@ -372,6 +415,7 @@ def main():
         stop.set()
         print("\nstopped - run the same command again to continue")
     save_json(fail_path, list(failures.values()))
+    save_json(var_path, used_variants)
     if fatal:
         sys.exit(f"\nSTOPPED: {fatal[0]}\n(finished clips are kept; fix the problem and run the same command again)")
     if failures:
