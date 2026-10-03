@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
 """Step 2 - make one WAV per text with Google's "Chirp 3: HD" AI voice.
 
-    export GOOGLE_TTS_API_KEY=...          # never commit it, never paste it anywhere
-    python tools/audio/synth.py --lang de
+    python tools/audio/synth.py --lang de        # key: see "The key" below
+
     python tools/audio/synth.py --lang fr
+
+The key: either the environment adds it to requests for texttospeech.googleapis.com
+(a Claude environment credential with the header X-Goog-Api-Key: the scripts
+never see it), or set GOOGLE_TTS_API_KEY yourself (the script then sends that
+header). Before making anything, a free call (the voice list) checks that the key
+works and that the voice exists in that language.
 
 Reads  work/<lang>/texts.json  (from extract.mjs)
 Writes work/<lang>/wav/<key>.wav   one per text. Resumable: clips that exist are
@@ -52,6 +58,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 WORK = os.environ.get("AUDIO_WORK") or os.path.join(HERE, "work")
 LOCALES = {"de": "de-DE", "fr": "fr-FR"}
 ENDPOINT = os.environ.get("GOOGLE_TTS_ENDPOINT", "https://texttospeech.googleapis.com/v1/text:synthesize")
+VOICES_URL = ENDPOINT.rsplit("/", 1)[0] + "/voices"
 SAMPLE_RATE = 24000
 
 
@@ -94,14 +101,42 @@ class GoogleEngine:
 
     RETRY = {408, 429, 500, 502, 503, 504}
 
+    NO_KEY = ("No API key reached Google. Add the environment credential (header X-Goog-Api-Key for "
+              "texttospeech.googleapis.com) or set GOOGLE_TTS_API_KEY. See tools/audio/README.md.")
+
     def __init__(self, args):
-        self.key = os.environ.get("GOOGLE_TTS_API_KEY", "").strip()
-        if not self.key:
-            raise Fatal("GOOGLE_TTS_API_KEY is not set. Add it as an environment variable (see tools/audio/README.md).")
+        self.key = os.environ.get("GOOGLE_TTS_API_KEY", "").strip()   # optional: else the environment adds it
         self.voice = {"languageCode": LOCALES[args.lang], "name": f"{LOCALES[args.lang]}-Chirp3-HD-{args.voice}"}
         self.rate = args.speaking_rate
         self.limiter = None          # set by main(): every attempt, retries included, waits its turn
-        print(f"Google voice: {self.voice['name']}")
+        self.check_voice()
+        print(f"Google voice: {self.voice['name']} (key {'from GOOGLE_TTS_API_KEY' if self.key else 'added by the environment'})")
+
+    def headers(self):
+        h = {"Content-Type": "application/json; charset=utf-8"}
+        if self.key:
+            h["X-Goog-Api-Key"] = self.key           # in a header: never in a URL or a log
+        return h
+
+    def check_voice(self):
+        """Free (no characters billed): does the key work, and does the voice exist?"""
+        url = VOICES_URL + "?languageCode=" + self.voice["languageCode"]
+        try:
+            with urllib.request.urlopen(urllib.request.Request(url, headers=self.headers()), timeout=30) as res:
+                names = [v.get("name", "") for v in json.load(res).get("voices", [])]
+        except urllib.error.HTTPError as e:
+            detail = _error_text(e)
+            if e.code in (401, 403):
+                raise Fatal(self.NO_KEY if "unregistered callers" in detail else
+                            f"Google refused the key (HTTP {e.code}): {detail}\nCheck: the key is right, Cloud "
+                            "Text-to-Speech API is enabled, billing is linked, and the key's API restriction allows Text-to-Speech.")
+            raise Fatal(f"Couldn't list Google's voices (HTTP {e.code}): {detail}")
+        except (urllib.error.URLError, OSError) as e:
+            raise Fatal(f"Couldn't reach Google: {e}")
+        if self.voice["name"] not in names:
+            chirp = sorted(n for n in names if "Chirp3-HD" in n)
+            raise Fatal(f"Voice {self.voice['name']} isn't offered. Chirp 3 HD voices for {self.voice['languageCode']}: "
+                        + (", ".join(chirp[:30]) or "none"))
 
     def synth(self, text):
         body = json.dumps({
@@ -114,10 +149,7 @@ class GoogleEngine:
         for attempt in range(8):
             if self.limiter:
                 self.limiter.wait()
-            req = urllib.request.Request(ENDPOINT, data=body, method="POST", headers={
-                "Content-Type": "application/json; charset=utf-8",
-                "X-Goog-Api-Key": self.key,          # in a header: never in a URL or a log
-            })
+            req = urllib.request.Request(ENDPOINT, data=body, method="POST", headers=self.headers())
             try:
                 with urllib.request.urlopen(req, timeout=60) as res:
                     audio = base64.b64decode(json.load(res)["audioContent"])
@@ -125,6 +157,8 @@ class GoogleEngine:
                 return audio if audio[:4] == b"RIFF" else wav_bytes(audio, SAMPLE_RATE)
             except urllib.error.HTTPError as e:
                 detail = _error_text(e)
+                if e.code in (401, 403) and "unregistered callers" in detail:
+                    raise Fatal(self.NO_KEY)
                 if e.code in (401, 403):
                     raise Fatal(f"Google refused the key (HTTP {e.code}): {detail}\n"
                                 "Check: the key is right, Cloud Text-to-Speech API is enabled, billing is linked, "

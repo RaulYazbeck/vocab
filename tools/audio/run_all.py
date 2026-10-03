@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The whole voice-pack job in one command. No GPU: Google makes the audio.
 
-    export GOOGLE_TTS_API_KEY=...        # see tools/audio/README.md
+    (the Google key: an environment credential, or GOOGLE_TTS_API_KEY; see the README)
     python tools/audio/run_all.py smoke  # 3 clips per language: is the key/voice OK?
     python tools/audio/run_all.py pilot  # ~20 clips per language + a listening page
     python tools/audio/run_all.py full   # everything (about 1.5-2 hours)
@@ -69,8 +69,8 @@ def to_go(lang):
 
 
 def preflight(args):
-    if args.engine == "google" and not os.environ.get("GOOGLE_TTS_API_KEY", "").strip():
-        sys.exit("STOPPED: GOOGLE_TTS_API_KEY is not set (see tools/audio/README.md).")
+    """The key is checked by synth.py's first (free) call to Google's voice list."""
+    return
 
 
 def budget_check(args):

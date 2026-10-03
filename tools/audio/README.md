@@ -24,10 +24,16 @@ No GPU and no model download: each text is one request to Google. The app side
 3. **APIs & Services → Library**: enable **Cloud Text-to-Speech API**.
 4. **APIs & Services → Credentials → Create credentials → API key**. Edit it:
    **API restrictions → Restrict key → Cloud Text-to-Speech API**.
-5. Give the key to the scripts as the environment variable **`GOOGLE_TTS_API_KEY`**:
-   in Claude's cloud environment settings (environment menu in the session title
-   bar → Edit), or `export GOOGLE_TTS_API_KEY=…` on your own computer. Never
-   commit it or paste it anywhere.
+5. Give the key to Claude's environment as a **credential** (environment menu in
+   the session title bar → Edit → API credentials → Add credential):
+   - **Allowed websites:** `texttospeech.googleapis.com`, **Path prefix:** `/v1/`
+   - **Custom header:** Name **`X-Goog-Api-Key`**, Prefix **empty**, Value: the key
+   The environment then adds the key to requests for Google's voice service; the
+   scripts and Claude never see it. (On your own computer instead:
+   `export GOOGLE_TTS_API_KEY=…`.) Never commit the key or paste it anywhere.
+
+   The first thing every run does is a free call (Google's voice list, no
+   characters billed) that checks the key works and the voice exists.
 
 **Cost.** Google's free tier for Chirp 3 HD is 1,000,000 characters a month.
 Both decks together are about **405,000** (German 244k, French 161k), so a full
@@ -42,7 +48,7 @@ so keep the budget alert too.
 Needs node 18+, Python 3 and ffmpeg (with libopus).
 
 ```bash
-python tools/audio/run_all.py smoke    # 3 clips per language: is the key OK? (seconds)
+python tools/audio/run_all.py smoke    # 3 clips per language: key OK, voice OK? (seconds)
 python tools/audio/run_all.py full     # everything: about 1.5–2 hours
 ```
 
