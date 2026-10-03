@@ -16,7 +16,12 @@ export const LANGS = {
         groups: "[DECKS_A1, DECKS_A2, DECKS_B1]", speech: "fr-FR" },
 };
 
-export function workDir(lang) { return path.join(ROOT, "tools/audio/work", lang); }
+// Intermediate files (texts, WAVs, encoded clips). Set AUDIO_WORK to keep
+// them somewhere that survives (e.g. Google Drive on Colab) so a run can be
+// stopped and resumed.
+export function workDir(lang) {
+  return path.join(process.env.AUDIO_WORK || path.join(ROOT, "tools/audio/work"), lang);
+}
 
 // A sandbox with just enough browser to run the pure helpers.
 function makeSandbox() {
@@ -58,3 +63,47 @@ export function loadApp(lang) {
   return ctx;
 }
 export function evalIn(ctx, code) { return vm.runInContext(code, ctx); }
+
+// Everything the app can ask speak() to say for one language, de-duplicated:
+// [{ key, text, kind: "w"|"s", deck }]. Words come first, in deck order.
+//   w = a word or short phrase, s = an example sentence;
+//   deck = the deck it belongs to (used to keep a deck's clips together in the
+//   pack, so editing one deck only changes that deck's files).
+// extraTexts: optional extra phrases (the app's "missing" list).
+export function collectTexts(lang, extraTexts = []) {
+  const app = loadApp(lang);
+  const audioKey = evalIn(app, "audioKey");
+  const found = evalIn(app, `(() => {
+    const out = [];
+    const add = (text, kind, deck) => { text = String(text == null ? "" : text).replace(/\\s+/g, " ").trim(); if (text) out.push([text, kind, deck]); };
+    for (const g of ALL_GROUPS) for (const d of g.decks) d.words.forEach((w, i) => {
+      w.deckId = d.id; w.idx = i;
+      add(gameForm(w), "w", d.id);
+      try { const np = typeof nounParts === "function" ? nounParts(w) : null; if (np && np.full) add(np.full, "w", d.id); } catch (e) {}
+      if (WORD_KEY === "de") try {
+        const np = nounParts(w);
+        const pl = np && typeof germanPluralNoun === "function" ? germanPluralNoun(w) : "";
+        if (pl) add("die " + pl, "w", d.id);
+      } catch (e) {}
+      try { const it = conjItem(w); if (it) add(conjJoin(it.pron.split("/")[0], it.ans), "w", d.id); } catch (e) {}
+      (w.examples || []).forEach(ex => { if (ex && ex[WORD_KEY]) add(ex[WORD_KEY], "s", d.id); });
+    });
+    return out;
+  })()`);
+  for (const t of extraTexts) {
+    const x = String(t).trim();
+    if (x) found.push([x, x.length > 28 && /\s/.test(x) && /[.!?]$/.test(x) || x.split(/\s+/).length > 4 ? "s" : "w", "_extra"]);
+  }
+  const norm = t => t.normalize("NFC").replace(/\s+/g, " ").trim();
+  const byKey = new Map();
+  for (const [text, kind, deck] of found) {
+    const key = audioKey(text);
+    const prev = byKey.get(key);
+    if (prev) {
+      if (norm(prev.text) !== norm(text)) throw new Error(`Key collision between "${prev.text}" and "${text}"`);
+      if (kind === "w") prev.kind = "w";            // used as a word anywhere = a word
+    } else byKey.set(key, { key, text, kind, deck });
+  }
+  const all = [...byKey.values()];
+  return [...all.filter(x => x.kind === "w"), ...all.filter(x => x.kind === "s")];
+}

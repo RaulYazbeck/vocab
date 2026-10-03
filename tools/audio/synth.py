@@ -21,6 +21,14 @@ Engines
   <your own>  Skip this script: put <key>.wav files in work/<lang>/wav/
               from any other engine and go straight to pack.mjs.
 
+Fixing individual clips
+  overrides/<lang>.json   {"text as written in the deck": "how to say it"} —
+                          used for synthesis only; the app still looks the clip up
+                          under the original text. Use it for a word the model
+                          mispronounces (respell it), then --redo-file it.
+  --redo-file list.txt    one deck text per line: delete those clips and make
+                          them again (new random seed each time).
+
 --verify (recommended): transcribes each clip back with Whisper
 (faster-whisper) and compares it with the text. A clip that doesn't
 match (garbled word, extra babble, wrong language) is retried with a
@@ -30,6 +38,7 @@ of teaching you a wrong pronunciation.
 """
 import argparse
 import difflib
+import inspect
 import json
 import math
 import os
@@ -42,7 +51,8 @@ import wave
 import zlib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-WORK = os.path.join(HERE, "work")
+# AUDIO_WORK: keep intermediate files somewhere that survives (Drive on Colab).
+WORK = os.environ.get("AUDIO_WORK") or os.path.join(HERE, "work")
 
 
 # ---------------------------------------------------------------- engines
@@ -66,7 +76,13 @@ class ToneEngine:
 
 
 class ChatterboxEngine:
-    """Chatterbox Multilingual (github.com/resemble-ai/chatterbox, MIT)."""
+    """Chatterbox Multilingual (github.com/resemble-ai/chatterbox, MIT).
+
+    API as in the project's example_tts.py:
+        ChatterboxMultilingualTTS.from_pretrained(device=..., t3_model="v3")
+        model.generate(text, language_id="fr", audio_prompt_path=...)  -> tensor
+        model.sr
+    """
 
     def __init__(self, args):
         import torch
@@ -75,13 +91,27 @@ class ChatterboxEngine:
         device = args.device or ("cuda" if torch.cuda.is_available() else "cpu")
         if device == "cpu":
             print("WARNING: no GPU found - this will be very slow.", file=sys.stderr)
-        self.model = ChatterboxMultilingualTTS.from_pretrained(device=device)
+        try:
+            self.model = ChatterboxMultilingualTTS.from_pretrained(device=device, t3_model=args.t3_model)
+            print(f"Loaded Chatterbox Multilingual ({args.t3_model}) on {device}")
+        except TypeError:
+            # an older package without the t3_model option
+            self.model = ChatterboxMultilingualTTS.from_pretrained(device=device)
+            print(f"Loaded Chatterbox Multilingual (package default; no t3_model option) on {device}")
         self.sr = self.model.sr
         self.ref = args.ref
         self.lang = args.lang
-        self.exaggeration = args.exaggeration
-        self.cfg = args.cfg_weight
-        self.temperature = args.temperature
+        # Pass only the options this installed version understands.
+        params = inspect.signature(self.model.generate).parameters
+        takes_any = any(p.kind == inspect.Parameter.VAR_KEYWORD for p in params.values())
+        wanted = {"language_id": self.lang, "exaggeration": args.exaggeration,
+                  "cfg_weight": args.cfg_weight, "temperature": args.temperature}
+        if self.ref:
+            wanted["audio_prompt_path"] = self.ref
+        self.kwargs = {k: v for k, v in wanted.items() if takes_any or k in params}
+        skipped = sorted(set(wanted) - set(self.kwargs))
+        if skipped:
+            print(f"NOTE: this Chatterbox version ignores: {', '.join(skipped)}", file=sys.stderr)
         if not self.ref:
             print("NOTE: no --ref given, using the model's default voice. For a "
                   "consistent native accent, pass a clean 10-20 s recording of a "
@@ -92,11 +122,7 @@ class ChatterboxEngine:
         torch.manual_seed(seed)
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(seed)
-        kwargs = dict(language_id=self.lang, exaggeration=self.exaggeration,
-                      cfg_weight=self.cfg, temperature=self.temperature)
-        if self.ref:
-            kwargs["audio_prompt_path"] = self.ref
-        wav = self.model.generate(text, **kwargs)          # tensor, shape (1, n)
+        wav = self.model.generate(text, **self.kwargs)     # tensor, shape (1, n)
         samples = wav.squeeze().detach().cpu().clamp(-1, 1).numpy()
         pcm = (samples * 32767).astype("<i2").tobytes()
         return pcm, self.sr
@@ -107,7 +133,16 @@ ENGINES = {"tone": ToneEngine, "chatterbox": ChatterboxEngine}
 
 # ----------------------------------------------------------------- helpers
 
-def tts_text(text, kind, args):
+def load_overrides(lang):
+    path = os.path.join(HERE, "overrides", lang + ".json")
+    if not os.path.exists(path):
+        return {}
+    data = json.load(open(path, encoding="utf8"))
+    return {k: v for k, v in data.items() if isinstance(v, str) and not k.startswith("_")}
+
+
+def tts_text(text, kind, args, overrides=None):
+    text = (overrides or {}).get(text, text)
     t = text.replace("…", "...").replace("¨", "").replace("’", "'")
     t = re.sub(r"\s+", " ", t).strip()
     # Models read a bare single word better with a full stop after it.
@@ -137,7 +172,14 @@ class Verifier:
 
     def __init__(self, lang, device, size):
         from faster_whisper import WhisperModel
-        dev = device or "auto"
+        dev = device
+        if not dev:
+            try:
+                import torch
+                dev = "cuda" if torch.cuda.is_available() else "cpu"
+            except ImportError:
+                dev = "cpu"
+        # float16 on a GPU; int8 keeps a CPU run feasible
         self.model = WhisperModel(size, device=dev, compute_type="float16" if dev == "cuda" else "int8")
         self.lang = lang
 
@@ -169,6 +211,8 @@ def main():
     ap.add_argument("--min-score", type=float, default=0.88, help="similarity (0-1) a clip needs to pass --verify")
     ap.add_argument("--retries", type=int, default=3)
     ap.add_argument("--word-suffix", default=".", help='appended to bare single words before synthesis ("" to disable)')
+    ap.add_argument("--t3-model", default="v3", help='Chatterbox multilingual checkpoint ("v3" = newest; falls back to the package default)')
+    ap.add_argument("--redo-file", help="text file, one deck text per line: make those clips again")
     ap.add_argument("--exaggeration", type=float, default=0.5)
     ap.add_argument("--cfg-weight", type=float, default=0.5)
     ap.add_argument("--temperature", type=float, default=0.8)
@@ -194,11 +238,24 @@ def main():
     if os.path.exists(fail_path) and not args.retry_failures:
         failures = {f["key"]: f for f in json.load(open(fail_path, encoding="utf8"))}
 
+    if args.redo_file:
+        want = {line.strip() for line in open(args.redo_file, encoding="utf8") if line.strip()}
+        redo = [t for t in texts if t["text"] in want]
+        for t in redo:
+            for pth in (os.path.join(wav_dir, t["key"] + ".wav"),):
+                if os.path.exists(pth):
+                    os.remove(pth)
+            failures.pop(t["key"], None)
+        print(f"--redo-file: {len(redo)} of {len(want)} listed texts found in texts.json, will be made again")
+
+    overrides = load_overrides(args.lang)
     todo = [t for t in texts if not os.path.exists(os.path.join(wav_dir, t["key"] + ".wav")) and t["key"] not in failures]
     print(f"{len(texts)} texts, {len(texts) - len(todo)} already done, {len(todo)} to go")
     if not todo:
         return
 
+    if args.ref and not os.path.isfile(args.ref):
+        sys.exit(f"--ref {args.ref}: no such file. (Give a 10-20 s WAV of one native speaker, or leave --ref out.)")
     engine = ENGINES[args.engine](args)
     verifier = Verifier(args.lang, args.device, args.whisper_model) if args.verify else None
 
@@ -214,7 +271,7 @@ def main():
             attempt_path = os.path.join(work, "attempt.wav")
             last = None
             for attempt in range(args.retries + 1 if verifier else 1):
-                pcm, sr = engine.synth(tts_text(text, kind, args), kind, seed=1000 * attempt + (zlib.crc32(key.encode()) & 0xFFFF))
+                pcm, sr = engine.synth(tts_text(text, kind, args, overrides), kind, seed=1000 * attempt + (zlib.crc32(key.encode()) & 0xFFFF))
                 write_wav(attempt_path, pcm, sr)
                 if not verifier:
                     break
@@ -233,6 +290,7 @@ def main():
                 rate = n / max(1e-6, time.time() - started)
                 print(f"  {n}/{len(todo)}  ok {ok}  failed {bad}  ({rate:.1f}/s, ~{(len(todo) - n) / max(rate, 1e-6) / 60:.0f} min left)", flush=True)
                 json.dump(list(failures.values()), open(fail_path, "w", encoding="utf8"), ensure_ascii=False, indent=1)
+                json.dump({"per_second": round(rate, 3), "done": n, "of": len(todo), "ok": ok, "failed": bad}, open(os.path.join(work, "speed.json"), "w"))
     except KeyboardInterrupt:
         print("\nstopped - run the same command again to continue")
     json.dump(list(failures.values()), open(fail_path, "w", encoding="utf8"), ensure_ascii=False, indent=1)

@@ -24,6 +24,10 @@ const AUDIO_MISS  = "gv_audio_miss_" + (typeof WORD_KEY === "string" ? WORD_KEY 
 const AUDIO_MISS_MAX = 400;
 const AUDIO_MEM_SHARDS = 4;          // decoded-free: raw bytes of the last few shards
 const AUDIO_PARALLEL = 3;
+// A newer pack that needs less than this is fetched quietly at start-up (new
+// words get their recordings without anyone opening Settings); a bigger one
+// waits for a tap on Settings → Update. (let: tests lower it.)
+let AUDIO_AUTO_UPDATE_BYTES = 8 * 1048576;
 const AUDIO_NATURAL_RATE = 0.85;     // speak()'s default rate = the recording at normal speed
 
 // Same text → same key in the browser and in tools/audio (tools/audio
@@ -149,6 +153,7 @@ async function audioInit() {
       } catch (e) { AUDIO.remote = null; }
       _audioEmit();
       audioMaybeOffer();
+      audioMaybeAutoUpdate();
     }
   } catch (e) {
     AUDIO.ready = true;
@@ -166,10 +171,34 @@ async function audioRefreshRemote() {
   _aRefreshAt = now;
   try {
     const m = await _audioFetchManifest();
-    if (_audioCanPlay(m)) { AUDIO.remote = m; _audioEmit(); audioMaybeOffer(); }
+    if (_audioCanPlay(m)) { AUDIO.remote = m; _audioEmit(); audioMaybeOffer(); audioMaybeAutoUpdate(); }
   } catch (e) {}
 }
 window.addEventListener("online", audioRefreshRemote);
+
+// Bytes still to fetch for manifest M and these kinds (also counts files the
+// browser has dropped, so a small repair is quiet too).
+async function _audioMissingBytes(M, kinds) {
+  const cache = await _audioCache();
+  let n = 0;
+  for (const s of M.shards) if (kinds.includes(s.k) && !(await cache.match(_audioUrl(s.f)))) n += s.n;
+  return n;
+}
+// Installed, and either a different pack is published or files the browser
+// dropped need restoring: if what's missing is small, fetch it now. Never
+// starts a big download by itself.
+async function audioMaybeAutoUpdate() {
+  try {
+    const M = AUDIO.remote;
+    if (AUDIO.dl || !AUDIO.manifest || !M || navigator.onLine === false) return;
+    if (M.v === AUDIO.manifest.v && !audioNeedsRepair()) return;           // nothing to do
+    const kinds = audioPrefs().want.length ? audioPrefs().want : audioInstalledKinds();
+    if (!kinds.length || (await _audioMissingBytes(M, kinds)) > AUDIO_AUTO_UPDATE_BYTES) return;
+    const before = AUDIO.manifest.v;
+    const out = await audioDownload(kinds);
+    if (out === "done" && typeof showCelebrateToast === "function") showCelebrateToast("🔊", "Voices updated", M.v === before ? "A missing file was restored" : "New words now have recordings");
+  } catch (e) {}
+}
 
 // ── SIZES + STATUS (for the UI) ───────────────
 function audioFmtMB(bytes) {
