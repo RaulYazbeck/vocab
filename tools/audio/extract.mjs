@@ -15,7 +15,7 @@
 //   • the pronoun + form of conjugation-deck cards ("ich gehe")
 // Anything else (a verb form the games make up on the fly, say) still speaks
 // through the system voice; the app remembers such phrases and Settings →
-// Sound & voice → "Copy … phrases" gives you the list. Feed it back with
+// Sound & voice → "Copy voice log" gives you the list. Feed it back with
 // --extra and re-run the pipeline: only new clips are made.
 
 import fs from "node:fs";
@@ -28,7 +28,17 @@ const lang = opt("lang");
 if (!lang) { console.error("usage: extract.mjs --lang de|fr [--extra file.txt]"); process.exit(1); }
 
 const extraFile = opt("extra");
-const extra = extraFile ? fs.readFileSync(extraFile, "utf8").split(/\r?\n/) : [];
+// One phrase per line, or the app's "Copy voice log" as it is: then only its
+// "Phrases without a recording:" part is used.
+let extra = extraFile ? fs.readFileSync(extraFile, "utf8").split(/\r?\n/).map(l => l.trim()).filter(Boolean) : [];
+if (extra.length && extra[0].startsWith("Voice log (")) {
+  let part = null; const keep = [];
+  for (const l of extra.slice(1)) {
+    if (l === "Flagged recordings:" || l === "Phrases without a recording:") part = l;
+    else if (part === "Phrases without a recording:") keep.push(l);
+  }
+  extra = keep;
+}
 const list = collectTexts(lang, extra);
 
 const dir = workDir(lang);

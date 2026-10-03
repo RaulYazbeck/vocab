@@ -530,7 +530,7 @@ function _audioFallback(text, rate) {
 // Phrases the app tried to say that the pack has no recording for (a
 // verb form the games made up, say). They fall back to the system voice
 // and are remembered here so the next build of the pack can include
-// them: Settings → Sound & voice → "Copy missing phrases".
+// them: Settings → Sound & voice → "Copy voice log".
 let _aMiss = null;
 function _audioMisses() {
   if (_aMiss) return _aMiss;
@@ -554,9 +554,9 @@ function audioClearMisses() { _aMiss = []; try { localStorage.removeItem(AUDIO_M
 // ── FLAGS ─────────────────────────────────────
 // A recording that sounds off (accent, cut short, wrong word) can be flagged
 // with an optional note: a small ⚑ at the right edge shows for a few seconds
-// after a recording plays. Settings → Sound & voice → "Copy N flagged
-// recordings" gives the list to paste to Claude (synth.py --redo-file reads
-// it as it is). Kept on this device until cleared.
+// after a recording plays. Settings → Sound & voice → "Copy voice log"
+// copies them with the phrases that had no recording (see MISSES), to paste
+// to Claude; synth.py --redo-file and extract.mjs --extra read it as it is.
 let _aFlags = null;
 function _audioFlags() {
   if (_aFlags) return _aFlags;
@@ -574,11 +574,7 @@ function audioFlag(text, note) {
   _audioSaveFlags();
 }
 function audioFlagCount() { return _audioFlags().length; }
-function audioFlagText() {
-  const lang = WORD_KEY === "fr" ? "French" : "German";
-  return `Flagged recordings (${lang}${AUDIO.manifest ? ", pack " + AUDIO.manifest.v : ""}):\n` +
-    _audioFlags().map(f => f.text + (f.note ? " | " + f.note : "")).join("\n");
-}
+function audioFlagText() { return _audioFlags().map(f => f.text + (f.note ? " | " + f.note : "")).join("\n"); }
 function audioClearFlags() { _aFlags = []; try { localStorage.removeItem(AUDIO_FLAGS); } catch (e) {} }
 
 let _aFlagTimer = 0;
@@ -753,7 +749,7 @@ function audioSettingsHtml() {
     buttons = upd + fix + more + `<button class="set-seg-btn" onclick="audioSample()">▶ Hear a sample</button><button class="set-seg-btn" onclick="audioRemoveConfirm()">Remove</button>`;
   }
   const err = AUDIO.error && !j ? `<div class="set-choice-sub audio-err">⚠️ ${escapeHtml(AUDIO.error)}</div>` : "";
-  const misses = audioMissCount(), flags = audioFlagCount();
+  const flags = audioFlagCount(), misses = kinds.length ? audioMissCount() : 0;
   return `
     <div class="set-group-title">Natural ${lang} voice</div>
     <div class="set-choice">
@@ -763,9 +759,7 @@ function audioSettingsHtml() {
       <div class="set-seg audio-seg">${buttons}</div>
       ${err}
     </div>
-    ${kinds.length && misses ? setNavHtml("📝", `Copy ${misses} phrase${misses === 1 ? "" : "s"} without a recording`, "Paste them to Claude to add them to the next voice pack", "audioCopyMisses()") : ""}
-    ${flags ? setNavHtml("⚑", `Copy ${flags} flagged recording${flags === 1 ? "" : "s"}`, "Paste them to Claude to fix. Kept until you clear them.", "audioCopyFlags()") +
-      setNavHtml("🧹", "Clear flagged recordings", "After Claude has them", "audioClearFlagsConfirm()") : ""}`;
+    ${flags + misses ? setNavHtml("📝", `Copy voice log · ${flags + misses}`, [flags ? `${flags} flagged` : "", misses ? `${misses} without a recording` : ""].filter(Boolean).join(", ") + ". Paste it to Claude.", "audioCopyLog()") : ""}`;
 }
 // ["w","s"] as a JS literal that is safe inside a double-quoted onclick.
 function _audioKindsJs(kinds) { return "[" + kinds.map(k => `'${k}'`).join(",") + "]"; }
@@ -773,19 +767,24 @@ async function audioRemoveConfirm() {
   const ok = await appConfirm({ title: "Remove the natural voices?", body: "This frees the space. You can download them again any time.", ok: "Remove", cancel: "Keep", danger: true });
   if (ok) { await audioRemove(); if (typeof renderSettingsPanel === "function") renderSettingsPanel(); }
 }
-function audioCopyMisses() {
-  const text = audioMissText();
-  const done = () => { audioClearMisses(); if (typeof showCelebrateToast === "function") showCelebrateToast("📝", "Copied", "Paste it to Claude"); if (typeof renderSettingsPanel === "function") renderSettingsPanel(); };
-  try { navigator.clipboard.writeText(text).then(done, () => prompt("Copy this list:", text)); } catch (e) { prompt("Copy this list:", text); }
+// One list for Claude: recordings flagged with ⚑ and phrases that had no
+// recording. Copying empties it (if the clipboard is refused, the text is
+// shown to copy by hand and nothing is emptied).
+function audioLogText() {
+  const lang = WORD_KEY === "fr" ? "French" : "German";
+  const out = [`Voice log (${lang}${AUDIO.manifest ? ", pack " + AUDIO.manifest.v : ""}):`];
+  if (audioFlagCount()) out.push("Flagged recordings:", audioFlagText());
+  if (audioMissCount()) out.push("Phrases without a recording:", audioMissText());
+  return out.join("\n");
 }
-function audioCopyFlags() {
-  const text = audioFlagText(), n = audioFlagCount();
-  const done = () => { if (typeof showCelebrateToast === "function") showCelebrateToast("⚑", `Copied ${n}`, "Paste it to Claude"); };
+function audioCopyLog() {
+  const text = audioLogText();
+  const done = () => {
+    audioClearFlags(); audioClearMisses();
+    if (typeof showCelebrateToast === "function") showCelebrateToast("📝", "Copied", "Paste it to Claude");
+    if (typeof renderSettingsPanel === "function") renderSettingsPanel();
+  };
   try { navigator.clipboard.writeText(text).then(done, () => prompt("Copy this list:", text)); } catch (e) { prompt("Copy this list:", text); }
-}
-async function audioClearFlagsConfirm() {
-  const ok = await appConfirm({ title: "Clear the flagged recordings?", body: "Do this once Claude has the list.", ok: "Clear", cancel: "Keep", danger: true });
-  if (ok) { audioClearFlags(); if (typeof renderSettingsPanel === "function") renderSettingsPanel(); }
 }
 // Keep the open Settings page in step with a running download: numbers
 // are painted in place (re-rendering would swallow a tap on "Stop").

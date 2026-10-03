@@ -165,10 +165,12 @@ pronouns too when it is short (≤ 3 letters) or ends in a silent "-ent"
 ### Fixing one clip or a pronunciation
 - **Flagging in the app:** after a recording plays, a small ⚑ shows at the
   right edge for a few seconds. Tap it, add a note if you like ("French
-  accent", "cut off"). Settings → Sound & voice → "Copy N flagged recordings"
-  copies the list (kept on the phone until you clear it). Paste it to Claude,
-  or save it as `flagged.txt` and use it with `--redo-file` as it is. The notes
-  say what to fix (an override, a sound hint, or just a new take).
+  accent", "cut off"). Settings → Sound & voice → "Copy voice log" copies the
+  flagged recordings together with the phrases that had no recording, and
+  empties the log. Paste it to Claude, or save it as `log.txt`: `--redo-file
+  log.txt` re-makes the flagged ones, `extract.mjs --extra log.txt` adds the
+  missing ones. The notes say what to fix (an override, a sound hint, or just a
+  new take).
 - **A clip sounds wrong:** put its text (one per line) in a file, run
   `python tools/audio/synth.py --lang de --redo-file list.txt`, then
   `python tools/audio/run_all.py pack`.
@@ -193,9 +195,8 @@ pronouns too when it is short (≤ 3 letters) or ends in a silent "-ent"
   (`{"de": {"Abbreviations": ["z.B.", "d.h."]}}`) and run
   `node tools/audio/samples.mjs --check list.json --out check.html`.
 - **Phrases the app had to speak with the phone voice** (a verb form a game
-  made up, say): Settings → Sound & voice → "Copy N phrases…", save as
-  `missing.txt`, then `node tools/audio/extract.mjs --lang de --extra missing.txt`
-  and run as above.
+  made up, say): they are in the same "Copy voice log"; save it as `log.txt`,
+  then `node tools/audio/extract.mjs --lang de --extra log.txt` and run as above.
 
 ## 4. The individual steps
 
