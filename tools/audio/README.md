@@ -263,6 +263,26 @@ change, and a browser that can't play it simply keeps the phone voice.
 4. Turn on airplane mode, force-quit the app, reopen: words should still play.
 5. With music playing in the background, note whether it pauses.
 
+## Tests
+```bash
+node tools/audio/tests/run.mjs          # all four, about 5 minutes; or name some: pack games flag update
+```
+They run the app in a real browser (Chromium, through Playwright, installed in
+`tools/audio/tests/` on the first run) and never call the real Google: the
+update test uses `tests/fake_google.py`, a fake Google server that also
+misbehaves on purpose (rate limits, errors, near-silence, cut-off clips).
+- **pack:** the published packs in the app: download, every deck text finds its
+  recording, every clip decodes, sound starts fast, no page errors.
+- **games:** every game in both languages, no page errors.
+- **flag:** the ⚑ flag and the "Copy voice log" row.
+- **update:** adding decks later on a fresh copy with no work folder. The update
+  routine records only what is new; then a phone that has the current pack
+  updates by itself, fetches only the changed files, and every card, new ones
+  included, plays its recording, also offline.
+
+Run them after changing `js/audio.js` or the tools, and before publishing a
+rebuilt pack.
+
 ## What was and wasn't tested
 Tested here:
 - The Google generator against a fake Google server that misbehaves on purpose:

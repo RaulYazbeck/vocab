@@ -1,0 +1,9 @@
+{
+  "name": "voice-tests",
+  "private": true,
+  "type": "module",
+  "description": "Browser tests for the natural-voice packs (see run.mjs)",
+  "dependencies": {
+    "playwright-core": "^1.63.0"
+  }
+}
