@@ -113,9 +113,7 @@ class ChatterboxEngine:
         if skipped:
             print(f"NOTE: this Chatterbox version ignores: {', '.join(skipped)}", file=sys.stderr)
         if not self.ref:
-            print("NOTE: no --ref given, using the model's default voice. For a "
-                  "consistent native accent, pass a clean 10-20 s recording of a "
-                  "native speaker.", file=sys.stderr)
+            print("Using the model's built-in voice (no --ref given; that is fine and the default).")
 
     def synth(self, text, kind, seed):
         torch = self.torch
@@ -200,7 +198,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--lang", required=True, choices=["de", "fr"])
     ap.add_argument("--engine", default="chatterbox", choices=sorted(ENGINES))
-    ap.add_argument("--ref", help="reference recording of the voice to clone (wav, 10-20 s, one native speaker)")
+    ap.add_argument("--ref", help="OPTIONAL: copy the voice in this short WAV (10-20 s). Default: the model's built-in voice.")
     ap.add_argument("--device", help="cuda / cpu / mps (default: auto)")
     ap.add_argument("--limit", type=int, help="only the first N texts (try this first!)")
     ap.add_argument("--kind", choices=["w", "s"], help="only words or only sentences")
@@ -255,7 +253,7 @@ def main():
         return
 
     if args.ref and not os.path.isfile(args.ref):
-        sys.exit(f"--ref {args.ref}: no such file. (Give a 10-20 s WAV of one native speaker, or leave --ref out.)")
+        sys.exit(f"--ref {args.ref}: no such file. (--ref is optional: leave it out to use the model's built-in voice.)")
     engine = ENGINES[args.engine](args)
     verifier = Verifier(args.lang, args.device, args.whisper_model) if args.verify else None
 

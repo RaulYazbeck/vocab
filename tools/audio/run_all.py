@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """The whole voice-pack job in one command, built to run unattended overnight.
 
-    python tools/audio/run_all.py pilot --langs de,fr --ref de=voices/de.wav --ref fr=voices/fr.wav
-    python tools/audio/run_all.py full  --langs de,fr --ref de=voices/de.wav --ref fr=voices/fr.wav
-    python tools/audio/run_all.py pack  --langs de,fr          # re-pack only (after fixing clips)
+    python tools/audio/run_all.py pilot            # a small sample to listen to first
+    python tools/audio/run_all.py full             # everything (hours; safe to stop and re-run)
+    python tools/audio/run_all.py pack             # re-pack only (after fixing clips)
+
+The AI model speaks with its own built-in voice: nothing needs recording or
+uploading. (--ref de=file.wav is an optional extra to copy a specific voice.)
 
 pilot  A small sample (25 words + 25 sentences per language), plus a listening
        page, so you can judge the voice BEFORE the long run. Prints a time
@@ -164,7 +167,7 @@ def main():
     ap.add_argument("stage", choices=["pilot", "full", "pack"])
     ap.add_argument("--langs", default="de,fr")
     ap.add_argument("--engine", default="chatterbox", choices=["chatterbox", "tone"])
-    ap.add_argument("--ref", action="append", default=[], metavar="LANG=FILE", help="reference voice per language (repeatable)")
+    ap.add_argument("--ref", action="append", default=[], metavar="LANG=FILE", help="OPTIONAL: copy the voice in a short WAV, per language (repeatable). Default: the model's built-in voice.")
     ap.add_argument("--device")
     ap.add_argument("--no-verify", dest="verify", action="store_false", help="skip the Whisper check (not recommended)")
     ap.add_argument("--whisper-model", default="large-v3", help="the checker (large-v3 is the most accurate; medium is faster)")
