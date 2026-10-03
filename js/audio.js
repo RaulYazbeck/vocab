@@ -22,8 +22,14 @@ const AUDIO_CACHE = "audio-v1-" + (typeof WORD_KEY === "string" ? WORD_KEY : "x"
 const AUDIO_PREF  = "gv_audio_" + (typeof WORD_KEY === "string" ? WORD_KEY : "x");
 const AUDIO_MISS  = "gv_audio_miss_" + (typeof WORD_KEY === "string" ? WORD_KEY : "x");
 const AUDIO_MISS_MAX = 400;
+const AUDIO_FLAGS = "gv_audio_flags_" + (typeof WORD_KEY === "string" ? WORD_KEY : "x");
+const AUDIO_FLAG_MAX = 300;
 const AUDIO_MEM_SHARDS = 4;          // decoded-free: raw bytes of the last few shards
 const AUDIO_PARALLEL = 3;
+// A newer pack that needs less than this is fetched quietly at start-up (new
+// words get their recordings without anyone opening Settings); a bigger one
+// waits for a tap on Settings → Update. (let: tests lower it.)
+let AUDIO_AUTO_UPDATE_BYTES = 8 * 1048576;
 const AUDIO_NATURAL_RATE = 0.85;     // speak()'s default rate = the recording at normal speed
 
 // Same text → same key in the browser and in tools/audio (tools/audio
@@ -149,6 +155,7 @@ async function audioInit() {
       } catch (e) { AUDIO.remote = null; }
       _audioEmit();
       audioMaybeOffer();
+      audioMaybeAutoUpdate();
     }
   } catch (e) {
     AUDIO.ready = true;
@@ -166,10 +173,34 @@ async function audioRefreshRemote() {
   _aRefreshAt = now;
   try {
     const m = await _audioFetchManifest();
-    if (_audioCanPlay(m)) { AUDIO.remote = m; _audioEmit(); audioMaybeOffer(); }
+    if (_audioCanPlay(m)) { AUDIO.remote = m; _audioEmit(); audioMaybeOffer(); audioMaybeAutoUpdate(); }
   } catch (e) {}
 }
 window.addEventListener("online", audioRefreshRemote);
+
+// Bytes still to fetch for manifest M and these kinds (also counts files the
+// browser has dropped, so a small repair is quiet too).
+async function _audioMissingBytes(M, kinds) {
+  const cache = await _audioCache();
+  let n = 0;
+  for (const s of M.shards) if (kinds.includes(s.k) && !(await cache.match(_audioUrl(s.f)))) n += s.n;
+  return n;
+}
+// Installed, and either a different pack is published or files the browser
+// dropped need restoring: if what's missing is small, fetch it now. Never
+// starts a big download by itself.
+async function audioMaybeAutoUpdate() {
+  try {
+    const M = AUDIO.remote;
+    if (AUDIO.dl || !AUDIO.manifest || !M || navigator.onLine === false) return;
+    if (M.v === AUDIO.manifest.v && !audioNeedsRepair()) return;           // nothing to do
+    const kinds = audioPrefs().want.length ? audioPrefs().want : audioInstalledKinds();
+    if (!kinds.length || (await _audioMissingBytes(M, kinds)) > AUDIO_AUTO_UPDATE_BYTES) return;
+    const before = AUDIO.manifest.v;
+    const out = await audioDownload(kinds);
+    if (out === "done" && typeof showCelebrateToast === "function") showCelebrateToast("🔊", "Voices updated", M.v === before ? "A missing file was restored" : "New words now have recordings");
+  } catch (e) {}
+}
 
 // ── SIZES + STATUS (for the UI) ───────────────
 function audioFmtMB(bytes) {
@@ -437,10 +468,12 @@ function audioFind(text) {
 // when the caller should use the system voice. `rate` is speak()'s rate:
 // 0.85 is normal speed, 0.55 is the "🐢 Slower" button.
 function audioSpeak(text, rate = AUDIO_NATURAL_RATE) {
+  _audioFlagHide();                                    // the ⚑ only ever points at what was just heard
   if (!audioReady()) return false;
   const e = audioFind(text);
   if (!e) { audioNoteMiss(text); return false; }
   if (!AUDIO.have.has(e[0])) return false;             // that shard isn't downloaded
+  AUDIO.lastText = String(text).replace(/\s+/g, " ").trim();
   _audioPlayEntry(e, rate, ++AUDIO.seq, () => _audioFallback(text, rate));
   try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (err) {}
   return true;
@@ -464,7 +497,9 @@ function _audioPlayEntry(e, rate, my, onFail) {
     el.preservesPitch = true; el.mozPreservesPitch = true; el.webkitPreservesPitch = true;
     el.playbackRate = Math.max(0.5, Math.min(1.25, rate / AUDIO_NATURAL_RATE));
     el.onerror = () => fail(el.error && el.error.code === 4 ? "NotSupportedError" : "MediaError");
+    el.onended = () => _audioFlagHideSoon();
     const p = el.play();
+    if (p && p.then) p.then(() => { if (my === AUDIO.seq && AUDIO.lastText) _audioFlagShow(); }, () => {});
     if (p && p.catch) return p.catch(err => fail((err && err.name) || "PlayError"));
   }).catch(() => fail("ReadError"));
 }
@@ -495,7 +530,7 @@ function _audioFallback(text, rate) {
 // Phrases the app tried to say that the pack has no recording for (a
 // verb form the games made up, say). They fall back to the system voice
 // and are remembered here so the next build of the pack can include
-// them: Settings → Sound & voice → "Copy missing phrases".
+// them: Settings → Sound & voice → "Copy voice log".
 let _aMiss = null;
 function _audioMisses() {
   if (_aMiss) return _aMiss;
@@ -515,6 +550,94 @@ function audioNoteMiss(text) {
 function audioMissCount() { return _audioMisses().length; }
 function audioMissText() { return _audioMisses().join("\n"); }
 function audioClearMisses() { _aMiss = []; try { localStorage.removeItem(AUDIO_MISS); } catch (e) {} }
+
+// ── FLAGS ─────────────────────────────────────
+// A recording that sounds off (accent, cut short, wrong word) can be flagged
+// with an optional note: a small ⚑ at the right edge shows for a few seconds
+// after a recording plays. Settings → Sound & voice → "Copy voice log"
+// copies them with the phrases that had no recording (see MISSES), to paste
+// to Claude; synth.py --redo-file and extract.mjs --extra read it as it is.
+let _aFlags = null;
+function _audioFlags() {
+  if (_aFlags) return _aFlags;
+  try { _aFlags = JSON.parse(localStorage.getItem(AUDIO_FLAGS) || "[]"); } catch (e) { _aFlags = []; }
+  if (!Array.isArray(_aFlags)) _aFlags = [];
+  return _aFlags;
+}
+function _audioSaveFlags() { try { localStorage.setItem(AUDIO_FLAGS, JSON.stringify(_audioFlags())); } catch (e) {} }
+function audioFlag(text, note) {
+  const t = String(text || "").trim(); if (!t) return;
+  const list = _audioFlags(), old = list.find(f => f.text === t);
+  const n = String(note || "").replace(/\s+/g, " ").replace(/\|/g, "/").trim().slice(0, 200);
+  if (old) { old.note = n || old.note; old.at = Date.now(); old.v = AUDIO.manifest && AUDIO.manifest.v; }
+  else { list.push({ text: t, note: n, at: Date.now(), v: AUDIO.manifest && AUDIO.manifest.v }); if (list.length > AUDIO_FLAG_MAX) list.shift(); }
+  _audioSaveFlags();
+}
+function audioFlagCount() { return _audioFlags().length; }
+function audioFlagText() { return _audioFlags().map(f => f.text + (f.note ? " | " + f.note : "")).join("\n"); }
+function audioClearFlags() { _aFlags = []; try { localStorage.removeItem(AUDIO_FLAGS); } catch (e) {} }
+
+let _aFlagTimer = 0;
+function _audioFlagShow() {
+  if (document.getElementById("audio-flag-sheet")) return;
+  let b = document.getElementById("audio-flag");
+  if (!b) {
+    b = document.createElement("button");
+    b.id = "audio-flag"; b.className = "audio-flag"; b.type = "button";
+    b.setAttribute("aria-label", "Flag this recording");
+    b.title = "Recording sounds off? Flag it";
+    b.textContent = "⚑";
+    b.onclick = e => { e.stopPropagation(); audioFlagSheet(b.dataset.text); };
+    document.body.appendChild(b);
+  }
+  b.dataset.text = AUDIO.lastText;
+  b.classList.add("on");
+  clearTimeout(_aFlagTimer);
+  _aFlagTimer = setTimeout(() => b.classList.remove("on"), 9000);   // safety net if "ended" never comes
+}
+function _audioFlagHide() {
+  const b = document.getElementById("audio-flag");
+  if (b) b.classList.remove("on");
+  clearTimeout(_aFlagTimer);
+}
+function _audioFlagHideSoon() {
+  const b = document.getElementById("audio-flag");
+  if (!b) return;
+  clearTimeout(_aFlagTimer);
+  _aFlagTimer = setTimeout(() => b.classList.remove("on"), 5000);
+}
+function audioFlagSheet(text) {
+  if (!text) return;
+  const b = document.getElementById("audio-flag"); if (b) b.classList.remove("on");
+  const old = document.getElementById("audio-flag-sheet"); if (old) old.remove();
+  const prev = _audioFlags().find(f => f.text === text);
+  const m = document.createElement("div");
+  m.className = "modal-overlay"; m.id = "audio-flag-sheet";
+  m.innerHTML = `<div class="modal-sheet confirm-sheet" role="dialog" aria-modal="true" aria-labelledby="af-title">
+      <div class="modal-title" id="af-title">Flag this recording?</div>
+      <div class="af-phrase"><button class="af-play" id="af-play" aria-label="Play it again">▶</button><span>${escapeHtml(text)}</span></div>
+      <input class="af-note" id="af-note" type="text" maxlength="200" placeholder="Note (optional): accent, cut off, wrong word…" value="${escapeHtml(prev ? prev.note : "")}">
+      <div class="modal-actions">
+        <button class="modal-btn secondary" id="af-no">Cancel</button>
+        <button class="modal-btn primary" id="af-yes">${prev ? "Update" : "Flag"}</button>
+      </div></div>`;
+  const done = () => { document.removeEventListener("keydown", key, true); m.remove(); };
+  const save = () => {
+    audioFlag(text, m.querySelector("#af-note").value); done();
+    if (typeof showCelebrateToast === "function") showCelebrateToast("⚑", "Flagged", "Settings → Sound & voice to copy the list");
+  };
+  const key = e => {
+    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); done(); }
+    else if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); save(); }
+    else e.stopPropagation();                          // typing a note must not drive the game underneath
+  };
+  document.addEventListener("keydown", key, true);
+  m.onclick = e => { if (e.target === m) done(); };
+  document.body.appendChild(m);
+  m.querySelector("#af-no").onclick = done;
+  m.querySelector("#af-yes").onclick = save;
+  m.querySelector("#af-play").onclick = () => { _audioUnlockNow(); audioSpeak(text); };
+}
 
 // ── THE FIRST-LAUNCH OFFER ────────────────────
 // Once per language, after the update that brings voices: ask. Never
@@ -626,7 +749,7 @@ function audioSettingsHtml() {
     buttons = upd + fix + more + `<button class="set-seg-btn" onclick="audioSample()">▶ Hear a sample</button><button class="set-seg-btn" onclick="audioRemoveConfirm()">Remove</button>`;
   }
   const err = AUDIO.error && !j ? `<div class="set-choice-sub audio-err">⚠️ ${escapeHtml(AUDIO.error)}</div>` : "";
-  const misses = audioMissCount();
+  const flags = audioFlagCount(), misses = kinds.length ? audioMissCount() : 0;
   return `
     <div class="set-group-title">Natural ${lang} voice</div>
     <div class="set-choice">
@@ -636,7 +759,7 @@ function audioSettingsHtml() {
       <div class="set-seg audio-seg">${buttons}</div>
       ${err}
     </div>
-    ${kinds.length && misses ? setNavHtml("📝", `Copy ${misses} phrase${misses === 1 ? "" : "s"} without a recording`, "Paste them to Claude to add them to the next voice pack", "audioCopyMisses()") : ""}`;
+    ${flags + misses ? setNavHtml("📝", `Copy voice log · ${flags + misses}`, [flags ? `${flags} flagged` : "", misses ? `${misses} without a recording` : ""].filter(Boolean).join(", ") + ". Paste it to Claude.", "audioCopyLog()") : ""}`;
 }
 // ["w","s"] as a JS literal that is safe inside a double-quoted onclick.
 function _audioKindsJs(kinds) { return "[" + kinds.map(k => `'${k}'`).join(",") + "]"; }
@@ -644,9 +767,23 @@ async function audioRemoveConfirm() {
   const ok = await appConfirm({ title: "Remove the natural voices?", body: "This frees the space. You can download them again any time.", ok: "Remove", cancel: "Keep", danger: true });
   if (ok) { await audioRemove(); if (typeof renderSettingsPanel === "function") renderSettingsPanel(); }
 }
-function audioCopyMisses() {
-  const text = audioMissText();
-  const done = () => { audioClearMisses(); if (typeof showCelebrateToast === "function") showCelebrateToast("📝", "Copied", "Paste it to Claude"); if (typeof renderSettingsPanel === "function") renderSettingsPanel(); };
+// One list for Claude: recordings flagged with ⚑ and phrases that had no
+// recording. Copying empties it (if the clipboard is refused, the text is
+// shown to copy by hand and nothing is emptied).
+function audioLogText() {
+  const lang = WORD_KEY === "fr" ? "French" : "German";
+  const out = [`Voice log (${lang}${AUDIO.manifest ? ", pack " + AUDIO.manifest.v : ""}):`];
+  if (audioFlagCount()) out.push("Flagged recordings:", audioFlagText());
+  if (audioMissCount()) out.push("Phrases without a recording:", audioMissText());
+  return out.join("\n");
+}
+function audioCopyLog() {
+  const text = audioLogText();
+  const done = () => {
+    audioClearFlags(); audioClearMisses();
+    if (typeof showCelebrateToast === "function") showCelebrateToast("📝", "Copied", "Paste it to Claude");
+    if (typeof renderSettingsPanel === "function") renderSettingsPanel();
+  };
   try { navigator.clipboard.writeText(text).then(done, () => prompt("Copy this list:", text)); } catch (e) { prompt("Copy this list:", text); }
 }
 // Keep the open Settings page in step with a running download: numbers

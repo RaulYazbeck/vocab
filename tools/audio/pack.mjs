@@ -3,7 +3,8 @@
 //
 //   node tools/audio/pack.mjs --lang de [--bitrate 24] [--format opus] [--voice "Name"]
 //
-// Reads  work/<lang>/texts.json + work/<lang>/wav/<key>.wav
+// Reads  work/<lang>/texts.json + work/<lang>/wav/<key>.wav (a clip with no WAV
+//        is taken byte for byte from the published pack, if it is there)
 // Writes audio/<lang>/manifest.json and audio/<lang>/<k><NNN>.<hash>.bin
 //
 // For every clip: trim the silence at both ends, bring the loudness to
@@ -12,9 +13,17 @@
 // and sentences in separate shards (the app can download just the words).
 // The manifest maps  key -> [shard, offset, length].
 //
+// Stable by design, so people who already have the pack download only what
+// changed when you edit the decks:
+//   • each deck's clips always go to the same shard (chosen from the deck's
+//     name; clips sorted by key inside it), so editing a deck changes that
+//     deck's shard and nothing else;
+//   • encoding is byte-for-byte reproducible (ffmpeg "bitexact"), so an
+//     unchanged clip is an unchanged shard even if work/ was lost;
+//   • the shard count per kind is remembered in the manifest ("buckets").
+// At the end it prints how many shards (and MB) existing users would fetch.
 // Clips are encoded once and kept in work/<lang>/enc, so re-running after
-// adding phrases only encodes the new ones, and shards whose clips did not
-// change keep their file name (the app then downloads only what changed).
+// adding phrases only encodes the new ones.
 //
 // Needs ffmpeg with libopus (or libmp3lame / aac for --format mp3|aac).
 // Requires: node 18+.
@@ -53,7 +62,7 @@ const texts = JSON.parse(fs.readFileSync(path.join(work, "texts.json"), "utf8"))
 fs.mkdirSync(encDir, { recursive: true });
 
 // Re-encode everything when any encoding setting changes.
-const settings = JSON.stringify({ fmtName, bitrate, sampleRate, TARGET_DB, v: 1 });
+const settings = JSON.stringify({ fmtName, bitrate, sampleRate, TARGET_DB, v: 2 });   // (the silence threshold doesn't change the encoding)
 const settingsFile = path.join(encDir, ".settings");
 if (!fs.existsSync(settingsFile) || fs.readFileSync(settingsFile, "utf8") !== settings) {
   for (const f of fs.readdirSync(encDir)) if (!f.startsWith(".")) fs.unlinkSync(path.join(encDir, f));
@@ -78,22 +87,50 @@ async function encode(wav, dest) {
   const log = await ffmpeg(["-i", wav, "-af", `${TRIM},volumedetect`, "-f", "null", "-"]);
   const mean = parseFloat((log.match(/mean_volume:\s*(-?[\d.]+) dB/) || [])[1]);
   const peak = parseFloat((log.match(/max_volume:\s*(-?[\d.]+) dB/) || [])[1]);
-  if (!isFinite(mean) || !isFinite(peak) || peak < -60) throw new Error("silent clip");
+  // Real speech peaks around -10..0 dB. Below -30 it is a near-silent clip (a
+  // TTS glitch): leave it out, so that word uses the phone voice, never silence.
+  if (!isFinite(mean) || !isFinite(peak) || peak < -30) throw new Error(`near-silent clip (peak ${isFinite(peak) ? peak : "?"} dB)`);
   // Pass 2: gain to the target mean, never past -1 dB peak.
   const gain = Math.max(-15, Math.min(20, TARGET_DB - mean, -1 - peak));
+  // bitexact: no random Ogg serial number / version tags, so the same WAV
+  // always encodes to the same bytes.
   await ffmpeg(["-y", "-i", wav, "-af", `${TRIM},volume=${gain.toFixed(2)}dB,alimiter=limit=0.9`,
-    "-ac", "1", "-ar", String(sampleRate), ...FMT.args(bitrate), dest + ".part"]);
+    "-ac", "1", "-ar", String(sampleRate), "-fflags", "+bitexact", "-flags:a", "+bitexact", ...FMT.args(bitrate), dest + ".part"]);
   fs.renameSync(dest + ".part", dest);
 }
 
+// What is published now (if anything): its shard count per kind keeps the
+// layout stable between builds, its files are what existing users have, and
+// its clips stand in for WAVs that are gone (the work folder is not kept).
+let prev = null;
+try { prev = JSON.parse(fs.readFileSync(path.join(outDir, "manifest.json"), "utf8")); } catch (e) {}
+let reused = 0;
+if (prev && prev.idx && prev.mime === FMT.mime && +prev.bitrate === bitrate) {
+  const files = {};
+  for (const t of texts) {
+    const enc = path.join(encDir, `${t.key}.${FMT.ext}`);
+    const at = prev.idx[t.key];
+    if (!at || fs.existsSync(path.join(wavDir, t.key + ".wav")) || fs.existsSync(enc)) continue;
+    const sh = prev.shards[at[0]];
+    const f = path.join(outDir, sh.f);
+    if (!(f in files)) files[f] = fs.existsSync(f) ? fs.readFileSync(f) : null;
+    if (!files[f] || files[f].length !== sh.n) continue;
+    fs.writeFileSync(enc, files[f].subarray(at[1], at[1] + at[2]));
+    reused++;
+  }
+}
+if (reused) console.log(`${lang}: ${reused} clips have no WAV here; reusing them from the published pack (byte for byte)`);
+
 // ── encode what is missing ──
-const have = texts.filter(t => fs.existsSync(path.join(wavDir, t.key + ".wav")));
+const has = t => fs.existsSync(path.join(wavDir, t.key + ".wav")) || fs.existsSync(path.join(encDir, `${t.key}.${FMT.ext}`));
+const have = texts.filter(has);
 const missingWav = texts.length - have.length;
 const bad = [];
 let done = 0, next = 0;
 const todo = have.filter(t => {
   const enc = path.join(encDir, `${t.key}.${FMT.ext}`);
   const wav = path.join(wavDir, t.key + ".wav");
+  if (!fs.existsSync(wav)) return false;                  // reused from the published pack
   return !(fs.existsSync(enc) && fs.statSync(enc).mtimeMs >= fs.statSync(wav).mtimeMs);
 });
 console.log(`${lang}: ${have.length}/${texts.length} clips have audio; encoding ${todo.length} (${fmtName} ${bitrate} kbps, ${jobs} at a time)`);
@@ -113,26 +150,43 @@ if (bad.length) {
 const badKeys = new Set(bad.map(b => b.t.key));
 
 // ── lay the clips into shards ──
+const bucketOf = (deck, n) => parseInt(crypto.createHash("sha1").update(String(deck)).digest("hex").slice(0, 8), 16) % n;
 const shards = [];                     // { f, k, n, h, buf }
 const idx = {};
-const tot = { w: { n: 0, b: 0, ms: 0 }, s: { n: 0, b: 0, ms: 0 } };
+const tot = { w: { n: 0, b: 0 }, s: { n: 0, b: 0 } };
+const buckets = {};
 for (const kind of ["w", "s"]) {
-  let parts = [], size = 0, no = 0;
-  const flush = () => {
-    if (!parts.length) return;
-    const buf = Buffer.concat(parts);
-    const h = crypto.createHash("sha256").update(buf).digest("hex").slice(0, 16);
-    shards.push({ f: `${kind}${String(no++).padStart(3, "0")}.${h}.bin`, k: kind, n: buf.length, h, buf });
-    parts = []; size = 0;
+  const clips = have.filter(x => x.kind === kind && !badKeys.has(x.key)).map(t => ({ t, buf: fs.readFileSync(path.join(encDir, `${t.key}.${FMT.ext}`)) }));
+  const bytes = clips.reduce((n, c) => n + c.buf.length, 0);
+  const wanted = Math.max(1, Math.round(bytes / shardBytes));
+  const fixed = +opt("buckets-" + kind, 0) || (prev && prev.buckets && prev.buckets[kind]) || wanted;
+  buckets[kind] = fixed;
+  if (prev && fixed && bytes / fixed > 2.5 * shardBytes) console.log(`  note: ${kind === "w" ? "word" : "sentence"} shards are now ~${(bytes / fixed / 1048576).toFixed(1)} MB each (target ${(shardBytes / 1048576).toFixed(1)}). Re-split with --buckets-${kind} ${wanted} (this changes every shard once).`);
+  const groups = Array.from({ length: fixed }, () => []);
+  // A text used in several decks lives with its first deck, but it stays in
+  // the shard it is already published in while one of its decks maps there
+  // (adding a known word to another deck then moves nothing).
+  const prevBucket = k => {
+    const at = prev && prev.buckets && prev.buckets[kind] === fixed && prev.idx && prev.idx[k];
+    const f = at && prev.shards[at[0]] && prev.shards[at[0]].f;
+    return f && f[0] === kind ? parseInt(f.slice(1, 4), 10) : -1;
   };
-  for (const t of have.filter(x => x.kind === kind && !badKeys.has(x.key))) {
-    const clip = fs.readFileSync(path.join(encDir, `${t.key}.${FMT.ext}`));
-    if (size && size + clip.length > shardBytes) flush();
-    idx[t.key] = [shards.length, size, clip.length];        // shards.length = the index this shard will get
-    parts.push(clip); size += clip.length;
-    tot[kind].n++; tot[kind].b += clip.length;
+  for (const c of clips) {
+    const decks = c.t.decks && c.t.decks.length ? c.t.decks : [c.t.deck || c.t.key];
+    const was = prevBucket(c.t.key);
+    const b = decks.map(d => bucketOf(d, fixed)).includes(was) ? was : bucketOf(decks[0], fixed);
+    groups[b].push(c);
   }
-  flush();
+  groups.forEach((g, bi) => {
+    if (!g.length) return;
+    g.sort((a, b) => (a.t.key < b.t.key ? -1 : 1));          // order inside a shard never depends on deck order
+    const si = shards.length;
+    let off = 0;
+    for (const c of g) { idx[c.t.key] = [si, off, c.buf.length]; off += c.buf.length; tot[kind].n++; tot[kind].b += c.buf.length; }
+    const buf = Buffer.concat(g.map(c => c.buf));
+    const h = crypto.createHash("sha256").update(buf).digest("hex").slice(0, 16);
+    shards.push({ f: `${kind}${String(bi).padStart(3, "0")}.${h}.bin`, k: kind, n: buf.length, h, buf });
+  });
 }
 if (!shards.length) { console.error("Nothing to pack: no WAV files yet. Run synth.py first."); process.exit(1); }
 
@@ -147,7 +201,7 @@ for (const s of shards) {
 for (const f of fs.readdirSync(outDir)) if (!keep.has(f)) fs.unlinkSync(path.join(outDir, f));
 const v = crypto.createHash("sha256").update(shards.map(s => s.h).join(",") + JSON.stringify(idx)).digest("hex").slice(0, 12);
 const manifest = {
-  fmt: 1, v, lang, mime: FMT.mime, voice, bitrate,
+  fmt: 1, v, lang, mime: FMT.mime, voice, bitrate, buckets,
   tot: { w: { n: tot.w.n, b: tot.w.b }, s: { n: tot.s.n, b: tot.s.b } },
   shards: shards.map(({ f, k, n, h }) => ({ f, k, n, h })),
   idx,
@@ -160,3 +214,9 @@ console.log(`  words/phrases: ${tot.w.n} clips, ${mb(tot.w.b)}`);
 console.log(`  sentences:     ${tot.s.n} clips, ${mb(tot.s.b)}`);
 console.log(`  everything:    ${mb(tot.w.b + tot.s.b)}   (manifest ${(fs.statSync(path.join(outDir, "manifest.json")).size / 1024).toFixed(0)} KB, version ${v})`);
 if (missingWav) console.log(`  ${missingWav} texts have no audio yet and will use the system voice.`);
+if (prev && Array.isArray(prev.shards)) {
+  const old = new Set(prev.shards.map(x => x.f));
+  const changed = shards.filter(x => !old.has(x.f));
+  const mbChanged = changed.reduce((n, x) => n + x.n, 0);
+  console.log(`  vs the pack that was published: ${changed.length} of ${shards.length} shards changed — people who already have it download ${mb(mbChanged)} (everything else is kept).`);
+} else console.log("  first build: nothing published yet to compare with.");
