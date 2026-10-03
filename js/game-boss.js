@@ -299,7 +299,8 @@ registerGame({
       if (mode === "deck" && won) {
         const rec = S.games.bestiary[ctx.opts.deck] || (S.games.bestiary[ctx.opts.deck] = { wins: 0 });
         rec.wins++; rec.last = todayISO(); rec.perfect = 1;
-        if (typeof questQueueChest === "function") questQueueChest("boss", "epic");
+        // The 👑 chest is a one-off per deck: rematches are for glory.
+        if (rec.wins === 1 && typeof questQueueChest === "function") questQueueChest("boss", "epic");
       }
       if (mode === "minion" && won) {
         const rec = S.games.bestiary[ctx.opts.deck] || (S.games.bestiary[ctx.opts.deck] = { wins: 0 });

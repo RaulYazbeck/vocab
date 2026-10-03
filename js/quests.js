@@ -1054,17 +1054,17 @@ function rollRarity(min = "common", rng = Math.random) {
 // Epic and Legendary chests also hold a collectible (idiom card or
 // cosmetic). A reroll, freeze or shield past its cap turns into XP.
 const CHEST_LOOT = {
-  common:    { xp: [15, 25],   items: [[0.35, "token"], [0.15, "boost"]] },
-  rare:      { xp: [40, 60],   items: [[0.28, "token"], [0.22, "boost"], [0.14, "shield"], [0.135, "key"]] },
-  epic:      { xp: [90, 110],  items: [[0.10, "freeze"]], collectible: "epic" },
-  legendary: { xp: [250, 250], items: [[0.30, "freeze"]], collectible: "legendary" },
+  common:    { xp: [13, 21],   items: [[0.38, "token"], [0.15, "boost"], [0.02, "shield"], [0.01, "key"]] },
+  rare:      { xp: [33, 50],   items: [[0.23, "token"], [0.21, "boost"], [0.12, "shield"], [0.12, "key"]] },
+  epic:      { xp: [75, 92],   items: [[0.10, "freeze"]], collectible: "epic" },
+  legendary: { xp: [208, 208], items: [[0.30, "freeze"]], collectible: "legendary" },
 };
 const CHEST_ITEMS = {
-  token:  { field: "tokens",  label: "🎟️ Reroll token", full: "🎟️ Rerolls full", cap: TOKEN_CAP, capXp: 15 },
+  token:  { field: "tokens",  label: "🎟️ Reroll token", full: "🎟️ Rerolls full", cap: TOKEN_CAP, capXp: 13 },
   boost:  { field: "boosts",  label: "⚡ XP boost — your next session ×1.2" },
-  shield: { field: "shields", label: "🛡️ Memory shield", full: "🛡️ Shields full", cap: SHIELD_CAP, capXp: 30 },
+  shield: { field: "shields", label: "🛡️ Memory shield", full: "🛡️ Shields full", cap: SHIELD_CAP, capXp: 25 },
   key:    { field: "keys",    label: "🗝️ Boss key — summon a minion" },
-  freeze: { field: "freezes", label: "🧊 Streak freeze", full: "🧊 Freezes full", cap: FREEZE_CAP, capXp: 50 },
+  freeze: { field: "freezes", label: "🧊 Streak freeze", full: "🧊 Freezes full", cap: FREEZE_CAP, capXp: 42 },
 };
 function openChest(ch) {
   const Q = S.quests;
@@ -1076,7 +1076,7 @@ function openChest(ch) {
   if (L.collectible) {
     const got = grantCollectible(L.collectible);
     if (got) loot.push(got);
-    else xp += 100;
+    else xp += 83;
   }
   let x = r();
   for (const [p, id] of L.items) {

@@ -10,17 +10,17 @@ const A = {
   double: 0.25,       // ✨ double-reward quest (one quest a day pays a chest)
   flash: 0.20 * 0.8,  // ⚡ flash quest offered (20%) × finished in time
   minion: 0.10,       // ⚔️ surprise minion offered and beaten
-  deckBoss: 0.07,     // 👑 deck-boss wins a day (rematches pay too)
+  deckBoss: 0.10,     // 👑 first win over a deck's boss (only the first pays; ~95 decks)
   keyWin: 0.7,        // 🗝️ minion summoned with a key and beaten
 };
 const R = ["common", "rare", "epic", "legendary"];
 const LOOT = {
-  common:    { xp: 20,  items: [[0.35, "reroll"], [0.15, "boost"]] },
-  rare:      { xp: 50,  items: [[0.28, "reroll"], [0.22, "boost"], [0.14, "shield"], [0.135, "key"]] },
-  epic:      { xp: 100, items: [[0.10, "freeze"]], coll: true },
-  legendary: { xp: 250, items: [[0.30, "freeze"]], coll: true },
+  common:    { xp: 17,  items: [[0.38, "reroll"], [0.15, "boost"], [0.02, "shield"], [0.01, "key"]] },
+  rare:      { xp: 42,  items: [[0.23, "reroll"], [0.21, "boost"], [0.12, "shield"], [0.12, "key"]] },
+  epic:      { xp: 83,  items: [[0.10, "freeze"]], coll: true },
+  legendary: { xp: 208, items: [[0.30, "freeze"]], coll: true },
 };
-const CAP_XP = { reroll: 15, freeze: 50, shield: 30 }; // what an item past its cap turns into
+const CAP_XP = { reroll: 13, freeze: 42, shield: 25 }; // what an item past its cap turns into
 
 function run(capped) {
   const C = { sinceRare: 0, sinceEpic: 0, sinceLeg: 0 };
