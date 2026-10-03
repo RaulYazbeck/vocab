@@ -162,9 +162,12 @@ pronouns too when it is short (≤ 3 letters) or ends in a silent "-ent"
   synthesis only; the app still finds the clip under the original text. The
   next `synth.py` / `run_all.py full` re-makes it by itself: `state/<lang>/spoken.json`
   remembers what each clip was made from, and a clip whose wording changed is
-  made again. The German overrides also spell out dictionary shorthand
-  ("jmd. etw. versprechen" → "jemandem etwas versprechen", "die Vokabeln always
-  pl." → "die Vokabeln") and placeholders ("Ich heiße (name).").
+  made again. The German overrides also spell out placeholders ("Ich heiße
+  (name)." → "Ich heiße …"). Better still, fix the card itself: Google reads
+  dictionary shorthand literally, so cards say "jemandem etwas versprechen",
+  not "jmd. (DAT) etw. (AKK) versprechen" (the case goes in the card's hint), and
+  notes go in round brackets, which the app leaves out when it speaks:
+  "die Vokabeln (always pl.)".
 - **Google uses the wrong sounds for a word** (a French "je" in "je … desto", an
   English "um", "zu" as "su"): give the override a sound hint in IPA,
   `{"je … desto": {"say": "je ..., desto ...", "sounds": {"je": "je", "desto": "dɛsto"}}}`.

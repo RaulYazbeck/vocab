@@ -61,3 +61,14 @@ hints that Google follows (je = /je/, desto = /dɛsto/, um = /ʊm/, zu = /tsu/, 
 checked by giving a French hint on purpose, which came back with a French "zh". Three takes
 each; take A is installed. Only these 3 clips changed (2 shard files). `pick-pairs.html` has
 the takes and the old versions side by side. Characters sent this month: 418,904.
+
+## Fifth pass: card text and the last two endings
+- The German JM deck cards with dictionary shorthand are written out ("jmd. (DAT) etw. (AKK)
+  versprechen" → "jemandem etwas versprechen", case kept in the hint; also überzeugen,
+  umbringen, vertrauen, zustimmen, verfügen, aus Versehen machen). "die Vokabeln [always pl.]"
+  now uses round brackets like "die Leute (always pl.)", so the app says just "die Vokabeln".
+  Progress is kept: the app saves it by the card's position, not its text. 8 new clips.
+- "ärgerlich über" and "Ne parle pas en mangeant !" re-made (best of four takes): no clip in
+  either language now ends abruptly.
+- 100% coverage, browser test 12/12. Characters sent this month: 419,249.
+  Page: `check-latest.html` (these 10 clips).
