@@ -75,6 +75,7 @@ changed is downloaded again by people who already have the pack.
 | **Re-order** words or decks | Nothing changes. |
 | **Add a deck / level** | Only the new clips are made; a few new shard files appear. |
 | **Rename** a deck | That deck's clips move to another shard: a few shards change, nothing is re-recorded. |
+| **Add a word that another deck already has** | Nothing is recorded or re-downloaded: the clip is shared and stays where it is. |
 
 ### The routine (a few minutes)
 
@@ -83,7 +84,10 @@ node tools/audio/status.mjs --lang de     # how many texts have no recording yet
 python tools/audio/run_all.py full        # makes ONLY the new ones, repacks
 git add audio tools/audio/state && git commit -m "Update voice packs" && git push
 ```
-`extract` also prints "+N new, −M no longer used" each time. Add `--strict` to
+`extract` also prints what is new compared with the published pack, and warns
+about cards the voice would read literally ("jmd. anrufen", "[always pl.]",
+"der/die", "sth"): write those out on the card (or add an override) before
+recording. The warning is repeated in `work/REPORT.md`. Add `--strict` to
 `status` to make it exit 1 when anything is missing (for a CI check).
 
 ### What is kept, and what can be lost
@@ -110,7 +114,12 @@ recorded it simply uses the phone's voice.
 How the packs stay small to update: each deck's clips always live in the same
 shard file (chosen from the deck's name, clips sorted by key), and encoding is
 byte-for-byte reproducible, so editing a deck changes that deck's shard and
-nothing else. Measured at full size: adding a word and changing a sentence in
+nothing else (a text used by several decks stays in the shard it is already
+in). Tested on a fresh machine with no work folder: a new German deck, an
+edited sentence and a removed card, plus a new French conjugation card →
+9 + 3 clips recorded, 3 of 22 and 2 of 15 shards changed; a phone that had the
+old pack updated by itself, fetched only those files, and every card,
+including the new ones, played its recording, also offline. Measured at full size: adding a word and changing a sentence in
 one deck changed **2 of 33 shards (4.4 MB)**; rebuilding everything from scratch
 changed **0**.
 

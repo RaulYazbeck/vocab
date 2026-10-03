@@ -163,7 +163,20 @@ for (const kind of ["w", "s"]) {
   buckets[kind] = fixed;
   if (prev && fixed && bytes / fixed > 2.5 * shardBytes) console.log(`  note: ${kind === "w" ? "word" : "sentence"} shards are now ~${(bytes / fixed / 1048576).toFixed(1)} MB each (target ${(shardBytes / 1048576).toFixed(1)}). Re-split with --buckets-${kind} ${wanted} (this changes every shard once).`);
   const groups = Array.from({ length: fixed }, () => []);
-  for (const c of clips) groups[bucketOf(c.t.deck || c.t.key, fixed)].push(c);
+  // A text used in several decks lives with its first deck, but it stays in
+  // the shard it is already published in while one of its decks maps there
+  // (adding a known word to another deck then moves nothing).
+  const prevBucket = k => {
+    const at = prev && prev.buckets && prev.buckets[kind] === fixed && prev.idx && prev.idx[k];
+    const f = at && prev.shards[at[0]] && prev.shards[at[0]].f;
+    return f && f[0] === kind ? parseInt(f.slice(1, 4), 10) : -1;
+  };
+  for (const c of clips) {
+    const decks = c.t.decks && c.t.decks.length ? c.t.decks : [c.t.deck || c.t.key];
+    const was = prevBucket(c.t.key);
+    const b = decks.map(d => bucketOf(d, fixed)).includes(was) ? was : bucketOf(decks[0], fixed);
+    groups[b].push(c);
+  }
   groups.forEach((g, bi) => {
     if (!g.length) return;
     g.sort((a, b) => (a.t.key < b.t.key ? -1 : 1));          // order inside a shard never depends on deck order

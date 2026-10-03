@@ -20,7 +20,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { collectTexts, workDir } from "./lib.mjs";
+import { collectTexts, workDir, ROOT } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf("--" + n); return i >= 0 ? args[i + 1] : d; };
@@ -49,4 +49,27 @@ if (before) {
   console.log(`  since last run: +${added.length} new, -${removed.length} no longer used`);
   added.slice(0, 8).forEach(x => console.log(`    + ${x.text}`));
   removed.slice(0, 8).forEach(x => console.log(`    - ${x.text}`));
+}
+
+// Against the published pack: what a run would record (works on a fresh machine too).
+let pub = null;
+try { pub = JSON.parse(fs.readFileSync(path.join(ROOT, "audio", lang, "manifest.json"), "utf8")); } catch (e) {}
+if (pub && pub.idx) {
+  const fresh = list.filter(x => !(x.key in pub.idx));
+  const now = new Set(list.map(x => x.key));
+  const gone = Object.keys(pub.idx).filter(k => !now.has(k)).length;
+  console.log(`  vs the published pack: ${fresh.length} to record (${fresh.reduce((n, x) => n + x.text.length, 0)} characters), ${gone} no longer used`);
+  fresh.slice(0, 8).forEach(x => console.log(`    + ${x.text}`));
+}
+
+// Texts the voice would read literally: dictionary shorthand, square brackets,
+// an English note, a slash between words. Fix the card (or add an override).
+let overrides = {};
+try { overrides = JSON.parse(fs.readFileSync(path.join(path.dirname(new URL(import.meta.url).pathname), "overrides", lang + ".json"), "utf8")); } catch (e) {}
+const ODD = /\b(jmd|jmdm|jmdn|jdm|jdn|etw|sth|sb|qn|qch|qc|qqn|qqch|someone|something)\b|[\[\]{}<>]|\b(sg|pl|usu|lit|fig|coll|inf|jur|med)\.(\s|$)|\b\w+\/\w+\b/i;
+const odd = list.filter(x => x.kind === "w" && !(x.text in overrides) && ODD.test(x.text));
+fs.writeFileSync(path.join(dir, "warnings.json"), JSON.stringify(odd.map(x => ({ text: x.text, deck: x.deck }))));
+if (odd.length) {
+  console.log(`  ⚠ ${odd.length} text(s) the voice would read literally (shorthand, brackets, an English note, a slash). Write them out on the card, or add an override:`);
+  odd.slice(0, 20).forEach(x => console.log(`    ! ${x.text}   (deck ${x.deck})`));
 }

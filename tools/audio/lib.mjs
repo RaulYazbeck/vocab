@@ -133,7 +133,8 @@ export function collectTexts(lang, extraTexts = []) {
     if (prev) {
       if (norm(prev.text) !== norm(text)) throw new Error(`Key collision between "${prev.text}" and "${text}"`);
       if (kind === "w") prev.kind = "w";            // used as a word anywhere = a word
-    } else byKey.set(key, sayFor.has(text) ? { key, text, kind, deck, say: sayFor.get(text) } : { key, text, kind, deck });
+      if (!prev.decks.includes(deck)) prev.decks.push(deck);
+    } else byKey.set(key, sayFor.has(text) ? { key, text, kind, deck, decks: [deck], say: sayFor.get(text) } : { key, text, kind, deck, decks: [deck] });
   }
   const all = [...byKey.values()];
   return [...all.filter(x => x.kind === "w"), ...all.filter(x => x.kind === "s")];

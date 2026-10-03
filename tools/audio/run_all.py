@@ -150,6 +150,10 @@ def write_report(args, seconds):
             f"{len(man.get('shards', []))} files",
             "",
         ]
+        odd = read_json(os.path.join(lang_dir(lang), "warnings.json"), [])
+        if odd:
+            lines.append(f"- **read literally** (shorthand, brackets, an English note, a slash): write these out on the card or add an override, then run again:")
+            lines += [f"  - `{o['text']}` (deck {o['deck']})" for o in odd[:30]]
         for f in fails[:30]:
             lines.append(f"  - `{f['text']}`: {f.get('error', '')}")
         if fails:
