@@ -32,10 +32,13 @@ function toggleQuiet() {
   S.path.quietDay = quietActive() ? "" : todayISO();
   saveState();
   logEvent("quiet", { on: quietActive() });
-  if (quietActive() && window.speechSynthesis) try { speechSynthesis.cancel(); } catch (e) {}
+  if (quietActive()) {
+    if (window.speechSynthesis) try { speechSynthesis.cancel(); } catch (e) {}
+    if (typeof audioStop === "function") audioStop();
+  }
   if (typeof onQuietChanged === "function") onQuietChanged();
 }
-function audioOk() { return ttsOn() && !!window.speechSynthesis; }
+function audioOk() { return ttsOn() && ttsAvailable(); }
 
 // ── SCAN ──────────────────────────────────────
 // One pass over every vocab word. Memoised for a short moment: the

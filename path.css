@@ -726,3 +726,10 @@ button svg, button svg *, .chx-btn * { pointer-events:none; }
 .gm-chest-open:active { transform:scale(0.97); }
 .gm-chest-done { text-align:center; font-size:13.5px; font-weight:700; color:var(--success); padding:10px; border-radius:var(--r-sm); background:var(--success-dim); }
 @media (prefers-reduced-motion: reduce) { .gm-chest-open { animation:none; } }
+
+/* ── Settings → Sound & voice → natural voice pack (js/audio.js) ── */
+.audio-seg { flex-wrap:wrap; margin-top:10px; }
+.audio-seg .set-seg-btn { flex:1 1 auto; white-space:nowrap; }
+.audio-bar { height:6px; border-radius:3px; background:rgba(255,255,255,0.14); overflow:hidden; margin-top:10px; }
+.audio-bar i { display:block; height:100%; background:var(--accent); transition:width 0.25s linear; }
+.audio-err { color:var(--error); }

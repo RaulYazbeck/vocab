@@ -17,8 +17,22 @@ function mutedToday() { return typeof quietActive === "function" && quietActive(
 function ttsOn()  { return SOUND.tts && !mutedToday(); }
 function sfxOn()  { return SOUND.sfx && !mutedToday(); }
 function vibeOn() { return SOUND.vibe && !mutedToday(); }
+// Is there any way to read words aloud: a recorded voice pack on this
+// device (audio.js) or the browser's own text-to-speech?
+function ttsAvailable() {
+  return !!window.speechSynthesis || (typeof audioReady === "function" && audioReady());
+}
+// Reads text aloud: the recorded natural voice when the pack has it,
+// otherwise the browser's own voice. rate: 0.85 is normal speed, 0.55
+// is the "🐢 Slower" button.
 function speak(text, rate = 0.85) {
-  if (!ttsOn() || !window.speechSynthesis) return;
+  if (!ttsOn()) return;
+  if (typeof audioSpeak === "function" && audioSpeak(text, rate)) return;
+  speakSystem(text, rate);
+}
+function speakSystem(text, rate = 0.85) {
+  if (typeof audioStop === "function") audioStop();
+  if (!window.speechSynthesis) return;
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = APP_CONFIG.speechLang;

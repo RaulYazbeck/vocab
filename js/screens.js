@@ -670,6 +670,7 @@ function settingsSoundHtml() {
     <div class="set-group-title">Always on this device</div>
     ${setSwitchHtml("🔊", "Sound", "Words and example sentences read aloud, plus the chime for a right or wrong answer and the sounds in games. Off also hides listening exercises — there would be nothing to hear.", SOUND.tts, "toggleSoundPref('sound')")}
     ${hasVibration() ? setSwitchHtml("📳", "Vibration", "A short buzz on answers and in games.", SOUND.vibe, "toggleSoundPref('vibe')") : ""}
+    ${typeof audioSettingsHtml === "function" ? audioSettingsHtml() : ""}
     <div class="set-group-title">Just for today</div>
     ${setSwitchHtml("🔇", "Mute until tomorrow", "Silences everything above — plus the mic and listening exercises — until tomorrow, then switches itself off. Your switches above are not changed. Same as the button on the Today card.", quiet, "toggleQuiet();renderSettingsPanel()")}
     <div class="set-group-title">Microphone (optional)</div>

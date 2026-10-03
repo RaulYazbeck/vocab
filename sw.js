@@ -38,7 +38,8 @@ self.addEventListener("install", event => {
 self.addEventListener("activate", event => {
   event.waitUntil((async () => {
     const names = await caches.keys();
-    await Promise.all(names.filter(n => !ALL_CACHES.includes(n)).map(n => caches.delete(n)));
+    // "audio-…" caches hold the downloaded voice packs (js/audio.js): never ours to clean up.
+    await Promise.all(names.filter(n => !ALL_CACHES.includes(n) && !n.startsWith("audio-")).map(n => caches.delete(n)));
     await self.clients.claim();
   })());
 });
@@ -48,6 +49,9 @@ self.addEventListener("fetch", event => {
   if (req.method !== "GET") return;
 
   const url = new URL(req.url);
+  // Voice packs (js/audio.js) manage their own cache: leave them to the
+  // page, or every shard would be stored twice.
+  if (url.origin === self.location.origin && url.pathname.includes("/audio/")) return;
   const sameOrigin = url.origin === self.location.origin;
   const isFontCss  = url.hostname === "fonts.googleapis.com";
   const isFontBin  = url.hostname === "fonts.gstatic.com";
