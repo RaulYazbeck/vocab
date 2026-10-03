@@ -36,7 +36,11 @@ removed) the clip is made again automatically.
 Fixing individual clips
   overrides/<lang>.json  {"text as written in the deck": "how to say it"}: used for
                          synthesis only; the app still finds the clip under the
-                         original text. Then --redo-file it.
+                         original text. The clip is re-made by itself.
+                         Or {"say": "how to say it", "sounds": {"word": "IPA"}}
+                         to also tell Google how a word sounds (e.g. "je": "je"
+                         for the German "je", not the French one). Google checks
+                         the IPA and refuses symbols it doesn't take (e.g. "ː").
   --redo-file list.txt   one deck text per line: delete those clips and make them again.
 
 Near-silence guard: for some very short words Google returns a quarter second of
@@ -106,7 +110,7 @@ class ToneEngine:
     def __init__(self, args):
         pass
 
-    def synth(self, text):
+    def synth(self, text, sounds=None):
         secs = min(8.0, 0.35 + 0.055 * len(text))
         f = 300 + (sum(map(ord, text)) % 400)
         n = int(SAMPLE_RATE * secs)
@@ -156,9 +160,13 @@ class GoogleEngine:
             raise Fatal(f"Voice {self.voice['name']} isn't offered. Chirp 3 HD voices for {self.voice['languageCode']}: "
                         + (", ".join(chirp[:30]) or "none"))
 
-    def synth(self, text):
+    def synth(self, text, sounds=None):
+        inp = {"text": text}
+        if sounds:                                   # Chirp 3: HD custom pronunciations, IPA
+            inp["customPronunciations"] = {"pronunciations": [
+                {"phrase": w, "phoneticEncoding": "PHONETIC_ENCODING_IPA", "pronunciation": ipa} for w, ipa in sounds.items()]}
         body = json.dumps({
-            "input": {"text": text},
+            "input": inp,
             "voice": self.voice,
             "audioConfig": {"audioEncoding": "LINEAR16", "sampleRateHertz": SAMPLE_RATE, "speakingRate": self.rate},
         }).encode()
@@ -319,8 +327,20 @@ def save_json(path, data):
 
 
 def load_overrides(lang):
+    """(text → what to send, text → {word: IPA})"""
     data = load_json(os.path.join(HERE, "overrides", lang + ".json"), {})
-    return {k: v for k, v in data.items() if isinstance(v, str) and not k.startswith("_")}
+    say, sounds = {}, {}
+    for k, v in data.items():
+        if k.startswith("_"):
+            continue
+        if isinstance(v, str):
+            say[k] = v
+        elif isinstance(v, dict):
+            if v.get("say"):
+                say[k] = v["say"]
+            if v.get("sounds"):
+                sounds[k] = v["sounds"]
+    return say, sounds
 
 
 # -------------------------------------------------------------------- main
@@ -370,7 +390,7 @@ def main():
             failures.pop(t["key"], None)
         print(f"--redo-file: {len(redo)} of {len(want)} listed texts found, will be made again")
 
-    overrides = load_overrides(args.lang)
+    overrides, sounds = load_overrides(args.lang)
     # The typographic "…" makes Google add a stray sound or clip the end ("um … zu");
     # three plain dots give a clean pause.
     say = lambda t: (overrides.get(t["text"]) or t.get("say") or t["text"]).replace("…", "...")
@@ -378,11 +398,14 @@ def main():
     # existed count as made from the override or the plain text.
     spoken_path = os.path.join(work, "spoken.json")
     spoken = load_json(spoken_path, {})
+    hint = lambda t: sounds.get(t["text"])
+    # what a clip is made from: the text sent, plus any pronunciation hints
+    ident = lambda t: say(t) + (" " + json.dumps(hint(t), ensure_ascii=False, sort_keys=True) if hint(t) else "")
     made_from = lambda t: spoken.get(t["key"], overrides.get(t["text"]) or t["text"])
-    stale = [t for t in texts if os.path.exists(os.path.join(wav_dir, t["key"] + ".wav")) and made_from(t) != say(t)]
+    stale = [t for t in texts if os.path.exists(os.path.join(wav_dir, t["key"] + ".wav")) and made_from(t) != ident(t)]
     if stale:
         print(f"{len(stale)} clips will be made again because what they should say changed "
-              f"(e.g. {', '.join(repr(t['text']) + ' → ' + repr(say(t)) for t in stale[:4])})")
+              f"(e.g. {', '.join(repr(t['text']) + ' → ' + repr(ident(t)) for t in stale[:4])})")
         for t in stale:
             failures.pop(t["key"], None)
     if args.redo_cut and args.engine == "google":
@@ -433,12 +456,12 @@ def main():
                 ledger.take(len(text))
             if stop.is_set():
                 return
-            audio, used = engine.synth(text), None
+            audio, used = engine.synth(text, hint(t)), None
             if args.engine == "google" and peak_db(audio) < SILENT_DB:
                 for v in variants(text):
                     if ledger:
                         ledger.take(len(v))
-                    audio = engine.synth(v)
+                    audio = engine.synth(v, hint(t))
                     if peak_db(audio) >= SILENT_DB:
                         used = v
                         break
@@ -449,7 +472,7 @@ def main():
                 for v in cut_variants(used or text):
                     if ledger:
                         ledger.take(len(v))
-                    a = engine.synth(v)
+                    a = engine.synth(v, hint(t))
                     e = end_db(a)
                     if peak_db(a) >= SILENT_DB and e < best[0]:
                         best, best_v = (e, a), (None if v == text else v)
@@ -461,7 +484,7 @@ def main():
                 f.write(audio)
             os.replace(path + ".part", path)
             with lock:
-                spoken[t["key"]] = text
+                spoken[t["key"]] = ident(t)
                 if used:
                     used_variants[t["text"]] = used
                 else:

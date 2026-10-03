@@ -123,9 +123,10 @@ gives a better clip.
 ### "…" in a text
 The typographic "…" made Google add a stray sound or clip the end, so it is
 always sent as three plain dots "...", which give a clean pause. "je … desto"
-alone was read with a French "je"; it is sent as "je ..., desto ..." (an
-override), and for it and "um / ohne … zu", "entweder … oder" the take with a
-clear pause was picked by measuring several takes.
+alone was read with a French "je", "um … zu" with an English "um" and "ohne
+… zu" with "su": those three carry sound hints (below), and for them and
+"entweder … oder" the take with a clear pause was picked by measuring several
+takes.
 
 ### French verb forms are said with their pronoun
 A conjugation card's bare form, said alone, is often read as a different word:
@@ -150,6 +151,12 @@ pronouns too when it is short (≤ 3 letters) or ends in a silent "-ent"
   made again. The German overrides also spell out dictionary shorthand
   ("jmd. etw. versprechen" → "jemandem etwas versprechen", "die Vokabeln always
   pl." → "die Vokabeln") and placeholders ("Ich heiße (name).").
+- **Google uses the wrong sounds for a word** (a French "je" in "je … desto", an
+  English "um", "zu" as "su"): give the override a sound hint in IPA,
+  `{"je … desto": {"say": "je ..., desto ...", "sounds": {"je": "je", "desto": "dɛsto"}}}`.
+  Google follows it (Chirp 3 HD "custom pronunciations"). It checks the IPA and
+  refuses symbols it doesn't take, e.g. the length mark "ː": write "je", not "jeː".
+  Changing a hint re-makes the clip like any other override change.
 - **To hear chosen clips:** list them in a JSON file
   (`{"de": {"Abbreviations": ["z.B.", "d.h."]}}`) and run
   `node tools/audio/samples.mjs --check list.json --out check.html`.

@@ -54,3 +54,10 @@ Reported by ear: "je … desto" sounded French, "um … zu" had something at the
   Characters sent this month: 418,534 (free tier 1,000,000).
 
 Page: `check-cutoff.html` (the "…" phrases and examples of re-made endings, 51 clips).
+
+## Fourth pass: three German phrases
+"je … desto" still sounded French, "um … zu" and "ohne … zu" odd. They now carry IPA sound
+hints that Google follows (je = /je/, desto = /dɛsto/, um = /ʊm/, zu = /tsu/, ohne = /onə/):
+checked by giving a French hint on purpose, which came back with a French "zh". Three takes
+each; take A is installed. Only these 3 clips changed (2 shard files). `pick-pairs.html` has
+the takes and the old versions side by side. Characters sent this month: 418,904.

@@ -40,7 +40,9 @@ for (const lang of langs) {
   const overrides = readJson(path.join(path.dirname(new URL(import.meta.url).pathname), "overrides", lang + ".json"));
   const variantsUsed = readJson(path.join(dir, "variants.json"));
   const pick = kind => shuffle(texts.filter(t => t.kind === kind)).slice(0, Math.ceil(n / 2));
-  const sent = t => (overrides[t.text] && !t.text.startsWith("_") ? overrides[t.text] : t.say) || "";
+  const sent = t => { const o = t.text.startsWith("_") ? null : overrides[t.text];
+    if (o && typeof o === "object") return (o.say || t.text) + (o.sounds ? "  (sounds: " + Object.entries(o.sounds).map(([w, ipa]) => `${w} = /${ipa}/`).join(", ") + ")" : "");
+    return o || t.say || ""; };
   const row = t => { total++; const v = variantsUsed[t.text] || sent(t);
     return `<li><p>${esc(t.text)}${v && v !== t.text ? ` <small>sent to Google as “${esc(v)}”</small>` : ""}</p><audio controls preload="none" src="data:audio/mpeg;base64,${mp3(path.join(dir, "wav", t.key + ".wav"))}"></audio></li>`; };
   if (check) {
