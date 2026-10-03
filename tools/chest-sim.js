@@ -20,12 +20,12 @@ const LOOT = {
   epic:      { xp: 100, items: [[0.10, "freeze"]], coll: true },
   legendary: { xp: 250, items: [[0.30, "freeze"]], coll: true },
 };
-const CAP_XP = { freeze: 50, shield: 30 };
+const CAP_XP = { reroll: 15, freeze: 50, shield: 30 }; // what an item past its cap turns into
 
 function run(capped) {
   const C = { sinceRare: 0, sinceEpic: 0, sinceLeg: 0 };
   const t = {}; const add = (k, n = 1) => { t[k] = (t[k] || 0) + n; };
-  let lucky = 0, keys = 0;
+  let lucky = 0, keys = 0; const bySrc = {};
   const roll = min => {
     const r = Math.random() * 100;
     let rar = r < 2 ? "legendary" : r < 12 ? "epic" : r < 40 ? "rare" : "common";
@@ -42,6 +42,8 @@ function run(capped) {
   const open = (min, src) => {
     add("chests"); add("src " + src);
     const rar = roll(min), L = LOOT[rar];
+    bySrc[src] = bySrc[src] || { n: 0, common: 0, rare: 0, epic: 0, legendary: 0 };
+    bySrc[src].n++; bySrc[src][rar]++;
     add(rar); add("xp", L.xp); if (L.coll) add("collectible");
     let x = Math.random();
     for (const [p, it] of L.items) {
@@ -64,12 +66,17 @@ function run(capped) {
     while (keys > 0) { keys--; if (Math.random() < A.keyWin) open("common", "key minion"); }
     for (let e = 0; e < A.events; e++) { lucky++; if (lucky >= 7 || Math.random() < 0.1) { lucky = 0; open("common", "lucky"); } }
   }
-  console.log(capped ? "\n== 🧊 freezes and 🛡️ shields already at their cap (2) ==" : "== below the caps ==");
+  console.log(capped ? "\n== 🎟️ rerolls (5), 🧊 freezes (2) and 🛡️ shields (2) all at their cap ==" : "== below the caps ==");
   for (const k of Object.keys(t).sort()) {
     const per = t[k] / A.days;
     const every = ["reroll", "boost", "shield", "key", "freeze"].includes(k) ? `  ≈ one every ${(1 / per).toFixed(1)} days` : "";
     console.log(`${k.padEnd(22)} ${per.toFixed(3)} /day${every}`);
   }
+  if (capped) return;
+  console.log("\n== rarity of each chest (guarantees included) ==");
+  console.log("source".padEnd(12), "common  rare    epic    legendary");
+  for (const [src, b] of Object.entries(bySrc))
+    console.log(src.padEnd(12), R.map(r => (b[r] / b.n * 100).toFixed(1).padStart(5) + "%").join("  "));
 }
 run(false);
 run(true);

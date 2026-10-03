@@ -25,6 +25,10 @@ const QUEST_SLOT_INFO = {
   D: { name: "Wildcard", share: 0.15, xp: 60 },
 };
 const QUEST_NO_REPEAT_DAYS = 5;
+// Chest items you can hold at most (⚡ boosts have no cap: they're used
+// up by themselves). One past its cap turns into XP — the other items'
+// odds never change.
+const FREEZE_CAP = 2, SHIELD_CAP = 2, TOKEN_CAP = 5, BOOST_RATE = 0.2;
 
 function migrateQuests() {
   if (!S.quests || typeof S.quests !== "object") S.quests = {};
@@ -42,6 +46,7 @@ function migrateQuests() {
   if (!(Q.keys >= 0)) Q.keys = 0;
   if (Q.freezes > FREEZE_CAP) Q.freezes = FREEZE_CAP;
   if (Q.shields > SHIELD_CAP) Q.shields = SHIELD_CAP;
+  if (Q.tokens > TOKEN_CAP) Q.tokens = TOKEN_CAP;
   if (!Array.isArray(Q.idioms)) Q.idioms = [];
   if (!Q.chest || typeof Q.chest !== "object") Q.chest = { opened: 0, sinceRare: 0, sinceEpic: 0, sinceLeg: 0 };
   if (!Array.isArray(Q.pending)) Q.pending = [];
@@ -1047,8 +1052,7 @@ function rollRarity(min = "common", rng = Math.random) {
 // day, pity timers included): rerolls ≈0.7/day, ⚡ boosts ≈0.4/day,
 // 🛡️ shields ≈0.15/day, 🗝️ keys ≈1/week, 🧊 freezes ≈1 every 10 days.
 // Epic and Legendary chests also hold a collectible (idiom card or
-// cosmetic). A freeze or shield past its cap turns into XP.
-const FREEZE_CAP = 2, SHIELD_CAP = 2, BOOST_RATE = 0.2;
+// cosmetic). A reroll, freeze or shield past its cap turns into XP.
 const CHEST_LOOT = {
   common:    { xp: [15, 25],   items: [[0.35, "token"], [0.15, "boost"]] },
   rare:      { xp: [40, 60],   items: [[0.28, "token"], [0.22, "boost"], [0.14, "shield"], [0.135, "key"]] },
@@ -1056,7 +1060,7 @@ const CHEST_LOOT = {
   legendary: { xp: [250, 250], items: [[0.30, "freeze"]], collectible: "legendary" },
 };
 const CHEST_ITEMS = {
-  token:  { field: "tokens",  label: "🎟️ Reroll token" },
+  token:  { field: "tokens",  label: "🎟️ Reroll token", full: "🎟️ Rerolls full", cap: TOKEN_CAP, capXp: 15 },
   boost:  { field: "boosts",  label: "⚡ XP boost — your next session ×1.2" },
   shield: { field: "shields", label: "🛡️ Memory shield", full: "🛡️ Shields full", cap: SHIELD_CAP, capXp: 30 },
   key:    { field: "keys",    label: "🗝️ Boss key — summon a minion" },
@@ -1092,7 +1096,7 @@ function openChest(ch) {
 // Epic/Legendary collectible: an idiom card or a cosmetic, whichever
 // collection still has pieces of that rarity (a coin flip when both do).
 function grantCollectible(rar) {
-  const idioms = idiomPool(rar), cos = COSMETICS.filter(c => !c.free && c.rar === rar && !S.quests.cos.owned.includes(c.id));
+  const idioms = typeof idiomPool === "function" ? idiomPool(rar) : [], cos = COSMETICS.filter(c => !c.free && c.rar === rar && !S.quests.cos.owned.includes(c.id));
   if (!idioms.length && !cos.length) return rar === "legendary" ? grantCollectible("epic") : null;
   if (idioms.length && (!cos.length || Math.random() < 0.5)) {
     const c = idioms[Math.floor(Math.random() * idioms.length)];
@@ -1569,10 +1573,10 @@ function renderCollection() {
   document.getElementById("main-screen").innerHTML = `<div class="screen">
     <div class="screen-top"><div class="screen-label">🎨 Collection · ${owned}/${total}</div><button class="back-btn" onclick="backToMenu()">← Back</button></div>
     <div class="coll-stats">
-      <span class="p-chip" title="Covers a missed day automatically">🧊 ${Q.freezes}/${FREEZE_CAP} freeze${Q.freezes === 1 ? "" : "s"}</span>
-      <span class="p-chip" title="Tap 🎲 on a quest to swap it">🎟️ ${Q.tokens} reroll${Q.tokens === 1 ? "" : "s"}</span>
+      <span class="p-chip" title="Covers a missed day automatically">🧊 ${Q.freezes}/${FREEZE_CAP} freezes</span>
+      <span class="p-chip" title="Tap 🎲 on a quest to swap it (one free reroll a day, then tokens)">🎟️ ${Q.tokens}/${TOKEN_CAP} rerolls</span>
       <span class="p-chip" title="Each one adds ×1.2 XP to your next Today session, automatically">⚡ ${Q.boosts} boost${Q.boosts === 1 ? "" : "s"}</span>
-      <span class="p-chip" title="After a miss in a Today session, tap “🛡️ Shield it” to keep the word's stage">🛡️ ${Q.shields}/${SHIELD_CAP} shield${Q.shields === 1 ? "" : "s"}</span>
+      <span class="p-chip" title="After a miss in a Today session, tap “🛡️ Shield it” to keep the word's stage">🛡️ ${Q.shields}/${SHIELD_CAP} shields</span>
       <span class="p-chip" title="Games → Bosses: summon a minion whenever you like">🗝️ ${Q.keys} key${Q.keys === 1 ? "" : "s"}</span>
       <span class="p-chip">📦 ${Q.chest.opened} chests opened</span>
       ${Q.pending.length ? `<button class="p-chip gold" onclick="openPendingChest()">🎁 ${Q.pending.length} to open</button>` : ""}

@@ -971,7 +971,7 @@ function endPathSession(abandoned) {
   // ⚡ XP boost from a chest: +20% of this session's XP (achievements
   // aside), used up automatically by the next finished session.
   if (!abandoned && S.quests && S.quests.boosts > 0 && s.stats.answered >= 5) {
-    const bonus = Math.round(Math.max(0, S.exp - s.startExp - (s.badgeXp || 0)) * BOOST_RATE);
+    const bonus = Math.round(Math.max(0, S.exp - s.startExp - (s.badgeXp || 0)) * (typeof BOOST_RATE === "number" ? BOOST_RATE : 0.2));
     if (bonus) { S.quests.boosts--; addExp(bonus); s.boosted = bonus; }
   }
   pathSession = null;
