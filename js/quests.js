@@ -91,7 +91,6 @@ function questEnsureToday() {
   if (Q.day && Q.day !== today) questCloseDay(Q.day, today);
   Q.day = today;
   Q.m = freshQuestCounters();
-  Q.rerolled = false;
   Q.dayDone = false;
   Q.flash = null;
   Q.weekend = null;
@@ -643,8 +642,8 @@ function questReroll(idx, free = false) {
   if (t && t.fixed) return;
   const isSound = t && t.audio || (q.hidden && byId(q.hidden.tpl) && byId(q.hidden.tpl).audio);
   if (!free) {
-    if (Q.rerolled && Q.tokens <= 0) { showCelebrateToast("🎟️", "No rerolls left", "Chests often contain reroll tokens"); return; }
-    if (Q.rerolled) Q.tokens--; else Q.rerolled = true;
+    if (!(Q.tokens > 0)) { showCelebrateToast("🎟️", "No rerolls left", "Chests often contain reroll tokens"); return; }
+    Q.tokens--;
   } else if (!isSound) return;
   const ctx = questContext();
   const rng = seededRandom(hashString(Q.day + "|reroll|" + idx + "|" + Date.now()));
@@ -1031,13 +1030,13 @@ function questQueueChest(src, min = "common") {
   S.quests.pending.push({ src, min, at: Date.now() });
   if (S.quests.pending.length > 20) S.quests.pending = S.quests.pending.slice(-20);
 }
-// Pity-timed roll: Rare by the 3rd, Epic by the 10th, Legendary by
-// the 30th chest.
+// Pity-timed roll: base 28% Rare, 8% Epic, 1.5% Legendary; Rare by the
+// 3rd, Epic by the 10th, Legendary by the 40th chest.
 function rollRarity(min = "common", rng = Math.random) {
   const C = S.quests.chest;
   let r = rng() * 100;
-  let rar = r < 2 ? "legendary" : r < 12 ? "epic" : r < 40 ? "rare" : "common";
-  if (C.sinceLeg >= 29) rar = "legendary";
+  let rar = r < 1.5 ? "legendary" : r < 9.5 ? "epic" : r < 37.5 ? "rare" : "common";
+  if (C.sinceLeg >= 39) rar = "legendary";
   else if (C.sinceEpic >= 9 && RARITIES.indexOf(rar) < 2) rar = "epic";
   else if (C.sinceRare >= 2 && RARITIES.indexOf(rar) < 1) rar = "rare";
   if (RARITIES.indexOf(rar) < RARITIES.indexOf(min)) rar = min;
@@ -1055,9 +1054,9 @@ function rollRarity(min = "common", rng = Math.random) {
 // cosmetic). A reroll, freeze or shield past its cap turns into XP.
 const CHEST_LOOT = {
   common:    { xp: [13, 21],   items: [[0.38, "token"], [0.15, "boost"], [0.02, "shield"], [0.01, "key"]] },
-  rare:      { xp: [33, 50],   items: [[0.23, "token"], [0.21, "boost"], [0.12, "shield"], [0.12, "key"]] },
-  epic:      { xp: [75, 92],   items: [[0.10, "freeze"]], collectible: "epic" },
-  legendary: { xp: [208, 208], items: [[0.30, "freeze"]], collectible: "legendary" },
+  rare:      { xp: [33, 50],   items: [[0.19, "token"], [0.175, "boost"], [0.10, "shield"], [0.11, "key"]] },
+  epic:      { xp: [75, 92],   items: [[0.12, "freeze"]], collectible: "epic" },
+  legendary: { xp: [208, 208], items: [[0.37, "freeze"]], collectible: "legendary" },
 };
 const CHEST_ITEMS = {
   token:  { field: "tokens",  label: "🎟️ Reroll token", full: "🎟️ Rerolls full", cap: TOKEN_CAP, capXp: 13 },
@@ -1070,6 +1069,7 @@ function openChest(ch) {
   const Q = S.quests;
   const rar = rollRarity(ch.min);
   const L = CHEST_LOOT[rar];
+  delete Q._lastIdiom;
   const loot = [];
   const r = Math.random;
   let xp = L.xp[0] + Math.floor(r() * (L.xp[1] - L.xp[0] + 1));
@@ -1091,7 +1091,8 @@ function openChest(ch) {
   logEvent("chest", { src: ch.src, rar });
   checkAchievements({ type: "chest" });
   // 👵 Grandma mode never sees the items (they're still kept): just XP.
-  return { rar, loot: grandmaOn() ? loot.slice(0, 1) : loot };
+  const idiom = Q._lastIdiom || null; delete Q._lastIdiom;
+  return { rar, idiom, loot: grandmaOn() ? loot.slice(0, 1) : loot };
 }
 // Epic/Legendary collectible: an idiom card or a cosmetic, whichever
 // collection still has pieces of that rarity (a coin flip when both do).
@@ -1101,6 +1102,7 @@ function grantCollectible(rar) {
   if (idioms.length && (!cos.length || Math.random() < 0.5)) {
     const c = idioms[Math.floor(Math.random() * idioms.length)];
     S.quests.idioms.push(c.id);
+    S.quests._lastIdiom = c.id;
     logEvent("idiom", { id: c.id });
     return `📜 ${rar === "legendary" ? "Legendary idiom" : "Idiom card"}: “${c.p}” — ${c.mean}`;
   }
@@ -1199,7 +1201,7 @@ function showChestModal(ch, res) {
       <div class="chx-tap" id="chx-tap">Tap the chest!</div>
       <div class="chx-reveal" id="chx-reveal" hidden>
         <ul class="chest-loot">${res.loot.map((l, i) => `<li style="animation-delay:${0.25 + i * 0.12}s">${escapeHtml(l)}</li>`).join("")}</ul>
-        <div class="modal-actions">${S.quests.pending.length ? `<button class="modal-btn secondary" onclick="closeChestModal();openPendingChest()">Next chest (${S.quests.pending.length}) →</button>` : ""}
+        <div class="modal-actions">${res.idiom && !grandmaOn() ? `<button class="modal-btn secondary" onclick="openIdiom('${res.idiom}')">📜 Read it</button>` : ""}${S.quests.pending.length ? `<button class="modal-btn secondary" onclick="closeChestModal();openPendingChest()">Next chest (${S.quests.pending.length}) →</button>` : ""}
           <button class="modal-btn primary" id="chx-ok" onclick="closeChestModal()">Nice!</button></div>
       </div>
     </div>`;
@@ -1277,7 +1279,7 @@ function closeChestModal() {
 }
 
 // ── COSMETICS ─────────────────────────────────
-// ~40 collectables: accent themes, boss skins, card backs, titles.
+// 46 collectables: accent themes, boss skins, card backs, titles.
 const COSMETICS = [
   // themes: [accent, accent-hi]
   { id: "th_amber", kind: "theme", icon: "🟠", name: "Amber (default)", rar: "common", v: ["#F5A623", "#FFD166"], free: true },
@@ -1289,6 +1291,8 @@ const COSMETICS = [
   { id: "th_ice", kind: "theme", icon: "🧊", name: "Ice", rar: "epic", v: ["#67E8F9", "#CFFAFE"] },
   { id: "th_lime", kind: "theme", icon: "🍋", name: "Lime", rar: "epic", v: ["#A3E635", "#D9F99D"] },
   { id: "th_cherry", kind: "theme", icon: "🍒", name: "Cherry", rar: "epic", v: ["#F43F5E", "#FB7185"] },
+  { id: "th_lavender", kind: "theme", icon: "🪻", name: "Lavender", rar: "epic", v: ["#C084FC", "#E9D5FF"] },
+  { id: "th_coral", kind: "theme", icon: "🪸", name: "Coral", rar: "epic", v: ["#FF7F6E", "#FFB4A8"] },
   { id: "th_gold", kind: "theme", icon: "🏆", name: "Royal Gold", rar: "legendary", v: ["#EAB308", "#FDE68A"] },
   { id: "th_aurora", kind: "theme", icon: "🌌", name: "Aurora", rar: "legendary", v: ["#2DD4BF", "#A78BFA"] },
   { id: "th_ember", kind: "theme", icon: "🔥", name: "Ember", rar: "legendary", v: ["#EF4444", "#F59E0B"] },
@@ -1303,6 +1307,7 @@ const COSMETICS = [
   { id: "bs_croc", kind: "boss", icon: "🐊", name: "Article Croc", rar: "epic" },
   { id: "bs_bat", kind: "boss", icon: "🦇", name: "Night Verb", rar: "epic" },
   { id: "bs_spider", kind: "boss", icon: "🕷️", name: "Web of Tenses", rar: "epic" },
+  { id: "bs_octopus", kind: "boss", icon: "🐙", name: "Ink Octopus", rar: "epic" },
   { id: "bs_trex", kind: "boss", icon: "🦖", name: "Lexi-Rex", rar: "legendary" },
   { id: "bs_alien", kind: "boss", icon: "👽", name: "Foreign Word", rar: "legendary" },
   // card backs (Today card pattern)
@@ -1312,6 +1317,8 @@ const COSMETICS = [
   { id: "cb_dots", kind: "card", icon: "⚪", name: "Polka", rar: "epic" },
   { id: "cb_grid", kind: "card", icon: "🔲", name: "Grid", rar: "epic" },
   { id: "cb_stripes", kind: "card", icon: "🟰", name: "Stripes", rar: "epic" },
+  { id: "cb_hearts", kind: "card", icon: "💞", name: "Hearts", rar: "epic" },
+  { id: "cb_zigzag", kind: "card", icon: "⚡", name: "Zigzag", rar: "epic" },
   { id: "cb_glow", kind: "card", icon: "🌟", name: "Glow", rar: "legendary" },
   { id: "cb_prism", kind: "card", icon: "🔷", name: "Prism", rar: "legendary" },
   // titles (shown next to your level)
@@ -1321,6 +1328,10 @@ const COSMETICS = [
   { id: "ti_owl", kind: "title", icon: "🦉", name: "Night Scholar", rar: "epic" },
   { id: "ti_rocket", kind: "title", icon: "🚀", name: "Speed Speller", rar: "epic" },
   { id: "ti_heart", kind: "title", icon: "💗", name: "Word Collector", rar: "epic" },
+  { id: "ti_idiom", kind: "title", icon: "📜", name: "Idiom Hunter", rar: "epic" },
+  { id: "ti_keeper", kind: "title", icon: "🧊", name: "Streak Keeper", rar: "epic" },
+  { id: "ti_slayer", kind: "title", icon: "⚔️", name: "Boss Slayer", rar: "epic" },
+  { id: "ti_dict", kind: "title", icon: "📖", name: "Living Dictionary", rar: "legendary" },
   { id: "ti_sage", kind: "title", icon: "🧙", name: "Polyglot Sage", rar: "legendary" },
   { id: "ti_crown", kind: "title", icon: "👑", name: "Vocab Royalty", rar: "legendary" },
 ];
@@ -1432,7 +1443,7 @@ function questCardsHtml(opts = {}) {
       : it.altTitle ? (() => { try { return escapeHtml(it.altTitle(inner)); } catch (e) { return ""; } })() : "";
     const acts = simple || q.done ? ""
       : sound ? `<button class="gm-q-mini" onclick="questReroll(${i}, true)" title="Can't use sound now? Swap it (free)" aria-label="Swap this sound quest">🔇</button>`
-      : q.tpl !== "d_mystery" && !t.fixed ? `<button class="gm-q-mini" onclick="questReroll(${i})" title="Reroll this quest${Q.rerolled ? ` (${Q.tokens} tokens)` : " (1 free today)"}" aria-label="Reroll this quest">🎲</button>` : "";
+      : q.tpl !== "d_mystery" && !t.fixed && Q.tokens > 0 ? `<button class="gm-q-mini" onclick="questReroll(${i})" title="Reroll this quest (${Q.tokens} token${Q.tokens > 1 ? "s" : ""})" aria-label="Reroll this quest">🎲</button>` : "";
     return questRowHtml({ icon: questIcon(q), title: questTitle(q) + dbl, prog: mystery ? 0 : inner.prog, target: mystery ? 1 : inner.target,
       done: q.done, num: mystery && !q.done ? "?" : null, note, go: `questGo(${i})`, acts, cls: sound && quiet ? "muted" : "" });
   });
@@ -1574,7 +1585,7 @@ function renderCollection() {
     <div class="screen-top"><div class="screen-label">🎨 Collection · ${owned}/${total}</div><button class="back-btn" onclick="backToMenu()">← Back</button></div>
     <div class="coll-stats">
       <span class="p-chip" title="Covers a missed day automatically">🧊 ${Q.freezes}/${FREEZE_CAP} freezes</span>
-      <span class="p-chip" title="Tap 🎲 on a quest to swap it (one free reroll a day, then tokens)">🎟️ ${Q.tokens}/${TOKEN_CAP} rerolls</span>
+      <span class="p-chip" title="Tap 🎲 on a quest to swap it — each reroll uses a token">🎟️ ${Q.tokens}/${TOKEN_CAP} rerolls</span>
       <span class="p-chip" title="Each one gives ×1.5 XP to your next Today session, automatically">⚡ ${Q.boosts} boost${Q.boosts === 1 ? "" : "s"}</span>
       <span class="p-chip" title="After a miss in a Today session, tap “🛡️ Shield it” to keep the word's stage">🛡️ ${Q.shields}/${SHIELD_CAP} shields</span>
       <span class="p-chip" title="Games → Bosses: summon a minion whenever you like">🗝️ ${Q.keys} key${Q.keys === 1 ? "" : "s"}</span>

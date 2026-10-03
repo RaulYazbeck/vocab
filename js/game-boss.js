@@ -293,7 +293,7 @@ registerGame({
         if (won && !world.defeated) {
           world.defeated = true;
           S.games.worldWins = (S.games.worldWins || 0) + 1;
-          if (typeof questQueueChest === "function") questQueueChest("world", "epic");
+          if (typeof questQueueChest === "function") questQueueChest("world", "rare");
         }
       }
       if (mode === "deck" && won) {
