@@ -42,6 +42,7 @@ Fixing individual clips
                          for the German "je", not the French one). Google checks
                          the IPA and refuses symbols it doesn't take (e.g. "ː").
   --redo-file list.txt   one deck text per line: delete those clips and make them again.
+                         The app's "Copy N flagged recordings" list works as it is.
 
 Near-silence guard: for some very short words Google returns a quarter second of
 near-silence instead of speech. Every clip is checked (peak level); a near-silent
@@ -394,7 +395,13 @@ def main():
     made = lambda t: has_wav(t) or t["key"] in published
     redo_keys = set()
     if args.redo_file:
-        want = {line.strip() for line in open(args.redo_file, encoding="utf8") if line.strip()}
+        # one deck text per line; also takes the app's "Copy N flagged recordings"
+        # list as it is ("text | note" lines under a "Flagged recordings (…):" header)
+        want = set()
+        for line in open(args.redo_file, encoding="utf8"):
+            line = line.strip()
+            if line and not line.startswith("Flagged recordings ("):
+                want.add(line.split(" | ")[0].strip())
         redo = [t for t in texts if t["text"] in want]
         for t in redo:
             p = os.path.join(wav_dir, t["key"] + ".wav")

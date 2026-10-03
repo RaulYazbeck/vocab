@@ -163,6 +163,12 @@ pronouns too when it is short (≤ 3 letters) or ends in a silent "-ent"
 (`SAY_WITH_PRONOUN` in `lib.mjs`).
 
 ### Fixing one clip or a pronunciation
+- **Flagging in the app:** after a recording plays, a small ⚑ shows at the
+  right edge for a few seconds. Tap it, add a note if you like ("French
+  accent", "cut off"). Settings → Sound & voice → "Copy N flagged recordings"
+  copies the list (kept on the phone until you clear it). Paste it to Claude,
+  or save it as `flagged.txt` and use it with `--redo-file` as it is. The notes
+  say what to fix (an override, a sound hint, or just a new take).
 - **A clip sounds wrong:** put its text (one per line) in a file, run
   `python tools/audio/synth.py --lang de --redo-file list.txt`, then
   `python tools/audio/run_all.py pack`.
