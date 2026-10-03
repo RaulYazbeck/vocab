@@ -1,28 +1,28 @@
 <!doctype html>
 <!--
   ╔════════════════════════════════════════════════════════════════╗
-  ║  TEMPORARY — speak-mode capture test (v4).                     ║
+  ║  TEMPORARY — answer-aware voice check test (v5).               ║
   ║  NOT part of the app. Nothing in /de or /fr uses this.         ║
   ║  When the tests are done, delete the whole  asr-test/  folder. ║
   ╚════════════════════════════════════════════════════════════════╝
-  Simulates the app's voice drill: you see the English word, say the German
-  word, it moves on by itself. Unlike the app's current recorder, the mic is
-  opened ONCE and kept open, and ~0.7 s of audio from *before* you start
-  speaking is kept — so the first sound of a word can't be cut off.
-  Audio never leaves your device. The main output is the exported .json.
+  Speak-mode session like the app's voice drill (mic opened once, kept open, with pre-roll),
+  but each answer is CHECKED against the expected word instead of being transcribed freely:
+  Whisper scores the expected phrase, its two other-article variants and a few similar-sounding
+  words (scorer.js), and the app-style decision is shown live. Audio never leaves your device.
+  The exported .json (audio + all scores) is what Claude analyses.
 -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>TEMP – speak test</title>
+<title>TEMP – voice check test</title>
 <style>
   :root { --bg:#fafafa; --fg:#1d1d1f; --mut:#6b6b70; --card:#fff; --line:#dcdce0; --acc:#2563eb;
-          --ok:#15803d; --okbg:#dcfce7; --mid:#a16207; --midbg:#fef3c7; --bad:#b91c1c; --badbg:#fee2e2; --hombg:#e0f2fe; --accbg:#ffedd5; --warn:#b91c1c; }
+          --ok:#15803d; --okbg:#dcfce7; --mid:#a16207; --midbg:#fef3c7; --bad:#b91c1c; --badbg:#fee2e2; --warn:#b91c1c; --ora:#c2410c; --orabg:#ffedd5; }
   @media (prefers-color-scheme: dark) {
     :root { --bg:#141416; --fg:#ececf0; --mut:#9a9aa3; --card:#1e1e22; --line:#33333a; --acc:#60a5fa;
-            --ok:#4ade80; --okbg:#14301f; --mid:#fbbf24; --midbg:#3a2e0e; --bad:#f87171; --badbg:#3b1717; --hombg:#0e2a3d; --accbg:#3d2410; }
+            --ok:#4ade80; --okbg:#14301f; --mid:#fbbf24; --midbg:#3a2e0e; --bad:#f87171; --badbg:#3b1717; --ora:#fb923c; --orabg:#3d2410; }
   }
   * { box-sizing:border-box; }
   body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.45 system-ui, sans-serif; }
@@ -36,85 +36,76 @@
   button:disabled { opacity:.5; cursor:not-allowed; }
   select, input[type=text] { font:inherit; padding:8px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--fg); width:100%; }
   .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-  .prompt { font-size:2.2rem; font-weight:700; text-align:center; margin:18px 0 6px; word-break:break-word; }
-  .sub { text-align:center; color:var(--mut); }
+  .prompt { font-size:2.1rem; font-weight:700; text-align:center; margin:14px 0 6px; word-break:break-word; }
+  .instr { text-align:center; font-weight:600; padding:8px; border-radius:8px; margin:6px 0; }
+  .instr.say { background:var(--midbg); } .instr.trap { background:var(--orabg); color:var(--ora); }
   .status { text-align:center; font-weight:600; min-height:1.6em; margin:10px 0; }
   .meter { position:relative; height:12px; background:var(--line); border-radius:6px; overflow:hidden; margin:10px 0; }
   .meter > i { display:block; height:100%; width:0; background:var(--ok); }
   .meter > b { position:absolute; top:0; bottom:0; width:2px; background:var(--bad); left:10%; }
   .bar { height:6px; background:var(--line); border-radius:4px; overflow:hidden; } .bar > i { display:block; height:100%; background:var(--acc); width:0; }
-  table { border-collapse:collapse; width:100%; font-size:.85rem; }
-  th, td { border:1px solid var(--line); padding:4px 6px; text-align:left; vertical-align:top; }
-  .v-exact { background:var(--okbg); } .v-homophone { background:var(--hombg); } .v-near { background:var(--midbg); } .v-accent { background:var(--accbg); } .v-wrong { background:var(--badbg); }
-  .scroll { overflow-x:auto; }
-  pre { white-space:pre-wrap; word-break:break-word; background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:10px; max-height:240px; overflow:auto; font-size:.78rem; }
+  .verdict { text-align:center; border-radius:10px; padding:10px; margin:8px 0; font-weight:600; }
+  .verdict.ok { background:var(--okbg); color:var(--ok); } .verdict.no { background:var(--badbg); color:var(--bad); }
+  .verdict small { display:block; font-weight:400; color:var(--fg); margin-top:4px; }
+  pre { white-space:pre-wrap; word-break:break-word; background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:10px; max-height:300px; overflow:auto; font-size:.78rem; }
   .hide { display:none; }
   .warn { border:1px solid var(--mid); background:var(--midbg); border-radius:8px; padding:8px; }
-  .log { font-size:.85rem; color:var(--mut); max-height:120px; overflow:auto; }
+  .log { font-size:.85rem; color:var(--mut); }
 </style>
 </head>
 <body>
 <div class="banner">⚠ TEMPORARY TEST PAGE — not part of the app. Delete the <code>asr-test/</code> folder when finished.</div>
 <main>
-  <h1>Speak-mode test · German A1 · 50 words</h1>
+  <h1>Voice check test · German A1 · 62 trials</h1>
 
   <section class="card" id="intro">
-    <h2>How this works</h2>
+    <h2>What this tests</h2>
+    <p class="mut" style="margin-top:0">The app will <b>check</b> your spoken answer against the expected word (and its article) instead of guessing freely.
+      This page does that live, so you can see whether it works — including whether it <b>catches a wrong article</b> and a <b>wrong similar-sounding word</b>.</p>
     <ol style="margin:0 0 8px 18px; padding:0">
-      <li>Tap <b>Start</b> once. The mic then stays on for the whole session.</li>
-      <li>You see an English word. <b>Say the German word, with its article</b> ("der Tisch"), exactly as you would in the app.</li>
-      <li>It detects the end of your answer and moves on by itself. Think, hesitate, say "ähm" — behave normally.
-          If you don't know it, tap <b>Skip</b>. Don't retry words to make them pass.</li>
-      <li>After 50 words: <b>Export</b> the .json and send it to Claude. That file is what matters.</li>
+      <li><b>Part 1 — 30 vocabulary words.</b> Like the app: see the English, say the German with its article. Honest attempts, hesitate if you would.</li>
+      <li><b>Part 2 — 24 article trials.</b> The screen tells you exactly what to say. Half have a <b>wrong article on purpose</b> (orange). Say them like you'd really answer.</li>
+      <li><b>Part 3 — 8 wrong-word trials.</b> Say a different, similar-sounding word on purpose.</li>
     </ol>
-    <div id="iosNote" class="warn mut hide">iPhone: open in a normal <b>Safari tab</b> (not a home-screen icon), keep the screen awake, quiet room, phone held how you normally hold it.</div>
-    <p class="row"><label class="mut" style="flex:1 1 220px">Mic processing
-      <select id="proc">
-        <option value="raw" selected>Raw — no noise suppression / auto-gain (recommended)</option>
-        <option value="default">Browser default</option>
-      </select></label>
-      <label class="mut" style="flex:1 1 220px">About you / setup (goes in the report)
-      <input type="text" id="note" placeholder="e.g. French native, iPhone 14, quiet room"></label></p>
-    <div class="row"><button class="primary" id="btnStart">Start</button><span id="startMsg" class="mut"></span></div>
-    <p class="mut">Already have an export? <input type="file" id="fileImport" accept=".json,application/json"> (loads it so you can run the small models on a laptop)</p>
+    <div id="iosNote" class="warn mut hide">iPhone: open in a normal <b>Safari tab</b> (not a home-screen icon), keep the screen awake, quiet room, hold the phone how you normally do.</div>
+    <div class="row" style="margin-top:8px">
+      <label class="mut" style="flex:1 1 200px">Model (downloads once, ~40–80 MB)
+        <select id="modelSel"><option value="onnx-community/whisper-tiny" selected>Whisper tiny — fastest</option><option value="onnx-community/whisper-base">Whisper base — a bit more accurate, slower</option></select></label>
+      <label class="mut" style="flex:1 1 200px">Mic processing
+        <select id="proc"><option value="raw" selected>Raw — no noise suppression / auto-gain</option><option value="default">Browser default</option></select></label>
+    </div>
+    <p><label class="mut">About you / setup (goes in the report)<input type="text" id="note" placeholder="e.g. French native, iPhone 14, headphones, quiet room"></label></p>
+    <label class="mut"><input type="checkbox" id="noLive"> Record only — skip the live check (use this if the model won't load on your phone)</label>
+    <p class="row"><button class="primary" id="btnStart">Start</button><span id="startMsg" class="mut"></span></p>
   </section>
 
   <section class="card hide" id="session">
-    <div class="row" style="justify-content:space-between"><span class="mut" id="progTxt">0 / 50</span><span class="mut" id="micTxt"></span></div>
+    <div class="row" style="justify-content:space-between"><span class="mut" id="progTxt">0 / 62</span><span class="mut" id="micTxt"></span></div>
     <div class="bar"><i id="progBar"></i></div>
+    <div id="partTxt" class="mut" style="text-align:center;margin-top:6px"></div>
     <div class="prompt" id="prompt">…</div>
-    <div class="sub" id="promptSub">say it in German</div>
-    <div class="status" id="status">Calibrating — stay quiet for a second…</div>
+    <div class="instr hide" id="instr"></div>
+    <div class="status" id="status">Loading…</div>
     <div class="meter"><i id="meterBar"></i><b id="thrMark"></b></div>
+    <div id="verdict" class="verdict hide"></div>
     <div class="row" style="justify-content:center">
+      <button id="btnContinue" class="primary hide">Continue</button>
       <button id="btnRedo">↺ Redo previous</button>
       <button id="btnSkip">Skip (don't know)</button>
       <button id="btnPause">Pause</button>
       <button id="btnFinish">Finish early</button>
     </div>
-    <p class="mut" style="text-align:center">Red line = how loud you must be to count as speaking. The bar should jump past it when you speak.</p>
+    <p class="mut" style="text-align:center">Red line = how loud you must be to count as speaking.</p>
   </section>
 
   <section class="card hide" id="done">
     <h2>Done — export your recordings</h2>
     <div class="row">
-      <button class="primary" id="btnExport">Export recordings (.json)</button>
-      <button id="btnCopy">Copy session summary</button>
+      <button class="primary" id="btnExport">Export results (.json)</button>
+      <button id="btnCopy">Copy summary</button>
     </div>
-    <p class="mut">Send the .json to Claude (that's the important file). On iPhone it lands in Files → Downloads.</p>
+    <p class="mut">Send Claude the .json (audio + every score) and paste the summary. On iPhone the file lands in Files → Downloads.</p>
     <pre id="summaryBox"></pre>
-  </section>
-
-  <section class="card hide" id="models">
-    <h2>Optional — run the small models right here</h2>
-    <p class="mut">Only the two sizes that can realistically run in an iPhone browser. The bigger models and the "score the expected word" method
-       can't run on a phone, so Claude runs those from your .json.
-       <b>On iPhone: tick one, run, then reload the page between models</b> (your recordings are kept).</p>
-    <label><input type="checkbox" id="m_tiny" checked> Whisper tiny (q8) — ~40 MB · the app's current model</label><br>
-    <label><input type="checkbox" id="m_base"> Whisper base (q8) — ~80 MB</label>
-    <p class="row"><button id="btnRun">Run on my recordings</button><span id="runStatus" class="mut"></span></p>
-    <div class="log" id="runLog"></div>
-    <div class="scroll" id="resTable"></div>
   </section>
 
   <section class="card hide" id="cleanup">
@@ -128,183 +119,110 @@
 // ── CONFIG ────────────────────────────────────
 const TJS_CDN = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3";   // same version as the app
 const IS_IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-// Same timings as the app's voice drill (js/state.js, js/voice-engine.js) except a longer start timeout so hesitation is allowed.
-const P = { silenceEndMs: 1100, maxSpeechMs: 8000, startTimeoutMs: 8000, preRollMs: 700, tailKeepMs: 500, cardLeadMs: 250, advanceMs: 700, calibMs: 1000 };
+// Same timings as the app's voice drill, but a longer start timeout so hesitation is allowed.
+const P = { silenceEndMs: 1100, maxSpeechMs: 8000, startTimeoutMs: 8000, preRollMs: 700, tailKeepMs: 500, cardLeadMs: 250, advanceMs: 1400, calibMs: 1000 };
+// Live decision rule (the exported scores let Claude re-tune this offline).
+const D = { simMargin: 2.0, artVarMargin: 1.0, requireArticleToken: true };
 
-// 50 real A1 cards from de/german_decks_a1.js (English prompt → German answer), shuffled with a fixed seed.
-const CARDS_RAW = [
- ["the mother","die Mutter"],["the father","der Vater"],["the brother","der Bruder"],["the sister","die Schwester"],["the child","das Kind"],
- ["the house","das Haus"],["the kitchen","die Küche"],["the room","das Zimmer"],["the table","der Tisch"],["the window","das Fenster"],["the door","die Tür"],["the bed","das Bett"],
- ["the water","das Wasser"],["the coffee","der Kaffee"],["the bread","das Brot"],["the cheese","der Käse"],["the apple","der Apfel"],["the milk","die Milch"],["the beer","das Bier"],
- ["the car","das Auto"],["the bus","der Bus"],["the train","der Zug"],["the street / road","die Straße"],["the city / town","die Stadt"],
- ["the head","der Kopf"],["the hand","die Hand"],["the eye","das Auge"],
- ["red","rot"],["blue","blau"],["green","grün"],["large / big","groß"],["small","klein"],["beautiful / nice","schön"],["tired","müde"],["cold","kalt"],
- ["to do / make","machen"],["to eat","essen"],["to drink","trinken"],["to swim","schwimmen"],["to sleep","schlafen"],
- ["I","ich"],["we","wir"],["two","zwei"],["four","vier"],["five","fünf"],["ten","zehn"],
- ["the day","der Tag"],["the week","die Woche"],["the sun","die Sonne"],["the dog","der Hund"]
-];
-function seededShuffle(a, seed) { a = a.slice(); let s = seed; for (let i = a.length - 1; i > 0; i--) { s = (s * 1664525 + 1013904223) % 4294967296; const j = s % (i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; }
-const CARDS = seededShuffle(CARDS_RAW, 20261003).map(([en, de]) => ({ en, de }));
-
-// ── MATCHING (accent-sensitive; homophones count as correct; same fuzzy rule as the app) ──
-function stripAccents(s) { return s.normalize("NFD").replace(/[̀-ͯ]/g, ""); }
-function normalizeChars(s) { return s.replace(/ß/g, "ss").replace(/['\-]/g, " ").replace(/\s+/g, " "); }
-function normalize(s) { return normalizeChars(s.trim().toLowerCase().normalize("NFC")); }
-const ARTICLE_TOKENS = /^(der|die|das|den|dem|des|ein|eine|einen|einem|einer|eines|kein|keine|keinen|keinem|keiner|keines|le|la|les|l|un|une|du|au|aux)$/;
-function articleSeq(s) { return s.split(" ").filter(t => ARTICLE_TOKENS.test(t)).join(" "); }
-function levenshtein(a, b) {
-  if (a === b) return 0; if (!a.length) return b.length; if (!b.length) return a.length;
-  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
-  for (let i = 1; i <= a.length; i++) { const row = [i]; for (let j = 1; j <= b.length; j++) row[j] = Math.min(prev[j] + 1, row[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = row; }
-  return prev[b.length];
-}
-function voiceIsCorrect(transcript, answer) {
-  const normT = normalize(transcript); if (!normT) return false;
-  return answer.split("/").some(alt => {
-    const normA = normalize(alt.trim()); if (!normA) return false;
-    const arts = articleSeq(normA).split(" ").filter(Boolean);
-    if (arts.length) { let k = 0; for (const t of normT.split(" ")) if (t === arts[k]) k++; if (k < arts.length) return false; }
-    if (normT.includes(normA)) return true;
-    if (normA.includes(normT) && normT.length > 2 && normT.length >= normA.length * 0.6 && normT.split(" ").some(t => !ARTICLE_TOKENS.test(t))) return true;
-    if (normA.length >= 4) {
-      if (1 - levenshtein(normT, normA) / Math.max(normT.length, normA.length) >= 0.8) return true;
-      if (normT.split(" ").some(tok => tok.length >= 4 && 1 - levenshtein(tok, normA) / Math.max(tok.length, normA.length) >= 0.8)) return true;
-    }
-    return false;
-  });
-}
-const HOMOPHONES = [["meer","mehr"],["seite","saite"],["wahl","wal"],["mal","mahl"],["leere","lehre"],["moor","mohr"],["stil","stiel"],["lied","lid"],["rat","rad"],["das","dass"],["wieder","wider"],["bund","bunt"]];
-function homophoneForms(normAnswer) {
-  const toks = normAnswer.split(" "), forms = new Set();
-  for (const g of HOMOPHONES) { const ng = g.map(normalize); toks.forEach((t, i) => { if (ng.includes(t)) ng.forEach(m => { if (m !== t) { const c = [...toks]; c[i] = m; forms.add(c.join(" ")); } }); }); }
-  return forms;
-}
-function cleanHeard(s) { return (s || "").replace(/[.,!?;:¡¿"“”«»…]/g, " ").replace(/\s+/g, " ").trim(); }
-function verdict(heard, expected) {
-  const h = normalize(cleanHeard(heard)); if (!h) return "wrong";
-  const answers = expected.split("/").map(a => normalize(a.trim())).filter(Boolean);
-  if (answers.some(a => a === h)) return "exact";
-  if (answers.some(a => homophoneForms(a).has(h))) return "homophone";
-  if (answers.some(a => !h.includes(a) && stripAccents(h).includes(stripAccents(a)))) return "accent";
-  return voiceIsCorrect(h, expected) ? "near" : "wrong";
-}
+const $ = id => document.getElementById(id);
+const BLOCKS = {
+  vocab:   { n: 1, title: "Part 1 — vocabulary", text: "Just like the app. See the English, say the German word with its article. Honest attempts — hesitate if you would, say \"I don't know\" or tap Skip if you really don't." },
+  article: { n: 2, title: "Part 2 — article test", text: "The screen tells you exactly what to say. Half of the trials have a WRONG ARTICLE ON PURPOSE (orange). Say them clearly, the way you'd answer for real — don't exaggerate the article." },
+  word:    { n: 3, title: "Part 3 — wrong word on purpose", text: "Each trial tells you a different, similar-sounding word to say instead of the real answer. The check should reject these." },
+};
+let CARDS = [], ARTICLE_FIRST = null, PROMPT_IDS = null;
 
 // ── STORAGE (IndexedDB) ───────────────────────
-const $ = id => document.getElementById(id);
 let db = null;
 const idb = {
-  open() { return new Promise(res => { try { const r = indexedDB.open("asrtest4", 1); r.onupgradeneeded = () => r.result.createObjectStore("cards", { keyPath: "idx" }); r.onsuccess = () => { db = r.result; res(true); }; r.onerror = () => res(false); } catch (e) { res(false); } }); },
+  open() { return new Promise(res => { try { const r = indexedDB.open("asrtest5", 1); r.onupgradeneeded = () => r.result.createObjectStore("cards", { keyPath: "idx" }); r.onsuccess = () => { db = r.result; res(true); }; r.onerror = () => res(false); } catch (e) { res(false); } }); },
   tx(mode, fn) { return new Promise(res => { if (!db) { res(null); return; } const t = db.transaction("cards", mode); const out = fn(t.objectStore("cards")); t.oncomplete = () => res(out && out.result !== undefined ? out.result : true); t.onerror = () => res(null); }); },
   put(c) { return this.tx("readwrite", s => s.put(c)); }, del(i) { return this.tx("readwrite", s => s.delete(i)); },
   all() { return this.tx("readonly", s => s.getAll()); }, clear() { return this.tx("readwrite", s => s.clear()); },
 };
-const results = {};   // results[modelId][idx] = {heard, ms}
-const cards = {};     // idx → stored record: {idx, en, de, endedBy, hesitationMs, speechMs, preMs, peak, rms, startAbrupt, pcm(Int16Array buffer) | null}
+const cards = {};   // idx → stored record
 
-// ── CAPTURE (mic opened once, kept open; ring buffer gives pre-roll) ──
-let ctx = null, stream = null, proc = null, track = null, wake = null;
-let sessionSettings = null, noise = 0.002, thr = 0.01, calibVals = [], calibUntil = 0;
-let ring = [], chunkDur = 0.04, lastChunkAt = 0;
-let state = "off";           // off | calibrating | idle | armed | speaking | paused
-let cur = [], above = 0, speechStartIdx = -1, lastLoudIdx = -1, armedAt = 0, shownAt = 0;
-let idx = 0, advanceTimer = null, busyFinishing = false, leadChunks = 0;
-
+// ── CAPTURE (mic opened once and kept open; ring buffer gives pre-roll) ──
+let ctx = null, stream = null, proc = null, track = null, wake = null, sessionSettings = null;
+let noise = 0.002, thr = 0.01, calibVals = [], calibUntil = 0, ring = [], chunkDur = 0.04, lastChunkAt = 0;
+let state = "off";     // off | loading | calibrating | idle | armed | speaking | checking | between | paused
+let cur = [], above = 0, speechStartIdx = -1, lastLoudIdx = -1, armedAt = 0, leadChunks = 0;
+let idx = 0, advanceTimer = null, busyFinishing = false, scorer = null, liveCheck = true, seenBlocks = new Set(), modelInfo = {};
 const rmsOf = d => { let s = 0; for (let i = 0; i < d.length; i++) s += d[i] * d[i]; return Math.sqrt(s / d.length); };
 const setStatus = t => { $("status").textContent = t; };
 const meterW = v => Math.min(100, 100 * Math.sqrt(v / 0.2));
+const tick = () => new Promise(r => setTimeout(r, 0));
 
-async function startMic() {
+async function openMic() {            // must be called inside the tap (iOS)
   ctx = new (window.AudioContext || window.webkitAudioContext)();
-  try { ctx.resume(); } catch (e) {}                       // must happen inside the tap (iOS)
+  try { ctx.resume(); } catch (e) {}
   const raw = $("proc").value === "raw";
   const audio = raw ? { echoCancellation: { ideal: false }, noiseSuppression: { ideal: false }, autoGainControl: { ideal: false } } : true;
   stream = await navigator.mediaDevices.getUserMedia({ audio });
   track = stream.getAudioTracks()[0];
   sessionSettings = { requestedProcessing: raw ? "raw" : "default", applied: track.getSettings ? track.getSettings() : {}, sampleRate: ctx.sampleRate, ua: navigator.userAgent, ios: IS_IOS, note: $("note").value || "" };
+  try { localStorage.setItem("asrtest5_session", JSON.stringify(sessionSettings)); } catch (e) {}
   const src = ctx.createMediaStreamSource(stream);
   proc = ctx.createScriptProcessor(2048, 1, 1);
   const mute = ctx.createGain(); mute.gain.value = 0;
-  src.connect(proc); proc.connect(mute); mute.connect(ctx.destination);   // Safari only fires the callback if connected to the destination
+  src.connect(proc); proc.connect(mute); mute.connect(ctx.destination);
   proc.onaudioprocess = e => onChunk(new Float32Array(e.inputBuffer.getChannelData(0)));
   ctx.onstatechange = () => { if (ctx.state !== "running" && state !== "off") setStatus("⚠ Audio was interrupted — tap Pause then Resume"); };
-  try { localStorage.setItem("asrtest4_session", JSON.stringify(sessionSettings)); } catch (e) {}
   try { if (navigator.wakeLock) wake = await navigator.wakeLock.request("screen"); } catch (e) {}
-  setInterval(() => { if (state !== "off" && state !== "paused" && performance.now() - lastChunkAt > 1500) setStatus("⚠ No audio coming from the mic — tap Pause then Resume"); }, 1000);
+  setInterval(() => { if (["armed", "speaking", "idle"].includes(state) && performance.now() - lastChunkAt > 1500) setStatus("⚠ No audio coming from the mic — tap Pause then Resume"); }, 1000);
 }
-
 function recomputeThr() { thr = Math.min(0.04, Math.max(0.006, noise * 4)); $("thrMark").style.left = meterW(thr) + "%"; }
 
 function onChunk(d) {
-  lastChunkAt = performance.now();
-  chunkDur = d.length / ctx.sampleRate;
-  const r = rmsOf(d);
-  $("meterBar").style.width = meterW(r) + "%";
+  lastChunkAt = performance.now(); chunkDur = d.length / ctx.sampleRate;
+  const r = rmsOf(d); $("meterBar").style.width = meterW(r) + "%";
   ring.push(d); const keep = Math.ceil(1.5 / chunkDur); if (ring.length > keep) ring.shift();
-
   if (state === "calibrating") {
     calibVals.push(r);
-    if (performance.now() > calibUntil) {
-      const s = calibVals.slice().sort((a, b) => a - b); noise = s[Math.floor(s.length * 0.3)] || 0.002; recomputeThr();
-      state = "idle"; showCard();
-    }
+    if (performance.now() > calibUntil) { const s = calibVals.slice().sort((a, b) => a - b); noise = s[Math.floor(s.length * 0.3)] || 0.002; recomputeThr(); state = "idle"; nextStep(); }
     return;
   }
   if (state === "armed" || state === "speaking") cur.push(d);
-
   if (state === "armed") {
     if (r > thr) { above++; if (above >= 2) { state = "speaking"; speechStartIdx = Math.max(0, cur.length - 2); lastLoudIdx = cur.length - 1; setStatus("Hearing you…"); } }
     else { above = 0; noise = 0.98 * noise + 0.02 * r; recomputeThr(); }
     if (state === "armed" && performance.now() - armedAt > P.startTimeoutMs) finish("timeout");
   } else if (state === "speaking") {
     if (r > thr) lastLoudIdx = cur.length - 1;
-    const quiet = (cur.length - 1 - lastLoudIdx) * chunkDur * 1000;
-    if (quiet >= P.silenceEndMs) finish("silence");
+    if ((cur.length - 1 - lastLoudIdx) * chunkDur * 1000 >= P.silenceEndMs) finish("silence");
     else if ((cur.length - speechStartIdx) * chunkDur * 1000 > P.maxSpeechMs) finish("max-length");
   } else if (state === "idle" && r < thr) { noise = 0.98 * noise + 0.02 * r; recomputeThr(); }
 }
 
-// ── SESSION FLOW (mirrors the app's voice drill) ──
-function showCard() {
-  clearTimeout(advanceTimer); busyFinishing = false;
-  while (idx < CARDS.length && cards[idx]) idx++;           // resume after reload: skip cards already captured
+// ── SESSION FLOW ──────────────────────────────
+const doneCount = () => Object.keys(cards).length;
+function updateProgress() { $("progTxt").textContent = `${doneCount()} / ${CARDS.length}`; $("progBar").style.width = (100 * doneCount() / CARDS.length) + "%"; }
+
+function nextStep() {                  // decide: interstitial, next card, or the end
+  clearTimeout(advanceTimer); busyFinishing = false; $("verdict").classList.add("hide");
+  while (idx < CARDS.length && cards[idx]) idx++;
   if (idx >= CARDS.length) { endSession(); return; }
   const c = CARDS[idx];
-  $("prompt").textContent = c.en; $("promptSub").textContent = "say it in German";
-  $("progTxt").textContent = `${Object.keys(cards).length} / ${CARDS.length}`;
-  $("progBar").style.width = (100 * Object.keys(cards).length / CARDS.length) + "%";
-  $("btnRedo").disabled = !Object.keys(cards).length;
-  setStatus("Listening…");
-  cur = ring.slice(-Math.ceil(P.cardLeadMs / 1000 / chunkDur));   // a quarter-second before the card, in case you're quick
-  leadChunks = cur.length;
-  above = 0; speechStartIdx = -1; lastLoudIdx = -1; armedAt = shownAt = performance.now();
-  state = "armed";
+  if (!seenBlocks.has(c.block)) { showInterstitial(c.block); return; }
+  showCard();
 }
-
-async function finish(reason) {
-  if (busyFinishing) return; busyFinishing = true;
-  state = "idle";
-  const c = CARDS[idx], localIdx = idx;
-  const rec = { idx: localIdx, en: c.en, de: c.de, endedBy: reason, hesitationMs: null, speechMs: null, preMs: 0, peak: 0, rms: 0, startAbrupt: null, noise: +noise.toFixed(5), thr: +thr.toFixed(4), pcm: null };
-  if (reason === "silence" || reason === "max-length") {
-    const preChunks = Math.ceil(P.preRollMs / 1000 / chunkDur), tailChunks = Math.ceil(P.tailKeepMs / 1000 / chunkDur);
-    const from = Math.max(0, speechStartIdx - preChunks), to = Math.min(cur.length, lastLoudIdx + 1 + tailChunks);
-    const parts = cur.slice(from, to); const n = parts.reduce((a, p) => a + p.length, 0); const flat = new Float32Array(n);
-    let o = 0; for (const p of parts) { flat.set(p, o); o += p.length; }
-    const x16 = await to16k(flat, ctx.sampleRate);
-    let pk = 0; for (let i = 0; i < x16.length; i++) { const a = Math.abs(x16[i]); if (a > pk) pk = a; }
-    const fr = 320, nf = Math.floor(x16.length / fr); let mx = 0, f1 = 0;
-    for (let f = 0; f < nf; f++) { let s = 0; for (let i = 0; i < fr; i++) s += x16[f * fr + i] ** 2; const e = Math.sqrt(s / fr); if (e > mx) mx = e; if (f === 1) f1 = e; }
-    rec.pcm = f32ToI16(x16).buffer; rec.peak = +pk.toFixed(3); rec.rms = +rmsOf(x16).toFixed(4);
-    rec.hesitationMs = Math.max(0, Math.round((speechStartIdx - leadChunks) * chunkDur * 1000));   // card shown → you start speaking
-    rec.speechMs = Math.round((lastLoudIdx - speechStartIdx + 1) * chunkDur * 1000);
-    rec.preMs = Math.round((speechStartIdx - from) * chunkDur * 1000);
-    rec.startAbrupt = mx > 0 && f1 / mx > 0.5;        // true = the very first frames are already loud (start probably cut)
-  }
-  cards[localIdx] = rec; await idb.put(rec);
-  setStatus(reason === "timeout" ? "No speech — skipped" : reason === "skip" ? "Skipped" : "Got it ✓");
-  $("progTxt").textContent = `${Object.keys(cards).length} / ${CARDS.length}`;
-  $("progBar").style.width = (100 * Object.keys(cards).length / CARDS.length) + "%";
-  advanceTimer = setTimeout(() => { if (state === "paused") return; idx++; showCard(); }, P.advanceMs);
+function showInterstitial(block) {
+  state = "between"; const B = BLOCKS[block];
+  $("partTxt").textContent = ""; $("prompt").textContent = B.title; $("instr").className = "instr hide";
+  setStatus(B.text); $("btnContinue").classList.remove("hide");
+  $("btnContinue").onclick = () => { seenBlocks.add(block); $("btnContinue").classList.add("hide"); nextStep(); };
+}
+function showCard() {
+  const c = CARDS[idx]; updateProgress();
+  $("partTxt").textContent = BLOCKS[c.block].title;
+  $("prompt").textContent = c.en;
+  const ins = $("instr");
+  if (c.block === "vocab") { ins.className = "instr hide"; }
+  else { ins.className = "instr " + (c.expect === "reject" ? "trap" : "say"); ins.textContent = c.instruction; }
+  setStatus("Listening…");
+  $("btnRedo").disabled = !doneCount();
+  cur = ring.slice(-Math.ceil(P.cardLeadMs / 1000 / chunkDur)); leadChunks = cur.length;
+  above = 0; speechStartIdx = -1; lastLoudIdx = -1; armedAt = performance.now(); state = "armed";
 }
 
 function to16k(f32, srcRate) {
@@ -320,135 +238,170 @@ function to16k(f32, srcRate) {
 const f32ToI16 = f => { const o = new Int16Array(f.length); for (let i = 0; i < f.length; i++) o[i] = Math.max(-1, Math.min(1, f[i])) * 32767; return o; };
 const i16ToF32 = b => { const i = new Int16Array(b), o = new Float32Array(i.length); for (let k = 0; k < i.length; k++) o[k] = i[k] / 32767; return o; };
 
+// app-style decision from the candidate scores (all raw scores are exported too)
+function decide(card, r) {
+  const t = r.cands[0];
+  const sims = r.cands.filter(c => c.role === "similar"), arts = r.cands.filter(c => c.role === "article-variant");
+  const maxSim = Math.max(-Infinity, ...sims.map(c => c.score)), maxArt = Math.max(-Infinity, ...arts.map(c => c.score));
+  const targetArt = card.expected.split(" ")[0], hasArt = arts.length > 0;
+  const wordOK = t.score >= maxSim - D.simMargin;
+  const artPhraseOK = !hasArt || t.score >= maxArt - D.artVarMargin;
+  const artTok = r.artLP || {}; const bestArt = hasArt ? Object.keys(artTok).sort((a, b) => artTok[b] - artTok[a])[0] : null;
+  const artTokOK = !hasArt || !D.requireArticleToken || bestArt === targetArt;
+  const closest = r.cands.slice().sort((a, b) => b.score - a.score)[0].text;
+  return { accept: wordOK && artPhraseOK && artTokOK, wordOK, artPhraseOK, artTokOK, heardArticle: bestArt, closest, maxSim: +maxSim.toFixed(2), maxArt: isFinite(maxArt) ? +maxArt.toFixed(2) : null };
+}
+function artPct(artLP) { const e = Object.fromEntries(Object.entries(artLP || {}).map(([k, v]) => [k, Math.exp(v)])); const s = Object.values(e).reduce((a, b) => a + b, 0) || 1; return Object.entries(e).map(([k, v]) => `${k} ${Math.round(100 * v / s)}%`).join(" · "); }
+
+async function finish(reason) {
+  if (busyFinishing) return; busyFinishing = true;
+  const localIdx = idx, c = CARDS[localIdx];
+  state = (reason === "silence" || reason === "max-length") ? "checking" : "idle";
+  const rec = { idx: localIdx, id: c.id, block: c.block, en: c.en, expected: c.expected, say: c.say, expect: c.expect, endedBy: reason, hesitationMs: null, speechMs: null, preMs: 0,
+                peak: 0, rms: 0, startAbrupt: null, noise: +noise.toFixed(5), thr: +thr.toFixed(4), pcm: null, result: null, decision: null, procMs: null, error: null };
+  let x16 = null;
+  if (state === "checking") {
+    setStatus(liveCheck ? "Checking…" : "Saving…");
+    const preChunks = Math.ceil(P.preRollMs / 1000 / chunkDur), tailChunks = Math.ceil(P.tailKeepMs / 1000 / chunkDur);
+    const from = Math.max(0, speechStartIdx - preChunks), to = Math.min(cur.length, lastLoudIdx + 1 + tailChunks);
+    const parts = cur.slice(from, to); const n = parts.reduce((a, p) => a + p.length, 0); const flat = new Float32Array(n);
+    let o = 0; for (const p of parts) { flat.set(p, o); o += p.length; }
+    const tp = performance.now();
+    x16 = await to16k(flat, ctx.sampleRate);
+    let pk = 0; for (let i = 0; i < x16.length; i++) { const a = Math.abs(x16[i]); if (a > pk) pk = a; }
+    const fr = 320, nf = Math.floor(x16.length / fr); let mx = 0, f1 = 0;
+    for (let f = 0; f < nf; f++) { let s = 0; for (let i = 0; i < fr; i++) s += x16[f * fr + i] ** 2; const e = Math.sqrt(s / fr); if (e > mx) mx = e; if (f === 1) f1 = e; }
+    rec.pcm = f32ToI16(x16).buffer; rec.peak = +pk.toFixed(3); rec.rms = +rmsOf(x16).toFixed(4);
+    rec.hesitationMs = Math.max(0, Math.round((speechStartIdx - leadChunks) * chunkDur * 1000));
+    rec.speechMs = Math.round((lastLoudIdx - speechStartIdx + 1) * chunkDur * 1000);
+    rec.preMs = Math.round((speechStartIdx - from) * chunkDur * 1000);
+    rec.startAbrupt = mx > 0 && f1 / mx > 0.5;
+    if (liveCheck && scorer) {
+      try {
+        await tick();
+        rec.result = await scorer.scoreAll(x16, c.cands, ARTICLE_FIRST);
+        rec.decision = decide(c, rec.result);
+      } catch (e) { rec.error = String((e && e.message) || e); console.error(e); }
+    }
+    rec.procMs = Math.round(performance.now() - tp);
+  }
+  cards[localIdx] = rec; await idb.put(rec); updateProgress();
+  showVerdict(rec, c);
+  state = "between";
+  advanceTimer = setTimeout(() => { if (state === "paused") return; idx++; nextStep(); }, P.advanceMs);
+}
+
+function showVerdict(rec, c) {
+  const v = $("verdict");
+  if (rec.endedBy === "timeout") { setStatus("No speech — skipped"); v.classList.add("hide"); return; }
+  if (rec.endedBy === "skip") { setStatus("Skipped"); v.classList.add("hide"); return; }
+  if (rec.error) { setStatus("Saved (check failed: " + rec.error.slice(0, 80) + ")"); v.className = "verdict no"; v.textContent = "Check error — audio saved"; return; }
+  if (!rec.decision) { setStatus("Got it ✓ (saved)"); v.classList.add("hide"); return; }
+  const d = rec.decision, hasArt = c.cands.some(x => x.role === "article-variant");
+  setStatus("");
+  v.className = "verdict " + (d.accept ? "ok" : "no");
+  const as = c.block === "vocab" ? "" : c.expect === "accept" ? (d.accept ? " — correct, as expected" : " — that was a CORRECT trial: false reject") : (d.accept ? " — WRONGLY ACCEPTED (it should reject this)" : " — correctly rejected");
+  const lines = [`closest match: <b>${d.closest}</b>`, `word ${d.wordOK ? "✓" : "✗"}${hasArt ? ` · article ${d.artTokOK && d.artPhraseOK ? "✓" : "✗"} (${artPct(rec.result.artLP)})` : ""} · ${rec.procMs} ms`];
+  v.innerHTML = `${d.accept ? "✓ Accepted" : "✗ Rejected"}${as}<small>${lines.join("<br>")}</small>`;
+}
+
 function endSession() {
   state = "idle"; $("session").classList.add("hide");
-  ["done", "models", "cleanup"].forEach(id => $(id).classList.remove("hide"));
+  ["done", "cleanup"].forEach(id => $(id).classList.remove("hide"));
   $("summaryBox").textContent = buildSummary();
   try { if (wake) wake.release(); } catch (e) {}
   try { stream && stream.getTracks().forEach(t => t.stop()); } catch (e) {}
 }
 
-// ── EXPORT / IMPORT ───────────────────────────
-function toB64(buf) { const b = new Uint8Array(buf); let s = ""; for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(s); }
-function fromB64(s) { const bin = atob(s), b = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) b[i] = bin.charCodeAt(i); return b.buffer; }
-function exportJson() {
-  const list = Object.values(cards).sort((a, b) => a.idx - b.idx).map(c => ({ ...c, pcm16: c.pcm ? toB64(c.pcm) : null, pcm: undefined }));
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([JSON.stringify({ v: 2, kind: "speak-mode", params: P, session: sessionSettings, cards: list })], { type: "application/json" }));
-  a.download = "asr-speak-test.json"; a.click();
-}
-async function importJson(file) {
-  const d = JSON.parse(await file.text());
-  sessionSettings = d.session || sessionSettings;
-  for (const c of d.cards || []) { const rec = { ...c, pcm: c.pcm16 ? fromB64(c.pcm16) : null }; delete rec.pcm16; cards[rec.idx] = rec; await idb.put(rec); }
-}
-
-// ── SUMMARY ───────────────────────────────────
+// ── SUMMARY / EXPORT ──────────────────────────
 const med = a => { if (!a.length) return 0; const s = [...a].sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
 const pct = (a, p) => { if (!a.length) return 0; const s = [...a].sort((x, y) => x - y); return s[Math.min(s.length - 1, Math.floor(s.length * p))]; };
+const rate = (a, f) => a.length ? `${a.filter(f).length}/${a.length}` : "n/a";
 function buildSummary() {
-  const list = Object.values(cards).sort((a, b) => a.idx - b.idx), got = list.filter(c => c.pcm);
-  const out = ["SPEAK-MODE CAPTURE SUMMARY (temporary page v4)", `date: ${new Date().toISOString()}`,
-    `note: ${(sessionSettings && sessionSettings.note) || $("note").value || "(none)"}`, `device: ${(sessionSettings && sessionSettings.ua) || navigator.userAgent}`,
-    `mic processing requested: ${sessionSettings && sessionSettings.requestedProcessing} | applied by browser: ${JSON.stringify(sessionSettings && sessionSettings.applied)} | sampleRate: ${sessionSettings && sessionSettings.sampleRate}`,
-    `cards: ${list.length}/${CARDS.length} | captured: ${got.length} | timeouts: ${list.filter(c => c.endedBy === "timeout").length} | skipped: ${list.filter(c => c.endedBy === "skip").length}`,
-    `time before you started speaking (ms): median ${med(got.map(c => c.hesitationMs))}, 90th pct ${pct(got.map(c => c.hesitationMs), 0.9)}`,
-    `speech length (ms): median ${med(got.map(c => c.speechMs))} | peak level median: ${med(got.map(c => c.peak)).toFixed(2)}`,
-    `clips whose first frames are already loud (start possibly cut): ${got.filter(c => c.startAbrupt).length} of ${got.length}   [old recorder: 21 of 44]`];
-  const models = Object.keys(results);
-  for (const m of models) {
-    const r = results[m]; let ex = 0, ho = 0, ne = 0, ac = 0, n = 0; const ms = [];
-    for (const c of got) { const x = r[c.idx]; if (!x) continue; n++; const v = verdict(x.heard, c.de); if (v === "exact") ex++; if (v === "homophone") ho++; if (v === "near") ne++; if (v === "accent") ac++; if (x.ms) ms.push(x.ms); }
-    out.push(`MODEL ${m}: correct ${ex + ho}/${n} (homophone ${ho}) | near-miss ${ne} | accent-slip ${ac} | median ms ${med(ms)}${r._loadSec ? " | load s " + r._loadSec : ""}${r._error ? " | FAILED: " + r._error : ""}`);
-  }
-  out.push("", "PER CARD  german | english | hesitation ms | speech ms | peak | ended | start-loud" + (models.length ? " | " + models.join(" | ") : ""));
+  const list = Object.values(cards).sort((a, b) => a.idx - b.idx), got = list.filter(c => c.pcm), chk = got.filter(c => c.decision);
+  const S = sessionSettings || {};
+  const out = ["VOICE CHECK TEST SUMMARY (temporary page v5)", `date: ${new Date().toISOString()}`, `note: ${S.note || $("note").value || "(none)"}`, `device: ${S.ua || navigator.userAgent}`,
+    `model: ${modelInfo.repo || "(record only)"} ${modelInfo.dtype || ""} | load s: ${modelInfo.loadSec ?? "-"} | decision rule: ${JSON.stringify(D)}`,
+    `mic requested: ${S.requestedProcessing} | applied: ${JSON.stringify(S.applied)} | rate ${S.sampleRate}`,
+    `trials: ${list.length}/${CARDS.length} | captured ${got.length} | timeouts ${list.filter(c => c.endedBy === "timeout").length} | skipped ${list.filter(c => c.endedBy === "skip").length} | check errors ${list.filter(c => c.error).length}`,
+    `hesitation ms: median ${med(got.map(c => c.hesitationMs))}, p90 ${pct(got.map(c => c.hesitationMs), 0.9)} | clips with abrupt start: ${got.filter(c => c.startAbrupt).length}/${got.length}`,
+    `processing time per answer (resample + check), ms: median ${med(chk.map(c => c.procMs))}, p90 ${pct(chk.map(c => c.procMs), 0.9)}, max ${Math.max(0, ...chk.map(c => c.procMs))}`, ""];
+  const by = b => chk.filter(c => c.block === b);
+  const v = by("vocab"), a = by("article"), w = by("word");
+  out.push(`PART 1 vocabulary: honest answers ACCEPTED ${rate(v, c => c.decision.accept)}`);
+  out.push(`PART 2 articles : correct article accepted ${rate(a.filter(c => c.expect === "accept"), c => c.decision.accept)} | wrong article REJECTED ${rate(a.filter(c => c.expect === "reject"), c => !c.decision.accept)}`);
+  out.push(`PART 3 words    : wrong similar word REJECTED ${rate(w, c => !c.decision.accept)}`, "");
+  out.push("PER TRIAL  # | block | expected | said (if prompted) | expect | RESULT | word | article | closest | hesitation ms | speech ms | proc ms");
   for (const c of list) {
-    const cells = models.map(m => { const x = results[m][c.idx]; if (!x) return "-"; const v = verdict(x.heard, c.de); return `${x.heard || "(empty)"} ${{ exact: "E", homophone: "H", near: "N", accent: "C", wrong: "X" }[v]}`; });
-    out.push(`${c.de} | ${c.en} | ${c.hesitationMs ?? "-"} | ${c.speechMs ?? "-"} | ${c.peak} | ${c.endedBy} | ${c.startAbrupt ? "LOUD-START" : "ok"}${cells.length ? " | " + cells.join(" | ") : ""}`);
+    const d = c.decision;
+    out.push(`${c.idx} | ${c.block} | ${c.expected} | ${c.say || "-"} | ${c.expect} | ${c.endedBy !== "silence" ? c.endedBy : (d ? (d.accept ? "ACCEPT" : "reject") : c.error ? "error" : "-")} | ${d ? (d.wordOK ? "ok" : "no") : "-"} | ${d ? ((d.artTokOK && d.artPhraseOK) ? "ok" : "no") + "(" + (d.heardArticle || "-") + ")" : "-"} | ${d ? d.closest : "-"} | ${c.hesitationMs ?? "-"} | ${c.speechMs ?? "-"} | ${c.procMs ?? "-"}`);
   }
   return out.join("\n");
 }
-
-// ── OPTIONAL: RUN SMALL MODELS IN THE BROWSER ──
-const RUN_MODELS = { "whisper-tiny": { repo: "onnx-community/whisper-tiny" }, "whisper-base": { repo: "onnx-community/whisper-base" } };
-let tjs = null;
-const log = m => { const d = document.createElement("div"); d.textContent = m; $("runLog").prepend(d); };
-async function runModels() {
-  const chosen = [["whisper-tiny", $("m_tiny").checked], ["whisper-base", $("m_base").checked]].filter(x => x[1]).map(x => x[0]);
-  if (!chosen.length) { alert("Tick a model."); return; }
-  if (IS_IOS && chosen.length > 1) { alert("On iPhone run ONE model at a time (Safari doesn't free model memory). Run one, reload the page, then the next."); return; }
-  const got = Object.values(cards).filter(c => c.pcm).sort((a, b) => a.idx - b.idx);
-  if (!got.length) { alert("Nothing recorded."); return; }
-  $("btnRun").disabled = true;
-  for (const id of chosen) {
-    const res = results[id] = { _loadSec: 0, _error: null };
-    let pipe = null;
-    try {
-      $("runStatus").textContent = `Loading ${id}…`; const t0 = performance.now();
-      tjs = tjs || await import(TJS_CDN); tjs.env.allowLocalModels = false;
-      pipe = await tjs.pipeline("automatic-speech-recognition", RUN_MODELS[id].repo, { dtype: "q8", progress_callback: p => { if (p.status === "progress" && p.total) $("runStatus").textContent = `Downloading ${id}… ${Math.round(p.loaded / p.total * 100)}%`; } });
-      res._loadSec = +((performance.now() - t0) / 1000).toFixed(1); log(`${id}: loaded in ${res._loadSec}s`);
-      await pipe(new Float32Array(16000), { language: "german", task: "transcribe" }).catch(() => {});
-      let i = 0;
-      for (const c of got) {
-        $("runStatus").textContent = `${id}: ${++i}/${got.length}`; await new Promise(r => setTimeout(r, 15));
-        const t = performance.now(); let heard = "";
-        try { heard = ((await pipe(i16ToF32(c.pcm), { language: "german", task: "transcribe" })).text || "").trim(); } catch (e) { heard = ""; }
-        res[c.idx] = { heard, ms: Math.round(performance.now() - t) };
-      }
-      log(`${id}: done`);
-    } catch (e) { res._error = String((e && e.message) || e); log(`${id}: FAILED — ${res._error}`); }
-    finally { try { pipe && await pipe.dispose(); } catch (e) {} }
-    renderResults();
-  }
-  $("btnRun").disabled = false; $("runStatus").textContent = "Finished.";
-}
-const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-function renderResults() {
-  const models = Object.keys(results); if (!models.length) return;
-  const got = Object.values(cards).filter(c => c.pcm).sort((a, b) => a.idx - b.idx);
-  let h = `<table><tr><th>German</th>${models.map(m => `<th>${m}</th>`).join("")}</tr>`;
-  for (const c of got) h += `<tr><td><b>${esc(c.de)}</b><br><span class="mut">${esc(c.en)}</span></td>` + models.map(m => { const x = results[m][c.idx]; if (!x) return "<td>–</td>"; return `<td class="v-${verdict(x.heard, c.de)}">${esc(x.heard) || "<i>(empty)</i>"}</td>`; }).join("") + "</tr>";
-  $("resTable").innerHTML = h + "</table>"; $("summaryBox").textContent = buildSummary();
+function toB64(buf) { const b = new Uint8Array(buf); let s = ""; for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(s); }
+function exportJson() {
+  const list = Object.values(cards).sort((a, b) => a.idx - b.idx).map(c => ({ ...c, pcm16: c.pcm ? toB64(c.pcm) : null, pcm: undefined }));
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify({ v: 3, kind: "answer-aware", params: P, decisionRule: D, model: modelInfo, session: sessionSettings, cards: list })], { type: "application/json" }));
+  a.download = "asr-voice-check.json"; a.click();
 }
 
-// ── UI WIRING ─────────────────────────────────
+// ── START ─────────────────────────────────────
 $("btnStart").onclick = async () => {
-  $("btnStart").disabled = true; $("startMsg").textContent = "Asking for the microphone…";
-  try { await startMic(); } catch (e) { $("startMsg").textContent = "Mic error: " + (e.message || e); $("btnStart").disabled = false; return; }
-  $("intro").classList.add("hide"); $("session").classList.remove("hide");
-  $("micTxt").textContent = `mic on · ${ctx.sampleRate} Hz · ${sessionSettings.requestedProcessing}`;
-  state = "calibrating"; calibVals = []; calibUntil = performance.now() + P.calibMs; setStatus("Calibrating — stay quiet for a second…");
+  $("btnStart").disabled = true; liveCheck = !$("noLive").checked;
+  try {
+    $("startMsg").textContent = "Asking for the microphone…";
+    await openMic();                                              // first, inside the tap
+    $("intro").classList.add("hide"); $("session").classList.remove("hide");
+    $("micTxt").textContent = `mic on · ${ctx.sampleRate} Hz · ${sessionSettings.requestedProcessing}`;
+    state = "loading"; updateProgress();
+    if (liveCheck) {
+      const repo = $("modelSel").value; setStatus("Loading the speech model (one-time download)…");
+      const t0 = performance.now();
+      const tjs = await import(TJS_CDN); tjs.env.allowLocalModels = false;
+      const { AnswerScorer } = await import("./scorer.js");
+      scorer = new AnswerScorer(tjs, { repo, dtype: "q8", prompt: PROMPT_IDS, progress_callback: p => { if (p.status === "progress" && p.total) setStatus(`Downloading model… ${Math.round(p.loaded / p.total * 100)}%`); } });
+      await scorer.load();
+      scorer.yield = tick;
+      setStatus("Warming up…"); await tick();
+      await scorer.scoreAll(new Float32Array(16000), CARDS[0].cands.slice(0, 3), ARTICLE_FIRST);   // JIT warm-up, not scored
+      modelInfo = { repo, dtype: "q8", loadSec: +((performance.now() - t0) / 1000).toFixed(1) };
+    } else modelInfo = { repo: null };
+    setStatus("Calibrating — stay quiet for a second…");
+    state = "calibrating"; calibVals = []; calibUntil = performance.now() + P.calibMs;
+  } catch (e) {
+    console.error(e); $("startMsg").textContent = "Couldn't start: " + ((e && e.message) || e) + " — tick “Record only” and try again if the model is the problem.";
+    $("intro").classList.remove("hide"); $("session").classList.add("hide"); $("btnStart").disabled = false;
+  }
 };
 $("btnSkip").onclick = () => { if (state === "armed" || state === "speaking") finish("skip"); };
 $("btnRedo").onclick = async () => {
-  if (state === "paused") return;
-  clearTimeout(advanceTimer); busyFinishing = false;
+  if (state === "paused" || state === "checking" || state === "loading" || state === "calibrating") return;
+  clearTimeout(advanceTimer); busyFinishing = false; $("verdict").classList.add("hide");
   const last = Math.max(...Object.keys(cards).map(Number)); if (!isFinite(last)) return;
-  delete cards[last]; await idb.del(last); idx = last; state = "idle"; showCard();
+  delete cards[last]; await idb.del(last); idx = last; state = "idle"; nextStep();
 };
 $("btnPause").onclick = () => {
-  if (state === "paused") { $("btnPause").textContent = "Pause"; state = "idle"; try { ctx.resume(); } catch (e) {} showCard(); }
-  else { clearTimeout(advanceTimer); state = "paused"; $("btnPause").textContent = "Resume"; setStatus("Paused"); }
+  if (state === "paused") { $("btnPause").textContent = "Pause"; state = "idle"; try { ctx.resume(); } catch (e) {} nextStep(); }
+  else if (["armed", "speaking", "between", "idle"].includes(state)) { clearTimeout(advanceTimer); state = "paused"; $("btnPause").textContent = "Resume"; setStatus("Paused"); }
 };
-$("btnFinish").onclick = () => { if (confirm("Stop here and go to the export?")) { clearTimeout(advanceTimer); endSession(); renderResults(); } };
+$("btnFinish").onclick = () => { if (confirm("Stop here and go to the export?")) { clearTimeout(advanceTimer); endSession(); } };
 $("btnExport").onclick = exportJson;
-$("btnCopy").onclick = async () => { const t = buildSummary(); try { await navigator.clipboard.writeText(t); $("btnCopy").textContent = "Copied ✓"; } catch (e) { $("btnCopy").textContent = "Select the text below"; } setTimeout(() => { $("btnCopy").textContent = "Copy session summary"; }, 2500); };
-$("btnRun").onclick = runModels;
-$("fileImport").onchange = async e => { const f = e.target.files[0]; if (!f) return; try { await importJson(f); $("intro").classList.add("hide"); endSession(); renderResults(); } catch (err) { alert("Couldn't read that file: " + (err.message || err)); } e.target.value = ""; };
-$("btnWipe").onclick = async () => { if (!confirm("Delete all recordings stored by this test page and start over?")) return; await idb.clear(); try { localStorage.removeItem("asrtest4_session"); } catch (e) {} location.reload(); };
+$("btnCopy").onclick = async () => { const t = buildSummary(); try { await navigator.clipboard.writeText(t); $("btnCopy").textContent = "Copied ✓"; } catch (e) { $("btnCopy").textContent = "Select the text below"; } setTimeout(() => { $("btnCopy").textContent = "Copy summary"; }, 2500); };
+$("btnWipe").onclick = async () => { if (!confirm("Delete all recordings stored by this test page and start over?")) return; await idb.clear(); try { localStorage.removeItem("asrtest5_session"); } catch (e) {} location.reload(); };
 
 (async () => {
   if (IS_IOS) $("iosNote").classList.remove("hide");
   const ok = await idb.open();
   if (!ok) $("startMsg").textContent = "Note: this browser blocks local storage — a reload would lose recordings.";
-  try { sessionSettings = JSON.parse(localStorage.getItem("asrtest4_session") || "null"); } catch (e) {}
+  try { sessionSettings = JSON.parse(localStorage.getItem("asrtest5_session") || "null"); } catch (e) {}
   const saved = ok ? await idb.all() : [];
-  for (const c of saved || []) cards[c.idx] = c;
+  for (const c of saved || []) { cards[c.idx] = c; seenBlocks.add(c.block); }
   const n = Object.keys(cards).length;
-  if (n >= CARDS.length) { $("intro").classList.add("hide"); endSession(); renderResults(); }
-  else if (n > 0) $("startMsg").textContent = `${n} cards already captured — Start continues from where you stopped.`;
-  window.__t = { cards, results, buildSummary, verdict, P, CARDS, get state() { return state; }, get idx() { return idx; } };   // debugging hook
+  try { const dat = await (await fetch("./cards.json", { cache: "no-cache" })).json(); CARDS = dat.cards; ARTICLE_FIRST = dat.articleFirstTokens; PROMPT_IDS = dat.prompt; } catch (e) { $("startMsg").textContent = "Couldn't load cards.json: " + e.message; $("btnStart").disabled = true; return; }
+  if (n >= CARDS.length) { $("intro").classList.add("hide"); endSession(); return; }
+  if (n > 0) $("startMsg").textContent = `${n} trials already saved — Start continues where you stopped.`;
+  window.__t = { cards, buildSummary, decide, D, P, get state() { return state; }, get idx() { return idx; }, get CARDS() { return CARDS; } };   // debugging hook
 })();
 </script>
 </body>
