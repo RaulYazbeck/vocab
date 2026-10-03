@@ -21,6 +21,10 @@ export const LANGS = {
 export function workDir(lang) {
   return path.join(process.env.AUDIO_WORK || path.join(ROOT, "tools/audio/work"), lang);
 }
+// Small records kept in git (see synth.py): spoken.json, variants.json.
+export function stateDir(lang) {
+  return process.env.AUDIO_WORK ? workDir(lang) : path.join(ROOT, "tools/audio/state", lang);
+}
 
 // A sandbox with just enough browser to run the pure helpers.
 function makeSandbox() {

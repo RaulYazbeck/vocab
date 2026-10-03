@@ -3,7 +3,8 @@
 //
 //   node tools/audio/pack.mjs --lang de [--bitrate 24] [--format opus] [--voice "Name"]
 //
-// Reads  work/<lang>/texts.json + work/<lang>/wav/<key>.wav
+// Reads  work/<lang>/texts.json + work/<lang>/wav/<key>.wav (a clip with no WAV
+//        is taken byte for byte from the published pack, if it is there)
 // Writes audio/<lang>/manifest.json and audio/<lang>/<k><NNN>.<hash>.bin
 //
 // For every clip: trim the silence at both ends, bring the loudness to
@@ -98,14 +99,38 @@ async function encode(wav, dest) {
   fs.renameSync(dest + ".part", dest);
 }
 
+// What is published now (if anything): its shard count per kind keeps the
+// layout stable between builds, its files are what existing users have, and
+// its clips stand in for WAVs that are gone (the work folder is not kept).
+let prev = null;
+try { prev = JSON.parse(fs.readFileSync(path.join(outDir, "manifest.json"), "utf8")); } catch (e) {}
+let reused = 0;
+if (prev && prev.idx && prev.mime === FMT.mime && +prev.bitrate === bitrate) {
+  const files = {};
+  for (const t of texts) {
+    const enc = path.join(encDir, `${t.key}.${FMT.ext}`);
+    const at = prev.idx[t.key];
+    if (!at || fs.existsSync(path.join(wavDir, t.key + ".wav")) || fs.existsSync(enc)) continue;
+    const sh = prev.shards[at[0]];
+    const f = path.join(outDir, sh.f);
+    if (!(f in files)) files[f] = fs.existsSync(f) ? fs.readFileSync(f) : null;
+    if (!files[f] || files[f].length !== sh.n) continue;
+    fs.writeFileSync(enc, files[f].subarray(at[1], at[1] + at[2]));
+    reused++;
+  }
+}
+if (reused) console.log(`${lang}: ${reused} clips have no WAV here; reusing them from the published pack (byte for byte)`);
+
 // ── encode what is missing ──
-const have = texts.filter(t => fs.existsSync(path.join(wavDir, t.key + ".wav")));
+const has = t => fs.existsSync(path.join(wavDir, t.key + ".wav")) || fs.existsSync(path.join(encDir, `${t.key}.${FMT.ext}`));
+const have = texts.filter(has);
 const missingWav = texts.length - have.length;
 const bad = [];
 let done = 0, next = 0;
 const todo = have.filter(t => {
   const enc = path.join(encDir, `${t.key}.${FMT.ext}`);
   const wav = path.join(wavDir, t.key + ".wav");
+  if (!fs.existsSync(wav)) return false;                  // reused from the published pack
   return !(fs.existsSync(enc) && fs.statSync(enc).mtimeMs >= fs.statSync(wav).mtimeMs);
 });
 console.log(`${lang}: ${have.length}/${texts.length} clips have audio; encoding ${todo.length} (${fmtName} ${bitrate} kbps, ${jobs} at a time)`);
@@ -125,10 +150,6 @@ if (bad.length) {
 const badKeys = new Set(bad.map(b => b.t.key));
 
 // ── lay the clips into shards ──
-// What is published now (if anything): its shard count per kind keeps the
-// layout stable between builds, and its files are what existing users have.
-let prev = null;
-try { prev = JSON.parse(fs.readFileSync(path.join(outDir, "manifest.json"), "utf8")); } catch (e) {}
 const bucketOf = (deck, n) => parseInt(crypto.createHash("sha1").update(String(deck)).digest("hex").slice(0, 8), 16) % n;
 const shards = [];                     // { f, k, n, h, buf }
 const idx = {};

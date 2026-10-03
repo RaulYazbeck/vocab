@@ -29,6 +29,7 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 WORK = os.environ.get("AUDIO_WORK") or os.path.join(HERE, "work")
+STATE = WORK if os.environ.get("AUDIO_WORK") else os.path.join(HERE, "state")   # see synth.py
 VOICE_LABEL = "Google Chirp 3 HD · Aoede"
 
 
@@ -60,11 +61,13 @@ def lang_dir(lang):
 
 
 def to_go(lang):
-    """(clips, characters) not made yet for this language."""
+    """(clips, characters) not made yet for this language (a clip in the published pack counts as made)."""
     texts = read_json(os.path.join(lang_dir(lang), "texts.json"), [])
+    published = set(read_json(os.path.join(ROOT, "audio", lang, "manifest.json"), {}).get("idx", {}))
     fails = {f["key"] for f in read_json(os.path.join(lang_dir(lang), "failures.json"), [])}
     wav = os.path.join(lang_dir(lang), "wav")
-    left = [t for t in texts if t["key"] not in fails and not os.path.exists(os.path.join(wav, t["key"] + ".wav"))]
+    left = [t for t in texts if t["key"] not in fails and t["key"] not in published
+            and not os.path.exists(os.path.join(wav, t["key"] + ".wav"))]
     return len(left), sum(len(t["text"]) for t in left)
 
 
@@ -75,7 +78,7 @@ def preflight(args):
 
 def budget_check(args):
     """All languages together must fit under the monthly cap before we start."""
-    used = read_json(os.path.join(WORK, "usage.json"), {}).get(time.strftime("%Y-%m", time.gmtime()), 0)
+    used = read_json(os.path.join(STATE, "usage.json"), {}).get(time.strftime("%Y-%m", time.gmtime()), 0)
     need = sum(to_go(l)[1] for l in args.langs)
     print(f"\ncharacters to send: {need:,}   already sent this month: {used:,}   cap: {args.max_chars_month:,}")
     if args.engine == "google" and used + need > args.max_chars_month:
@@ -127,7 +130,7 @@ def stage_pack(args, t0=None):
 
 
 def write_report(args, seconds):
-    used = read_json(os.path.join(WORK, "usage.json"), {}).get(time.strftime("%Y-%m", time.gmtime()), 0)
+    used = read_json(os.path.join(STATE, "usage.json"), {}).get(time.strftime("%Y-%m", time.gmtime()), 0)
     lines = ["# Voice pack report", "",
              f"Voice: {VOICE_LABEL}. Run time this session: {seconds / 60:.0f} min. "
              f"Characters sent to Google this month: {used:,} (free tier: 1,000,000).", ""]

@@ -38,9 +38,9 @@ No GPU and no model download: each text is one request to Google. The app side
 **Cost.** Google's free tier for Chirp 3 HD is 1,000,000 characters a month.
 Both decks together are about **405,000** (German 244k, French 161k), so a full
 run is free, and later updates only send the new texts. As a guard, the scripts
-keep a monthly count in `work/usage.json` and **refuse to start** a run that
+keep a monthly count in `state/usage.json` and **refuse to start** a run that
 would take that month past 900,000 characters (checked before anything is sent;
-safe even with two runs at once). That count only knows about this work folder,
+safe even with two runs at once). That count only knows about runs made from this repository,
 so keep the budget alert too.
 
 ## 2. Make the packs
@@ -81,10 +81,24 @@ changed is downloaded again by people who already have the pack.
 ```bash
 node tools/audio/status.mjs --lang de     # how many texts have no recording yet? (no key needed)
 python tools/audio/run_all.py full        # makes ONLY the new ones, repacks
-git add audio && git commit -m "Update voice packs" && git push
+git add audio tools/audio/state && git commit -m "Update voice packs" && git push
 ```
 `extract` also prints "+N new, −M no longer used" each time. Add `--strict` to
 `status` to make it exit 1 when anything is missing (for a CI check).
+
+### What is kept, and what can be lost
+`tools/audio/work/` (texts, the raw WAVs, about 1.5 GB) is **not** in git and
+disappears with the machine or session that made it. That is fine:
+- `synth.py` counts every clip already in the published pack as made, so a
+  fresh machine only records texts that are new or whose wording changed;
+- `pack.mjs` takes those clips byte for byte from the published pack, so the
+  rebuilt pack is identical apart from what changed (tested: no WAVs at all
+  plus one new sentence → one request to Google, 1 of 22 files changed).
+
+What must not be lost is small and is in git, in `tools/audio/state/`:
+`<lang>/spoken.json` (what each clip was made from, so a changed override is
+noticed), `<lang>/variants.json` (which clips needed a full stop) and
+`usage.json` (characters sent per month). Commit it together with `audio/`.
 
 ### What people get
 On launch the app compares versions. If the update is **small** (under 8 MB,
@@ -104,7 +118,7 @@ changed **0**.
 For some very short words ("oui", "et", "bist", "ja"…) Google sometimes returns
 a quarter second of near-silence instead of speech. `synth.py` checks every clip's
 level and re-makes a near-silent one as "word.", "Word.", "word!" or "Word!" until
-one is audible (`work/<lang>/variants.json` lists which). `pack.mjs` also refuses
+one is audible (`state/<lang>/variants.json` lists which). `pack.mjs` also refuses
 any clip quieter than −30 dB, so the worst case is the phone voice, never silence.
 In the first real run this caught 45 of 18,477 clips, all fixed: some by a plain
 retry, the rest by a full stop or exclamation mark. The listening page has a
@@ -146,7 +160,7 @@ pronouns too when it is short (≤ 3 letters) or ends in a silent "-ent"
 - **Google keeps mispronouncing a word:** add it to `tools/audio/overrides/<lang>.json`,
   e.g. `{"Hallo": "Halo"}` (the deck text → how to say it). It's used for
   synthesis only; the app still finds the clip under the original text. The
-  next `synth.py` / `run_all.py full` re-makes it by itself: `work/<lang>/spoken.json`
+  next `synth.py` / `run_all.py full` re-makes it by itself: `state/<lang>/spoken.json`
   remembers what each clip was made from, and a clip whose wording changed is
   made again. The German overrides also spell out dictionary shorthand
   ("jmd. etw. versprechen" → "jemandem etwas versprechen", "die Vokabeln always

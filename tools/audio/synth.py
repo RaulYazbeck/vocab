@@ -15,7 +15,7 @@ Reads  work/<lang>/texts.json  (from extract.mjs)
 Writes work/<lang>/wav/<key>.wav   one per text. Resumable: clips that exist are
                                    skipped, so stop and re-run any time.
        work/<lang>/failures.json  texts Google refused (they keep the phone voice)
-       work/usage.json            characters sent per month (the free-tier guard)
+       state/usage.json           characters sent per month (the free-tier guard; in git)
 
 The voice: Google Cloud Text-to-Speech, Chirp 3: HD, voice "Aoede", the same
 voice for German (de-DE-Chirp3-HD-Aoede) and French (fr-FR-Chirp3-HD-Aoede).
@@ -29,7 +29,7 @@ It also stays under Google's default limit of 200 requests a minute.
 
 What is sent for each text: an override (below) if there is one, else the
 text's "say" from extract.mjs (French conjugation forms go with their pronoun:
-"as" → "tu as"), else the text itself. work/<lang>/spoken.json remembers what
+"as" → "tu as"), else the text itself. state/<lang>/spoken.json remembers what
 each clip was made from; when that changes (new rule, override added or
 removed) the clip is made again automatically.
 
@@ -46,7 +46,7 @@ Fixing individual clips
 Near-silence guard: for some very short words Google returns a quarter second of
 near-silence instead of speech. Every clip is checked (peak level); a near-silent
 one is made again as "word.", "Word.", "word!", "Word!" until one is audible
-(recorded in work/<lang>/variants.json). If none is, the text is listed as
+(recorded in state/<lang>/variants.json). If none is, the text is listed as
 refused and keeps the phone voice; it never ends up in the pack as silence.
 
 Cut-off guard: Google sometimes stops a clip mid-sound (the last syllable is
@@ -76,8 +76,13 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 # AUDIO_WORK: keep intermediate files somewhere else (optional).
 WORK = os.environ.get("AUDIO_WORK") or os.path.join(HERE, "work")
+# Small records that must outlive the work folder (it is not in git): what each
+# clip was made from, which needed a variant, characters sent per month. Kept
+# in git under tools/audio/state/ (in the work folder when AUDIO_WORK is set).
+STATE = WORK if os.environ.get("AUDIO_WORK") else os.path.join(HERE, "state")
 LOCALES = {"de": "de-DE", "fr": "fr-FR"}
 ENDPOINT = os.environ.get("GOOGLE_TTS_ENDPOINT", "https://texttospeech.googleapis.com/v1/text:synthesize")
 VOICES_URL = ENDPOINT.rsplit("/", 1)[0] + "/voices"
@@ -290,11 +295,11 @@ class Ledger:
     cap and pass it together."""
 
     def __init__(self, cap):
-        self.path = os.path.join(WORK, "usage.json")
+        self.path = os.path.join(STATE, "usage.json")
         self.cap = cap
         self.month = datetime.now(timezone.utc).strftime("%Y-%m")
         self.lock = threading.Lock()
-        os.makedirs(WORK, exist_ok=True)
+        os.makedirs(STATE, exist_ok=True)
 
     @property
     def used(self):
@@ -360,6 +365,7 @@ def main():
     ap.add_argument("--retry-failures", action="store_true", help="forget failures.json and try those texts again")
     ap.add_argument("--redo-cut", action="store_true", help="re-check every existing clip and make again the ones cut off mid-sound")
     ap.add_argument("--redo-file", help="text file, one deck text per line: make those clips again")
+    ap.add_argument("--published", help="the published pack's manifest.json (default: audio/<lang>/manifest.json; 'none' = ignore it)")
     args = ap.parse_args()
 
     work = os.path.join(WORK, args.lang)
@@ -380,6 +386,13 @@ def main():
     fail_path = os.path.join(work, "failures.json")
     failures = {} if args.retry_failures else {f["key"]: f for f in load_json(fail_path, [])}
 
+    # Clips already in the published pack count as made even when their WAV is
+    # gone (the work folder is not kept): pack.mjs reuses them from the pack.
+    pub_path = args.published or os.path.join(ROOT, "audio", args.lang, "manifest.json")
+    published = set() if pub_path == "none" else set(load_json(pub_path, {}).get("idx", {}))
+    has_wav = lambda t: os.path.exists(os.path.join(wav_dir, t["key"] + ".wav"))
+    made = lambda t: has_wav(t) or t["key"] in published
+    redo_keys = set()
     if args.redo_file:
         want = {line.strip() for line in open(args.redo_file, encoding="utf8") if line.strip()}
         redo = [t for t in texts if t["text"] in want]
@@ -388,6 +401,7 @@ def main():
             if os.path.exists(p):
                 os.remove(p)
             failures.pop(t["key"], None)
+            redo_keys.add(t["key"])
         print(f"--redo-file: {len(redo)} of {len(want)} listed texts found, will be made again")
 
     overrides, sounds = load_overrides(args.lang)
@@ -396,13 +410,15 @@ def main():
     say = lambda t: (overrides.get(t["text"]) or t.get("say") or t["text"]).replace("…", "...")
     # What each existing clip was made from. Clips from before this record
     # existed count as made from the override or the plain text.
-    spoken_path = os.path.join(work, "spoken.json")
+    state_dir = os.path.join(STATE, args.lang)
+    os.makedirs(state_dir, exist_ok=True)
+    spoken_path = os.path.join(state_dir, "spoken.json")
     spoken = load_json(spoken_path, {})
     hint = lambda t: sounds.get(t["text"])
     # what a clip is made from: the text sent, plus any pronunciation hints
     ident = lambda t: say(t) + (" " + json.dumps(hint(t), ensure_ascii=False, sort_keys=True) if hint(t) else "")
     made_from = lambda t: spoken.get(t["key"], overrides.get(t["text"]) or t["text"])
-    stale = [t for t in texts if os.path.exists(os.path.join(wav_dir, t["key"] + ".wav")) and made_from(t) != ident(t)]
+    stale = [t for t in texts if made(t) and t["key"] not in redo_keys and made_from(t) != ident(t)]
     if stale:
         print(f"{len(stale)} clips will be made again because what they should say changed "
               f"(e.g. {', '.join(repr(t['text']) + ' → ' + repr(ident(t)) for t in stale[:4])})")
@@ -414,12 +430,12 @@ def main():
         print(f"--redo-cut: {len(cut)} clips end cut off and will be made again"
               + (f" (e.g. {', '.join(repr(t['text']) for t in cut[:4])})" if cut else ""))
         stale += cut
-    stale_keys = {t["key"] for t in stale}
-    todo = [t for t in texts if (t["key"] in stale_keys or not os.path.exists(os.path.join(wav_dir, t["key"] + ".wav"))) and t["key"] not in failures]
+    stale_keys = {t["key"] for t in stale} | redo_keys
+    todo = [t for t in texts if (t["key"] in stale_keys or not made(t)) and t["key"] not in failures]
     chars = sum(len(say(t)) for t in todo)
     refused = sum(1 for t in texts if t["key"] in failures)
     for t in texts:                              # record clips that are fine as they are
-        if t["key"] not in stale_keys and os.path.exists(os.path.join(wav_dir, t["key"] + ".wav")):
+        if t["key"] not in stale_keys and made(t):
             spoken.setdefault(t["key"], made_from(t))
     save_json(spoken_path, spoken)
     print(f"{len(texts)} texts: {len(texts) - len(todo) - refused} already done, "
@@ -444,7 +460,7 @@ def main():
     fatal = []
     lock = threading.Lock()
     state = {"n": 0, "ok": 0, "bad": 0, "t0": time.time()}
-    var_path = os.path.join(work, "variants.json")
+    var_path = os.path.join(state_dir, "variants.json")
     used_variants = load_json(var_path, {})
 
     def one(t):

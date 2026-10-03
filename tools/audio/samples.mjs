@@ -11,7 +11,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
-import { workDir } from "./lib.mjs";
+import { workDir, stateDir } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf("--" + n); return i >= 0 ? args[i + 1] : d; };
@@ -38,7 +38,7 @@ for (const lang of langs) {
   const texts = JSON.parse(fs.readFileSync(path.join(dir, "texts.json"), "utf8"))
     .filter(t => fs.existsSync(path.join(dir, "wav", t.key + ".wav")));
   const overrides = readJson(path.join(path.dirname(new URL(import.meta.url).pathname), "overrides", lang + ".json"));
-  const variantsUsed = readJson(path.join(dir, "variants.json"));
+  const variantsUsed = readJson(path.join(stateDir(lang), "variants.json"));
   const pick = kind => shuffle(texts.filter(t => t.kind === kind)).slice(0, Math.ceil(n / 2));
   const sent = t => { const o = t.text.startsWith("_") ? null : overrides[t.text];
     if (o && typeof o === "object") return (o.say || t.text) + (o.sounds ? "  (sounds: " + Object.entries(o.sounds).map(([w, ipa]) => `${w} = /${ipa}/`).join(", ") + ")" : "");
