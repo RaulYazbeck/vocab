@@ -48,6 +48,8 @@ function audioKey(text) {
 //   asked — the first-launch offer has been shown (once per language)
 //   use   — play recordings when available (the "Natural voice" switch)
 //   want  — shard kinds the user downloaded: "w" (words), "s" (sentences)
+//   respectSilent — iPhone only: let the ringer's silent switch mute the
+//                   recordings (default off: they play regardless)
 // In memory: the manifest in force, which of its shards are on the
 // device, the download in progress, and a listener list for the UI.
 let _aPrefs = null;
@@ -56,7 +58,7 @@ function audioPrefs() {
   let p = null;
   try { p = JSON.parse(localStorage.getItem(AUDIO_PREF) || "null"); } catch (e) {}
   if (!p || typeof p !== "object") p = {};
-  _aPrefs = { asked: !!p.asked, use: p.use !== false, want: Array.isArray(p.want) ? p.want.filter(k => k === "w" || k === "s") : [] };
+  _aPrefs = { asked: !!p.asked, use: p.use !== false, respectSilent: p.respectSilent === true, want: Array.isArray(p.want) ? p.want.filter(k => k === "w" || k === "s") : [] };
   return _aPrefs;
 }
 function audioSavePrefs() { try { localStorage.setItem(AUDIO_PREF, JSON.stringify(audioPrefs())); } catch (e) {} }
@@ -137,7 +139,7 @@ async function audioInit() {
     // pause the user's music and let the app's chimes through the silent
     // switch. So nothing audio-related is touched unless the recorded voice
     // is actually in use on this device.
-    if (audioReady()) audioInstallUnlock();
+    if (audioReady()) { audioInstallUnlock(); _audioApplySession(); }
     _audioSweepSw();
     // Is there a pack (or a newer one) on the server? Quiet, best-effort.
     if (navigator.onLine !== false) {
@@ -283,7 +285,7 @@ async function audioDownload(kinds) {
     p.want = want; p.asked = true;
     if (firstInstall) p.use = true;                    // an update must not undo "use the system voice"
     audioSavePrefs();
-    if (audioReady()) audioInstallUnlock();
+    if (audioReady()) { audioInstallUnlock(); _audioApplySession(); }
   } catch (e) {
     const byUser = e.cancelled || job.cancelled;       // an aborted fetch rejects too
     job.cancel();                                      // stop the other workers; nothing may continue in the background
@@ -355,12 +357,34 @@ async function audioRemove() {
   AUDIO.manifest = null; AUDIO.have = new Set(); AUDIO.mem.clear();
   const p = audioPrefs(); p.want = []; audioSavePrefs();
   audioStop();
+  _audioApplySession();
   _audioEmit();
 }
 function audioSetUse(on) {
   audioPrefs().use = !!on; audioSavePrefs();
   if (on) { if (audioReady()) audioInstallUnlock(); } else audioStop();
+  _audioApplySession();
   _audioEmit();
+}
+
+// ── SILENT SWITCH (iPhone) ────────────────────
+// By default recordings play even when the ringer switch is on silent
+// (iOS' "playback" audio category, which is also what <audio> gets). With
+// "Respect the silent switch" on, the page asks for the "ambient" category,
+// which the switch mutes. Only Safari has navigator.audioSession; elsewhere
+// there is nothing to set and the row is not shown. Touched only while the
+// recorded voice is in use: otherwise the category is handed back to "auto".
+function audioSessionSupported() {
+  try { return !!(navigator.audioSession && "type" in navigator.audioSession); } catch (e) { return false; }
+}
+function _audioApplySession() {
+  if (!audioSessionSupported()) return;
+  try { navigator.audioSession.type = audioReady() ? (audioPrefs().respectSilent ? "ambient" : "playback") : "auto"; } catch (e) {}
+}
+function audioToggleSilent() {
+  const p = audioPrefs(); p.respectSilent = !p.respectSilent; audioSavePrefs();
+  _audioApplySession(); _audioEmit();
+  if (typeof renderSettingsPanel === "function") renderSettingsPanel();
 }
 
 // ── PLAYBACK ──────────────────────────────────
@@ -619,6 +643,7 @@ function audioSettingsHtml() {
   return `
     <div class="set-group-title">Natural ${lang} voice</div>
     ${kinds.length ? setSwitchHtml("🗣️", "Use the natural voice", "Off = the phone's own voice, like before. Anything without a recording uses it too.", p.use, "audioToggleUse()") : ""}
+    ${kinds.length && audioSessionSupported() ? setSwitchHtml("🔕", "Mute with the silent switch", "Off: recordings play even when your iPhone's ringer switch is on silent. On: the switch mutes them, like the phone's own voice.", p.respectSilent, "audioToggleSilent()") : ""}
     <div class="set-choice">
       <div class="set-choice-head"><span class="set-icon">⬇️</span><span class="set-label">Voice pack</span></div>
       <div class="set-choice-sub" id="audio-status">${status}</div>

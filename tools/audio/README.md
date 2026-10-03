@@ -112,12 +112,13 @@ of changed shards adds to the git history, so batch your changes.
   but I could not run AAC playback anywhere (the test browser has no AAC
   decoder), so check it on a real phone before relying on it.
 - **Silent switch and music.** The recordings play through an HTML `<audio>`
-  element. iOS treats that as media playback: it plays even when the ringer
-  switch is on silent (the system voice does not), and it can pause music or a
-  podcast that is playing. Once a recording has been played, the app's own
-  chimes may also sound on silent. None of this happens for someone who hasn't
-  downloaded the pack or has switched the natural voice off: the app then never
-  touches audio.
+  element, which iOS treats as media playback: **by default they play even when
+  the ringer switch is on silent** (the old system voice did not), and they can
+  pause music or a podcast that is playing. Once the natural voice is in use the
+  app's own chimes follow the same rule. To make the switch mute them, turn on
+  Settings → Sound & voice → **Mute with the silent switch** (shown only in
+  Safari, the only browser that can do this). For someone who hasn't downloaded
+  the pack, or has switched the natural voice off, the app never touches audio.
 - **Storage.** The home-screen app is exempt from Safari's rule that deletes a
   website's stored data after 7 days without a visit; a plain Safari tab is not.
   The app notices missing files and offers "Repair". The home-screen app also
@@ -134,7 +135,8 @@ of changed shards adds to the git history, so batch your changes.
 2. Settings → Sound & voice → **▶ Hear a sample**. It reports plainly if the
    phone won't play it.
 3. Play a Today session: words and sentences should sound natural; tap 🐢
-   Slower; with the ringer switch on silent, note whether you hear it.
+   Slower. With the ringer switch on silent you should still hear them; then
+   turn on **Mute with the silent switch** and check that they go quiet.
 4. Turn on airplane mode, force-quit the app, reopen: words should still play.
 5. With music playing in the background, note whether it pauses.
 
