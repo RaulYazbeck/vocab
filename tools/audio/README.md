@@ -101,7 +101,9 @@ disappears with the machine or session that made it. That is fine:
 
 What must not be lost is small and is in git, in `tools/audio/state/`:
 `<lang>/spoken.json` (what each clip was made from, so a changed override is
-noticed), `<lang>/variants.json` (which clips needed a full stop) and
+noticed), `<lang>/variants.json` (which clips needed a full stop),
+`<lang>/extra.txt` (phrases added from the voice log with `--extra`: every
+later run includes them, so their recordings are never dropped) and
 `usage.json` (characters sent per month). Commit it together with `audio/`.
 
 ### What people get

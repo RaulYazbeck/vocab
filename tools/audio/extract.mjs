@@ -20,7 +20,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { collectTexts, workDir, ROOT } from "./lib.mjs";
+import { collectTexts, workDir, ROOT, extraFile as savedExtraFile, savedExtras } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf("--" + n); return i >= 0 ? args[i + 1] : d; };
@@ -40,6 +40,13 @@ if (extra.length && extra[0].startsWith("Voice log (")) {
   extra = keep;
 }
 const list = collectTexts(lang, extra);
+// Remember the new extras (see collectTexts) once they've been accepted.
+const kept = savedExtras(lang), addNow = [...new Set(extra)].filter(t => !kept.includes(t));
+if (addNow.length) {
+  fs.mkdirSync(path.dirname(savedExtraFile(lang)), { recursive: true });
+  fs.writeFileSync(savedExtraFile(lang), [...kept, ...addNow].join("\n") + "\n");
+  console.log(`${lang}: ${addNow.length} extra phrase(s) saved to ${path.relative(ROOT, savedExtraFile(lang))}`);
+}
 
 const dir = workDir(lang);
 fs.mkdirSync(dir, { recursive: true });
