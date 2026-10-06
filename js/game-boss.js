@@ -65,7 +65,8 @@ function deckMetWords(deckId) {
   return out;
 }
 // 👑 The ultimate deck boss: unlocks once every word of the deck is met,
-// has the whole deck as HP and must be beaten without a single mistake.
+// has the whole deck as HP and must be beaten without a single mistake
+// — or with the ❤️ boss hearts you bring (1 per 20 words, from chests).
 function deckBossReady(deckId) { const d = getDeck(deckId); return !!d && deckMetWords(deckId).length >= d.words.length; }
 function deckBossHp(deckId) { const d = getDeck(deckId); return d ? d.words.length : 0; }
 // Decks whose ultimate boss can be fought now (not already beaten today).
@@ -114,14 +115,25 @@ function deckBossRowHtml(deckId) {
   return `<div class="boss-row">
     <span class="boss-row-icon">${ok || rec.wins ? b.icon : "🔒"}</span>
     <span class="boss-row-body"><b>${ok || rec.wins ? `👑 ${escapeHtml(b.name)}` : "👑 Deck boss"}</b>
-      <small>${rec.wins ? `Defeated ${rec.wins}× · the whole deck, no mistakes${rec.minions ? ` · ⚔️ ${rec.minions} minion${rec.minions > 1 ? "s" : ""}` : ""}` : ok ? `All ${deckBossHp(deckId)} words · no mistakes allowed` : `Unlocks when all ${getDeck(deckId).words.length} words are met (${met} so far)${rec.minions ? ` · ⚔️ ${rec.minions} minion${rec.minions > 1 ? "s" : ""} beaten` : ""}`}</small></span>
+      <small>${rec.wins ? `Defeated ${rec.wins}× · the whole deck${rec.minions ? ` · ⚔️ ${rec.minions} minion${rec.minions > 1 ? "s" : ""}` : ""}` : ok ? `All ${deckBossHp(deckId)} words · no mistakes (or bring up to ❤️ ×${typeof deckHeartLimit === "function" ? deckHeartLimit(deckBossHp(deckId)) : 0})` : `Unlocks when all ${getDeck(deckId).words.length} words are met (${met} so far)${rec.minions ? ` · ⚔️ ${rec.minions} minion${rec.minions > 1 ? "s" : ""} beaten` : ""}`}</small></span>
     ${ok ? `<button class="g-sec-btn" onclick="startDeckBoss('${deckId}')">${rec.wins ? "Rematch" : "Fight"} ⚔️</button>` : ""}
   </div>`;
 }
-function startDeckBoss(deckId) {
+async function startDeckBoss(deckId) {
   const pool = deckMetWords(deckId);
   if (!deckBossReady(deckId)) { showCelebrateToast("🔒", "👑 Deck boss", `Meet all ${deckBossHp(deckId)} words of this deck first (${pool.length} so far)`); return; }
-  launchGame("boss", { pool, size: "full", bossMode: "deck", deck: deckId });
+  // ❤️ Boss hearts (chest loot): bring up to 1 per 20 words — each one
+  // forgives a mistake; losing the fight spends them all.
+  const owned = (S.quests && S.quests.hearts) || 0;
+  const bring = Math.min(owned, typeof deckHeartLimit === "function" ? deckHeartLimit(deckBossHp(deckId)) : 0);
+  let use = 0;
+  if (bring > 0 && typeof appConfirm === "function") {
+    const yes = await appConfirm({ title: `Bring ❤️ ×${bring}?`,
+      body: `Each heart forgives one mistake (this deck allows ${deckHeartLimit(deckBossHp(deckId))}, you have ${owned}). Hearts used are gone — and if the boss wins, every heart you brought is lost.`,
+      ok: `⚔️ Fight with ❤️ ×${bring}`, cancel: "Fight flawless" });
+    if (yes) use = bring;
+  }
+  launchGame("boss", { pool, size: "full", bossMode: "deck", deck: deckId, bring: use });
 }
 
 // ── WORLD BOSS ────────────────────────────────
@@ -244,9 +256,11 @@ registerGame({
     const boss = mode === "deck" ? deckBoss(ctx.opts.deck) : mode === "minion" ? { icon: deckBoss(ctx.opts.deck).icon, name: deckBoss(ctx.opts.deck).name + " minion" }
       : mode === "world" ? { icon: world.icon, name: world.name }
       : skin ? { icon: skin.icon, name: skin.name } : BOSSES[Math.floor((S.games.bossesDefeated || 0) / 3) % BOSSES.length];
-    // 👑 Deck boss: flawless or nothing. Minion: 3 lives.
-    const flawless = ctx.sudden || mode === "deck";
-    const maxHearts = flawless ? 1 : mode === "minion" ? 3 : rp.hearts;
+    // 👑 Deck boss: flawless — unless you brought ❤️ boss hearts, one
+    // forgiven mistake each (spent as you make them). Minion: 3 lives.
+    const bring = mode === "deck" ? Math.max(0, Math.min(ctx.opts.bring || 0, (S.quests && S.quests.hearts) || 0)) : 0;
+    const flawless = ctx.sudden || (mode === "deck" && !bring);
+    const maxHearts = flawless ? 1 : mode === "deck" ? bring + 1 : mode === "minion" ? 3 : rp.hearts;
     let hearts = maxHearts, correct = 0, wrong = 0, combo = 0, maxCombo = 0, dealt = 0, typedOk = 0;
     const perWord = ctx.size === "full" && rp.timer ? rp.timer * ctx.timeScale : 0;
     let wordStart = 0;
@@ -259,7 +273,7 @@ registerGame({
       <div class="bb-arena" id="bb-arena">
         <div class="bb-boss" id="bb-boss">${boss.icon}</div>
         <div class="bb-name">${mode === "deck" ? "👑 " : ""}${escapeHtml(boss.name)}${mode === "world" ? " · 🌋 world boss" : mode === "deck" || mode === "minion" ? ` · ${escapeHtml(getDeck(ctx.opts.deck).name)}` : ""}</div>
-        ${mode === "deck" ? `<div class="bb-rule">The whole deck — one mistake and it escapes</div>` : mode === "minion" ? `<div class="bb-rule">${MINION_WORDS} words · 3 lives</div>` : ""}
+        ${mode === "deck" ? `<div class="bb-rule">${bring ? `The whole deck — ❤️ ×${bring} brought, one per mistake` : "The whole deck — one mistake and it escapes"}</div>` : mode === "minion" ? `<div class="bb-rule">${MINION_WORDS} words · 3 lives</div>` : ""}
         <div class="bb-hp"><div class="bb-hp-fill" id="bb-hp"></div></div>
         <div class="bb-hp-label" id="bb-hp-label"></div>
       </div>
@@ -285,7 +299,8 @@ registerGame({
     const updateHp = () => {
       document.getElementById("bb-hp").style.width = (hp / maxHp * 100) + "%";
       document.getElementById("bb-hp-label").textContent = `HP ${hp}/${maxHp}`;
-      ctx.setLives(hearts, maxHearts);
+      if (mode === "deck") ctx.setLives(hearts - 1, maxHearts - 1); // spare hearts only
+      else ctx.setLives(hearts, maxHearts);
       ctx.setBar(1 - hp / maxHp, "progress");
     };
     const show = () => {
@@ -334,8 +349,9 @@ registerGame({
       // count as Today-session answers (they happen inside one).
       questEvent("boss", { won, perfect: won && wrong === 0, ms: Math.round(ctx.clock.elapsed()), deck: mode === "deck" ? ctx.opts.deck : null, world: mode === "world", minion: mode === "minion" });
       ctx.finish({ score, correct, wrong, maxCombo, won, hearts, world: mode === "world", deck: mode === "deck", minion: mode === "minion", dealt,
-        note: mode === "world" ? (won ? "🌋 World boss defeated — an Epic chest is waiting!" : hearts <= 0 ? "🌋 The world boss recovered — it's back to full HP." : `🌋 You dealt ${dealt} damage — the world boss has ${Math.max(0, hp)} HP left this week.`)
-          : mode === "deck" ? (won ? `👑 ${boss.name} defeated — the whole deck, flawless. An Epic chest is waiting!` : `👑 ${boss.name} escaped. It's back to full strength — the whole deck, no mistakes.`)
+        note: mode === "world" ? (won ? "🌋 World boss defeated — a chest is waiting!" : hearts <= 0 ? "🌋 The world boss recovered — it's back to full HP." : `🌋 You dealt ${dealt} damage — the world boss has ${Math.max(0, hp)} HP left this week.`)
+          : mode === "deck" ? (won ? `👑 ${boss.name} defeated — the whole deck${wrong ? ` (❤️ ×${wrong} used)` : ", flawless"}. ${(S.games.bestiary[ctx.opts.deck] || {}).wins > 1 ? "A rematch chest is waiting!" : "An Epic chest is waiting!"}`
+            : `👑 ${boss.name} escaped. It's back to full strength${bring ? ` — the ❤️ ×${bring} you brought are spent` : ""}.`)
           : mode === "minion" && won ? `⚔️ Minion defeated — the 👑 ${deckBoss(ctx.opts.deck).name} still waits for the whole deck.` : "" });
     };
 
@@ -400,8 +416,11 @@ registerGame({
           gTimeout(() => end(true), 1100);
         } else gTimeout(show, 750);
       } else {
-        const cost = flawless ? hearts : ctx.cost(w);
+        const cost = flawless ? hearts : mode === "deck" ? 1 : ctx.cost(w);
         wrong++; hearts = Math.max(0, hearts - cost); combo = ctx.comboAfterMiss(combo, w);
+        // A brought ❤️ is spent the moment it saves you (so quitting can't
+        // dodge it); the last miss — no heart left — loses the fight.
+        if (mode === "deck" && bring && hearts > 0 && S.quests.hearts > 0) { S.quests.hearts--; logEvent("heart_used", { deck: ctx.opts.deck }); }
         if (!w.anki) { applyWrong(getWS(w.deckId, w.idx), { w }); questEvent("answer", { mode: mode === "minion" ? "path" : "boss", ok: false, typed: true, w }); }
         sessionConsecutive = 0;
         saveState();
