@@ -27,10 +27,45 @@ const UNLOCK_INITIAL = 12;
 const IS_STANDALONE = navigator.standalone === true ||
   (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
 
-const EXP_BASE = 400, EXP_RATIO = 1.08;
+// ── LEVELS ───────────────────────────────────
+// Lv 100 = the whole journey: every Path word met and climbed to 💎,
+// on a 9-month finish-date plan with the daily quests done. Simulated
+// (German, 4,106 words): that earns ~365 XP a word, quests included.
+// Lv 1–10 are quick first-week steps. From Lv 10 the steps follow how
+// XP really arrives — lighter while the first words are still climbing
+// to Known/Strong/Locked in (the first 30%), steady in the middle,
+// lighter again over the last 20% — so a level comes every 2–4 days
+// all the way. Past Lv 100 each level is a flat 1/80 of the journey.
+const LEVEL = { MAX: 100, XP_PER_WORD: 365, RAMP: 0.3, R0: 0.08, TAPER: 0.2, R1: 0.55, AFTER: 80,
+  ONBOARD: [0, 100, 250, 450, 700, 1000, 1350, 1750, 2200, 2700] }; // Lv 1…10
+let _levelXp = null;
+function levelTable() {
+  if (_levelXp) return _levelXp;
+  const words = ALL_GROUPS.filter(g => g.type !== "anki")
+    .reduce((s, g) => s + g.decks.reduce((t, d) => t + d.words.length, 0), 0);
+  const total = Math.max(words, 500) * LEVEL.XP_PER_WORD;
+  // XP share earned at each point of the journey (income rate ramps up,
+  // holds, then tapers), as a cumulative table.
+  const rate = x => x < LEVEL.RAMP ? LEVEL.R0 + (1 - LEVEL.R0) * x / LEVEL.RAMP
+    : x > 1 - LEVEL.TAPER ? 1 - (1 - LEVEL.R1) * (x - (1 - LEVEL.TAPER)) / LEVEL.TAPER : 1;
+  const N = 1000, cum = [0];
+  for (let i = 1; i <= N; i++) cum[i] = cum[i - 1] + rate((i - 0.5) / N);
+  const o = LEVEL.ONBOARD.length, base = LEVEL.ONBOARD[o - 1];
+  const xp = [0, ...LEVEL.ONBOARD]; // xp[n] = total XP to reach level n
+  for (let n = o + 1; n <= LEVEL.MAX; n++) {
+    const share = cum[Math.round((n - o) / (LEVEL.MAX - o) * N)] / cum[N];
+    xp[n] = Math.round((base + (total - base) * share) / 10) * 10;
+  }
+  return (_levelXp = { xp, total, after: Math.round(total / LEVEL.AFTER / 10) * 10 });
+}
 function expForLevel(n) {
   if (n <= 1) return 0;
-  return Math.round(EXP_BASE * (Math.pow(EXP_RATIO, n - 1) - 1) / (EXP_RATIO - 1));
+  const L = levelTable();
+  return n <= LEVEL.MAX ? L.xp[n] : L.xp[LEVEL.MAX] + (n - LEVEL.MAX) * L.after;
+}
+// How far along the journey the XP is, 0–100.
+function journeyPercent(exp = S.exp) {
+  return Math.min(100, Math.floor((exp || 0) / levelTable().total * 100));
 }
 
 const DRILL_MILESTONES = [
