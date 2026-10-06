@@ -22,6 +22,16 @@
 
 function xpForTier(tierIndex) { return (tierIndex + 1) * 50; }
 
+// Explorer's tiers scale with the decks (German and French differ):
+// shares of the words beyond each deck's first 12, the last one all.
+function explorerTiers() {
+  const total = ALL_GROUPS.filter(g => g.type !== "anki")
+    .reduce((s, g) => s + g.decks.reduce((t, d) => t + Math.max(0, d.words.length - UNLOCK_INITIAL), 0), 0);
+  const nice = x => x < 100 ? Math.round(x / 5) * 5 : Math.round(x / 50) * 50;
+  const tiers = [0.01, 0.02, 0.04, 0.08, 0.15, 0.25, 0.4, 0.6, 0.8].map(f => Math.max(5, nice(total * f)));
+  return [...tiers, Math.max(tiers[tiers.length - 1] + 1, total)];
+}
+
 const ACHIEVEMENTS = [
   // ── Vocabulary ──
   { id:"road_b1", icon:"🏔️", name:"Road to B1", category:"Vocabulary",
@@ -29,9 +39,9 @@ const ACHIEVEMENTS = [
     tiers:[10, 50, 150, 300, 600, 1000, 1500, 2200, 3000, 4000],
     value:() => countMastered(true) },
   { id:"explorer", icon:"🧭", name:"Explorer", category:"Vocabulary",
-    desc:t => `Unlock ${t.toLocaleString()} words`,
-    tiers:[25, 60, 120, 250, 450, 800, 1300, 2000, 3000, 4000],
-    value:() => totalUnlockedWords() },
+    desc:t => `Discover ${t.toLocaleString()} new words`,
+    tiers:explorerTiers(), // the last one: every word in the decks
+    value:() => discoveredWords() },
   { id:"perfectionist", icon:"✨", name:"Perfectionist", category:"Vocabulary",
     desc:t => `Hold ⭐ Strong or better on ${t} words at once`,
     tiers:[1, 3, 5, 10, 15, 25, 40, 60, 80, 100],
@@ -240,12 +250,18 @@ function countMasteryPlus() {
   })));
   return n;
 }
-function totalUnlockedWords() {
+// 🧭 Explorer counts words unlocked beyond the 12 every deck starts
+// with (Anki decks don't unlock), minus the ones Skip a level unlocked
+// without you ever meeting them (sk 2).
+function discoveredWords() {
   let n = 0;
-  ALL_GROUPS.forEach(g => g.decks.forEach(d => { n += getUnlocked(d.id); }));
-  // Words Skip a level unlocked without you ever meeting them (sk 2).
-  Object.values(S.words).forEach(ws => { if (ws && ws.sk === 2) n--; });
-  return Math.max(0, n);
+  ALL_GROUPS.forEach(g => { if (g.type !== "anki") g.decks.forEach(d => {
+    for (let i = Math.min(UNLOCK_INITIAL, d.words.length), u = getUnlocked(d.id); i < u; i++) {
+      const ws = S.words[d.id + "_" + i];
+      if (!(ws && ws.sk === 2)) n++;
+    }
+  }); });
+  return n;
 }
 // Longest run of the 🔥 streak (quest days, kept and frozen days).
 function maxStreak() {
@@ -267,15 +283,21 @@ function hasWeekendPair() {
 }
 
 // ── AWARDING ──────────────────────────────────
-// 🧗 Climber moved to the journey levels (Lv 100 = every deck done):
-// keep only the tiers the new level really meets. Tiers won again
+// 🧗 Climber moved to the journey levels (Lv 100 = every deck done)
+// and 🧭 Explorer stopped counting each deck's starting words: once,
+// keep only the tiers the new value really meets. Tiers won again
 // later pay again, which is small next to the journey's XP.
-function migrateClimber() {
+function migrateLadders() {
   if (!S.achLevels) S.achLevels = {};
-  if (S.achClimbV === 2) return;
-  S.achClimbV = 2;
-  const c = ACHIEVEMENTS.find(a => a.id === "climber"), lv = currentLevel();
-  if (c && S.achLevels.climber) S.achLevels.climber = Math.min(S.achLevels.climber, c.tiers.filter(t => lv >= t).length);
+  if (S.achTrimV === 2) return;
+  S.achTrimV = 2;
+  ["climber", "explorer"].forEach(id => {
+    const a = ACHIEVEMENTS.find(x => x.id === id);
+    if (!a || !S.achLevels[id]) return;
+    let v = 0;
+    try { v = a.value(); } catch (e) { return; }
+    S.achLevels[id] = Math.min(S.achLevels[id], a.tiers.filter(t => v >= t).length);
+  });
 }
 let _checkingAchievements = false; // addExp can re-enter via level-up
 
@@ -283,7 +305,7 @@ function checkAchievements(ev = {}) {
   if (_checkingAchievements) return;
   _checkingAchievements = true;
   try {
-    migrateClimber();
+    migrateLadders();
     const unlocked = [];
     let xpGain = 0;
 
@@ -340,7 +362,7 @@ function checkAchievements(ev = {}) {
 
 // ── ACHIEVEMENTS SCREEN ───────────────────────
 function renderBadgesScreen() {
-  migrateClimber();
+  migrateLadders();
   const totalLevels  = ACHIEVEMENTS.reduce((s, a) => s + a.tiers.length, 0) + SECRET_ACHIEVEMENTS.length;
   const earnedLevels = ACHIEVEMENTS.reduce((s, a) => s + (S.achLevels[a.id] || 0), 0)
     + SECRET_ACHIEVEMENTS.filter(s => S.badges.includes(s.id)).length;
