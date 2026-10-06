@@ -435,7 +435,9 @@ qt({ id: "c_weakboss", slot: "C", fam: "boss", icon: "👾", w: 1.2, ok: c => ga
   title: () => `Beat the Weakest-words boss`, prog: m => m.weakBoss, go: "game:boss" });
 qt({ id: "c_bossclean", slot: "C", fam: "boss", icon: "🛡️", w: 1, ok: c => gameOk(c, "boss"), target: () => 1,
   title: () => `Win any boss battle without losing a heart`, prog: m => m.bossPerfect, go: "game:boss" });
-qt({ id: "c_bonus", slot: "C", fam: "bonus", icon: "🎁", w: 1, ok: c => c.G >= 50, target: () => 3,
+// 2, not 3: a Long session offers 3 bonus rounds (one may be a minion),
+// so a single Long session can still finish it with one miss or skip.
+qt({ id: "c_bonus", slot: "C", fam: "bonus", icon: "🎁", w: 1, ok: c => c.G >= 50, target: () => 2,
   title: q => `Clear ${q.target} bonus rounds inside Today sessions`, prog: m => m.bonusCleared, go: "path:long" });
 qt({ id: "c_blitz", slot: "C", fam: "score", icon: "⚡", w: 1, ok: c => gameOk(c, "blitz"), target: () => 300,
   title: q => `Blitz: ${q.target} points in one round`, prog: m => m.blitzPts, go: "game:blitz" });
@@ -1220,7 +1222,7 @@ function showChestModal(ch, res) {
         <span class="chx-fx"></span>
       </button>
       <div class="chx-pips" id="chx-pips">${"<i></i>".repeat(CHEST_TAPS)}</div>
-      <div class="chx-tap" id="chx-tap">Tap the chest!</div>
+      <div class="chx-tap" id="chx-tap">Tap anywhere!</div>
       <div class="chx-reveal" id="chx-reveal" hidden>
         <ul class="chest-loot">${res.loot.map((l, i) => `<li style="animation-delay:${0.25 + i * 0.12}s">${escapeHtml(l)}</li>`).join("")}</ul>
         <div class="modal-actions">${res.idiom && !grandmaOn() ? `<button class="modal-btn secondary" onclick="openIdiom('${res.idiom}')">📜 Read it</button>` : ""}${S.quests.pending.length ? `<button class="modal-btn secondary" onclick="closeChestModal();openPendingChest()">Next chest (${S.quests.pending.length}) →</button>` : ""}
@@ -1279,13 +1281,16 @@ function showChestModal(ch, res) {
   // reacts on touch-down, and within the chest sheet a touch that ends
   // anywhere but a live button (Skip, Nice!, Next chest) has its default
   // — zoom — cancelled. Mouse and keyboard still use click.
+  // Tap anywhere: the whole sheet is the chest's button until it opens
+  // (Skip keeps its own job).
   let touchTapAt = 0;
-  btn.addEventListener("pointerdown", e => {
-    if (e.pointerType === "mouse") return;
+  const isSkip = e => !!(e.target.closest && e.target.closest("#chx-skip"));
+  m.addEventListener("pointerdown", e => {
+    if (opened || e.pointerType === "mouse" || isSkip(e)) return;
     touchTapAt = Date.now();
     tap();
   });
-  btn.addEventListener("click", () => { if (Date.now() - touchTapAt > 700) tap(); });
+  m.addEventListener("click", e => { if (!opened && !isSkip(e) && Date.now() - touchTapAt > 700) tap(); });
   m.addEventListener("touchend", e => {
     const b = e.target.closest && e.target.closest("button");
     if ((!b || b === btn || b.disabled) && e.cancelable) e.preventDefault();
@@ -1427,25 +1432,31 @@ function questIcon(q) {
   if (q.tpl === "d_mystery" && questAllOthersDone(q)) return (byId(q.hidden.tpl) || {}).icon || "❓";
   return (byId(q.tpl) || {}).icon || "✅";
 }
-// Quest cards: icon, title, a clear progress bar with "3 / 10", and ▶.
-// simple (👵 Grandma mode) leaves out everything else — rerolls, the
-// 🔇 swap, ✨×2, weekend and flash quests.
-function questRowHtml({ icon, title, prog, target, done, num, note = "", go = "", acts = "", cls = "" }) {
+// Quest cards: icon, title, a clear progress bar with "3 / 10". The whole
+// row opens the quest's sheet (what it is, Play); the only button on the
+// row is the 🎲 reroll / 🔇 swap. simple (👵 Grandma mode) plays on tap
+// and leaves out everything else — rerolls, the 🔇 swap, ✨×2, weekend
+// and flash quests.
+function questRowHtml({ icon, title, prog, target, done, num, note = "", open = "", acts = "", cls = "" }) {
   const pct = Math.round(Math.min(1, prog / Math.max(1, target)) * 100);
-  const hasActs = !done && !!go;
-  // Grid: icon | title | buttons, and the bar across the full width below.
-  return `<div class="gm-quest ${done ? "done" : ""} ${hasActs ? "" : "no-acts"} ${cls}">
-    <div class="gm-q-icon" aria-hidden="true">${done ? "✓" : icon}</div>
-    <div class="gm-q-body">
-      <div class="gm-q-title">${title}</div>
-      ${note ? `<div class="gm-q-note">${note}</div>` : ""}
-    </div>
-    ${hasActs ? `<div class="gm-q-acts"><button class="gm-q-go" onclick="${go}" aria-label="Start this quest">▶</button>${acts}</div>` : ""}
-    <div class="gm-q-prog">
-      <div class="gm-q-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${target}" aria-valuenow="${Math.min(prog, target)}"><i style="width:${pct}%"></i></div>
+  const tag = open ? "button" : "div";
+  // Grid: icon | title | button, and the bar across the full width below.
+  return `<${tag} class="gm-quest ${done ? "done" : ""} ${acts ? "" : "no-acts"} ${cls}" ${open ? `onclick="${open}"` : ""}>
+    <span class="gm-q-icon" aria-hidden="true">${done ? "✓" : icon}</span>
+    <span class="gm-q-body">
+      <span class="gm-q-title">${title}</span>
+      ${note ? `<span class="gm-q-note">${note}</span>` : ""}
+    </span>
+    ${acts ? `<span class="gm-q-acts">${acts}</span>` : ""}
+    <span class="gm-q-prog">
+      <span class="gm-q-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${target}" aria-valuenow="${Math.min(prog, target)}"><i style="width:${pct}%"></i></span>
       <span class="gm-q-num">${num != null ? num : done ? "Done" : `${Math.min(prog, target)} / ${target}`}</span>
-    </div>
-  </div>`;
+    </span>
+  </${tag}>`;
+}
+// The small button on a row: never opens the sheet underneath it.
+function questMiniBtn(onclick, label, title, text) {
+  return `<span role="button" tabindex="0" class="gm-q-mini" onclick="event.stopPropagation();${onclick}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();event.stopPropagation();${onclick}}" title="${title}" aria-label="${label}">${text}</span>`;
 }
 function questCardsHtml(opts = {}) {
   questEnsureToday();
@@ -1459,25 +1470,21 @@ function questCardsHtml(opts = {}) {
     const it = byId(inner.tpl) || t;
     const sound = !!it.audio;
     const dbl = !simple && Q.dbl === i ? ` <span class="quest-dbl" title="Double reward">✨×2</span>` : "";
-    // Only what changes how you do it: the text route of a sound quest,
-    // and when the mystery opens.
-    const note = simple ? "" : mystery ? "Revealed when the other three are done"
-      : it.altTitle ? (() => { try { return escapeHtml(it.altTitle(inner)); } catch (e) { return ""; } })() : "";
     const acts = simple || q.done ? ""
-      : sound ? `<button class="gm-q-mini" onclick="questReroll(${i}, true)" title="Can't use sound now? Swap it (free)" aria-label="Swap this sound quest">🔇</button>`
-      : q.tpl !== "d_mystery" && !t.fixed && Q.tokens > 0 ? `<button class="gm-q-mini" onclick="questReroll(${i})" title="Reroll this quest (${Q.tokens} token${Q.tokens > 1 ? "s" : ""})" aria-label="Reroll this quest">🎲</button>` : "";
+      : sound ? questMiniBtn(`questReroll(${i}, true)`, "Swap this sound quest", "Can't use sound now? Swap it (free)", "🔇")
+      : q.tpl !== "d_mystery" && !t.fixed && Q.tokens > 0 ? questMiniBtn(`questReroll(${i})`, "Reroll this quest", `Reroll this quest (${Q.tokens} token${Q.tokens > 1 ? "s" : ""})`, "🎲") : "";
     return questRowHtml({ icon: questIcon(q), title: questTitle(q) + dbl, prog: mystery ? 0 : inner.prog, target: mystery ? 1 : inner.target,
-      done: q.done, num: mystery && !q.done ? "?" : null, note, go: `questGo(${i})`, acts, cls: sound && quiet ? "muted" : "" });
+      done: q.done, num: mystery && !q.done ? "?" : null, open: simple ? (q.done ? "" : `questGo(${i})`) : `openQuestSheet(${i})`, acts, cls: sound && quiet ? "muted" : "" });
   });
   if (!simple && Q.flash && !Q.flash.done && !Q.flash.expired && Date.now() < Q.flash.until) {
     const mins = Math.max(1, Math.ceil((Q.flash.until - Date.now()) / 60000));
     rows.push(questRowHtml({ icon: "⚡", title: `Flash quest: ${escapeHtml(Q.flash.title)} <span class="gm-q-tag">${mins} min left · 🎁</span>`,
-      prog: Q.flash.prog, target: Q.flash.target, go: "startPathSession('quick')", cls: "flash" }));
+      prog: Q.flash.prog, target: Q.flash.target, open: "openQuestSheet('flash')", cls: "flash" }));
   }
   if (!simple && Q.weekend && !Q.weekend.done) {
     const w = Q.weekend;
     rows.push(questRowHtml({ icon: questIcon(w), title: `${questTitle(w)} <span class="gm-q-tag">🎁 weekend bonus</span>`,
-      prog: w.prog, target: w.target, go: `questGoTpl('${w.tpl}', 'W')`, cls: "weekend" }));
+      prog: w.prog, target: w.target, open: "openQuestSheet('W')", cls: "weekend" }));
   }
   const nDone = Q.list.filter(q => q.done).length;
   // The day's chest, right under the quests: its progress (one step per
@@ -1489,6 +1496,108 @@ function questCardsHtml(opts = {}) {
     : questRowHtml({ icon: "🎁", title: `Chest — finish all ${Q.list.length} quests to open it`, prog: nDone, target: Q.list.length, cls: "chest" });
   return `<div class="gm-quests-head"><span>Today's quests</span><b>${nDone} / ${Q.list.length}</b></div>
     <div class="gm-quests">${rows.join("")}${chest}</div>`;
+}
+// What a quest asks for, in plain words — by family, then by where it
+// is played. Shown on the quest's sheet.
+const QUEST_FAM_HOW = {
+  plan: "Right answers while studying today — Today sessions, Drill, Timer and bosses all count. Doing it keeps you on time for your finish date.",
+  path: "Every answer in a Today session counts. Tap Start on the Today card.",
+  typed: () => sayOr("Typed answers anywhere count: Today sessions, Drill, Timer.", "Words recalled out loud anywhere count: Today sessions, Drill, Timer."),
+  clear: "Answer every review that's due today. Start takes them first.",
+  nohint: "Answer without tapping 💡 Hint.",
+  sessions: "Finish whole Today sessions (Start).",
+  deck: "Practise words from this deck — Play starts a session with just them.",
+  timer: "Finish Timer rounds — answer as many as you can before time runs out.",
+  sentence: "Fill words into example sentences.",
+  reverse: "Translate the other way round — from the language into English.",
+  run: "Answer several in a row without a mistake.",
+  accuracy: "Keep your answers right — mistakes don't reset it, but they don't count.",
+  stale: "Review words you haven't seen in a while.",
+  level: "Review words from an earlier level.",
+  pos: "Practise this kind of word — Play picks them for you.",
+  fix: "Fix words you slipped on recently.",
+  fast: "Answer quickly — each answer within a few seconds counts.",
+  spelling: "Get the accents and special letters right.",
+  sitting: "Answer this many in one sitting.",
+  meet: "Meet today's new words — Start brings them in.",
+  up: "Every right review moves a word up a stage. Start brings the due ones.",
+  repair: "Get the 🩹 words right again — Start puts them first.",
+  known: "Review words one step away from that stage.",
+  spot: "Quick check-ins on 💎 Locked-in words.",
+  explore: "New words from the next deck or level.",
+  comeback: "Get right the words you missed yesterday.",
+  crown: "Bring every word of the deck to 🌳 Known.",
+  rescue: "Bring back words that slipped below their best stage.",
+  collect: "Collect genders or plurals in their game.",
+  hard: "Practise the words you struggle with most.",
+  anki: "Do your Anki cards owed today.",
+  games: "Right answers in any game count (🎮 Games).",
+  stars: "Earn stars in games — 3★ needs a clean, fast round.",
+  rank: "Rank up a game: get 3★ at your current rank.",
+  combo: "Build an answer streak in a fast game.",
+  clean: "Finish a game round without a mistake.",
+  boss: "Beat a boss in ⚔️ Bosses.",
+  variety: "Play different games today.",
+  daily: "Finish today's 📆 Daily Challenge in Games.",
+  best: "Beat one of your best scores.",
+  twist: "Accept a random twist when a game offers one.",
+  gold: "Catch golden words in games.",
+  bonus: "Win surprise bonus rounds.",
+  ear: "Pick words by ear — needs sound.",
+  voice: "Say answers aloud with the mic.",
+  mystery: "A surprise quest — revealed once the other three are done.",
+};
+function questHowText(q) {
+  const t = byId(q.tpl) || {};
+  const how = QUEST_FAM_HOW[t.fam];
+  if (how) return typeof how === "function" ? how() : how;
+  const go = String(typeof t.go === "function" ? (() => { try { return t.go(q); } catch (e) { return ""; } })() : t.go || "");
+  return go.startsWith("game") ? "Play the game in 🎮 Games." : go.startsWith("hub") ? "Play in 🎮 Games." : "Tap Play — it takes you straight there.";
+}
+// A quest's sheet: what it is, its progress, ▶ Play and the reroll.
+//   which: index in today's list, "flash" or "W" (weekend bonus)
+function openQuestSheet(which) {
+  const Q = S.quests;
+  let q, play, extra = "", reroll = "";
+  if (which === "flash") {
+    q = Q.flash; if (!q) return;
+    play = "startPathSession('quick')";
+    extra = `⚡ Flash quest — ${Math.max(1, Math.ceil((q.until - Date.now()) / 60000))} min left, its own chest 🎁`;
+  } else if (which === "W") {
+    q = Q.weekend; if (!q) return;
+    play = `questGoTpl('${q.tpl}')`;
+    extra = "🎁 Weekend bonus — its own chest";
+  } else {
+    q = Q.list[which]; if (!q) return;
+    play = `questGo(${which})`;
+    const t = byId(q.tpl) || {};
+    const mystery = q.tpl === "d_mystery" && !questAllOthersDone(q);
+    const inner = q.tpl === "d_mystery" && !mystery ? q.hidden : q;
+    const sound = !!(byId(inner.tpl) || {}).audio;
+    if (!q.done) {
+      if (sound) reroll = `<button class="g-sec-btn qs-reroll" onclick="closeSettings();questReroll(${which}, true)">🔇 Can't use sound? Swap it (free)</button>`;
+      else if (q.tpl !== "d_mystery" && !t.fixed) reroll = Q.tokens > 0
+        ? `<button class="g-sec-btn qs-reroll" onclick="closeSettings();questReroll(${which})">🎲 Reroll · ${Q.tokens} token${Q.tokens > 1 ? "s" : ""} left</button>`
+        : `<div class="qs-note">🎲 No rerolls left — chests often have tokens.</div>`;
+    }
+    extra = `One of today's ${Q.list.length} quests — all of them open the chest 🎁${Q.dbl === which ? " · ✨ this one counts double" : ""}`;
+    if (q.tpl === "d_mystery" && mystery) {
+      openSheet({ title: "❓ Mystery quest", html: `<div class="qs-desc">${QUEST_FAM_HOW.mystery}</div><div class="qs-note">${extra}</div>` });
+      return;
+    }
+    if (inner !== q) q = Object.assign({}, inner, { done: q.done });
+  }
+  const title = which === "flash" ? escapeHtml(q.title) : questTitle(q);
+  const sub = which === "flash" ? "" : questSub(q);
+  const prog = Math.min(q.prog || 0, q.target), pct = Math.round(prog / Math.max(1, q.target) * 100);
+  openSheet({ title: "Quest", html: `
+    <div class="qs-head"><span class="qs-icon">${q.done ? "✓" : which === "flash" ? "⚡" : questIcon(q)}</span>
+      <div><div class="qs-title">${title}</div>${sub ? `<div class="qs-sub">${escapeHtml(String(sub).replace(/<[^>]+>/g, ""))}</div>` : ""}</div></div>
+    <div class="qs-desc">${which === "flash" ? "Answer in Today sessions before the time runs out." : escapeHtml(questHowText(q))}</div>
+    <div class="qs-prog"><span class="gm-q-bar"><i style="width:${pct}%"></i></span><b>${q.done ? "Done ✓" : `${prog} / ${q.target}`}</b></div>
+    <div class="qs-note">${extra}</div>
+    ${q.done ? "" : `<button class="tc-start qs-play" onclick="closeSettings();${play}">▶ Play this quest</button>`}
+    ${reroll}` });
 }
 function questMiniHtml() {
   if (!S.quests || !S.quests.list.length) return "";
@@ -1622,6 +1731,7 @@ function renderCollection() {
           <span class="coll-icon">${own ? c.icon : "🔒"}</span><span class="coll-name">${own ? escapeHtml(c.name) : "???"}</span>
           <span class="coll-rar">${RARITY_INFO[c.rar].name}${on ? " · on" : ""}</span></button>`;
       }).join("")}</div>`).join("")}
+    ${typeof collectionsSummaryHtml === "function" ? collectionsSummaryHtml() : ""}
     ${typeof idiomSectionHtml === "function" ? idiomSectionHtml() : ""}
     <div class="p-sub" style="margin-top:14px">Epic and Legendary chests hold a new idiom card or cosmetic. Weekly sagas always give a cosmetic.</div>
   </div>`;

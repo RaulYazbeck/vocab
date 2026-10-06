@@ -110,46 +110,48 @@ body {
   to   { opacity:1; transform:translateY(0); }
 }
 
-/* ── HEADER ────────────────────── */
+/* ── HEADER (top bar) ────────────
+   One 44px row: ☰ · title · 🔥 streak 🧊 · Lv, and the XP as a
+   hairline along the bottom edge. */
 .header {
-  display:flex; align-items:center; justify-content:space-between;
-  margin-bottom:1.1rem; padding:13px 16px;
+  position:relative; display:flex; align-items:center; gap:8px;
+  margin-bottom:12px; padding:6px 8px 6px 4px; min-height:52px;
   background:var(--glass);
   border:1px solid var(--border); border-radius:var(--r);
   box-shadow:var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,0.07);
+  overflow:hidden;
 }
-h1 { font-family:'DM Sans',sans-serif; font-size:20px; font-weight:900; color:var(--text); letter-spacing:-0.4px; }
-.header-right { display:flex; gap:8px; align-items:center; }
-.hdr-btn {
-  font-size:13px; padding:6px 13px;
-  border:1px solid var(--border); border-radius:20px;
-  background:rgba(255,255,255,0.06); cursor:pointer; color:var(--text-2);
-  transition:all 0.18s var(--ease);
+h1 { font-family:'DM Sans',sans-serif; font-size:18px; font-weight:900; color:var(--text); letter-spacing:-0.4px; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.hdr-menu {
+  width:44px; height:40px; flex-shrink:0; display:grid; place-items:center;
+  background:none; border:none; border-radius:12px; color:var(--text); cursor:pointer;
+  transition:background 0.18s var(--ease), transform 0.12s var(--ease);
 }
-.hdr-btn:hover { background:rgba(255,255,255,0.12); color:var(--text); border-color:var(--border-hi); }
-.hdr-btn { white-space:nowrap; }
-@media(max-width:480px){ .header{padding:11px 12px;} .header-right{gap:6px;} .hdr-btn{padding:6px 10px;} h1{font-size:18px;} }
+.hdr-menu:hover { background:rgba(255,255,255,0.08); }
+.hdr-menu:active { transform:scale(0.92); }
+.header-right { display:flex; gap:6px; align-items:center; flex-shrink:0; }
+.hdr-chip {
+  display:inline-flex; align-items:center; gap:3px; height:34px; padding:0 11px;
+  border:1px solid var(--border); border-radius:17px; background:rgba(255,255,255,0.05);
+  color:var(--text-2); font-size:13.5px; font-weight:800; cursor:pointer; white-space:nowrap;
+  font-variant-numeric:tabular-nums; transition:background 0.18s var(--ease), transform 0.12s var(--ease);
+}
+.hdr-chip:hover { background:rgba(255,255,255,0.1); }
+.hdr-chip:active { transform:scale(0.94); }
+.streak-chip .sc-fire { filter:grayscale(0.85) brightness(0.8); opacity:0.75; transition:filter 0.4s, opacity 0.4s; }
+.streak-chip b { color:var(--text-2); }
+.streak-chip.safe { border-color:rgba(255,154,60,0.45); background:rgba(255,154,60,0.1); }
+.streak-chip.safe .sc-fire { filter:none; opacity:1; }
+.streak-chip.safe b { color:#FF9A3C; }
+.streak-chip .sc-ice { font-size:11.5px; color:#8FD3FF; margin-left:5px; font-weight:700; }
+.lv-chip { color:var(--accent); }
+.hdr-xp { position:absolute; left:0; right:0; bottom:0; height:3px; background:rgba(255,255,255,0.06); pointer-events:none; }
+.hdr-xp i { display:block; height:100%; background:linear-gradient(90deg,var(--accent),var(--accent-hi)); box-shadow:0 0 8px var(--accent-glow); transition:width 0.5s var(--spring); }
+@media(max-width:360px){ .hdr-chip{padding:0 8px;} .streak-chip .sc-ice{margin-left:3px;} h1{font-size:16px;} }
 
 /* ── SYNC STATUS ───────────────── */
-#sync-status { min-height:16px; font-size:11px; color:var(--text-3); text-align:right; margin:-4px 4px 8px 0; cursor:pointer; }
-
-/* ── EXP BAR ───────────────────── */
-.exp-bar-wrap {
-  background:var(--glass);
-  border:1px solid var(--border); border-radius:var(--r);
-  padding:12px 16px; margin-bottom:1rem;
-  display:flex; align-items:center; gap:12px;
-  box-shadow:var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,0.06);
-}
-.exp-level { font-family:'DM Sans',sans-serif; font-size:13px; font-weight:900; color:var(--accent); white-space:nowrap; }
-.exp-streak { font-size:13px; font-weight:600; color:#E25C1A; white-space:nowrap; }
-.exp-label { font-size:12px; color:var(--text-3); white-space:nowrap; }
-.exp-track { flex:1; height:6px; background:rgba(255,255,255,0.10); border-radius:3px; overflow:hidden; }
-.exp-fill {
-  height:100%; border-radius:3px;
-  background:linear-gradient(90deg,var(--accent),var(--accent-hi));
-  transition:width 0.5s var(--spring); box-shadow:0 0 8px var(--accent-glow);
-}
+#sync-status { font-size:11px; color:var(--text-3); text-align:right; margin:-8px 6px 6px 0; cursor:pointer; }
+#sync-status:empty { margin:0; }
 
 /* ── GROUPS ────────────────────── */
 .group { margin-bottom:1rem; }
@@ -773,18 +775,41 @@ tr:hover td { background:rgba(255,255,255,0.03); }
 .fi-paused { font-size:12px; color:var(--accent); margin-top:8px; font-weight:600; }
 .fi-start-done { background:var(--teal-dim); color:var(--teal); box-shadow:none; }
 
-/* ── SETTINGS PANEL ────────────── */
-.settings-overlay { position:fixed; inset:0; z-index:200; background:rgba(0,0,0,0.4); animation:fadeIn 0.2s ease; }
-.settings-sheet {
-  position:fixed; bottom:0; left:50%; transform:translateX(-50%);
-  width:100%; max-width:720px; z-index:201;
-  background:rgba(9,13,23,0.97);
-  border:1px solid var(--border-hi); border-radius:22px 22px 0 0;
-  padding:1.25rem 1rem 2.5rem;
-  box-shadow:0 -8px 40px rgba(0,0,0,0.6);
-  animation:settingsUp 0.3s var(--spring);
+/* ── SHEETS (Menu, Settings, quest & streak details) ──
+   One host (#settings-panel). Opening: the backdrop fades, the sheet
+   slides up; closing reverses it (screens.js waits for the transition).
+   Sub-pages slide sideways. Only transform/opacity animate (GPU). */
+#settings-panel { position:fixed; inset:0; z-index:200; }
+.settings-overlay {
+  position:fixed; inset:0; z-index:200; background:rgba(3,5,10,0.55);
+  opacity:0; transition:opacity 0.22s ease;
 }
-@keyframes settingsUp { from { transform:translateX(-50%) translateY(40px); opacity:0.5; } to { transform:translateX(-50%) translateY(0); opacity:1; } }
+.settings-sheet {
+  position:fixed; bottom:0; left:0; right:0; margin:0 auto;
+  width:100%; max-width:560px; z-index:201;
+  background:rgba(9,13,23,0.98);
+  border:1px solid var(--border-hi); border-bottom:none; border-radius:22px 22px 0 0;
+  padding:8px 1rem 2.5rem;
+  box-shadow:0 -8px 40px rgba(0,0,0,0.6);
+  transform:translateY(105%);
+  transition:transform 0.28s cubic-bezier(.2,.8,.2,1);
+  will-change:transform;
+}
+#settings-panel.open .settings-overlay { opacity:1; }
+#settings-panel.open .settings-sheet { transform:translateY(0); }
+#settings-panel.dragging .settings-sheet { transition:none; }
+.sheet-handle { display:block; width:100%; height:22px; margin:0 0 4px; background:none; border:none; cursor:grab; touch-action:none; position:relative; }
+.sheet-handle::after { content:""; position:absolute; left:50%; top:8px; width:40px; height:5px; margin-left:-20px; border-radius:3px; background:rgba(255,255,255,0.22); }
+.sheet-body { animation:sheetFade 0.2s ease both; }
+.sheet-body.fwd { animation:sheetFwd 0.24s cubic-bezier(.2,.8,.2,1) both; }
+.sheet-body.back { animation:sheetBack 0.24s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes sheetFade { from { opacity:0; } to { opacity:1; } }
+@keyframes sheetFwd { from { opacity:0; transform:translateX(28px); } to { opacity:1; transform:none; } }
+@keyframes sheetBack { from { opacity:0; transform:translateX(-28px); } to { opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce) {
+  .settings-overlay, .settings-sheet { transition:none; }
+  .sheet-body, .sheet-body.fwd, .sheet-body.back { animation:none; }
+}
 .settings-title {
   font-family:'DM Sans',sans-serif; font-size:12px; font-weight:700;
   color:var(--text-3); margin-bottom:1rem; text-align:center;
@@ -819,7 +844,7 @@ tr:hover td { background:rgba(255,255,255,0.03); }
 
 /* ── MICRO-INTERACTIONS ────────── */
 .fi-pill:active, .check-btn:active, .dontknow-btn:active, .next-btn:active,
-.back-btn:active, .hdr-btn:active, .learn-btn:active, .anki-rate-btn:active,
+.back-btn:active, .learn-btn:active, .anki-rate-btn:active,
 .modal-btn:active, .result-btn:active, .unlock-btn:active, .audio-btn:active,
 .anki-reveal-btn:active, .fi-start:active, .hint-btn:active, .settings-item:active,
 .stats-choice-btn:active { transform:scale(0.95); }
@@ -967,18 +992,6 @@ tr:hover td { background:rgba(255,255,255,0.03); }
 .we-new { color:var(--success); }
 
 /* ── DAILY GOAL ROW ────────────── */
-.goal-row {
-  display:flex; align-items:center; gap:8px;
-  background:var(--glass); border:1px solid var(--border); border-radius:var(--r);
-  padding:7px 14px; margin-top:-8px; margin-bottom:1rem;
-}
-.goal-icon { font-size:13px; }
-.goal-track { flex:1; height:6px; background:rgba(255,255,255,0.09); border-radius:3px; overflow:hidden; }
-.goal-fill { height:100%; background:linear-gradient(90deg,var(--accent),var(--accent-hi)); border-radius:3px; transition:width 0.3s var(--ease); }
-.goal-row.reached .goal-fill { background:linear-gradient(90deg,var(--teal),var(--teal-hi)); }
-.goal-label { font-size:11px; color:var(--text-2); white-space:nowrap; font-variant-numeric:tabular-nums; }
-.goal-week { font-size:10px; color:var(--text-3); white-space:nowrap; font-variant-numeric:tabular-nums; }
-.goal-nudge { font-size:10px; color:var(--accent); white-space:nowrap; }
 
 /* ── ACTIVITY CALENDAR ─────────── */
 .cal-wrap { margin:0.5rem 0 1.25rem; }
@@ -1007,8 +1020,6 @@ tr:hover td { background:rgba(255,255,255,0.03); }
 .show-more-btn:hover { background:var(--glass-hover); }
 
 /* ── SETTINGS ADDITIONS ────────── */
-.settings-goal { display:flex; align-items:center; gap:6px; width:100%; padding:12px 16px; background:var(--glass-tile); border:1px solid var(--border); border-radius:var(--r-sm); margin-bottom:8px; }
-.settings-goal-label { font-size:15px; color:var(--text); font-weight:500; flex:1; }
 .goal-pick { font-size:12px; padding:5px 10px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,0.06); color:var(--text-2); cursor:pointer; font-weight:700; }
 .goal-pick.active { background:var(--accent-dim); border-color:var(--accent); color:var(--accent); }
 .settings-sync-line { font-size:11px; color:var(--text-3); text-align:center; margin-top:4px; }

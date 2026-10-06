@@ -132,21 +132,25 @@ function migrate() {
   if (typeof checkAnkiAutoPause === "function") checkAnkiAutoPause();
 }
 
-// Two ways of using the app, both off by default and synced:
+// Ways of using the app, all off by default and synced:
 //   grandma — the home screen shrinks to Start, quests and games
 //   speak   — "Speak, don't spell": recall is said aloud and self-graded
+//   classic — the Library (pick decks yourself) under the Today card
 function migratePrefs() {
   if (!S.prefs || typeof S.prefs !== "object") S.prefs = {};
   S.prefs.grandma = !!S.prefs.grandma;
   S.prefs.speak = !!S.prefs.speak;
+  S.prefs.classic = !!S.prefs.classic && !S.prefs.grandma;
   applyPrefClasses();
 }
 function grandmaOn() { return !!(S.prefs && S.prefs.grandma); }
 function speakOn() { return !!(S.prefs && S.prefs.speak); }
+function classicOn() { return !!(S.prefs && S.prefs.classic) && !grandmaOn(); }
 function applyPrefClasses() {
   if (!document.body) return;
   document.body.classList.toggle("grandma", grandmaOn());
   document.body.classList.toggle("speak-mode", speakOn());
+  document.body.classList.toggle("classic", classicOn());
 }
 
 // Minigame records (see games-core.js). Lives in the synced meta doc,

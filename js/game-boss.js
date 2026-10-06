@@ -144,52 +144,73 @@ function startWorldBoss() {
   if (distinctCount(pool) < 4) { showCelebrateToast("🌋", "World boss", "Meet a few more words first"); return; }
   launchGame("boss", { pool, size: "full", bossMode: "world" });
 }
-// Hub row: weakest-words boss, world boss, deck bosses.
-function bossRowHtml() {
+// Games hub: one row for all bosses — the world boss's health and how
+// many deck bosses are ready — opening the Bosses screen.
+function bossSummaryRowHtml() {
   const W = worldBossState();
-  const avail = deckBossesAvailable();
+  const ready = deckBossesAvailable().filter(id => !(S.games.bestiary[id] || {}).wins).length;
+  return `<button class="g-row" onclick="renderBestiary('games')">
+    <span class="g-row-icon">⚔️</span>
+    <span class="g-row-main"><b>Bosses</b>
+      <small>${W.icon} ${W.defeated ? "World boss beaten ✓" : `<span class="g-mini-hp"><i style="width:${Math.round(W.hp / W.max * 100)}%"></i></span> ${W.hp}/${W.max}`}${ready ? ` · ${ready} deck boss${ready > 1 ? "es" : ""} ready` : ""}${S.quests && S.quests.keys > 0 ? ` · 🗝️ ${S.quests.keys}` : ""}</small></span>
+    <span class="set-chev" aria-hidden="true">›</span>
+  </button>`;
+}
+// ⚔️ Bosses: the world boss, minion keys, then every deck's boss as a
+// small tile per level (the level you're on is open). Tap a tile for
+// its details and Fight.
+let _bestiaryFrom = "";
+function renderBestiary(from) {
+  if (from !== undefined) _bestiaryFrom = from;
+  showGameScreen();
+  if (typeof logScreen === "function") logScreen("bestiary");
+  const W = worldBossState();
+  const total = vocabGroups().reduce((s, g) => s + g.decks.length, 0);
   const beaten = Object.values(S.games.bestiary).filter(r => r.wins).length;
-  const unbeaten = avail.filter(id => !(S.games.bestiary[id] || {}).wins);
-  const show = (unbeaten.length ? unbeaten : avail).slice(0, 8);
-  return `<div class="boss-hub">
-    <div class="boss-hub-head"><span>⚔️ Bosses</span><button class="tc-link" onclick="renderBestiary()">📖 Bestiary ${beaten}</button></div>
-    ${S.quests && S.quests.keys > 0 ? `<button class="boss-key-btn" onclick="useBossKey()">🗝️ Summon a minion <small>${S.quests.keys} key${S.quests.keys > 1 ? "s" : ""} · 10 words, 3 lives</small></button>` : ""}
+  // Open the level you're on: the first with an unbeaten boss and met
+  // words — or simply the first level.
+  const levels = vocabGroups();
+  const cur = Math.max(0, levels.findIndex(g => g.decks.some(d => !(S.games.bestiary[d.id] || {}).wins && deckMetWords(d.id).length > 0)));
+  const groups = levels.map((g, gi) => {
+    const won = g.decks.filter(d => (S.games.bestiary[d.id] || {}).wins).length;
+    const open = gi === cur;
+    const tiles = g.decks.map(d => {
+      const b = deckBoss(d.id), rec = S.games.bestiary[d.id] || {};
+      const known = rec.wins > 0, ready = deckBossReady(d.id), seen = known || ready || rec.minions;
+      return `<button class="bst-tile ${known ? "won" : ready ? "ready" : "locked"}" onclick="openBossSheet('${d.id}')" aria-label="${seen ? escapeHtml(b.name) : "Unknown boss"} · ${escapeHtml(d.name)}">
+        <span class="bst-icon">${seen ? b.icon : "❔"}</span>
+        <span class="bst-badge">${known ? "👑" : ready ? "⚔️" : ""}</span>
+      </button>`;
+    }).join("");
+    return `<details class="bst-level" ${open ? "open" : ""}><summary><span>${g.icon} ${escapeHtml(g.name)}</span><small>${won} / ${g.decks.length} beaten</small></summary><div class="bst-grid">${tiles}</div></details>`;
+  }).join("");
+  const back = _bestiaryFrom === "games" ? "openGamesHub(null)" : _bestiaryFrom === "journey" ? "renderJourney()" : "backToMenu()";
+  document.getElementById("main-screen").innerHTML = `<div class="screen">
+    <div class="screen-top"><div class="screen-label">⚔️ Bosses · ${beaten}/${total}</div><button class="back-btn" onclick="${back}">← Back</button></div>
     <button class="boss-world ${W.defeated ? "done" : ""}" onclick="startWorldBoss()" ${W.defeated ? "disabled" : ""}>
       <span class="boss-world-icon">${W.icon}</span>
       <span class="boss-world-body"><b>World boss: ${escapeHtml(W.name)}</b>
         <span class="boss-world-bar"><i style="width:${Math.round(W.hp / W.max * 100)}%"></i></span>
-        <small>${W.defeated ? "Defeated this week ✓" : `HP ${W.hp}/${W.max} · chip away all week`}</small></span>
+        <small>${W.defeated ? "Defeated this week ✓ — a new one on Monday" : `HP ${W.hp}/${W.max} · chip away all week`}</small></span>
     </button>
-    ${show.length ? `<div class="boss-decks">${show.map(id => { const b = deckBoss(id), rec = S.games.bestiary[id] || {};
-      return `<button class="boss-chip ${rec.wins ? "won" : ""}" onclick="startDeckBoss('${id}')" title="${escapeHtml(getDeck(id).name)}">
-        <span>${b.icon}</span><small>${escapeHtml(b.name)}</small><em>HP ${deckBossHp(id)}${rec.wins ? " · ⚔️" : ""}</em></button>`; }).join("")}</div>`
-      : `<div class="boss-hint">👑 A deck's boss unlocks once every word of it is met. Its minions may show up in your sessions before that.</div>`}
+    ${S.quests && S.quests.keys > 0 ? `<button class="boss-key-btn" onclick="useBossKey()">🗝️ Summon a minion <small>${S.quests.keys} key${S.quests.keys > 1 ? "s" : ""} · 10 words, 3 lives</small></button>` : ""}
+    ${groups}
+    <div class="p-sub" style="margin-top:12px">👑 A deck's boss unlocks once every word of it is met. One mistake and it escapes.</div>
   </div>`;
 }
-function renderBestiary() {
-  showGameScreen();
-  if (typeof logScreen === "function") logScreen("bestiary");
-  const groups = vocabGroups().map(g => {
-    const tiles = g.decks.map(d => {
-      const b = deckBoss(d.id), rec = S.games.bestiary[d.id] || {};
-      const met = deckMetWords(d.id).length;
-      const known = rec.wins > 0;
-      const ready = deckBossReady(d.id), seen = known || ready || rec.minions;
-      return `<button class="bst-tile ${known ? "won" : ready ? "ready" : "locked"}" ${ready ? `onclick="startDeckBoss('${d.id}')"` : "disabled"}>
-        <span class="bst-icon">${seen ? b.icon : "❔"}</span>
-        <span class="bst-name">${seen ? (known ? "👑 " : "") + escapeHtml(b.name) : "???"}</span>
-        <span class="bst-deck">${d.icon} ${escapeHtml(d.name)}</span>
-        <span class="bst-rec">${known ? `👑 ${rec.wins}×` : ready ? "ready ⚔️" : `${met}/${d.words.length} met`}${rec.minions ? ` · ⚔️${rec.minions}` : ""}</span>
-      </button>`;
-    }).join("");
-    return `<div class="stats-section-title" style="margin-top:12px">${g.icon} ${escapeHtml(g.name)}</div><div class="bst-grid">${tiles}</div>`;
-  }).join("");
-  const total = vocabGroups().reduce((s, g) => s + g.decks.length, 0);
-  const beaten = Object.values(S.games.bestiary).filter(r => r.wins).length;
-  document.getElementById("main-screen").innerHTML = `<div class="screen">
-    <div class="screen-top"><div class="screen-label">📖 Bestiary · ${beaten}/${total}</div><button class="back-btn" onclick="openGamesHub(null)">← Games</button></div>
-    ${groups}
-  </div>`;
+function openBossSheet(deckId) {
+  const d = getDeck(deckId);
+  if (!d) return;
+  const b = deckBoss(deckId), rec = S.games.bestiary[deckId] || {};
+  const met = deckMetWords(deckId).length, known = rec.wins > 0, ready = deckBossReady(deckId), seen = known || ready || rec.minions;
+  openSheet({ title: "⚔️ Boss", html: `
+    <div class="qs-head"><span class="qs-icon">${seen ? b.icon : "❔"}</span>
+      <div><div class="qs-title">${seen ? escapeHtml(b.name) : "???"}</div><div class="qs-sub">${d.icon} ${escapeHtml(d.name)} · HP ${deckBossHp(deckId)}</div></div></div>
+    <div class="qs-desc">${known ? `Beaten ${rec.wins}×${rec.minions ? ` · ${rec.minions} minion${rec.minions > 1 ? "s" : ""} defeated` : ""}. Fight it again for a rematch chest.`
+      : ready ? "Every word of this deck is met — it's ready. The whole deck, one mistake and it escapes."
+      : `Meet every word of this deck to unlock it: ${met} / ${d.words.length} so far.${rec.minions ? ` Its minions have shown up ${rec.minions}× already.` : ""}`}</div>
+    ${ready ? `<button class="tc-start qs-play" onclick="closeSettings();startDeckBoss('${deckId}')">⚔️ Fight</button>`
+      : `<div class="qs-prog"><span class="gm-q-bar"><i style="width:${Math.round(met / Math.max(1, d.words.length) * 100)}%"></i></span><b>${met} / ${d.words.length}</b></div>`}` });
 }
 
 // The ✗ / ✓ buttons of a Say-it boss round call in here.
