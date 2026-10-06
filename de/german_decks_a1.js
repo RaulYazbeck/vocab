@@ -715,7 +715,7 @@ const DECKS_A1 = {
         { en:"quite / completely / all", de:"ganz", hint:"adverb / adjective", examples:[{de:"Die Prüfung ist ganz einfach.",en:"The exam is quite simple."}] },
         { en:"nothing", de:"nichts", hint:"pronoun", examples:[{de:"Das macht nichts.",en:"That doesn't matter."}] },
         { en:"more", de:"mehr", hint:"adverb / adjective comparative", examples:[{de:"Dieses Auto kostet mehr.",en:"This car costs more."}] },
-        { en:"most (people / things)", de:"die meisten", hint:"determiner — die meisten + plural", examples:[{de:"Die meisten Menschen sind freundlich.",en:"Most people are friendly."}] },
+        { en:"the most (people / things)", de:"die meisten", hint:"determiner", examples:[{de:"Die meisten Menschen sind freundlich.",en:"Most people are friendly."}] },
         { en:"a little bit", de:"ein bisschen", hint:"phrase", examples:[{de:"Ich spreche ein bisschen Deutsch.",en:"I speak a little bit of German."}] },
         { en:"little / few", de:"wenig", hint:"adjective / adverb", examples:[{de:"Er verdient wenig.",en:"He earns little."}] },
         { en:"much / many", de:"viel", hint:"adjective / adverb", examples:[{de:"Ich habe viel zu tun.",en:"I have a lot to do."}] },
