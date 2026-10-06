@@ -524,7 +524,8 @@ function pathReverseResolve(right) {
 }
 // ── PRIVATE "MY TYPO" OVERRIDE ────────────────
 // A deliberate triple gesture (tap the ✗ ×3, or Shift+Enter ×3) on a wrong
-// typed answer turns it into a full success. Honour system, max 3 a day.
+// typed answer turns it into a full success. Honour system, max 3 a day —
+// and without a cap on an "≈ Almost" (one slip), where you judge the typo.
 // On a phone the ✗ reacts on touch-down and never takes the focus from
 // the answer field: the keyboard stays up and nothing moves between taps.
 const SECRET_OK_PER_DAY = 3;
@@ -540,8 +541,9 @@ function pathSecretOk() {
   if (!s || !s.answered || !s.undo || s.pendingReverse !== null) return;
   const P = S.path, today = studyToday();
   if (!P.secretOk || P.secretOk.d !== today) P.secretOk = { d: today, n: 0 };
-  if (P.secretOk.n >= SECRET_OK_PER_DAY) { shakeEl(document.getElementById("p-fb")); return; }
   const u = s.undo, w = s.cur.w, it = s.cur, k = wordKey(w);
+  // An "≈ Almost" is never capped; a wrong answer uses the daily allowance.
+  if (!u.near && P.secretOk.n >= SECRET_OK_PER_DAY) { shakeEl(document.getElementById("p-fb")); return; }
   s.undo = null; s.shield = null; s.secretUsed = true;
   // Roll the wrong back…
   const ws = getWS(w.deckId, w.idx);
@@ -554,17 +556,19 @@ function pathSecretOk() {
   if (Q && u.qm && Q.m) { Object.keys(Q.m).forEach(key => delete Q.m[key]); Object.assign(Q.m, JSON.parse(u.qm)); }
   if (Q && u.qw && Q.week) { Object.keys(Q.week).forEach(key => delete Q.week[key]); Object.assign(Q.week, JSON.parse(u.qw)); }
   if (typeof invalidatePathScan === "function") invalidatePathScan();
-  s.stats.wrong--; s.stats.answered--;
-  if (it.t === "spot") S.path.spotToday = Math.max(0, (S.path.spotToday || 1) - 1);
+  if (u.near) s.stats.near--; else s.stats.wrong--;
+  s.stats.answered--;
+  if (it.t === "spot" && !u.near) S.path.spotToday = Math.max(0, (S.path.spotToday || 1) - 1);
   if (!u.wasMissed) s.missed = s.missed.filter(x => !sameWord(x, w));
   if (u.move) s.moves.set(k, u.move); else s.moves.delete(k);
-  P.secretOk.n++;
-  if (typeof learnUndoLast === "function") learnUndoLast(w);
-  logEvent("secretOk", { m: "path:" + it.t, n: P.secretOk.n });
+  if (!u.near) P.secretOk.n++;
+  // Only take back a mistake note this answer wrote (a mic answer writes none).
+  if (u.noted && typeof learnUndoLast === "function") learnUndoLast(w);
+  logEvent("secretOk", { m: "path:" + it.t, n: P.secretOk.n, near: !!u.near });
   // …and grade it as correct (fromReverse = bypass the already-answered guard).
   s.answered = false;
   const input = document.getElementById("p-input");
-  if (input) input.classList.remove("wrong");
+  if (input) input.classList.remove("wrong", "near");
   pathGradeTyped(u.val, true, "", true);
   _mistakeHoldUntil = 0; // it is a success now: Next must not wait on the old miss
   const ok = document.querySelector("#p-fb .p-ok");
@@ -581,9 +585,16 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
   const prevAt = ws.lastAnsweredAt;
   const input = document.getElementById("p-input");
   let res = null;
-  // Can the private "my typo" override turn this miss around? (a typed,
-  // non-empty answer — not a reversed or said one)
-  const typoOk = ok !== true && ok !== "near" && !fromReverse && !it.said && !!val.trim() && ["typed", "spot", "cloze"].includes(it.t);
+  // Can the private "my typo" override turn this answer around? (a typed,
+  // non-empty answer — not a reversed or said one). A wrong one uses the
+  // daily allowance; an "≈ Almost" is yours to judge — no cap.
+  const typed = !fromReverse && !it.said && !!val.trim() && ["typed", "spot", "cloze"].includes(it.t);
+  const typoOk = ok !== true && ok !== "near" && typed;
+  const nearOk = ok === "near" && typed;
+  // Snapshot for pathSecretOk: everything the answer touches, to roll back.
+  const snap = () => { const Q = S.quests; s.undo = { val, near: ok === "near", noted: typeof learnNoteMiss === "function" && !spoken, ws: JSON.parse(JSON.stringify(ws)), consec: sessionConsecutive, move: s.moves.get(wordKey(w)),
+    qm: Q && Q.m ? JSON.stringify(Q.m) : null, qw: Q && Q.week ? JSON.stringify(Q.week) : null,
+    wasMissed: s.missed.some(x => sameWord(x, w)) }; };
   const spoken = !!it.spoken;
   pathLogAnswer(it, ok === true, { typed: true, near: ok === "near", hint: !!it.usedHint, voice: spoken, say: !!it.said, fast: !!it.fast });
   if (typeof learnNoteMiss === "function" && !it.said && !spoken) {
@@ -593,6 +604,8 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
       type: ok === "near" ? "spelling" : undefined });
     else learnNoteMiss(w, { src: "path:" + it.t, given: val, type: ok === "near" ? "spelling" : undefined });
   }
+  // After the mistake note above, so learnUndoLast removes exactly that one.
+  if (typoOk || nearOk) snap();
   if (ok === true) {
     // Said aloud: a Show tapped too fast to have recalled anything is a look.
     const kind = it.usedHint || (it.said && it.fast && !it.micOk) ? "recognition" : "recall";
@@ -618,13 +631,6 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     if (input) input.classList.add("near");
     haptic("select");
   } else {
-    // Snapshot for the private "my typo" override (pathSecretOk).
-    if (typoOk) {
-      const Q = S.quests;
-      s.undo = { val, ws: JSON.parse(JSON.stringify(ws)), consec: sessionConsecutive, move: s.moves.get(wordKey(w)),
-        qm: Q && Q.m ? JSON.stringify(Q.m) : null, qw: Q && Q.week ? JSON.stringify(Q.week) : null,
-        wasMissed: s.missed.some(x => sameWord(x, w)) };
-    }
     sessionConsecutive = 0;
     const before = JSON.parse(JSON.stringify(ws)), moveBefore = s.moves.get(wordKey(w));
     res = applyWrong(ws, { w });
@@ -662,7 +668,7 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     : it.said && it.fast && ok === true ? `<span class="p-chip">⚡ Shown straight away — counts as a look, no step up</span>` : "";
   const head = ok === true ? `<div class="p-ok">✓ Correct! <strong>${colorArticleHtml(answerText)}</strong></div>`
     : ok === "near" && it.said ? `<div class="p-near">≈ Close — say it once more: <strong>${colorArticleHtml(answerText)}</strong></div><div class="p-sub">No step up, no step down — it comes back next session.</div>`
-    : ok === "near" ? `<div class="p-near">≈ Almost — check the spelling</div><div class="p-diff">${diffHtml(val, answerText)}</div>${note ? `<div class="p-sub">${note}</div>` : ""}<div class="p-sub">No step up, no step down — it comes back next session.</div>`
+    : ok === "near" ? `<div class="p-near">${nearOk ? `<span class="p-typo" onpointerdown="event.preventDefault();pathSecretTap()">≈</span>` : "≈"} Almost — check the spelling</div><div class="p-diff">${diffHtml(val, answerText)}</div>${note ? `<div class="p-sub">${note}</div>` : ""}<div class="p-sub">No step up, no step down — it comes back next session.</div>`
     : `<div class="p-bad">${typoOk ? `<span class="p-typo" onpointerdown="event.preventDefault();pathSecretTap()">✗</span> Answer:` : val.trim() ? "✗ Answer:" : "Answer:"} <strong>${colorArticleHtml(answerText)}</strong></div>${val.trim() ? `<div class="p-diff">${diffHtml(val, answerText)}</div>` : ""}${note ? `<div class="p-sub">${note}</div>` : ""}`;
   const fb = document.getElementById("p-fb");
   if (fb) fb.innerHTML = `
