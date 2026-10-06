@@ -2,7 +2,7 @@
 // Leveled, grindy achievement system. Every achievement is a ladder:
 // it has tiers (level 1 … level N) with escalating targets, and the
 // player climbs it over months of play. The flagship ladder is
-// "Road to B1": level 1 at 10 words mastered, level 10 at 4,000.
+// "Road to B1": level 1 at 10 words mastered, level 10 at every word.
 //
 // Storage:
 //   S.achLevels = { id: levelReached }   — ladder progress
@@ -117,11 +117,11 @@ const ACHIEVEMENTS = [
     value:() => Math.floor(S.bestTimerSecondsLeft || 0) },
 
   // ── Memory ──
-  { id:"memory_master", icon:"🃏", name:"Memory Master", category:"Memory",
+  { id:"memory_master", anki:true, icon:"🃏", name:"Memory Master", category:"Memory",
     desc:t => `Complete ${t} Anki session${t>1?"s":""}`,
     tiers:[1, 5, 12, 25, 45, 70, 100, 140, 190, 250],
     value:() => S.ankiSessions || 0 },
-  { id:"elephant", icon:"🐘", name:"Elephant Memory", category:"Memory",
+  { id:"elephant", anki:true, icon:"🐘", name:"Elephant Memory", category:"Memory",
     desc:t => `Grow ${t} card${t>1?"s":""} to a 21-day review interval`,
     tiers:[1, 5, 15, 30, 60, 100, 160, 240, 350, 500],
     value:() => Object.values(S.words).filter(ws => ws.anki && ws.anki.interval >= 21).length },
@@ -164,6 +164,46 @@ const ACHIEVEMENTS = [
     tiers:[10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
     value:() => (S.games && S.games.bestGenderStreak) || 0 },
 ];
+
+// Ladders that measure something finite follow each app's own size
+// (German and French differ in words, nouns, games and Anki decks):
+// the tiers shrink where the app has less than the old top, and the
+// last tier is always all of it. Anki ladders only exist with Anki decks.
+const LADDER_TOPS = {
+  road_b1:          { old: 4000, top: () => vocabWordCount() },
+  locked_in:        { old: 2000, top: () => Math.round(2000 * vocabWordCount() / 4106 / 10) * 10 },
+  bestiary:         { old: 80,   top: () => ALL_GROUPS.filter(g => g.type !== "anki").reduce((s, g) => s + g.decks.length, 0) },
+  rank_climber:     { old: 48,   top: () => typeof GAMES === "undefined" ? 0 : GAMES.reduce((s, g) => s + (g.ranks || GAME_RANKS).length - 1, 0) },
+  star_collector:   { old: 180,  top: () => typeof GAMES === "undefined" ? 0 : GAMES.length * 5 * 3 },
+  gender_collector: { old: 1300, top: () => typeof nounParts !== "function" ? 0 : ALL_GROUPS.filter(g => g.type !== "anki")
+    .reduce((s, g) => s + g.decks.reduce((t, d) => t + d.words.filter(w => nounParts(w)).length, 0), 0) },
+};
+function vocabWordCount() {
+  return ALL_GROUPS.filter(g => g.type !== "anki").reduce((s, g) => s + g.decks.reduce((t, d) => t + d.words.length, 0), 0);
+}
+function scaleTiers(old, oldTop, top) {
+  const f = Math.min(1, top / oldTop);
+  const nice = x => x < 20 ? Math.round(x) : x < 100 ? Math.round(x / 5) * 5 : Math.round(x / 10) * 10;
+  const out = [];
+  old.slice(0, -1).forEach(t => out.push(Math.max(out.length ? out[out.length - 1] + 1 : 1, f < 1 ? nice(t * f) : t)));
+  out.push(Math.max(out[out.length - 1] + 1, top));
+  return out;
+}
+Object.entries(LADDER_TOPS).forEach(([id, L]) => {
+  const a = ACHIEVEMENTS.find(x => x.id === id);
+  if (!a) return;
+  L.tiers = a.tiers; // the shipped tiers (also what old saves earned)
+  let scaled = null;
+  // Worked out on first use: games and grammar load after this file.
+  Object.defineProperty(a, "tiers", { get() {
+    if (scaled) return scaled;
+    const top = L.top();
+    if (!(top > 0)) return L.tiers;
+    return (scaled = scaleTiers(L.tiers, L.old, top));
+  } });
+});
+if (!ALL_GROUPS.some(g => g.type === "anki"))
+  for (let i = ACHIEVEMENTS.length - 1; i >= 0; i--) if (ACHIEVEMENTS[i].anki) ACHIEVEMENTS.splice(i, 1);
 
 // One "Conquered" ladder (single level) per deck group, generated from
 // the app's configured groups — new decks get theirs automatically.
@@ -285,8 +325,9 @@ function hasWeekendPair() {
 // ── AWARDING ──────────────────────────────────
 // 🧗 Climber moved to the journey levels (Lv 100 = every deck done)
 // and 🧭 Explorer stopped counting each deck's starting words: once,
-// keep only the tiers the new value really meets. Tiers won again
-// later pay again, which is small next to the journey's XP.
+// keep only the tiers the new value really meets. Ladders now sized
+// per app keep the new tiers at or below the best old tier earned.
+// Tiers won again later pay again, small next to the journey's XP.
 function migrateLadders() {
   if (!S.achLevels) S.achLevels = {};
   if (S.achTrimV === 2) return;
@@ -297,6 +338,12 @@ function migrateLadders() {
     let v = 0;
     try { v = a.value(); } catch (e) { return; }
     S.achLevels[id] = Math.min(S.achLevels[id], a.tiers.filter(t => v >= t).length);
+  });
+  Object.entries(LADDER_TOPS).forEach(([id, L]) => {
+    const a = ACHIEVEMENTS.find(x => x.id === id), k = S.achLevels[id];
+    if (!a || !k) return;
+    const best = L.tiers[Math.min(k, L.tiers.length) - 1];
+    S.achLevels[id] = Math.min(k, a.tiers.filter(t => t <= best).length);
   });
 }
 let _checkingAchievements = false; // addExp can re-enter via level-up
