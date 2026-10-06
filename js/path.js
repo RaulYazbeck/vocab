@@ -611,11 +611,11 @@ function buildPathQueue(lenKey, opts = {}) {
     i++;
   }
   // Bonus-round offers: a few, spread evenly, the last one near the end
-  // as a reward — Quick 1, Regular 2, Long 4 (never in Grandma mode).
+  // as a reward — Quick 1, Regular 2, Long 3 (never in Grandma mode).
   // ⚔️ A minion (≈10% of Regular/Long sessions, once a day) takes the
   // slot nearest the middle.
   if (budget >= 15 && !opts.noBonus && !focus && !grandmaOn()) {
-    let slots = budget >= 60 ? [0.25, 0.5, 0.75, 0.92] : budget >= 30 ? [0.45, 0.9] : [0.6];
+    let slots = budget >= 60 ? [0.3, 0.62, 0.92] : budget >= 30 ? [0.45, 0.9] : [0.6];
     let minion = null;
     if (budget >= 30 && typeof minionDeckPick === "function" && S.games && S.games.minionDay !== todayISO()
         && Math.random() < MINION_CHANCE && out.filter(x => x.t !== "learn").length >= 10) minion = minionDeckPick();

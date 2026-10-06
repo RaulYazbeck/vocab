@@ -836,3 +836,8 @@ button.gm-quest:active { transform:scale(0.985); }
 .qs-play { margin-bottom:10px; }
 .qs-reroll { width:100%; }
 .chx-overlay:not(:has(.chx.open)) { cursor:pointer; }
+
+/* The ✗ of a wrong typed answer: looks like text, but a finger-sized
+   target (tapped 3× fast it's the private "my typo" override). */
+.p-typo { display:inline-block; padding:10px 12px; margin:-10px -6px -10px -12px; cursor:default;
+  -webkit-user-select:none; user-select:none; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }

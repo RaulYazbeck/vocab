@@ -522,6 +522,8 @@ function pathReverseResolve(right) {
 // ── PRIVATE "MY TYPO" OVERRIDE ────────────────
 // A deliberate triple gesture (tap the ✗ ×3, or Shift+Enter ×3) on a wrong
 // typed answer turns it into a full success. Honour system, max 3 a day.
+// On a phone the ✗ reacts on touch-down and never takes the focus from
+// the answer field: the keyboard stays up and nothing moves between taps.
 const SECRET_OK_PER_DAY = 3;
 let _secretTaps = [];
 function pathSecretPress(need, windowMs) {
@@ -529,7 +531,7 @@ function pathSecretPress(need, windowMs) {
   _secretTaps = _secretTaps.filter(t => now - t < windowMs).concat(now);
   if (_secretTaps.length >= need) { _secretTaps = []; pathSecretOk(); }
 }
-function pathSecretTap() { pathSecretPress(3, 800); }
+function pathSecretTap() { pathSecretPress(3, 1200); }
 function pathSecretOk() {
   const s = pathSession;
   if (!s || !s.answered || !s.undo || s.pendingReverse !== null) return;
@@ -575,6 +577,9 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
   const prevAt = ws.lastAnsweredAt;
   const input = document.getElementById("p-input");
   let res = null;
+  // Can the private "my typo" override turn this miss around? (a typed,
+  // non-empty answer — not a reversed or said one)
+  const typoOk = ok !== true && ok !== "near" && !fromReverse && !it.said && !!val.trim() && ["typed", "spot", "cloze"].includes(it.t);
   const spoken = !!it.spoken;
   pathLogAnswer(it, ok === true, { typed: true, near: ok === "near", hint: !!it.usedHint, voice: spoken, say: !!it.said, fast: !!it.fast });
   if (ok === true) {
@@ -603,7 +608,7 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     haptic("select");
   } else {
     // Snapshot for the private "my typo" override (pathSecretOk).
-    if (!fromReverse && !it.said && val.trim() && ["typed", "spot", "cloze"].includes(it.t)) {
+    if (typoOk) {
       const Q = S.quests;
       s.undo = { val, ws: JSON.parse(JSON.stringify(ws)), consec: sessionConsecutive, move: s.moves.get(wordKey(w)),
         qm: Q && Q.m ? JSON.stringify(Q.m) : null, qw: Q && Q.week ? JSON.stringify(Q.week) : null,
@@ -647,7 +652,7 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
   const head = ok === true ? `<div class="p-ok">✓ Correct! <strong>${colorArticleHtml(answerText)}</strong></div>`
     : ok === "near" && it.said ? `<div class="p-near">≈ Close — say it once more: <strong>${colorArticleHtml(answerText)}</strong></div><div class="p-sub">No step up, no step down — it comes back next session.</div>`
     : ok === "near" ? `<div class="p-near">≈ Almost — check the spelling</div><div class="p-diff">${diffHtml(val, answerText)}</div>${note ? `<div class="p-sub">${note}</div>` : ""}<div class="p-sub">No step up, no step down — it comes back next session.</div>`
-    : `<div class="p-bad">${val.trim() ? `<span onclick="pathSecretTap()" style="user-select:none;-webkit-user-select:none;touch-action:manipulation;display:inline-block;padding:4px 2px;margin:-4px 0">✗</span> Answer:` : "Answer:"} <strong>${colorArticleHtml(answerText)}</strong></div>${val.trim() ? `<div class="p-diff">${diffHtml(val, answerText)}</div>` : ""}${note ? `<div class="p-sub">${note}</div>` : ""}`;
+    : `<div class="p-bad">${typoOk ? `<span class="p-typo" onpointerdown="event.preventDefault();pathSecretTap()">✗</span> Answer:` : val.trim() ? "✗ Answer:" : "Answer:"} <strong>${colorArticleHtml(answerText)}</strong></div>${val.trim() ? `<div class="p-diff">${diffHtml(val, answerText)}</div>` : ""}${note ? `<div class="p-sub">${note}</div>` : ""}`;
   const fb = document.getElementById("p-fb");
   if (fb) fb.innerHTML = `
     <div class="p-fb-main">${head}${chip}${it.said && it.t !== "reverse" ? frGenderNoteHtml(w) : ""}${w.pl && it.t !== "cloze" && it.t !== "reverse" ? `<div class="p-sub">plural: ${escapeHtml(w.pl)}</div>` : ""}</div>
