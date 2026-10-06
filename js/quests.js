@@ -29,6 +29,16 @@ const QUEST_NO_REPEAT_DAYS = 5;
 // up by themselves). One past its cap turns into XP — the other items'
 // odds never change.
 const FREEZE_CAP = 2, SHIELD_CAP = 2, TOKEN_CAP = 5, BOOST_RATE = 0.5;
+// ❤️ Boss hearts: a 👑 deck boss allows one heart per 20 of its words
+// (rounded up), and you can hold as many as the biggest deck allows.
+const HEART_WORDS = 20;
+function deckHeartLimit(n) { return Math.ceil((n || 0) / HEART_WORDS); }
+function heartCap() {
+  if (typeof vocabGroups !== "function") return 8;
+  let max = 0;
+  vocabGroups().forEach(g => g.decks.forEach(d => { max = Math.max(max, d.words.length); }));
+  return Math.max(1, deckHeartLimit(max));
+}
 
 function migrateQuests() {
   if (!S.quests || typeof S.quests !== "object") S.quests = {};
@@ -45,6 +55,8 @@ function migrateQuests() {
   if (!(Q.boosts >= 0)) Q.boosts = 0;
   if (!(Q.shields >= 0)) Q.shields = 0;
   if (!(Q.keys >= 0)) Q.keys = 0;
+  if (!(Q.hearts >= 0)) Q.hearts = 0;
+  if (Q.hearts > heartCap()) Q.hearts = heartCap();
   if (Q.freezes > FREEZE_CAP) Q.freezes = FREEZE_CAP;
   if (Q.shields > SHIELD_CAP) Q.shields = SHIELD_CAP;
   if (Q.tokens > TOKEN_CAP) Q.tokens = TOKEN_CAP;
@@ -1073,13 +1085,14 @@ function rollRarity(min = "common", rng = Math.random) {
 // Loot: XP plus at most one item. Tuned with tools/chest-sim.js for a
 // player doing every quest with ~4 sessions/games a day (≈2.9 chests a
 // day, pity timers included): rerolls ≈0.7/day, ⚡ boosts ≈0.4/day,
-// 🛡️ shields ≈0.15/day, 🗝️ keys ≈1/week, 🧊 freezes ≈1 every 10 days.
+// ❤️ hearts ≈1 every 3 days, 🛡️ shields ≈0.15/day, 🗝️ keys ≈1/week,
+// 🧊 freezes ≈1 every 10 days.
 // Epic and Legendary chests also hold a collectible (idiom card or
 // cosmetic). A reroll, freeze or shield past its cap turns into XP.
 const CHEST_LOOT = {
-  common:    { xp: [13, 21],   items: [[0.38, "token"], [0.15, "boost"], [0.02, "shield"], [0.01, "key"]] },
-  rare:      { xp: [33, 50],   items: [[0.19, "token"], [0.175, "boost"], [0.10, "shield"], [0.11, "key"]] },
-  epic:      { xp: [75, 92],   items: [[0.12, "freeze"]], collectible: "epic" },
+  common:    { xp: [13, 21],   items: [[0.38, "token"], [0.15, "boost"], [0.02, "shield"], [0.01, "key"], [0.05, "heart"]] },
+  rare:      { xp: [33, 50],   items: [[0.19, "token"], [0.175, "boost"], [0.10, "shield"], [0.11, "key"], [0.16, "heart"]] },
+  epic:      { xp: [75, 92],   items: [[0.12, "freeze"], [0.15, "heart"]], collectible: "epic" },
   legendary: { xp: [208, 208], items: [[0.37, "freeze"]], collectible: "legendary" },
 };
 const CHEST_ITEMS = {
@@ -1087,6 +1100,7 @@ const CHEST_ITEMS = {
   boost:  { field: "boosts",  label: "⚡ XP boost — your next session ×1.5" },
   shield: { field: "shields", label: "🛡️ Memory shield", full: "🛡️ Shields full", cap: SHIELD_CAP, capXp: 25 },
   key:    { field: "keys",    label: "🗝️ Boss key — summon a minion" },
+  heart:  { field: "hearts",  label: "❤️ Boss heart — one mistake allowed vs a 👑 deck boss", full: "❤️ Hearts full", cap: () => heartCap(), capXp: 21 },
   freeze: { field: "freezes", label: "🧊 Streak freeze", full: "🧊 Freezes full", cap: FREEZE_CAP, capXp: 42 },
 };
 function openChest(ch) {
@@ -1106,7 +1120,8 @@ function openChest(ch) {
   for (const [p, id] of L.items) {
     if (x >= p) { x -= p; continue; }
     const it = CHEST_ITEMS[id];
-    if (it.cap && Q[it.field] >= it.cap) { xp += it.capXp; loot.push(`${it.full} (${it.cap}/${it.cap}) → +${it.capXp} XP`); }
+    const cap = typeof it.cap === "function" ? it.cap() : it.cap;
+    if (cap && Q[it.field] >= cap) { xp += it.capXp; loot.push(`${it.full} (${cap}/${cap}) → +${it.capXp} XP`); }
     else { Q[it.field]++; loot.push(it.label); }
     break;
   }
@@ -1119,11 +1134,12 @@ function openChest(ch) {
   return { rar, idiom, loot: grandmaOn() ? loot.slice(0, 1) : loot };
 }
 // Epic/Legendary collectible: an idiom card or a cosmetic, whichever
-// collection still has pieces of that rarity (a coin flip when both do).
+// collection still has pieces of that rarity — weighted by what's left,
+// so both albums fill up together (the saga adds cosmetics on the side).
 function grantCollectible(rar) {
   const idioms = typeof idiomPool === "function" ? idiomPool(rar) : [], cos = COSMETICS.filter(c => !c.free && c.rar === rar && !S.quests.cos.owned.includes(c.id));
   if (!idioms.length && !cos.length) return rar === "legendary" ? grantCollectible("epic") : null;
-  if (idioms.length && (!cos.length || Math.random() < 0.5)) {
+  if (idioms.length && Math.random() < idioms.length / (idioms.length + cos.length)) {
     const c = idioms[Math.floor(Math.random() * idioms.length)];
     S.quests.idioms.push(c.id);
     S.quests._lastIdiom = c.id;
@@ -1720,6 +1736,7 @@ function renderCollection() {
       <span class="p-chip" title="Each one gives ×1.5 XP to your next Today session, automatically">⚡ ${Q.boosts} boost${Q.boosts === 1 ? "" : "s"}</span>
       <span class="p-chip" title="After a miss in a Today session, tap “🛡️ Shield it” to keep the word's stage">🛡️ ${Q.shields}/${SHIELD_CAP} shields</span>
       <span class="p-chip" title="Games → Bosses: summon a minion whenever you like">🗝️ ${Q.keys} key${Q.keys === 1 ? "" : "s"}</span>
+      <span class="p-chip" title="Bring them to a 👑 deck boss: one mistake each (1 per 20 words of the deck). Losing the fight spends them.">❤️ ${Q.hearts}/${heartCap()} hearts</span>
       <span class="p-chip">📦 ${Q.chest.opened} chests opened</span>
       ${Q.pending.length ? `<button class="p-chip gold" onclick="openPendingChest()">🎁 ${Q.pending.length} to open</button>` : ""}
     </div>

@@ -19,9 +19,9 @@ const A = {
 // Keep in sync with js/quests.js.
 const ODDS = { legendary: 1.5, epic: 8, rare: 28, pityRare: 3, pityEpic: 10, pityLeg: 40 }; // % / chests
 const LOOT = {
-  common:    { xp: 17,  items: [[0.38, "reroll"], [0.15, "boost"], [0.02, "shield"], [0.01, "key"]] },
-  rare:      { xp: 42,  items: [[0.19, "reroll"], [0.175, "boost"], [0.10, "shield"], [0.11, "key"]] },
-  epic:      { xp: 83,  items: [[0.12, "freeze"]], coll: 1 },  // coll: chance of a collectible
+  common:    { xp: 17,  items: [[0.38, "reroll"], [0.15, "boost"], [0.02, "shield"], [0.01, "key"], [0.05, "heart"]] },
+  rare:      { xp: 42,  items: [[0.19, "reroll"], [0.175, "boost"], [0.10, "shield"], [0.11, "key"], [0.16, "heart"]] },
+  epic:      { xp: 83,  items: [[0.12, "freeze"], [0.15, "heart"]], coll: 1 },  // coll: chance of a collectible
   legendary: { xp: 208, items: [[0.37, "freeze"]], coll: 1 },
 };
 const CAP_XP = { reroll: 13, freeze: 42, shield: 25 }; // what an item past its cap turns into
@@ -85,7 +85,7 @@ function rates(capped) {
   console.log(capped ? "\n== 🎟️ rerolls (5), 🧊 freezes (2) and 🛡️ shields (2) all at their cap ==" : "== below the caps ==");
   for (const k of Object.keys(t).sort()) {
     const per = t[k] / A.days;
-    const every = ["reroll", "boost", "shield", "key", "freeze"].includes(k) ? `  ≈ one every ${(1 / per).toFixed(1)} days` : "";
+    const every = ["reroll", "boost", "shield", "key", "freeze", "heart"].includes(k) ? `  ≈ one every ${(1 / per).toFixed(1)} days` : "";
     console.log(`${k.padEnd(22)} ${per.toFixed(3)} /day${every}`);
   }
   if (capped) return;
@@ -105,7 +105,7 @@ function collection(runs = 2000) {
     const left = () => P.epicCos + P.legCos + P.epicIdiom + P.legIdiom;
     const take = (cos, idiom) => {
       if (!P[cos] && !P[idiom]) return false;
-      if (P[idiom] && (!P[cos] || Math.random() < 0.5)) P[idiom]--; else P[cos]--;
+      if (P[idiom] && Math.random() < P[idiom] / (P[idiom] + P[cos])) P[idiom]--; else P[cos]--;
       return true;
     };
     const days = play(3000, (rar, src) => {
