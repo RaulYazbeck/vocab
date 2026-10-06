@@ -562,7 +562,8 @@ function pathSecretOk() {
   if (!u.wasMissed) s.missed = s.missed.filter(x => !sameWord(x, w));
   if (u.move) s.moves.set(k, u.move); else s.moves.delete(k);
   if (!u.near) P.secretOk.n++;
-  if (typeof learnUndoLast === "function") learnUndoLast(w);
+  // Only take back a mistake note this answer wrote (a mic answer writes none).
+  if (u.noted && typeof learnUndoLast === "function") learnUndoLast(w);
   logEvent("secretOk", { m: "path:" + it.t, n: P.secretOk.n, near: !!u.near });
   // …and grade it as correct (fromReverse = bypass the already-answered guard).
   s.answered = false;
@@ -591,7 +592,7 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
   const typoOk = ok !== true && ok !== "near" && typed;
   const nearOk = ok === "near" && typed;
   // Snapshot for pathSecretOk: everything the answer touches, to roll back.
-  const snap = () => { const Q = S.quests; s.undo = { val, near: ok === "near", ws: JSON.parse(JSON.stringify(ws)), consec: sessionConsecutive, move: s.moves.get(wordKey(w)),
+  const snap = () => { const Q = S.quests; s.undo = { val, near: ok === "near", noted: typeof learnNoteMiss === "function" && !spoken, ws: JSON.parse(JSON.stringify(ws)), consec: sessionConsecutive, move: s.moves.get(wordKey(w)),
     qm: Q && Q.m ? JSON.stringify(Q.m) : null, qw: Q && Q.week ? JSON.stringify(Q.week) : null,
     wasMissed: s.missed.some(x => sameWord(x, w)) }; };
   const spoken = !!it.spoken;
