@@ -46,6 +46,7 @@ function _toks(s) { return normalize(String(s || "")).split(" ").filter(Boolean)
 function _sameBag(a, b) { return a.length > 1 && a.length === b.length && [...a].sort().join(" ") === [...b].sort().join(" "); }
 function _close(a, b) {
   if (!a || !b) return false;
+  if (a.length >= 2 && typeof isTransposition === "function" && isTransposition(a, b)) return true; // "its" for "ist"
   const d = levenshtein(a, b);
   return d <= Math.max(1, Math.floor(Math.max(a.length, b.length) * 0.25)) && Math.min(a.length, b.length) >= 3;
 }
@@ -83,6 +84,8 @@ function classifyMistake(given, expected, w, opts = {}) {
   if (np && np.noun) {
     const noun = normalize(np.noun), arts = IS_FRENCH_APP ? LEARN_ARTICLES_FR : LEARN_ARTICLES_DE;
     const tail = gt[gt.length - 1];
+    const pl = !IS_FRENCH_APP && typeof germanPluralNoun === "function" ? normalize(germanPluralNoun(w) || "") : "";
+    if (pl && tail === pl && pl !== noun) return "plural";
     if (tail === noun || _close(tail, noun) && gt.length > 1) {
       const art = gt.slice(0, -1).join(" ");
       if (!art) return "article";
@@ -125,6 +128,20 @@ function classifyVerbMistake(given, F, tense, person) {
   return "verbform";
 }
 
+// A conjugation card ("sein — du ___" = bist): its verb, tense and person,
+// so a miss can be told apart as person / tense / spelling.
+const CARD_TENSE = [[/plusq/i, "pq"], [/praet|präter/i, "pt"], [/futur/i, "fu"], [/perfekt/i, "pf"], [/conj/i, "pr"]];
+function _cardVerb(w) {
+  if (IS_FRENCH_APP || typeof conjItem !== "function" || typeof verbBank !== "function") return null;
+  const it = conjItem(w);
+  if (!it) return null;
+  const tense = (CARD_TENSE.find(([re]) => re.test(w.deckId || "")) || [])[1];
+  const p = String(it.pron).trim().toLowerCase();
+  const person = p === "ich" ? "ich" : p === "du" ? "du" : /^er/.test(p) ? "er" : p === "wir" ? "wir" : p === "ihr" ? "ihr" : /^sie/.test(p) ? "sie" : null;
+  const v = verbBank().byInf.get(it.verb);
+  return tense && person && v && v.F ? { F: v.F, tense, person, inf: it.verb } : null;
+}
+
 // ── RECORDING ─────────────────────────────────
 // info: { src, given, expected, type?, alsoOk?, other? }
 function learnNoteMiss(w, info = {}) {
@@ -132,7 +149,10 @@ function learnNoteMiss(w, info = {}) {
     migrateLearn();
     if (!w || w.anki || typeof getWS !== "function") return;
     const ws = getWS(w.deckId, w.idx);
-    const type = info.type || classifyMistake(info.given, info.expected != null ? info.expected : [w[WORD_KEY], typeof gameForm === "function" ? gameForm(w) : ""], w, info);
+    const cv = !info.type && info.given != null && String(info.given).trim() ? _cardVerb(w) : null;
+    let cvType = cv ? classifyVerbMistake(info.given, cv.F, cv.tense, cv.person) : null;
+    if (cvType === "umlaut" || cvType === "verbform") cvType = null; // nothing verb-specific: the general rules decide
+    const type = info.type || cvType || classifyMistake(info.given, info.expected != null ? info.expected : [w[WORD_KEY], typeof gameForm === "function" ? gameForm(w) : ""], w, info);
     const mx = ws.mx || (ws.mx = {});
     mx[type] = (mx[type] || 0) + 1;
     const mh = ws.mh || (ws.mh = []);
@@ -215,13 +235,26 @@ function buildLearningReport() {
   const today = todayISO(), recentFrom = addDays(today, -13);
   const form = w => typeof gameForm === "function" ? gameForm(w) : w[WORD_KEY];
   const tierOf = st => TIERS.find(t => st >= t.min && st <= t.max) || TIERS[0];
-  const words = [];
+  // One entry per written form: the same word in two decks is merged
+  // (counts added, the higher stage kept).
+  const byForm = new Map();
   Object.entries(S.words || {}).forEach(([k, ws]) => {
-    if (!ws || !(ws.st || ws.correct || ws.wrong || ws.mx)) return;
+    if (!ws || !(ws.st || ws.correct || ws.wrong || ws.mx || ws.sf)) return;
     const w = _learnWord(k);
     if (!w || w.anki) return;
-    words.push({ k, w, ws });
+    const f = form(w), prev = byForm.get(f);
+    if (!prev) { byForm.set(f, { k, w, ws }); return; }
+    const a = prev.ws, m = { ...a };
+    ["correct", "wrong", "near"].forEach(x => m[x] = (a[x] || 0) + (ws[x] || 0));
+    ["mx", "sf"].forEach(x => { if (a[x] || ws[x]) { m[x] = { ...(a[x] || {}) }; Object.entries(ws[x] || {}).forEach(([t, n]) => m[x][t] = (m[x][t] || 0) + n); } });
+    if (a.g || ws.g) m.g = [(a.g || [0, 0])[0] + (ws.g || [0, 0])[0], (a.g || [0, 0])[1] + (ws.g || [0, 0])[1]];
+    if (a.mh || ws.mh) m.mh = [...(a.mh || []), ...(ws.mh || [])].sort((x, y) => String(x[0]).localeCompare(String(y[0]))).slice(-LEARN_HIST);
+    m.st = Math.max(a.st || 0, ws.st || 0); m.k = Math.min(a.k || 1, ws.k || 1);
+    m.metOn = [a.metOn, ws.metOn].filter(Boolean).sort()[0]; m.rp = a.rp || ws.rp; m.fl = a.fl || ws.fl;
+    if ((ws.st || 0) > (a.st || 0)) prev.w = w;
+    prev.ws = m;
   });
+  const words = [...byForm.values()];
   const lines = [];
   const L = (...a) => lines.push(...a);
   L(`${lang.toUpperCase()} LEARNING LOG — for my AI tutor — ${today}`);
@@ -262,6 +295,23 @@ function buildLearningReport() {
   const sl = Object.entries(softAll);
   if (sl.length) L(`Writing slips on answers that still counted: ` + sl.map(([t, n]) => `${SOFT_LABEL[t] || t} ${n}`).join(" · "));
 
+  // What to work on first: a short summary for the tutor.
+  const focus = [];
+  const topTypes = Object.entries(typeRecent).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([t]) => MISTAKE_LABEL[t] || t);
+  if (topTypes.length) focus.push(`Most common mistakes lately: ${topTypes.join(", ")}.`);
+  const csF = Object.entries((S.games && S.games.cases) || {}).filter(([, a]) => a && a[1] >= 5).sort((a, b) => a[1][0] / a[1][1] - b[1][0] / b[1][1]);
+  if (csF.length) { const [k, a] = csF[0]; focus.push(`Weakest case: ${(typeof GRAMMAR_LABEL !== "undefined" && GRAMMAR_LABEL[k]) || k} (${Math.round(a[0] / a[1] * 100)}% right).`); }
+  const tF = {}; Object.values(S.learn.verbs).forEach(v => Object.entries(v.t || {}).forEach(([t, a]) => { const r = tF[t] || (tF[t] = [0, 0]); r[0] += a[0]; r[1] += a[1]; }));
+  const tW = Object.entries(tF).filter(([, a]) => a[0] + a[1] >= 5).sort((a, b) => a[1][0] / (a[1][0] + a[1][1]) - b[1][0] / (b[1][0] + b[1][1]));
+  if (tW.length) { const [t, a] = tW[0]; focus.push(`Weakest tense: ${typeof TENSE_BY_ID !== "undefined" && TENSE_BY_ID[t] ? TENSE_BY_ID[t].name : t} (${Math.round(a[0] / (a[0] + a[1]) * 100)}% right).`); }
+  const auxN = Object.values(S.learn.verbs).reduce((n, v) => n + ((v.mx || {}).aux || 0), 0);
+  if (auxN >= 3) focus.push(`Perfekt with haben vs sein: ${auxN} mistakes.`);
+  const softU = softAll.umlaut || 0;
+  if (softU >= 5) focus.push(`I often leave out ä/ö/ü/ß (${softU}× on answers the app still accepted).`);
+  const worst = words.filter(x => _wscore(x.ws) > 1).sort((a, b) => _wscore(b.ws) - _wscore(a.ws)).slice(0, 12).map(x => form(x.w));
+  if (worst.length) focus.push(`Hardest words right now: ${worst.join(", ")}.`);
+  if (focus.length) { L(``, `## FOCUS FOR MY NEXT EXERCISES`); focus.forEach(f => L(`- ${f}`)); }
+
   const hist = (ws, types) => (ws.mh || []).filter(h => !types || types.includes(h[2]));
   const wrote = (ws, types) => [...new Set(hist(ws, types).map(h => h[3]).filter(Boolean))].map(x => `"${x}"`).join(", ");
 
@@ -270,7 +320,10 @@ function buildLearningReport() {
     const g = words.filter(x => (x.ws.mx || {}).gender || (x.ws.mx || {}).article).sort((a, b) => ((b.ws.mx.gender || 0) + (b.ws.mx.article || 0)) - ((a.ws.mx.gender || 0) + (a.ws.mx.article || 0)));
     L(``, `## GENDER / ARTICLES — nouns I get wrong (right form · times · what I wrote)`);
     if (!g.length) L("None recorded yet.");
-    g.forEach(x => L(`${form(x.w)} (${x.w.en}) · ${(x.ws.mx.gender || 0) + (x.ws.mx.article || 0)}× · ${wrote(x.ws, ["gender", "article"]) || "—"}`));
+    const gn = x => (x.ws.mx.gender || 0) + (x.ws.mx.article || 0);
+    g.filter(x => gn(x) > 1).forEach(x => L(`${form(x.w)} (${x.w.en}) · ${gn(x)}× · ${wrote(x.ws, ["gender", "article"]) || "—"}`));
+    const once = g.filter(x => gn(x) === 1);
+    if (once.length) L(`Wrong once (right form ← what I wrote): ` + once.map(x => `${form(x.w)} ← ${wrote(x.ws, ["gender", "article"]) || "—"}`).join(" · "));
     // Which article I put instead of which.
     const swap = {};
     words.forEach(x => {
@@ -288,7 +341,7 @@ function buildLearningReport() {
   if (!sp.length) L("None recorded yet.");
   sp.sort((a, b) => _wscore(b.ws) - _wscore(a.ws)).forEach(x => {
     const m = x.ws.mx || {}, s = x.ws.sf || {};
-    const bits = [m.spelling && `spelling ${m.spelling}×`, x.ws.near && `almost-right ${x.ws.near}×`, m.order && `word order ${m.order}×`, s.umlaut && `no ä/ö/ü/ß ${s.umlaut}×`, s.capital && `lower-case ${s.capital}×`].filter(Boolean);
+    const bits = [m.spelling && `spelling ${m.spelling}×`, m.umlaut && `accents ${m.umlaut}×`, x.ws.near && `almost-right ${x.ws.near}×`, m.order && `word order ${m.order}×`, s.umlaut && `no ä/ö/ü/ß ${s.umlaut}×`, s.capital && `lower-case ${s.capital}×`].filter(Boolean);
     L(`${form(x.w)} (${x.w.en}) · ${bits.join(", ")}${wrote(x.ws, ["spelling", "order", "umlaut"]) ? " · " + wrote(x.ws, ["spelling", "order", "umlaut"]) : ""}`);
   });
 
@@ -359,7 +412,7 @@ function buildLearningReport() {
   // Confusions
   const conf = (S.games && S.games.confuse) || {};
   const cl = Object.entries(conf).map(([k, list]) => { const a = _learnWord(k); const bs = (list || []).map(_learnWord).filter(Boolean); return a && bs.length ? `${form(a)} ↔ ${bs.map(form).join(", ")}` : ""; }).filter(Boolean);
-  words.forEach(x => hist(x.ws, ["confused"]).forEach(h => { const o = _learnFind(h[3], x.w); const b = o && _learnWord(o); if (b) cl.push(`${form(x.w)} ↔ ${form(b)}`); }));
+  words.forEach(x => hist(x.ws, ["confused", "recognition", "listening"]).forEach(h => { const o = _learnFind(h[3], x.w); const b = o && _learnWord(o); if (b) cl.push(`${form(x.w)} ↔ ${form(b)}`); }));
   if (cl.length) { L(``, `## WORDS I MIX UP`); L([...new Set(cl)].join(" · ")); }
 
   // New words
@@ -378,10 +431,10 @@ function buildLearningReport() {
   const json = {
     app: STORAGE_KEY, generated: new Date().toISOString(), since: S.learn.since || null,
     mistakeTypes: typeAll, softSlips: softAll,
-    words: words.filter(x => x.ws.mx || x.ws.wrong || x.ws.near || x.ws.sf).map(x => ({ w: form(x.w), en: x.w.en, deck: x.w.deckId, st: x.ws.st || 0,
-      ok: (x.ws.correct || 0) + (x.ws.g ? x.ws.g[0] : 0), bad: (x.ws.wrong || 0) + (x.ws.g ? x.ws.g[1] : 0), near: x.ws.near || 0, ease: x.ws.k || 1,
-      mx: x.ws.mx, sf: x.ws.sf, last: x.ws.mh, met: x.ws.metOn || null })),
-    verbs: S.learn.verbs, verbLevels: vf, cases: cs,
+    // Words with recorded mistakes or 3+ misses: [form, stage, right, wrong, types, slips, last misses]
+    words: words.filter(x => x.ws.mx || x.ws.sf || (x.ws.wrong || 0) + (x.ws.g ? x.ws.g[1] : 0) >= 3).map(x => [form(x.w), x.ws.st || 0,
+      (x.ws.correct || 0) + (x.ws.g ? x.ws.g[0] : 0), (x.ws.wrong || 0) + (x.ws.g ? x.ws.g[1] : 0), x.ws.mx || {}, x.ws.sf || {}, (x.ws.mh || []).map(h => [h[0], h[2], h[3]])]),
+    verbs: S.learn.verbs, cases: cs,
   };
   return lines.join("\n") + "\n\n--- JSON ---\n" + JSON.stringify(json);
 }

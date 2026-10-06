@@ -755,10 +755,12 @@ function gTypedBind(ctx, onSubmit) {
 // Grade a typed game answer against one or more accepted strings.
 function gradeTyped(val, answers) {
   // What was typed, for the learning log if this turns out to be a miss.
-  if (activeGame && activeGame.ctx) { activeGame.ctx.lastGiven = val; activeGame.ctx.lastExpected = answers; }
+  const g = activeGame && activeGame.ctx;
+  if (g) { g.lastGiven = val; g.lastExpected = answers; }
   if (!String(val || "").trim()) return false;
   if (answers.some(a => a && (isCorrect(val, a) || normalize(val) === normalize(a)))) return true;
-  return isNearMiss(val, answers) ? "near" : false;
+  if (isNearMiss(val, answers)) { if (g) g.lastGiven = null; return "near"; } // a retry, not a miss: don't let it stick to the next question
+  return false;
 }
 
 // ── COLLECTIONS (gender · plural) ─────────────
