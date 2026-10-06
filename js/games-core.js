@@ -1717,8 +1717,10 @@ function renderGamesHub() {
     const fresh = !(S.games.plays[g.id] || 0) && best === undefined;
     const quietOff = !gameUsableNow(g);
     const off = !req.ok || quietOff;
+    // 👵 Grandma mode: only games that can be played now, no rank medals.
+    if (gm && off) return "";
     return `<button class="g-card-tile ${off ? "off" : ""}" onclick="gameTileTap('${g.id}')" ${req.ok ? "" : `aria-disabled="true"`} title="${escapeHtml(off ? (req.ok ? "Needs sound" : req.reason) : g.skill)}">
-      ${off ? `<span class="g-tile-rank">🔒</span>` : fresh ? "" : `<span class="g-tile-rank" title="${GAME_RANKS[r].name}">${GAME_RANKS[r].icon}</span>`}
+      ${off ? `<span class="g-tile-rank">🔒</span>` : fresh || gm ? "" : `<span class="g-tile-rank" title="${GAME_RANKS[r].name}">${GAME_RANKS[r].icon}</span>`}
       <span class="g-tile-icon">${g.icon}</span>
       <span class="g-tile-name">${escapeHtml(gameName(g))}</span>
       <span class="g-tile-stars">${off ? "" : fresh ? `<span class="g-tile-new">new</span>` : starsHtml(st)}</span>

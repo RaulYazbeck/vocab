@@ -32,7 +32,11 @@ function renderExpBar() {
   const safe = streakSafeToday();
   const freezes = (S.quests && S.quests.freezes) || 0;
   const meta = document.getElementById("hdr-meta");
-  if (meta) meta.innerHTML = `
+  // 👵 Grandma mode: just the streak — no freezes, no level, no XP line.
+  if (meta && grandmaOn()) meta.innerHTML = `
+    <button class="hdr-chip streak-chip ${safe ? "safe" : ""}" onclick="openStreakSheet()" aria-label="${streak} days in a row${safe ? ", done for today" : ""}">
+      <span class="sc-fire">🔥</span><b>${streak}</b></button>`;
+  else if (meta) meta.innerHTML = `
     <button class="hdr-chip streak-chip ${safe ? "safe" : ""}" onclick="openStreakSheet()" aria-label="Streak ${streak} days${safe ? ", safe today" : ", not safe yet today"} · ${freezes} freezes">
       <span class="sc-fire">🔥</span><b>${streak}</b><span class="sc-ice">🧊${freezes}</span></button>
     <button class="hdr-chip lv-chip" onclick="openMenu()" aria-label="Level ${lv} — open the menu">Lv ${lv}</button>`;
@@ -64,6 +68,15 @@ function openStreakSheet() {
   const keepAt = Math.ceil(goal * (typeof KEEP_GOAL_SHARE === "number" ? KEEP_GOAL_SHARE : 0.4));
   const nDone = (Q.list || []).filter(q => q.done).length, nAll = (Q.list || []).length || 4;
   const longDone = ((Q.m && Q.m.sessions) || []).some(x => x.len === "long" && !x.ab && !x.quick);
+  if (grandmaOn()) {
+    const left = Math.max(0, keepAt - done);
+    openSheet({ title: "🔥 Streak", html: `
+      <div class="sk-head"><b>${streak}</b> day${streak === 1 ? "" : "s"} in a row</div>
+      <div class="gm-sk ${safe ? "ok" : ""}">${safe ? "✓ Done for today — see you tomorrow!" : `${left} more right answer${left === 1 ? "" : "s"} today keeps it going.`}</div>
+      ${safe ? "" : `<span class="sk-bar gm-sk-bar"><i style="width:${Math.min(100, Math.round(done / Math.max(1, keepAt) * 100))}%"></i></span>`}
+      ${safe ? "" : `<button class="tc-start gm-sk-go" onclick="closeSettings();startPathSession(S.path.sessionLen || 'regular')">Start ▶</button>`}` });
+    return;
+  }
   const bar = (a, b) => `<span class="sk-bar"><i style="width:${Math.min(100, Math.round(a / Math.max(1, b) * 100))}%"></i></span>`;
   const row = (ok, label, prog) => `<div class="sk-row ${ok ? "ok" : ""}"><span class="sk-tick">${ok ? "✓" : "○"}</span><span class="sk-label">${label}</span>${prog || ""}</div>`;
   openSheet({ title: "🔥 Streak", html: `

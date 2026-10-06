@@ -841,3 +841,37 @@ button.gm-quest:active { transform:scale(0.985); }
    target (tapped 3× fast it's the private "my typo" override). */
 .p-typo { display:inline-block; padding:10px 12px; margin:-10px -6px -10px -12px; cursor:default;
   -webkit-user-select:none; user-select:none; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+
+/* ── 👵 GRANDMA: the new layout, bigger and simpler ── */
+body.grandma .hdr-xp { display:none; }
+body.grandma .hdr-chip { height:40px; padding:0 14px; font-size:17px; }
+body.grandma h1 { font-size:20px; }
+body.grandma .settings-title { font-size:14px; }
+body.grandma .set-back, body.grandma .set-close { font-size:17px; min-height:44px; }
+body.grandma .menu-row { min-height:62px; font-size:18px; }
+body.grandma .menu-meta { font-size:14px; }
+body.grandma .settings-item { font-size:17px; padding:16px; }
+body.grandma .settings-sub { font-size:13.5px; }
+body.grandma .set-choice .set-label { font-size:17px; }
+body.grandma .set-seg-btn { min-height:48px; font-size:16px; }
+.gm-menu-streak { font-size:19px; color:var(--text-2); text-align:center; margin:2px 0 14px; }
+.gm-menu-streak b { font-size:28px; color:#FF9A3C; font-weight:900; }
+.gm-sk { font-size:18px; line-height:1.4; color:var(--text); margin:6px 2px 12px; }
+.gm-sk.ok { color:var(--teal); font-weight:800; }
+.gm-sk-bar { display:block; height:12px; border-radius:6px; margin:0 2px 16px; }
+.gm-sk-go { margin-top:4px; }
+body.grandma .sk-head { font-size:19px; }
+body.grandma .sk-head b { font-size:40px; }
+/* Games: two big tiles a row, a larger Daily challenge row */
+body.grandma .g-grid { grid-template-columns:1fr 1fr; gap:10px; }
+body.grandma .g-card-tile { padding:18px 8px 14px; }
+body.grandma .g-card-tile .g-tile-icon { font-size:40px; }
+body.grandma .g-card-tile .g-tile-name { font-size:16px; }
+body.grandma .g-card-tile .g-tile-stars { font-size:14px; }
+body.grandma .g-row { min-height:68px; }
+body.grandma .g-row-main b { font-size:17px; }
+body.grandma .g-row-main small { font-size:13.5px; }
+body.grandma .g-today-main { font-size:19px; }
+body.grandma .g-grid-head > span { font-size:16px; }
+/* Quest rows: the whole row plays it */
+body.grandma button.gm-quest { min-height:76px; }

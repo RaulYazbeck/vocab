@@ -607,6 +607,7 @@ function renderSettingsPanel() {
   if (!panel) return;
   let page = settingsPage in SETTINGS_PAGES ? settingsPage : "main";
   if (page === "sheet" && !_sheet) page = settingsPage = "menu";
+  if (grandmaOn() && page !== "sheet" && page !== "menu") page = settingsPage = "menu";
   const body = page === "sheet" ? _sheet.html
     : page === "menu" ? settingsMenuHtml()
     : page === "plan" ? settingsPlanHtml()
@@ -666,7 +667,26 @@ function settingsAccountName() {
     ? (currentUser.displayName || currentUser.email || "Signed in") : "";
 }
 // ☰ The Menu: you, where to go, Classic mode, Settings.
+// 👵 Grandma mode: one short page — games, sound, new words, the mode
+// itself and the account. No sub-pages, nothing else to find.
+function grandmaMenuHtml() {
+  const account = settingsAccountName();
+  const plan = pathDeadlineOn();
+  return `
+    <div class="gm-menu-streak">🔥 <b>${getDailyStreak()}</b> day${getDailyStreak() === 1 ? "" : "s"} in a row</div>
+    <div class="menu-list">
+      ${menuRowHtml("🎮", "Games", "", "menuGo('games')")}
+    </div>
+    ${setSwitchHtml("🔊", "Sound", "Words read aloud", SOUND.tts, "toggleSoundPref('sound')")}
+    ${plan ? "" : setChoiceHtml("🌱", "New words a day", "",
+      PATH.NEW_PER_DAY_OPTIONS.filter(n => n <= 20).map(n => ({ label: n === 0 ? "Off" : n, on: S.path.newPerDay === n, onclick: `setPathNewPerDay(${n});renderSettingsPanel()` })))}
+    ${setSwitchHtml("👵", "Grandma mode", "On: big buttons, just the essentials. Turn it off for everything else.", true, "toggleGrandma()")}
+    <div class="menu-list">
+      ${menuRowHtml("☁️", account ? escapeHtml(account.split(" ")[0]) : "Sign in", account ? "tap to sign out" : "keeps your progress safe", "handleAuth()")}
+    </div>`;
+}
 function settingsMenuHtml() {
+  if (grandmaOn()) return grandmaMenuHtml();
   const lv = currentLevel(), cur = S.exp - expForLevel(lv), need = expForLevel(lv + 1) - expForLevel(lv);
   const t = typeof activeTitle === "function" ? activeTitle() : null;
   const Q = S.quests || {};
