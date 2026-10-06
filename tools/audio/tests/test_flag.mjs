@@ -63,8 +63,8 @@ ok(!(await page.isVisible("#audio-flag-sheet")) && await page.evaluate(() => aud
 await page.reload(); await page.waitForFunction(() => typeof AUDIO !== "undefined" && AUDIO.ready);
 ok(await page.evaluate(() => audioFlagCount()) === 2, "flags survive a restart");
 
-console.log("3. Settings → Sound & voice");
-await page.evaluate(() => { const o = document.getElementById("audio-offer"); if (o) o.remove(); openSettings("sound"); });
+console.log("3. Settings → Account → For developers");
+await page.evaluate(() => { const o = document.getElementById("audio-offer"); if (o) o.remove(); openSettings("account"); const d = document.querySelector(".set-dev"); if (d) d.open = true; });
 await page.waitForTimeout(400);
 const rows = await page.$$eval(".settings-item .set-label", els => els.map(e => e.textContent));
 const logRows = rows.filter(t => /voice log|flagged|without a recording/i.test(t));

@@ -89,7 +89,7 @@ const ACHIEVEMENTS = [
     value:() => maxStreak() },
   { id:"climber", icon:"🧗", name:"Climber", category:"Dedication",
     desc:t => `Reach level ${t}`,
-    tiers:[5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
+    tiers:[5, 10, 20, 30, 40, 50, 60, 70, 85, 100], // Lv 100 = every deck done
     value:() => currentLevel() },
 
   // ── Speed ──
@@ -267,13 +267,23 @@ function hasWeekendPair() {
 }
 
 // ── AWARDING ──────────────────────────────────
+// 🧗 Climber moved to the journey levels (Lv 100 = every deck done):
+// keep only the tiers the new level really meets. Tiers won again
+// later pay again, which is small next to the journey's XP.
+function migrateClimber() {
+  if (!S.achLevels) S.achLevels = {};
+  if (S.achClimbV === 2) return;
+  S.achClimbV = 2;
+  const c = ACHIEVEMENTS.find(a => a.id === "climber"), lv = currentLevel();
+  if (c && S.achLevels.climber) S.achLevels.climber = Math.min(S.achLevels.climber, c.tiers.filter(t => lv >= t).length);
+}
 let _checkingAchievements = false; // addExp can re-enter via level-up
 
 function checkAchievements(ev = {}) {
   if (_checkingAchievements) return;
   _checkingAchievements = true;
   try {
-    if (!S.achLevels) S.achLevels = {};
+    migrateClimber();
     const unlocked = [];
     let xpGain = 0;
 
@@ -330,7 +340,7 @@ function checkAchievements(ev = {}) {
 
 // ── ACHIEVEMENTS SCREEN ───────────────────────
 function renderBadgesScreen() {
-  if (!S.achLevels) S.achLevels = {};
+  migrateClimber();
   const totalLevels  = ACHIEVEMENTS.reduce((s, a) => s + a.tiers.length, 0) + SECRET_ACHIEVEMENTS.length;
   const earnedLevels = ACHIEVEMENTS.reduce((s, a) => s + (S.achLevels[a.id] || 0), 0)
     + SECRET_ACHIEVEMENTS.filter(s => S.badges.includes(s.id)).length;
