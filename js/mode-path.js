@@ -970,7 +970,9 @@ function endPathSession(abandoned) {
   const s = pathSession;
   if (!s) return;
   stopPathVoice();
-  logEvent("session_end", { kind: s.quick ? "quick5" : "path", abandoned, n: s.stats.answered, ok: s.stats.correct, ms: Date.now() - s.startedAt, at: s.i });
+  const moves = s.moves ? [...s.moves.values()] : [];
+  logEvent("session_end", { kind: s.quick ? "quick5" : "path", abandoned, n: s.stats.answered, ok: s.stats.correct, ms: Date.now() - s.startedAt, at: s.i,
+    sd: usageDateOf(s.startedAt), met: (s.met || []).length, up: moves.filter(m => m.to > m.from).length, down: moves.filter(m => m.to < m.from).length });
   questEvent("session_end", { kind: "path", len: s.lenKey, abandoned, stats: s.stats, ms: Date.now() - s.startedAt, quick: s.quick,
     ok5: s.ok5, up: s.upCount || 0, wotdHit: !!s.wotdHit });
   // ⚡ XP boost from a chest: +50% of this session's XP (achievements

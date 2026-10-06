@@ -79,11 +79,16 @@ function buildSyncDocs() {
     if (!wordsByDeck[deckId]) wordsByDeck[deckId] = {};
     wordsByDeck[deckId][key] = S.words[key];
   });
-  const { words, ...meta } = S;
+  const { words, usageArchive, ...meta } = S;
   meta._evidence = evidenceCount(S); // lets loads compare without fetching words
   const docs = { [STORAGE_KEY]: meta };
   Object.entries(wordsByDeck).forEach(([deckId, deckWords]) => {
     docs[STORAGE_KEY + "_words_" + deckId] = { words: deckWords };
+  });
+  // Usage days older than the meta doc keeps (usage-log.js): one doc
+  // per year, rewritten only when a day moves into it.
+  Object.entries(usageArchive || {}).forEach(([year, days]) => {
+    docs[STORAGE_KEY + "_usage_" + year] = { days };
   });
   return docs;
 }
@@ -132,14 +137,25 @@ function loadFromCloud() {
     return ref.get({ source: 'server' }).then(snapshot => {
       let cloudMeta = null;
       const allWords = {};
+      const usageArchive = {};
       snapshot.forEach(doc => {
         const data = doc.data();
         if (doc.id === STORAGE_KEY) cloudMeta = data;
         else if (doc.id.startsWith(STORAGE_KEY + "_words_")) Object.assign(allWords, data.words || {});
+        else if (doc.id.startsWith(STORAGE_KEY + "_usage_")) usageArchive[doc.id.slice((STORAGE_KEY + "_usage_").length)] = data.days || {};
       });
       if (!cloudMeta) { setStatus("☁️ Synced", 3000); initialLoadComplete = true; return; }
 
-      const cloudState = { ...cloudMeta, words: allWords };
+      // Usage history is never lost to a load: archived days only this
+      // device has are kept alongside the cloud's.
+      Object.entries(S.usageArchive || {}).forEach(([y, days]) => {
+        usageArchive[y] = { ...(days || {}), ...(usageArchive[y] || {}) };
+      });
+      const cloudState = { ...cloudMeta, words: allWords, usageArchive };
+      if (S.usage && S.usage.days) {
+        const cu = cloudState.usage = { ...(cloudState.usage || {}) };
+        cu.days = { ...S.usage.days, ...(cu.days || {}) };
+      }
       delete cloudState._evidence; // derived field, not real state
 
       // Sanity-check for regression before accepting.

@@ -531,12 +531,30 @@ function stopActiveGame() {
   _gt.rafs.forEach(cancelAnimationFrame); _gt.rafs.clear();
   _gt.listeners.forEach(([t, type, fn, o]) => t.removeEventListener(type, fn, o));
   _gt.listeners = [];
-  if (activeGame && activeGame.ctx) activeGame.ctx.dead = true;
+  if (activeGame && activeGame.ctx) { logGameQuit(activeGame); activeGame.ctx.dead = true; }
   activeGame = null;
   gamePreferKeys = null;
 }
+// A game left before its result (Quit, Menu, another screen) counts as
+// quit, including one left on its intro or countdown ("pre").
+function logGameQuit(g) {
+  const ctx = g.ctx;
+  if (ctx.finished || ctx.quitLogged || !g.def) return;
+  ctx.quitLogged = true;
+  logEvent("game_end", { id: g.def.id, size: ctx.size, quit: true, pre: !ctx.started, sd: ctx.launchDay,
+    ms: ctx.started && ctx.clock ? Math.round(ctx.clock.elapsed()) : 0 });
+}
+// Ends a Daily Challenge / Arcade Mix run; one left before its last round
+// is logged as abandoned (a finished one was logged by gameRunRoundDone).
+function dropGameRun() {
+  const run = gameRun;
+  gameRun = null;
+  if (!run || run.logged || run.kind === "surprise") return;
+  run.logged = true;
+  logEvent("session_end", { kind: "games:" + run.kind, abandoned: true, n: run.summaries.length, sd: run.day, ms: Date.now() - run.startedAt });
+}
 // Full exit (Menu button / backToMenu): also abandons any sequence.
-function quitAllGames() { stopActiveGame(); gameRun = null; flushDeferredCelebrations(); }
+function quitAllGames() { stopActiveGame(); dropGameRun(); flushDeferredCelebrations(); }
 
 // Pausable clock: elapsed ms excluding paused time, plus penalties.
 function makeClock() {
@@ -845,6 +863,7 @@ function launchGame(id, opts = {}) {
   ctx.twist = opts.twist !== undefined ? opts.twist : (introSeen ? rollTwist(def, size) : null);
   ctx.twistOffered = ctx.twist;
   updateHudRun(ctx);
+  ctx.launchDay = todayISO();
   logEvent("game_start", { id: def.id, size, rank: ctx.rank, twist: ctx.twist || "" });
   if (!introSeen || opts.forceIntro) showGameIntro(ctx, go);
   else if (gameRun || size === "bonus") showRoundSplash(ctx, go);
@@ -1219,12 +1238,10 @@ function digitKey(e, n) {
 // the drill. Nothing is recorded for an abandoned round.
 function quitGame() {
   const run = gameRun;
-  if (activeGame && activeGame.ctx && activeGame.ctx.started && !activeGame.ctx.finished)
-    logEvent("game_end", { id: activeGame.def.id, size: activeGame.ctx.size, quit: true, ms: Math.round(activeGame.ctx.clock.elapsed()) });
   stopActiveGame();
   flushDeferredCelebrations();
   if (run && run.kind === "surprise") { gameRun = null; run.onDone && run.onDone(); return; }
-  gameRun = null;
+  dropGameRun();
   openGamesHub();
 }
 
@@ -1328,7 +1345,7 @@ function finishGame(ctx, result) {
   if (ctx.dragN) logEvent("drag", { how: "drag", game: def.id, n: ctx.dragN });
   if (ctx.tapN) logEvent("drag", { how: "tap", game: def.id, n: ctx.tapN });
   logEvent("game_end", { id: def.id, size, rank, twist: twist || "", stars, score: result.score, ok: result.correct, bad: result.wrong,
-    ms: Math.round(ctx.clock.elapsed()), up: credit.up, fl: credit.flagged, rankedUp });
+    ms: Math.round(ctx.clock.elapsed()), up: credit.up, fl: credit.flagged, rankedUp, sd: ctx.launchDay });
   questEvent("game_end", { id: def.id, size, stars, result, rank, twist, rankedUp, newBest, startedAt: ctx.startedAt || 0 });
   saveState();
   checkAchievements({ type: "game_end", game: def.id, size, stars, rank, rankedUp, ...result });
@@ -1431,8 +1448,10 @@ function drillWords(words) {
 // ── SEQUENCES (Daily Challenge, Arcade Mix, Surprise Round) ──
 function startGameRun(kind, ids, opts = {}) {
   if (!ids.length) return;
+  dropGameRun();
   gameRun = { kind, ids, i: 0, summaries: [], pool: opts.pool, size: opts.size || "short",
-    title: opts.title || "", onDone: opts.onDone || null, twists: opts.twists || null };
+    title: opts.title || "", onDone: opts.onDone || null, twists: opts.twists || null,
+    day: todayISO(), startedAt: Date.now() };
   logEvent("session_start", { kind: "games:" + kind, n: ids.length });
   launchGame(ids[0], runLaunchOpts(0));
 }
@@ -1456,7 +1475,7 @@ function gameRunRoundDone(sum) {
   const last = run.i >= run.ids.length - 1;
   const el = document.getElementById("main-screen");
   const dailyBonus = run.kind === "daily" && last ? dailyCompleteIfDone() : 0;
-  if (last) logEvent("session_end", { kind: "games:" + run.kind, abandoned: false, n: run.summaries.length });
+  if (last && !run.logged) { run.logged = true; logEvent("session_end", { kind: "games:" + run.kind, abandoned: false, n: run.summaries.length, sd: run.day, ms: Date.now() - run.startedAt }); }
   if (last && run.kind === "mix") questEvent("mix", {});
   const totalXp = run.summaries.reduce((s, x) => s + x.xp, 0) + dailyBonus;
   const rows = run.summaries.map((x, i) => `<div class="g-run-row">
@@ -1467,7 +1486,7 @@ function gameRunRoundDone(sum) {
   el.innerHTML = `<div class="screen game-screen">
       <div class="screen-top">
         <div class="screen-label">${escapeHtml(run.title)}</div>
-        <button class="back-btn" onclick="gameRun=null;openGamesHub()">← Games</button>
+        <button class="back-btn" onclick="dropGameRun();openGamesHub()">← Games</button>
       </div>
       <div class="result-screen g-results">
         <div class="result-emoji">${last ? (run.kind === "daily" ? "📆" : "🕹️") : sum.def.icon}</div>
