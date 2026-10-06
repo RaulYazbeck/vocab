@@ -39,6 +39,7 @@ function migrateQuests() {
   if (!Q.m || typeof Q.m !== "object") Q.m = freshQuestCounters();
   if (!Array.isArray(Q.qdays)) Q.qdays = [];
   if (!Array.isArray(Q.frozen)) Q.frozen = [];
+  if (!Array.isArray(Q.kept)) Q.kept = [];
   if (!(Q.freezes >= 0)) Q.freezes = 0;
   if (!(Q.tokens >= 0)) Q.tokens = 0;
   if (!(Q.boosts >= 0)) Q.boosts = 0;
@@ -84,7 +85,7 @@ function freshQuestCounters() {
 function questEnsureToday() {
   migrateQuests();
   const Q = S.quests, today = todayISO();
-  if (Q.day === today && Q.list.length) { questSwapUnusedAnki(); questSwapForSpeak(); return false; }
+  if (Q.day === today && Q.list.length) { questSwapUnusedAnki(); questSwapForSpeak(); questMarkKept(); return false; }
   // Quests made before the switch to the 4 AM day (00:00–04:00 that one
   // night) belong to the day that's about to start — keep them.
   if (Q.day > today && Q.list.length) return false;
@@ -107,28 +108,48 @@ function questCloseDay(prevDay, today) {
   Q.prevOk = gap === 1 ? (Q.m.ok || 0) : 0;
   Q.history.push({ day: prevDay, tpls: Q.list.map(q => q.tpl) });
   if (Q.history.length > 21) Q.history = Q.history.slice(-21);
-  // Streak freezes: missed days since the last full day are covered
-  // while freezes last (only when there is a streak to protect).
-  if (questStreak(prevDay) > 0 || Q.qdays.includes(prevDay)) {
-    for (let d = addDays(prevDay, Q.qdays.includes(prevDay) ? 1 : 0); d < today; d = addDays(d, 1)) {
-      if (Q.qdays.includes(d) || Q.frozen.includes(d)) continue;
+  // Streak freezes: missed days since the last counted day are covered
+  // while freezes last (only when there is a streak to protect). A kept
+  // day (see questMarkKept) needs no freeze.
+  const counted = d => Q.qdays.includes(d) || Q.kept.includes(d) || Q.frozen.includes(d);
+  if (questStreak(prevDay) > 0) {
+    for (let d = prevDay; d < today; d = addDays(d, 1)) {
+      if (counted(d)) continue;
       if (Q.freezes > 0) { Q.freezes--; Q.frozen.push(d); logEvent("freeze_used", { d }); }
       else break;
     }
   }
   if (Q.frozen.length > 60) Q.frozen = Q.frozen.slice(-60);
+  if (Q.kept.length > 60) Q.kept = Q.kept.slice(-60);
 }
-// Consecutive full-quest days (frozen days count) ending today or `from`.
-function questStreak(from) {
+// A day short of all four quests still keeps the streak, without a
+// freeze, once 40% of the daily goal is reached or a Long session is
+// finished — whichever comes first.
+const KEEP_GOAL_SHARE = 0.4;
+function questMarkKept() {
+  const Q = S.quests, today = todayISO();
+  if (!Array.isArray(Q.kept)) Q.kept = [];
+  if (Q.day !== today || (Q.qdays || []).includes(today) || Q.kept.includes(today)) return;
+  const longDone = (Q.m.sessions || []).some(s => s.len === "long" && !s.ab && !s.quick);
+  if (!longDone && goalProgress() < Math.ceil(getDailyGoal() * KEEP_GOAL_SHARE)) return;
+  Q.kept.push(today);
+  logEvent("day_kept", { long: longDone });
+}
+// THE streak: consecutive counted days — all quests done, kept or
+// frozen — ending today or `from` (today still counts once it's done).
+function questStreakDays() {
   const Q = S.quests;
-  const days = new Set([...(Q.qdays || []), ...(Q.frozen || [])]);
+  return new Set([...(Q.qdays || []), ...(Q.kept || []), ...(Q.frozen || [])]);
+}
+function questStreak(from) {
+  const days = questStreakDays();
   let d = from || todayISO();
   if (!days.has(d)) d = addDays(d, -1);
   let n = 0;
   while (days.has(d)) { n++; d = addDays(d, -1); }
   return n;
 }
-function isoWeekKey(date = new Date()) {
+function isoWeekKey(date = new Date(todayISO() + "T12:00")) {
   const d = new Date(date); d.setHours(12, 0, 0, 0);
   d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
   return d.toLocaleDateString("en-CA");
@@ -815,6 +836,7 @@ function questEvent(type, d = {}) {
     case "bonus_cleared": m.bonusCleared++; break;
   }
   questRecompute();
+  questMarkKept();
   // With a finish date the goal bar shows this same counter: keep it live.
   if (type === "answer" && S.path && S.path.deadline) {
     if (typeof markGoalIfReached === "function") markGoalIfReached();
@@ -1560,7 +1582,7 @@ function renderDayComplete(force = false) {
       <div class="result-sub">All four quests done — see you tomorrow.</div>
       <div class="p-chips">
         ${st ? `<span class="p-chip gold">🔥 ${st}-day streak</span>` : ""}
-        ${Q.freezes ? `<span class="p-chip">🧊 ${Q.freezes} freeze${Q.freezes > 1 ? "s" : ""}</span>` : ""}
+        <span class="p-chip">🧊 ${Q.freezes}</span>
         <span class="p-chip ok">+100 XP</span>
       </div>
       ${questMiniHtml()}

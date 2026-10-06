@@ -84,9 +84,9 @@ const ACHIEVEMENTS = [
 
   // ── Dedication ──
   { id:"streak_keeper", icon:"🔥", name:"Streak Keeper", category:"Dedication",
-    desc:t => `Practice ${t} days in a row`,
+    desc:t => `Keep your 🔥 streak for ${t} days`,
     tiers:[3, 7, 14, 30, 60, 100, 150, 200, 280, 365],
-    value:() => maxLoginStreak() },
+    value:() => maxStreak() },
   { id:"climber", icon:"🧗", name:"Climber", category:"Dedication",
     desc:t => `Reach level ${t}`,
     tiers:[5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
@@ -247,9 +247,9 @@ function totalUnlockedWords() {
   Object.values(S.words).forEach(ws => { if (ws && ws.sk === 2) n--; });
   return Math.max(0, n);
 }
-// Longest run of consecutive days in the login history.
-function maxLoginStreak() {
-  const dates = [...new Set(S.loginDates)].sort();
+// Longest run of the 🔥 streak (quest days, kept and frozen days).
+function maxStreak() {
+  const dates = typeof questStreakDays === "function" && S.quests ? [...questStreakDays()].sort() : [];
   if (!dates.length) return 0;
   let streak = 1, max = 1;
   for (let i = 1; i < dates.length; i++) {

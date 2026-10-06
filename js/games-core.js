@@ -1693,7 +1693,7 @@ function renderGamesHub() {
     : `<button class="g-daily ${dComplete ? "done" : ""}" onclick="startDailyChallenge()" ${dComplete ? "disabled" : ""}>
         <div class="g-daily-head">
           <span class="g-daily-title">📆 Daily Challenge</span>
-          <span class="g-daily-streak">${streak > 0 ? `🔥 ${streak} day${streak > 1 ? "s" : ""}` : ""}</span>
+          <span class="g-daily-streak">${streak > 0 ? `📆 ${streak} in a row` : ""}</span>
         </div>
         <div class="g-daily-games">${dIds.map(id => { const g = getGame(id); const ok = d.done.includes(id);
           return `<span class="g-daily-game ${ok ? "ok" : ""}">${g.icon}<small>${ok ? "✓" : ""}</small></span>`; }).join("")}</div>
