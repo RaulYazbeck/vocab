@@ -66,7 +66,8 @@ const ANKI = {
 };
 
 // The Anki day rolls over at 4 AM, not midnight — a 1 AM session still
-// counts as "yesterday". Only the Anki system uses this clock.
+// counts as "yesterday". The whole app uses this clock (todayISO), in
+// the device's local time zone.
 function ankiToday() {
   return new Date(Date.now() - ANKI.ROLLOVER_HOUR * 3600 * 1000).toLocaleDateString('en-CA');
 }
@@ -220,11 +221,13 @@ function isCorrect(input, answer) {
 function todayISO() {
   return ankiToday();
 }
+// Day arithmetic on plain "YYYY-MM-DD" dates, in UTC so daylight-saving
+// changes can never repeat or skip a date.
 function daysBetween(a, b) {
-  return Math.round((new Date(b) - new Date(a)) / (1000 * 60 * 60 * 24));
+  return Math.round((Date.parse(String(b).slice(0, 10)) - Date.parse(String(a).slice(0, 10))) / 864e5);
 }
 function addDays(date, n) {
-  const d = new Date(date);
-  d.setDate(d.getDate() + n);
+  const d = new Date(String(date).slice(0, 10) + "T00:00:00Z");
+  d.setUTCDate(d.getUTCDate() + n);
   return d.toISOString().slice(0, 10);
 }

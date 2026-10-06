@@ -16,20 +16,9 @@ function currentLevel() {
   while (expForLevel(lv + 1) <= S.exp) lv++;
   return lv;
 }
+// The one streak: days with all quests done, kept or frozen (quests.js).
 function getDailyStreak() {
-  const today = new Date().toLocaleDateString('en-CA');
-  const dates = [...new Set(S.loginDates)].sort();
-  if (!dates.length) return 0;
-  const last = dates[dates.length - 1];
-  const diffFromToday = (new Date(today) - new Date(last)) / (1000*60*60*24);
-  if (diffFromToday > 1) return 0;
-  let streak = 1;
-  for (let i = dates.length - 1; i > 0; i--) {
-    const diff = Math.round((new Date(dates[i]) - new Date(dates[i-1])) / (1000*60*60*24));
-    if (diff === 1) streak++;
-    else break;
-  }
-  return streak;
+  return typeof questStreak === "function" && S.quests ? questStreak() : 0;
 }
 function renderExpBar() {
   const lv   = currentLevel();
@@ -54,7 +43,7 @@ function renderExpBar() {
 // Goal number lives in S.dailyGoal so it syncs between devices.
 // Progress metric is S.drillCorrectToday (reset daily). Days where the
 // goal was reached are recorded in S.goalDates; hitting the goal on
-// GOAL_WEEK_TARGET days per week keeps the weekly goal streak alive.
+// The goal bar shows how many of this week's days hit it (of GOAL_WEEK_TARGET).
 const GOAL_OPTIONS = [10, 20, 50, 100, 150];
 const GOAL_WEEK_TARGET = 5;
 function getDailyGoal() {
@@ -95,23 +84,14 @@ function creditGameAnswers(n) {
   S.gameCorrectToday = (S.gameCorrectToday || 0) + n;
   markGoalIfReached();
 }
+// Goal days in this Monday–Sunday study week.
 function goalWeekInfo() {
   const goalDates = new Set(S.goalDates || []);
-  const daysHit = monday => {
-    let c = 0; const t = new Date(monday);
-    for (let i = 0; i < 7; i++) { if (goalDates.has(t.toLocaleDateString('en-CA'))) c++; t.setDate(t.getDate() + 1); }
-    return c;
-  };
-  const monday = new Date(); monday.setHours(12, 0, 0, 0);
-  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
-  const thisWeek = daysHit(monday);
-  let streak = thisWeek >= GOAL_WEEK_TARGET ? 1 : 0;
-  const m = new Date(monday);
-  while (true) {
-    m.setDate(m.getDate() - 7);
-    if (daysHit(m) >= GOAL_WEEK_TARGET) streak++; else break;
-  }
-  return { thisWeek, streak };
+  const today = todayISO();
+  const monday = addDays(today, -((new Date(today + "T12:00").getDay() + 6) % 7));
+  let thisWeek = 0;
+  for (let i = 0; i < 7; i++) if (goalDates.has(addDays(monday, i))) thisWeek++;
+  return { thisWeek };
 }
 let _goalCelebrated = null; // date the toast fired; seeded on first render
 function dailyGoalHtml() {
@@ -129,7 +109,7 @@ function dailyGoalHtml() {
   }
   const pct = Math.min(100, Math.round((done / goal) * 100));
   const week = goalWeekInfo();
-  const weekChip = `<span class="goal-week">${week.thisWeek}/${GOAL_WEEK_TARGET}d${week.streak > 0 ? ` · 🔥${week.streak}w` : ""}</span>`;
+  const weekChip = `<span class="goal-week">${week.thisWeek}/${GOAL_WEEK_TARGET}d</span>`;
   return `<div class="goal-row${reached ? " reached" : ""}">
       <span class="goal-icon">🎯</span>
       <div class="goal-track"><div class="goal-fill" style="width:${pct}%"></div></div>
@@ -139,9 +119,9 @@ function dailyGoalHtml() {
 }
 
 
-// ── LOGIN STREAK ──────────────────────────────
+// ── DAILY LOGIN ──────────────────────────────
 function recordLogin() {
-  const today = new Date().toLocaleDateString('en-CA');
+  const today = todayISO();
   if (S.lastLoginDate === today) return;
   if (!S.loginDates.includes(today)) S.loginDates.push(today);
   S.lastLoginDate = today;

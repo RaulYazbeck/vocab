@@ -987,7 +987,13 @@ tr:hover td { background:rgba(255,255,255,0.03); }
 .cal-col { display:flex; flex-direction:column; gap:3px; flex:1; }
 .cal-cell { aspect-ratio:1; width:100%; max-width:14px; border-radius:2px; background:rgba(255,255,255,0.07); }
 .cal-cell.on { background:var(--teal); box-shadow:0 0 4px rgba(0,201,177,0.4); }
+.cal-cell.kept { background:rgba(0,201,177,0.4); }
+.cal-cell.frozen { background:#7FB8E8; }
+.cal-cell.today { outline:1px solid var(--text-3); outline-offset:1px; }
 .cal-cell.future { background:transparent; }
+.cal-legend { display:flex; gap:12px; margin-top:8px; font-size:11px; color:var(--text-3); }
+.cal-legend span { display:flex; align-items:center; gap:4px; }
+.cal-legend .cal-cell { display:inline-block; width:10px; height:10px; }
 
 /* ── STRUGGLING WORDS ──────────── */
 .struggle-wrap { margin-bottom:1.25rem; }

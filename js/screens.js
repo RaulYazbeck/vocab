@@ -221,7 +221,7 @@ function setTimerSubMode(s) { timerSubMode = s; renderStartBar(); }
 
 // ── STATS SCREEN ──────────────────────────────
 function agoLabel(ts) {
-  const days = daysBetween(new Date(ts).toLocaleDateString('en-CA'), todayISO());
+  const days = daysBetween(new Date(ts - ANKI.ROLLOVER_HOUR * 3600e3).toLocaleDateString('en-CA'), todayISO());
   return days <= 0 ? "today" : days === 1 ? "yesterday" : `${days}d ago`;
 }
 function renderStatsScreen() {
@@ -293,27 +293,28 @@ function toggleStatsDeck(deckId) {
   if (chevron) chevron.style.transform = isOpen ? "" : "rotate(90deg)";
 }
 // ── STATS CHOICE ──────────────────────────────
-// 12-week login-activity grid (columns = weeks, Monday-aligned).
+// 12-week streak calendar (columns = weeks, Monday-aligned, 4 AM days):
+// all quests done, kept (40% of the goal or a Long session), or frozen.
 function activityGridHtml() {
-  const dates = new Set(S.loginDates);
-  const todayStr = todayISO();
-  const d = new Date(); d.setHours(12, 0, 0, 0);
-  const dow = (d.getDay() + 6) % 7; // 0 = Monday
-  d.setDate(d.getDate() - dow - 77); // back to the Monday 11 weeks ago
+  const Q = S.quests || {};
+  const full = new Set(Q.qdays || []), kept = new Set(Q.kept || []), frozen = new Set(Q.frozen || []);
+  const today = todayISO();
+  let d = addDays(today, -((new Date(today + "T12:00").getDay() + 6) % 7) - 77); // Monday 11 weeks ago
   let cols = "";
   for (let wk = 0; wk < 12; wk++) {
     let cells = "";
     for (let i = 0; i < 7; i++) {
-      const iso = d.toLocaleDateString('en-CA');
-      const cls = iso > todayStr ? "future" : dates.has(iso) ? "on" : "";
-      cells += `<div class="cal-cell ${cls}" title="${iso}"></div>`;
-      d.setDate(d.getDate() + 1);
+      const [cls, what] = d > today ? ["future", ""] : full.has(d) ? ["on", "all quests done"]
+        : kept.has(d) ? ["kept", "streak kept"] : frozen.has(d) ? ["frozen", "🧊 freeze used"] : ["", ""];
+      cells += `<div class="cal-cell ${cls}${d === today ? " today" : ""}" title="${d}${what ? " · " + what : ""}"></div>`;
+      d = addDays(d, 1);
     }
     cols += `<div class="cal-col">${cells}</div>`;
   }
   return `<div class="cal-wrap">
-    <div class="cal-title">📅 Activity — last 12 weeks</div>
+    <div class="cal-title">🔥 Streak — last 12 weeks</div>
     <div class="cal-grid">${cols}</div>
+    <div class="cal-legend"><span><i class="cal-cell on"></i>All quests</span><span><i class="cal-cell kept"></i>Kept</span><span><i class="cal-cell frozen"></i>Freeze</span></div>
   </div>`;
 }
 
@@ -800,7 +801,7 @@ function renderHome() {
     <div class="today-card" id="today-card">
       <div class="tc-head">
         <div class="tc-title">Today</div>
-        ${streak || Q.freezes ? `<div class="tc-streak" title="Days in a row with all quests done">${streak ? `🔥 ${streak}` : ""}${Q.freezes ? ` <span class="tc-freeze" title="Streak freezes">🧊${Q.freezes}</span>` : ""}</div>` : ""}
+        <div class="tc-streak" title="Your streak: days with all quests done, or 40% of the goal, or a Long session">${streak ? `🔥 ${streak} ` : ""}<span class="tc-freeze" title="Streak freezes: each covers a missed day automatically">🧊 ${Q.freezes}</span></div>
         <button class="tc-quiet ${quiet ? "on" : ""}" onclick="toggleQuiet()" aria-pressed="${quiet}" title="Silence everything until tomorrow — your sound settings stay as they are">${quiet ? "🔇 Muted until tomorrow" : "🔈 Mute until tomorrow"}</button>
       </div>
       ${banner}
