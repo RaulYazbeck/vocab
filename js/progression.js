@@ -144,6 +144,20 @@ function goalWeekInfo() {
   for (let i = 0; i < 7; i++) if (goalDates.has(addDays(monday, i))) thisWeek++;
   return { thisWeek };
 }
+// One note, once, when levels moved to the journey curve (config.js):
+// the same XP now shows a lower level, so say why. A cloud load can
+// replace S before the flag reaches the cloud: once per page, too.
+let _journeyNoted = false;
+function noteJourneyLevels() {
+  if (S.lvCurve === 2) return;
+  S.lvCurve = 2;
+  saveLocalOnly(); // no savedAt stamp at init (see recordLogin)
+  if (_journeyNoted) return;
+  _journeyNoted = true;
+  if ((S.exp || 0) > expForLevel(10) && !grandmaOn())
+    setTimeout(() => showCelebrateToast("🗺️", "Levels now follow your journey",
+      `Lv ${currentLevel()} = ${journeyPercent()}% of the way · Lv 100 = every deck done`), 1500);
+}
 // ── DAILY LOGIN ──────────────────────────────
 function recordLogin() {
   const today = todayISO();

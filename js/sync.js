@@ -191,6 +191,7 @@ function loadFromCloud() {
       S = cloudState;
       migrate();
       recordLogin();
+      if (typeof noteJourneyLevels === "function") noteJourneyLevels();
       if (typeof questEnsureToday === "function") questEnsureToday();
       if (typeof applyCosmetics === "function") applyCosmetics();
       if (typeof invalidatePathScan === "function") invalidatePathScan();

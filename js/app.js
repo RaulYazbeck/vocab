@@ -136,6 +136,7 @@ initVoice();
 initSettingsPanel();
 if (typeof audioInit === "function") audioInit();
 recordLogin();
+if (typeof noteJourneyLevels === "function") noteJourneyLevels();
 questEnsureToday();
 applyCosmetics();
 renderExpBar();
