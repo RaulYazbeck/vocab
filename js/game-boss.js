@@ -127,13 +127,42 @@ async function startDeckBoss(deckId) {
   const owned = (S.quests && S.quests.hearts) || 0;
   const bring = Math.min(owned, typeof deckHeartLimit === "function" ? deckHeartLimit(deckBossHp(deckId)) : 0);
   let use = 0;
-  if (bring > 0 && typeof appConfirm === "function") {
-    const yes = await appConfirm({ title: `Bring ❤️ ×${bring}?`,
-      body: `Each heart forgives one mistake (this deck allows ${deckHeartLimit(deckBossHp(deckId))}, you have ${owned}). Hearts used are gone — and if the boss wins, every heart you brought is lost.`,
-      ok: `⚔️ Fight with ❤️ ×${bring}`, cancel: "Fight flawless" });
-    if (yes) use = bring;
+  if (bring > 0) {
+    const pick = await heartsChoice(bring, owned, deckHeartLimit(deckBossHp(deckId)));
+    if (pick === null) return; // closed: no fight
+    use = pick;
   }
-  launchGame("boss", { pool, size: "full", bossMode: "deck", deck: deckId, bring: use });
+  const opts = { pool, size: "full", bossMode: "deck", deck: deckId, bring: use };
+  // 💀 Sudden death would leave the hearts you brought unused: with
+  // hearts, the only twist a deck boss rolls is 🌟 Golden words.
+  if (use) {
+    let seen = true; try { seen = localStorage.getItem("gv_game_intro_boss") === "1"; } catch (e) {}
+    opts.twist = seen && S.games.twists !== false && Math.random() < TWIST_CHANCE ? "golden" : null;
+  }
+  launchGame("boss", opts);
+}
+// Bring the hearts, fight flawless, or close (resolves null: no fight).
+function heartsChoice(bring, owned, limit) {
+  return new Promise(resolve => {
+    const old = document.getElementById("hearts-choice"); if (old) old.remove();
+    const m = document.createElement("div");
+    m.className = "modal-overlay"; m.id = "hearts-choice";
+    m.innerHTML = `<div class="modal-sheet confirm-sheet" role="dialog" aria-modal="true" aria-labelledby="hc-title">
+      <div class="modal-title" id="hc-title">Bring ❤️ ×${bring}?</div>
+      <div class="modal-sub">Each heart forgives one mistake (this deck allows ${limit}, you have ${owned}). Hearts used are gone — and if the boss wins, every heart you brought is lost.</div>
+      <div class="modal-actions">
+        <button class="modal-btn secondary" id="hc-no">Fight flawless</button>
+        <button class="modal-btn primary" id="hc-yes">⚔️ Fight with ❤️ ×${bring}</button>
+      </div></div>`;
+    const done = v => { document.removeEventListener("keydown", key, true); m.remove(); resolve(v); };
+    const key = e => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); done(null); } };
+    document.addEventListener("keydown", key, true);
+    m.onclick = e => { if (e.target === m) done(null); };
+    document.body.appendChild(m);
+    m.querySelector("#hc-no").onclick = () => done(0);
+    m.querySelector("#hc-yes").onclick = () => done(bring);
+    setTimeout(() => m.querySelector("#hc-yes").focus(), 50);
+  });
 }
 
 // ── WORLD BOSS ────────────────────────────────
@@ -258,7 +287,8 @@ registerGame({
       : skin ? { icon: skin.icon, name: skin.name } : BOSSES[Math.floor((S.games.bossesDefeated || 0) / 3) % BOSSES.length];
     // 👑 Deck boss: flawless — unless you brought ❤️ boss hearts, one
     // forgiven mistake each (spent as you make them). Minion: 3 lives.
-    const bring = mode === "deck" ? Math.max(0, Math.min(ctx.opts.bring || 0, (S.quests && S.quests.hearts) || 0)) : 0;
+    // A 💀 Sudden death twist added on the start card leaves them home.
+    const bring = mode === "deck" && !ctx.sudden ? Math.max(0, Math.min(ctx.opts.bring || 0, (S.quests && S.quests.hearts) || 0)) : 0;
     const flawless = ctx.sudden || (mode === "deck" && !bring);
     const maxHearts = flawless ? 1 : mode === "deck" ? bring + 1 : mode === "minion" ? 3 : rp.hearts;
     let hearts = maxHearts, correct = 0, wrong = 0, combo = 0, maxCombo = 0, dealt = 0, typedOk = 0;

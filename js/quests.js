@@ -1134,11 +1134,12 @@ function openChest(ch) {
   return { rar, idiom, loot: grandmaOn() ? loot.slice(0, 1) : loot };
 }
 // Epic/Legendary collectible: an idiom card or a cosmetic, whichever
-// collection still has pieces of that rarity (a coin flip when both do).
+// collection still has pieces of that rarity — weighted by what's left,
+// so both albums fill up together (the saga adds cosmetics on the side).
 function grantCollectible(rar) {
   const idioms = typeof idiomPool === "function" ? idiomPool(rar) : [], cos = COSMETICS.filter(c => !c.free && c.rar === rar && !S.quests.cos.owned.includes(c.id));
   if (!idioms.length && !cos.length) return rar === "legendary" ? grantCollectible("epic") : null;
-  if (idioms.length && (!cos.length || Math.random() < 0.5)) {
+  if (idioms.length && Math.random() < idioms.length / (idioms.length + cos.length)) {
     const c = idioms[Math.floor(Math.random() * idioms.length)];
     S.quests.idioms.push(c.id);
     S.quests._lastIdiom = c.id;

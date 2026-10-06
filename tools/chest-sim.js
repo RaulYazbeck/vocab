@@ -105,7 +105,7 @@ function collection(runs = 2000) {
     const left = () => P.epicCos + P.legCos + P.epicIdiom + P.legIdiom;
     const take = (cos, idiom) => {
       if (!P[cos] && !P[idiom]) return false;
-      if (P[idiom] && (!P[cos] || Math.random() < 0.5)) P[idiom]--; else P[cos]--;
+      if (P[idiom] && Math.random() < P[idiom] / (P[idiom] + P[cos])) P[idiom]--; else P[cos]--;
       return true;
     };
     const days = play(3000, (rar, src) => {
