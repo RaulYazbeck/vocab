@@ -808,7 +808,7 @@ function settingsAccountHtml() {
     ${setNavHtml("✏️", `My word edits${editCount ? ` (${editCount})` : ""}`, "Words whose text you corrected", "menuGo('edits')")}
     <div class="settings-sync-line">☁️ Last saved ${lastSaved}</div>
     <details class="set-dev"><summary>For developers</summary>
-      ${setNavHtml("📚", "Copy learning log", "What you've learnt and where you slip — paste it into your German project in Claude for exercises made for you", "copyLearningReport()")}
+      ${typeof copyLearningReport !== "function" ? "" : setNavHtml("📚", "Copy learning log", "What you've learnt and where you slip — paste it into your German project in Claude for exercises made for you", "copyLearningReport()")}
       ${setNavHtml("📋", "Copy usage report", "Paste it to Claude for the next improvements", "copyUsageReport()")}
       ${typeof audioVoiceLogRowHtml === "function" ? audioVoiceLogRowHtml() : ""}
     </details>`;
