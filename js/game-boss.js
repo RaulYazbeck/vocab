@@ -167,11 +167,13 @@ function renderBestiary(from) {
   const W = worldBossState();
   const total = vocabGroups().reduce((s, g) => s + g.decks.length, 0);
   const beaten = Object.values(S.games.bestiary).filter(r => r.wins).length;
-  let openSet = false;
-  const groups = vocabGroups().map(g => {
+  // Open the level you're on: the first with an unbeaten boss and met
+  // words — or simply the first level.
+  const levels = vocabGroups();
+  const cur = Math.max(0, levels.findIndex(g => g.decks.some(d => !(S.games.bestiary[d.id] || {}).wins && deckMetWords(d.id).length > 0)));
+  const groups = levels.map((g, gi) => {
     const won = g.decks.filter(d => (S.games.bestiary[d.id] || {}).wins).length;
-    const open = !openSet && won < g.decks.length && g.decks.some(d => deckMetWords(d.id).length > 0);
-    if (open) openSet = true;
+    const open = gi === cur;
     const tiles = g.decks.map(d => {
       const b = deckBoss(d.id), rec = S.games.bestiary[d.id] || {};
       const known = rec.wins > 0, ready = deckBossReady(d.id), seen = known || ready || rec.minions;

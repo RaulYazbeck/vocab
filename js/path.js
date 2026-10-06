@@ -831,7 +831,8 @@ function pathForecast(days = 8) {
     if (i === 0) r.scheduled += done0;
     r.waiting = Math.round(r.waiting);
   });
-  if (plan && out[0]) out[0].total = Math.max(out[0].total, plan.reviews);
+  // Today is the plan itself: never show less than this morning's plan.
+  if (plan && out[0] && plan.reviews > out[0].total) { out[0].scheduled += plan.reviews - out[0].total; out[0].total = plan.reviews; }
   return { p, days: out };
 }
 

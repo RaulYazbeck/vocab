@@ -521,8 +521,8 @@ function pathReverseResolve(right) {
 }
 // ── PRIVATE "MY TYPO" OVERRIDE ────────────────
 // A deliberate triple gesture (tap the ✗ ×3, or Shift+Enter ×3) on a wrong
-// typed answer turns it into a full success. Honour system, max 2 a day.
-const SECRET_OK_PER_DAY = 2;
+// typed answer turns it into a full success. Honour system, max 3 a day.
+const SECRET_OK_PER_DAY = 3;
 let _secretTaps = [];
 function pathSecretPress(need, windowMs) {
   const now = Date.now();

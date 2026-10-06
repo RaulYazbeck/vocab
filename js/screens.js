@@ -106,7 +106,9 @@ function renderGroups() {
 // ── START BAR ─────────────────────────────────
 function renderStartBar() {
   let island = document.getElementById("floating-island");
-  if (selectedIds.size === 0) {
+  // The deck-picker island belongs to the Library (Classic mode). A quest
+  // can still select decks behind the scenes (Anki) — never show it then.
+  if (selectedIds.size === 0 || !classicOn()) {
     if (island) island.remove();
     const spacer = document.getElementById("island-spacer");
     if (spacer) spacer.remove();
@@ -646,8 +648,10 @@ function bindSheetDrag(panel, sheet) {
     if (y0 === null) return;
     y0 = null;
     panel.classList.remove("dragging");
-    sheet.style.transform = "";
-    if (dy < 6 || dy > 90 || (dy > 30 && Date.now() - t0 < 250)) closeSettings();
+    const close = dy < 6 || dy > 90 || (dy > 30 && Date.now() - t0 < 250);
+    // Pulled down: keep going from where the finger let go.
+    sheet.style.transform = close && dy >= 6 ? "translateY(105%)" : "";
+    if (close) closeSettings();
   };
   grip.onpointerup = end; grip.onpointercancel = end;
 }

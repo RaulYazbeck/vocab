@@ -30,7 +30,7 @@ function showScreen(name) {
   else if (name === "edits")    renderWordEditsScreen();
   else if (name === "forecast") renderAnkiForecast();
   else if (name === "games")    openGamesHub(null);
-  else if (name === "bosses")   renderBestiary();
+  else if (name === "bosses")   renderBestiary("menu");
 }
 function backToMenu() {
   if (typeof pathSession !== "undefined" && pathSession) endPathSession(true);
@@ -121,6 +121,13 @@ if (document.hasFocus() || !("hasFocus" in document)) skyWake(); else skyRest();
 // here (double-tap zoom is off through touch-action in the CSS).
 ["gesturestart", "gesturechange"].forEach(ev => document.addEventListener(ev, e => e.preventDefault(), { passive: false }));
 document.addEventListener("touchmove", e => { if (e.touches && e.touches.length > 1) e.preventDefault(); }, { passive: false });
+
+// Escape closes an open sheet (Menu, Settings, quest, streak, boss).
+document.addEventListener("keydown", e => {
+  if (e.key !== "Escape" || typeof sheetOpen !== "function" || !sheetOpen()) return;
+  if (document.querySelector("body > .modal-overlay")) return;
+  e.preventDefault(); e.stopImmediatePropagation(); closeSettings();
+}, true);
 
 // ── INIT ──────────────────────────────────────
 document.querySelector("h1").textContent = APP_CONFIG.title.replace(/ Vocabulary$/, "");
