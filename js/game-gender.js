@@ -103,7 +103,7 @@ registerGame({
         if (rp.pen) { const pen = Math.round(rp.pen * ctx.cost(cur)); ctx.clock.add(pen); floatScore(bucket, `−${pen / 1000}s`, "bad"); }
         card.classList.add("wrong");
         shakeEl(bucket); playMiss(); haptic("miss");
-        ctx.missed(cur);
+        ctx.missed(cur, { type: "gender", given: GENDER_BUCKETS[i].a + " " + np.noun });
         ctx.say(`It's ${np.full}`);
         speak(np.full);
         // Why: an ending rule when there is one (-ung → die, -chen → das…).

@@ -264,6 +264,10 @@ function buildUsageReport(nDays = 0) {
   if (gxl.length) lines.push(`Game detail (ok% · avg finished · avg time before quitting · quit before playing): ` +
     gxl.map(([g, a]) => { const fin = (games[g] || [])[1] || 0, q = (games[g] || [])[2] || 0;
       return `${g} ${pct(a[0], a[0] + a[1])} · ${secs(a[2], fin)} · ${secs(a[3], q)} · ${a[4]}`; }).join(" | "));
+  const mk = {}, sf = {};
+  days.forEach(([, v]) => { Object.entries(v.mk || {}).forEach(([k, n]) => mk[k] = (mk[k] || 0) + n); Object.entries(v.sf || {}).forEach(([k, n]) => sf[k] = (sf[k] || 0) + n); });
+  if (Object.keys(mk).length) lines.push(`Mistakes by type: ` + Object.entries(mk).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(" · "));
+  if (Object.keys(sf).length) lines.push(`Writing slips on accepted answers: ` + Object.entries(sf).map(([k, n]) => `${k} ${n}`).join(" · "));
   lines.push(`Quests: done ${sum(v => v.q[0])} · rerolled ${sum(v => v.q[1])} · swapped 🔇 ${sum(v => v.q[2])} · full days ${sum(v => v.q[3])}`);
   const qs = Object.entries(qStats).sort((a, b) => b[1][0] - a[1][0]);
   if (qs.length) lines.push(`Quest templates (offered/done/rerolled+swapped): ` + qs.map(([k, a]) => `${k} ${a[0]}/${a[1]}/${a[2]}`).join(" · "));

@@ -754,6 +754,8 @@ function gTypedBind(ctx, onSubmit) {
 }
 // Grade a typed game answer against one or more accepted strings.
 function gradeTyped(val, answers) {
+  // What was typed, for the learning log if this turns out to be a miss.
+  if (activeGame && activeGame.ctx) { activeGame.ctx.lastGiven = val; activeGame.ctx.lastExpected = answers; }
   if (!String(val || "").trim()) return false;
   if (answers.some(a => a && (isCorrect(val, a) || normalize(val) === normalize(a)))) return true;
   return isNearMiss(val, answers) ? "near" : false;
@@ -957,6 +959,8 @@ function beginGame(ctx) {
   if (document.hidden) pauseGame(true);
 }
 
+// What a miss in a game means when nothing was typed (learning log).
+const GAME_MISS_TYPE = { gender: "gender", plural: "plural", cases: "case", listen: "listening", cloze: "context" };
 // The object handed to every game.
 //   ctx.pool / size / stage / clock / rounds(full, short, bonus)
 //   ctx.setScore(n) setLives(n, max) setCombo(n) setBar(frac, cls)
@@ -986,6 +990,9 @@ function makeCtx(def, pool, size, opts) {
       if (!w) return;
       const k = wordKey(w), prev = ctx.hits.get(k);
       if (!prev || (prev.kind !== "recall" && kind === "recall")) ctx.hits.set(k, { w, kind });
+      if (typeof learnNoteHit === "function") learnNoteHit(w, "game:" + def.id);
+      if (kind === "recall" && ctx.lastGiven && typeof learnNoteSoft === "function") learnNoteSoft(w, ctx.lastGiven);
+      ctx.lastGiven = null;
     },
     // Cost multiplier of a miss: 🌱 words cost half — never nothing.
     cost(w) { return w && isRookie(w) ? 0.5 : 1; },
@@ -1079,7 +1086,18 @@ function makeCtx(def, pool, size, opts) {
       ctx.teach("");
       f();
     },
-    missed(word) { if (word && !ctx.missedWords.some(w => sameWord(w, word))) ctx.missedWords.push(word); },
+    // info (optional, for the learning log): { given, type, expected }.
+    // A typed answer is picked up from gradeTyped by itself.
+    missed(word, info = {}) {
+      if (word && !ctx.missedWords.some(w => sameWord(w, word))) ctx.missedWords.push(word);
+      if (word && typeof learnNoteMiss === "function") {
+        const given = info.given != null ? info.given : ctx.lastGiven;
+        const typed = given != null;
+        const type = info.type || (typed && String(given).trim() ? null : typed ? "blank" : GAME_MISS_TYPE[def.id] || "recognition");
+        learnNoteMiss(word, { src: "game:" + def.id, given, type, expected: info.expected || (typed && info.given == null ? ctx.lastExpected : undefined) });
+      }
+      ctx.lastGiven = null;
+    },
     finish(result) {
       if (ctx.finished || ctx.dead) return;
       ctx.finished = true;

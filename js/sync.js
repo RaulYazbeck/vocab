@@ -79,12 +79,15 @@ function buildSyncDocs() {
     if (!wordsByDeck[deckId]) wordsByDeck[deckId] = {};
     wordsByDeck[deckId][key] = S.words[key];
   });
-  const { words, usageArchive, ...meta } = S;
+  const { words, usageArchive, learn, ...meta } = S;
   meta._evidence = evidenceCount(S); // lets loads compare without fetching words
   const docs = { [STORAGE_KEY]: meta };
   Object.entries(wordsByDeck).forEach(([deckId, deckWords]) => {
     docs[STORAGE_KEY + "_words_" + deckId] = { words: deckWords };
   });
+  // Learning log extras (learning-log.js): their own doc, so verb
+  // history can grow without crowding the meta doc.
+  if (learn) docs[STORAGE_KEY + "_learn"] = { learn };
   // Usage days older than the meta doc keeps (usage-log.js): one doc
   // per year, rewritten only when a day moves into it.
   Object.entries(usageArchive || {}).forEach(([year, days]) => {
@@ -138,10 +141,12 @@ function loadFromCloud() {
       let cloudMeta = null;
       const allWords = {};
       const usageArchive = {};
+      let cloudLearn = null;
       snapshot.forEach(doc => {
         const data = doc.data();
         if (doc.id === STORAGE_KEY) cloudMeta = data;
         else if (doc.id.startsWith(STORAGE_KEY + "_words_")) Object.assign(allWords, data.words || {});
+        else if (doc.id === STORAGE_KEY + "_learn") cloudLearn = data.learn || null;
         else if (doc.id.startsWith(STORAGE_KEY + "_usage_")) usageArchive[doc.id.slice((STORAGE_KEY + "_usage_").length)] = data.days || {};
       });
       if (!cloudMeta) { setStatus("☁️ Synced", 3000); initialLoadComplete = true; return; }
@@ -152,6 +157,7 @@ function loadFromCloud() {
         usageArchive[y] = { ...(days || {}), ...(usageArchive[y] || {}) };
       });
       const cloudState = { ...cloudMeta, words: allWords, usageArchive };
+      if (cloudLearn || S.learn) cloudState.learn = cloudLearn || S.learn;
       if (S.usage && S.usage.days) {
         const cu = cloudState.usage = { ...(cloudState.usage || {}) };
         cu.days = { ...S.usage.days, ...(cu.days || {}) };

@@ -105,7 +105,7 @@ registerGame({
       score = Math.max(0, score - pen);
       if (btn) { shakeEl(btn); floatScore(btn, "−" + pen, "bad"); }
       playMiss(); haptic("miss");
-      ctx.missed(w);
+      ctx.missed(w, picked && picked.text ? { type: "listening", given: picked.text } : {});
       ctx.say(`It was: ${gamePrompt(w)}`);
       noteWrongPick(w, picked);
       ctx.teach(wordLessonHtml(w, picked, `<button class="g-link-btn" ${speakBtnAttrs(gameForm(w))}>🔊 Hear it again</button>`), "bad");
