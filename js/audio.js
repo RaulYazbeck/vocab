@@ -541,6 +541,7 @@ function _audioMisses() {
 function audioNoteMiss(text) {
   const t = String(text == null ? "" : text).replace(/\s+/g, " ").trim();
   if (!t || t.length > 200) return;
+  if (typeof usageNoteTts === "function") usageNoteTts();
   const list = _audioMisses();
   if (list.includes(t)) return;
   list.push(t);

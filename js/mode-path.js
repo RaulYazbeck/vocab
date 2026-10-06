@@ -267,6 +267,9 @@ function pathAnswerChoice(i) {
   const ws = getWS(w.deckId, w.idx);
   const from = stageOf(ws);
   pathLogAnswer(it, ok, { typed: false });
+  if (!ok && typeof learnNoteMiss === "function")
+    learnNoteMiss(w, i < 0 ? { src: "path:" + it.t, type: "blank" }
+      : { src: "path:" + it.t, type: it.t === "listen" ? "listening" : "recognition", given: it.opts[i] && it.opts[i].text });
   if (ok) {
     ws.lastAnsweredAt = Date.now(); ws.correct++; S.totalCorrect++;
     const res = it.fresh || it.warm ? null : srsReview(ws, true, "recognition");
@@ -556,6 +559,7 @@ function pathSecretOk() {
   if (!u.wasMissed) s.missed = s.missed.filter(x => !sameWord(x, w));
   if (u.move) s.moves.set(k, u.move); else s.moves.delete(k);
   P.secretOk.n++;
+  if (typeof learnUndoLast === "function") learnUndoLast(w);
   logEvent("secretOk", { m: "path:" + it.t, n: P.secretOk.n });
   // …and grade it as correct (fromReverse = bypass the already-answered guard).
   s.answered = false;
@@ -582,6 +586,13 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
   const typoOk = ok !== true && ok !== "near" && !fromReverse && !it.said && !!val.trim() && ["typed", "spot", "cloze"].includes(it.t);
   const spoken = !!it.spoken;
   pathLogAnswer(it, ok === true, { typed: true, near: ok === "near", hint: !!it.usedHint, voice: spoken, say: !!it.said, fast: !!it.fast });
+  if (typeof learnNoteMiss === "function" && !it.said && !spoken) {
+    if (ok === true) { if (!fromReverse && it.t !== "reverse" && it.t !== "cloze") learnNoteSoft(w, val); }
+    else if (it.t === "reverse") learnNoteMiss(w, { src: "path:reverse", type: String(val).trim() ? "meaning" : "blank", given: val });
+    else if (it.t === "cloze") learnNoteMiss(w, { src: "path:cloze", given: val, expected: it.cloze.answer, alsoOk: [w[WORD_KEY], gameForm(w)], noNoun: true,
+      type: ok === "near" ? "spelling" : undefined });
+    else learnNoteMiss(w, { src: "path:" + it.t, given: val, type: ok === "near" ? "spelling" : undefined });
+  }
   if (ok === true) {
     // Said aloud: a Show tapped too fast to have recalled anything is a look.
     const kind = it.usedHint || (it.said && it.fast && !it.micOk) ? "recognition" : "recall";
@@ -970,7 +981,9 @@ function endPathSession(abandoned) {
   const s = pathSession;
   if (!s) return;
   stopPathVoice();
-  logEvent("session_end", { kind: s.quick ? "quick5" : "path", abandoned, n: s.stats.answered, ok: s.stats.correct, ms: Date.now() - s.startedAt, at: s.i });
+  const moves = s.moves ? [...s.moves.values()] : [];
+  logEvent("session_end", { kind: s.quick ? "quick5" : "path", abandoned, n: s.stats.answered, ok: s.stats.correct, ms: Date.now() - s.startedAt, at: s.i,
+    sd: typeof usageDateOf === "function" ? usageDateOf(s.startedAt) : undefined, met: (s.met || []).length, up: moves.filter(m => m.to > m.from).length, down: moves.filter(m => m.to < m.from).length });
   questEvent("session_end", { kind: "path", len: s.lenKey, abandoned, stats: s.stats, ms: Date.now() - s.startedAt, quick: s.quick,
     ok5: s.ok5, up: s.upCount || 0, wotdHit: !!s.wotdHit });
   // ⚡ XP boost from a chest: +50% of this session's XP (achievements

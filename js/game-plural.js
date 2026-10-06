@@ -117,7 +117,7 @@ if (!IS_FRENCH_APP) registerGame({
       score = Math.max(0, score - pen);
       if (btn) { shakeEl(btn); floatScore(btn, "−" + pen, "bad"); }
       playMiss(); haptic("miss");
-      ctx.missed(q.w);
+      ctx.missed(q.w, { type: "plural", given: btn ? btn.textContent.trim() : "" });
       ctx.say(`${q.item.np.full} → die ${q.item.pl}`);
       const rule = typeof pluralRuleHtml === "function" ? pluralRuleHtml(q.item.np.full, q.item.pl) : "";
       ctx.teach(`<div class="g-teach-main">${colorArticleHtml(q.item.np.full)} → <strong>die ${escapeHtml(q.item.pl)}</strong> <span class="g-teach-pl">= ${escapeHtml(gamePrompt(q.w))}</span></div>${rule ? `<div class="g-teach-rule">${rule}</div>` : `<div class="g-teach-sub">No simple rule for this one — learn it with the singular.</div>`}`, "bad");

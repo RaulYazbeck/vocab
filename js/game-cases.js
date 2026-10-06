@@ -75,6 +75,7 @@ if (!IS_FRENCH_APP) registerGame({
       const c = q.ci.reason.c || q.ci.cases[0];
       const t = tally[c] || (tally[c] = [0, 0]); if (ok) t[0]++; t[1]++;
       recordGrammar(c, ok);
+      if (!ok && typeof learnNoteMiss === "function") learnNoteMiss(q.w, { src: "game:cases", type: "case", given: picked && picked.text != null ? picked.text : picked, other: c });
       const sEl = document.getElementById("cs-sentence");
       if (sEl) { sEl.innerHTML = q.ci.reveal; sEl.classList.add(ok ? "ok" : "bad"); }
       speak(q.ci.ex.de);

@@ -375,6 +375,7 @@ registerGame({
       ctx.busy = true;
       const gen = cur.kind === "gen";
       if (gen) vfRecord(cur.v.inf, cur.tense, res === true && !helped);
+      if (gen && typeof learnNoteVerb === "function") learnNoteVerb(cur.v.F, cur.tense, cur.person, res === true, skip ? "" : val, cur.cell.ans);
       if (gen && res !== true && !retry.some(x => x.v === cur.v)) retry.push({ v: cur.v, tense: cur.tense, person: cur.person, extra: cur.extra, at: r + 3 });
       if (res === true) {
         correct++; combo++; maxCombo = Math.max(maxCombo, combo);
@@ -394,7 +395,7 @@ registerGame({
         combo = gen ? 0 : ctx.comboAfterMiss(combo, cur.w);
         const pen = Math.round(6 * (gen ? 1 : ctx.cost(cur.w)));
         score = Math.max(0, score - pen);
-        if (!gen) ctx.missed(cur.w); // deck cards only — generated forms never flag a word
+        if (!gen) ctx.missed(cur.w, { given: skip ? "" : val, expected: answersOf(cur) }); // deck cards only — generated forms never flag a word
         input.classList.add("wrong");
         fb.innerHTML = `<span class="bb-bad">${val.trim() ? `<s>${escapeHtml(val.trim())}</s> → ` : ""}${shownOf(cur)}</span>`;
         playMiss(); haptic("miss");

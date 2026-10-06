@@ -235,6 +235,10 @@ function applyAnswerState(ws, correct) {
   } else {
     applyWrong(ws, { w }); sessionConsecutive = 0;
   }
+  if (!voice && typeof learnNoteMiss === "function") {
+    if (correct) learnNoteSoft(w, lastDrillTyped);
+    else learnNoteMiss(w, { src: "drill:" + drillSubMode, given: lastDrillTyped || "" });
+  }
   const ms = Date.now() - drillShownAt;
   const say = drillSay && !voice;
   logEvent("answer", { m: voice ? "drill:voice" : "drill:" + drillSubMode, ok: correct, typed: true, voice, hint, ms, say });
@@ -254,6 +258,7 @@ function checkDrill() {
   // One-letter typo on a longer word: neither right nor wrong.
   if (!correct && isNearMiss(input.value, [currentWord[WORD_KEY], typeof gameForm === "function" ? gameForm(currentWord) : currentWord[WORD_KEY]])) {
     ws.near = (ws.near || 0) + 1; ws.lastAnsweredAt = Date.now();
+    if (typeof learnNoteMiss === "function") learnNoteMiss(currentWord, { src: "drill:" + drillSubMode, given: input.value, type: "spelling" });
     logEvent("answer", { m: "drill:" + drillSubMode, ok: false, near: true, typed: true, ms: Date.now() - drillShownAt });
     drillUsedHint = false;
     saveState();

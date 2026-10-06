@@ -80,8 +80,15 @@ export const SAY_WITH_PRONOUN = new Set(["fr"]);
 //   w = a word or short phrase, s = an example sentence;
 //   deck = the deck it belongs to (used to keep a deck's clips together in the
 //   pack, so editing one deck only changes that deck's files).
-// extraTexts: optional extra phrases (the app's "missing" list).
+// extraTexts: optional extra phrases (the app's "missing" list). Phrases
+// once added that way are kept in state/<lang>/extra.txt (in git) and
+// always included, so a later run never drops their recordings.
+export function extraFile(lang) { return path.join(stateDir(lang), "extra.txt"); }
+export function savedExtras(lang) {
+  try { return fs.readFileSync(extraFile(lang), "utf8").split(/\r?\n/).map(l => l.trim()).filter(Boolean); } catch (e) { return []; }
+}
 export function collectTexts(lang, extraTexts = []) {
+  extraTexts = [...savedExtras(lang), ...extraTexts];
   const app = loadApp(lang);
   const audioKey = evalIn(app, "audioKey");
   const found = evalIn(app, `(() => {

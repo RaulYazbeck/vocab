@@ -9,6 +9,8 @@
 //           recording, every clip decodes, sound starts fast, no page errors
 //   games   every game in both languages runs with the packs, no page errors
 //   flag    the ⚑ flag and the "Copy voice log" row
+//   logs    usage and learning logs: day attribution, quits and abandoned runs,
+//           history kept through a cloud load, mistake types, report building
 //   update  adding decks later, on a fresh copy with no work folder: the update
 //           routine (run_all.py full) records only what is new, then a phone
 //           that has the current pack updates by itself, fetches only the
@@ -26,7 +28,7 @@ import { fileURLToPath } from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "../../..");
-const ALL = ["pack", "games", "flag", "update"];
+const ALL = ["pack", "games", "flag", "logs", "update"];
 const want = process.argv.slice(2).length ? process.argv.slice(2) : ALL;
 for (const w of want) if (!ALL.includes(w)) { console.error(`unknown test "${w}" (choose from ${ALL.join(", ")})`); process.exit(2); }
 
@@ -83,7 +85,7 @@ try {
   const { srv, base } = await serve(siteFrom(ROOT, path.join(TMP, "site")));
   servers.push(srv);
   const env = { ...process.env, BASE: base, OUT };
-  for (const name of ["pack", "games", "flag"].filter(n => want.includes(n))) {
+  for (const name of ["pack", "games", "flag", "logs"].filter(n => want.includes(n))) {
     console.log(`\n━━ ${name} ━━`);
     const r = await run("node", [path.join(HERE, `test_${name}.mjs`)], { env });
     results.push([name, r.code === 0]);

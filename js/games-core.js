@@ -531,12 +531,30 @@ function stopActiveGame() {
   _gt.rafs.forEach(cancelAnimationFrame); _gt.rafs.clear();
   _gt.listeners.forEach(([t, type, fn, o]) => t.removeEventListener(type, fn, o));
   _gt.listeners = [];
-  if (activeGame && activeGame.ctx) activeGame.ctx.dead = true;
+  if (activeGame && activeGame.ctx) { logGameQuit(activeGame); activeGame.ctx.dead = true; }
   activeGame = null;
   gamePreferKeys = null;
 }
+// A game left before its result (Quit, Menu, another screen) counts as
+// quit, including one left on its intro or countdown ("pre").
+function logGameQuit(g) {
+  const ctx = g.ctx;
+  if (ctx.finished || ctx.quitLogged || !g.def) return;
+  ctx.quitLogged = true;
+  logEvent("game_end", { id: g.def.id, size: ctx.size, quit: true, pre: !ctx.started, sd: ctx.launchDay,
+    ms: ctx.started && ctx.clock ? Math.round(ctx.clock.elapsed()) : 0 });
+}
+// Ends a Daily Challenge / Arcade Mix run; one left before its last round
+// is logged as abandoned (a finished one was logged by gameRunRoundDone).
+function dropGameRun() {
+  const run = gameRun;
+  gameRun = null;
+  if (!run || run.logged || run.kind === "surprise") return;
+  run.logged = true;
+  logEvent("session_end", { kind: "games:" + run.kind, abandoned: true, n: run.summaries.length, sd: run.day, ms: Date.now() - run.startedAt });
+}
 // Full exit (Menu button / backToMenu): also abandons any sequence.
-function quitAllGames() { stopActiveGame(); gameRun = null; flushDeferredCelebrations(); }
+function quitAllGames() { stopActiveGame(); dropGameRun(); flushDeferredCelebrations(); }
 
 // Pausable clock: elapsed ms excluding paused time, plus penalties.
 function makeClock() {
@@ -736,9 +754,13 @@ function gTypedBind(ctx, onSubmit) {
 }
 // Grade a typed game answer against one or more accepted strings.
 function gradeTyped(val, answers) {
+  // What was typed, for the learning log if this turns out to be a miss.
+  const g = activeGame && activeGame.ctx;
+  if (g) { g.lastGiven = val; g.lastExpected = answers; }
   if (!String(val || "").trim()) return false;
   if (answers.some(a => a && (isCorrect(val, a) || normalize(val) === normalize(a)))) return true;
-  return isNearMiss(val, answers) ? "near" : false;
+  if (isNearMiss(val, answers)) { if (g) g.lastGiven = null; return "near"; } // a retry, not a miss: don't let it stick to the next question
+  return false;
 }
 
 // ── COLLECTIONS (gender · plural) ─────────────
@@ -845,6 +867,7 @@ function launchGame(id, opts = {}) {
   ctx.twist = opts.twist !== undefined ? opts.twist : (introSeen ? rollTwist(def, size) : null);
   ctx.twistOffered = ctx.twist;
   updateHudRun(ctx);
+  ctx.launchDay = todayISO();
   logEvent("game_start", { id: def.id, size, rank: ctx.rank, twist: ctx.twist || "" });
   if (!introSeen || opts.forceIntro) showGameIntro(ctx, go);
   else if (gameRun || size === "bonus") showRoundSplash(ctx, go);
@@ -938,6 +961,8 @@ function beginGame(ctx) {
   if (document.hidden) pauseGame(true);
 }
 
+// What a miss in a game means when nothing was typed (learning log).
+const GAME_MISS_TYPE = { gender: "gender", plural: "plural", cases: "case", listen: "listening", cloze: "context" };
 // The object handed to every game.
 //   ctx.pool / size / stage / clock / rounds(full, short, bonus)
 //   ctx.setScore(n) setLives(n, max) setCombo(n) setBar(frac, cls)
@@ -967,6 +992,9 @@ function makeCtx(def, pool, size, opts) {
       if (!w) return;
       const k = wordKey(w), prev = ctx.hits.get(k);
       if (!prev || (prev.kind !== "recall" && kind === "recall")) ctx.hits.set(k, { w, kind });
+      if (typeof learnNoteHit === "function") learnNoteHit(w, "game:" + def.id);
+      if (kind === "recall" && ctx.lastGiven && typeof learnNoteSoft === "function") learnNoteSoft(w, ctx.lastGiven);
+      ctx.lastGiven = null;
     },
     // Cost multiplier of a miss: 🌱 words cost half — never nothing.
     cost(w) { return w && isRookie(w) ? 0.5 : 1; },
@@ -1060,7 +1088,18 @@ function makeCtx(def, pool, size, opts) {
       ctx.teach("");
       f();
     },
-    missed(word) { if (word && !ctx.missedWords.some(w => sameWord(w, word))) ctx.missedWords.push(word); },
+    // info (optional, for the learning log): { given, type, expected }.
+    // A typed answer is picked up from gradeTyped by itself.
+    missed(word, info = {}) {
+      if (word && !ctx.missedWords.some(w => sameWord(w, word))) ctx.missedWords.push(word);
+      if (word && typeof learnNoteMiss === "function") {
+        const given = info.given != null ? info.given : ctx.lastGiven;
+        const typed = given != null;
+        const type = info.type || (typed && String(given).trim() ? null : typed ? "blank" : GAME_MISS_TYPE[def.id] || "recognition");
+        learnNoteMiss(word, { src: "game:" + def.id, given, type, expected: info.expected || (typed && info.given == null ? ctx.lastExpected : undefined) });
+      }
+      ctx.lastGiven = null;
+    },
     finish(result) {
       if (ctx.finished || ctx.dead) return;
       ctx.finished = true;
@@ -1219,12 +1258,10 @@ function digitKey(e, n) {
 // the drill. Nothing is recorded for an abandoned round.
 function quitGame() {
   const run = gameRun;
-  if (activeGame && activeGame.ctx && activeGame.ctx.started && !activeGame.ctx.finished)
-    logEvent("game_end", { id: activeGame.def.id, size: activeGame.ctx.size, quit: true, ms: Math.round(activeGame.ctx.clock.elapsed()) });
   stopActiveGame();
   flushDeferredCelebrations();
   if (run && run.kind === "surprise") { gameRun = null; run.onDone && run.onDone(); return; }
-  gameRun = null;
+  dropGameRun();
   openGamesHub();
 }
 
@@ -1328,7 +1365,7 @@ function finishGame(ctx, result) {
   if (ctx.dragN) logEvent("drag", { how: "drag", game: def.id, n: ctx.dragN });
   if (ctx.tapN) logEvent("drag", { how: "tap", game: def.id, n: ctx.tapN });
   logEvent("game_end", { id: def.id, size, rank, twist: twist || "", stars, score: result.score, ok: result.correct, bad: result.wrong,
-    ms: Math.round(ctx.clock.elapsed()), up: credit.up, fl: credit.flagged, rankedUp });
+    ms: Math.round(ctx.clock.elapsed()), up: credit.up, fl: credit.flagged, rankedUp, sd: ctx.launchDay });
   questEvent("game_end", { id: def.id, size, stars, result, rank, twist, rankedUp, newBest, startedAt: ctx.startedAt || 0 });
   saveState();
   checkAchievements({ type: "game_end", game: def.id, size, stars, rank, rankedUp, ...result });
@@ -1431,8 +1468,10 @@ function drillWords(words) {
 // ── SEQUENCES (Daily Challenge, Arcade Mix, Surprise Round) ──
 function startGameRun(kind, ids, opts = {}) {
   if (!ids.length) return;
+  dropGameRun();
   gameRun = { kind, ids, i: 0, summaries: [], pool: opts.pool, size: opts.size || "short",
-    title: opts.title || "", onDone: opts.onDone || null, twists: opts.twists || null };
+    title: opts.title || "", onDone: opts.onDone || null, twists: opts.twists || null,
+    day: todayISO(), startedAt: Date.now() };
   logEvent("session_start", { kind: "games:" + kind, n: ids.length });
   launchGame(ids[0], runLaunchOpts(0));
 }
@@ -1456,7 +1495,7 @@ function gameRunRoundDone(sum) {
   const last = run.i >= run.ids.length - 1;
   const el = document.getElementById("main-screen");
   const dailyBonus = run.kind === "daily" && last ? dailyCompleteIfDone() : 0;
-  if (last) logEvent("session_end", { kind: "games:" + run.kind, abandoned: false, n: run.summaries.length });
+  if (last && !run.logged) { run.logged = true; logEvent("session_end", { kind: "games:" + run.kind, abandoned: false, n: run.summaries.length, sd: run.day, ms: Date.now() - run.startedAt }); }
   if (last && run.kind === "mix") questEvent("mix", {});
   const totalXp = run.summaries.reduce((s, x) => s + x.xp, 0) + dailyBonus;
   const rows = run.summaries.map((x, i) => `<div class="g-run-row">
@@ -1467,7 +1506,7 @@ function gameRunRoundDone(sum) {
   el.innerHTML = `<div class="screen game-screen">
       <div class="screen-top">
         <div class="screen-label">${escapeHtml(run.title)}</div>
-        <button class="back-btn" onclick="gameRun=null;openGamesHub()">← Games</button>
+        <button class="back-btn" onclick="dropGameRun();openGamesHub()">← Games</button>
       </div>
       <div class="result-screen g-results">
         <div class="result-emoji">${last ? (run.kind === "daily" ? "📆" : "🕹️") : sum.def.icon}</div>
