@@ -2,7 +2,7 @@
 // Leveled, grindy achievement system. Every achievement is a ladder:
 // it has tiers (level 1 … level N) with escalating targets, and the
 // player climbs it over months of play. The flagship ladder is
-// "Road to B1": level 1 at 10 words mastered, level 10 at 4,000.
+// "Road to B1": level 1 at 10 words mastered, level 10 at every word.
 //
 // Storage:
 //   S.achLevels = { id: levelReached }   — ladder progress
@@ -22,6 +22,16 @@
 
 function xpForTier(tierIndex) { return (tierIndex + 1) * 50; }
 
+// Explorer's tiers scale with the decks (German and French differ):
+// shares of the words beyond each deck's first 12, the last one all.
+function explorerTiers() {
+  const total = ALL_GROUPS.filter(g => g.type !== "anki")
+    .reduce((s, g) => s + g.decks.reduce((t, d) => t + Math.max(0, d.words.length - UNLOCK_INITIAL), 0), 0);
+  const nice = x => x < 100 ? Math.round(x / 5) * 5 : Math.round(x / 50) * 50;
+  const tiers = [0.01, 0.02, 0.04, 0.08, 0.15, 0.25, 0.4, 0.6, 0.8].map(f => Math.max(5, nice(total * f)));
+  return [...tiers, Math.max(tiers[tiers.length - 1] + 1, total)];
+}
+
 const ACHIEVEMENTS = [
   // ── Vocabulary ──
   { id:"road_b1", icon:"🏔️", name:"Road to B1", category:"Vocabulary",
@@ -29,9 +39,9 @@ const ACHIEVEMENTS = [
     tiers:[10, 50, 150, 300, 600, 1000, 1500, 2200, 3000, 4000],
     value:() => countMastered(true) },
   { id:"explorer", icon:"🧭", name:"Explorer", category:"Vocabulary",
-    desc:t => `Unlock ${t.toLocaleString()} words`,
-    tiers:[25, 60, 120, 250, 450, 800, 1300, 2000, 3000, 4000],
-    value:() => totalUnlockedWords() },
+    desc:t => `Discover ${t.toLocaleString()} new words`,
+    tiers:explorerTiers(), // the last one: every word in the decks
+    value:() => discoveredWords() },
   { id:"perfectionist", icon:"✨", name:"Perfectionist", category:"Vocabulary",
     desc:t => `Hold ⭐ Strong or better on ${t} words at once`,
     tiers:[1, 3, 5, 10, 15, 25, 40, 60, 80, 100],
@@ -39,7 +49,7 @@ const ACHIEVEMENTS = [
   { id:"comeback", icon:"🎢", name:"Comeback Kid", category:"Vocabulary",
     desc:t => `Master ${t} word${t>1?"s":""} you failed 5+ times`,
     tiers:[1, 3, 7, 12, 20, 30, 45, 60, 80, 100],
-    value:() => Object.values(S.words).filter(ws => (ws.wrong || 0) >= 5 && isMastered(ws) && !skipUnearned(ws)).length },
+    value:() => { let n = 0; forEachVocabWord(ws => { if (ws && (ws.wrong || 0) >= 5 && isMastered(ws) && !skipUnearned(ws)) n++; }); return n; } },
 
   { id:"locked_in", icon:"💎", name:"Locked In", category:"Vocabulary",
     desc:t => `Lock in ${t.toLocaleString()} word${t>1?"s":""} for good`,
@@ -89,7 +99,7 @@ const ACHIEVEMENTS = [
     value:() => maxStreak() },
   { id:"climber", icon:"🧗", name:"Climber", category:"Dedication",
     desc:t => `Reach level ${t}`,
-    tiers:[5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
+    tiers:[5, 10, 20, 30, 40, 50, 60, 70, 85, 100], // Lv 100 = every deck done
     value:() => currentLevel() },
 
   // ── Speed ──
@@ -107,11 +117,11 @@ const ACHIEVEMENTS = [
     value:() => Math.floor(S.bestTimerSecondsLeft || 0) },
 
   // ── Memory ──
-  { id:"memory_master", icon:"🃏", name:"Memory Master", category:"Memory",
+  { id:"memory_master", anki:true, icon:"🃏", name:"Memory Master", category:"Memory",
     desc:t => `Complete ${t} Anki session${t>1?"s":""}`,
     tiers:[1, 5, 12, 25, 45, 70, 100, 140, 190, 250],
     value:() => S.ankiSessions || 0 },
-  { id:"elephant", icon:"🐘", name:"Elephant Memory", category:"Memory",
+  { id:"elephant", anki:true, icon:"🐘", name:"Elephant Memory", category:"Memory",
     desc:t => `Grow ${t} card${t>1?"s":""} to a 21-day review interval`,
     tiers:[1, 5, 15, 30, 60, 100, 160, 240, 350, 500],
     value:() => Object.values(S.words).filter(ws => ws.anki && ws.anki.interval >= 21).length },
@@ -154,6 +164,46 @@ const ACHIEVEMENTS = [
     tiers:[10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
     value:() => (S.games && S.games.bestGenderStreak) || 0 },
 ];
+
+// Ladders that measure something finite follow each app's own size
+// (German and French differ in words, nouns, games and Anki decks):
+// the tiers shrink where the app has less than the old top, and the
+// last tier is always all of it. Anki ladders only exist with Anki decks.
+const LADDER_TOPS = {
+  road_b1:          { old: 4000, top: () => vocabWordCount() },
+  locked_in:        { old: 2000, top: () => Math.round(2000 * vocabWordCount() / 4106 / 10) * 10 },
+  bestiary:         { old: 80,   top: () => ALL_GROUPS.filter(g => g.type !== "anki").reduce((s, g) => s + g.decks.length, 0) },
+  rank_climber:     { old: 48,   top: () => typeof GAMES === "undefined" ? 0 : GAMES.reduce((s, g) => s + (g.ranks || GAME_RANKS).length - 1, 0) },
+  star_collector:   { old: 180,  top: () => typeof GAMES === "undefined" ? 0 : GAMES.length * 5 * 3 },
+  gender_collector: { old: 1300, top: () => typeof nounParts !== "function" ? 0 : ALL_GROUPS.filter(g => g.type !== "anki")
+    .reduce((s, g) => s + g.decks.reduce((t, d) => t + d.words.filter(w => nounParts(w)).length, 0), 0) },
+};
+function vocabWordCount() {
+  return ALL_GROUPS.filter(g => g.type !== "anki").reduce((s, g) => s + g.decks.reduce((t, d) => t + d.words.length, 0), 0);
+}
+function scaleTiers(old, oldTop, top) {
+  const f = Math.min(1, top / oldTop);
+  const nice = x => x < 20 ? Math.round(x) : x < 100 ? Math.round(x / 5) * 5 : Math.round(x / 10) * 10;
+  const out = [];
+  old.slice(0, -1).forEach(t => out.push(Math.max(out.length ? out[out.length - 1] + 1 : 1, f < 1 ? nice(t * f) : t)));
+  out.push(Math.max(out[out.length - 1] + 1, top));
+  return out;
+}
+Object.entries(LADDER_TOPS).forEach(([id, L]) => {
+  const a = ACHIEVEMENTS.find(x => x.id === id);
+  if (!a) return;
+  L.tiers = a.tiers; // the shipped tiers (also what old saves earned)
+  let scaled = null;
+  // Worked out on first use: games and grammar load after this file.
+  Object.defineProperty(a, "tiers", { get() {
+    if (scaled) return scaled;
+    const top = L.top();
+    if (!(top > 0)) return L.tiers;
+    return (scaled = scaleTiers(L.tiers, L.old, top));
+  } });
+});
+if (!ALL_GROUPS.some(g => g.type === "anki"))
+  for (let i = ACHIEVEMENTS.length - 1; i >= 0; i--) if (ACHIEVEMENTS[i].anki) ACHIEVEMENTS.splice(i, 1);
 
 // One "Conquered" ladder (single level) per deck group, generated from
 // the app's configured groups — new decks get theirs automatically.
@@ -210,9 +260,14 @@ function groupMasteredCount(group) {
   group.decks.forEach(d => d.words.forEach((_, i) => { const ws = S.words[d.id + "_" + i]; if (isMastered(ws) && !skipUnearned(ws)) n++; }));
   return n;
 }
+// Word ladders count the vocab decks only — Anki cards have their own
+// (🃏 Memory Master, 🐘 Elephant Memory).
+function forEachVocabWord(fn) {
+  ALL_GROUPS.forEach(g => { if (g.type !== "anki") g.decks.forEach(d => d.words.forEach((_, i) => fn(S.words[d.id + "_" + i]))); });
+}
 function countLockedIn() {
   let n = 0;
-  Object.values(S.words).forEach(ws => { if (ws && ws.st >= STAGE_LOCKED) n++; });
+  forEachVocabWord(ws => { if (ws && ws.st >= STAGE_LOCKED) n++; });
   return n;
 }
 function groupReviewCount(group) {
@@ -226,26 +281,28 @@ function groupReviewCount(group) {
 // forAch: leave out words lifted by Skip a level that were never answered.
 function countMastered(forAch = false) {
   let n = 0;
-  ALL_GROUPS.forEach(g => g.decks.forEach(d => d.words.forEach((_, i) => {
-    const ws = S.words[d.id + "_" + i];
-    if (isMastered(ws) && !(forAch && skipUnearned(ws))) n++;
-  })));
+  const count = ws => { if (isMastered(ws) && !(forAch && skipUnearned(ws))) n++; };
+  if (forAch) forEachVocabWord(count);
+  else ALL_GROUPS.forEach(g => g.decks.forEach(d => d.words.forEach((_, i) => count(S.words[d.id + "_" + i]))));
   return n;
 }
 function countMasteryPlus() {
   let n = 0;
-  ALL_GROUPS.forEach(g => g.decks.forEach(d => d.words.forEach((_, i) => {
-    const ws = S.words[d.id + "_" + i];
-    if (ws && isMasteryPlus(ws) && !ws.sk) n++;
-  })));
+  forEachVocabWord(ws => { if (ws && isMasteryPlus(ws) && !ws.sk) n++; });
   return n;
 }
-function totalUnlockedWords() {
+// 🧭 Explorer counts words unlocked beyond the 12 every deck starts
+// with (Anki decks don't unlock), minus the ones Skip a level unlocked
+// without you ever meeting them (sk 2).
+function discoveredWords() {
   let n = 0;
-  ALL_GROUPS.forEach(g => g.decks.forEach(d => { n += getUnlocked(d.id); }));
-  // Words Skip a level unlocked without you ever meeting them (sk 2).
-  Object.values(S.words).forEach(ws => { if (ws && ws.sk === 2) n--; });
-  return Math.max(0, n);
+  ALL_GROUPS.forEach(g => { if (g.type !== "anki") g.decks.forEach(d => {
+    for (let i = Math.min(UNLOCK_INITIAL, d.words.length), u = getUnlocked(d.id); i < u; i++) {
+      const ws = S.words[d.id + "_" + i];
+      if (!(ws && ws.sk === 2)) n++;
+    }
+  }); });
+  return n;
 }
 // Longest run of the 🔥 streak (quest days, kept and frozen days).
 function maxStreak() {
@@ -267,13 +324,36 @@ function hasWeekendPair() {
 }
 
 // ── AWARDING ──────────────────────────────────
+// 🧗 Climber moved to the journey levels (Lv 100 = every deck done)
+// and 🧭 Explorer stopped counting each deck's starting words: once,
+// keep only the tiers the new value really meets. Ladders now sized
+// per app keep the new tiers at or below the best old tier earned.
+// Tiers won again later pay again, small next to the journey's XP.
+function migrateLadders() {
+  if (!S.achLevels) S.achLevels = {};
+  if (S.achTrimV === 2) return;
+  S.achTrimV = 2;
+  ["climber", "explorer"].forEach(id => {
+    const a = ACHIEVEMENTS.find(x => x.id === id);
+    if (!a || !S.achLevels[id]) return;
+    let v = 0;
+    try { v = a.value(); } catch (e) { return; }
+    S.achLevels[id] = Math.min(S.achLevels[id], a.tiers.filter(t => v >= t).length);
+  });
+  Object.entries(LADDER_TOPS).forEach(([id, L]) => {
+    const a = ACHIEVEMENTS.find(x => x.id === id), k = S.achLevels[id];
+    if (!a || !k) return;
+    const best = L.tiers[Math.min(k, L.tiers.length) - 1];
+    S.achLevels[id] = Math.min(k, a.tiers.filter(t => t <= best).length);
+  });
+}
 let _checkingAchievements = false; // addExp can re-enter via level-up
 
 function checkAchievements(ev = {}) {
   if (_checkingAchievements) return;
   _checkingAchievements = true;
   try {
-    if (!S.achLevels) S.achLevels = {};
+    migrateLadders();
     const unlocked = [];
     let xpGain = 0;
 
@@ -330,7 +410,7 @@ function checkAchievements(ev = {}) {
 
 // ── ACHIEVEMENTS SCREEN ───────────────────────
 function renderBadgesScreen() {
-  if (!S.achLevels) S.achLevels = {};
+  migrateLadders();
   const totalLevels  = ACHIEVEMENTS.reduce((s, a) => s + a.tiers.length, 0) + SECRET_ACHIEVEMENTS.length;
   const earnedLevels = ACHIEVEMENTS.reduce((s, a) => s + (S.achLevels[a.id] || 0), 0)
     + SECRET_ACHIEVEMENTS.filter(s => S.badges.includes(s.id)).length;
