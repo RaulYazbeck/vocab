@@ -667,8 +667,8 @@ function settingsAccountName() {
     ? (currentUser.displayName || currentUser.email || "Signed in") : "";
 }
 // ☰ The Menu: you, where to go, Classic mode, Settings.
-// 👵 Grandma mode: one short page — games, sound, new words, the mode
-// itself and the account. No sub-pages, nothing else to find.
+// 👵 Grandma mode: one short page — games, sound, new words, the modes
+// (Grandma, Speak don't spell) and the account. No sub-pages.
 function grandmaMenuHtml() {
   const account = settingsAccountName();
   const plan = pathDeadlineOn();
@@ -680,7 +680,9 @@ function grandmaMenuHtml() {
     ${setSwitchHtml("🔊", "Sound", "Words read aloud", SOUND.tts, "toggleSoundPref('sound')")}
     ${plan ? "" : setChoiceHtml("🌱", "New words a day", "",
       PATH.NEW_PER_DAY_OPTIONS.filter(n => n <= 20).map(n => ({ label: n === 0 ? "Off" : n, on: S.path.newPerDay === n, onclick: `setPathNewPerDay(${n});renderSettingsPanel()` })))}
+    <div class="set-group-title">Modes</div>
     ${setSwitchHtml("👵", "Grandma mode", "On: big buttons, just the essentials. Turn it off for everything else.", true, "toggleGrandma()")}
+    ${setSwitchHtml("🗣️", "Speak, don't spell", "Say each answer out loud, tap Show, hear it and grade yourself — no typing.", speakOn(), "toggleSpeakMode()")}
     <div class="menu-list">
       ${menuRowHtml("☁️", account ? escapeHtml(account.split(" ")[0]) : "Sign in", account ? "tap to sign out" : "keeps your progress safe", "handleAuth()")}
     </div>`;
