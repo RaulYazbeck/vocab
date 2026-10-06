@@ -749,7 +749,6 @@ function audioSettingsHtml() {
     buttons = upd + fix + more + `<button class="set-seg-btn" onclick="audioSample()">▶ Hear a sample</button><button class="set-seg-btn" onclick="audioRemoveConfirm()">Remove</button>`;
   }
   const err = AUDIO.error && !j ? `<div class="set-choice-sub audio-err">⚠️ ${escapeHtml(AUDIO.error)}</div>` : "";
-  const flags = audioFlagCount(), misses = kinds.length ? audioMissCount() : 0;
   return `
     <div class="set-group-title">Natural ${lang} voice</div>
     <div class="set-choice">
@@ -758,8 +757,13 @@ function audioSettingsHtml() {
       ${j ? `<div class="audio-bar"><i id="audio-bar-fill" style="width:${_audioPct(j)}%"></i></div>` : ""}
       <div class="set-seg audio-seg">${buttons}</div>
       ${err}
-    </div>
-    ${flags + misses ? setNavHtml("📝", `Copy voice log · ${flags + misses}`, [flags ? `${flags} flagged` : "", misses ? `${misses} without a recording` : ""].filter(Boolean).join(", ") + ". Paste it to Claude.", "audioCopyLog()") : ""}`;
+    </div>`;
+}
+// For developers (Account & data): flagged recordings and missing phrases.
+function audioVoiceLogRowHtml() {
+  if (!AUDIO.ready || !audioSupported()) return "";
+  const flags = audioFlagCount(), misses = audioInstalledKinds().length ? audioMissCount() : 0;
+  return flags + misses ? setNavHtml("📝", `Copy voice log · ${flags + misses}`, [flags ? `${flags} flagged` : "", misses ? `${misses} without a recording` : ""].filter(Boolean).join(", ") + ". Paste it to Claude.", "audioCopyLog()") : "";
 }
 // ["w","s"] as a JS literal that is safe inside a double-quoted onclick.
 function _audioKindsJs(kinds) { return "[" + kinds.map(k => `'${k}'`).join(",") + "]"; }

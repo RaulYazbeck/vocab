@@ -1094,12 +1094,22 @@ function showGameIntro(ctx, onGo) {
       <div class="g-card-icon">${d.icon}</div>
       <div class="g-card-title">${escapeHtml(gameName(d))}</div>
       <div class="g-card-skill">${escapeHtml(d.skill)}</div>
+      ${gameRankLineHtml(d.id)}
       <ul class="g-howto">${(typeof d.howTo === "function" ? d.howTo() : d.howTo).map(l => `<li>${l}</li>`).join("")}</ul>
       <button class="g-big-btn" id="g-go">${ctx.started ? "Resume" : "Let's go"}</button>
       <button class="g-link-btn" onclick="quitGame()">${ctx.started ? "Quit game" : ctx.size === "bonus" ? "Skip bonus" : "← Back"}</button>
     </div>`);
   if (!o) return;
   armOverlayButton(o.querySelector("#g-go"), () => { overlay(""); onGo(); });
+}
+// Rank, stars and best score — on the game's intro, not its hub tile.
+function gameRankLineHtml(id) {
+  try {
+    const r = gameRankOf(id), st = gameRankStars(id, r), best = (S.games.rankBest[id] || [])[r];
+    if (!(S.games.plays[id] || 0) && best === undefined) return `<div class="g-card-rank">✨ New — first round</div>`;
+    const next = r < GAME_RANKS.length - 1 ? (st === 3 ? "" : `3★ → ${GAME_RANKS[r + 1].icon}`) : "💎 max rank";
+    return `<div class="g-card-rank">${GAME_RANKS[r].icon} ${GAME_RANKS[r].name} · ${starsHtml(st)}${[next, best !== undefined ? `best ${best.toLocaleString()}` : ""].filter(Boolean).map(x => " · " + x).join("")}</div>`;
+  } catch (e) { return ""; }
 }
 function showRoundSplash(ctx, onGo) {
   const d = ctx.def;
@@ -1660,27 +1670,28 @@ function renderGamesHub() {
   el.style.paddingBottom = "";
   const ids = currentPoolIds();
   const pool = buildGamePool(ids);
+  const gm = grandmaOn();
   const top = `<div class="screen-top">
       <div class="screen-label">🎮 Games</div>
-      <button class="back-btn" onclick="backToMenu()">← Menu</button>
-    </div>
-    ${grandmaOn() ? "" : `<button class="g-pool-chip" onclick="openPoolPicker()">📚 ${escapeHtml(poolLabel(ids, pool))} <span class="g-pool-edit">change</span></button>`}`;
+      <button class="back-btn" onclick="backToMenu()">← Back</button>
+    </div>`;
 
   if (!pool.length) {
     const names = ids ? ids.map(id => getDeck(id).name).join(", ") : "";
     el.innerHTML = `<div class="screen game-screen">${top}
+      ${gm ? "" : `<button class="g-pool-chip" onclick="openPoolPicker()">📚 ${escapeHtml(poolLabel(ids, pool))} <span class="g-pool-edit">change</span></button>`}
       <div class="g-empty">
         <div class="g-empty-icon">🌱</div>
         <div class="g-empty-title">No words to play with yet</div>
         <div class="g-empty-sub">${ids
           ? `${escapeHtml(names)} ${ids.length > 1 ? "have" : "has"} no words you've met yet. Study ${ids.length > 1 ? "them" : "it"} first (Anki cards join once introduced), or pick other decks.`
-          : "Games use words you already know. Drill a few words (or study some Anki cards) and come back!"}</div>
-        <button class="g-big-btn" onclick="backToMenu()">← Back to decks</button>
+          : "Games use words you already know. Do a Today session or two and come back!"}</div>
+        <button class="g-big-btn" onclick="backToMenu()">← Back</button>
       </div></div>`;
     return;
   }
 
-  // Daily Challenge (always the "All known words" pool)
+  // Daily Challenge (always the "All known words" pool): one row.
   const allPool = ids ? buildGamePool(null) : pool;
   const dIds = dailyGameIds(allPool);
   const d = dailyState();
@@ -1688,38 +1699,29 @@ function renderGamesHub() {
   const dComplete = S.games.daily.completedDates.includes(todayISO());
   const streak = dailyStreak();
   const dailyHtml = dIds.length < 2
-    ? `<div class="g-daily locked"><div class="g-daily-head"><span class="g-daily-title">📆 Daily Challenge</span></div>
-        <div class="g-daily-sub">Get to know a few more words to unlock the daily challenge.</div></div>`
-    : `<button class="g-daily ${dComplete ? "done" : ""}" onclick="startDailyChallenge()" ${dComplete ? "disabled" : ""}>
-        <div class="g-daily-head">
-          <span class="g-daily-title">📆 Daily Challenge</span>
-          <span class="g-daily-streak">${streak > 0 ? `📆 ${streak} in a row` : ""}</span>
-        </div>
-        <div class="g-daily-games">${dIds.map(id => { const g = getGame(id); const ok = d.done.includes(id);
-          return `<span class="g-daily-game ${ok ? "ok" : ""}">${g.icon}<small>${ok ? "✓" : ""}</small></span>`; }).join("")}</div>
-        <div class="g-daily-sub">${dComplete ? "Done for today — new challenge tomorrow!" : `${dDone}/${dIds.length} rounds · +${DAILY_BONUS_XP} XP bonus`}</div>
-        <div class="g-daily-track"><div class="g-daily-fill" style="width:${Math.round(dDone / dIds.length * 100)}%"></div></div>
+    ? `<div class="g-row off"><span class="g-row-icon">📆</span><span class="g-row-main"><b>Daily challenge</b><small>Get to know a few more words to unlock it</small></span></div>`
+    : `<button class="g-row ${dComplete ? "done" : ""}" onclick="startDailyChallenge()" ${dComplete ? "disabled" : ""}>
+        <span class="g-row-icon">📆</span>
+        <span class="g-row-main"><b>Daily challenge</b>
+          <small>${dComplete ? "Done ✓ — new one tomorrow" : `${dIds.map(id => `<span class="g-dot ${d.done.includes(id) ? "on" : ""}"></span>`).join("")} ${dDone}/${dIds.length} · +${DAILY_BONUS_XP} XP`}</small></span>
+        ${streak > 0 ? `<span class="g-row-meta">${streak} in a row</span>` : ""}
+        ${dComplete ? "" : `<span class="set-chev" aria-hidden="true">›</span>`}
       </button>`;
 
-  // 👵 Grandma mode: just the games — no bosses, Bestiary, Arcade Mix or pool menu.
-  const gm = grandmaOn();
+  // 👵 Grandma mode: just the games — no bosses, Arcade Mix or pool menu.
   const cards = GAMES.filter(g => !gameHiddenNow(g) && !(gm && g.id === "boss")).map(g => {
     const req = gameRequirement(g, pool, "full");
     const r = gameRankOf(g.id);
     const st = gameRankStars(g.id, r);
     const best = (S.games.rankBest[g.id] || [])[r];
-    const plays = S.games.plays[g.id] || 0;
+    const fresh = !(S.games.plays[g.id] || 0) && best === undefined;
     const quietOff = !gameUsableNow(g);
-    return `<button class="g-card-tile ${req.ok && !quietOff ? "" : "off"}" onclick="gameTileTap('${g.id}')" ${req.ok ? "" : `aria-disabled="true"`}>
-      <div class="g-tile-rank" title="${GAME_RANKS[r].name}">${GAME_RANKS[r].icon}</div>
-      <div class="g-tile-icon">${g.icon}</div>
-      <div class="g-tile-name">${escapeHtml(gameName(g))}</div>
-      <div class="g-tile-skill">${escapeHtml(g.skill)}</div>
-      ${!req.ok ? `<div class="g-tile-reason">${escapeHtml(req.reason)}</div>`
-        : quietOff ? `<div class="g-tile-reason">🔇 Needs sound</div>`
-        : `<div class="g-tile-stars">${starsHtml(st)}</div>
-           <div class="g-tile-best">${!plays && best === undefined ? `<span class="g-tile-new">✨ New — try it</span>`
-             : [r < GAME_RANKS.length - 1 ? (st === 3 ? "" : `3★ → ${GAME_RANKS[r + 1].icon}`) : "💎 max rank", best !== undefined ? `best ${best.toLocaleString()}` : ""].filter(Boolean).join(" · ")}</div>`}
+    const off = !req.ok || quietOff;
+    return `<button class="g-card-tile ${off ? "off" : ""}" onclick="gameTileTap('${g.id}')" ${req.ok ? "" : `aria-disabled="true"`} title="${escapeHtml(off ? (req.ok ? "Needs sound" : req.reason) : g.skill)}">
+      ${off ? `<span class="g-tile-rank">🔒</span>` : fresh ? "" : `<span class="g-tile-rank" title="${GAME_RANKS[r].name}">${GAME_RANKS[r].icon}</span>`}
+      <span class="g-tile-icon">${g.icon}</span>
+      <span class="g-tile-name">${escapeHtml(gameName(g))}</span>
+      <span class="g-tile-stars">${off ? "" : fresh ? `<span class="g-tile-new">new</span>` : starsHtml(st)}</span>
     </button>`;
   }).join("");
 
@@ -1727,9 +1729,12 @@ function renderGamesHub() {
   const pick = playForTodayPick();
   el.innerHTML = `<div class="screen game-screen">${top}
     ${pick ? `<button class="g-today-btn" onclick="playForToday()"><span class="g-today-main">▶ Play for today</span><span class="g-today-sub">${pick.icon} ${escapeHtml(gameName(pick))} with the words you need most</span></button>` : ""}
-    ${dailyHtml}
-    ${!gm && typeof bossRowHtml === "function" ? bossRowHtml() : ""}
-    ${gm ? "" : `<button class="g-mix-btn" onclick="startArcadeMix()" ${mixOk ? "" : "disabled"}>🕹️ Arcade Mix <span>4 quick rounds, back to back</span></button>`}
+    <div class="g-rows">
+      ${dailyHtml}
+      ${!gm && typeof bossSummaryRowHtml === "function" ? bossSummaryRowHtml() : ""}
+      ${gm ? "" : `<button class="g-row" onclick="startArcadeMix()" ${mixOk ? "" : "disabled"}><span class="g-row-icon">🕹️</span><span class="g-row-main"><b>Arcade Mix</b><small>4 quick rounds, back to back</small></span><span class="set-chev" aria-hidden="true">›</span></button>`}
+    </div>
+    <div class="g-grid-head"><span>All games</span>${gm ? "" : `<button class="g-pool-chip" onclick="openPoolPicker()">📚 ${escapeHtml(poolLabel(ids, pool))} <span class="g-pool-edit">change</span></button>`}</div>
     <div class="g-grid">${cards}</div>
   </div>`;
 }

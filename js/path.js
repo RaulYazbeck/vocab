@@ -730,6 +730,111 @@ function pathTodaySummary() {
     frontier: pathFrontier(scan), metToday: scan.metToday };
 }
 
+// ── REVIEW FORECAST ───────────────────────────
+// "If I do my quests every day, roughly how many reviews will each of
+// the next days hold?" An honest estimate, not a promise: a small
+// expected-value simulation over the next `days` study days.
+//   • Each day clears what's due plus a slice of any backlog — the same
+//     spreading rule as the day's plan (pathEnsurePlan); the rest waits.
+//   • Each review succeeds with your recent accuracy p: the word climbs
+//     a stage and comes back after that stage's gap; a miss drops it a
+//     stage and brings it back tomorrow.
+//   • Each day meets that day's new words (same pace and brakes as
+//     pathNewQuota); they come back the next day, then 2 and 4 days on.
+// Returns { p, days: [{ scheduled, fromNew, carried, total, newWords, waiting }] };
+// day 0 is today (its total is today's planned reviews, done ones included).
+const FORECAST_P = { DEFAULT: 0.9, MIN: 0.75, MAX: 0.97, DAYS: 14 };
+function recentAccuracy() {
+  let n = 0, ok = 0;
+  const days = (S.usage && S.usage.days) || {};
+  for (let i = 0; i < FORECAST_P.DAYS; i++) {
+    const d = days[addDays(todayISO(), -i)];
+    if (!d || !d.ans) continue;
+    for (const [m, v] of Object.entries(d.ans)) if (m.startsWith("path:") || m.startsWith("drill:")) { n += v[0] || 0; ok += v[1] || 0; }
+  }
+  return n >= 30 ? Math.max(FORECAST_P.MIN, Math.min(FORECAST_P.MAX, ok / n)) : FORECAST_P.DEFAULT;
+}
+// How much of a backlog a day takes on (see pathEnsurePlan).
+function backlogTake(backlog, normal, pace) {
+  if (backlog <= PLAN.SMALL_BACKLOG) return backlog;
+  const n = normal * 1.1 + pace * 3;
+  return Math.min(backlog, Math.max(Math.ceil(backlog / 14), Math.min(Math.ceil(backlog / PLAN.SPREAD), Math.floor(n * 0.2 / 1.1))));
+}
+function pathForecast(days = 8) {
+  const scan = pathScan(true);
+  const now = Date.now(), dayStart = studyDayStart(0, now), today = studyToday();
+  const p = recentAccuracy();
+  const plan = pathEnsurePlan(scan);
+  const kThrottle = plan ? 2 : 1;
+  const basePace = plan ? plan.pace : (S.path.newPerDay || 0);
+  // Buckets of words: key → { day, st, k, pk, src, w }. src: s = already
+  // scheduled, n = met in the forecast, c = backlog carried over.
+  const due = Array.from({ length: days + 1 }, () => new Map());
+  const add = (d, st, k, pk, src, w) => {
+    if (d > days || w < 1e-4) return;
+    const kq = Math.round(k * 10) / 10, key = `${st}|${kq}|${pk}|${src}`;
+    const b = due[d].get(key);
+    if (b) b.w += w; else due[d].set(key, { st, k: kq, pk, src, w });
+  };
+  const backlog = new Map();
+  vocabGroups().forEach(g => g.decks.forEach(dk => {
+    for (let i = 0; i < dk.words.length; i++) {
+      const ws = S.words[dk.id + "_" + i];
+      if (!ws || !ws.st) continue;
+      const st = ws.st, k = ws.k || 1, pk = ws.pk || 0;
+      if (isDue(ws, now)) {
+        const overdue = !(ws.rp || ws.fl || ws.lrn) && ws.dueAt && ws.dueAt < dayStart;
+        if (overdue) { const key = `${st}|${Math.round(k * 10) / 10}|${pk}|c`; const b = backlog.get(key); if (b) b.w++; else backlog.set(key, { st, k: Math.round(k * 10) / 10, pk, src: "c", w: 1 }); }
+        else add(0, st, k, pk, "s", 1);
+      } else if (ws.dueAt) {
+        const d = Math.floor((ws.dueAt - dayStart) / 864e5);
+        if (d >= 0) add(d, st, k, pk, "s", 1);
+      }
+    }
+  }));
+  // A review on day d: success climbs, a miss drops a stage → tomorrow.
+  const review = (d, b, w) => {
+    const up = Math.min(STAGE_MAX, b.st + 1);
+    if (up < STAGE_LOCKED) {
+      let gap = (STAGE_DAYS[up] || 1) * b.k;
+      if (up < b.pk) gap /= 2;
+      add(d + Math.max(1, Math.round(gap)), up, b.k, Math.max(b.pk, up), b.src, w * p);
+    }
+    add(d + 1, Math.max(1, b.st - 1), Math.max(EASE.MIN, b.k - EASE.SLIP), Math.max(b.pk, b.st), b.src, w * (1 - p));
+  };
+  const sum = m => { let n = 0; for (const b of m.values()) n += b.w; return n; };
+  const out = [];
+  let done0 = 0;
+  for (let d = 0; d <= days - 1; d++) {
+    const normal = sum(due[d]);
+    const pile = sum(backlog);
+    // New words today: the plan's pace, braked by the (simulated) backlog.
+    let pace = basePace;
+    if (!pathFrontier(scan)) pace = 0;
+    else if (d === 0) pace = pathNewQuota(scan).left;
+    else if (S.path.autoPaused) pace = 0;
+    else if (pile >= PATH.THROTTLE_STOP * kThrottle) pace = 0;
+    else if (pile >= PATH.THROTTLE_HALF * kThrottle) pace = Math.ceil(pace / 2);
+    const take = d === 0 && plan ? Math.max(0, Math.min(pile, pile - (plan.leave || 0))) : backlogTake(pile, normal, pace);
+    const share = pile ? take / pile : 0;
+    const row = { scheduled: 0, fromNew: 0, carried: 0, newWords: d === 0 ? pathNewQuota(scan).quota : pace, waiting: 0 };
+    for (const b of due[d].values()) { row[b.src === "n" ? "fromNew" : b.src === "c" ? "carried" : "scheduled"] += b.w; review(d, b, b.w); }
+    for (const b of backlog.values()) { if (!share) break; row.carried += b.w * share; review(d, b, b.w * share); b.w *= 1 - share; }
+    row.waiting = pile - take;
+    // Today's new words come back tomorrow (then 2 and 4 days on).
+    if (pace > 0) add(d + 1, 1, 1, 1, "n", pace);
+    if (d === 0) done0 = pathReviewedToday();
+    out.push(row);
+  }
+  out.forEach((r, i) => {
+    r.total = Math.round(r.scheduled + r.fromNew + r.carried + (i === 0 ? done0 : 0));
+    if (i === 0) r.scheduled += done0;
+    r.waiting = Math.round(r.waiting);
+  });
+  if (plan && out[0]) out[0].total = Math.max(out[0].total, plan.reviews);
+  return { p, days: out };
+}
+
 // ── FORECAST / ETA ────────────────────────────
 // Rough, honest projections for the map: when every word of a level is
 // met, Known, and locked in, at the current pace and assuming reviews

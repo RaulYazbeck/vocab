@@ -46,6 +46,8 @@ function toggleDeck(id) {
   renderGroups(); renderStartBar();
 }
 function renderGroups() {
+  // The Library is Classic mode's; otherwise Start picks the words.
+  if (!classicOn()) { document.getElementById("groups-container").innerHTML = ""; return; }
   document.getElementById("groups-container").innerHTML = ALL_GROUPS.map(group => {
     const isOpen       = openGroups.has(group.id);
     const totalWords   = group.decks.reduce((s,d) => s + d.words.length, 0);
@@ -315,6 +317,7 @@ function activityGridHtml() {
     <div class="cal-title">🔥 Streak — last 12 weeks</div>
     <div class="cal-grid">${cols}</div>
     <div class="cal-legend"><span><i class="cal-cell on"></i>All quests</span><span><i class="cal-cell kept"></i>Kept</span><span><i class="cal-cell frozen"></i>Freeze</span></div>
+    <div class="cal-legend">🎯 Daily goal reached ${goalWeekInfo().thisWeek} / 7 days this week</div>
   </div>`;
 }
 
@@ -535,28 +538,42 @@ function resetAnkiProgress() {
   renderAnkiForecast();
 }
 
-// ── SETTINGS PANEL ────────────────────────────
-// Injected here so both language apps share one copy. The sheet is
-// re-rendered on every open so dynamic bits (goal, sync, edits) stay
-// fresh. A short main page leads to sub-pages; every row says in one
-// plain line what it does.
+// ── SHEETS: MENU & SETTINGS ───────────────────
+// One bottom sheet hosts the Menu (☰), Settings and its pages, and
+// one-off detail sheets (a quest, the streak, a boss). It is injected
+// here so both language apps share one copy, and re-rendered on every
+// change so dynamic bits (goal, sync, edits) stay fresh. Opening slides
+// it up, closing slides it down; moving between pages slides sideways.
 let settingsPage = "main";
 const SETTINGS_PAGES = {
-  progress: "📈 Progress", plan: "🎯 Study plan", sound: "🔊 Sound & voice",
-  games: "🎮 Games", anki: "🃏 Anki", cookie: "🍪 Cookie", account: "☁️ Account & data",
+  menu: "Menu", main: "Settings", plan: "🎯 Study plan", sound: "🔊 Sound & voice",
+  modes: "✨ Modes", games: "🎮 Games", anki: "🃏 Anki", account: "☁️ Account & data",
+  sheet: "",
 };
+// Where ‹ Back goes from each page (the Menu and one-off sheets have none).
+const SETTINGS_PARENT = { main: "menu", plan: "main", sound: "main", modes: "main", games: "main", anki: "main", account: "main" };
+let _sheet = null;        // page "sheet": { title, html, back }
+let _sheetAnim = "";      // "fwd" | "back": slides the next render only
+let _sheetCloseT = 0;
+const SHEET_MS = 280;
 function initSettingsPanel() {
   const panel = document.createElement("div");
   panel.id = "settings-panel";
-  panel.style.cssText = "display:none;position:fixed;inset:0;z-index:200;";
+  panel.style.display = "none";
   document.body.appendChild(panel);
 }
-function openSettingsPage(p) {
-  settingsPage = SETTINGS_PAGES[p] ? p : "main";
+function sheetOpen() {
+  const sp = document.getElementById("settings-panel");
+  return !!(sp && sp.style.display === "block" && sp.classList.contains("open"));
+}
+function openSettingsPage(p, dir = "fwd") {
+  settingsPage = p in SETTINGS_PAGES && p !== "sheet" ? p : "main";
+  _sheetAnim = dir;
   renderSettingsPanel();
   const sheet = document.querySelector("#settings-panel .settings-sheet");
   if (sheet) sheet.scrollTop = 0;
 }
+function settingsBack() { openSettingsPage(SETTINGS_PARENT[settingsPage] || "menu", "back"); }
 // A row that opens a sub-page or a screen.
 // No onclick: shown greyed out, for a row with nothing to do right now.
 function setNavHtml(icon, label, sub, onclick) {
@@ -579,82 +596,146 @@ function setChoiceHtml(icon, label, sub, opts, auto = "") {
     ${sub ? `<div class="set-choice-sub">${sub}</div>` : ""}
   </div>`;
 }
+// A compact Menu row: icon, label, a short value on the right, ›.
+function menuRowHtml(icon, label, meta, onclick) {
+  return `<button class="menu-row" onclick="${onclick}"><span class="set-icon">${icon}</span><span class="menu-label">${label}</span>${meta ? `<span class="menu-meta">${meta}</span>` : ""}<span class="set-chev" aria-hidden="true">›</span></button>`;
+}
 function renderSettingsPanel() {
-  const page = SETTINGS_PAGES[settingsPage] ? settingsPage : "main";
-  const body = page === "progress" ? settingsProgressHtml()
+  const panel = document.getElementById("settings-panel");
+  if (!panel) return;
+  let page = settingsPage in SETTINGS_PAGES ? settingsPage : "main";
+  if (page === "sheet" && !_sheet) page = settingsPage = "menu";
+  const body = page === "sheet" ? _sheet.html
+    : page === "menu" ? settingsMenuHtml()
     : page === "plan" ? settingsPlanHtml()
     : page === "sound" ? settingsSoundHtml()
+    : page === "modes" ? settingsModesHtml()
     : page === "games" ? settingsGamesHtml()
     : page === "anki" ? settingsAnkiHtml()
-    : page === "cookie" ? settingsCookieHtml()
     : page === "account" ? settingsAccountHtml()
     : settingsMainHtml();
-  document.getElementById("settings-panel").innerHTML = `
+  const title = page === "sheet" ? _sheet.title : SETTINGS_PAGES[page];
+  const parent = page === "sheet" ? _sheet.back : SETTINGS_PARENT[page];
+  const backTo = page === "sheet" ? "" : parent === "menu" ? "Menu" : "Settings";
+  // A re-render of the same page keeps its scroll position.
+  const old = panel.querySelector(".settings-sheet");
+  const keep = old && !_sheetAnim && old.dataset.page === page ? old.scrollTop : 0;
+  panel.innerHTML = `
     <div class="settings-overlay" onclick="closeSettings()"></div>
-    <div class="settings-sheet" role="dialog" aria-label="Settings">
+    <div class="settings-sheet sheet-${page}" role="dialog" aria-modal="true" aria-label="${escapeHtml(String(title).replace(/<[^>]*>/g, ""))}" data-page="${page}">
+      <button class="sheet-handle" aria-label="Close" onclick="if(!event.detail)closeSettings()"></button>
       <div class="settings-top">
-        ${page === "main" ? "" : `<button class="set-back" onclick="openSettingsPage('main')" aria-label="Back to Settings">‹ Back</button>`}
-        <div class="settings-title">${page === "main" ? "Settings" : SETTINGS_PAGES[page]}</div>
-        <button class="set-close" onclick="closeSettings()" aria-label="Close settings">✕</button>
+        ${parent ? `<button class="set-back" onclick="${page === "sheet" ? parent : "settingsBack()"}" aria-label="Back">‹ ${backTo || "Back"}</button>` : ""}
+        <div class="settings-title">${title}</div>
+        <button class="set-close" onclick="closeSettings()" aria-label="Close">✕</button>
       </div>
-      ${body}
+      <div class="sheet-body ${_sheetAnim}">${body}</div>
     </div>`;
+  _sheetAnim = "";
+  const sheet = panel.querySelector(".settings-sheet");
+  if (keep) sheet.scrollTop = keep;
+  bindSheetDrag(panel, sheet);
+}
+// Pull the handle down to close (or tap it).
+function bindSheetDrag(panel, sheet) {
+  const grip = sheet.querySelector(".sheet-handle");
+  let y0 = null, dy = 0, t0 = 0;
+  grip.onpointerdown = e => { y0 = e.clientY; dy = 0; t0 = Date.now(); try { grip.setPointerCapture(e.pointerId); } catch (_) {} panel.classList.add("dragging"); };
+  grip.onpointermove = e => { if (y0 === null) return; dy = Math.max(0, e.clientY - y0); sheet.style.transform = `translateY(${dy}px)`; };
+  const end = () => {
+    if (y0 === null) return;
+    y0 = null;
+    panel.classList.remove("dragging");
+    sheet.style.transform = "";
+    if (dy < 6 || dy > 90 || (dy > 30 && Date.now() - t0 < 250)) closeSettings();
+  };
+  grip.onpointerup = end; grip.onpointercancel = end;
+}
+// A one-off sheet: { title, html, back } (back = an onclick, optional).
+function openSheet(opts) {
+  _sheet = { title: opts.title || "", html: opts.html || "", back: opts.back || "" };
+  if (sheetOpen()) { settingsPage = "sheet"; _sheetAnim = "fwd"; renderSettingsPanel(); return; }
+  openSettings("sheet");
 }
 function settingsAccountName() {
   return (typeof currentUser !== "undefined" && currentUser)
     ? (currentUser.displayName || currentUser.email || "Signed in") : "";
 }
+// ☰ The Menu: you, where to go, Classic mode, Settings.
+function settingsMenuHtml() {
+  const lv = currentLevel(), cur = S.exp - expForLevel(lv), need = expForLevel(lv + 1) - expForLevel(lv);
+  const t = typeof activeTitle === "function" ? activeTitle() : null;
+  const Q = S.quests || {};
+  const scan = pathScan();
+  const chests = Q.pending ? Q.pending.length : 0;
+  const decks = vocabGroups().reduce((s, g) => s + g.decks.length, 0);
+  const beaten = Object.values((S.games && S.games.bestiary) || {}).filter(r => r && r.wins).length;
+  const account = settingsAccountName();
+  const name = account ? escapeHtml(account.split(" ")[0]) : "";
+  return `
+    <button class="menu-profile" onclick="menuGo('collection')" aria-label="Your title and level — open Collection">
+      <span class="mp-title">${t ? `${t.icon} ${escapeHtml(t.name)}` : `<span class="mp-none">No title yet — chests give them</span>`}</span>
+      <span class="mp-streak">🔥 ${getDailyStreak()} · 🧊 ${Q.freezes || 0}</span>
+      <span class="mp-lv">Lv ${lv}</span>
+      <span class="mp-bar"><i style="width:${Math.min(100, Math.round(cur / need * 100))}%"></i></span>
+      <span class="mp-xp">${cur.toLocaleString()} / ${need.toLocaleString()} XP</span>
+    </button>
+    <div class="menu-list">
+      ${menuRowHtml("🎮", "Games", "", "menuGo('games')")}
+      ${menuRowHtml("🗺️", "Journey", `${scan.known.toLocaleString()} / ${scan.total.toLocaleString()} known`, "menuGo('journey')")}
+      ${menuRowHtml("⚔️", "Bosses", `${beaten} / ${decks} beaten`, "menuGo('bosses')")}
+      ${menuRowHtml("🎨", "Collection", chests ? `<span class="accent">🎁 ${chests} to open</span>` : "", "menuGo('collection')")}
+      ${menuRowHtml("📊", "Stats", "", "menuGo('stats')")}
+      ${menuRowHtml("🏆", "Achievements", "", "menuGo('badges')")}
+    </div>
+    ${grandmaOn() ? "" : setSwitchHtml("📚", "Classic mode", "The Library under Today: pick decks yourself — Learn · Drill · Timer · Games", classicOn(), "toggleClassic()")}
+    <div class="menu-list">
+      ${menuRowHtml("⚙️", "Settings", "", "openSettingsPage('main')")}
+      ${menuRowHtml("☁️", account ? name : "Sign in", account ? "synced" : "to sync devices", account ? "openSettingsPage('account')" : "handleAuth()")}
+    </div>`;
+}
+function menuGo(screen) {
+  closeSettings();
+  showScreen(screen);
+}
+function openMenu() { openSettings("menu"); }
 function settingsMainHtml() {
   const plan = pathEnsurePlan();
-  const editCount = Object.keys(S.wordEdits || {}).length;
-  const chests = S.quests && S.quests.pending.length;
-  const lens = PATH.SESSION_LENGTHS, len = S.path.sessionLen || "regular";
   const planSub = plan
     ? `Finish by ${fmtShortDate(S.path.deadline)} · ${plan.pace} new words today`
-    : `${S.path.newPerDay ? S.path.newPerDay + " new words a day" : "New words paused"} · goal ${getDailyGoal()} · ${len[0].toUpperCase() + len.slice(1)} sessions (${lens[len]})`;
+    : `${S.path.newPerDay ? S.path.newPerDay + " new words a day" : "New words paused"} · goal ${getDailyGoal()}`;
   const account = settingsAccountName();
-  const cookie = [grandmaOn() && "👵 Grandma mode", speakOn() && "🗣️ Speak, don't spell"].filter(Boolean);
+  const modes = [classicOn() && "📚 Classic", grandmaOn() && "👵 Grandma", speakOn() && "🗣️ Speak, don't spell"].filter(Boolean);
   return `
-    ${setNavHtml("📈", "Progress", "Journey map, stats, collection, achievements" + (chests ? ` · <span class='accent'>${chests} chest${chests > 1 ? "s" : ""} to open</span>` : ""), "openSettingsPage('progress')")}
     ${setNavHtml("🎯", "Study plan", planSub, "openSettingsPage('plan')")}
     ${setNavHtml("🔊", "Sound & voice", soundSummary(), "openSettingsPage('sound')")}
+    ${setNavHtml("✨", "Modes", modes.length ? `<span class='accent'>On: ${modes.join(" · ")}</span>` : "Classic, Grandma, Speak don't spell", "openSettingsPage('modes')")}
     ${setNavHtml("🎮", "Games", "Surprise rounds and random twists", "openSettingsPage('games')")}
     ${allAnkiDeckIds().length ? setNavHtml("🃏", "Anki", `${ankiNewPerDay()} new cards a day${S.ankiNewPaused ? " · new cards paused" : ""}`, "openSettingsPage('anki')") : ""}
-    ${setNavHtml("🍪", "Cookie", cookie.length ? `<span class='accent'>On: ${cookie.join(" · ")}</span>` : "Grandma mode, speak don't spell, skip a level", "openSettingsPage('cookie')")}
-    ${setNavHtml("✏️", `My word edits${editCount ? ` (${editCount})` : ""}`, "Words whose text you corrected", "closeSettings();showScreen('edits')")}
     ${setNavHtml("☁️", "Account & data", account ? `Signed in as ${escapeHtml(account)}` : "Not signed in — progress is saved on this device only", "openSettingsPage('account')")}`;
 }
-// 🍪 The ways of using the app that change it the most.
-function settingsCookieHtml() {
-  const sk = skipLevelInfo();
+// ✨ The ways of using the app that change it the most.
+function settingsModesHtml() {
   return `
+    ${setSwitchHtml("📚", "Classic mode", "The Library under Today: pick decks yourself and use Learn, Drill, Timer or Games on them.", classicOn(), "toggleClassic()")}
     ${setSwitchHtml("👵", "Grandma mode", "Big buttons, no fuss: just Start, your quests and games. Your grandchildren will be proud.", grandmaOn(), "toggleGrandma()")}
-    ${setSwitchHtml("🗣️", "Speak, don't spell", "For speaking, not writing: say each answer out loud, tap Show, hear it and grade yourself. Words still climb all the way to 💎. Spelling games and quests are left out.", speakOn(), "toggleSpeakMode()")}
-    ${sk ? setNavHtml("⏭️", `Skip ${escapeHtml(sk.name)}`, `Already know ${escapeHtml(sk.name)}? Its ${sk.lift} word${sk.lift === 1 ? "" : "s"} below ⭐ Strong become Strong and you move straight on to ${escapeHtml(sk.next || "the next level")}.`, "confirmSkipLevel()")
-      : setNavHtml("⏭️", "Skip a level", "Nothing left to skip — every level is ⭐ Strong or better.", "")}`;
-}
-function settingsProgressHtml() {
-  const chests = S.quests && S.quests.pending.length;
-  return `
-    ${setNavHtml("🗺️", "Journey", "The completion map: every level and deck", "closeSettings();showScreen('journey')")}
-    ${setNavHtml("📊", "Stats &amp; progress", "Activity, words you struggle with, per-deck detail", "closeSettings();showScreen('stats')")}
-    ${setNavHtml("🎨", "Collection", chests ? `<span class='accent'>${chests} chest${chests > 1 ? "s" : ""} to open</span>` : "What your chests gave you", "closeSettings();showScreen('collection')")}
-    ${setNavHtml("🏆", "Achievements", "Badges and their levels", "closeSettings();showScreen('badges')")}`;
+    ${setSwitchHtml("🗣️", "Speak, don't spell", "For speaking, not writing: say each answer out loud, tap Show, hear it and grade yourself. Words still climb all the way to 💎. Spelling games and quests are left out.", speakOn(), "toggleSpeakMode()")}`;
 }
 function settingsPlanHtml() {
   const goal = getDailyGoal();
   const plan = pathEnsurePlan();
-  const len = S.path.sessionLen || "regular";
+  const sk = skipLevelInfo();
   return `
     ${deadlineSettingsHtml()}
     ${setChoiceHtml("🌱", "New words a day", "How many new words Start brings in each day. Off = reviews only.",
       PATH.NEW_PER_DAY_OPTIONS.map(n => ({ label: n === 0 ? "Off" : n, on: S.path.newPerDay === n, onclick: `setPathNewPerDay(${n});renderSettingsPanel()` })),
       plan ? `Auto · ${plan.pace} today — set by your finish date` : "")}
-    ${setChoiceHtml("🎯", "Daily goal", "Right answers a day — your 4 quests add up to it.",
+    ${setChoiceHtml("🎯", "Daily goal", `Right answers a day — your 4 quests add up to it, and ${Math.round(KEEP_GOAL_SHARE * 100)}% of it keeps your 🔥 streak.`,
       GOAL_OPTIONS.map(n => ({ label: n, on: goal === n, onclick: `setDailyGoal(${n})` })),
       plan ? `Auto · ${plan.goal} today — set by your finish date` : "")}
-    ${setChoiceHtml("⏱️", "Session length", "Questions per Start. Also on the Today card.",
-      Object.entries(PATH.SESSION_LENGTHS).map(([k, n]) => ({ label: `${k[0].toUpperCase() + k.slice(1)} <small>${n}</small>`, on: k === len, onclick: `setSessionLen('${k}');renderSettingsPanel()` })))}`;
+    <div class="set-group-title">Can't be undone</div>
+    ${sk ? setNavHtml("⏭️", `Skip ${escapeHtml(sk.name)}`, `Already know ${escapeHtml(sk.name)}? Its ${sk.lift} word${sk.lift === 1 ? "" : "s"} below ⭐ Strong become Strong and you move straight on to ${escapeHtml(sk.next || "the next level")}.`, "confirmSkipLevel()")
+      : setNavHtml("⏭️", "Skip a level", "Nothing left to skip — every level is ⭐ Strong or better.", "")}`;
 }
 // One short line for the main page: what is actually on right now.
 function soundSummary() {
@@ -695,10 +776,15 @@ function settingsAnkiHtml() {
 function settingsAccountHtml() {
   const account = settingsAccountName();
   const lastSaved = S.savedAt ? new Date(S.savedAt).toLocaleString() : "never";
+  const editCount = Object.keys(S.wordEdits || {}).length;
   return `
     ${setNavHtml("👤", account ? `Signed in as ${escapeHtml(account)}` : "Sign in with Google", account ? "Tap to sign out" : "Sync your progress across devices", "handleAuth()")}
-    ${setNavHtml("📋", "Copy usage report", "Paste it to Claude for the next improvements", "copyUsageReport()")}
-    <div class="settings-sync-line">☁️ Last saved ${lastSaved}</div>`;
+    ${setNavHtml("✏️", `My word edits${editCount ? ` (${editCount})` : ""}`, "Words whose text you corrected", "menuGo('edits')")}
+    <div class="settings-sync-line">☁️ Last saved ${lastSaved}</div>
+    <details class="set-dev"><summary>For developers</summary>
+      ${setNavHtml("📋", "Copy usage report", "Paste it to Claude for the next improvements", "copyUsageReport()")}
+      ${typeof audioVoiceLogRowHtml === "function" ? audioVoiceLogRowHtml() : ""}
+    </details>`;
 }
 // Optional finish date: off by default. When set, new words/day and
 // the daily goal are worked out each morning and the Core quest becomes
@@ -757,16 +843,27 @@ function setAnkiNewPerDay(n) {
   renderStartBar();
 }
 function openSettings(page = "main") {
-  if (typeof pauseGame === "function") pauseGame("Paused while Settings were open.");
-  settingsPage = SETTINGS_PAGES[page] ? page : "main";
+  if (typeof pauseGame === "function") pauseGame("Paused while the menu was open.");
+  const panel = document.getElementById("settings-panel");
+  settingsPage = page in SETTINGS_PAGES ? page : "main";
+  clearTimeout(_sheetCloseT);
+  const wasOpen = sheetOpen();
+  _sheetAnim = wasOpen ? "fwd" : "";
   renderSettingsPanel();
-  document.getElementById("settings-panel").style.display = "block";
+  panel.style.display = "block";
+  if (!wasOpen) { panel.classList.remove("open"); void panel.offsetWidth; panel.classList.add("open"); }
   const island = document.getElementById("floating-island");
   if (island) island.style.display = "none";
 }
 function closeSettings() {
-  document.getElementById("settings-panel").style.display = "none";
+  const panel = document.getElementById("settings-panel");
+  if (!panel || panel.style.display !== "block") return;
+  panel.classList.remove("open");
+  clearTimeout(_sheetCloseT);
+  const still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  _sheetCloseT = setTimeout(() => { panel.style.display = "none"; panel.innerHTML = ""; _sheet = null; }, still ? 0 : SHEET_MS);
   if (typeof renderHome === "function") renderHome();
+  if (typeof renderExpBar === "function") renderExpBar();
   const island = document.getElementById("floating-island");
   if (island) island.style.display = "";
 }
@@ -783,46 +880,40 @@ function renderHome() {
   const t = pathTodaySummary();
   const Q = S.quests;
   const len = S.path.sessionLen || "regular";
-  const streak = questStreak();
   const quiet = quietActive();
   const ankiIds = allAnkiDeckIds();
   const ankiOwed = ankiIds.length && ankiInUse() ? ankiOwedToday(ankiIds) : 0;
   const sg = sagaProgress();
-  const banner = t.reason === "autopaused"
-    ? `<div class="tc-banner">⏸ New words paused after a few days away — clear some reviews and they resume by themselves. <button class="tc-link" onclick="pathResume();renderHome()">Resume now</button></div>`
-    : t.reason === "catchup" ? `<div class="tc-banner">🧹 Catching up first — ${t.overdue} overdue reviews. New words return when the pile is smaller.</div>`
-    : t.reason === "slowed" ? `<div class="tc-banner soft">🐢 Fewer new words today while you catch up on ${t.overdue} reviews.</div>` : "";
+  // Only what asks for an action gets a line; "slowed" is a 🐢 on the chip.
+  const note = t.reason === "autopaused"
+    ? `<div class="tc-note">⏸ New words paused after a few days away — they resume as reviews clear. <button class="tc-link" onclick="pathResume();renderHome()">Resume now</button></div>`
+    : t.reason === "catchup" ? `<div class="tc-note">🧹 Catching up first: ${t.overdue} overdue reviews. New words return when the pile is smaller.</div>` : "";
+  const extra = t.frontier && !t.newLeft && t.reason !== "autopaused";
   const stats = [];
-  if (t.fix) stats.push(`<span class="tc-stat warn">🩹 ${t.fix} to fix</span>`);
-  stats.push(`<span class="tc-stat">📚 ${t.due} due</span>`);
-  stats.push(t.frontier ? `<span class="tc-stat">🌱 ${t.newLeft} new</span>` : `<span class="tc-stat">🏔️ all met</span>`);
+  if (t.fix) stats.push(`<span class="tc-stat warn" title="Words you slipped on — Start fixes them first">🩹 ${t.fix} to fix</span>`);
+  stats.push(`<span class="tc-stat" title="Reviews due today">📚 ${t.due} due</span>`);
+  stats.push(!t.frontier ? `<span class="tc-stat">🏔️ all met</span>`
+    : extra ? `<button class="tc-stat tc-stat-btn" onclick="pathLearnExtra();startPathSession('quick')" title="Today's new words are done — learn ${PATH.EXTRA_NEW} more">🌱 +${PATH.EXTRA_NEW} new</button>`
+    : `<span class="tc-stat" ${t.reason === "slowed" ? `title="Fewer new words today while you catch up on ${t.overdue} reviews"` : ""}>🌱 ${t.newLeft} new${t.reason === "slowed" ? ` <span class="tc-slow" aria-label="slowed down while you catch up">🐢</span>` : ""}</span>`);
   const nothing = !t.due && !t.newLeft;
   home.innerHTML = `
     <div class="today-card" id="today-card">
       <div class="tc-head">
         <div class="tc-title">Today</div>
-        <div class="tc-streak" title="Your streak: days with all quests done, or 40% of the goal, or a Long session">${streak ? `🔥 ${streak} ` : ""}<span class="tc-freeze" title="Streak freezes: each covers a missed day automatically">🧊 ${Q.freezes}</span></div>
-        <button class="tc-quiet ${quiet ? "on" : ""}" onclick="toggleQuiet()" aria-pressed="${quiet}" title="Silence everything until tomorrow — your sound settings stay as they are">${quiet ? "🔇 Muted until tomorrow" : "🔈 Mute until tomorrow"}</button>
+        <div class="tc-stats">${stats.join("")}</div>
+        <button class="tc-quiet ${quiet ? "on" : ""}" onclick="toggleQuiet()" aria-pressed="${quiet}" aria-label="${quiet ? "Muted until tomorrow — tap to unmute" : "Mute until tomorrow"}" title="${quiet ? "Muted until tomorrow — tap to unmute" : "Mute everything until tomorrow"}">${quiet ? "🔇" : "🔈"}</button>
       </div>
-      ${banner}
-      <div class="tc-stats">${stats.join("")}</div>
+      ${note}
       <div class="tc-len" role="radiogroup" aria-label="Session length">
         ${Object.entries(PATH.SESSION_LENGTHS).map(([k, n]) => `<button class="tc-len-btn ${k === len ? "on" : ""}" role="radio" aria-checked="${k === len}" onclick="setSessionLen('${k}')">${k[0].toUpperCase() + k.slice(1)} <small>${n}</small></button>`).join("")}
       </div>
       <button class="tc-start ${nothing ? "calm" : ""}" onclick="startPathSession('${len}'${nothing ? ", { practice: true }" : ""})">${nothing ? "✓ All caught up · extra practice ▶" : "Start ▶"}</button>
       ${Q.boosts ? `<div class="tc-boost" title="A chest boost: used automatically when your next Today session ends (5+ answers)">⚡ Next session: ×1.5 XP${Q.boosts > 1 ? ` <small>(${Q.boosts} boosts)</small>` : ""}</div>` : ""}
-      ${(() => { const m = nothing ? [] : questNudges().quests; return m.length ? `<div class="tc-moves">Start moves ${m.length === 1 ? "a quest" : `${m.length} of your quests`} <span>${m.slice(0, 5).map(q => questIcon(q)).join(" ")}</span></div>` : ""; })()}
-      <div class="tc-links">
-        ${t.due >= 1 ? `<button class="tc-link" onclick="startQuickFive()">5️⃣ Quick Five</button>` : ""}
-        ${t.frontier && !t.newLeft && t.reason !== "autopaused" ? `<button class="tc-link" onclick="pathLearnExtra();startPathSession('quick')">🌱 Learn ${PATH.EXTRA_NEW} extra</button>` : ""}
-        <button class="tc-link" onclick="openGamesHub(null)">🎮 Games</button>
-      </div>
       ${ankiOwed ? `<div class="tc-anki">🃏 Anki: <strong>${ankiOwed}</strong> owed today <button class="tc-link" onclick="runQuestAction('anki')">Start ▶</button></div>` : ""}
       ${questCardsHtml()}
       ${sg && !sg.done ? `<div class="tc-saga">📜 Weekly saga ${sg.idx + 1}/3 · ${escapeHtml(sg.title)} <span>${sg.prog}/${sg.target}</span></div>` : sg && sg.done ? `<div class="tc-saga done">📜 Weekly saga complete ✓</div>` : ""}
     </div>
-    ${journeyStripHtml(t.scan)}
-    <div class="library-head"><span class="lh-title">📚 Library</span><small>Pick decks yourself — Learn · Drill · Timer · Games</small></div>`;
+    ${classicOn() ? `<div class="library-head"><span class="lh-title">📚 Library</span><small>Pick decks yourself — Learn · Drill · Timer · Games</small></div>` : ""}`;
 }
 // 👵 Grandma mode: one progress line, Start (with its length), the
 // quests, the weekly saga and Games. Everything else waits in ⚙️.
@@ -830,17 +921,16 @@ function renderGrandmaHome(home) {
   const t = pathTodaySummary();
   const Q = S.quests;
   const len = S.path.sessionLen || "regular";
-  const streak = questStreak();
   const sg = sagaProgress();
   const scan = t.scan;
   const pct = scan.total ? Math.round(scan.known / scan.total * 100) : 0;
   const nothing = !t.due && !t.newLeft;
   const banner = t.reason === "autopaused"
-    ? `<div class="tc-banner">⏸ New words paused after a few days away — they come back by themselves. <button class="tc-link" onclick="pathResume();renderHome()">Resume now</button></div>` : "";
+    ? `<div class="tc-note">⏸ New words paused after a few days away — they come back by themselves. <button class="tc-link" onclick="pathResume();renderHome()">Resume now</button></div>` : "";
   home.innerHTML = `
     <div class="today-card gm-card" id="today-card">
       <div class="gm-progress" role="img" aria-label="${scan.known} of ${scan.total} words known">
-        <div class="gm-line"><span>🌳 <b>${scan.known.toLocaleString()}</b> of ${scan.total.toLocaleString()} words known</span>${streak ? `<span class="gm-streak">🔥 ${streak}</span>` : ""}</div>
+        <div class="gm-line"><span>🌳 <b>${scan.known.toLocaleString()}</b> of ${scan.total.toLocaleString()} words known</span></div>
         <div class="gm-bar"><i style="width:${Math.max(pct, scan.known ? 1 : 0)}%"></i></div>
       </div>
       ${banner}
@@ -855,10 +945,25 @@ function renderGrandmaHome(home) {
 }
 function toggleGrandma() {
   S.prefs.grandma = !S.prefs.grandma;
+  if (S.prefs.grandma) S.prefs.classic = false;
   saveState();
   logEvent("setting", { k: "grandma", v: S.prefs.grandma });
   applyPrefClasses();
   if (S.prefs.grandma) { selectedIds.clear(); renderStartBar(); }
+  renderSettingsPanel();
+  renderGroups();
+  renderExpBar();
+  renderHome();
+}
+// 📚 Classic mode: the Library (deck folders + the mode picker island)
+// under the Today card. Off: decks are picked by Start, not by hand.
+function toggleClassic() {
+  S.prefs.classic = !classicOn();
+  if (S.prefs.classic) S.prefs.grandma = false;
+  saveState();
+  logEvent("setting", { k: "classic", v: S.prefs.classic });
+  applyPrefClasses();
+  if (!S.prefs.classic) { selectedIds.clear(); renderStartBar(); }
   renderSettingsPanel();
   renderGroups();
   renderExpBar();
@@ -891,14 +996,6 @@ function toggleSpeakMode() {
 }
 function setSessionLen(k) { if (!PATH.SESSION_LENGTHS[k]) return; S.path.sessionLen = k; saveState(); renderHome(); }
 function onQuietChanged() { renderHome(); }
-function journeyStripHtml(scan) {
-  const lv = scan.groups.map(g => `<span class="js-lv"><b>${escapeHtml(g.name)}</b> ${g.total ? Math.floor(g.known / g.total * 100) : 0}%</span>`).join("");
-  return `<button class="journey-strip" onclick="showScreen('journey')">
-      <span class="js-title">🗺️ Journey</span>${lv}
-      ${scan.repair ? `<span class="js-lv warn">🩹 ${scan.repair}</span>` : ""}
-      <span class="js-go">›</span>
-    </button>`;
-}
 
 
 // ── JOURNEY (completion map) ──────────────────
@@ -938,9 +1035,7 @@ function renderJourney() {
       <details class="jl-decks" ${g.met > 0 && g.met < g.total ? "open" : ""}><summary>${g.decks.length} decks</summary><div class="jd-grid">${decks}</div></details>
     </div>`;
   }).join("");
-  const maxDue = Math.max(1, ...scan.dueByDay);
-  const fc = scan.dueByDay.map((n, i) => `<div class="jf-col"><div class="jf-bar" style="height:${Math.round(n / maxDue * 100)}%"></div><div class="jf-n">${n}</div><div class="jf-l">${i === 0 ? "today" : i === 1 ? "tmr" : "+" + i}</div></div>`).join("");
-  const coll = typeof collectionsSummaryHtml === "function" ? collectionsSummaryHtml() : "";
+  const fcHtml = forecastHtml();
   document.getElementById("main-screen").innerHTML = `<div class="screen journey">
     <div class="screen-top"><div class="screen-label">🗺️ Journey</div><button class="back-btn" onclick="backToMenu()">← Back</button></div>
     <div class="jh">
@@ -950,16 +1045,35 @@ function renderJourney() {
       ${tierBarHtml(scan.tiers, scan.total, "big")}
       <div class="tier-legend">${TIERS.map(t => `<span><i class="tb-${t.id}"></i>${t.icon} ${t.name} ${scan.tiers[t.id] || 0}</span>`).join("")}</div>
     </div>
-    ${stageGuideHtml()}
-    <div class="stats-section-title" style="margin-top:1rem">Reviews coming up</div>
-    <div class="jf">${fc}</div>
+    ${fcHtml}
     ${levels}
-    ${coll}
+    ${stageGuideHtml()}
     <div class="journey-links">
       <button class="g-sec-btn" onclick="renderCollection()">🎨 Collection</button>
+      <button class="g-sec-btn" onclick="renderBestiary('journey')">⚔️ Bosses</button>
       <button class="g-sec-btn" onclick="showScreen('badges')">🏆 Achievements</button>
     </div>
   </div>`;
+}
+// "Reviews coming up": the honest estimate from pathForecast — stacked
+// bars (already scheduled · from new words · catching up), ≈ numbers,
+// each day's new words underneath. Today is the plan itself.
+function forecastHtml() {
+  const f = pathForecast(8);
+  const max = Math.max(1, ...f.days.map(d => d.total));
+  const seg = (n, cls) => n >= 0.5 ? `<i class="${cls}" style="height:${(n / max * 100).toFixed(1)}%"></i>` : "";
+  const cols = f.days.map((d, i) => `<div class="jf-col" title="${i === 0 ? "Today's plan" : `≈ ${d.total} reviews`}: ${Math.round(d.scheduled)} already scheduled · ${Math.round(d.fromNew)} from new words · ${Math.round(d.carried)} catching up${d.newWords ? ` · plus ${d.newWords} new words` : ""}">
+      <div class="jf-n">${i === 0 ? "" : "≈"}${d.total}</div>
+      <div class="jf-stack">${seg(d.carried, "jf-c")}${seg(d.fromNew, "jf-new")}${seg(d.scheduled, "jf-s")}</div>
+      <div class="jf-l">${i === 0 ? "today" : i === 1 ? "tmr" : "+" + i}</div>
+      <div class="jf-nw">${d.newWords ? `🌱${d.newWords}` : ""}</div>
+    </div>`).join("");
+  const wait = f.days[0] && f.days[0].waiting;
+  const how = pathDeadlineOn() ? "if you finish your quests each day" : "if you clear each day's reviews";
+  return `<div class="jf-head"><span class="stats-section-title">Reviews coming up</span><small>≈ ${how} · ${Math.round(f.p * 100)}% right</small></div>
+    <div class="jf">${cols}</div>
+    <div class="jf-legend"><span><i class="jf-s"></i>already scheduled</span><span><i class="jf-new"></i>from new words</span><span><i class="jf-c"></i>catching up</span></div>
+    ${wait > 0 ? `<div class="jf-wait">Today takes part of your backlog; ${wait} wait${wait === 1 ? "s" : ""} for the next days.</div>` : ""}`;
 }
 // "How does a word move?" — the schedule, in plain words.
 function stageGuideHtml() {
@@ -999,7 +1113,7 @@ function renderDeckWords(deckId) {
   </div>`;
 }
 
-// Collections block on the Journey map.
+// Gender / plural collections (games), on the Collection screen.
 let _nounTotals = null;
 function collectionsSummaryHtml() {
   if (!_nounTotals) {
@@ -1012,15 +1126,9 @@ function collectionsSummaryHtml() {
     _nounTotals = { g, p };
   }
   const C = S.games.collect || {};
-  const beaten = Object.values(S.games.bestiary || {}).filter(r => r && r.wins).length;
-  const decks = vocabGroups().reduce((s, g) => s + g.decks.length, 0);
-  const owned = S.quests ? S.quests.cos.owned.length : 0;
-  const totalCos = typeof COSMETICS !== "undefined" ? COSMETICS.filter(c => !c.free).length : 0;
-  return `<div class="stats-section-title" style="margin-top:1.4rem">Collections</div>
+  return `<div class="stats-section-title" style="margin-top:14px">📚 Word collections</div>
     <div class="coll-summary">
       <div class="coll-card"><b>${C.g || 0}</b><span>🎨 genders of ${_nounTotals.g} nouns</span></div>
       ${!IS_FRENCH_APP ? `<div class="coll-card"><b>${C.p || 0}</b><span>🔢 plurals of ${_nounTotals.p}</span></div>` : ""}
-      <button class="coll-card" onclick="renderBestiary()" style="text-align:left;cursor:pointer;font-family:inherit;color:inherit"><b>${beaten}/${decks}</b><span>📖 deck bosses beaten</span></button>
-      <button class="coll-card" onclick="renderCollection()" style="text-align:left;cursor:pointer;font-family:inherit;color:inherit"><b>${owned}/${totalCos}</b><span>🎨 cosmetics</span></button>
     </div>`;
 }

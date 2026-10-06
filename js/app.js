@@ -30,6 +30,7 @@ function showScreen(name) {
   else if (name === "edits")    renderWordEditsScreen();
   else if (name === "forecast") renderAnkiForecast();
   else if (name === "games")    openGamesHub(null);
+  else if (name === "bosses")   renderBestiary();
 }
 function backToMenu() {
   if (typeof pathSession !== "undefined" && pathSession) endPathSession(true);
@@ -116,8 +117,13 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) skyRe
 skyFrame();
 if (document.hasFocus() || !("hasFocus" in document)) skyWake(); else skyRest();
 
+// No zoom: iOS Safari ignores user-scalable=no, so pinches are stopped
+// here (double-tap zoom is off through touch-action in the CSS).
+["gesturestart", "gesturechange"].forEach(ev => document.addEventListener(ev, e => e.preventDefault(), { passive: false }));
+document.addEventListener("touchmove", e => { if (e.touches && e.touches.length > 1) e.preventDefault(); }, { passive: false });
+
 // ── INIT ──────────────────────────────────────
-document.querySelector("h1").textContent = APP_CONFIG.title;
+document.querySelector("h1").textContent = APP_CONFIG.title.replace(/ Vocabulary$/, "");
 migrate();
 initVoice();
 initSettingsPanel();

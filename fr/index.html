@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
 <title>French Vocabulary</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon.png">
@@ -43,15 +43,12 @@ const auth = fbOk ? firebase.auth() : null;
 <div class="sky" aria-hidden="true"><i class="sky-orbs"></i><i class="sky-stars sky-a"></i><i class="sky-stars sky-b"></i></div>
 <div class="app">
   <div class="header">
-    <h1>🇫🇷 French Vocabulary</h1>
-    <div class="header-right">
-      <button class="hdr-btn" id="games-btn" onclick="showScreen('games')" aria-label="Games">🎮</button>
-      <button class="hdr-btn" id="settings-btn" onclick="openSettings()">⚙️</button>
-      <button class="hdr-btn" id="auth-btn" onclick="handleAuth()">Sign in</button>
-    </div>
+    <button class="hdr-menu" id="menu-btn" onclick="openMenu()" aria-label="Menu"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
+    <h1>🇫🇷 French</h1>
+    <div class="header-right" id="hdr-meta"></div>
+    <div id="exp-bar" class="hdr-xp" aria-hidden="true"></div>
   </div>
   <div id="sync-status" onclick="handleSyncTap()"></div>
-  <div id="exp-bar"></div>
   <div id="home"></div>
   <div id="groups-container"></div>
   <div id="start-bar" style="display:none"></div>

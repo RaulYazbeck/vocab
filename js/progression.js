@@ -20,23 +20,60 @@ function currentLevel() {
 function getDailyStreak() {
   return typeof questStreak === "function" && S.quests ? questStreak() : 0;
 }
+// The top bar: 🔥 streak (lit once today counts) · 🧊 freezes · Lv,
+// with XP as a hairline along the header's bottom edge. The title and
+// the XP numbers live on the Menu's profile card.
 function renderExpBar() {
   const lv   = currentLevel();
   const cur  = S.exp - expForLevel(lv);
   const need = expForLevel(lv + 1) - expForLevel(lv);
   const pct  = Math.min(100, Math.round((cur / need) * 100));
   const streak = getDailyStreak();
-  const streakHtml = streak > 0
-    ? `<div class="exp-streak">🔥 ${streak} day${streak>1?"s":""}</div>`
-    : "";
-  document.getElementById("exp-bar").innerHTML = `
-    <div class="exp-bar-wrap">
-      <div class="exp-level">Lv ${lv}${typeof activeTitle === "function" && activeTitle() ? ` <span class="exp-title">${activeTitle().icon} ${escapeHtml(activeTitle().name)}</span>` : ""}</div>
-      <div class="exp-track"><div class="exp-fill" style="width:${pct}%"></div></div>
-      <div class="exp-label">${cur}/${need} XP</div>
-      ${streakHtml}
-    </div>
-    ${dailyGoalHtml()}`;
+  const safe = streakSafeToday();
+  const freezes = (S.quests && S.quests.freezes) || 0;
+  const meta = document.getElementById("hdr-meta");
+  if (meta) meta.innerHTML = `
+    <button class="hdr-chip streak-chip ${safe ? "safe" : ""}" onclick="openStreakSheet()" aria-label="Streak ${streak} days${safe ? ", safe today" : ", not safe yet today"} · ${freezes} freezes">
+      <span class="sc-fire">🔥</span><b>${streak}</b><span class="sc-ice">🧊${freezes}</span></button>
+    <button class="hdr-chip lv-chip" onclick="openMenu()" aria-label="Level ${lv} — open the menu">Lv ${lv}</button>`;
+  const bar = document.getElementById("exp-bar");
+  if (bar) bar.innerHTML = `<i style="width:${pct}%"></i>`;
+  celebrateStreakSafe(safe);
+}
+// Does today already count for the streak (all quests, kept or frozen)?
+function streakSafeToday() {
+  return typeof questStreakDays === "function" && S.quests ? questStreakDays().has(todayISO()) : false;
+}
+// One toast the moment today first counts (never on page open).
+let _streakSafeSeen = null;
+function celebrateStreakSafe(safe) {
+  const today = todayISO();
+  if (_streakSafeSeen === null || _streakSafeSeen.day !== today) { _streakSafeSeen = { day: today, safe }; return; }
+  if (safe && !_streakSafeSeen.safe) {
+    _streakSafeSeen.safe = true;
+    confettiBurst(30);
+    showCelebrateToast("🔥", "Streak safe for today", `${getDailyStreak()} day${getDailyStreak() === 1 ? "" : "s"} in a row`);
+  }
+}
+// Tap 🔥: how today keeps the streak — any one of three — and freezes.
+function openStreakSheet() {
+  const Q = S.quests || {};
+  const streak = getDailyStreak();
+  const safe = streakSafeToday();
+  const goal = getDailyGoal(), done = goalProgress();
+  const keepAt = Math.ceil(goal * (typeof KEEP_GOAL_SHARE === "number" ? KEEP_GOAL_SHARE : 0.4));
+  const nDone = (Q.list || []).filter(q => q.done).length, nAll = (Q.list || []).length || 4;
+  const longDone = ((Q.m && Q.m.sessions) || []).some(x => x.len === "long" && !x.ab && !x.quick);
+  const bar = (a, b) => `<span class="sk-bar"><i style="width:${Math.min(100, Math.round(a / Math.max(1, b) * 100))}%"></i></span>`;
+  const row = (ok, label, prog) => `<div class="sk-row ${ok ? "ok" : ""}"><span class="sk-tick">${ok ? "✓" : "○"}</span><span class="sk-label">${label}</span>${prog || ""}</div>`;
+  openSheet({ title: "🔥 Streak", html: `
+    <div class="sk-head"><b>${streak}</b> day${streak === 1 ? "" : "s"} in a row<span class="sk-state ${safe ? "ok" : ""}">${safe ? "✓ Safe today" : "Not safe yet today"}</span></div>
+    <div class="set-group-title">Keep it today — any one of</div>
+    ${row(done >= keepAt, `${Math.min(done, keepAt)} / ${keepAt} right answers <small>(${Math.round(keepAt / goal * 100)}% of your goal of ${goal})</small>`, bar(done, keepAt))}
+    ${row(longDone, "Finish a Long session")}
+    ${row(nDone >= nAll, `All ${nAll} quests <small>(${nDone} / ${nAll})</small>`, bar(nDone, nAll))}
+    <div class="sk-freeze">🧊 <b>${Q.freezes || 0}</b> freeze${Q.freezes === 1 ? "" : "s"} — each one covers a missed day by itself. Chests give more.</div>
+    <button class="g-sec-btn sk-cal" onclick="menuGo('stats')">📅 Streak calendar</button>` });
 }
 
 // ── DAILY GOAL ────────────────────────────────
@@ -94,32 +131,6 @@ function goalWeekInfo() {
   for (let i = 0; i < 7; i++) if (goalDates.has(addDays(monday, i))) thisWeek++;
   return { thisWeek };
 }
-let _goalCelebrated = null; // date the toast fired; seeded on first render
-function dailyGoalHtml() {
-  const goal  = getDailyGoal();
-  const done  = goalProgress();
-  const today = todayISO();
-  const reached = done >= goal;
-  if (_goalCelebrated === null) {
-    // First render after page open: never toast retroactively.
-    _goalCelebrated = reached ? today : "";
-  } else if (reached && _goalCelebrated !== today) {
-    _goalCelebrated = today;
-    confettiBurst(40);
-    showCelebrateToast("🎯", "Daily goal reached!", `${goal} correct today — nice!`);
-  }
-  const pct = Math.min(100, Math.round((done / goal) * 100));
-  const week = goalWeekInfo();
-  const weekChip = `<span class="goal-week">${week.thisWeek}/${GOAL_WEEK_TARGET}d</span>`;
-  return `<div class="goal-row${reached ? " reached" : ""}">
-      <span class="goal-icon">🎯</span>
-      <div class="goal-track"><div class="goal-fill" style="width:${pct}%"></div></div>
-      <span class="goal-label">${done}/${goal}${reached ? " ✓" : ""}</span>
-      ${weekChip}
-    </div>`;
-}
-
-
 // ── DAILY LOGIN ──────────────────────────────
 function recordLogin() {
   const today = todayISO();
