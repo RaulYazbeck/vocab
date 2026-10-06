@@ -75,6 +75,7 @@ function markGoalIfReached() {
   const today = todayISO();
   if (!S.goalDates) S.goalDates = [];
   if (goalProgress() >= getDailyGoal() && !S.goalDates.includes(today)) S.goalDates.push(today);
+  if (typeof questMarkKept === "function" && S.quests && S.quests.m) questMarkKept();
 }
 // Caller saves. n = correct answers given in a game.
 function creditGameAnswers(n) {
@@ -122,8 +123,8 @@ function dailyGoalHtml() {
 // ── DAILY LOGIN ──────────────────────────────
 function recordLogin() {
   const today = todayISO();
-  if (S.lastLoginDate === today) return;
-  if (!S.loginDates.includes(today)) S.loginDates.push(today);
+  if (S.lastLoginDate === today || S.loginDates.includes(today)) return;
+  S.loginDates.push(today);
   S.lastLoginDate = today;
   S.exp += 15;
   // Do NOT stamp savedAt here at init time (and do NOT run achievement

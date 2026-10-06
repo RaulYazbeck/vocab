@@ -1067,7 +1067,7 @@ function renderPathCaughtUp() {
     </div>`;
 }
 
-// Quick Five: five due reviews — keeps the streak on a bad day.
+// Quick Five: five due reviews — keeps words moving on a bad day.
 function startQuickFive() {
   const { fix, due } = pathReviewCandidates();
   if (!fix.length && !due.length) { showCelebrateToast("✅", "Nothing due", "You're all caught up"); return; }

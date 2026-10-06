@@ -85,7 +85,7 @@ function freshQuestCounters() {
 function questEnsureToday() {
   migrateQuests();
   const Q = S.quests, today = todayISO();
-  if (Q.day === today && Q.list.length) { questSwapUnusedAnki(); questSwapForSpeak(); return false; }
+  if (Q.day === today && Q.list.length) { questSwapUnusedAnki(); questSwapForSpeak(); questMarkKept(); return false; }
   // Quests made before the switch to the 4 AM day (00:00–04:00 that one
   // night) belong to the day that's about to start — keep them.
   if (Q.day > today && Q.list.length) return false;
@@ -128,7 +128,8 @@ function questCloseDay(prevDay, today) {
 const KEEP_GOAL_SHARE = 0.4;
 function questMarkKept() {
   const Q = S.quests, today = todayISO();
-  if (Q.day !== today || Q.qdays.includes(today) || Q.kept.includes(today)) return;
+  if (!Array.isArray(Q.kept)) Q.kept = [];
+  if (Q.day !== today || (Q.qdays || []).includes(today) || Q.kept.includes(today)) return;
   const longDone = (Q.m.sessions || []).some(s => s.len === "long" && !s.ab && !s.quick);
   if (!longDone && goalProgress() < Math.ceil(getDailyGoal() * KEEP_GOAL_SHARE)) return;
   Q.kept.push(today);
