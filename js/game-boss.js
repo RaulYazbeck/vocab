@@ -225,9 +225,9 @@ function renderBestiary(from) {
     }).join("");
     return `<details class="bst-level" ${open ? "open" : ""}><summary><span>${g.icon} ${escapeHtml(g.name)}</span><small>${won} / ${g.decks.length} beaten</small></summary><div class="bst-grid">${tiles}</div></details>`;
   }).join("");
-  const back = _bestiaryFrom === "games" ? "openGamesHub(null)" : _bestiaryFrom === "journey" ? "renderJourney()" : "backToMenu()";
+  const back = _bestiaryFrom === "games" ? "openGamesHub(null)" : _bestiaryFrom === "journey" ? "renderJourney()" : "";
   document.getElementById("main-screen").innerHTML = `<div class="screen">
-    <div class="screen-top"><div class="screen-label">⚔️ Bosses · ${beaten}/${total}</div><button class="back-btn" onclick="${back}">← Back</button></div>
+    <div class="screen-top"><div class="screen-label">⚔️ Bosses · ${beaten}/${total}</div>${back ? `<button class="back-btn" onclick="${back}">← Back</button>` : backBtnHtml()}</div>
     <button class="boss-world ${W.defeated ? "done" : ""}" onclick="startWorldBoss()" ${W.defeated ? "disabled" : ""}>
       <span class="boss-world-icon">${W.icon}</span>
       <span class="boss-world-body"><b>World boss: ${escapeHtml(W.name)}</b>

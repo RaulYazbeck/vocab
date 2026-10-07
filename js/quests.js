@@ -1713,7 +1713,7 @@ function renderDayComplete(force = false) {
       ${questMiniHtml()}
       <div class="g-result-actions">
         ${Q.pending.length ? `<button class="g-big-btn" onclick="openPendingChest()">🎁 Open your chest${Q.pending.length > 1 ? `s (${Q.pending.length})` : ""}</button>` : ""}
-        <button class="g-sec-btn" onclick="backToMenu()">🏠 Home</button>
+        <button class="g-sec-btn" onclick="backToMenu()">← Today</button>
       </div>
       <div class="p-sub" style="margin-top:12px">Want more? Everything still counts — but you're done.</div>
     </div></div>`;
@@ -1729,7 +1729,7 @@ function renderCollection() {
   const total = COSMETICS.filter(c => !c.free).length;
   const Q = S.quests;
   document.getElementById("main-screen").innerHTML = `<div class="screen">
-    <div class="screen-top"><div class="screen-label">🎨 Collection · ${owned}/${total}</div><button class="back-btn" onclick="backToMenu()">← Back</button></div>
+    <div class="screen-top"><div class="screen-label">🎨 Collection · ${owned}/${total}</div>${backBtnHtml()}</div>
     <div class="coll-stats">
       <span class="p-chip" title="Covers a missed day automatically">🧊 ${Q.freezes}/${FREEZE_CAP} freezes</span>
       <span class="p-chip" title="Tap 🎲 on a quest to swap it — each reroll uses a token">🎟️ ${Q.tokens}/${TOKEN_CAP} rerolls</span>

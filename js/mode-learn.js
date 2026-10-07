@@ -16,7 +16,7 @@ function renderLearnCard() {
   const el = document.getElementById("main-screen");
   if (learnIndex >= learnQueue.length) {
     el.innerHTML = `<div class="screen">
-      <div class="screen-top"><div class="screen-label">Learning complete</div><button class="back-btn" onclick="backToMenu()">← Menu</button></div>
+      <div class="screen-top"><div class="screen-label">Learning complete</div><button class="back-btn" onclick="backToMenu()">← Today</button></div>
       <div class="result-screen">
         <div class="result-emoji">🎉</div>
         <div class="result-title">All cards seen!</div>
@@ -32,7 +32,7 @@ function renderLearnCard() {
   el.innerHTML = `<div class="screen">
     <div class="screen-top">
       <div class="screen-label">Learn · ${seen+1}/${total}</div>
-      <button class="back-btn" onclick="backToMenu()">← Menu</button>
+      <button class="back-btn" onclick="backToMenu()">← Today</button>
     </div>
     <div class="learn-progress">${learnQueue.length - learnIndex} cards left in queue</div>
     <div id="unlock-row-learn"></div>

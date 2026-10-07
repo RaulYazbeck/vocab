@@ -176,7 +176,7 @@ function renderWordEditsScreen() {
   document.getElementById("main-screen").innerHTML = `<div class="screen">
     <div class="screen-top">
       <div class="screen-label">✏️ My word edits</div>
-      <button class="back-btn" onclick="backToMenu()">← Back</button>
+      ${backBtnHtml()}
     </div>
     ${keys.length ? `
       <div class="we-toolbar">

@@ -44,7 +44,7 @@ const auth = fbOk ? firebase.auth() : null;
 <div class="app">
   <div class="header">
     <button class="hdr-menu" id="menu-btn" onclick="openMenu()" aria-label="Menu"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
-    <h1>🇫🇷 French</h1>
+    <h1><button class="hdr-title" onclick="goHome()" title="Back to Today">🇫🇷 French</button></h1>
     <div class="header-right" id="hdr-meta"></div>
     <div id="exp-bar" class="hdr-xp" aria-hidden="true"></div>
   </div>

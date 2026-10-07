@@ -15,11 +15,14 @@ function startSession() {
 }
 
 // ── SHOW SCREEN ───────────────────────────────
-function showScreen(name) {
+// from: the ☰ page the screen was opened from (its Back returns there).
+function showScreen(name, from) {
+  if (from !== undefined) _screenFrom = from;
   // Leaving a Today session through the header or Settings ends it
   // properly (answers are already saved) instead of orphaning it.
   if (typeof pathSession !== "undefined" && pathSession) endPathSession(true);
   showGameScreen();
+  scrollPageTop();
   const island = document.getElementById('floating-island');
   if (island) island.style.display = 'none';
   if (typeof logScreen === "function") logScreen(name);
@@ -32,7 +35,37 @@ function showScreen(name) {
   else if (name === "games")    openGamesHub(null);
   else if (name === "bosses")   renderBestiary("menu");
 }
+// The header title: back to Today from anywhere. A Today session with
+// answers, or a game in play, asks first; on Today it scrolls to the top.
+function goHome() {
+  if (typeof sheetOpen === "function" && sheetOpen()) closeSettings();
+  if (document.getElementById("main-screen").style.display !== "block") { scrollPageTop(true); return; }
+  // A running game holds still while you decide, and picks up again on
+  // its own if you stay (no extra "Tap to continue").
+  const ctx = typeof activeGame !== "undefined" && activeGame && activeGame.ctx;
+  const held = ctx && !ctx.paused && typeof pauseGame === "function" && (pauseGame(), ctx.paused);
+  const stay = () => { if (held && activeGame && activeGame.ctx === ctx && ctx.paused) resumeGame(); };
+  if (typeof pathSession !== "undefined" && pathSession) { pathQuit().then(yes => { if (!yes) stay(); }); return; }
+  if (ctx && ctx.started && !ctx.finished) {
+    appConfirm({ title: "Quit the game?", body: "This round won't count.", ok: "Quit", cancel: "Keep playing" })
+      .then(yes => { if (!yes) stay(); else if (activeGame && activeGame.ctx === ctx) backToMenu(); });
+    return;
+  }
+  backToMenu();
+}
+// Screens opened from ☰ go back to ☰ (the page they came from);
+// anywhere else, back goes to Today.
+let _screenFrom = null;
+function screenBack() {
+  const from = _screenFrom;
+  backToMenu();
+  if (from) openSettings(from);
+}
+function backBtnHtml(cls = "back-btn") {
+  return `<button class="${cls}" onclick="screenBack()">${_screenFrom ? "← Back" : "← Today"}</button>`;
+}
 function backToMenu() {
+  _screenFrom = null;
   if (typeof pathSession !== "undefined" && pathSession) endPathSession(true);
   if (typeof stopPathVoice === "function") stopPathVoice();
   activeMode = selectionType() === "anki" ? "anki" : (activeMode === "path" ? "drill" : activeMode);
@@ -53,6 +86,7 @@ function backToMenu() {
   renderGroups();
   renderExpBar();
   renderHome();
+  scrollPageTop();
   if (typeof logScreen === "function") logScreen("home");
   if (typeof questAfterActivity === "function") questAfterActivity();
 }
@@ -130,7 +164,7 @@ document.addEventListener("keydown", e => {
 }, true);
 
 // ── INIT ──────────────────────────────────────
-document.querySelector("h1").textContent = APP_CONFIG.title.replace(/ Vocabulary$/, "");
+document.querySelector(".hdr-title").textContent = APP_CONFIG.title.replace(/ Vocabulary$/, "");
 migrate();
 initVoice();
 initSettingsPanel();

@@ -24,7 +24,7 @@ function initDrillScreen() {
     <div class="drill-meta-card">
       <div class="screen-top">
         <div class="screen-label" id="drill-deck-label"></div>
-        <button class="back-btn" onclick="backToMenu()">← Menu</button>
+        <button class="back-btn" onclick="backToMenu()">← Today</button>
       </div>
       <div id="unlock-row-drill"></div>
     </div>
