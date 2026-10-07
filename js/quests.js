@@ -369,7 +369,7 @@ qt({ id: "b_level", slot: "B", fam: "up", icon: "🪜", w: 1.2, ok: c => c.front
 qt({ id: "b_rescue", slot: "B", fam: "rescue", icon: "🛟", w: 1.5, ok: c => c.belowPeak >= 3, target: c => Math.min(5, c.belowPeak),
   title: q => `Rescue: bring ${q.target} words back to their best stage`, prog: m => m.rescued, go: "focus:rescue" });
 qt({ id: "b_gender", slot: "B", fam: "collect", icon: "🎨", w: 1.2, ok: c => c.pos.noun >= 20 && c.games.includes("gender"), target: () => 5,
-  title: q => `Collect ${q.target} new nouns for your gender collection`, sub: () => "3 right answers on different days collects a noun",
+  title: q => `Collect ${q.target} new nouns for your gender collection`, sub: () => "3 right genders on different days collects a noun — in the game or typed in Today",
   prog: m => m.gCollected, go: "game:gender" });
 qt({ id: "b_plural", slot: "B", fam: "collect", icon: "🔢", w: 1, ok: c => c.de && c.games.includes("plural"), target: () => 5,
   title: q => `Collect ${q.target} new plurals`, sub: () => "3 right answers on different days collects a plural", prog: m => m.pCollected, go: "game:plural" });
@@ -1544,7 +1544,7 @@ const QUEST_FAM_HOW = {
   comeback: "Get right the words you missed yesterday.",
   crown: "Bring every word of the deck to 🌳 Known.",
   rescue: "Bring back words that slipped below their best stage.",
-  collect: "Collect genders or plurals in their game.",
+  collect: "Collect genders or plurals in their game — genders also by typing nouns with their article in Today.",
   hard: "Practise the words you struggle with most.",
   anki: "Do your Anki cards owed today.",
   games: "Right answers in any game count (🎮 Games).",
