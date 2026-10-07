@@ -207,6 +207,6 @@ function endTimer(won) {
         <div class="result-stat"><strong>${timerWrong}</strong>wrong</div>
         <div class="result-stat"><strong>+${timerExpEarned} XP</strong>earned</div>
       </div>
-      <button class="result-btn" onclick="backToMenu()">← Back to menu</button>
+      <button class="result-btn" onclick="backToMenu()">← Today</button>
     </div></div>`;
 }

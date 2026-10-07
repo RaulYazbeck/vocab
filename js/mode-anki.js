@@ -235,7 +235,7 @@ function ankiHeaderHtml() {
   return `
     <div class="screen-top">
       <div class="screen-label">🃏 Anki</div>
-      <button class="back-btn" onclick="backToMenu()">← Menu</button>
+      <button class="back-btn" onclick="backToMenu()">← Today</button>
     </div>
     ${ankiCountBar()}`;
 }
@@ -342,7 +342,7 @@ function renderAnkiWaiting(dueAt) {
         <div class="result-emoji">⏳</div>
         <div class="result-title">Next card in ${mins} min</div>
         <div style="font-size:13px;color:var(--text-3);margin-top:8px;">A learning card is still cooling down.</div>
-        <button class="result-btn" onclick="backToMenu()">← Back to menu</button>
+        <button class="result-btn" onclick="backToMenu()">← Today</button>
       </div>
     </div>`;
   clearTimeout(_ankiWaitTimer);
@@ -388,7 +388,7 @@ function renderAnkiDone() {
         <div style="font-size:13px;color:var(--text-2);margin-top:1rem;">${tomorrowLabel}</div>
         <div style="font-size:12px;color:var(--text-3);margin-top:6px;">New day starts at ${ANKI.ROLLOVER_HOUR}:00 AM.</div>
         <button class="result-btn" onclick="renderAnkiForecast()">📅 See my next days</button>
-        <button class="result-btn" style="margin-top:8px;" onclick="backToMenu()">← Back to menu</button>
+        <button class="result-btn" style="margin-top:8px;" onclick="backToMenu()">← Today</button>
       </div>
     </div>`;
   ankiSession = null;

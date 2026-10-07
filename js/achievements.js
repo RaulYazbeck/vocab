@@ -460,7 +460,7 @@ function renderBadgesScreen() {
   document.getElementById("main-screen").innerHTML = `<div class="screen">
     <div class="screen-top">
       <div class="screen-label">Achievements · ${earnedLevels}/${totalLevels} levels</div>
-      <button class="back-btn" onclick="backToMenu()">← Back</button>
+      ${backBtnHtml()}
     </div>
     ${sections}
     <div class="badge-category">

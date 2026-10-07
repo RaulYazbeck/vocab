@@ -1712,7 +1712,7 @@ function renderGamesHub() {
   const gm = grandmaOn();
   const top = `<div class="screen-top">
       <div class="screen-label">🎮 Games</div>
-      <button class="back-btn" onclick="backToMenu()">← Back</button>
+      ${backBtnHtml()}
     </div>`;
 
   if (!pool.length) {
@@ -1725,7 +1725,7 @@ function renderGamesHub() {
         <div class="g-empty-sub">${ids
           ? `${escapeHtml(names)} ${ids.length > 1 ? "have" : "has"} no words you've met yet. Study ${ids.length > 1 ? "them" : "it"} first (Anki cards join once introduced), or pick other decks.`
           : "Games use words you already know. Do a Today session or two and come back!"}</div>
-        <button class="g-big-btn" onclick="backToMenu()">← Back</button>
+        ${backBtnHtml("g-big-btn")}
       </div></div>`;
     return;
   }

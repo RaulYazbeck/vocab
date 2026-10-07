@@ -15,6 +15,7 @@ let _pathKeyBound = false;
 
 function startPathSession(lenKey, opts = {}) {
   if (typeof quitAllGames === "function") quitAllGames();
+  _screenFrom = null;
   lenKey = PATH.SESSION_LENGTHS[lenKey] ? lenKey : (S.path.sessionLen || "regular");
   S.path.sessionLen = lenKey;
   const q = buildPathQueue(lenKey, opts);
@@ -979,7 +980,7 @@ function pathQuit() {
   if (s.stats.answered === 0 && !s.met.length) { endPathSession(true); backToMenu(); return; }
   appConfirm({ title: "Leave the session?", body: "Everything you've answered so far is saved.", ok: "Leave", cancel: "Keep going" })
     .then(yes => {
-      if (yes && pathSession === s) renderPathSummary(true);
+      if (yes && pathSession === s) { if (typeof quitAllGames === "function") quitAllGames(); renderPathSummary(true); }
       else if (!yes) { const i = document.getElementById("p-input"); if (i && document.getElementById("p-typed").style.display !== "none") i.focus({ preventScroll: true }); }
     });
 }
@@ -1085,7 +1086,7 @@ function renderPathCaughtUp() {
         <div class="g-result-actions">
           ${!done ? `<button class="g-big-btn" onclick="pathLearnExtra();startPathSession('quick')">🌱 Learn ${PATH.EXTRA_NEW} extra</button>` : ""}
           <button class="g-sec-btn" onclick="openGamesHub(null)">🎮 Play a game</button>
-          <button class="g-link-btn" onclick="backToMenu()">← Home</button>
+          <button class="g-link-btn" onclick="backToMenu()">← Today</button>
         </div>
       </div>
     </div>`;
