@@ -47,6 +47,10 @@ const FIRESTORE_MAX_WAIT_MS = 20000;
 // JSON of each doc as last written/loaded — used to skip unchanged
 // docs on save. Cleared to force a full upload.
 let syncedDocCache = {};
+// savedAt of the meta doc as this page last wrote or read it. If the
+// cloud's differs, another device wrote since: the cache above no
+// longer describes the cloud.
+let syncedMetaSavedAt = null;
 // Coalesced local saves (see scheduleLocalSave). Declared up here so they
 // exist even if the Firebase setup below fails (offline, blocked CDN).
 const LOCAL_SAVE_DEBOUNCE_MS = 300;
@@ -57,17 +61,23 @@ const LOAD_META_TIMEOUT_MS = 20000;
 const LOAD_ALL_TIMEOUT_MS  = 45000;
 const COMMIT_TIMEOUT_MS    = 30000;
 const COMMIT_RETRY_MS = [3000, 10000, 30000, 60000];
+// Each timeout in a row doubles the next one (up to 4×): a hung request
+// is still caught, a very slow connection still gets through.
+const growTimeout = (ms, timeoutsInARow) => ms * 2 ** Math.min(timeoutsInARow, 2);
 const LOAD_RETRY_MS   = [10000, 30000, 60000, 120000];
 
 let syncUid = null;            // uid the flags/caches below belong to
 let loadInFlight = null;       // promise of the running cloud load
 let cloudLoadedOnce = false;   // a load has succeeded for this user
+let savesHeldBack = false;     // saves made before the first load (not sent)
 let loadFailures = 0;
+let loadTimeouts = 0;          // cloud reads timed out in a row
 let loadRetryT = 0;
 let commitInFlight = null;     // promise of the running commit
 let commitAgain = false;       // commit asked for while one was running
 let commitAfterLoad = false;   // commit asked for while a load was running
 let commitFailures = 0;
+let commitTimeouts = 0;        // commits timed out in a row
 let commitRetryT = 0;
 let commitPendingSince = 0;    // first save of the current debounce burst
 
@@ -103,10 +113,14 @@ try { watchAuth(); } catch (e) { console.warn("[sync] Firebase unavailable — s
 function resetSyncSession(uid) {
   syncUid = uid;
   syncedDocCache = {};
+  syncedMetaSavedAt = null;
   initialLoadComplete = false;
   cloudLoadedOnce = false;
+  savesHeldBack = false;
   loadFailures = 0;
+  loadTimeouts = 0;
   commitFailures = 0;
+  commitTimeouts = 0;
   commitAgain = false;
   commitAfterLoad = false;
   commitPendingSince = 0;
@@ -130,7 +144,11 @@ function handleAuth() {
 function withTimeout(promise, ms, what) {
   let t;
   const timer = new Promise((_, reject) => {
-    t = setTimeout(() => reject(new Error(what + " timed out after " + Math.round(ms / 1000) + "s")), ms);
+    t = setTimeout(() => {
+      const e = new Error(what + " timed out after " + Math.round(ms / 1000) + "s");
+      e.timedOut = true;
+      reject(e);
+    }, ms);
   });
   return Promise.race([promise, timer]).finally(() => clearTimeout(t));
 }
@@ -208,14 +226,17 @@ function runCloudLoad(uid) {
   const loaded = () => {
     initialLoadComplete = true;
     cloudLoadedOnce = true;
+    savesHeldBack = false;
     loadFailures = 0;
+    loadTimeouts = 0;
   };
 
-  return withTimeout(ref.doc(STORAGE_KEY).get({ source: 'server' }), LOAD_META_TIMEOUT_MS, "Cloud load").then(metaSnap => {
+  return withTimeout(ref.doc(STORAGE_KEY).get({ source: 'server' }), growTimeout(LOAD_META_TIMEOUT_MS, loadTimeouts), "Cloud load").then(metaSnap => {
     if (stale()) return;
     if (!metaSnap.exists) {
       // Nothing in the cloud yet: put this device's progress there.
       loaded();
+      syncedDocCache = {};
       if (S.savedAt) commitAfterLoad = true;
       setStatus("☁️ Synced", 3000);
       return;
@@ -228,6 +249,7 @@ function runCloudLoad(uid) {
       // (Fetching here would re-apply cloud docs over local; if a deck
       // doc failed to write, that would roll its answers back.)
       loaded();
+      syncedMetaSavedAt = cloudTime;
       pushIfChanged();
       if (commitFailures) commitAfterLoad = true; // finish a failed commit
       setStatus("☁️ Synced", 3000);
@@ -246,7 +268,10 @@ function runCloudLoad(uid) {
       if (!freshInstall) {
         // Local has changes the cloud never got (e.g. the app was
         // closed before the last commit landed): push them up now.
+        // Another device wrote since our last sync → full upload, so
+        // none of its docs are left mixed in with ours.
         loaded();
+        if (cloudTime !== syncedMetaSavedAt) syncedDocCache = {};
         commitAfterLoad = true;
         setStatus("☁️ Synced (local newer)", 3000);
         return; // 1 read total
@@ -254,7 +279,7 @@ function runCloudLoad(uid) {
     }
 
     // Cloud is newer (or fresh-install override) — fetch all.
-    return withTimeout(ref.get({ source: 'server' }), LOAD_ALL_TIMEOUT_MS, "Cloud load").then(snapshot => {
+    return withTimeout(ref.get({ source: 'server' }), growTimeout(LOAD_ALL_TIMEOUT_MS, loadTimeouts), "Cloud load").then(snapshot => {
       if (stale()) return;
       let cloudMeta = null;
       const allWords = {};
@@ -330,6 +355,7 @@ function runCloudLoad(uid) {
       const docs = buildSyncDocs();
       syncedDocCache = {};
       Object.entries(docs).forEach(([id, payload]) => { syncedDocCache[id] = JSON.stringify(payload); });
+      syncedMetaSavedAt = cloudMeta.savedAt || 0;
 
       setStatus("☁️ Synced", 3000);
       loaded();
@@ -337,6 +363,7 @@ function runCloudLoad(uid) {
   }).catch(e => {
     console.error("Cloud load failed (no fallback to cache):", e);
     if (stale()) return;
+    if (e && e.timedOut) loadTimeouts++;
     setStatus("⚠️ Offline — using local data", 3000);
     if (cloudLoadedOnce) return; // background poll; next poll retries
     scheduleLoadRetry();
@@ -350,7 +377,7 @@ function runCloudLoad(uid) {
       if (evidenceCount(S) < 5 && (S.exp || 0) < 50) return;
       initialLoadComplete = true;
       // Saves held back while we waited go up now, like any later save.
-      if ((S.savedAt || 0) !== localTime) commitToFirestore();
+      if (savesHeldBack) { savesHeldBack = false; commitToFirestore(); }
     }, 5000);
   });
 }
@@ -418,6 +445,7 @@ function saveToCloud() {
   // (Once the load finds local newer, it pushes these saves up.)
   if (!initialLoadComplete) {
     console.log("[sync] suppressing cloud write — initial load not yet complete");
+    savesHeldBack = true;
     return;
   }
 
@@ -470,18 +498,24 @@ async function commitToFirestore() {
 async function sendCommit(user, changed) {
   setStatus("☁️ Saving…");
   const abort = typeof AbortController === "function" ? new AbortController() : null;
+  // Each doc is recorded the moment it lands, so after a partial failure
+  // or a timeout a retry resends only the rest.
+  const landed = (id, json) => {
+    if (!currentUser || currentUser.uid !== user.uid) return;
+    syncedDocCache[id] = json;
+    if (id === STORAGE_KEY) syncedMetaSavedAt = JSON.parse(json).savedAt || 0;
+  };
   try {
     let failedIds;
     try {
-      failedIds = await withTimeout(writeDocs(user, changed, abort && abort.signal), COMMIT_TIMEOUT_MS, "Cloud save");
+      failedIds = await withTimeout(writeDocs(user, changed, abort && abort.signal, landed),
+        growTimeout(COMMIT_TIMEOUT_MS, commitTimeouts), "Cloud save");
     } catch (e) {
+      if (e && e.timedOut) commitTimeouts++;
       if (abort) abort.abort(); // don't let a hung write land late
       throw e;
     }
-    // Docs that did land are recorded, so a retry resends only the rest.
-    if (currentUser && currentUser.uid === user.uid) {
-      changed.forEach(([id, json]) => { if (!failedIds.includes(id)) syncedDocCache[id] = json; });
-    }
+    commitTimeouts = 0;
     if (failedIds.length) throw new Error(failedIds.length + " doc write(s) failed");
     commitFailures = 0;
     setStatus("☁️ Saved", 2000);
@@ -506,21 +540,22 @@ function scheduleCommitRetry() {
 // savedAt then marks a complete commit. (Written alongside, a commit cut
 // short — page killed, a write failed — could leave the cloud meta
 // claiming a save whose deck docs never arrived.)
-async function writeDocs(user, changed, signal) {
+async function writeDocs(user, changed, signal, landed) {
   const isMeta = ([id]) => id === STORAGE_KEY;
   const rest = changed.filter(c => !isMeta(c));
   const meta = changed.filter(isMeta);
-  const failed = rest.length ? await sendDocs(user, rest, signal) : [];
+  const failed = rest.length ? await sendDocs(user, rest, signal, landed) : [];
   if (!meta.length) return failed;
-  if (failed.length) return failed.concat(meta.map(([id]) => id));
-  return sendDocs(user, meta, signal);
+  // Timed out meanwhile: the commit is over, its meta must not follow.
+  if (failed.length || (signal && signal.aborted)) return failed.concat(meta.map(([id]) => id));
+  return sendDocs(user, meta, signal, landed);
 }
 
-async function sendDocs(user, changed, signal) {
-  if (isIOSPWA) return commitViaREST(user, changed, signal);
+async function sendDocs(user, changed, signal, landed) {
+  if (isIOSPWA) return commitViaREST(user, changed, signal, landed);
   const ref = db.collection("users").doc(user.uid).collection("apps");
   const results = await Promise.allSettled(
-    changed.map(([id, json]) => ref.doc(id).set(JSON.parse(json)))
+    changed.map(([id, json]) => ref.doc(id).set(JSON.parse(json)).then(() => landed(id, json)))
   );
   const failed = [];
   results.forEach((r, i) => {
@@ -532,7 +567,7 @@ async function sendDocs(user, changed, signal) {
   return failed;
 }
 
-async function commitViaREST(user, changed, signal) {
+async function commitViaREST(user, changed, signal, landed) {
   const projectId = "german-vocab-a"; // your Firebase project ID
   const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/users/${user.uid}/apps`;
 
@@ -557,6 +592,7 @@ async function commitViaREST(user, changed, signal) {
       signal
     }).then(r => {
       if (!r.ok) { const e = new Error(`HTTP ${r.status}`); e.status = r.status; throw e; }
+      landed(docId, json);
     });
   const settle = p => p.then(() => null, e => e);
 
