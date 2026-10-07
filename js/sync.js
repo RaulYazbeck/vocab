@@ -14,6 +14,21 @@
 //   • Background sync: light meta-doc poll every few minutes while
 //     the tab is visible, plus a sync when returning to the tab.
 //
+// Robustness:
+//   • Every cloud read/write has a timeout — a hung request (common in
+//     iOS PWAs after resume) fails like any other error instead of
+//     silently blocking sync for the whole session.
+//   • One load and one commit at a time. Commits wait while a load is
+//     running, so a commit can never interleave with a load that is
+//     about to replace S (that left cloud and device out of step).
+//   • A load that finds local newer (or the cloud empty) pushes local
+//     up right away instead of waiting for the next answer.
+//   • Failed commits retry with backoff, and again when the device
+//     comes back online or the tab becomes visible.
+//   • The meta doc is written last, after the deck docs landed, so its
+//     savedAt always marks a complete commit.
+//   • State pulled from the cloud is stored locally straight away.
+//
 // ─────────────────────────────────────────────
 
 let currentUser  = null;
@@ -25,6 +40,9 @@ let lastCloudLoadAt = 0;
 
 const isIOSPWA = navigator.standalone === true;
 const FIRESTORE_DEBOUNCE_MS = 2500;
+// Non-stop drilling keeps resetting the debounce; never hold changes
+// back longer than this.
+const FIRESTORE_MAX_WAIT_MS = 20000;
 
 // JSON of each doc as last written/loaded — used to skip unchanged
 // docs on save. Cleared to force a full upload.
@@ -34,6 +52,25 @@ let syncedDocCache = {};
 const LOCAL_SAVE_DEBOUNCE_MS = 300;
 let _localSaveT = 0;
 
+// Timeouts: generous — they exist to catch hung requests, not slow ones.
+const LOAD_META_TIMEOUT_MS = 20000;
+const LOAD_ALL_TIMEOUT_MS  = 45000;
+const COMMIT_TIMEOUT_MS    = 30000;
+const COMMIT_RETRY_MS = [3000, 10000, 30000, 60000];
+const LOAD_RETRY_MS   = [10000, 30000, 60000, 120000];
+
+let syncUid = null;            // uid the flags/caches below belong to
+let loadInFlight = null;       // promise of the running cloud load
+let cloudLoadedOnce = false;   // a load has succeeded for this user
+let loadFailures = 0;
+let loadRetryT = 0;
+let commitInFlight = null;     // promise of the running commit
+let commitAgain = false;       // commit asked for while one was running
+let commitAfterLoad = false;   // commit asked for while a load was running
+let commitFailures = 0;
+let commitRetryT = 0;
+let commitPendingSince = 0;    // first save of the current debounce burst
+
 // ── AUTH ──────────────────────────────────────
 
 // Without Firebase (offline first load, a blocked CDN) the app still runs
@@ -42,6 +79,11 @@ function watchAuth() { auth.onAuthStateChanged(user => {
   currentUser = user;
   const btn    = document.getElementById("auth-btn");
   const status = document.getElementById("sync-status");
+
+  // New account (or signed out): nothing synced for the previous one
+  // carries over — re-gate writes until this account's first load.
+  const uid = user ? user.uid : null;
+  if (uid !== syncUid) resetSyncSession(uid);
 
   if (user) {
     if (btn)    btn.textContent = user.displayName?.split(" ")[0] || "Signed in";
@@ -58,6 +100,21 @@ function watchAuth() { auth.onAuthStateChanged(user => {
 }); }
 try { watchAuth(); } catch (e) { console.warn("[sync] Firebase unavailable — saving on this device only", e); }
 
+function resetSyncSession(uid) {
+  syncUid = uid;
+  syncedDocCache = {};
+  initialLoadComplete = false;
+  cloudLoadedOnce = false;
+  loadFailures = 0;
+  commitFailures = 0;
+  commitAgain = false;
+  commitAfterLoad = false;
+  commitPendingSince = 0;
+  clearTimeout(syncTimeout);  syncTimeout = null;
+  clearTimeout(loadRetryT);   loadRetryT = 0;
+  clearTimeout(commitRetryT); commitRetryT = 0;
+}
+
 function handleAuth() {
   if (!auth) { showCelebrateToast("☁️", "Sign-in unavailable", "Needs a connection — your progress is saved on this device"); return; }
   if (currentUser) {
@@ -66,6 +123,16 @@ function handleAuth() {
     const provider = new firebase.auth.GoogleAuthProvider();
     auth.signInWithPopup(provider).catch(e => alert("Sign in failed: " + e.message));
   }
+}
+
+// Rejects if `promise` hasn't settled within `ms`. The request itself
+// may still finish later; callers ignore it once this has rejected.
+function withTimeout(promise, ms, what) {
+  let t;
+  const timer = new Promise((_, reject) => {
+    t = setTimeout(() => reject(new Error(what + " timed out after " + Math.round(ms / 1000) + "s")), ms);
+  });
+  return Promise.race([promise, timer]).finally(() => clearTimeout(t));
 }
 
 // ── DOC BUILDING ──────────────────────────────
@@ -105,20 +172,67 @@ function buildSyncDocs() {
 // silently clobbering local state was the source of major data loss.
 
 function loadFromCloud() {
-  if (!currentUser) return;
-  setStatus("☁️ Syncing…");
-  const ref = db.collection("users").doc(currentUser.uid).collection("apps");
+  if (!currentUser) return Promise.resolve();
+  const uid = currentUser.uid;
+  // One load at a time — a second caller shares the running one.
+  if (loadInFlight && loadInFlight.uid === uid) return loadInFlight;
+  clearTimeout(loadRetryT); loadRetryT = 0;
   lastCloudLoadAt = Date.now();
 
-  return ref.doc(STORAGE_KEY).get({ source: 'server' }).then(metaSnap => {
+  // Let a running commit land first, so the load reads a settled cloud.
+  const run = Promise.resolve(commitInFlight).then(() => runCloudLoad(uid)).finally(() => {
+    if (loadInFlight === run) loadInFlight = null;
+    // Push local up if the load asked for it, or a commit was held back.
+    if (commitAfterLoad && currentUser && currentUser.uid === uid && initialLoadComplete) {
+      commitAfterLoad = false;
+      commitToFirestore();
+    }
+  });
+  run.uid = uid;
+  loadInFlight = run;
+  return run;
+}
+
+function runCloudLoad(uid) {
+  setStatus("☁️ Syncing…");
+  const ref = db.collection("users").doc(uid).collection("apps");
+  // Local's save stamp as the load starts. Answers given while it runs
+  // must not make local look newer than a cloud that really is newer
+  // (another device's session) — that would push over it.
+  const localTime = S.savedAt || 0;
+  // Saves made while the load ran (held back from the cloud) — push
+  // them once the load has kept local.
+  const pushIfChanged = () => { if ((S.savedAt || 0) !== localTime) commitAfterLoad = true; };
+  // The account changed while we waited — drop the result.
+  const stale = () => !currentUser || currentUser.uid !== uid;
+  const loaded = () => {
+    initialLoadComplete = true;
+    cloudLoadedOnce = true;
+    loadFailures = 0;
+  };
+
+  return withTimeout(ref.doc(STORAGE_KEY).get({ source: 'server' }), LOAD_META_TIMEOUT_MS, "Cloud load").then(metaSnap => {
+    if (stale()) return;
     if (!metaSnap.exists) {
+      // Nothing in the cloud yet: put this device's progress there.
+      loaded();
+      if (S.savedAt) commitAfterLoad = true;
       setStatus("☁️ Synced", 3000);
-      initialLoadComplete = true;
       return;
     }
     const meta = metaSnap.data();
     const cloudTime = meta.savedAt || 0;
-    const localTime = S.savedAt || 0;
+
+    if (localTime && cloudTime === localTime) {
+      // Same save on both sides — already in sync, 1 read total.
+      // (Fetching here would re-apply cloud docs over local; if a deck
+      // doc failed to write, that would roll its answers back.)
+      loaded();
+      pushIfChanged();
+      if (commitFailures) commitAfterLoad = true; // finish a failed commit
+      setStatus("☁️ Synced", 3000);
+      return;
+    }
 
     if (cloudTime < localTime) {
       // Local is newer. Accept cloud anyway only in the fresh-install
@@ -130,14 +244,18 @@ function loadFromCloud() {
         (localEv < 5 && (cloudEv === undefined || cloudEv >= 20)) ||
         ((S.exp || 0) < 50 && (meta.exp || 0) >= 200);
       if (!freshInstall) {
+        // Local has changes the cloud never got (e.g. the app was
+        // closed before the last commit landed): push them up now.
+        loaded();
+        commitAfterLoad = true;
         setStatus("☁️ Synced (local newer)", 3000);
-        initialLoadComplete = true;
         return; // 1 read total
       }
     }
 
-    // Cloud is newer-or-equal (or fresh-install override) — fetch all.
-    return ref.get({ source: 'server' }).then(snapshot => {
+    // Cloud is newer (or fresh-install override) — fetch all.
+    return withTimeout(ref.get({ source: 'server' }), LOAD_ALL_TIMEOUT_MS, "Cloud load").then(snapshot => {
+      if (stale()) return;
       let cloudMeta = null;
       const allWords = {};
       const usageArchive = {};
@@ -149,7 +267,13 @@ function loadFromCloud() {
         else if (doc.id === STORAGE_KEY + "_learn") cloudLearn = data.learn || null;
         else if (doc.id.startsWith(STORAGE_KEY + "_usage_")) usageArchive[doc.id.slice((STORAGE_KEY + "_usage_").length)] = data.days || {};
       });
-      if (!cloudMeta) { setStatus("☁️ Synced", 3000); initialLoadComplete = true; return; }
+      if (!cloudMeta) { loaded(); setStatus("☁️ Synced", 3000); return; }
+
+      // Answers given while this fetch ran are not pushed (commits wait
+      // for the load) and the newer cloud state below replaces them.
+      if ((S.savedAt || 0) !== localTime) {
+        console.warn("[sync] local changed during cloud load; the newer cloud state wins");
+      }
 
       // Usage history is never lost to a load: archived days only this
       // device has are kept alongside the cloud's.
@@ -179,7 +303,7 @@ function loadFromCloud() {
         );
         if (!accept) {
           // Force local to overwrite cloud on next save.
-          initialLoadComplete = true;
+          loaded();
           syncedDocCache = {};
           S.savedAt = Date.now();
           saveToCloud();
@@ -198,6 +322,9 @@ function loadFromCloud() {
       renderExpBar();
       renderGroups();
       if (typeof renderHome === "function") renderHome();
+      // The loaded state is this device's state now — store it, or a
+      // reload before the next answer would bring back the old copy.
+      saveLocalOnly();
       // What we just loaded IS the cloud content — seed the save diff
       // cache so the next commit only writes docs that really changed.
       const docs = buildSyncDocs();
@@ -205,15 +332,41 @@ function loadFromCloud() {
       Object.entries(docs).forEach(([id, payload]) => { syncedDocCache[id] = JSON.stringify(payload); });
 
       setStatus("☁️ Synced", 3000);
-      initialLoadComplete = true;
+      loaded();
     });
   }).catch(e => {
     console.error("Cloud load failed (no fallback to cache):", e);
+    if (stale()) return;
     setStatus("⚠️ Offline — using local data", 3000);
-    // Even on failure, unblock writes after a delay so the user isn't
-    // permanently locked out if they're offline at open time.
-    setTimeout(() => { initialLoadComplete = true; }, 5000);
+    if (cloudLoadedOnce) return; // background poll; next poll retries
+    scheduleLoadRetry();
+    // Unblock writes after a delay so the user isn't locked out if
+    // they're offline at open time — but never for a near-empty local
+    // state: pushed up before we've seen the cloud, that would replace
+    // real progress (fresh install, cleared storage). It waits for a
+    // load to succeed instead (retried above, on reconnect, on return).
+    setTimeout(() => {
+      if (stale() || initialLoadComplete) return;
+      if (evidenceCount(S) < 5 && (S.exp || 0) < 50) return;
+      initialLoadComplete = true;
+      // Saves held back while we waited go up now, like any later save.
+      if ((S.savedAt || 0) !== localTime) commitToFirestore();
+    }, 5000);
   });
+}
+
+// Until the first load succeeds, keep trying on a backoff (then every
+// couple of minutes) while the app is open — until then, changes this
+// device made earlier may not be in the cloud. Hidden, it waits for
+// the return to the tab (resumeSync) instead.
+function scheduleLoadRetry() {
+  if (loadRetryT) return;
+  const ms = LOAD_RETRY_MS[Math.min(loadFailures++, LOAD_RETRY_MS.length - 1)];
+  loadRetryT = setTimeout(() => {
+    loadRetryT = 0;
+    if (currentUser && !cloudLoadedOnce && !manualSyncInProgress &&
+        document.visibilityState === "visible") loadFromCloud();
+  }, ms);
 }
 
 // Count "evidence of progress" — total answers given.
@@ -262,62 +415,126 @@ function saveToCloud() {
   // CRITICAL: do not write to cloud until initial load has completed.
   // Otherwise, any state change between page open and cloud load can
   // push stale local state up and clobber newer data on the server.
+  // (Once the load finds local newer, it pushes these saves up.)
   if (!initialLoadComplete) {
     console.log("[sync] suppressing cloud write — initial load not yet complete");
     return;
   }
 
+  scheduleCommit();
+}
+
+function scheduleCommit() {
   clearTimeout(syncTimeout);
+  const now = Date.now();
+  if (!commitPendingSince) commitPendingSince = now;
+  const wait = Math.max(0, Math.min(FIRESTORE_DEBOUNCE_MS, commitPendingSince + FIRESTORE_MAX_WAIT_MS - now));
   syncTimeout = setTimeout(() => {
+    syncTimeout = null;
     commitToFirestore();
-  }, FIRESTORE_DEBOUNCE_MS);
+  }, wait);
 }
 
 // Write to Firestore immediately — used by unload/hide and force-upload.
 // Diffs each doc against the last written version and skips unchanged
 // docs, so a typical commit writes 2 small docs instead of ~30.
-async function commitToFirestore(retries = 3) {
+// One commit at a time: a call while one runs is folded into a single
+// follow-up commit, so hide + pagehide + beforeunload (which all fire on
+// close) send the changes once, and writes can't land out of order.
+async function commitToFirestore() {
   if (!currentUser) return;
+  clearTimeout(syncTimeout); syncTimeout = null;
+  commitPendingSince = 0;
+  if (!S.savedAt) return; // never-stamped state has nothing to push
+  if (loadInFlight) { commitAfterLoad = true; return; }
+  if (commitInFlight) { commitAgain = true; return; }
+  clearTimeout(commitRetryT); commitRetryT = 0;
+
+  const user = currentUser;
   const docs = buildSyncDocs();
   const changed = Object.entries(docs)
     .map(([id, payload]) => [id, JSON.stringify(payload)])
     .filter(([id, json]) => syncedDocCache[id] !== json);
-  if (!changed.length) { setStatus("☁️ Saved", 2000); return; }
+  if (!changed.length) { commitFailures = 0; setStatus("☁️ Saved", 2000); return; }
 
-  setStatus("☁️ Saving…");
-  try {
-    if (isIOSPWA) {
-      await commitViaREST(changed);
-    } else {
-      const ref = db.collection("users").doc(currentUser.uid).collection("apps");
-      const results = await Promise.allSettled(
-        changed.map(([id, json]) => ref.doc(id).set(JSON.parse(json)))
-      );
-      const failed = results.filter(r => r.status === "rejected");
-      if (failed.length > 0) {
-        console.error("Cloud save failed:", failed.map(r => r.reason?.message));
-        throw new Error("Some doc writes failed");
-      }
-    }
-    changed.forEach(([id, json]) => { syncedDocCache[id] = json; });
-    setStatus("☁️ Saved", 2000);
-  } catch (e) {
-    console.error("Cloud save failed:", e.message);
-    if (retries > 0) {
-      setStatus("⚠️ Retrying…");
-      setTimeout(() => commitToFirestore(retries - 1), 3000);
-    } else {
-      setStatus("⚠️ Sync failed");
-    }
+  const run = sendCommit(user, changed);
+  commitInFlight = run;
+  await run;
+  commitInFlight = null;
+  if (commitAgain) {
+    commitAgain = false;
+    commitToFirestore();
   }
 }
 
-async function commitViaREST(changed) {
-  if (!currentUser) return;
+async function sendCommit(user, changed) {
+  setStatus("☁️ Saving…");
+  const abort = typeof AbortController === "function" ? new AbortController() : null;
+  try {
+    let failedIds;
+    try {
+      failedIds = await withTimeout(writeDocs(user, changed, abort && abort.signal), COMMIT_TIMEOUT_MS, "Cloud save");
+    } catch (e) {
+      if (abort) abort.abort(); // don't let a hung write land late
+      throw e;
+    }
+    // Docs that did land are recorded, so a retry resends only the rest.
+    if (currentUser && currentUser.uid === user.uid) {
+      changed.forEach(([id, json]) => { if (!failedIds.includes(id)) syncedDocCache[id] = json; });
+    }
+    if (failedIds.length) throw new Error(failedIds.length + " doc write(s) failed");
+    commitFailures = 0;
+    setStatus("☁️ Saved", 2000);
+  } catch (e) {
+    console.error("Cloud save failed:", e.message);
+    if (currentUser && currentUser.uid === user.uid) scheduleCommitRetry();
+  }
+}
 
-  const token = await currentUser.getIdToken();
+// Backoff after a failed commit. Once the schedule runs out, the next
+// save, reconnecting, or returning to the tab tries again.
+function scheduleCommitRetry() {
+  clearTimeout(commitRetryT); commitRetryT = 0;
+  if (commitFailures >= COMMIT_RETRY_MS.length) { setStatus("⚠️ Sync failed"); return; }
+  const ms = COMMIT_RETRY_MS[commitFailures++];
+  setStatus("⚠️ Retrying…");
+  commitRetryT = setTimeout(() => { commitRetryT = 0; commitToFirestore(); }, ms);
+}
+
+// Sends the changed docs; resolves to the ids that failed to write.
+// The meta doc goes last, only once every other doc has landed: its
+// savedAt then marks a complete commit. (Written alongside, a commit cut
+// short — page killed, a write failed — could leave the cloud meta
+// claiming a save whose deck docs never arrived.)
+async function writeDocs(user, changed, signal) {
+  const isMeta = ([id]) => id === STORAGE_KEY;
+  const rest = changed.filter(c => !isMeta(c));
+  const meta = changed.filter(isMeta);
+  const failed = rest.length ? await sendDocs(user, rest, signal) : [];
+  if (!meta.length) return failed;
+  if (failed.length) return failed.concat(meta.map(([id]) => id));
+  return sendDocs(user, meta, signal);
+}
+
+async function sendDocs(user, changed, signal) {
+  if (isIOSPWA) return commitViaREST(user, changed, signal);
+  const ref = db.collection("users").doc(user.uid).collection("apps");
+  const results = await Promise.allSettled(
+    changed.map(([id, json]) => ref.doc(id).set(JSON.parse(json)))
+  );
+  const failed = [];
+  results.forEach((r, i) => {
+    if (r.status === "rejected") {
+      console.error("Cloud save failed for " + changed[i][0] + ":", r.reason?.message);
+      failed.push(changed[i][0]);
+    }
+  });
+  return failed;
+}
+
+async function commitViaREST(user, changed, signal) {
   const projectId = "german-vocab-a"; // your Firebase project ID
-  const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/users/${currentUser.uid}/apps`;
+  const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/users/${user.uid}/apps`;
 
   function toFirestoreValue(val) {
     if (val === null || val === undefined) return { nullValue: null };
@@ -332,15 +549,31 @@ async function commitViaREST(changed) {
     return { fields: Object.fromEntries(Object.entries(obj).map(([k,v]) => [k, toFirestoreValue(v)])) };
   }
 
-  const saves = changed.map(([docId, json]) =>
+  const send = (docId, json, token) =>
     fetch(`${baseUrl}/${docId}`, {
       method: "PATCH",
       headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify(toFirestoreDoc(JSON.parse(json)))
-    }).then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); })
-  );
+      body: JSON.stringify(toFirestoreDoc(JSON.parse(json))),
+      signal
+    }).then(r => {
+      if (!r.ok) { const e = new Error(`HTTP ${r.status}`); e.status = r.status; throw e; }
+    });
+  const settle = p => p.then(() => null, e => e);
 
-  await Promise.all(saves);
+  let token = await user.getIdToken();
+  let errors = await Promise.all(changed.map(([id, json]) => settle(send(id, json, token))));
+  // 401 = the ID token went stale (common after an iOS resume): refresh
+  // it once and resend just those docs.
+  if (errors.some(e => e && e.status === 401)) {
+    token = await user.getIdToken(true);
+    errors = await Promise.all(changed.map(([id, json], i) =>
+      errors[i] && errors[i].status === 401 ? settle(send(id, json, token)) : errors[i]));
+  }
+  const failed = [];
+  errors.forEach((e, i) => {
+    if (e) { console.error("Cloud save failed for " + changed[i][0] + ":", e.message); failed.push(changed[i][0]); }
+  });
+  return failed;
 }
 
 // Write to localStorage only — no Firestore, no debounce.
@@ -388,16 +621,37 @@ function stopBackgroundSync() {
   }
 }
 
+// Back in contact (returned to the tab, or the network came back):
+// finish what earlier failures left undone.
+function resumeSync(force) {
+  if (!currentUser || manualSyncInProgress) return;
+  if (!cloudLoadedOnce) {
+    loadFailures = 0;
+    loadFromCloud(); // pushes local afterwards if it's newer
+    return;
+  }
+  if (commitFailures || commitRetryT) {
+    commitFailures = 0;
+    commitToFirestore();
+  }
+  if (force || Date.now() - lastCloudLoadAt > RETURN_SYNC_MIN_AGE_MS) loadFromCloud();
+}
+
 // ── UNLOAD / HIDE FLUSH ───────────────────────
 // Bypasses the debounce so the last answers are never lost. The
 // visibilitychange→hidden hook is the one that actually fires on
 // mobile PWAs; beforeunload covers desktop tabs. Returning to a
 // visible tab triggers a pull if the last sync is stale.
 
+// Only when there is something to send: a debounced save, a failed
+// commit, or one held back by a load. (Committing with nothing pending
+// would re-upload every doc on the first hide of a session — and after
+// an offline open, that could push stale local data over newer cloud.)
 function flushPendingSave() {
   flushLocalSave();
-  clearTimeout(syncTimeout);
-  if (currentUser && initialLoadComplete && S.savedAt) {
+  const pending = syncTimeout || commitRetryT || commitFailures || commitAgain || commitAfterLoad;
+  clearTimeout(syncTimeout); syncTimeout = null;
+  if (currentUser && initialLoadComplete && S.savedAt && pending) {
     commitToFirestore();
   }
 }
@@ -408,13 +662,12 @@ window.addEventListener("pagehide", flushPendingSave);
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") {
     flushPendingSave();
-  } else if (
-    currentUser && navigator.onLine && !manualSyncInProgress &&
-    Date.now() - lastCloudLoadAt > RETURN_SYNC_MIN_AGE_MS
-  ) {
-    loadFromCloud();
+  } else if (navigator.onLine) {
+    resumeSync(false);
   }
 });
+
+window.addEventListener("online", () => resumeSync(false));
 
 // ── STATUS HELPER ─────────────────────────────
 
@@ -447,6 +700,9 @@ async function showSyncControls() {
   const choice = confirm("OK = Force Download from cloud\nCancel = Force Upload to cloud");
   manualSyncInProgress = true;
   stopBackgroundSync();
+  clearTimeout(syncTimeout); syncTimeout = null;
+  if (loadInFlight) await loadInFlight; // start from a settled state
+  if (commitInFlight) await commitInFlight;
   if (choice) {
     S.savedAt = 0;
     saveLocalOnly();
