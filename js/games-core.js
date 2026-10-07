@@ -783,6 +783,14 @@ function collectAttr(w, kind) {
   return false;
 }
 
+// Today's typed answers count for the gender collection too: a noun
+// typed with its right article ("der Hund", "la maison") shows its
+// gender as well as the game does. Elided French (l'heure) shows none.
+function typedGenderOk(val, w) {
+  const np = nounParts(w);
+  return !!np && !np.elided && isCorrect(String(val || ""), np.full);
+}
+
 // ── MULTIPLE-CHOICE HELPERS ───────────────────
 // options: [{ text, correct, word }]. Buttons carry data-i for clicks
 // and number badges for keys 1–4 on desktop.

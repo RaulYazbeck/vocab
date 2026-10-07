@@ -585,7 +585,7 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
   const from = stageOf(ws);
   const prevAt = ws.lastAnsweredAt;
   const input = document.getElementById("p-input");
-  let res = null;
+  let res = null, genderCollected = false;
   // Can the private "my typo" override turn this answer around? (a typed,
   // non-empty answer — not a reversed or said one). A wrong one uses the
   // daily allowance; an "≈ Almost" is yours to judge — no cap.
@@ -623,6 +623,9 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     const exact = !/[äöüßéèêàâçôîûùëïœ]/i.test(w[WORD_KEY] || "") || /[äöüßéèêàâçôîûùëïœ]/i.test(val);
     questEvent("answer", { mode: "path", ok: true, typed: true, st: from, w, it: it.t, hint: !!it.usedHint || (it.said && it.fast), voice: spoken,
       ms: Date.now() - s.shownAt, prevAt, raw: exact, said: !!it.said });
+    // Typed unaided with its article: a day towards the gender collection.
+    if ((it.t === "typed" || it.t === "spot") && !it.usedHint && !it.said && !spoken && typedGenderOk(val, w))
+      genderCollected = collectAttr(w, "g");
     pathGolden(it);
     playSuccess(); haptic("select");
     if (input) input.classList.add("correct");
@@ -671,13 +674,14 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     : it.practice && ok === true ? `<span class="p-chip ok">🩹 Fixed — already on schedule</span>`
     : it.usedHint && ok === true ? `<span class="p-chip">💡 with hint — no step up</span>`
     : it.said && it.fast && ok === true ? `<span class="p-chip">⚡ Shown straight away — counts as a look, no step up</span>` : "";
+  const collectChip = genderCollected ? ` <span class="p-chip gold">🎨 Added to your Gender collection</span>` : "";
   const head = ok === true ? `<div class="p-ok">✓ Correct! <strong>${colorArticleHtml(answerText)}</strong></div>`
     : ok === "near" && it.said ? `<div class="p-near">≈ Close — say it once more: <strong>${colorArticleHtml(answerText)}</strong></div><div class="p-sub">No step up, no step down — one more try at the end of this session.</div>`
     : ok === "near" ? `<div class="p-near">${nearOk ? `<span class="p-typo" onpointerdown="event.preventDefault();pathSecretTap()">≈</span>` : "≈"} Almost — check the spelling</div><div class="p-diff">${diffHtml(val, answerText)}</div>${note ? `<div class="p-sub">${note}</div>` : ""}<div class="p-sub">No step up, no step down — one more try at the end of this session.</div>`
     : `<div class="p-bad">${typoOk ? `<span class="p-typo" onpointerdown="event.preventDefault();pathSecretTap()">✗</span> Answer:` : val.trim() ? "✗ Answer:" : "Answer:"} <strong>${colorArticleHtml(answerText)}</strong></div>${val.trim() ? `<div class="p-diff">${diffHtml(val, answerText)}</div>` : ""}${note ? `<div class="p-sub">${note}</div>` : ""}`;
   const fb = document.getElementById("p-fb");
   if (fb) fb.innerHTML = `
-    <div class="p-fb-main">${head}${chip}${it.said && it.t !== "reverse" ? frGenderNoteHtml(w) : ""}${w.pl && it.t !== "cloze" && it.t !== "reverse" ? `<div class="p-sub">plural: ${escapeHtml(w.pl)}</div>` : ""}</div>
+    <div class="p-fb-main">${head}${chip}${collectChip}${it.said && it.t !== "reverse" ? frGenderNoteHtml(w) : ""}${w.pl && it.t !== "cloze" && it.t !== "reverse" ? `<div class="p-sub">plural: ${escapeHtml(w.pl)}</div>` : ""}</div>
     ${it.t === "reverse" ? `<div class="p-sub">${colorArticleHtml(gameForm(w))} = ${escapeHtml(gamePrompt(w))}</div>` : ""}
     ${pathCaseNote(it)}
     ${examplesHtml(w, "first")}`;
