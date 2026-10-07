@@ -22,6 +22,7 @@ function showScreen(name, from) {
   // properly (answers are already saved) instead of orphaning it.
   if (typeof pathSession !== "undefined" && pathSession) endPathSession(true);
   showGameScreen();
+  scrollPageTop();
   const island = document.getElementById('floating-island');
   if (island) island.style.display = 'none';
   if (typeof logScreen === "function") logScreen(name);
@@ -38,16 +39,16 @@ function showScreen(name, from) {
 // answers, or a game in play, asks first; on Today it scrolls to the top.
 function goHome() {
   if (typeof sheetOpen === "function" && sheetOpen()) closeSettings();
-  if (document.getElementById("main-screen").style.display !== "block") {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    return;
-  }
+  if (document.getElementById("main-screen").style.display !== "block") { scrollPageTop(true); return; }
+  // A running game holds still while you decide, and picks up again on
+  // its own if you stay (no extra "Tap to continue").
   const ctx = typeof activeGame !== "undefined" && activeGame && activeGame.ctx;
-  if (ctx && typeof pauseGame === "function") pauseGame();
-  if (typeof pathSession !== "undefined" && pathSession) { pathQuit(); return; }
+  const held = ctx && !ctx.paused && typeof pauseGame === "function" && (pauseGame(), ctx.paused);
+  const stay = () => { if (held && activeGame && activeGame.ctx === ctx && ctx.paused) resumeGame(); };
+  if (typeof pathSession !== "undefined" && pathSession) { pathQuit().then(yes => { if (!yes) stay(); }); return; }
   if (ctx && ctx.started && !ctx.finished) {
     appConfirm({ title: "Quit the game?", body: "This round won't count.", ok: "Quit", cancel: "Keep playing" })
-      .then(yes => { if (yes && activeGame && activeGame.ctx === ctx) backToMenu(); });
+      .then(yes => { if (!yes) stay(); else if (activeGame && activeGame.ctx === ctx) backToMenu(); });
     return;
   }
   backToMenu();
@@ -85,6 +86,7 @@ function backToMenu() {
   renderGroups();
   renderExpBar();
   renderHome();
+  scrollPageTop();
   if (typeof logScreen === "function") logScreen("home");
   if (typeof questAfterActivity === "function") questAfterActivity();
 }

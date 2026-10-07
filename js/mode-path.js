@@ -974,14 +974,16 @@ function resumePathAfterBonus() {
 }
 
 // ── LEAVING / SUMMARY ─────────────────────────
+// Resolves true when the session was left.
 function pathQuit() {
   const s = pathSession;
-  if (!s) { backToMenu(); return; }
-  if (s.stats.answered === 0 && !s.met.length) { endPathSession(true); backToMenu(); return; }
-  appConfirm({ title: "Leave the session?", body: "Everything you've answered so far is saved.", ok: "Leave", cancel: "Keep going" })
+  if (!s) { backToMenu(); return Promise.resolve(true); }
+  if (s.stats.answered === 0 && !s.met.length) { endPathSession(true); backToMenu(); return Promise.resolve(true); }
+  return appConfirm({ title: "Leave the session?", body: "Everything you've answered so far is saved.", ok: "Leave", cancel: "Keep going" })
     .then(yes => {
       if (yes && pathSession === s) { if (typeof quitAllGames === "function") quitAllGames(); renderPathSummary(true); }
       else if (!yes) { const i = document.getElementById("p-input"); if (i && document.getElementById("p-typed").style.display !== "none") i.focus({ preventScroll: true }); }
+      return yes;
     });
 }
 function endPathSession(abandoned) {
