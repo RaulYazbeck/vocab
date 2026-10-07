@@ -9,7 +9,8 @@
 // bank to remove it.
 //
 // Word order is grammar, not a word's meaning, so this game doesn't move
-// stages (credit: null). Ranks: longer sentences; a decoy tile from 🥇
+// stages (credit: null) — a miss still flags it for a typed check.
+// Ranks: longer sentences; a decoy tile from 🥇
 // Gold; no Reveal button at 💎 Diamond.
 
 function sentenceTiles(sentence) {
