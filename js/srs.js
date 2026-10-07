@@ -176,8 +176,16 @@ function srsReview(ws, ok, kind = "recall", now = Date.now(), opts = {}) {
     res.events.push("confirmed");
     return res;
   }
-  if (recall && ws.fl) { ws.fl = 0; res.events.push("unflagged"); }
   const due = !!ws.dueAt && ws.dueAt <= now;
+  // ⚠️ A flag is a miss (a game, a choice): like a 🩹 repair, the right
+  // answer that clears it puts the word back on track — never a step up.
+  if (ws.fl) {
+    if (!recall) return res; // flags need recall
+    ws.fl = 0; ws.cf = 0;
+    if (due) scheduleStage(ws, now, true);
+    res.events.push("unflagged");
+    return res;
+  }
   if (from >= STAGE_LOCKED) {
     if (due && recall) {
       if (ws.rc) ws.rc = 0; else ws.mt = (ws.mt || 0) + 1;
