@@ -1282,11 +1282,13 @@ function defaultGameXp(result, size, stars) {
 
 // Tiered credit, applied once when a round is finished: misses flag
 // (never demote), hits lift due words — recognition up to 🌿 Familiar,
-// recall (typed formats) through every stage.
+// recall (typed formats) through every stage. Grammar games (credit:
+// null — a wrong article, case or plural) still flag their misses: every
+// mistake comes back as a typed check in Today; only their hits move nothing.
 function applyGameCredit(ctx) {
   const out = { up: 0, flagged: 0, moved: [] };
   const def = ctx.def;
-  if (def.liveCredit || def.credit === null) return out;
+  if (def.liveCredit) return out;
   const missKeys = new Set(ctx.missedWords.map(wordKey));
   ctx.missedWords.forEach(w => {
     if (w.anki) return;
@@ -1297,6 +1299,7 @@ function applyGameCredit(ctx) {
     if (r.events.includes("flagged")) out.flagged++;
     questEvent("srs", r);
   });
+  if (def.credit === null) { if (out.flagged && typeof invalidatePathScan === "function") invalidatePathScan(); return out; }
   ctx.hits.forEach(({ w, kind }, k) => {
     if (w.anki || missKeys.has(k)) return;
     const ws = S.words[k];

@@ -611,7 +611,8 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     // Said aloud: a Show tapped too fast to have recalled anything is a look.
     const kind = it.usedHint || (it.said && it.fast && !it.micOk) ? "recognition" : "recall";
     sessionConsecutive++;
-    res = applyCorrect(ws, { quiet: true, kind, w, ms: Date.now() - s.shownAt });
+    if (it.practice) { ws.lastAnsweredAt = Date.now(); ws.correct++; ws.streak++; ws.displayStreak++; S.totalCorrect++; }
+    else res = applyCorrect(ws, { quiet: true, kind, w, ms: Date.now() - s.shownAt });
     // Fixed = back on schedule (a hint-aided answer leaves it to fix later).
     if (it.repair && !(ws.lrn || ws.rp || ws.fl)) s.repairFixed = (s.repairFixed || 0) + 1;
     addExp(5);
@@ -628,6 +629,7 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
   } else if (ok === "near") {
     s.stats.near++;
     ws.lastAnsweredAt = Date.now(); ws.near = (ws.near || 0) + 1;
+    pathMissed(w); // a slip is a mistake too: it gets its try in the repair round
     questEvent("answer", { mode: "path", ok: "near", typed: true, st: from, w });
     if (input) input.classList.add("near");
     haptic("select");
@@ -665,11 +667,12 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     : evs.includes("maintained") ? `<span class="p-chip gold">💎 Check-in passed</span>`
     : evs.includes("spotcheck") ? `<span class="p-chip gold">💎 Still solid</span>`
     : evs.includes("confirmed") ? `<span class="p-chip ok">✓ Scheduled — see you ${stageIntervalDays(ws, stageOf(ws)) === 1 ? "tomorrow" : "in " + stageIntervalDays(ws, stageOf(ws)) + " days"}</span>`
+    : it.practice && ok === true ? `<span class="p-chip ok">🩹 Fixed — already on schedule</span>`
     : it.usedHint && ok === true ? `<span class="p-chip">💡 with hint — no step up</span>`
     : it.said && it.fast && ok === true ? `<span class="p-chip">⚡ Shown straight away — counts as a look, no step up</span>` : "";
   const head = ok === true ? `<div class="p-ok">✓ Correct! <strong>${colorArticleHtml(answerText)}</strong></div>`
-    : ok === "near" && it.said ? `<div class="p-near">≈ Close — say it once more: <strong>${colorArticleHtml(answerText)}</strong></div><div class="p-sub">No step up, no step down — it comes back next session.</div>`
-    : ok === "near" ? `<div class="p-near">${nearOk ? `<span class="p-typo" onpointerdown="event.preventDefault();pathSecretTap()">≈</span>` : "≈"} Almost — check the spelling</div><div class="p-diff">${diffHtml(val, answerText)}</div>${note ? `<div class="p-sub">${note}</div>` : ""}<div class="p-sub">No step up, no step down — it comes back next session.</div>`
+    : ok === "near" && it.said ? `<div class="p-near">≈ Close — say it once more: <strong>${colorArticleHtml(answerText)}</strong></div><div class="p-sub">No step up, no step down — one more try at the end of this session.</div>`
+    : ok === "near" ? `<div class="p-near">${nearOk ? `<span class="p-typo" onpointerdown="event.preventDefault();pathSecretTap()">≈</span>` : "≈"} Almost — check the spelling</div><div class="p-diff">${diffHtml(val, answerText)}</div>${note ? `<div class="p-sub">${note}</div>` : ""}<div class="p-sub">No step up, no step down — one more try at the end of this session.</div>`
     : `<div class="p-bad">${typoOk ? `<span class="p-typo" onpointerdown="event.preventDefault();pathSecretTap()">✗</span> Answer:` : val.trim() ? "✗ Answer:" : "Answer:"} <strong>${colorArticleHtml(answerText)}</strong></div>${val.trim() ? `<div class="p-diff">${diffHtml(val, answerText)}</div>` : ""}${note ? `<div class="p-sub">${note}</div>` : ""}`;
   const fb = document.getElementById("p-fb");
   if (fb) fb.innerHTML = `
@@ -756,12 +759,19 @@ function pathReask(w, gap) {
 }
 
 // ── REPAIR ROUND (end of session, optional) ───
-// Words missed this session that still need a correct recall. Offered
-// once the session's questions are done: now, or they open the next
-// session (and, with a finish date, count in tomorrow's plan — the plan
-// is made each morning from what's due, so skipping never breaks it; it
-// just moves the work).
+// Every word missed this session (an "≈ Almost" too) — even one a later
+// item, bonus game or minion got right meanwhile: each mistake gets its
+// own try at the end. Offered once the session's questions are done: now,
+// or the ones still open open the next session (and, with a finish date,
+// count in tomorrow's plan — the plan is made each morning from what's
+// due, so skipping never breaks it; it just moves the work). Missed
+// again in the round, a word stays open for next time.
 function pathRepairList() {
+  const s = pathSession;
+  return s.missed.filter(w => { const ws = S.words[wordKey(w)]; return ws && ws.st; });
+}
+// Missed words that still need a correct recall.
+function pathOpenMistakes() {
   const s = pathSession;
   return s.missed.filter(w => { const ws = S.words[wordKey(w)]; return ws && ws.st && (ws.lrn || ws.rp || ws.fl); });
 }
@@ -803,7 +813,9 @@ function pathRepair(yes) {
   s.repairPhase = true;
   s.repairN = list.length; s.repairFixed = 0;
   const start = s.items.length;
-  list.forEach(w => s.items.push({ t: "typed", w, fix: true, repair: true }));
+  // A word already back on track (an "≈ Almost", or got right since) is
+  // practice here: a miss still counts, a right answer moves nothing.
+  list.forEach(w => { const ws = S.words[wordKey(w)]; s.items.push({ t: "typed", w, fix: true, repair: true, practice: !(ws.lrn || ws.rp || ws.fl) }); });
   s.i = start - 1; // pathNext steps onto the first repair item
   pathNext();
 }
@@ -967,8 +979,14 @@ function pathBonus(take) {
   launchGame(id, { pool, size: "bonus", prefer });
 }
 function resumePathAfterBonus() {
+  const run = gameRun;
   gameRun = null;
   if (!pathSession) { backToMenu(); return; }
+  // Misses in a finished bonus round or minion fight join the repair round.
+  if (run) run.summaries.forEach(sm => ((sm.result && sm.result.missed) || []).forEach(w => {
+    const ws = S.words[wordKey(w)];
+    if (ws && ws.st) pathMissed(pathWord(w.deckId, w.idx));
+  }));
   renderPathShell();
   pathNext();
 }
@@ -1020,7 +1038,7 @@ function renderPathSummary(abandoned) {
   const met = s.met.slice();
   const lenKey = s.lenKey;
   // Mistakes still open (skipped or missed again) wait for next time.
-  const openLeft = pathRepairList().length;
+  const openLeft = pathOpenMistakes().length;
   // Small rewards for good habits, no fuss: every mistake repaired, or
   // a session with none at all.
   const cleanSlate = !abandoned && s.repairN > 0 && s.repairFixed === s.repairN;

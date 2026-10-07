@@ -6,7 +6,8 @@
 // verb or subject that decides it (grammar-de.js). Your weakest case
 // comes up more often.
 //
-// Grammar, not the word's meaning: no stage moves (credit: null). The
+// Grammar, not the word's meaning: no stage moves (credit: null) —
+// but a miss flags the noun for a typed check in Today. The
 // case stats live in S.games.cases.
 //
 // Ranks: more options; from 🥇 Gold the noun is shown WITHOUT its
