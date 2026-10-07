@@ -626,6 +626,7 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     // Typed unaided with its article: a day towards the gender collection.
     if ((it.t === "typed" || it.t === "spot") && !it.usedHint && !it.said && !spoken && typedGenderOk(val, w))
       genderCollected = collectAttr(w, "g");
+    if (genderCollected) checkAchievements({ type: "collect" }); // 🎨 Gender Collector
     pathGolden(it);
     playSuccess(); haptic("select");
     if (input) input.classList.add("correct");
@@ -919,7 +920,8 @@ function pathBonusGame() {
     const g = getGame(id);
     if (!g || id === s.lastBonus) return false;
     if (met < (PATH_BONUS_UNLOCK[id] || 0)) return false;
-    if (g.audio && !audioOk()) return false;
+    // Audio games need sound; spelling games hide with "Speak, don't spell".
+    if (!gameUsableNow(g)) return false;
     return gameRequirement(g, pool, "bonus").ok;
   });
   if (!ok.length) return null;
