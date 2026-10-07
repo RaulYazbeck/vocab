@@ -246,6 +246,12 @@ function lockPageScroll(lock) {
     window.scrollTo(0, y);
   }
 }
+// A new screen starts at its top — also when a sheet is still closing
+// over it (it would otherwise restore the old screen's offset).
+function scrollPageTop(smooth) {
+  if (_sheetScrollY !== null) { _sheetScrollY = 0; document.body.style.top = "0px"; }
+  window.scrollTo({ top: 0, behavior: smooth ? "smooth" : "instant" });
+}
 (function watchSheets() {
   const sync = () => {
     const sp = document.getElementById("settings-panel");

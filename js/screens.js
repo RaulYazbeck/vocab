@@ -363,7 +363,7 @@ function renderStatsChoice() {
     <div class="screen">
       <div class="screen-top">
         <div class="screen-label">Statistics</div>
-        <button class="back-btn" onclick="backToMenu()">← Back</button>
+        ${backBtnHtml()}
       </div>
       <div class="gen-stats-grid">
         <div class="gen-stat-card accent">
@@ -501,7 +501,7 @@ function renderAnkiForecast() {
     <div class="screen">
       <div class="screen-top">
         <div class="screen-label">📅 Anki Forecast</div>
-        <button class="back-btn" onclick="backToMenu()">← Back</button>
+        ${backBtnHtml()}
       </div>
       <div class="anki-stats-summary">
         <div class="anki-stats-pill overdue">Owed today: ${c.newCount + c.learning + c.review}</div>
@@ -721,8 +721,9 @@ function settingsMenuHtml() {
     </div>`;
 }
 function menuGo(screen) {
+  const from = settingsPage;
   closeSettings();
-  showScreen(screen);
+  showScreen(screen, from);
 }
 function openMenu() { openSettings("menu"); }
 function settingsMainHtml() {
@@ -1064,7 +1065,7 @@ function renderJourney() {
   }).join("");
   const fcHtml = forecastHtml();
   document.getElementById("main-screen").innerHTML = `<div class="screen journey">
-    <div class="screen-top"><div class="screen-label">🗺️ Journey</div><button class="back-btn" onclick="backToMenu()">← Back</button></div>
+    <div class="screen-top"><div class="screen-label">🗺️ Journey</div>${backBtnHtml()}</div>
     <div class="jh">
       <div class="jh-big"><b>${scan.known.toLocaleString()}</b> / ${scan.total.toLocaleString()} words Known ✓ <span>${pct(scan.known, scan.total)}%</span></div>
       ${pathDeadlineOn() ? `<div class="jh-plan">${deadlineLineHtml(scan)}</div>` : ""}

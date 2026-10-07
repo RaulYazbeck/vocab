@@ -107,7 +107,7 @@ function renderVoiceDrill() {
     <div class="screen">
       <div class="screen-top">
         <div class="screen-label">${deckNames} · ${voiceEngineLabel()}</div>
-        <button class="back-btn" onclick="stopVoiceSession();backToMenu()">← Menu</button>
+        <button class="back-btn" onclick="stopVoiceSession();backToMenu()">← Today</button>
       </div>
       <div class="word-display">
         <div class="english-word">${currentWord.en}</div>
