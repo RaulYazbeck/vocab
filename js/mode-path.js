@@ -697,8 +697,8 @@ function pathShieldBtnHtml() {
   return ` <button class="p-chip shield-btn" id="p-shield" onclick="pathUseShield()" title="Use a memory shield: this miss won't cost the word its stage">🛡️ Shield it <small>(${S.quests.shields} left)</small></button>`;
 }
 // Undo what the miss did to the word's schedule (its stage, repair,
-// ease) — the miss itself still counts and the word stays in the
-// end-of-session repair round.
+// ease) — the miss itself still counts: the word is ⚠️ flagged and stays
+// in the end-of-session repair round.
 const SHIELD_FIELDS = ["st", "dueAt", "sAt", "pk", "rp", "lrn", "fl", "dropDay", "k", "cf", "mt", "rc"];
 function pathUseShield() {
   const s = pathSession;
@@ -708,6 +708,9 @@ function pathUseShield() {
   s.shield = null; s.undo = null;
   const ws = getWS(w.deckId, w.idx);
   SHIELD_FIELDS.forEach(f => { if (sh.ws[f] === undefined) delete ws[f]; else ws[f] = sh.ws[f]; });
+  // The stage is kept, but the miss still happened: ⚠️ flagged, its next
+  // right answer clears the flag instead of stepping it up.
+  ws.fl = 1;
   if (sh.move) s.moves.set(sh.key, sh.move); else s.moves.delete(sh.key);
   S.quests.shields--;
   logEvent("shield_used", { key: sh.key, st: stageOf(ws) });
