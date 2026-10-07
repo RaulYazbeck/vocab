@@ -660,6 +660,7 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     : evs.includes("strong") ? `<span class="p-chip gold">⭐ Strong!</span>`
     : evs.includes("known") ? `<span class="p-chip ok">🌳 Known!</span>`
     : evs.includes("repaired") ? `<span class="p-chip ok">🩹 Repaired</span>`
+    : evs.includes("unflagged") ? `<span class="p-chip ok">⚠️ Flag cleared — back on track</span>`
     : evs.includes("repair") ? `<span class="p-chip warn">🩹 Badge kept — repair it next time</span>${pathShieldBtnHtml()}`
     : evs.includes("dropped") ? `<span class="p-chip warn">↓ ${tierOfStage(res.to).icon} back to ${tierOfStage(res.to).name}</span>${pathShieldBtnHtml()}`
     : res && res.promoted ? `<span class="p-chip ok">↑ ${tierOfStage(res.to).icon} ${tierOfStage(res.to).name}</span>`
