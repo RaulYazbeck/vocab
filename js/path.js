@@ -736,13 +736,18 @@ function pathTodaySummary() {
 // expected-value simulation over the next `days` study days.
 //   • Each day clears what's due plus a slice of any backlog — the same
 //     spreading rule as the day's plan (pathEnsurePlan); the rest waits.
-//   • Each review succeeds with your recent accuracy p: the word climbs
-//     a stage and comes back after that stage's gap; a miss drops it a
-//     stage and brings it back tomorrow.
+//   • Each review succeeds with your recent accuracy p and moves the
+//     word the way srsReview does: a success climbs a stage (a hard word
+//     first needs a second review at its stage); a miss is relearnt in
+//     the session, then drops a stage (a checkpoint word opens a repair
+//     instead) and comes back after that stage's gap.
 //   • Each day meets that day's new words (same pace and brakes as
 //     pathNewQuota); they come back the next day, then 2 and 4 days on.
-// Returns { p, days: [{ scheduled, fromNew, carried, total, newWords, waiting }] };
+// Returns { p, days: [{ scheduled, fromNew, carried, total, newWords, waiting, target }] };
 // day 0 is today (its total is today's planned reviews, done ones included).
+// With a finish date, `target` is that day's plan quest in right answers
+// (planTarget: reviews ×1.1 for retries + 3 per new word) — today's is
+// the plan's own.
 const FORECAST_P = { DEFAULT: 0.9, MIN: 0.75, MAX: 0.97, DAYS: 14 };
 function recentAccuracy() {
   let n = 0, ok = 0;
@@ -767,40 +772,63 @@ function pathForecast(days = 8) {
   const plan = pathEnsurePlan(scan);
   const kThrottle = plan ? 2 : 1;
   const basePace = plan ? plan.pace : (S.path.newPerDay || 0);
-  // Buckets of words: key → { day, st, k, pk, src, w }. src: s = already
+  // Buckets of words: key → { st, k, pk, cf, src, w }. src: s = already
   // scheduled, n = met in the forecast, c = backlog carried over.
   const due = Array.from({ length: days + 1 }, () => new Map());
-  const add = (d, st, k, pk, src, w) => {
+  const bkey = (st, k, pk, cf, src) => `${st}|${k}|${pk}|${cf}|${src}`;
+  const add = (d, st, k, pk, cf, src, w) => {
     if (d > days || w < 1e-4) return;
-    const kq = Math.round(k * 10) / 10, key = `${st}|${kq}|${pk}|${src}`;
+    const kq = Math.round(k * 100) / 100, key = bkey(st, kq, pk, cf, src);
     const b = due[d].get(key);
-    if (b) b.w += w; else due[d].set(key, { st, k: kq, pk, src, w });
+    if (b) b.w += w; else due[d].set(key, { st, k: kq, pk, cf, src, w });
   };
   const backlog = new Map();
   vocabGroups().forEach(g => g.decks.forEach(dk => {
     for (let i = 0; i < dk.words.length; i++) {
       const ws = S.words[dk.id + "_" + i];
       if (!ws || !ws.st) continue;
-      const st = ws.st, k = ws.k || 1, pk = ws.pk || 0;
+      const st = ws.st, k = ws.k || 1, pk = ws.pk || 0, cf = ws.cf ? 1 : 0;
       if (isDue(ws, now)) {
         const overdue = !(ws.rp || ws.fl || ws.lrn) && ws.dueAt && ws.dueAt < dayStart;
-        if (overdue) { const key = `${st}|${Math.round(k * 10) / 10}|${pk}|c`; const b = backlog.get(key); if (b) b.w++; else backlog.set(key, { st, k: Math.round(k * 10) / 10, pk, src: "c", w: 1 }); }
-        else add(0, st, k, pk, "s", 1);
+        if (overdue) {
+          const kq = Math.round(k * 100) / 100, key = bkey(st, kq, pk, cf, "c");
+          const b = backlog.get(key);
+          if (b) b.w++; else backlog.set(key, { st, k: kq, pk, cf, src: "c", w: 1 });
+        }
+        else add(0, st, k, pk, cf, "s", 1);
       } else if (ws.dueAt) {
         const d = Math.floor((ws.dueAt - dayStart) / 864e5);
-        if (d >= 0) add(d, st, k, pk, "s", 1);
+        if (d >= 0) add(d, st, k, pk, cf, "s", 1);
       }
     }
   }));
-  // A review on day d: success climbs, a miss drops a stage → tomorrow.
+  // Days until a word at stage st is due again (stageIntervalDays and
+  // scheduleStage's halving).
+  const gap = (st, k, pk, halve) => {
+    let g = (STAGE_DAYS[st] || 1) * k;
+    if (st < pk) g /= 2;
+    g = Math.max(1, Math.round(g));
+    return halve ? Math.max(1, Math.round(g / 2)) : g;
+  };
+  // A review on day d, as srsReview moves the word (ease nudges up are
+  // left out; 💎 words leave the window either way).
   const review = (d, b, w) => {
-    const up = Math.min(STAGE_MAX, b.st + 1);
-    if (up < STAGE_LOCKED) {
-      let gap = (STAGE_DAYS[up] || 1) * b.k;
-      if (up < b.pk) gap /= 2;
-      add(d + Math.max(1, Math.round(gap)), up, b.k, Math.max(b.pk, up), b.src, w * p);
+    if (b.st >= STAGE_LOCKED) return;
+    if (b.k < EASE.HARD_K && !b.cf) {
+      // Hard word: a second correct review at this stage first.
+      add(d + gap(b.st, b.k, b.pk, true), b.st, b.k, b.pk, 1, b.src, w * p);
+    } else {
+      const up = Math.min(STAGE_MAX, b.st + 1);
+      if (up < STAGE_LOCKED) add(d + gap(up, b.k, b.pk), up, b.k, Math.max(b.pk, up), 0, b.src, w * p);
     }
-    add(d + 1, Math.max(1, b.st - 1), Math.max(EASE.MIN, b.k - EASE.SLIP), Math.max(b.pk, b.st), b.src, w * (1 - p));
+    if (b.st >= STAGE_KNOWN) {
+      // Checkpoint slip: repaired in the session, back at half the gap.
+      const k = Math.max(EASE.MIN, b.k - EASE.REPAIR);
+      add(d + gap(b.st, k, b.pk, true), b.st, k, b.pk, 0, b.src, w * (1 - p));
+    } else {
+      const to = Math.max(1, b.st - 1), k = Math.max(EASE.MIN, b.k - EASE.SLIP), pk = Math.max(b.pk, b.st);
+      add(d + gap(to, k, pk), to, k, pk, 0, b.src, w * (1 - p));
+    }
   };
   const sum = m => { let n = 0; for (const b of m.values()) n += b.w; return n; };
   const out = [];
@@ -822,7 +850,7 @@ function pathForecast(days = 8) {
     for (const b of backlog.values()) { if (!share) break; row.carried += b.w * share; review(d, b, b.w * share); b.w *= 1 - share; }
     row.waiting = pile - take;
     // Today's new words come back tomorrow (then 2 and 4 days on).
-    if (pace > 0) add(d + 1, 1, 1, 1, "n", pace);
+    if (pace > 0) add(d + 1, 1, 1, 1, 0, "n", pace);
     if (d === 0) done0 = pathReviewedToday();
     out.push(row);
   }
@@ -833,6 +861,7 @@ function pathForecast(days = 8) {
   });
   // Today is the plan itself: never show less than this morning's plan.
   if (plan && out[0] && plan.reviews > out[0].total) { out[0].scheduled += plan.reviews - out[0].total; out[0].total = plan.reviews; }
+  if (plan) out.forEach((r, i) => { r.target = i === 0 ? plan.target : planTarget(r.total, r.newWords); });
   return { p, days: out };
 }
 

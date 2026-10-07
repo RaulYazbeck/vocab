@@ -1082,25 +1082,45 @@ function renderJourney() {
     </div>
   </div>`;
 }
-// "Reviews coming up": the honest estimate from pathForecast — stacked
-// bars (already scheduled · from new words · catching up), ≈ numbers,
-// each day's new words underneath. Today is the plan itself.
+// "Coming up": the honest estimate from pathForecast — stacked bars
+// (already scheduled · from new words · catching up), ≈ numbers, each
+// day's new words underneath. Today is the plan itself.
+// With a finish date the numbers are the plan quest's right answers, so
+// today's matches the quest: reviews ×1.1 (a miss takes a second answer)
+// plus 🌱 meeting new words (3 answers each). Without one: reviews.
 function forecastHtml() {
   const f = pathForecast(8);
-  const max = Math.max(1, ...f.days.map(d => d.total));
+  const plan = pathDeadlineOn() && f.days[0] && f.days[0].target != null;
+  const R = plan ? 1.1 : 1;
+  // Bar parts in the numbers' unit, scaled to add up to that number.
+  const parts = f.days.map(d => {
+    const raw = { s: d.scheduled * R, n: d.fromNew * R, c: d.carried * R, m: plan ? d.newWords * 3 : 0 };
+    const num = plan ? d.target : d.total;
+    const sum = raw.s + raw.n + raw.c + raw.m, k = sum > 0 ? num / sum : 0;
+    return { num, s: raw.s * k, n: raw.n * k, c: raw.c * k, m: raw.m * k };
+  });
+  const max = Math.max(1, ...parts.map(x => x.num));
   const seg = (n, cls) => n >= 0.5 ? `<i class="${cls}" style="height:${(n / max * 100).toFixed(1)}%"></i>` : "";
-  const cols = f.days.map((d, i) => `<div class="jf-col" title="${i === 0 ? "Today's plan" : `≈ ${d.total} reviews`}: ${Math.round(d.scheduled)} already scheduled · ${Math.round(d.fromNew)} from new words · ${Math.round(d.carried)} catching up${d.newWords ? ` · plus ${d.newWords} new words` : ""}">
-      <div class="jf-n">${i === 0 ? "" : "≈"}${d.total}</div>
-      <div class="jf-stack">${seg(d.carried, "jf-c")}${seg(d.fromNew, "jf-new")}${seg(d.scheduled, "jf-s")}</div>
+  const cols = f.days.map((d, i) => {
+    const x = parts[i];
+    const what = `${d.total} reviews: ${Math.round(d.scheduled)} already scheduled · ${Math.round(d.fromNew)} from new words · ${Math.round(d.carried)} catching up${d.newWords ? ` · plus ${d.newWords} new words` : ""}`;
+    const tip = plan ? `${i === 0 ? "Today's plan" : "≈ plan"}: ${x.num} right answers for ${i === 0 ? "" : "≈ "}${what}` : `${i === 0 ? "Today's plan" : "≈"} ${what}`;
+    return `<div class="jf-col" title="${tip}">
+      <div class="jf-n">${i === 0 ? "" : "≈"}${x.num}</div>
+      <div class="jf-stack">${seg(x.c, "jf-c")}${seg(x.m, "jf-m")}${seg(x.n, "jf-new")}${seg(x.s, "jf-s")}</div>
       <div class="jf-l">${i === 0 ? "today" : i === 1 ? "tmr" : "+" + i}</div>
       <div class="jf-nw">${d.newWords ? `🌱${d.newWords}` : ""}</div>
-    </div>`).join("");
-  const wait = f.days[0] && f.days[0].waiting;
-  const how = pathDeadlineOn() ? "if you finish your quests each day" : "if you clear each day's reviews";
-  return `<div class="jf-head"><span class="stats-section-title">Reviews coming up</span><small>≈ ${how} · ${Math.round(f.p * 100)}% right</small></div>
+    </div>`;
+  }).join("");
+  const d0 = f.days[0];
+  const wait = d0 && d0.waiting;
+  const title = plan ? "Your plan coming up" : "Reviews coming up";
+  const how = plan ? "≈ right answers a day, if you finish your quests" : "≈ if you clear each day's reviews";
+  return `<div class="jf-head"><span class="stats-section-title">${title}</span><small>${how} · ${Math.round(f.p * 100)}% right</small></div>
     <div class="jf">${cols}</div>
-    <div class="jf-legend"><span><i class="jf-s"></i>already scheduled</span><span><i class="jf-new"></i>from new words</span><span><i class="jf-c"></i>catching up</span></div>
-    ${wait > 0 ? `<div class="jf-wait">Today takes part of your backlog; ${wait} wait${wait === 1 ? "s" : ""} for the next days.</div>` : ""}`;
+    <div class="jf-legend"><span><i class="jf-s"></i>already scheduled</span><span><i class="jf-new"></i>from new words</span><span><i class="jf-c"></i>catching up</span>${plan ? `<span><i class="jf-m"></i>meeting new words</span>` : ""}</div>
+    ${plan && d0 ? `<div class="jf-note">Today: ${d0.total} reviews + ${d0.newWords} new words = ${d0.target} right answers, with room for misses.</div>` : ""}
+    ${wait > 0 ? `<div class="jf-wait">Today takes part of your backlog; ${wait} wait${wait === 1 ? "s" : ""} for the next days (they still show as due).</div>` : ""}`;
 }
 // "How does a word move?" — the schedule, in plain words.
 function stageGuideHtml() {
