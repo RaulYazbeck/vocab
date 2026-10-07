@@ -610,7 +610,8 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     // Said aloud: a Show tapped too fast to have recalled anything is a look.
     const kind = it.usedHint || (it.said && it.fast && !it.micOk) ? "recognition" : "recall";
     sessionConsecutive++;
-    res = applyCorrect(ws, { quiet: true, kind, w, ms: Date.now() - s.shownAt });
+    if (it.practice) { ws.lastAnsweredAt = Date.now(); ws.correct++; ws.streak++; ws.displayStreak++; S.totalCorrect++; }
+    else res = applyCorrect(ws, { quiet: true, kind, w, ms: Date.now() - s.shownAt });
     // Fixed = back on schedule (a hint-aided answer leaves it to fix later).
     if (it.repair && !(ws.lrn || ws.rp || ws.fl)) s.repairFixed = (s.repairFixed || 0) + 1;
     addExp(5);
@@ -665,6 +666,7 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     : evs.includes("maintained") ? `<span class="p-chip gold">💎 Check-in passed</span>`
     : evs.includes("spotcheck") ? `<span class="p-chip gold">💎 Still solid</span>`
     : evs.includes("confirmed") ? `<span class="p-chip ok">✓ Scheduled — see you ${stageIntervalDays(ws, stageOf(ws)) === 1 ? "tomorrow" : "in " + stageIntervalDays(ws, stageOf(ws)) + " days"}</span>`
+    : it.practice && ok === true ? `<span class="p-chip ok">🩹 Fixed — already on schedule</span>`
     : it.usedHint && ok === true ? `<span class="p-chip">💡 with hint — no step up</span>`
     : it.said && it.fast && ok === true ? `<span class="p-chip">⚡ Shown straight away — counts as a look, no step up</span>` : "";
   const head = ok === true ? `<div class="p-ok">✓ Correct! <strong>${colorArticleHtml(answerText)}</strong></div>`
@@ -810,7 +812,9 @@ function pathRepair(yes) {
   s.repairPhase = true;
   s.repairN = list.length; s.repairFixed = 0;
   const start = s.items.length;
-  list.forEach(w => s.items.push({ t: "typed", w, fix: true, repair: true }));
+  // A word already back on track (an "≈ Almost", or got right since) is
+  // practice here: a miss still counts, a right answer moves nothing.
+  list.forEach(w => { const ws = S.words[wordKey(w)]; s.items.push({ t: "typed", w, fix: true, repair: true, practice: !(ws.lrn || ws.rp || ws.fl) }); });
   s.i = start - 1; // pathNext steps onto the first repair item
   pathNext();
 }
@@ -974,8 +978,14 @@ function pathBonus(take) {
   launchGame(id, { pool, size: "bonus", prefer });
 }
 function resumePathAfterBonus() {
+  const run = gameRun;
   gameRun = null;
   if (!pathSession) { backToMenu(); return; }
+  // Misses in a finished bonus round or minion fight join the repair round.
+  if (run) run.summaries.forEach(sm => ((sm.result && sm.result.missed) || []).forEach(w => {
+    const ws = S.words[wordKey(w)];
+    if (ws && ws.st) pathMissed(pathWord(w.deckId, w.idx));
+  }));
   renderPathShell();
   pathNext();
 }
