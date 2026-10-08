@@ -274,8 +274,11 @@ function vlEarKey(form, person) {
   return f.split(" ").map((w, i, a) => {
     // The -ent of ils is silent, but the consonant before it is heard
     // (finissent ≠ finis, mentent ≠ ment; rient = rit, jouent = joue).
+    // -ai sounds é, -ais / -ait / -aient sound è: serai ≠ serais, but
+    // serais = serait = seraient.
+    if (i === a.length - 1 && person === "ils" && /aient$/.test(w)) return w.slice(0, -5) + "è";
     if (i === a.length - 1 && person === "ils" && /ent$/.test(w) && w.length > 3) return w.slice(0, -3);
-    return w.replace(/[sxtd]+$/, "").replace(/ée$/, "é").replace(/([^é])e$/, "$1");
+    return w.replace(/aies?$/, "è").replace(/a[iî][sxt]$/, "è").replace(/ai$/, "é").replace(/[sxtd]+$/, "").replace(/ée$/, "é").replace(/([^é])e$/, "$1");
   }).join(" ");
 }
 
@@ -353,34 +356,39 @@ function vlItem(v, tense, person, tenses, opts = {}) {
   }));
   return { v, t: tense, p: person, cell, form: cell.form, full: cell.full, parts: cell.parts, meaning, valid, twins, all, ear, fem };
 }
-// Is this pick right? Pronoun rows: any reading's person. Tense row:
-// a reading with that tense (and the person picked, when it fits).
-function vlPersonOk(item, p) { return item.valid.some(x => x.p === p); }
-function vlTenseOk(item, t, p) {
-  const withP = item.valid.filter(x => x.p === p);
-  return (withP.length ? withP : item.valid).some(x => x.t === t);
+// Everything a form can be, per column: every person it fits, every
+// tense it fits, every meaning those readings have. A column is right
+// only when exactly these are picked — all of them, nothing else.
+function vlSets(item) {
+  return {
+    p: new Set(item.valid.map(x => x.p)),
+    t: new Set(item.valid.map(x => x.t)),
+    m: new Set(item.valid.map(x => x.meaning).filter(Boolean)),
+  };
 }
-function vlMeaningOk(item, text) { return item.valid.some(x => x.meaning === text); }
-// Meaning options: the right one plus near misses — same person in
-// another tense, same tense for another person, the twin's meaning.
+// Meaning options: every right meaning ("liest" → you read · he reads)
+// plus near misses — same person in another tense, same tense for
+// another person, the twin's meaning — up to n (more when needed so
+// there are always at least two wrong ones).
 function vlMeaningOptions(item, n) {
-  const right = item.meaning;
-  const bad = new Set(item.valid.map(x => x.meaning));
+  const rights = [...vlSets(item).m];
+  const bad = new Set(rights);
   const pool = item.all.filter(x => x.meaning && !bad.has(x.meaning));
   const score = x => (x.p === item.p ? 3 : 0) + (x.t === item.t ? 2 : 0) + (item.twins.some(tw => tw.t === x.t && tw.p === x.p) ? 4 : 0) + Math.random() * 2.5;
-  const seen = new Set([right]);
-  const picks = pool.sort((a, b) => score(b) - score(a)).filter(x => !seen.has(x.meaning) && seen.add(x.meaning)).slice(0, n - 1).map(x => x.meaning);
-  return shuffle([right, ...picks]);
+  const seen = new Set(rights);
+  const want = Math.max(n - rights.length, 2);
+  const picks = pool.sort((a, b) => score(b) - score(a)).filter(x => !seen.has(x.meaning) && seen.add(x.meaning)).slice(0, want).map(x => x.meaning);
+  return shuffle([...rights, ...picks]);
 }
-// Tense options in timeline order: the right one, the twin tense, and
-// neighbours, up to n.
+// Tense options in timeline order: every right tense, the twin tense,
+// and neighbours, up to n (never fewer than all the right ones + 1).
 function vlTenseOptions(item, tenses, n) {
-  if (tenses.length <= n) return tenses.slice();
-  const keep = new Set([item.t]);
+  const rights = [...vlSets(item).t];
+  if (tenses.length <= Math.max(n, rights.length + 1)) return tenses.slice();
+  const keep = new Set(rights);
   const tw = VL_TWIN_TENSE[item.t];
   if (tw && tenses.includes(tw)) keep.add(tw);
-  item.valid.forEach(x => keep.size < n && keep.add(x.t));
-  shuffle(tenses.filter(t => !keep.has(t))).forEach(t => { if (keep.size < n) keep.add(t); });
+  shuffle(tenses.filter(t => !keep.has(t))).forEach(t => { if (keep.size < Math.max(n, rights.length + 1)) keep.add(t); });
   return tenses.filter(t => keep.has(t));
 }
 
@@ -388,12 +396,14 @@ function vlTenseOptions(item, tenses, n) {
 // parts → HTML: person parts in the person colour, tense parts in the
 // tense's own colour, stems plain. `labels` adds a caption under each
 // coloured part ("nous", "futur").
-function vlPartsHtml(parts, tense, person, labels = false) {
+function vlPartsHtml(parts, tense, person, labels = false, persons = null) {
   const tn = VL_T[tense] ? VL_T[tense].short : "";
+  // An ending several persons share is captioned with all of them: "je·tu".
+  const pcap = (persons && persons.length ? persons : [person]).map(p => vlPersonLabel(p).split("/")[0]).join("·");
   return parts.map(p => {
     if (p.k === " ") return `<span class="vl-sp"> </span>`;
     const cls = p.k === "p" ? "vl-p" : p.k === "t" ? "vl-t" : p.k === "x" ? "vl-x" : "vl-s";
-    const cap = !labels ? "" : p.k === "p" ? vlPersonLabel(person).split("/")[0] : p.k === "t" ? tn : "";
+    const cap = !labels ? "" : p.k === "p" ? pcap : p.k === "t" ? tn : "";
     return `<span class="vl-part ${cls}" style="${p.k === "t" ? vlTenseStyle(tense) : ""}">${escapeHtml(p.t)}${cap ? `<small>${escapeHtml(cap)}</small>` : ""}</span>`;
   }).join("");
 }
@@ -404,7 +414,9 @@ function vlWhyHtml(item) {
   const tens = item.parts.filter(p => p.k === "t").map(p => p.t).join(" ");
   const sense = VL_TENSE_SENSE[t] ? ` — ${VL_TENSE_SENSE[t]}` : "";
   const tline = tens ? `<b style="${vlTenseStyle(t)}" class="vl-tc">${escapeHtml(tens)}</b> says <b>${escapeHtml(tn)}</b>${sense}` : `<b>${escapeHtml(tn)}</b>${sense}`;
-  const pline = pers ? `<b class="vl-pc">${escapeHtml(pers)}</b> says <b>${escapeHtml(vlPersonLabel(item.p))}</b>` : "";
+  // Every person this exact form fits ("-en says wir + sie/Sie").
+  const who = VL_PERSONS.filter(p => item.valid.some(x => x.p === p && x.t === t)).map(vlPersonLabel);
+  const pline = pers ? `<b class="vl-pc">${escapeHtml(pers)}</b> says <b>${escapeHtml((who.length ? who : [vlPersonLabel(item.p)]).join(" + "))}</b>` : "";
   return [pline, tline].filter(Boolean).join(" · ");
 }
 
