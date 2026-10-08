@@ -1260,7 +1260,9 @@ function gameKeydown(e, ctx) {
   if (!ctx.started || ctx.paused || ctx.finished) return;
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (ctx.waiting) {
-    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (e.target && e.target.id !== "g-continue") ctx.continueNow(); }
+    // preventDefault cancels the focused button's own click, so this is the
+    // one path that continues — also when Continue itself has focus.
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); ctx.continueNow(); }
     return;
   }
   if (ctx.onKey) ctx.onKey(e);

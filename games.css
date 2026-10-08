@@ -744,9 +744,7 @@ body.g-drag-active { user-select:none; -webkit-user-select:none; cursor:grabbing
 @keyframes vtDraw { to { stroke-dashoffset:0; } }
 
 /* ── VERB THREAD ── */
-.vt-wrap { position:relative; touch-action:pan-y; user-select:none; -webkit-user-select:none; padding-bottom:4px; }
-/* A stroke starts on the card or a chip (no scrolling there); the gaps between still scroll short screens. */
-.vt-card, .vt-chip { touch-action:none; }
+.vt-wrap { position:relative; touch-action:manipulation; user-select:none; -webkit-user-select:none; padding-bottom:4px; }
 .vt-row.nudge .vt-row-label { animation:vtNudge 0.5s var(--ease); }
 @keyframes vtNudge { 0%,100% { transform:none; } 25% { transform:translateX(5px); } 50% { transform:translateX(-3px); } 75% { transform:translateX(2px); } }
 .vt-svg { position:absolute; left:0; top:0; pointer-events:none; z-index:0; overflow:visible; }
@@ -758,7 +756,6 @@ body.g-drag-active { user-select:none; -webkit-user-select:none; cursor:grabbing
 .vt-hidden { display:none !important; }
 .vt-verb { margin-top:6px; font-size:13px; font-weight:700; color:var(--text-2); }
 .vt-verb span { font-weight:500; color:var(--text-3); }
-.vt-knot { position:absolute; left:50%; bottom:-7px; width:13px; height:13px; border-radius:50%; background:var(--accent); transform:translateX(-50%); box-shadow:0 0 0 4px var(--accent-dim); }
 .vt-ear { display:inline-flex; align-items:center; gap:8px; margin:4px auto 2px; padding:10px 22px; min-height:48px; border-radius:999px; border:1.5px solid var(--accent); background:var(--accent-dim); color:var(--accent-hi); font-size:20px; font-weight:800; cursor:pointer; }
 .vt-ear span { font-size:15px; }
 .vt-cols { position:relative; z-index:1; display:grid; grid-template-columns:minmax(0, 0.78fr) minmax(0, 1.08fr) minmax(0, 1.28fr); column-gap:14px; align-items:stretch; }
@@ -791,9 +788,12 @@ body.g-drag-active { user-select:none; -webkit-user-select:none; cursor:grabbing
 .vt-chip:disabled { cursor:default; }
 .vt-chip.ok { border-color:var(--success); background:rgba(0,216,150,0.16); color:var(--success); animation:gPop 0.3s var(--spring); }
 .vt-tchip.ok { border-color:hsl(var(--th) 85% 65%); background:hsl(var(--th) 70% 50% / 0.3); color:hsl(var(--th) 90% 82%); box-shadow:0 0 0 2px rgba(0,216,150,0.35); }
-.vt-chip.also { border-color:rgba(0,216,150,0.6); border-style:dashed; color:var(--success); }
-.vt-chip.bad { border-color:var(--error); background:var(--error-dim); color:var(--error); }
-.vt-chip.right { border-color:var(--success); color:var(--success); animation:vtPulse 0.9s ease 2; }
+/* Picked, not yet checked: accent fill + a tick. */
+.vt-chip.sel { border-color:var(--accent); background:rgba(245,166,35,0.2); color:var(--accent-hi); box-shadow:0 0 0 2px rgba(245,166,35,0.25); }
+.vt-chip.sel::after { content:"✓"; position:absolute; top:3px; right:6px; font-size:11px; font-weight:900; color:var(--accent-hi); }
+.vt-tchip.sel { border-color:var(--accent) !important; background:rgba(245,166,35,0.2) !important; color:var(--accent-hi); }.vt-chip.bad { border-color:var(--error); background:var(--error-dim); color:var(--error); }
+/* Right but left out: dashed, pulsing. */
+.vt-chip.right { border-color:var(--success); border-style:dashed; color:var(--success); animation:vtPulse 0.9s ease 2; }
 .vt-chip .g-key, .tl-chip .g-key { top:2px; left:4px; font-size:9px; }
 .vt-line { fill:none; stroke:hsl(var(--th, 38) 92% 58%); stroke-width:4; stroke-linecap:round; opacity:0.95; }
 .vt-line.draw { stroke-dasharray:900; stroke-dashoffset:900; animation:vtDraw 0.32s var(--ease) forwards; }
@@ -803,7 +803,14 @@ body.g-drag-active { user-select:none; -webkit-user-select:none; cursor:grabbing
 .vt-dot { fill:var(--accent); }
 .vt-dot.fixed { fill:var(--success); }
 .vt-dot.live { fill:none; stroke:var(--accent-hi); stroke-width:2.5; }
-.vt-hint { min-height:16px; text-align:center; font-size:12px; color:var(--text-3); }
+/* Sticky: on any screen the Check button stays in reach while the board scrolls. */
+.vt-actions { position:sticky; bottom:10px; z-index:5; display:flex; flex-direction:column; align-items:center; gap:6px; margin-top:12px; }
+.vt-check { box-shadow:0 8px 24px rgba(0,0,0,0.45); }
+.vt-hint { min-height:0; text-align:center; font-size:12px; color:var(--text-3); }
+.vt-hint:empty { display:none; }
+.vt-check { width:100%; max-width:320px; min-height:46px; margin:0; }
+.vt-check:disabled { opacity:0.45; cursor:default; }
+.vt-actions.vt-done { display:none; }
 
 /* ── TIMELINE DROP ── */
 .tl-card { position:relative; text-align:center; margin:2px 0 16px; padding:14px 14px 10px; background:rgba(255,255,255,0.045); border:1px solid var(--border); border-radius:var(--r); touch-action:none; cursor:grab; user-select:none; -webkit-user-select:none; transition:opacity 0.15s, transform 0.15s, border-color 0.25s; }
@@ -871,6 +878,13 @@ body.g-drag-active { user-select:none; -webkit-user-select:none; cursor:grabbing
   .vt-tchip .vt-sign { display:none; }
   .vt-mchip { min-height:40px; font-size:12.5px; }
   .vt-row-label { margin-bottom:4px; }
+  .vt-actions { margin-top:8px; bottom:6px; }
+  .vt-check { min-height:40px; }
+  .vt-hint { display:none; }
+  .vt-card { padding-top:8px; padding-bottom:10px; margin-bottom:10px; }
+  .vt-form { font-size:24px; min-height:30px; }
+  .vt-form.split { font-size:22px; }
+  .vt-verb { margin-top:3px; }
   .tl-chip { min-height:36px; }
   .tl-zone { margin-bottom:5px; }
   .tl-zone-head { margin-bottom:3px; }
