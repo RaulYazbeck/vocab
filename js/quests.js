@@ -250,7 +250,8 @@ qt({ id: "a_plan", slot: "A", fam: "plan", icon: "📅", w: 0, fixed: true, ok: 
   target: c => c.plan ? c.plan.target : sz(c, 0.45, 10, 90),
   title: q => `Today's plan: ${q.target} right answers`,
   sub: () => { const p = S.path.plan; const parts = [];
-    if (p && p.day === studyToday()) parts.push(`${p.reviews} reviews + ${p.pace} new words`);
+    const pt = p && p.day === studyToday() ? planToday() : null;
+    if (pt) parts.push(`${pt.reviews} reviews${pt.catchUp ? ` + ${pt.catchUp} catching up` : ""} + ${pt.newWords} new words`);
     if (S.path.deadline && pathDaysLeft() >= 0) {
       const st = pathDeadlineStatus();
       parts.push(st.ok ? `on course for ${fmtShortDate(S.path.deadline)}` : `⚠️ at most ${PLAN.MAX_PACE} new/day: ≈ ${fmtShortDate(st.eta)}`);
@@ -742,6 +743,7 @@ function questPay(q, i) {
   const Q = S.quests;
   const t = byId(q.tpl) || {};
   logEvent("quest_done", { tpl: q.tpl, slot: q.slot });
+  if (q.tpl === "a_plan" && typeof pathMarkPlanDone === "function") pathMarkPlanDone();
   if (i === "F") {
     Q.flashes++;
     questQueueChest("flash", "common");
@@ -1070,18 +1072,24 @@ const RARITY_INFO = {
 };
 function questQueueChest(src, min = "common") {
   S.quests.pending.push({ src, min, at: Date.now() });
-  if (S.quests.pending.length > 20) S.quests.pending = S.quests.pending.slice(-20);
+  logEvent("chest_earned", { src, min });
+  if (S.quests.pending.length > 20) {
+    S.quests.pending.slice(0, S.quests.pending.length - 20).forEach(ch => logEvent("chest_lost", { src: ch.src }));
+    S.quests.pending = S.quests.pending.slice(-20);
+  }
 }
 // Pity-timed roll: base 28% Rare, 8% Epic, 1.5% Legendary; Rare by the
 // 3rd, Epic by the 10th, Legendary by the 40th chest.
-function rollRarity(min = "common", rng = Math.random) {
+// info.why (optional out): what decided it — "roll", "pity" or "min".
+function rollRarity(min = "common", rng = Math.random, info = {}) {
   const C = S.quests.chest;
   let r = rng() * 100;
   let rar = r < 1.5 ? "legendary" : r < 9.5 ? "epic" : r < 37.5 ? "rare" : "common";
-  if (C.sinceLeg >= 39) rar = "legendary";
-  else if (C.sinceEpic >= 9 && RARITIES.indexOf(rar) < 2) rar = "epic";
-  else if (C.sinceRare >= 2 && RARITIES.indexOf(rar) < 1) rar = "rare";
-  if (RARITIES.indexOf(rar) < RARITIES.indexOf(min)) rar = min;
+  info.why = "roll";
+  if (C.sinceLeg >= 39) { if (rar !== "legendary") info.why = "pity"; rar = "legendary"; }
+  else if (C.sinceEpic >= 9 && RARITIES.indexOf(rar) < 2) { rar = "epic"; info.why = "pity"; }
+  else if (C.sinceRare >= 2 && RARITIES.indexOf(rar) < 1) { rar = "rare"; info.why = "pity"; }
+  if (RARITIES.indexOf(rar) < RARITIES.indexOf(min)) { rar = min; info.why = "min"; }
   C.opened++;
   C.sinceRare = RARITIES.indexOf(rar) >= 1 ? 0 : C.sinceRare + 1;
   C.sinceEpic = RARITIES.indexOf(rar) >= 2 ? 0 : C.sinceEpic + 1;
@@ -1111,15 +1119,17 @@ const CHEST_ITEMS = {
 };
 function openChest(ch) {
   const Q = S.quests;
-  const rar = rollRarity(ch.min);
+  const info = {};
+  const rar = rollRarity(ch.min, Math.random, info);
   const L = CHEST_LOOT[rar];
+  let item = "";
   delete Q._lastIdiom;
   const loot = [];
   const r = Math.random;
   let xp = L.xp[0] + Math.floor(r() * (L.xp[1] - L.xp[0] + 1));
   if (L.collectible) {
     const got = grantCollectible(L.collectible);
-    if (got) loot.push(got);
+    if (got) { loot.push(got); item = got.startsWith("📜") ? "idiom" : "cosmetic"; }
     else xp += 83;
   }
   let x = r();
@@ -1127,13 +1137,13 @@ function openChest(ch) {
     if (x >= p) { x -= p; continue; }
     const it = CHEST_ITEMS[id];
     const cap = typeof it.cap === "function" ? it.cap() : it.cap;
-    if (cap && Q[it.field] >= cap) { xp += it.capXp; loot.push(`${it.full} (${cap}/${cap}) → +${it.capXp} XP`); }
-    else { Q[it.field]++; loot.push(it.label); }
+    if (cap && Q[it.field] >= cap) { xp += it.capXp; loot.push(`${it.full} (${cap}/${cap}) → +${it.capXp} XP`); item = (item ? item + "+" : "") + id + ":full"; }
+    else { Q[it.field]++; loot.push(it.label); item = (item ? item + "+" : "") + id; }
     break;
   }
   addExp(xp);
   loot.unshift(`+${xp} XP`);
-  logEvent("chest", { src: ch.src, rar });
+  logEvent("chest", { src: ch.src, rar, min: ch.min, why: info.why, item: item || "xp", xp, from: typeof _lastScreen === "string" ? _lastScreen : "", waited: ch.at ? Math.round((Date.now() - ch.at) / 60000) : 0 });
   checkAchievements({ type: "chest" });
   // 👵 Grandma mode never sees the items (they're still kept): just XP.
   const idiom = Q._lastIdiom || null; delete Q._lastIdiom;
