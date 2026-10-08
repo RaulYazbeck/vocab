@@ -186,6 +186,9 @@ function migrateGames() {
   // Conjugation Slots), and recent mix-ups used as distractors.
   if (!G.cases || typeof G.cases !== "object") G.cases = {};
   if (!G.vf || typeof G.vf !== "object") G.vf = {};
+  // Verb Thread / Timeline Drop: per tense [right, asked] (verb-lab.js).
+  if (!G.vt || typeof G.vt !== "object") G.vt = {};
+  if (!G.tl || typeof G.tl !== "object") G.tl = {};
   if (!G.confuse || typeof G.confuse !== "object") G.confuse = {};
   if (S.gameCorrectToday === undefined) S.gameCorrectToday = 0;
   if (S.gameCorrectDate === undefined)  S.gameCorrectDate = "";
