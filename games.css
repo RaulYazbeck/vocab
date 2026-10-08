@@ -761,8 +761,10 @@ body.g-drag-active { user-select:none; -webkit-user-select:none; cursor:grabbing
 .vt-knot { position:absolute; left:50%; bottom:-7px; width:13px; height:13px; border-radius:50%; background:var(--accent); transform:translateX(-50%); box-shadow:0 0 0 4px var(--accent-dim); }
 .vt-ear { display:inline-flex; align-items:center; gap:8px; margin:4px auto 2px; padding:10px 22px; min-height:48px; border-radius:999px; border:1.5px solid var(--accent); background:var(--accent-dim); color:var(--accent-hi); font-size:20px; font-weight:800; cursor:pointer; }
 .vt-ear span { font-size:15px; }
-.vt-cols { position:relative; z-index:1; display:grid; grid-template-columns:minmax(0, 0.78fr) minmax(0, 1.08fr) minmax(0, 1.28fr); column-gap:14px; align-items:start; }
-.vt-row { min-width:0; opacity:0.45; transition:opacity 0.2s; }
+.vt-cols { position:relative; z-index:1; display:grid; grid-template-columns:minmax(0, 0.78fr) minmax(0, 1.08fr) minmax(0, 1.28fr); column-gap:14px; align-items:stretch; }
+/* Titles stay on one line at the top; shorter chip lists sit centred against the tallest. */
+.vt-row { min-width:0; display:flex; flex-direction:column; opacity:0.45; transition:opacity 0.2s; }
+.vt-row > .vt-chips { flex:1; justify-content:center; }
 .vt-row.on { opacity:1; }
 .vt-row.done { opacity:0.92; }
 .vt-row-label { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:1.1px; color:var(--text-3); margin:0 0 6px 2px; white-space:nowrap; }
