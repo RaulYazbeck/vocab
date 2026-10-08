@@ -239,6 +239,15 @@ function pathNewQuota(scan = pathScan()) {
   else if (plan && pathPlanKept()) reason = "";
   else if (scan.overdue >= PATH.THROTTLE_STOP * k) { base = 0; reason = "catchup"; }
   else if (scan.overdue >= PATH.THROTTLE_HALF * k) { base = Math.ceil(base / 2); reason = "slowed"; }
+  // The brake may use up the plan's safety margin (PLAN.LAG), never
+  // what the finish date itself needs: words left over the days left
+  // once the last ones have had KNOWN_LAG days to climb to Known.
+  if (plan && base < full && reason !== "paused") {
+    base = Math.max(base, Math.min(full, pathPaceFloor(scan)));
+    // Some new words still come: that's a slowdown (🐢), not a stop.
+    if (base >= full) reason = "";
+    else if (base > 0) reason = "slowed";
+  }
   const held = plan && reason !== "paused" ? full - base : 0;
   if (plan && typeof usageNoteBrake === "function") usageNoteBrake(reason, scan.overdue);
   const quota = base + (P.extraToday || 0);
@@ -297,6 +306,12 @@ function pathDeadlineStatus(scan = pathScan(), today = studyToday()) {
   const eta = addDays(today, Math.ceil(pathUnmet(scan) / PLAN.MAX_PACE) + KNOWN_LAG);
   const ok = pathDaysLeft(today) >= 0 && eta <= S.path.deadline;
   return { ok, eta: ok ? S.path.deadline : eta };
+}
+// The fewest new words a day that still keep the finish date (no margin).
+function pathPaceFloor(scan = pathScan(), today = studyToday()) {
+  const unmet = pathUnmet(scan);
+  if (!unmet) return 0;
+  return Math.ceil(unmet / Math.max(1, pathDaysLeft(today) - KNOWN_LAG));
 }
 function pathPace(scan = pathScan(), today = studyToday()) {
   if (!pathUnmet(scan)) return 0;
