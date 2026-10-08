@@ -915,14 +915,14 @@ function renderHome() {
   // Only what asks for an action gets a line; "slowed" is a 🐢 on the chip.
   const note = t.reason === "autopaused"
     ? `<div class="tc-note">⏸ New words paused after a few days away — they resume as reviews clear. <button class="tc-link" onclick="pathResume();renderHome()">Resume now</button></div>`
-    : t.reason === "catchup" ? `<div class="tc-note">🧹 Catching up first: ${t.overdue} overdue reviews. New words return when the pile is smaller.</div>` : "";
+    : t.reason === "catchup" ? `<div class="tc-note">🧹 Catching up first: ${t.overdue} overdue reviews. New words return ${pathDeadlineOn() ? "as soon as you finish today's plan" : "when the pile is smaller"}.</div>` : "";
   const extra = t.frontier && !t.newLeft && t.reason !== "autopaused";
   const stats = [];
   if (t.fix) stats.push(`<span class="tc-stat warn" title="Words you slipped on — Start fixes them first">🩹 ${t.fix} to fix</span>`);
   stats.push(`<span class="tc-stat" title="Reviews due today">📚 ${t.due} due</span>`);
   stats.push(!t.frontier ? `<span class="tc-stat">🏔️ all met</span>`
     : extra ? `<button class="tc-stat tc-stat-btn" onclick="pathLearnExtra();startPathSession('quick')" title="Today's new words are done — learn ${PATH.EXTRA_NEW} more">🌱 +${PATH.EXTRA_NEW} new</button>`
-    : `<span class="tc-stat" ${t.reason === "slowed" ? `title="Fewer new words today while you catch up on ${t.overdue} reviews"` : ""}>🌱 ${t.newLeft} new${t.reason === "slowed" ? ` <span class="tc-slow" aria-label="slowed down while you catch up">🐢</span>` : ""}</span>`);
+    : `<span class="tc-stat" ${t.reason === "slowed" ? `title="Fewer new words today while you catch up on ${t.overdue} reviews${pathDeadlineOn() ? " — finish today's plan to lift it" : ""}"` : ""}>🌱 ${t.newLeft} new${t.reason === "slowed" ? ` <span class="tc-slow" aria-label="slowed down while you catch up">🐢</span>` : ""}</span>`);
   const nothing = !t.due && !t.newLeft;
   home.innerHTML = `
     <div class="today-card" id="today-card">
@@ -1120,7 +1120,8 @@ function forecastHtml() {
   return `<div class="jf-head"><span class="stats-section-title">${title}</span><small>${how} · ${Math.round(f.p * 100)}% right</small></div>
     <div class="jf">${cols}</div>
     <div class="jf-legend"><span><i class="jf-s"></i>already scheduled</span><span><i class="jf-new"></i>from new words</span><span><i class="jf-c"></i>catching up</span>${plan ? `<span><i class="jf-m"></i>meeting new words</span>` : ""}</div>
-    ${plan && d0 ? `<div class="jf-note">Today: ${d0.total} reviews + ${d0.newWords} new words = ${d0.target} right answers, with room for misses.</div>` : ""}
+    ${plan && d0 ? (() => { const pt = planToday();
+      return `<div class="jf-note">Today: ${pt.reviews} reviews${pt.catchUp ? ` + ${pt.catchUp} catching up` : ""} + ${pt.newWords} new words ≈ ${d0.target} right answers, with room for misses.${pt.catchUp ? " Finish today's plan and the 🐢 lifts: your full new words are back." : ""}</div>`; })() : ""}
     ${wait > 0 ? `<div class="jf-wait">Today takes part of your backlog; ${wait} wait${wait === 1 ? "s" : ""} for the next days (they still show as due).</div>` : ""}`;
 }
 // "How does a word move?" — the schedule, in plain words.

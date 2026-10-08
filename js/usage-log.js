@@ -151,7 +151,10 @@ function _usageAggregate(type, d, now) {
       (d.ids || []).forEach(id => { if (!qt[id]) qt[id] = [0, 0, 0]; qt[id][0]++; });
       break;
     }
-    case "quest_done": day.q[0]++; _usageQuest(day, d.tpl, 1); break;
+    case "quest_done":
+      day.q[0]++; _usageQuest(day, d.tpl, 1);
+      if (d.tpl === "a_plan") day.planAt = new Date(now).getHours();
+      break;
     case "quest_reroll": day.q[1]++; _usageQuest(day, d.tpl, 2); break;
     case "quest_swap": day.q[2]++; _usageQuest(day, d.tpl, 2); break;
     case "day_complete": day.q[3]++; break;
@@ -160,7 +163,39 @@ function _usageAggregate(type, d, now) {
     case "bonus": day.bonus[d.taken ? 1 : 0]++; break;
     case "twist": day.twist[d.taken ? 1 : 0]++; break;
     case "setting": { const st = _uf(day, "set", () => ({})); st[d.k] = d.v; break; }
+    // Today's plan (finish date): the morning's numbers. A finish-date
+    // change mid-day updates pace/target but keeps the morning pile.
+    case "plan": {
+      const p = day.plan || (day.plan = { due: d.due, od: d.od });
+      Object.assign(p, { pace: d.pace, rev: d.reviews, tgt: d.target, leave: d.leave });
+      break;
+    }
+    // Chests: earned by source; opened by source × rarity, what decided
+    // the rarity (roll / pity timer / source minimum), the item inside.
+    case "chest_earned": { const e = _uf(day, "chE", () => ({})); e[d.src || "?"] = (e[d.src || "?"] || 0) + 1; break; }
+    case "chest_lost": day.chLost = (day.chLost || 0) + 1; break;
+    case "chest": {
+      const ch = _uf(day, "ch", () => ({}));
+      const k = d.src || "?", r = ["common", "rare", "epic", "legendary"].indexOf(d.rar);
+      if (!ch[k]) ch[k] = [0, 0, 0, 0, 0];
+      ch[k][0]++; if (r >= 0) ch[k][r + 1]++;
+      if (d.why) { const w = _uf(day, "chW", () => ({})); w[d.why] = (w[d.why] || 0) + 1; }
+      if (d.item) { const it = _uf(day, "chI", () => ({})); it[d.item] = (it[d.item] || 0) + 1; }
+      if (d.xp) day.chX = (day.chX || 0) + d.xp;
+      if (d.from) { const f = _uf(day, "chF", () => ({})); f[d.from] = (f[d.from] || 0) + 1; }
+      if (d.waited >= 0) { const w = _uf(day, "chWait", () => [0, 0]); w[0] += d.waited; w[1]++; }
+      break;
+    }
   }
+}
+// The new-word brake as the day saw it (finish date only): its state
+// at the first check, its latest state, and the hour it lifted.
+function usageNoteBrake(reason, overdue) {
+  try {
+    const d = usageDay(), r = reason || "none";
+    if (!d.brk) { d.brk = { am: r, now: r, od: overdue }; return; }
+    if (d.brk.now !== r) { d.brk.now = r; if (r === "none") d.brk.off = new Date().getHours(); }
+  } catch (e) {}
 }
 function _usageQuest(day, tpl, i) {
   if (!tpl) return;
@@ -170,9 +205,17 @@ function _usageQuest(day, tpl, i) {
 }
 // Words per tier at the end of each Today session: the day's last one
 // is the day's closing picture, so growth can be followed day by day.
+// Also the day's plan picture so far: right answers toward the plan,
+// due words actually reviewed, what's still due/overdue, chests waiting.
 function _usageTierSnapshot() {
   setTimeout(() => {
-    try { if (typeof pathScan === "function") usageDay().tiers = { ...pathScan(true).tiers }; } catch (e) {}
+    try {
+      if (typeof pathScan !== "function") return;
+      const scan = pathScan(true), day = usageDay();
+      day.tiers = { ...scan.tiers };
+      day.end = { ok: (S.quests && S.quests.m && S.quests.m.ok) || 0, rev: typeof pathReviewedToday === "function" ? pathReviewedToday() : 0,
+        due: scan.due, od: scan.overdue, pend: (S.quests && S.quests.pending || []).length };
+    } catch (e) {}
   }, 0);
 }
 // A phrase spoken with the phone's voice because the pack has no
@@ -272,6 +315,7 @@ function buildUsageReport(nDays = 0) {
   const qs = Object.entries(qStats).sort((a, b) => b[1][0] - a[1][0]);
   if (qs.length) lines.push(`Quest templates (offered/done/rerolled+swapped): ` + qs.map(([k, a]) => `${k} ${a[0]}/${a[1]}/${a[2]}`).join(" · "));
   lines.push(`Random events: ` + (Object.entries(ev).map(([k, n]) => `${k} ${n}`).join(" · ") || "none"));
+  lines.push(...usageChestLines(days, activeDays.length));
   lines.push(`Bonus rounds offered/taken: ${sum(v => v.bonus[0] + v.bonus[1])}/${sum(v => v.bonus[1])} · twists declined/taken: ${sum(v => v.twist[0])}/${sum(v => v.twist[1])} · drag vs tap: ${sum(v => v.drag[0])}/${sum(v => v.drag[1])}`);
   lines.push(`Busiest hours: ${peak.join(", ") || "—"}`);
   const hAcc = hours.map((n, h) => [h, hoursOkN[h], hoursOk[h]]).filter(x => x[1] >= 20);
@@ -288,8 +332,72 @@ function buildUsageReport(nDays = 0) {
     const n = Object.values(v.ans || {}).reduce((a, x) => a + (x[0] || 0), 0);
     lines.push(`${d} · ${Math.round(v.min)} · ${n} · ${pct(t[1], t[0])} · ${secs(v.lat[0], v.lat[1])} · ${p[0]}/${p[1]}/${p[2]} · ${g[0]}/${g[1]} · ${v.met ?? "—"} · ${v.up ?? "—"}/${v.down ?? "—"}`);
   });
+  lines.push(...usagePlanLines(activeDays));
   const json = JSON.stringify({ app: STORAGE_KEY, generated: new Date().toISOString(), days: Object.fromEntries(days), quests: qStats, tiers });
   return lines.join("\n") + "\n\n--- JSON ---\n" + json;
+}
+// Chests: earned and opened by source, rarity mix against the base
+// odds, what decided the rarity, items, where they were opened. Opened
+// chests of days before the daily counts existed come from this
+// device's raw log.
+function usageChestLines(days, nActive) {
+  const RAR = ["common", "rare", "epic", "legendary"];
+  const earned = {}, opened = {}, why = {}, items = {}, from = {};
+  let xp = 0, lost = 0, waitS = 0, waitN = 0;
+  const chDays = new Set();
+  const add = (o, k, n = 1) => o[k] = (o[k] || 0) + n;
+  days.forEach(([d, v]) => {
+    Object.entries(v.chE || {}).forEach(([k, n]) => add(earned, k, n));
+    if (v.ch) {
+      chDays.add(d);
+      Object.entries(v.ch).forEach(([k, a]) => { if (!opened[k]) opened[k] = [0, 0, 0, 0, 0]; a.forEach((x, i) => opened[k][i] += x || 0); });
+    }
+    Object.entries(v.chW || {}).forEach(([k, n]) => add(why, k, n));
+    Object.entries(v.chI || {}).forEach(([k, n]) => add(items, k, n));
+    Object.entries(v.chF || {}).forEach(([k, n]) => add(from, k, n));
+    xp += v.chX || 0; lost += v.chLost || 0;
+    if (v.chWait) { waitS += v.chWait[0]; waitN += v.chWait[1]; }
+  });
+  const first = days.length ? days[0][0] : todayISO();
+  _usageLog().forEach(e => {
+    if (e.e !== "chest") return;
+    const d = usageDateOf(e.t);
+    if (d < first || chDays.has(d)) return;
+    const k = e.src || "?", r = RAR.indexOf(e.rar);
+    if (!opened[k]) opened[k] = [0, 0, 0, 0, 0];
+    opened[k][0]++; if (r >= 0) opened[k][r + 1]++;
+  });
+  const tot = [0, 0, 0, 0, 0];
+  Object.values(opened).forEach(a => a.forEach((x, i) => tot[i] += x));
+  const pend = S.quests && S.quests.pending ? S.quests.pending.length : 0;
+  const pct = (a, b) => b ? Math.round(a / b * 100) + "%" : "—";
+  const out = [];
+  out.push(`Chests: opened ${tot[0]} (${nActive ? (tot[0] / nActive).toFixed(1) : "—"}/active day) · waiting now ${pend}` +
+    (Object.keys(earned).length ? ` · earned ${Object.values(earned).reduce((a, n) => a + n, 0)} since tracked` : "") + (lost ? ` · lost to the 20 cap ${lost}` : "") +
+    (waitN ? ` · avg wait before opening ${Math.round(waitS / waitN)} min` : "") + (xp ? ` · chest XP ${xp}` : ""));
+  if (tot[0]) out.push(`Chest rarity (common/rare/epic/legendary): ${tot.slice(1).join("/")} = ${tot.slice(1).map(n => pct(n, tot[0])).join("/")} · base odds 62.5/28/8/1.5%` +
+    (Object.keys(why).length ? ` · decided by ` + Object.entries(why).map(([k, n]) => `${k} ${n}`).join(" · ") : ""));
+  if (Object.keys(opened).length) out.push(`Chests by source (opened: c/r/e/l${Object.keys(earned).length ? " · earned" : ""}): ` +
+    Object.entries(opened).sort((a, b) => b[1][0] - a[1][0]).map(([k, a]) => `${k} ${a[0]}: ${a.slice(1).join("/")}${earned[k] != null ? ` · ${earned[k]}` : ""}`).join(" | ") +
+    Object.keys(earned).filter(k => !opened[k]).map(k => ` | ${k} 0 · ${earned[k]}`).join(""));
+  if (Object.keys(items).length) out.push(`Chest items: ` + Object.entries(items).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(" · "));
+  if (Object.keys(from).length) out.push(`Chests opened from: ` + Object.entries(from).map(([k, n]) => `${k} ${n}`).join(" · "));
+  return out;
+}
+// Finish-date plan, day by day: was it kept, did the brake fire, did
+// the backlog shrink? (Days before this was recorded show —.)
+function usagePlanLines(activeDays) {
+  const rows = activeDays.filter(([, v]) => v.plan || v.brk || v.end);
+  if (!rows.length) return [];
+  const done = v => v.planAt != null || !!(v.qt && v.qt.a_plan && v.qt.a_plan[1]);
+  const kept = rows.filter(([, v]) => done(v)).length;
+  const out = [``, `Plan per day (date · morning due/overdue · plan reviews+new → target, left for later · right answers · due words reviewed · new met · brake morning→end (lifted at h) · plan done at h · at last session due/overdue · chests waiting): plan finished ${kept}/${rows.length} days`];
+  rows.forEach(([d, v]) => {
+    const p = v.plan || {}, b = v.brk, e = v.end || {};
+    const f = x => x == null ? "—" : x;
+    out.push(`${d} · ${f(p.due)}/${f(p.od)} · ${p.rev != null ? `${p.rev}+${p.pace} → ${p.tgt}, leave ${p.leave}` : "—"} · ${f(e.ok)} · ${f(e.rev)} · ${f(v.met)} · ${b ? `${b.am}→${b.now}${b.off != null ? ` (${b.off}h)` : ""}` : "—"} · ${v.planAt != null ? v.planAt + "h" : done(v) ? "done" : "not done"} · ${f(e.due)}/${f(e.od)} · ${f(e.pend)}`);
+  });
+  return out;
 }
 function copyUsageReport() {
   const text = buildUsageReport(0);
