@@ -93,7 +93,7 @@ const EN_IRR = (() => {
    "cling clung clung|come came come|cost cost cost|creep crept crept|cut cut cut|deal dealt dealt|dig dug dug|do did done|draw drew drawn|" +
    "dream dreamed dreamed|drink drank drunk|drive drove driven|eat ate eaten|fall fell fallen|feed fed fed|feel felt felt|fight fought fought|" +
    "find found found|flee fled fled|fly flew flown|forbid forbade forbidden|forget forgot forgotten|forgive forgave forgiven|freeze froze frozen|" +
-   "get got gotten|give gave given|go went gone|grind ground ground|grow grew grown|hang hung hung|have had had|hear heard heard|hide hid hidden|" +
+   "get got got|give gave given|go went gone|grind ground ground|grow grew grown|hang hung hung|have had had|hear heard heard|hide hid hidden|" +
    "hit hit hit|hold held held|hurt hurt hurt|keep kept kept|kneel knelt knelt|know knew known|lay laid laid|lead led led|leave left left|" +
    "lend lent lent|let let let|lie lay lain|light lit lit|lose lost lost|make made made|mean meant meant|meet met met|pay paid paid|put put put|" +
    "quit quit quit|read read read|ride rode ridden|ring rang rung|rise rose risen|run ran run|say said said|see saw seen|seek sought sought|" +
@@ -125,6 +125,8 @@ function enThird(v) {
 }
 function enPastReg(v) {
   if (/e$/.test(v)) return v + "d";
+  // British, like the decks' own glosses: travelled, cancelled, fulfilled.
+  if (/[^aeiou][aeiou]l$/.test(v) && v.length > 3) return v + "led";
   if (/[^aeiou]y$/.test(v)) return v.slice(0, -1) + "ied";
   if (EN_DOUBLE.has(v) || /^[^aeiou]*[aeiou][^aeiouwxy]$/.test(v)) return v + v.slice(-1) + "ed";
   return v + "ed";
@@ -168,14 +170,24 @@ function enForm(base, tense, person) {
   else return "";
   return rest ? f + " " + rest : f;
 }
+// Verbs whose subject is a thing or an event: "es regnet", "das kostet",
+// "es hat geklappt" — er is "it" in English, and only er / sie exist.
+// Weather verbs (es regnet) have only "es": no Who to decode, left out.
+const DE_IT_VERBS = /^(geschehen|passieren|gelingen|misslingen|stattfinden|schmecken|vorkommen|ausfallen|klappen|dauern|kosten|sich ereignen|sich lohnen|einfallen|auffallen|gefallen|genügen|ausreichen|gelten|feststehen|nützen|wehtun|stimmen)$/;
+const DE_WEATHER = /^(regnen|schneien|blitzen|donnern|hageln|nieseln|dämmern)$/;
+const EN_SELF = { ich: "myself", du: "yourself", er: "himself", wir: "ourselves", ihr: "yourselves", sie: "themselves" };
+const EN_POSS = { ich: "my", du: "your", er: "his", wir: "our", ihr: "your", sie: "their" };
 function enCell(v, tense, person) {
   const sp = EN_SPECIAL[v.inf];
-  const pron = EN_PRON[person];
+  const it = DE_IT_VERBS.test(v.inf);
+  const pron = it && person === "er" ? "it" : EN_PRON[person];
   if (!pron) return "";
   if (sp && sp[tense]) return pron + " " + sp[tense];
   if (sp && sp.base === "" ) return "";
   const base = enBaseOf(v);
-  const f = enForm(base, tense, person);
+  let f = enForm(base, tense, person);
+  // "to introduce oneself" → I introduced myself; "one's mind" → my mind.
+  if (f) f = f.replace(/\boneself\b/g, it && person === "er" ? "itself" : EN_SELF[person]).replace(/\bone's\b/g, it && person === "er" ? "its" : EN_POSS[person]);
   return f ? pron + " " + f : "";
 }
 
@@ -240,7 +252,11 @@ function vlMeaning(v, tense, person) {
   return enCell(v, tense, person);
 }
 // Persons a verb has at all (pleuvoir: il only).
-function vlPersonsOf(v) { return VL_FR && v.F.only ? [v.F.only] : VL_PERSONS; }
+function vlPersonsOf(v) {
+  if (VL_FR) return v.F.only ? [v.F.only] : VL_PERSONS;
+  if (DE_WEATHER.test(v.inf)) return ["er"];
+  return DE_IT_VERBS.test(v.inf) ? ["er", "sie"] : VL_PERSONS;
+}
 // The verb's word (for its meaning, stage and the review flag).
 function vlVerbWord(v) { return v.word || null; }
 function vlInfLabel(v) { return v.inf; }
@@ -256,8 +272,10 @@ function vlEarKey(form, person) {
   const f = String(form).toLowerCase().replace(/ … /g, " ");
   if (!VL_FR) return f;
   return f.split(" ").map((w, i, a) => {
-    if (i === a.length - 1 && person === "ils" && /[^aeiouy]ent$/.test(w) && w.length > 4) w = w.slice(0, -3);
-    return w.replace(/[sxtd]+$/, "").replace(/ée$/, "é").replace(/([^aeiouyéèêë])e$/, "$1");
+    // The -ent of ils is silent, but the consonant before it is heard
+    // (finissent ≠ finis, mentent ≠ ment; rient = rit, jouent = joue).
+    if (i === a.length - 1 && person === "ils" && /ent$/.test(w) && w.length > 3) return w.slice(0, -3);
+    return w.replace(/[sxtd]+$/, "").replace(/ée$/, "é").replace(/([^é])e$/, "$1");
   }).join(" ");
 }
 

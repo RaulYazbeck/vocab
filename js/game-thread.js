@@ -123,7 +123,7 @@ registerGame({
       it.tOpts = vlTenseOptions(it, tenses, Math.max(2, Math.min(nT, tenses.length)));
       it.mOpts = vlMeaningOptions(it, nM);
       const showInf = rp.inf || rookie || ctx.size !== "full";
-      const persons = vlPersonsOf(it.v);
+      const persons = VL_PERSONS;
       const formHtml = it.ear
         ? `<button class="vt-ear" id="vt-ear" aria-label="Hear it again">🎧 <span>Listen</span></button><div class="vt-form vt-hidden" id="vt-form" aria-hidden="true">${escapeHtml(it.form)}</div>`
         : `<div class="vt-form" id="vt-form">${escapeHtml(it.form)}</div>`;
