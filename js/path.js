@@ -184,10 +184,11 @@ function pathRollDay() {
   if (P.day !== today) { P.day = today; P.extraToday = 0; P.spotToday = 0; }
 }
 // Auto-pause after AUTO_PAUSE_DAYS missed days with reviews waiting;
-// it lifts by itself once the backlog is back under THROTTLE_HALF.
+// it lifts by itself once the backlog is back under THROTTLE_HALF —
+// or, with a finish date, as soon as a day's plan is finished.
 function pathCheckAutoPause(scan = pathScan()) {
   const P = S.path, today = studyToday();
-  if (P.autoPaused && scan.overdue < PATH.THROTTLE_HALF * (pathDeadlineOn() ? 2 : 1)) { P.autoPaused = false; P.autoPausedOn = ""; }
+  if (P.autoPaused && (scan.overdue < PATH.THROTTLE_HALF * (pathDeadlineOn() ? 2 : 1) || (pathDeadlineOn() && pathPlanKept(today)))) { P.autoPaused = false; P.autoPausedOn = ""; }
   if (!P.autoPaused && P.lastActiveDay && scan.due > 0) {
     const missed = daysBetween(P.lastActiveDay, today) - 1;
     if (missed >= PATH.AUTO_PAUSE_DAYS) { P.autoPaused = true; P.autoPausedOn = today; }
@@ -215,6 +216,7 @@ function pathPlanDoneBackfill() {
 }
 function pathMarkPlanDone() {
   S.path.planDoneOn = studyToday();
+  if (S.path.autoPaused) { S.path.autoPaused = false; S.path.autoPausedOn = ""; }
   invalidatePathScan();
 }
 // { quota, left, reason, base, held } — today's new-word allowance.
@@ -249,7 +251,9 @@ function planToday(scan = pathScan()) {
   const plan = pathEnsurePlan(scan);
   if (!plan) return null;
   const q = pathNewQuota(scan);
-  return { reviews: plan.reviews, catchUp: Math.round(q.held * 3 / 1.1), newWords: q.base, target: plan.target, reason: q.reason };
+  // Never more catching up than the backlog the plan left for later.
+  const catchUp = Math.min(plan.leave || 0, Math.round(q.held * 3 / 1.1));
+  return { reviews: plan.reviews, catchUp, newWords: q.base, target: plan.target, reason: q.reason };
 }
 function pathLearnExtra() {
   pathRollDay();

@@ -914,7 +914,7 @@ function renderHome() {
   const sg = sagaProgress();
   // Only what asks for an action gets a line; "slowed" is a 🐢 on the chip.
   const note = t.reason === "autopaused"
-    ? `<div class="tc-note">⏸ New words paused after a few days away — they resume as reviews clear. <button class="tc-link" onclick="pathResume();renderHome()">Resume now</button></div>`
+    ? `<div class="tc-note">⏸ New words paused after a few days away — they resume ${pathDeadlineOn() ? "as soon as you finish today's plan" : "as reviews clear"}. <button class="tc-link" onclick="pathResume();renderHome()">Resume now</button></div>`
     : t.reason === "catchup" ? `<div class="tc-note">🧹 Catching up first: ${t.overdue} overdue reviews. New words return ${pathDeadlineOn() ? "as soon as you finish today's plan" : "when the pile is smaller"}.</div>` : "";
   const extra = t.frontier && !t.newLeft && t.reason !== "autopaused";
   const stats = [];
@@ -1121,7 +1121,7 @@ function forecastHtml() {
     <div class="jf">${cols}</div>
     <div class="jf-legend"><span><i class="jf-s"></i>already scheduled</span><span><i class="jf-new"></i>from new words</span><span><i class="jf-c"></i>catching up</span>${plan ? `<span><i class="jf-m"></i>meeting new words</span>` : ""}</div>
     ${plan && d0 ? (() => { const pt = planToday();
-      return `<div class="jf-note">Today: ${pt.reviews} reviews${pt.catchUp ? ` + ${pt.catchUp} catching up` : ""} + ${pt.newWords} new words ≈ ${d0.target} right answers, with room for misses.${pt.catchUp ? " Finish today's plan and the 🐢 lifts: your full new words are back." : ""}</div>`; })() : ""}
+      return `<div class="jf-note">Today: ${pt.reviews} reviews${pt.catchUp ? ` + ${pt.catchUp} catching up` : ""} + ${pt.newWords} new words ≈ ${d0.target} right answers, with room for misses.${pt.catchUp ? " Finish today's plan and your full new words are back." : ""}</div>`; })() : ""}
     ${wait > 0 ? `<div class="jf-wait">Today takes part of your backlog; ${wait} wait${wait === 1 ? "s" : ""} for the next days (they still show as due).</div>` : ""}`;
 }
 // "How does a word move?" — the schedule, in plain words.

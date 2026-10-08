@@ -175,6 +175,7 @@ function _usageAggregate(type, d, now) {
     case "chest_earned": { const e = _uf(day, "chE", () => ({})); e[d.src || "?"] = (e[d.src || "?"] || 0) + 1; break; }
     case "chest_lost": day.chLost = (day.chLost || 0) + 1; break;
     case "chest": {
+      if (!day.ch) day.chSince = now; // older chests of this day: from the raw log
       const ch = _uf(day, "ch", () => ({}));
       const k = d.src || "?", r = ["common", "rare", "epic", "legendary"].indexOf(d.rar);
       if (!ch[k]) ch[k] = [0, 0, 0, 0, 0];
@@ -344,12 +345,12 @@ function usageChestLines(days, nActive) {
   const RAR = ["common", "rare", "epic", "legendary"];
   const earned = {}, opened = {}, why = {}, items = {}, from = {};
   let xp = 0, lost = 0, waitS = 0, waitN = 0;
-  const chDays = new Set();
+  const chSince = {};
   const add = (o, k, n = 1) => o[k] = (o[k] || 0) + n;
   days.forEach(([d, v]) => {
     Object.entries(v.chE || {}).forEach(([k, n]) => add(earned, k, n));
     if (v.ch) {
-      chDays.add(d);
+      chSince[d] = v.chSince || 0;
       Object.entries(v.ch).forEach(([k, a]) => { if (!opened[k]) opened[k] = [0, 0, 0, 0, 0]; a.forEach((x, i) => opened[k][i] += x || 0); });
     }
     Object.entries(v.chW || {}).forEach(([k, n]) => add(why, k, n));
@@ -362,7 +363,7 @@ function usageChestLines(days, nActive) {
   _usageLog().forEach(e => {
     if (e.e !== "chest") return;
     const d = usageDateOf(e.t);
-    if (d < first || chDays.has(d)) return;
+    if (d < first || (d in chSince && e.t >= chSince[d])) return;
     const k = e.src || "?", r = RAR.indexOf(e.rar);
     if (!opened[k]) opened[k] = [0, 0, 0, 0, 0];
     opened[k][0]++; if (r >= 0) opened[k][r + 1]++;
