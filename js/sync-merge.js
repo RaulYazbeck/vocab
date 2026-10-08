@@ -56,6 +56,35 @@ const SYNC_DAY_COUNTERS = [
 ];
 const SYNC_MH_CAP = 30; // mistake history entries kept per word/verb (learning-log.js LEARN_HIST)
 
+// Firestore can't store an array directly inside an array (the learning
+// log keeps mistake histories as lists of lists), so on the way up every
+// inner array becomes { __arr: [...] } and on the way down back again.
+// The app's own data never changes shape.
+const SYNC_ARR = "__arr";
+function syncEncodeArrays(v, inArray) {
+  if (Array.isArray(v)) {
+    const a = v.map(x => syncEncodeArrays(x, true));
+    return inArray ? { [SYNC_ARR]: a } : a;
+  }
+  if (v && typeof v === "object") {
+    const o = {};
+    Object.keys(v).forEach(k => { o[k] = syncEncodeArrays(v[k], false); });
+    return o;
+  }
+  return v;
+}
+function syncDecodeArrays(v) {
+  if (Array.isArray(v)) return v.map(syncDecodeArrays);
+  if (v && typeof v === "object") {
+    const ks = Object.keys(v);
+    if (ks.length === 1 && ks[0] === SYNC_ARR && Array.isArray(v[SYNC_ARR])) return v[SYNC_ARR].map(syncDecodeArrays);
+    const o = {};
+    ks.forEach(k => { o[k] = syncDecodeArrays(v[k]); });
+    return o;
+  }
+  return v;
+}
+
 function syncClone(v) { return v === undefined ? undefined : JSON.parse(JSON.stringify(v)); }
 function syncIsObj(v) { return !!v && typeof v === "object" && !Array.isArray(v); }
 function syncGet(o, path) {

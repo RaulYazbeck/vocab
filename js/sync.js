@@ -105,12 +105,18 @@ let lastCloudCheckAt = 0;      // meta last confirmed to hold nothing new
 //         copy descends from: who/when wrote it ("dev:at"), its savedAt,
 //         its _seen, its counters and its per-word answer counts
 //   hist  older bases, newest last, each with `undo` = the word counts
-//         that differed from the next one (enough to rebuild them)
+//         that differed from the next one (enough to rebuild them) and `t`
+//         = when it stopped being the base
 //   pend  saves sent but not yet confirmed, oldest first: { at, id, sv,
 //         seen, scal, baseId, wcd } (wcd = word counts changed since base)
 const SYNC_REC_KEY = STORAGE_KEY + "_sync";
 const PRECHECK_FRESH_MS = 15000;
-const SYNC_HIST_MAX = 20;
+// History of older bases: the last SYNC_HIST_KEEP always; older ones only
+// if they stayed the base for a while (another device may have loaded them
+// — states replaced within seconds while drilling are folded together).
+const SYNC_HIST_KEEP = 60;
+const SYNC_HIST_MAX = 400;
+const SYNC_HIST_PAUSE_MS = 120000;
 let syncRec = { dev: "", uid: null, lastAt: 0, know: {}, base: null, hist: [], pend: [] };
 
 // ── AUTH ──────────────────────────────────────
@@ -253,6 +259,19 @@ function syncSvOf(at) {
   const h = syncRec.hist.find(x => x.id === syncRec.dev + ":" + at);
   return h ? h.sv : undefined;
 }
+// Folds away old history entries that were the base only briefly. Each
+// entry's undo leads from the next entry to it, so dropping entry i makes
+// entry i-1's undo = i's changes, then i-1's on top.
+function syncThinHistory() {
+  const h = syncRec.hist;
+  for (let i = h.length - SYNC_HIST_KEEP - 1; i >= 0; i--) {
+    const stayed = (h[i].t || 0) - ((h[i - 1] && h[i - 1].t) || 0);
+    if (stayed >= SYNC_HIST_PAUSE_MS) continue;
+    if (i > 0) h[i - 1].undo = h[i - 1].undo && h[i].undo ? { ...h[i].undo, ...h[i - 1].undo } : null;
+    h.splice(i, 1);
+  }
+  while (h.length > SYNC_HIST_MAX) h.shift(); // the oldest end of the chain
+}
 // Moves the base forward; the old one joins the history.
 function syncAdvanceBase(nb) {
   const ob = syncRec.base;
@@ -264,10 +283,25 @@ function syncAdvanceBase(nb) {
         if (JSON.stringify(ob.wc[k]) !== JSON.stringify(nb.wc[k])) undo[k] = ob.wc[k] || null;
       });
     }
-    syncRec.hist = syncRec.hist.concat([{ id: ob.id, sv: ob.sv, seen: ob.seen, scal: ob.scal, undo }]).slice(-SYNC_HIST_MAX);
+    syncRec.hist = syncRec.hist.concat([{ id: ob.id, sv: ob.sv, seen: ob.seen, scal: ob.scal, undo, t: Date.now() }]);
+    syncThinHistory();
   }
   syncRec.base = nb;
   syncSaveRec();
+}
+// Word counts of the base, or of an older base rebuilt from the history.
+function syncWcOf(id) {
+  const b = syncRec.base;
+  if (!b || !b.wc || !id) return null;
+  let wc = { ...b.wc };
+  if (b.id === id) return wc;
+  for (let i = syncRec.hist.length - 1; i >= 0; i--) {
+    const h = syncRec.hist[i];
+    if (!h.undo) return null;
+    Object.entries(h.undo).forEach(([k, v]) => { if (v) wc[k] = v; else delete wc[k]; });
+    if (h.id === id) return wc;
+  }
+  return null;
 }
 // The cloud's save includes one this device sent: that save becomes the base.
 function syncAdoptLanded(meta) {
@@ -275,12 +309,13 @@ function syncAdoptLanded(meta) {
   const mine = meta._seen[syncRec.dev] || 0;
   const hit = syncRec.pend.find(p => p.at === mine);
   if (!hit) return;
-  const b = syncRec.base;
   let wc = null;
   if (hit.full) wc = hit.wcd;
-  else if (b && b.wc && hit.baseId === b.id) {
-    wc = { ...b.wc };
-    Object.entries(hit.wcd || {}).forEach(([k, v]) => { if (v) wc[k] = v; else delete wc[k]; });
+  else {
+    // its counts = those of the base it was sent from (maybe older than the
+    // current base, if an earlier save was confirmed late) + its changes
+    wc = syncWcOf(hit.baseId);
+    if (wc) Object.entries(hit.wcd || {}).forEach(([k, v]) => { if (v) wc[k] = v; else delete wc[k]; });
   }
   syncRec.pend = syncRec.pend.filter(p => p.at > mine);
   syncAdvanceBase({ id: hit.id, sv: hit.sv, seen: hit.seen, scal: hit.scal, wc });
@@ -347,7 +382,7 @@ function syncCloudState(snapshot) {
   let meta = null, learn = null;
   const words = {}, usageArchive = {}, deckSeen = {};
   snapshot.forEach(doc => {
-    const data = doc.data();
+    const data = syncDecodeArrays(doc.data()); // back to lists of lists
     if (doc.id === STORAGE_KEY) meta = data;
     else if (doc.id.startsWith(STORAGE_KEY + "_words_")) {
       Object.assign(words, data.words || {});
@@ -463,8 +498,10 @@ function runCloudLoad(uid) {
     if (stale()) return;
     const meta = metaSnap.exists ? metaSnap.data() : null;
     if (!meta) {
-      // Nothing in the cloud yet: put this device's progress there.
+      // Nothing in the cloud yet: put this device's progress there. The
+      // empty cloud is a common state too (nothing shared, all zero).
       loaded();
+      syncSetBase(null, { words: {} });
       syncedDocCache = {};
       if (S.savedAt) commitAfterLoad = true;
       setStatus("☁️ Synced", 3000);
@@ -751,7 +788,7 @@ async function writeDocs(user, changed, signal, landed, ident) {
 // the cloud can hold docs from different saves — a merge reads each
 // doc's own history from these.
 function syncWire(id, json, ident) {
-  const payload = JSON.parse(json);
+  const payload = syncEncodeArrays(JSON.parse(json)); // lists of lists → storable
   return ident ? { ...payload, ...ident } : payload;
 }
 
