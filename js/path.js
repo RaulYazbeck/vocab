@@ -184,33 +184,85 @@ function pathRollDay() {
   if (P.day !== today) { P.day = today; P.extraToday = 0; P.spotToday = 0; }
 }
 // Auto-pause after AUTO_PAUSE_DAYS missed days with reviews waiting;
-// it lifts by itself once the backlog is back under THROTTLE_HALF.
+// it lifts by itself once the backlog is back under THROTTLE_HALF —
+// or, with a finish date, as soon as a day's plan is finished.
 function pathCheckAutoPause(scan = pathScan()) {
   const P = S.path, today = studyToday();
-  if (P.autoPaused && scan.overdue < PATH.THROTTLE_HALF * (pathDeadlineOn() ? 2 : 1)) { P.autoPaused = false; P.autoPausedOn = ""; }
+  if (P.autoPaused && (scan.overdue < PATH.THROTTLE_HALF * (pathDeadlineOn() ? 2 : 1) || (pathDeadlineOn() && pathPlanKept(today)))) { P.autoPaused = false; P.autoPausedOn = ""; }
   if (!P.autoPaused && P.lastActiveDay && scan.due > 0) {
     const missed = daysBetween(P.lastActiveDay, today) - 1;
     if (missed >= PATH.AUTO_PAUSE_DAYS) { P.autoPaused = true; P.autoPausedOn = today; }
   }
 }
 function pathMarkActive() { S.path.lastActiveDay = studyToday(); }
-// { quota, left, reason } — today's new-word allowance.
+// With a finish date, finishing your quests is the whole deal: the
+// backlog brake only applies after a day whose plan quest wasn't
+// finished, and lifts the moment today's is. A backlog the plan is
+// already spreading over the next days never slows a kept plan.
+function pathPlanKept(today = studyToday()) {
+  const P = S.path;
+  if (typeof P.planDoneOn !== "string") P.planDoneOn = pathPlanDoneBackfill();
+  return P.planDoneOn === today || P.planDoneOn === addDays(today, -1);
+}
+// Last day the plan quest was finished, from the usage log (for players
+// who finished plans before this was recorded).
+function pathPlanDoneBackfill() {
+  let last = "";
+  try {
+    usageAllDays().forEach(([d, v]) => { if (v.qt && v.qt.a_plan && v.qt.a_plan[1] > 0 && d > last) last = d; });
+    _usageLog().forEach(e => { if (e.e === "quest_done" && e.tpl === "a_plan") { const d = usageDateOf(e.t); if (d > last) last = d; } });
+  } catch (e) {}
+  return last;
+}
+function pathMarkPlanDone() {
+  S.path.planDoneOn = studyToday();
+  if (S.path.autoPaused) { S.path.autoPaused = false; S.path.autoPausedOn = ""; }
+  invalidatePathScan();
+}
+// { quota, left, reason, base, held } — today's new-word allowance.
+// base: today's new words before "Learn more" extras; held: how many of
+// the plan's new words the brake holds back today.
 function pathNewQuota(scan = pathScan()) {
   pathRollDay();
   const P = S.path;
   const plan = pathEnsurePlan(scan);
   let base = plan ? plan.pace : P.newPerDay;
+  const full = base;
   // With a finish date the plan works backlogs down over a week, so the
-  // brakes only kick in at twice the usual pile.
+  // brakes only kick in at twice the usual pile — and never while the
+  // plan is kept (see pathPlanKept).
   const k = plan ? 2 : 1;
   let reason = "";
-  if (!pathFrontier(scan)) return { quota: 0, left: 0, reason: "done" };
+  if (!pathFrontier(scan)) return { quota: 0, left: 0, reason: "done", base: 0, held: 0 };
   if (P.autoPaused) { base = 0; reason = "autopaused"; }
   else if (base === 0) reason = "paused";
+  else if (plan && pathPlanKept()) reason = "";
   else if (scan.overdue >= PATH.THROTTLE_STOP * k) { base = 0; reason = "catchup"; }
   else if (scan.overdue >= PATH.THROTTLE_HALF * k) { base = Math.ceil(base / 2); reason = "slowed"; }
+  // The brake may use up the plan's safety margin (PLAN.LAG), never
+  // what the finish date itself needs: words left over the days left
+  // once the last ones have had KNOWN_LAG days to climb to Known.
+  if (plan && base < full && reason !== "paused") {
+    base = Math.max(base, Math.min(full, pathPaceFloor(scan)));
+    // Some new words still come: that's a slowdown (🐢), not a stop.
+    if (base >= full) reason = "";
+    else if (base > 0) reason = "slowed";
+  }
+  const held = plan && reason !== "paused" ? full - base : 0;
+  if (plan && typeof usageNoteBrake === "function") usageNoteBrake(reason, scan.overdue);
   const quota = base + (P.extraToday || 0);
-  return { quota, left: Math.max(0, quota - scan.metToday), reason };
+  return { quota, left: Math.max(0, quota - scan.metToday), reason, base, held };
+}
+// Today's plan in words. When the brake holds new words back, the room
+// they'd have taken (3 right answers each) goes to catching up, so the
+// day's target — and the effort — stay the same.
+function planToday(scan = pathScan()) {
+  const plan = pathEnsurePlan(scan);
+  if (!plan) return null;
+  const q = pathNewQuota(scan);
+  // Never more catching up than the backlog the plan left for later.
+  const catchUp = Math.min(plan.leave || 0, Math.round(q.held * 3 / 1.1));
+  return { reviews: plan.reviews, catchUp, newWords: q.base, target: plan.target, reason: q.reason };
 }
 function pathLearnExtra() {
   pathRollDay();
@@ -254,6 +306,12 @@ function pathDeadlineStatus(scan = pathScan(), today = studyToday()) {
   const eta = addDays(today, Math.ceil(pathUnmet(scan) / PLAN.MAX_PACE) + KNOWN_LAG);
   const ok = pathDaysLeft(today) >= 0 && eta <= S.path.deadline;
   return { ok, eta: ok ? S.path.deadline : eta };
+}
+// The fewest new words a day that still keep the finish date (no margin).
+function pathPaceFloor(scan = pathScan(), today = studyToday()) {
+  const unmet = pathUnmet(scan);
+  if (!unmet) return 0;
+  return Math.ceil(unmet / Math.max(1, pathDaysLeft(today) - KNOWN_LAG));
 }
 function pathPace(scan = pathScan(), today = studyToday()) {
   if (!pathUnmet(scan)) return 0;
@@ -314,7 +372,7 @@ function pathEnsurePlan(scan) {
   const target = planTarget(reviews, pace);
   P.plan = { v: 4, day: today, deadline: P.deadline, pace, reviews, leave, target, goal: target };
   planSyncQuest(P.plan);
-  logEvent("plan", { pace, reviews, target, leave });
+  logEvent("plan", { pace, reviews, target, leave, due: scan.due, od: scan.overdue });
   return P.plan;
 }
 // Reviews already done today: words that were due and got answered and
@@ -456,11 +514,11 @@ const FOCUS_LABELS = { deck: "Deck focus", level: "Level focus", pos: "Word-type
 // towards your open quests — words for focus quests (the hard ones, a
 // deck, verbs…) and, as the bonus round, the game a quest asks for.
 const PATH_BONUS_IDS = ["gender", "match", "blitz", "rain", "truefalse", "typerush",
-  "plural", "scramble", "cloze", "builder", "listen", "conj", "cases"];
+  "plural", "scramble", "cloze", "builder", "listen", "conj", "cases", "thread", "timeline"];
 // Bonus games open up as your vocabulary grows (words met): recognition
 // games from day one, sentence and grammar games once there's enough to
 // work with.
-const PATH_BONUS_UNLOCK = { cloze: 40, builder: 40, cases: 80, conj: 80 };
+const PATH_BONUS_UNLOCK = { cloze: 40, builder: 40, cases: 80, conj: 80, thread: 60, timeline: 60 };
 // Speed games vs thinking games: bonus rounds alternate between them.
 const PATH_BONUS_SPEED = new Set(["gender", "match", "blitz", "rain", "truefalse", "typerush"]);
 function questNudges() {
@@ -834,6 +892,7 @@ function pathForecast(days = 8) {
   const sum = m => { let n = 0; for (const b of m.values()) n += b.w; return n; };
   const out = [];
   let done0 = 0;
+  const catchUp0 = plan ? planToday(scan).catchUp : 0;
   for (let d = 0; d <= days - 1; d++) {
     const normal = sum(due[d]);
     const pile = sum(backlog);
@@ -842,9 +901,13 @@ function pathForecast(days = 8) {
     if (!pathFrontier(scan)) pace = 0;
     else if (d === 0) pace = pathNewQuota(scan).left;
     else if (S.path.autoPaused) pace = 0;
+    // "If you finish your quests": a kept plan is never braked.
+    else if (plan) pace = basePace;
     else if (pile >= PATH.THROTTLE_STOP * kThrottle) pace = 0;
     else if (pile >= PATH.THROTTLE_HALF * kThrottle) pace = Math.ceil(pace / 2);
-    const take = d === 0 && plan ? Math.max(0, Math.min(pile, pile - (plan.leave || 0))) : backlogTake(pile, normal, pace);
+    // Today: the plan's slice of the backlog, plus the catch-up room of
+    // any new words the brake holds back.
+    const take = d === 0 && plan ? Math.max(0, Math.min(pile, pile - (plan.leave || 0) + catchUp0)) : backlogTake(pile, normal, pace);
     const share = pile ? take / pile : 0;
     const row = { scheduled: 0, fromNew: 0, carried: 0, newWords: d === 0 ? pathNewQuota(scan).quota : pace, waiting: 0 };
     for (const b of due[d].values()) { row[b.src === "n" ? "fromNew" : b.src === "c" ? "carried" : "scheduled"] += b.w; review(d, b, b.w); }
@@ -861,7 +924,7 @@ function pathForecast(days = 8) {
     r.waiting = Math.round(r.waiting);
   });
   // Today is the plan itself: never show less than this morning's plan.
-  if (plan && out[0] && plan.reviews > out[0].total) { out[0].scheduled += plan.reviews - out[0].total; out[0].total = plan.reviews; }
+  if (plan && out[0] && plan.reviews + catchUp0 > out[0].total) { out[0].scheduled += plan.reviews + catchUp0 - out[0].total; out[0].total = plan.reviews + catchUp0; }
   if (plan) out.forEach((r, i) => { r.target = i === 0 ? plan.target : planTarget(r.total, r.newWords); });
   return { p, days: out };
 }

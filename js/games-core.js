@@ -531,6 +531,9 @@ function stopActiveGame() {
   _gt.rafs.forEach(cancelAnimationFrame); _gt.rafs.clear();
   _gt.listeners.forEach(([t, type, fn, o]) => t.removeEventListener(type, fn, o));
   _gt.listeners = [];
+  // A drag cut short by leaving the screen must not leave its ghost behind.
+  document.querySelectorAll(".g-ghost, .tl-ghost").forEach(el => el.remove());
+  document.body.classList.remove("g-drag-active");
   if (activeGame && activeGame.ctx) { logGameQuit(activeGame); activeGame.ctx.dead = true; }
   activeGame = null;
   gamePreferKeys = null;
@@ -1257,7 +1260,9 @@ function gameKeydown(e, ctx) {
   if (!ctx.started || ctx.paused || ctx.finished) return;
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (ctx.waiting) {
-    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (e.target && e.target.id !== "g-continue") ctx.continueNow(); }
+    // preventDefault cancels the focused button's own click, so this is the
+    // one path that continues — also when Continue itself has focus.
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); ctx.continueNow(); }
     return;
   }
   if (ctx.onKey) ctx.onKey(e);
@@ -1332,7 +1337,7 @@ function applyGameCredit(ctx) {
 
 // Bonus rounds (inside Today sessions and Drill): one clear target per
 // game — the same number on the offer card, in the HUD and at the end.
-const BONUS_GOALS = { boss: 10, listen: 4, cloze: 4, cases: 4, builder: 3, scramble: 4, plural: 4, conj: 4, gender: 5, blitz: 6, truefalse: 8, typerush: 5, rain: 6, match: 10 };
+const BONUS_GOALS = { boss: 10, listen: 4, cloze: 4, cases: 4, builder: 3, scramble: 4, plural: 4, conj: 4, thread: 4, timeline: 4, gender: 5, blitz: 6, truefalse: 8, typerush: 5, rain: 6, match: 10 };
 function bonusGoal(id) { return BONUS_GOALS[id] || 4; }
 // Timed games' bonus clock. Thinking games (Conjugation Slots, Gap Fill…)
 // have none inside a Today session — the clock is for the Games hub.

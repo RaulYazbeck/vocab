@@ -650,7 +650,8 @@ function verbBank() {
     if (GRAMMAR_DECK.test(d.id)) return;
     d.words.forEach((w, i) => {
       const de = String(w.de || "").trim(), hint = String(w.hint || ""), en = String(w.en || "");
-      const verbHint = /verb/i.test(hint.replace(/adverb/gi, "")) || /·\s*(hat|ist)\s/.test(hint) || /_verbs/.test(d.id);
+      // "conjunction — verb goes to the end" (wenn) is no verb.
+      const verbHint = (/verb/i.test(hint.replace(/adverb/gi, "")) && !/^(conjunction|preposition|particle|pronoun)/i.test(hint)) || /·\s*(hat|ist)\s/.test(hint) || /_verbs/.test(d.id);
       if (!/^(sich\s+)?[a-zäöüß]+(en|ern|eln|n)$/.test(de) || !verbHint) return;
       const e = get(de);
       e.words.push({ w, deckId: d.id, idx: i, level: g.id });
