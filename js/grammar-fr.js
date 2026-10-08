@@ -34,7 +34,7 @@ const FR_TENSES = [
 const FR_TENSE_BY_ID = Object.fromEntries(FR_TENSES.map(t => [t.id, t]));
 
 const FR_VOWEL_RE = /^[aeiouyàâäéèêëîïôöùûüœæ]/i;
-const FR_H_ASP_RE = /^(ha[iï]r|hach|hâ?t|han[dt]|harc|haus|heurt|his|hoch|hont|hu[eé]r|hurl|hiss|hériss|hal[eè]t|hasard|heurt)/i;
+const FR_H_ASP_RE = /^(ha[iï]r|hai[st]$|haï|hach|hâ?t|han[dt]|harc|haus|heurt|his|hoch|hont|hu[eé]r|hurl|hiss|hériss|hal[eè]t|hasard|heurt)/i;
 function frElides(s) { s = String(s || ""); return FR_VOWEL_RE.test(s) || (/^h/i.test(s) && !FR_H_ASP_RE.test(s)); }
 
 // ── 1. FRENCH FORMS ───────────────────────────

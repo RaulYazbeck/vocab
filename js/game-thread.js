@@ -83,14 +83,16 @@ registerGame({
       const cand = ts.filter(t => t !== lastT);
       return weightedPickDistinct(cand.length ? cand : ts, 1, t => 1.25 - vlTenseAcc("vt", t))[0];
     };
-    const makeItem = (v, t, notP) => {
+    // A retry comes back in another person — and never as the same form
+    // ("aime" missed as je must not return as il: it's the same thread).
+    const makeItem = (v, t, notP, notForm) => {
       const ps = shuffle(vlPersonsOf(v).filter(p => p !== notP));
       const ear = earOk && Math.random() < rp.ear;
       let best = null;
       for (const p of ps) {
         const fem = VL_FR && Math.random() < 0.3 && p !== "nous" && p !== "vous";
         const it = vlItem(v, t, p, tenses, { ear, fem });
-        if (!it || (ear && it.form.replace(/\s/g, "").length < 4)) continue;
+        if (!it || it.form === notForm || (ear && it.form.replace(/\s/g, "").length < 4)) continue;
         if (!best) best = it;
         if (!rp.twins || it.twins.length) { best = it; break; }
       }
@@ -99,7 +101,7 @@ registerGame({
     const nextItem = () => {
       if (retry.length && (retry[0].at <= r || r >= total - 1)) {
         const m = retry.shift();
-        const it = makeItem(m.v, m.t, m.p);
+        const it = makeItem(m.v, m.t, m.p, m.form);
         if (it) return it;
       }
       for (let tries = 0; tries < 8; tries++) {
@@ -117,7 +119,7 @@ registerGame({
     const chipsHtml = (rowId, opts) => opts.map((o, i) => {
       const key = `<span class="g-key">${i + 1}</span>`;
       if (rowId === "t") return `<button class="vt-chip vt-tchip" data-row="t" data-v="${o}" style="${vlTenseStyle(o)}" aria-pressed="false">${key}<span class="vt-sign">${VL_T[o].sign}</span>${escapeHtml(VL_T[o].short)}</button>`;
-      if (rowId === "p") return `<button class="vt-chip vt-pchip" data-row="p" data-v="${o}" aria-pressed="false">${key}${escapeHtml(vlPersonLabel(o))}</button>`;
+      if (rowId === "p") return `<button class="vt-chip vt-pchip" data-row="p" data-v="${o}" aria-pressed="false">${key}${escapeHtml(vlPersonLabel(o, item.form))}</button>`;
       return `<button class="vt-chip vt-mchip" data-row="m" data-v="${escapeHtml(o)}" aria-pressed="false">${key}<span>${escapeHtml(o)}</span></button>`;
     }).join("");
     const render = () => {
@@ -258,7 +260,7 @@ registerGame({
       if (!ok && !firstBad) firstBad = rid;
       if (ok) { haptic("select"); if (gameSfxOn()) playNotes([{ freq: [523, 659, 784][col] || 880, at: 0, dur: 0.11 }], 0.13); }
       else { haptic("miss"); playMiss(); }
-      ctx.say(`${THREAD_ROW_LABEL[rid]} ${ok ? "right" : "— " + [...sets[rid]].map(v => rid === "p" ? vlPersonLabel(v) : rid === "t" ? vlTenseName(v) : v).join(", ")}`);
+      ctx.say(`${THREAD_ROW_LABEL[rid]} ${ok ? "right" : "— " + [...sets[rid]].map(v => rid === "p" ? vlPersonLabel(v, item.form) : rid === "t" ? vlTenseName(v) : v).join(", ")}`);
       col++;
       setCol(col);
       drawThread(col - 1);
@@ -280,10 +282,10 @@ registerGame({
       speak(it.full);
       // The whole answer: every person, every tense, every meaning.
       const ps = VL_PERSONS.filter(p => sets.p.has(p)), ts = VL_TENSES.map(x => x.id).filter(x => sets.t.has(x));
-      const head = `<div class="g-teach-main">${escapeHtml(vlInfLabel(it.v))} · ${ts.map(x => `<span style="${vlTenseStyle(x)}" class="vl-tc">${escapeHtml(vlTenseName(x))}</span>`).join(" / ")} · ${ps.map(p => escapeHtml(vlPersonLabel(p))).join(" + ")}</div>
+      const head = `<div class="g-teach-main">${escapeHtml(vlInfLabel(it.v))} · ${ts.map(x => `<span style="${vlTenseStyle(x)}" class="vl-tc">${escapeHtml(vlTenseName(x))}</span>`).join(" / ")} · ${ps.map(p => escapeHtml(vlPersonLabel(p, it.form))).join(" + ")}</div>
         <div class="g-teach-sub">→ ${[...sets.m].map(m => `<b>${escapeHtml(m)}</b>`).join(" · ")}</div>`;
       const why = `<div class="g-teach-rule">${vlWhyHtml(it)}</div>`;
-      const many = ps.length > 1 ? `<div class="g-teach-sub">${it.ear ? "🎧 These all sound the same" : "One form, " + ps.length + " persons"}: ${ps.map(p => `<b>${escapeHtml(vlPersonLabel(p))}</b>`).join(", ")} — pick them all.</div>` : "";
+      const many = ps.length > 1 ? `<div class="g-teach-sub">${it.ear ? "🎧 These all sound the same" : "One form, " + ps.length + " persons"}: ${ps.map(p => `<b>${escapeHtml(vlPersonLabel(p, it.form))}</b>`).join(", ")} — pick them all.</div>` : "";
       const twin = it.twins[0];
       const twinLine = twin ? `<div class="g-teach-sub">Twin: <b class="vl-twin">${escapeHtml(twin.form)}</b> → ${escapeHtml(vlTenseName(twin.t))}</div>` : "";
       if (perfect) {
@@ -305,7 +307,7 @@ registerGame({
         if (pts) floatScore(formEl || card, "+" + pts);
         const card2 = vlCardFor(it.v, it.t, it.p);
         if (card2) ctx.missed(card2, { type: { p: "person", t: "tense", m: "recognition" }[firstBad] || "verbform", given: "", expected: [it.form] });
-        if (!retry.some(x => x.v === it.v)) retry.push({ v: it.v, t: it.t, p: it.p, at: r + 3 });
+        if (!retry.some(x => x.v === it.v)) retry.push({ v: it.v, t: it.t, p: it.p, form: it.form, at: r + 3 });
         ctx.teach(`${head}${why}${many}${twinLine}`, "bad");
         ctx.waitContinue(ctx.sudden ? done : round);
       }

@@ -73,7 +73,11 @@ function vlTenseStyle(t) { const h = (VL_T[t] || {}).hue; return h == null ? "" 
 const VL_PERSONS = VL_FR ? ["je", "tu", "il", "nous", "vous", "ils"] : ["ich", "du", "er", "wir", "ihr", "sie"];
 const VL_PERSON_LABEL = VL_FR ? { je: "je", tu: "tu", il: "il/elle/on", nous: "nous", vous: "vous", ils: "ils/elles" }
   : { ich: "ich", du: "du", er: "er/sie/es", wir: "wir", ihr: "ihr", sie: "sie/Sie" };
-function vlPersonLabel(p) { return VL_PERSON_LABEL[p] || p; }
+// With the form it heads: "je" elides before a vowel or mute h ("j'" + "aime").
+function vlPersonLabel(p, form) {
+  if (VL_FR && p === "je" && form && frElides(form)) return "j'";
+  return VL_PERSON_LABEL[p] || p;
+}
 
 // Your level's tenses (the frontier of your path): A1 a few, B1 all.
 const VL_LEVEL_TENSES = VL_FR ? { a1: ["pr", "pc", "fp"], a2: ["pr", "pc", "fp", "im", "fu"] }
@@ -171,8 +175,8 @@ function enForm(base, tense, person) {
   return rest ? f + " " + rest : f;
 }
 // Verbs whose subject is a thing or an event: "es regnet", "das kostet",
-// "es hat geklappt" — er is "it" in English, and only er / sie exist.
-// Weather verbs (es regnet) have only "es": no Who to decode, left out.
+// "es hat geklappt" — er is "it" in English. Verb Thread leaves them out
+// (see vlPersonsOf); Timeline Drop still uses their sentences.
 const DE_IT_VERBS = /^(geschehen|passieren|gelingen|misslingen|stattfinden|schmecken|vorkommen|ausfallen|klappen|dauern|kosten|sich ereignen|sich lohnen|einfallen|auffallen|gefallen|genügen|ausreichen|gelten|feststehen|nützen|wehtun|stimmen)$/;
 const DE_WEATHER = /^(regnen|schneien|blitzen|donnern|hageln|nieseln|dämmern)$/;
 const EN_SELF = { ich: "myself", du: "yourself", er: "himself", wir: "ourselves", ihr: "yourselves", sie: "themselves" };
@@ -254,8 +258,10 @@ function vlMeaning(v, tense, person) {
 // Persons a verb has at all (pleuvoir: il only).
 function vlPersonsOf(v) {
   if (VL_FR) return v.F.only ? [v.F.only] : VL_PERSONS;
-  if (DE_WEATHER.test(v.inf)) return ["er"];
-  return DE_IT_VERBS.test(v.inf) ? ["er", "sie"] : VL_PERSONS;
+  // es regnet, es kostet, es gefällt: "who?" has no fair answer (gefiel is
+  // ich too, gefallen is wir too) — one person, so Verb Thread leaves them out.
+  if (DE_WEATHER.test(v.inf) || DE_IT_VERBS.test(v.inf)) return ["er"];
+  return VL_PERSONS;
 }
 // The verb's word (for its meaning, stage and the review flag).
 function vlVerbWord(v) { return v.word || null; }
@@ -399,7 +405,8 @@ function vlTenseOptions(item, tenses, n) {
 function vlPartsHtml(parts, tense, person, labels = false, persons = null) {
   const tn = VL_T[tense] ? VL_T[tense].short : "";
   // An ending several persons share is captioned with all of them: "je·tu".
-  const pcap = (persons && persons.length ? persons : [person]).map(p => vlPersonLabel(p).split("/")[0]).join("·");
+  const form = parts.map(p => p.t).join("");
+  const pcap = (persons && persons.length ? persons : [person]).map(p => vlPersonLabel(p, form).split("/")[0]).join("·");
   return parts.map(p => {
     if (p.k === " ") return `<span class="vl-sp"> </span>`;
     const cls = p.k === "p" ? "vl-p" : p.k === "t" ? "vl-t" : p.k === "x" ? "vl-x" : "vl-s";
@@ -415,8 +422,8 @@ function vlWhyHtml(item) {
   const sense = VL_TENSE_SENSE[t] ? ` — ${VL_TENSE_SENSE[t]}` : "";
   const tline = tens ? `<b style="${vlTenseStyle(t)}" class="vl-tc">${escapeHtml(tens)}</b> says <b>${escapeHtml(tn)}</b>${sense}` : `<b>${escapeHtml(tn)}</b>${sense}`;
   // Every person this exact form fits ("-en says wir + sie/Sie").
-  const who = VL_PERSONS.filter(p => item.valid.some(x => x.p === p && x.t === t)).map(vlPersonLabel);
-  const pline = pers ? `<b class="vl-pc">${escapeHtml(pers)}</b> says <b>${escapeHtml((who.length ? who : [vlPersonLabel(item.p)]).join(" + "))}</b>` : "";
+  const who = VL_PERSONS.filter(p => item.valid.some(x => x.p === p && x.t === t)).map(p => vlPersonLabel(p, item.form));
+  const pline = pers ? `<b class="vl-pc">${escapeHtml(pers)}</b> says <b>${escapeHtml((who.length ? who : [vlPersonLabel(item.p, item.form)]).join(" + "))}</b>` : "";
   return [pline, tline].filter(Boolean).join(" · ");
 }
 
