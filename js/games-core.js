@@ -531,6 +531,9 @@ function stopActiveGame() {
   _gt.rafs.forEach(cancelAnimationFrame); _gt.rafs.clear();
   _gt.listeners.forEach(([t, type, fn, o]) => t.removeEventListener(type, fn, o));
   _gt.listeners = [];
+  // A drag cut short by leaving the screen must not leave its ghost behind.
+  document.querySelectorAll(".g-ghost, .tl-ghost").forEach(el => el.remove());
+  document.body.classList.remove("g-drag-active");
   if (activeGame && activeGame.ctx) { logGameQuit(activeGame); activeGame.ctx.dead = true; }
   activeGame = null;
   gamePreferKeys = null;

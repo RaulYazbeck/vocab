@@ -55,7 +55,7 @@ registerGame({
     const n = threadVerbs(pool).length;
     return n >= 4 ? { ok: true } : { ok: false, reason: `Needs 4 verbs you've met — you have ${n}` };
   },
-  stars: [70, 120, 165],
+  stars: [60, 100, 140], // 3★ forgives one slip at 🥉 (a clean round is ~170)
   start(ctx) {
     const rp = ctx.rp;
     const tenses = threadTenses();
@@ -113,7 +113,7 @@ registerGame({
     const chipsHtml = (rowId, opts) => opts.map((o, i) => {
       if (rowId === "t") return `<button class="vt-chip vt-tchip" data-row="t" data-v="${o}" style="${vlTenseStyle(o)}"><span class="g-key">${i + 1}</span><span class="vt-sign">${VL_T[o].sign}</span>${escapeHtml(VL_T[o].short)}</button>`;
       if (rowId === "p") return `<button class="vt-chip vt-pchip" data-row="p" data-v="${o}"><span class="g-key">${i + 1}</span>${escapeHtml(vlPersonLabel(o))}</button>`;
-      return `<button class="vt-chip vt-mchip" data-row="m" data-v="${escapeHtml(o)}"><span class="g-key">${i + 1}</span>${escapeHtml(o)}</button>`;
+      return `<button class="vt-chip vt-mchip" data-row="m" data-v="${escapeHtml(o)}"><span class="g-key">${i + 1}</span><span>${escapeHtml(o)}</span></button>`;
     }).join("");
     const render = () => {
       const it = item, w = it.v.word;
@@ -143,7 +143,7 @@ registerGame({
               <div class="vt-chips">${chipsHtml(rid, rid === "p" ? persons : rid === "t" ? it.tOpts : it.mOpts)}</div>
             </div>`).join("")}
           </div>
-          <div class="vt-hint" id="vt-hint">${r <= 1 && ctx.size === "full" ? "☝️ Draw one line across: Who → When → Means — or tap" : ""}</div>
+          <div class="vt-hint" id="vt-hint">${r <= 2 && (S.games.plays.thread || 0) < 3 ? "☝️ Draw one line across: Who → When → Means — or tap" : ""}</div>
         </div>`;
       if (it.ear) {
         gTimeout(() => speak(it.form), 250);
@@ -247,10 +247,26 @@ registerGame({
       knotSound(row, ok);
       picks[rid] = { el: target, v: target.dataset.v, ok, bad: ok ? null : el };
       chips.forEach(c => c.disabled = true);
+      if (ok && rid !== "m") syncMeaning();
       row++;
       setRow(row);
       drawThread(true);
       if (row === 3) finishItem();
+    };
+    // Another right reading picked ("parle" → ils, 🎧 serai → Conditionnel):
+    // the meaning column follows it, so the right meaning is on offer.
+    const syncMeaning = () => {
+      const p = picks.p && picks.p.ok ? picks.p.v : item.p;
+      const t = picks.t && picks.t.ok ? picks.t.v : null;
+      const hit = item.valid.find(x => x.p === p && (!t || x.t === t)) || item.valid.find(x => x.p === p);
+      if (!hit || !hit.meaning) return;
+      item.shown = { p: hit.p, t: hit.t, meaning: hit.meaning };
+      const col = rowEl("m");
+      if (!col || [...col.querySelectorAll(".vt-chip")].some(c => c.dataset.v === hit.meaning)) return;
+      const chip = [...col.querySelectorAll(".vt-chip")].find(c => vlMeaningOk(item, c.dataset.v));
+      if (!chip) return;
+      chip.dataset.v = hit.meaning;
+      chip.lastChild.textContent = hit.meaning;
     };
     const finishItem = () => {
       ctx.busy = true;
@@ -266,11 +282,13 @@ registerGame({
       const ear = document.getElementById("vt-ear"); if (ear) ear.remove();
       const card = document.getElementById("vt-card"); if (card) card.classList.add(perfect ? "ok" : "bad");
       speak(it.full);
-      const others = it.valid.filter(x => !(x.p === it.p && x.t === it.t));
+      const shownPT = it.shown && !missed ? it.shown : it;
+      const others = it.valid.filter(x => !(x.p === shownPT.p && x.t === shownPT.t));
       const alsoLine = others.length ? `<div class="g-teach-sub">${it.ear ? "🎧 Sounds the same" : "Also fits"}: ${others.map(x => `<b>${escapeHtml(vlPersonLabel(x.p))}</b>${x.t !== it.t ? " · " + escapeHtml(vlTenseName(x.t)) : ""}`).join(", ")}</div>` : "";
       const twin = it.twins[0];
       const twinLine = twin ? `<div class="g-teach-sub">Twin: <b class="vl-twin">${escapeHtml(twin.form)}</b> → ${escapeHtml(vlTenseName(twin.t))}</div>` : "";
-      const head = `<div class="g-teach-main">${escapeHtml(vlInfLabel(it.v))} · <span style="${vlTenseStyle(it.t)}" class="vl-tc">${escapeHtml(vlTenseName(it.t))}</span> · ${escapeHtml(vlPersonLabel(it.p))} → ${escapeHtml(it.meaning)}</div>`;
+      const sh = it.shown && !missed ? it.shown : { p: it.p, t: it.t, meaning: it.meaning };
+      const head = `<div class="g-teach-main">${escapeHtml(vlInfLabel(it.v))} · <span style="${vlTenseStyle(sh.t)}" class="vl-tc">${escapeHtml(vlTenseName(sh.t))}</span> · ${escapeHtml(vlPersonLabel(sh.p))} → ${escapeHtml(sh.meaning)}</div>`;
       const why = `<div class="g-teach-rule">${vlWhyHtml(it)}</div>`;
       if (perfect) {
         clean++; combo++; maxCombo = Math.max(maxCombo, combo);
@@ -301,20 +319,24 @@ registerGame({
     };
 
     // ── One stroke (or taps) ──
-    // The pick in a column is the LAST chip where the line turned by 40°+
-    // (a corner, measured over ~16 px either side) or where the finger
-    // rested 160 ms. A line straight through a column picks the chip whose
-    // centre it passes closest to — not one it only clipped at a corner.
-    // Samples outside the active column's chips don't count.
-    const strokePick = pts => {
-      const on = pts.filter(q => q.c);
-      if (!on.length) return null;
+    // The pick in a column is where the line turned: the LAST corner (40°+
+    // measured over ~20 px either side, so finger wobble doesn't count) —
+    // a corner is a run of turning samples, located at its sharpest one —
+    // or where the finger rested 160 ms. A line straight through a column
+    // picks the chip whose centre it passes closest to, never one it only
+    // clipped. A corner in the gap between two chips goes to the nearer.
+    const strokePick = (pts, chips) => {
+      if (!pts.some(q => q.c)) return null;
       const back = (i, d) => { for (let j = i - 1; j >= 0; j--) if (Math.hypot(pts[i].x - pts[j].x, pts[i].y - pts[j].y) >= d) return pts[j]; return null; };
       const fwd = (i, d) => { for (let j = i + 1; j < pts.length; j++) if (Math.hypot(pts[i].x - pts[j].x, pts[i].y - pts[j].y) >= d) return pts[j]; return null; };
-      let pick = null;
-      pts.forEach((q, i) => {
-        if (!q.c) return;
-        const a = back(i, 16), b = fwd(i, 16);
+      const nearest = q => {
+        if (q.c) return q.c;
+        let best = null, bd = Infinity;
+        chips.forEach(c => { const r = c.getBoundingClientRect(); const d = Math.hypot(Math.max(r.left - q.x, 0, q.x - r.right), Math.max(r.top - q.y, 0, q.y - r.bottom)); if (d < bd) { bd = d; best = c; } });
+        return bd <= 12 ? best : null;
+      };
+      const score = pts.map((q, i) => {
+        const a = back(i, 20), b = fwd(i, 20);
         let turn = 0;
         if (a && b) {
           const v1x = q.x - a.x, v1y = q.y - a.y, v2x = b.x - q.x, v2y = b.y - q.y;
@@ -322,13 +344,23 @@ registerGame({
           turn = Math.acos(Math.max(-1, Math.min(1, cos))) * 180 / Math.PI;
         }
         let k = i; while (k + 1 < pts.length && Math.hypot(pts[k + 1].x - q.x, pts[k + 1].y - q.y) < 10) k++;
-        const rest = pts[k].t - q.t;
-        if (turn >= 40 || rest >= 160) pick = q.c;
+        return pts[k].t - q.t >= 160 ? 999 : turn;
       });
-      if (pick) return pick;
+      // The last run of corner samples; its sharpest point decides.
+      let last = null;
+      for (let i = 0; i < pts.length; i++) {
+        if (score[i] < 40) continue;
+        let j = i, best = i;
+        while (j + 1 < pts.length && score[j + 1] >= 40) { j++; if (score[j] > score[best]) best = j; }
+        const c = nearest(pts[best]);
+        if (c) last = c;
+        i = j;
+      }
+      if (last) return last;
       // No corner: the chip the line runs through most centrally.
       let best = null, bestD = Infinity;
-      on.forEach(q => {
+      pts.forEach(q => {
+        if (!q.c) return;
         const r = q.c.getBoundingClientRect();
         const d = Math.hypot((q.x - (r.left + r.width / 2)) / r.width, (q.y - (r.top + r.height / 2)) / r.height);
         if (d < bestD) { bestD = d; best = q.c; }
@@ -371,7 +403,7 @@ registerGame({
         if (row <= 2) {
           const cr = rowEl(THREAD_ROWS[row]).getBoundingClientRect();
           if (e.clientX > cr.right + 2 && !c) {
-            const pick = strokePick(drawing.pts);
+            const pick = strokePick(drawing.pts, [...rowEl(THREAD_ROWS[row]).querySelectorAll(".vt-chip")]);
             drawing.pts = [{ x: e.clientX, y: e.clientY, t: performance.now(), c: null }];
             hoverOn(null);
             if (pick) commit(pick);
@@ -387,7 +419,7 @@ registerGame({
           _dragJustEnded = Date.now();
           // Lifting on a chip picks it; lifting in a gap keeps the turn.
           const on = chipAt(e.clientX, e.clientY);
-          const pick = on || strokePick(d.pts);
+          const pick = on || (row <= 2 ? strokePick(d.pts, [...rowEl(THREAD_ROWS[row]).querySelectorAll(".vt-chip")]) : null);
           if (pick) commit(pick);
           drawThread();
         }
@@ -398,6 +430,12 @@ registerGame({
       gListen(ctx.stage, "click", e => {
         if (Date.now() - _dragJustEnded < 350) return;
         const c = e.target.closest(".vt-chip");
+        if (c && row <= 2 && c.dataset.row !== THREAD_ROWS[row] && !ctx.busy && !ctx.waiting) {
+          const col = rowEl(THREAD_ROWS[row]);
+          col.classList.remove("nudge"); void col.offsetWidth; col.classList.add("nudge");
+          haptic("select");
+          return;
+        }
         if (c) { commit(c); return; }
         if (!ctx.waiting && autoNext && row > 2) { gClearTimeout(autoNext); autoNext = 0; round(); }
       });

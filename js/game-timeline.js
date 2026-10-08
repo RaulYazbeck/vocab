@@ -67,7 +67,7 @@ registerGame({
     if (s.length < 6) return { ok: false, reason: `Needs 6 example sentences from cards you've met — you have ${s.length}` };
     return ts.size >= 2 ? { ok: true } : { ok: false, reason: "Needs sentences in two different tenses — meet a few more cards" };
   },
-  stars: [70, 120, 160],
+  stars: [70, 115, 150], // 3★ forgives one slip at 🥉 (a clean round is ~190)
   start(ctx) {
     const rp = ctx.rp;
     const tenses = timelineTenses();
@@ -75,7 +75,7 @@ registerGame({
     const byT = {};
     all.forEach(s => (byT[s.r.t] = byT[s.r.t] || []).push(s));
     const live = tenses.filter(t => byT[t] && byT[t].length);
-    const total = ctx.rounds(10, 6, 6);
+    const total = Math.min(ctx.rounds(10, 6, 6), all.length);
     const earOk = !!rp.ear && ctx.size === "full" && typeof audioOk === "function" && audioOk();
     let r = 0, score = 0, combo = 0, maxCombo = 0, correct = 0, wrong = 0, close = 0, cur = null, lastT = "", autoNext = 0;
     const used = new Set(), tally = {}, retryT = [];
@@ -137,7 +137,7 @@ registerGame({
         ${cur.ear ? `<button class="vt-ear" id="tl-ear" aria-label="Hear it again">🎧 <span>Listen</span></button><div class="tl-sent vt-hidden" id="tl-sent" aria-hidden="true">${sent}</div>`
           : `<div class="tl-sent" id="tl-sent">${sent}</div>`}
         <div class="tl-trans" id="tl-trans"></div>
-        <div class="tl-grip">${r <= 1 ? "⠿ Drag me onto the timeline — or tap a tense" : "⠿"}</div>`;
+        <div class="tl-grip">${r <= 2 && (S.games.plays.timeline || 0) < 3 ? "⠿ Drag me onto the timeline — or tap a tense" : "⠿"}</div>`;
       if (cur.ear) { gTimeout(() => speak(cur.text), 250); document.getElementById("tl-ear").onclick = () => speak(cur.text, 0.7); }
       ctx.busy = false;
     };

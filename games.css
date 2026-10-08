@@ -744,7 +744,11 @@ body.g-drag-active { user-select:none; -webkit-user-select:none; cursor:grabbing
 @keyframes vtDraw { to { stroke-dashoffset:0; } }
 
 /* ── VERB THREAD ── */
-.vt-wrap { position:relative; touch-action:none; user-select:none; -webkit-user-select:none; padding-bottom:4px; }
+.vt-wrap { position:relative; touch-action:pan-y; user-select:none; -webkit-user-select:none; padding-bottom:4px; }
+/* A stroke starts on the card or a chip (no scrolling there); the gaps between still scroll short screens. */
+.vt-card, .vt-chip { touch-action:none; }
+.vt-row.nudge .vt-row-label { animation:vtNudge 0.5s var(--ease); }
+@keyframes vtNudge { 0%,100% { transform:none; } 25% { transform:translateX(5px); } 50% { transform:translateX(-3px); } 75% { transform:translateX(2px); } }
 .vt-svg { position:absolute; left:0; top:0; pointer-events:none; z-index:0; overflow:visible; }
 .vt-card { position:relative; z-index:1; text-align:center; margin:2px 0 16px; padding:14px 12px 18px; background:rgba(255,255,255,0.045); border:1px solid var(--border); border-radius:var(--r); transition:border-color 0.25s, background 0.25s; }
 .vt-card.ok { border-color:rgba(0,216,150,0.5); }
@@ -853,4 +857,17 @@ body.g-drag-active { user-select:none; -webkit-user-select:none; cursor:grabbing
   .tl-sent { font-size:17px; }
   .tl-zone { margin-bottom:7px; }
   .tl-chip { min-height:40px; padding:6px 8px; }
+}
+/* Very short phones (≈640 px): tense chips on one line, no sign — seven tenses still fit. */
+@media (max-height:690px) {
+  .vt-chip { min-height:35px; }
+  .vt-chips { gap:4px; }
+  .vt-tchip { min-height:33px; white-space:nowrap; font-size:11.5px; letter-spacing:-0.2px; padding:4px 3px; }
+  .vt-tchip .vt-sign { display:none; }
+  .vt-mchip { min-height:40px; font-size:12.5px; }
+  .vt-row-label { margin-bottom:4px; }
+  .tl-chip { min-height:36px; }
+  .tl-zone { margin-bottom:5px; }
+  .tl-zone-head { margin-bottom:3px; }
+  .tl-sent { font-size:16px; }
 }

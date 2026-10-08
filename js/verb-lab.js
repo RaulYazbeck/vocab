@@ -426,7 +426,8 @@ function vlIndex() {
       const F = v.F;
       ["pr", "pt"].forEach(t => { if (v.tenses.includes(t)) PERSONS.forEach(p => { const c = verbCell(F, t, p); if (c) put(c.ans, { k: "fin", t, v }); }); });
       // wollte / sollte read as Präteritum; möchte is möchten; würde is the aux.
-      if (F.k2special && v.tenses.includes("k2") && F.base !== "mögen" && F.base !== "werden") PERSONS.forEach(p => { if (F.k2[p] !== (F.pt || {})[p]) put(F.k2[p], { k: "fin", t: "k2", v }); });
+      // …but "sollte" is as often "should" (Konjunktiv II) as "was to": both, so it's never guessed.
+      if (F.k2special && v.tenses.includes("k2") && F.base !== "mögen" && F.base !== "werden") PERSONS.forEach(p => { if (F.k2[p] !== (F.pt || {})[p] || F.base === "sollen") put(F.k2[p], { k: "fin", t: "k2", v }); });
       if (F.p2) put(F.p2, { k: "pp", aux: F.aux, v });
       put(F.inf.replace(/^sich\s+/, ""), { k: "inf", v });
     });
@@ -462,6 +463,8 @@ function vlSentence(text) {
 }
 function _vlSentence(text) {
   if (!text || text.length > 120) return null;
+  // Sentences about words ("Aus bessern wird verbessern") aren't about time.
+  if (!VL_FR && /^aus\s/i.test(text) && /\bwird\b/.test(text)) return null;
   // One sentence per card: "Mes livres ? Je les leur prête." is two.
   if (/[.!?…]\s+\S/.test(text.replace(/\s*[.!?…]+\s*$/, ""))) return null;
   const tokens = text.match(/[\p{L}]+|[^\p{L}]+/gu) || [];
@@ -512,7 +515,8 @@ function _vlSentence(text) {
     }
   } else {
     const auxes = words.map((wd, i) => ({ i, e: look(wd, i).find(e => e.k === "aux") })).filter(x => x.e);
-    const ppAt = words.map((wd, i) => ({ i, e: look(wd, i).filter(e => e.k === "pp") })).filter(x => x.e.length);
+    // "…, einen Parkplatz zu bekommen": after zu it's an infinitive, even when it looks like a Partizip II.
+    const ppAt = words.map((wd, i) => ({ i, e: i > 0 && words[i - 1].w === "zu" ? [] : look(wd, i).filter(e => e.k === "pp") })).filter(x => x.e.length);
     const infAt = words.map((wd, i) => ({ i, e: look(wd, i).find(e => e.k === "inf") })).filter(x => x.e);
     for (const a of auxes) {
       if (used.has(a.i)) continue;
