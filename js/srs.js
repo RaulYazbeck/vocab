@@ -326,6 +326,7 @@ function ankiAnswer(a, rating) {
   const now = Date.now();
   const today = ankiToday();
   const st = { ...a };
+  st.at = now; // last answered — a sync merge keeps the latest record
 
   if (st.phase === "new") {
     st.phase = "learning";

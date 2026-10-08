@@ -117,6 +117,10 @@ function resetDeck(deckId) {
   if (!deck) return;
   deck.words.forEach((_,i) => { delete S.words[deckId + "_" + i]; });
   S.unlocked[deckId] = Math.min(UNLOCK_INITIAL, deck.words.length);
+  // Remembered so a sync merge drops this deck's old words from other
+  // devices too (sync-merge.js) instead of bringing them back.
+  if (!S.resets || typeof S.resets !== "object") S.resets = {};
+  S.resets[deckId] = Date.now();
   saveState();
   renderStatsScreen();
   renderGroups();
@@ -125,6 +129,7 @@ function resetAll() {
   if (!confirm("Reset ALL progress across every deck? This cannot be undone.")) return;
   S.words = {}; S.exp = 0; S.badges = []; S.unlocked = {};
   S.loginDates = []; S.totalCorrect = 0; S.lastLoginDate = "";
+  S.resetAllAt = Date.now(); // see resetDeck
   saveState();
   renderExpBar();
   renderGroups();
