@@ -86,7 +86,7 @@ function freshQuestCounters() {
     sessions: [], sittingMax: 0, games: {}, gameDistinct: 0, gold: 0, bonusCleared: 0,
     timerWins: {}, bosses: 0, bossPerfect: 0, bossFast: 0, deckBosses: {}, weakBoss: 0, worldDmg: 0,
     rankUps: 0, rankUpIds: {}, twistWins: 0, dailyDone: 0, mixDone: 0, bests: {}, retro: 0,
-    genderRun: 0, plural: 0, conj: 0, builderFirst: 0, matchClean: 0, rainClean: 0, scrambleNoHint: 0,
+    genderRun: 0, plural: 0, conj: 0, thread: 0, timeline: 0, builderFirst: 0, matchClean: 0, rainClean: 0, scrambleNoHint: 0,
     typeRushNoHint: 0, tfRun: 0, clozeNoPeek: 0, listenNoReplay: 0, blitzFast: 0, blitzPts: 0, maxCombo: 0, memoryClear: 0,
     missedKeys: [], fixedSameDay: 0, comeback: 0, stale30: 0, hard: 0, focus: {}, wotd: [], b2b: 0, lastGameEnd: 0,
     ankiDone: 0, gCollected: 0, pCollected: 0, coreDoneAt: 0,
@@ -422,6 +422,10 @@ qt({ id: "c_match", slot: "C", fam: "clean", icon: "🧩", w: 1.2, ok: c => game
   title: () => `Clear a Match board with no mistakes`, prog: m => m.matchClean, go: "game:match" });
 qt({ id: "c_conj", slot: "C", fam: "conj", icon: "🎰", w: 1.2, ok: c => gameOk(c, "conj"), target: c => c.G >= 50 ? 20 : 10,
   title: q => `${q.target} conjugations right`, prog: m => m.conj, go: "game:conj" });
+qt({ id: "c_thread", slot: "C", fam: "thread", icon: "🧵", w: 1.2, ok: c => gameOk(c, "thread"), target: c => c.G >= 50 ? 12 : 8,
+  title: q => `Unravel ${q.target} verb forms without a slip`, sub: () => "Verb Thread — who, when, what it means", prog: m => m.thread || 0, go: "game:thread" });
+qt({ id: "c_timeline", slot: "C", fam: "timeline", icon: "⏳", w: 1.2, ok: c => gameOk(c, "timeline"), target: c => c.G >= 50 ? 15 : 10,
+  title: q => `Place ${q.target} sentences on the timeline`, sub: () => "Timeline Drop — right spot, first try", prog: m => m.timeline || 0, go: "game:timeline" });
 qt({ id: "c_three", slot: "C", fam: "variety", icon: "🎲", w: 1.5, ok: c => c.games.length >= 4, target: () => 3,
   title: () => `Play 3 different games`, prog: m => Object.keys(m.games).length, go: "hub" });
 qt({ id: "c_mix", slot: "C", fam: "variety", icon: "🕹️", w: 1, ok: c => c.games.length >= 3, target: () => 1,
@@ -924,6 +928,8 @@ function questOnGame(m, d) {
   if (d.id === "gender") m.genderRun = Math.max(m.genderRun, r.maxCombo || 0);
   if (d.id === "plural") m.plural += r.correct || 0;
   if (d.id === "conj") m.conj += r.correct || 0;
+  if (d.id === "thread") m.thread = (m.thread || 0) + (r.correct || 0);
+  if (d.id === "timeline") m.timeline = (m.timeline || 0) + (r.correct || 0);
   if (d.id === "builder") m.builderFirst += x.firstTry || 0;
   if (d.id === "match" && (r.wrong || 0) === 0 && r.cleared !== false) { m.matchClean++; if (x.memory) m.memoryClear++; }
   if (d.id === "rain" && x.lostHearts === 0 && (r.correct || 0) >= 10) m.rainClean++;

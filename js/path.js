@@ -456,11 +456,11 @@ const FOCUS_LABELS = { deck: "Deck focus", level: "Level focus", pos: "Word-type
 // towards your open quests — words for focus quests (the hard ones, a
 // deck, verbs…) and, as the bonus round, the game a quest asks for.
 const PATH_BONUS_IDS = ["gender", "match", "blitz", "rain", "truefalse", "typerush",
-  "plural", "scramble", "cloze", "builder", "listen", "conj", "cases"];
+  "plural", "scramble", "cloze", "builder", "listen", "conj", "cases", "thread", "timeline"];
 // Bonus games open up as your vocabulary grows (words met): recognition
 // games from day one, sentence and grammar games once there's enough to
 // work with.
-const PATH_BONUS_UNLOCK = { cloze: 40, builder: 40, cases: 80, conj: 80 };
+const PATH_BONUS_UNLOCK = { cloze: 40, builder: 40, cases: 80, conj: 80, thread: 60, timeline: 60 };
 // Speed games vs thinking games: bonus rounds alternate between them.
 const PATH_BONUS_SPEED = new Set(["gender", "match", "blitz", "rain", "truefalse", "typerush"]);
 function questNudges() {
