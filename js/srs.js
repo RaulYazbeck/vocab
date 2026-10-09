@@ -237,6 +237,8 @@ function celebrateReview(res, quiet = false) {
 // Shared correct/wrong bookkeeping used by drill, voice, timer, Path and
 // the typed games. Every one of these is recall practice, so the word's
 // stage moves through srsReview.
+const COMBO_RUN = 20;
+let _comboRunHit = false;
 function applyCorrect(ws, opts = {}) {
   ws.lastAnsweredAt = Date.now();
   ws.correct++; ws.streak++; ws.displayStreak++;
@@ -245,6 +247,9 @@ function applyCorrect(ws, opts = {}) {
   res._w = opts.w || null;
   celebrateReview(res, opts.quiet);
   if (sessionConsecutive > (S.bestCombo || 0)) S.bestCombo = sessionConsecutive;
+  // 🔥 Combo Master: each run that reaches COMBO_RUN counts once.
+  if (sessionConsecutive < COMBO_RUN) _comboRunHit = false;
+  else if (!_comboRunHit) { _comboRunHit = true; S.comboRuns = (S.comboRuns || 0) + 1; }
   checkAchievements({ type: "answer", hour: new Date().getHours() });
   return res;
 }

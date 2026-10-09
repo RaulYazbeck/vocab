@@ -1023,6 +1023,13 @@ function endPathSession(abandoned) {
     sd: typeof usageDateOf === "function" ? usageDateOf(s.startedAt) : undefined, met: (s.met || []).length, up: moves.filter(m => m.to > m.from).length, down: moves.filter(m => m.to < m.from).length });
   questEvent("session_end", { kind: "path", len: s.lenKey, abandoned, stats: s.stats, ms: Date.now() - s.startedAt, quick: s.quick,
     ok5: s.ok5, up: s.upCount || 0, wotdHit: !!s.wotdHit });
+  // 🏃 Session ladders (achievements.js): finished sessions of 5+ answers.
+  if (!abandoned && s.stats.answered >= 5) {
+    S.sessionsDone = (S.sessionsDone || 0) + 1;
+    if (s.stats.answered >= 10 && s.stats.wrong === 0) S.flawlessSessions = (S.flawlessSessions || 0) + 1;
+    if (s.lenKey === "long" && !s.quick) S.longSessions = (S.longSessions || 0) + 1;
+    checkAchievements({ type: "session_end" });
+  }
   // ⚡ XP boost from a chest: +50% of this session's XP (achievements
   // aside), used up automatically by the next finished session.
   if (!abandoned && S.quests && S.quests.boosts > 0 && s.stats.answered >= 5) {

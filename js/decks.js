@@ -128,6 +128,8 @@ function resetDeck(deckId) {
 function resetAll() {
   if (!confirm("Reset ALL progress across every deck? This cannot be undone.")) return;
   S.words = {}; S.exp = 0; S.badges = []; S.unlocked = {};
+  // Achievement levels are worked out again from what's left (quietly).
+  delete S.ach; S.achLevels = {};
   S.loginDates = []; S.totalCorrect = 0; S.lastLoginDate = "";
   S.resetAllAt = Date.now(); // see resetDeck
   saveState();

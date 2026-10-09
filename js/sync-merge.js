@@ -32,6 +32,7 @@
 // Counters merged as base + (local − base) + (cloud − base).
 const SYNC_ADD_PATHS = [
   "exp", "totalCorrect", "repairedTotal", "timerWins", "perfectTimerWins", "ankiSessions",
+  "sessionsDone", "flawlessSessions", "longSessions", "comboRuns", "timerSpareTotal", "games.genderRuns",
   "games.totalPlays", "games.bossesDefeated", "quests.gold",
 ];
 // Never go down: the higher wins.
@@ -41,12 +42,12 @@ const SYNC_MAX_PATHS = [
 ];
 // Per-key "higher wins" maps.
 const SYNC_MAX_MAPS = [
-  "unlocked", "achLevels", "games.best", "games.stars", "games.rank", "games.twistBest",
+  "unlocked", "achLevels", "ach", "games.best", "games.stars", "games.rank", "games.twistBest",
   "games.plays", "games.lastPlayed", "games.rankStars", "games.rankBest", "games.bestiary",
 ];
 // Sets (arrays of unique values) — union.
 const SYNC_SET_PATHS = [
-  "badges", "loginDates", "goalDates", "quests.qdays", "quests.cos.owned", "games.daily.completedDates",
+  "badges", "loginDates", "goalDates", "quests.qdays", "quests.cos.owned", "games.daily.completedDates", "vocabGoalDates",
 ];
 // [count, day] pairs: the later day's count; the higher on the same day.
 const SYNC_DAY_COUNTERS = [

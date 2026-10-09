@@ -1337,11 +1337,11 @@ function applyGameCredit(ctx) {
 
 // Bonus rounds (inside Today sessions and Drill): one clear target per
 // game — the same number on the offer card, in the HUD and at the end.
-const BONUS_GOALS = { boss: 10, listen: 4, cloze: 4, cases: 4, builder: 3, scramble: 4, plural: 4, conj: 4, thread: 4, timeline: 4, gender: 5, blitz: 6, truefalse: 8, typerush: 5, rain: 6, match: 10 };
+const BONUS_GOALS = { boss: 10, listen: 4, cloze: 4, cases: 4, builder: 3, scramble: 4, plural: 4, conj: 4, thread: 4, timeline: 4, gender: 5, blitz: 6, truefalse: 8, typerush: 5, rain: 6, match: 10, timer: 5 };
 function bonusGoal(id) { return BONUS_GOALS[id] || 4; }
 // Timed games' bonus clock. Thinking games (Conjugation Slots, Gap Fill…)
 // have none inside a Today session — the clock is for the Games hub.
-const BONUS_TIME = { match: 60000 };
+const BONUS_TIME = { match: 60000, timer: 25000 };
 function bonusTime(id) { return BONUS_TIME[id] || 20000; }
 function bonusGoalText(id) {
   const g = getGame(id), n = bonusGoal(id);
@@ -1506,7 +1506,7 @@ function runLaunchOpts(i) {
 // Audio games only when words can be read aloud (switch on, not muted
 // today); spelling games not at all with "Speak, don't spell" on.
 function gameUsableNow(g) { return (!g.audio || audioOk()) && !gameHiddenNow(g); }
-const SPELLING_GAMES = new Set(["typerush", "scramble"]);
+const SPELLING_GAMES = new Set(["typerush", "scramble", "timer"]);
 function gameHiddenNow(g) { return !!g && SPELLING_GAMES.has(g.id) && speakOn(); }
 function gameRunRoundDone(sum) {
   const run = gameRun;
