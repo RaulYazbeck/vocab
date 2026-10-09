@@ -32,6 +32,7 @@
 // Counters merged as base + (local − base) + (cloud − base).
 const SYNC_ADD_PATHS = [
   "exp", "totalCorrect", "repairedTotal", "timerWins", "perfectTimerWins", "ankiSessions",
+  "sessionsDone", "flawlessSessions", "longSessions",
   "games.totalPlays", "games.bossesDefeated", "quests.gold",
 ];
 // Never go down: the higher wins.
@@ -41,7 +42,7 @@ const SYNC_MAX_PATHS = [
 ];
 // Per-key "higher wins" maps.
 const SYNC_MAX_MAPS = [
-  "unlocked", "achLevels", "games.best", "games.stars", "games.rank", "games.twistBest",
+  "unlocked", "achLevels", "ach", "games.best", "games.stars", "games.rank", "games.twistBest",
   "games.plays", "games.lastPlayed", "games.rankStars", "games.rankBest", "games.bestiary",
 ];
 // Sets (arrays of unique values) — union.

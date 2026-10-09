@@ -556,6 +556,7 @@ tr:hover td { background:rgba(255,255,255,0.03); }
 
 /* ── ACHIEVEMENTS ──────────────── */
 .badge-category { margin-bottom:1.4rem; }
+.badge-pace { font-size:13px; color:var(--text-2); line-height:1.45; margin:-4px 0 1.2rem; }
 .badges-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:8px; }
 .badge-card {
   background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:var(--r-sm);

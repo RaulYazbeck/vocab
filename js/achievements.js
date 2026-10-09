@@ -1,20 +1,33 @@
 // ── ACHIEVEMENTS ──────────────────────────────
-// Leveled, grindy achievement system. Every achievement is a ladder:
-// it has tiers (level 1 … level N) with escalating targets, and the
-// player climbs it over months of play. The flagship ladder is
-// "Road to B1": level 1 at 10 words mastered, level 10 at every word.
+// Leveled, grindy achievement system. Every achievement is a ladder of
+// 10 levels, and every ladder is paced to the journey: it tops out at
+// B1 — every Path word (A1, A2 and B1) climbed to 💎, the same finish
+// line as Lv 100. Nothing counts Anki cards or Anki sessions.
+//
+// How a ladder is sized:
+//   • word ladders top out at the app's own word count (German and
+//     French differ), so the last level lands as the last word does;
+//   • habit ladders (quests, sessions, games, bosses…) top out at what
+//     the journey brings at a steady pace, worked out from its length:
+//     your first day → your finish date (Study plan), or ~9 months
+//     without one;
+//   • skill ladders (combo, best day, seconds to spare…) climb evenly
+//     to a top a steady player reaches by then.
+// Levels come quickly at first and then spread out (ACH_CURVE): half the
+// levels by ~half the journey, the last one at the very end.
 //
 // Storage:
-//   S.achLevels = { id: levelReached }   — ladder progress
-//   S.badges    = [id, …]                — one-shot secret achievements
-//                                          (same array the old system
-//                                           used, nothing is lost)
+//   S.ach    = { id: levelReached }   — ladder progress (paced system)
+//   S.badges = [id, …]                — one-shot secret achievements
+// (S.achLevels holds the old, unpaced levels — no longer read.)
 //
 // To add a ladder, append a definition:
 //   id       — stable storage key (never change once shipped)
 //   icon/name/category
 //   desc(t)  — description for a given tier target
-//   tiers    — ascending targets, one per level
+//   top()    — the target of the last level (or fixed `tiers`)
+//   curve    — optional: ACH_EVEN for skill ladders
+//   exact    — optional: end on `top` itself, unrounded
 //   value()  — current metric the targets are measured against
 //
 // XP per tier climbs with the level: level 1 pays 50 XP, level 10
@@ -22,209 +35,214 @@
 
 function xpForTier(tierIndex) { return (tierIndex + 1) * 50; }
 
-// Explorer's tiers scale with the decks (German and French differ):
-// shares of the words beyond each deck's first 12, the last one all.
-function explorerTiers() {
-  const total = ALL_GROUPS.filter(g => g.type !== "anki")
-    .reduce((s, g) => s + g.decks.reduce((t, d) => t + Math.max(0, d.words.length - UNLOCK_INITIAL), 0), 0);
-  const nice = x => x < 100 ? Math.round(x / 5) * 5 : Math.round(x / 50) * 50;
-  const tiers = [0.01, 0.02, 0.04, 0.08, 0.15, 0.25, 0.4, 0.6, 0.8].map(f => Math.max(5, nice(total * f)));
-  return [...tiers, Math.max(tiers[tiers.length - 1] + 1, total)];
+// ── PACING ────────────────────────────────────
+const ACH_CURVE = [0.02, 0.05, 0.1, 0.17, 0.26, 0.37, 0.5, 0.64, 0.81, 1];
+const ACH_EVEN  = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1];
+const JOURNEY_DEFAULT_DAYS = 270; // no finish date set: ~9 months
+function journeyStart() { return (S.loginDates && S.loginDates[0]) || todayISO(); }
+function journeyEnd() {
+  return S.path && S.path.deadline ? S.path.deadline : addDays(journeyStart(), JOURNEY_DEFAULT_DAYS);
 }
+// Days from your first day to B1 (never under 90, so a date set late
+// in the journey can't shrink the ladders to nothing).
+function journeyDays() { return Math.max(90, daysBetween(journeyStart(), journeyEnd())); }
+function journeyWeeks() { return journeyDays() / 7; }
+function vocabGroupsOnly() { return ALL_GROUPS.filter(g => g.type !== "anki"); }
+function vocabWordCount() {
+  return vocabGroupsOnly().reduce((s, g) => s + g.decks.reduce((t, d) => t + d.words.length, 0), 0);
+}
+function vocabDeckCount() { return vocabGroupsOnly().reduce((s, g) => s + g.decks.length, 0); }
+let _nounCount = null;
+function vocabNounCount() {
+  if (_nounCount === null && typeof nounParts === "function")
+    _nounCount = vocabGroupsOnly().reduce((s, g) => s + g.decks.reduce((t, d) => t + d.words.filter(w => nounParts(w)).length, 0), 0);
+  return _nounCount || 0;
+}
+function niceTier(x) {
+  return x < 50 ? Math.round(x) : x < 100 ? Math.round(x / 5) * 5 : x < 1000 ? Math.round(x / 10) * 10 : Math.round(x / 50) * 50;
+}
+// 10 rising targets ending at `top` (rounded unless `exact`: word
+// ladders end on the very last word).
+function tiersTo(top, curve = ACH_CURVE, exact = false) {
+  top = Math.max(curve.length, exact ? Math.round(top) || 0 : niceTier(top || 0));
+  const out = [];
+  curve.forEach((f, i) => {
+    const t = i === curve.length - 1 ? top : niceTier(top * f);
+    out.push(Math.max(t, out.length ? out[out.length - 1] + 1 : 1));
+  });
+  return out;
+}
+function gamesList() { return typeof GAMES === "undefined" ? [] : GAMES; }
+function cosmeticCount() { return typeof COSMETICS === "undefined" ? 0 : COSMETICS.filter(c => !c.free).length; }
+// Correct answers today while studying (Today, games, bosses, Drill).
+function todayStudyCorrect() {
+  const Q = S.quests;
+  const q = Q && Q.m && Q.day === todayISO() ? (Q.m.ok || 0) : 0;
+  return Math.max(q, typeof drillCorrectTodayCount === "function" ? drillCorrectTodayCount() : 0);
+}
+const plural = (t, one, many) => t === 1 ? one : many;
 
 const ACHIEVEMENTS = [
   // ── Vocabulary ──
-  { id:"road_b1", icon:"🏔️", name:"Road to B1", category:"Vocabulary",
-    desc:t => `Master ${t.toLocaleString()} words`,
-    tiers:[10, 50, 150, 300, 600, 1000, 1500, 2200, 3000, 4000],
+  { id:"road_b1", exact:true, icon:"🏔️", name:"Road to B1", category:"Vocabulary",
+    desc:t => `Get ${t.toLocaleString()} words to 🌳 Known`,
+    top:() => vocabWordCount(),
     value:() => countMastered(true) },
-  { id:"explorer", icon:"🧭", name:"Explorer", category:"Vocabulary",
-    desc:t => `Discover ${t.toLocaleString()} new words`,
-    tiers:explorerTiers(), // the last one: every word in the decks
-    value:() => discoveredWords() },
-  { id:"perfectionist", icon:"✨", name:"Perfectionist", category:"Vocabulary",
-    desc:t => `Hold ⭐ Strong or better on ${t} words at once`,
-    tiers:[1, 3, 5, 10, 15, 25, 40, 60, 80, 100],
+  { id:"explorer", exact:true, icon:"🧭", name:"Explorer", category:"Vocabulary",
+    desc:t => `Meet ${t.toLocaleString()} new words`,
+    top:() => vocabWordCount(),
+    value:() => countMet() },
+  { id:"perfectionist", exact:true, icon:"✨", name:"Perfectionist", category:"Vocabulary",
+    desc:t => `Hold ⭐ Strong or better on ${t.toLocaleString()} words at once`,
+    top:() => vocabWordCount(),
     value:() => countMasteryPlus() },
-  { id:"comeback", icon:"🎢", name:"Comeback Kid", category:"Vocabulary",
-    desc:t => `Master ${t} word${t>1?"s":""} you failed 5+ times`,
-    tiers:[1, 3, 7, 12, 20, 30, 45, 60, 80, 100],
-    value:() => { let n = 0; forEachVocabWord(ws => { if (ws && (ws.wrong || 0) >= 5 && isMastered(ws) && !skipUnearned(ws)) n++; }); return n; } },
-
-  { id:"locked_in", icon:"💎", name:"Locked In", category:"Vocabulary",
-    desc:t => `Lock in ${t.toLocaleString()} word${t>1?"s":""} for good`,
-    tiers:[1, 5, 15, 40, 80, 150, 300, 600, 1000, 2000],
+  { id:"locked_in", exact:true, icon:"💎", name:"Locked In", category:"Vocabulary",
+    desc:t => `Lock in ${t.toLocaleString()} ${plural(t, "word", "words")} for good`,
+    top:() => vocabWordCount(),
     value:() => countLockedIn() },
+  { id:"comeback", icon:"🎢", name:"Comeback Kid", category:"Vocabulary",
+    desc:t => `Get ${t} ${plural(t, "word", "words")} you missed 3+ times to 🌳 Known`,
+    top:() => vocabWordCount() * 0.03,
+    value:() => { let n = 0; forEachVocabWord(ws => { if (ws && (ws.wrong || 0) >= 3 && isMastered(ws) && !skipUnearned(ws)) n++; }); return n; } },
   { id:"healer", icon:"🩹", name:"Healer", category:"Vocabulary",
-    desc:t => `Repair ${t} slipped word${t>1?"s":""}`,
-    tiers:[1, 5, 15, 30, 60, 100, 160, 240, 350, 500],
+    desc:t => `Repair ${t} slipped ${plural(t, "word", "words")}`,
+    top:() => vocabWordCount() * 0.08,
     value:() => S.repairedTotal || 0 },
 
-  // ── Quests ──
-  { id:"quest_master", icon:"🏁", name:"Quest Master", category:"Quests",
-    desc:t => `Finish all four quests on ${t} day${t>1?"s":""}`,
-    tiers:[1, 3, 7, 14, 30, 60, 100, 150, 250, 365],
-    value:() => (S.quests && S.quests.qdays && S.quests.qdays.length) || 0 },
-  { id:"saga_hero", icon:"📜", name:"Saga Hero", category:"Quests",
-    desc:t => `Finish ${t} weekly saga${t>1?"s":""}`,
-    tiers:[1, 2, 4, 8, 12, 20, 30, 40, 52, 75],
-    value:() => (S.quests && S.quests.sagas) || 0 },
-  { id:"collector", icon:"🎨", name:"Collector", category:"Quests",
-    desc:t => `Own ${t} cosmetic${t>1?"s":""}`,
-    tiers:[1, 3, 5, 8, 12, 16, 20, 25, 30, 37],
-    value:() => (S.quests && S.quests.cos && S.quests.cos.owned.length) || 0 },
-  { id:"lucky", icon:"🍀", name:"Lucky", category:"Quests",
-    desc:t => `Catch ${t} flash quest${t>1?"s":""} or lucky drop${t>1?"s":""}`,
-    tiers:[1, 3, 6, 10, 15, 25, 40, 60, 80, 100],
-    value:() => ((S.quests && S.quests.flashes) || 0) + ((S.quests && S.quests.lucky) || 0) },
+  // ── Today ──
+  { id:"sessions", icon:"🏃", name:"Regular", category:"Today",
+    desc:t => `Finish ${t.toLocaleString()} Today ${plural(t, "session", "sessions")}`,
+    top:() => journeyDays(),
+    value:() => S.sessionsDone || 0 },
+  { id:"clean_sweep", icon:"🧼", name:"Clean Sweep", category:"Today",
+    desc:t => `Finish ${t} Today ${plural(t, "session", "sessions")} of 10+ answers without a mistake`,
+    top:() => journeyDays() * 0.15,
+    value:() => S.flawlessSessions || 0 },
+  { id:"marathon", icon:"🏅", name:"Marathon", category:"Today",
+    desc:t => `Finish ${t} Long ${plural(t, "session", "sessions")}`,
+    top:() => journeyDays() * 0.15,
+    value:() => S.longSessions || 0 },
 
   // ── Practice ──
   { id:"scholar", icon:"📚", name:"Scholar", category:"Practice",
     desc:t => `${t.toLocaleString()} correct answers, all time`,
-    tiers:[50, 150, 400, 1000, 2000, 3500, 5500, 8000, 12000, 20000],
+    top:() => vocabWordCount() * 9, // ~9 answers take a word from new to 💎
     value:() => S.totalCorrect || 0 },
-  { id:"daily_grind", icon:"🏃", name:"Daily Grind", category:"Practice",
+  { id:"daily_grind", icon:"🏋️", name:"Daily Grind", category:"Practice",
     desc:t => `${t} correct answers in a single day`,
-    tiers:[25, 50, 75, 100, 150, 200, 250, 300, 400, 500],
-    value:() => S.bestDayCorrect || 0 },
+    top:() => Math.max(60, niceTier(vocabWordCount() * 9 / journeyDays() * 1.6)), curve:ACH_EVEN,
+    value:() => Math.max(S.bestDayCorrect || 0, todayStudyCorrect()) },
   { id:"combo_master", icon:"⚡", name:"Combo Master", category:"Practice",
     desc:t => `${t} correct answers in a row`,
-    tiers:[10, 20, 30, 40, 60, 80, 120, 160, 200, 250],
+    top:() => 50, curve:ACH_EVEN,
     value:() => S.bestCombo || 0 },
+
+  // ── Quests ──
+  { id:"quest_master", icon:"🏁", name:"Quest Master", category:"Quests",
+    desc:t => `Finish all four quests on ${t} ${plural(t, "day", "days")}`,
+    top:() => journeyDays() * 0.8,
+    value:() => (S.quests && S.quests.qdays && S.quests.qdays.length) || 0 },
+  { id:"saga_hero", icon:"📜", name:"Saga Hero", category:"Quests",
+    desc:t => `Finish ${t} weekly ${plural(t, "saga", "sagas")}`,
+    top:() => journeyWeeks() * 0.75,
+    value:() => (S.quests && S.quests.sagas) || 0 },
+  { id:"collector", icon:"🎨", name:"Collector", category:"Quests",
+    desc:t => `Own ${t} ${plural(t, "cosmetic", "cosmetics")}`,
+    top:() => Math.min(cosmeticCount() || 37, journeyDays() * 0.15),
+    value:() => (S.quests && S.quests.cos && S.quests.cos.owned.length) || 0 },
+  { id:"lucky", icon:"🍀", name:"Lucky", category:"Quests",
+    desc:t => `Catch ${t} flash ${plural(t, "quest", "quests")} or lucky ${plural(t, "drop", "drops")}`,
+    top:() => journeyDays() * 0.7,
+    value:() => ((S.quests && S.quests.flashes) || 0) + ((S.quests && S.quests.lucky) || 0) },
 
   // ── Dedication ──
   { id:"streak_keeper", icon:"🔥", name:"Streak Keeper", category:"Dedication",
     desc:t => `Keep your 🔥 streak for ${t} days`,
-    tiers:[3, 7, 14, 30, 60, 100, 150, 200, 280, 365],
+    top:() => journeyDays() * 0.75,
     value:() => maxStreak() },
   { id:"climber", icon:"🧗", name:"Climber", category:"Dedication",
     desc:t => `Reach level ${t}`,
-    tiers:[5, 10, 20, 30, 40, 50, 60, 70, 85, 100], // Lv 100 = every deck done
+    tiers:[5, 10, 20, 30, 40, 50, 60, 70, 85, 100], // Lv 100 = the end of the journey
     value:() => currentLevel() },
-
-  // ── Speed ──
-  { id:"timer_champion", icon:"🏆", name:"Timer Champion", category:"Speed",
-    desc:t => `Win ${t} timer session${t>1?"s":""}`,
-    tiers:[1, 10, 25, 50, 75, 130, 180, 250, 360, 500],
-    value:() => S.timerWins || 0 },
-  { id:"flawless", icon:"💯", name:"Flawless", category:"Speed",
-    desc:t => `Win ${t} timer${t>1?"s":""} without a single mistake`,
-    tiers:[1, 3, 7, 12, 20, 30, 45, 65, 90, 120],
-    value:() => S.perfectTimerWins || 0 },
-  { id:"photo_finish", icon:"⏱️", name:"Photo Finish", category:"Speed",
-    desc:t => `Win a timer with ${t} seconds to spare`,
-    tiers:[5, 10, 15, 20, 25, 30, 40, 50, 60, 75],
-    value:() => Math.floor(S.bestTimerSecondsLeft || 0) },
-
-  // ── Memory ──
-  { id:"memory_master", anki:true, icon:"🃏", name:"Memory Master", category:"Memory",
-    desc:t => `Complete ${t} Anki session${t>1?"s":""}`,
-    tiers:[1, 5, 12, 25, 45, 70, 100, 140, 190, 250],
-    value:() => S.ankiSessions || 0 },
-  { id:"elephant", anki:true, icon:"🐘", name:"Elephant Memory", category:"Memory",
-    desc:t => `Grow ${t} card${t>1?"s":""} to a 21-day review interval`,
-    tiers:[1, 5, 15, 30, 60, 100, 160, 240, 350, 500],
-    value:() => Object.values(S.words).filter(ws => ws.anki && ws.anki.interval >= 21).length },
 
   // ── Arcade (minigames, see games-core.js) ──
   { id:"arcade_regular", icon:"🕹️", name:"Arcade Regular", category:"Arcade",
-    desc:t => `Finish ${t.toLocaleString()} minigame round${t>1?"s":""}`,
-    tiers:[1, 10, 25, 50, 100, 200, 350, 500, 750, 1000],
+    desc:t => `Finish ${t.toLocaleString()} minigame ${plural(t, "round", "rounds")}`,
+    top:() => journeyDays() * 1.5,
     value:() => (S.games && S.games.totalPlays) || 0 },
   { id:"star_collector", icon:"🌟", name:"Star Collector", category:"Arcade",
     desc:t => `Collect ${t} stars across every game and rank`,
-    tiers:[3, 10, 20, 35, 55, 80, 105, 130, 160, 180],
+    top:() => gamesList().reduce((s, g) => s + (g.ranks || GAME_RANKS).length * 3, 0) * 0.7,
     value:() => typeof totalGameStars === "function" ? totalGameStars() : 0 },
-  { id:"rank_climber", icon:"🏅", name:"Rank Climber", category:"Arcade",
-    desc:t => `Earn ${t} rank-up${t>1?"s":""} across the games (🥉→💎)`,
-    tiers:[1, 3, 6, 10, 15, 20, 26, 32, 40, 48],
+  { id:"rank_climber", icon:"🎖️", name:"Rank Climber", category:"Arcade",
+    desc:t => `Earn ${t} ${plural(t, "rank-up", "rank-ups")} across the games (🥉→💎)`,
+    top:() => gamesList().reduce((s, g) => s + Math.min(GAME_RANKS.length, (g.ranks || GAME_RANKS).length) - 1, 0) * 0.75,
     value:() => Object.values((S.games && S.games.rank) || {}).reduce((a, b) => a + (b || 0), 0) },
+  { id:"timer_champion", icon:"🏆", name:"Timer Champion", category:"Arcade",
+    desc:t => `Win ${t} ⏱️ Timer ${plural(t, "round", "rounds")}`,
+    top:() => journeyDays() * 0.2,
+    value:() => S.timerWins || 0 },
+  { id:"flawless", icon:"💯", name:"Flawless", category:"Arcade",
+    desc:t => `Win ${t} ⏱️ Timer ${plural(t, "round", "rounds")} without a single mistake`,
+    top:() => journeyDays() * 0.08,
+    value:() => S.perfectTimerWins || 0 },
+  { id:"photo_finish", icon:"⏳", name:"Photo Finish", category:"Arcade",
+    desc:t => `Win a ⏱️ Timer round with ${t} seconds to spare`,
+    top:() => 45, curve:ACH_EVEN,
+    value:() => Math.floor(S.bestTimerSecondsLeft || 0) },
+  { id:"boss_slayer", icon:"👾", name:"Boss Slayer", category:"Arcade",
+    desc:t => `Defeat ${t} ${plural(t, "boss", "bosses")}`,
+    top:() => journeyDays() * 0.35,
+    value:() => (S.games && S.games.bossesDefeated) || 0 },
   { id:"bestiary", icon:"📖", name:"Monster Hunter", category:"Arcade",
-    desc:t => `Defeat ${t} different deck boss${t>1?"es":""}`,
-    tiers:[1, 3, 5, 10, 15, 25, 35, 45, 60, 80],
+    desc:t => `Defeat ${t} different deck ${plural(t, "boss", "bosses")}`,
+    top:() => Math.min(vocabDeckCount(), journeyDays() * 0.1),
     value:() => Object.values((S.games && S.games.bestiary) || {}).filter(r => r && r.wins).length },
   { id:"world_breaker", icon:"🌋", name:"World Breaker", category:"Arcade",
-    desc:t => `Defeat ${t} weekly world boss${t>1?"es":""}`,
-    tiers:[1, 2, 4, 8, 12, 20, 30, 40, 52, 75],
+    desc:t => `Defeat ${t} weekly world ${plural(t, "boss", "bosses")}`,
+    top:() => journeyWeeks() * 0.75,
     value:() => (S.games && S.games.worldWins) || 0 },
-  { id:"gender_collector", icon:"🎨", name:"Gender Collector", category:"Arcade",
-    desc:t => `Collect the gender of ${t} nouns`,
-    tiers:[10, 25, 50, 100, 200, 350, 500, 750, 1000, 1300],
-    value:() => (S.games && S.games.collect && S.games.collect.g) || 0 },
-  { id:"boss_slayer", icon:"👾", name:"Boss Slayer", category:"Arcade",
-    desc:t => `Defeat ${t} boss${t>1?"es":""}`,
-    tiers:[1, 3, 5, 10, 20, 35, 50, 75, 100, 150],
-    value:() => (S.games && S.games.bossesDefeated) || 0 },
   { id:"daily_challenger", icon:"📆", name:"Daily Challenger", category:"Arcade",
-    desc:t => `Complete ${t} daily challenge${t>1?"s":""}`,
-    tiers:[1, 3, 7, 14, 30, 50, 75, 100, 150, 200],
+    desc:t => `Complete ${t} daily ${plural(t, "challenge", "challenges")}`,
+    top:() => journeyDays() * 0.5,
     value:() => (S.games && S.games.daily && S.games.daily.completedDates.length) || 0 },
+  { id:"gender_collector", icon:"🎭", name:"Gender Collector", category:"Arcade",
+    desc:t => `Collect the gender of ${t.toLocaleString()} nouns`,
+    top:() => vocabNounCount() * 0.85,
+    value:() => (S.games && S.games.collect && S.games.collect.g) || 0 },
   { id:"gender_guru", icon:"🎨", name:"Gender Guru", category:"Arcade",
     desc:t => `Get ${t} genders right in a row`,
-    tiers:[10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+    top:() => 60, curve:ACH_EVEN,
     value:() => (S.games && S.games.bestGenderStreak) || 0 },
 ];
 
-// Ladders that measure something finite follow each app's own size
-// (German and French differ in words, nouns, games and Anki decks):
-// the tiers shrink where the app has less than the old top, and the
-// last tier is always all of it. Anki ladders only exist with Anki decks.
-const LADDER_TOPS = {
-  road_b1:          { old: 4000, top: () => vocabWordCount() },
-  locked_in:        { old: 2000, top: () => Math.round(2000 * vocabWordCount() / 4106 / 10) * 10 },
-  bestiary:         { old: 80,   top: () => ALL_GROUPS.filter(g => g.type !== "anki").reduce((s, g) => s + g.decks.length, 0) },
-  rank_climber:     { old: 48,   top: () => typeof GAMES === "undefined" ? 0 : GAMES.reduce((s, g) => s + (g.ranks || GAME_RANKS).length - 1, 0) },
-  star_collector:   { old: 180,  top: () => typeof GAMES === "undefined" ? 0 : GAMES.length * 5 * 3 },
-  gender_collector: { old: 1300, top: () => typeof nounParts !== "function" ? 0 : ALL_GROUPS.filter(g => g.type !== "anki")
-    .reduce((s, g) => s + g.decks.reduce((t, d) => t + d.words.filter(w => nounParts(w)).length, 0), 0) },
-};
-function vocabWordCount() {
-  return ALL_GROUPS.filter(g => g.type !== "anki").reduce((s, g) => s + g.decks.reduce((t, d) => t + d.words.length, 0), 0);
-}
-function scaleTiers(old, oldTop, top) {
-  const f = Math.min(1, top / oldTop);
-  const nice = x => x < 20 ? Math.round(x) : x < 100 ? Math.round(x / 5) * 5 : Math.round(x / 10) * 10;
-  const out = [];
-  old.slice(0, -1).forEach(t => out.push(Math.max(out.length ? out[out.length - 1] + 1 : 1, f < 1 ? nice(t * f) : t)));
-  out.push(Math.max(out[out.length - 1] + 1, top));
-  return out;
-}
-Object.entries(LADDER_TOPS).forEach(([id, L]) => {
-  const a = ACHIEVEMENTS.find(x => x.id === id);
-  if (!a) return;
-  L.tiers = a.tiers; // the shipped tiers (also what old saves earned)
-  let scaled = null;
-  // Worked out on first use: games and grammar load after this file.
+// Paced ladders work their tiers out when first needed (games, grammar
+// and quests load after this file) and again whenever the top moves —
+// a new finish date re-paces every habit ladder.
+ACHIEVEMENTS.forEach(a => {
+  if (!a.top) return;
+  let key = null, memo = null;
   Object.defineProperty(a, "tiers", { get() {
-    if (scaled) return scaled;
-    const top = L.top();
-    if (!(top > 0)) return L.tiers;
-    return (scaled = scaleTiers(L.tiers, L.old, top));
+    const top = Math.round(a.top()) || 0;
+    if (top !== key) { key = top; memo = tiersTo(top, a.curve, a.exact); }
+    return memo;
   } });
 });
-if (!ALL_GROUPS.some(g => g.type === "anki"))
-  for (let i = ACHIEVEMENTS.length - 1; i >= 0; i--) if (ACHIEVEMENTS[i].anki) ACHIEVEMENTS.splice(i, 1);
 
-// One "Conquered" ladder (single level) per deck group, generated from
-// the app's configured groups — new decks get theirs automatically.
-// Vocab groups are conquered by mastering every word; Anki groups by
-// graduating every card into the review phase.
-ALL_GROUPS.forEach(group => {
+// One "Conquered" ladder (single level) per vocab level (A1, A2, B1),
+// generated from the app's configured groups — new decks get theirs
+// automatically. Conquered = every word in it 🌳 Known. Anki groups
+// have none.
+vocabGroupsOnly().forEach(group => {
   const total = group.decks.reduce((s, d) => s + d.words.length, 0);
-  // Read group.type directly: this runs at script load, before decks.js
-  // (and its isAnkiGroup helper) exists — calling it here crashed the
-  // rest of this file and with it every correct-answer feedback render.
-  const anki = group.type === "anki";
   ACHIEVEMENTS.push({
     id: `group_master_${group.id}`,
     icon: group.icon || "🏅",
     name: `${group.name} Conquered`,
     category: "Vocabulary",
-    desc: () => anki
-      ? `Graduate every card in ${group.name} to review (${total.toLocaleString()} words)`
-      : `Master every word in ${group.name} (${total.toLocaleString()} words)`,
+    desc: () => `Get every word in ${group.name} to 🌳 Known (${total.toLocaleString()} words)`,
     tiers: [total],
-    value: () => anki ? groupReviewCount(group) : groupMasteredCount(group),
+    value: () => groupMasteredCount(group),
   });
 });
 
@@ -236,8 +254,8 @@ const SECRET_ACHIEVEMENTS = [
     earned:ev => ev.type === "answer" && ev.hour >= 23 },
   { id:"weekend_warrior", icon:"🛡️", name:"Weekend Warrior", desc:"Practice on a Saturday and the following Sunday", xp:100,
     earned:() => hasWeekendPair() },
-  { id:"hat_trick", icon:"🎩", name:"Hat Trick", desc:"Win three timer sessions in one day", xp:150,
-    earned:ev => ev.type === "timer_end" && ev.won && (ev.winsToday || 0) >= 3 },
+  { id:"hat_trick", icon:"🎩", name:"Hat Trick", desc:"Win three ⏱️ Timer rounds in one day", xp:150,
+    earned:ev => (ev.type === "timer_end" || (ev.type === "game_end" && ev.game === "timer")) && ev.won && (ev.winsToday || 0) >= 3 },
   { id:"perfect_match", icon:"🃏", name:"Perfect Match", desc:"Clear a full Match Pairs round with no mistakes in under 60 seconds", xp:150,
     earned:ev => ev.type === "game_end" && ev.game === "match" && ev.size === "full" && ev.wrong === 0 && ev.seconds < 60 },
   { id:"diamond_comeback", icon:"💎", name:"Comeback", desc:"Repair a 💎 locked-in word after a slip", xp:150,
@@ -260,22 +278,13 @@ function groupMasteredCount(group) {
   group.decks.forEach(d => d.words.forEach((_, i) => { const ws = S.words[d.id + "_" + i]; if (isMastered(ws) && !skipUnearned(ws)) n++; }));
   return n;
 }
-// Word ladders count the vocab decks only — Anki cards have their own
-// (🃏 Memory Master, 🐘 Elephant Memory).
+// Word ladders count the vocab decks only — never Anki cards.
 function forEachVocabWord(fn) {
   ALL_GROUPS.forEach(g => { if (g.type !== "anki") g.decks.forEach(d => d.words.forEach((_, i) => fn(S.words[d.id + "_" + i]))); });
 }
 function countLockedIn() {
   let n = 0;
   forEachVocabWord(ws => { if (ws && ws.st >= STAGE_LOCKED) n++; });
-  return n;
-}
-function groupReviewCount(group) {
-  let n = 0;
-  group.decks.forEach(d => d.words.forEach((_, i) => {
-    const ws = S.words[d.id + "_" + i];
-    if (ws && ws.anki && ws.anki.phase === "review") n++;
-  }));
   return n;
 }
 // forAch: leave out words lifted by Skip a level that were never answered.
@@ -291,17 +300,11 @@ function countMasteryPlus() {
   forEachVocabWord(ws => { if (ws && isMasteryPlus(ws) && !ws.sk) n++; });
   return n;
 }
-// 🧭 Explorer counts words unlocked beyond the 12 every deck starts
-// with (Anki decks don't unlock), minus the ones Skip a level unlocked
-// without you ever meeting them (sk 2).
-function discoveredWords() {
+// 🧭 Explorer counts words met on the Path (stage 1 or more), minus the
+// ones Skip a level lifted without you ever meeting them (sk 2).
+function countMet() {
   let n = 0;
-  ALL_GROUPS.forEach(g => { if (g.type !== "anki") g.decks.forEach(d => {
-    for (let i = Math.min(UNLOCK_INITIAL, d.words.length), u = getUnlocked(d.id); i < u; i++) {
-      const ws = S.words[d.id + "_" + i];
-      if (!(ws && ws.sk === 2)) n++;
-    }
-  }); });
+  forEachVocabWord(ws => { if (ws && (ws.st > 0 || ws.mastered) && ws.sk !== 2) n++; });
   return n;
 }
 // Longest run of the 🔥 streak (quest days, kept and frozen days).
@@ -324,27 +327,18 @@ function hasWeekendPair() {
 }
 
 // ── AWARDING ──────────────────────────────────
-// 🧗 Climber moved to the journey levels (Lv 100 = every deck done)
-// and 🧭 Explorer stopped counting each deck's starting words: once,
-// keep only the tiers the new value really meets. Ladders now sized
-// per app keep the new tiers at or below the best old tier earned.
-// Tiers won again later pay again, small next to the journey's XP.
-function migrateLadders() {
-  if (!S.achLevels) S.achLevels = {};
-  if (S.achTrimV === 2) return;
-  S.achTrimV = 2;
-  ["climber", "explorer"].forEach(id => {
-    const a = ACHIEVEMENTS.find(x => x.id === id);
-    if (!a || !S.achLevels[id]) return;
+// The paced ladders start from a clean slate (S.ach): once, every
+// ladder is set to the levels its new tiers already meet — quietly, no
+// XP (it was paid by the old system). Old levels in S.achLevels stay
+// unread. S.ach syncs as a "higher wins" map, so this runs once.
+function migrateAch() {
+  if (S.ach && typeof S.ach === "object") return;
+  S.ach = {};
+  ACHIEVEMENTS.forEach(a => {
     let v = 0;
     try { v = a.value(); } catch (e) { return; }
-    S.achLevels[id] = Math.min(S.achLevels[id], a.tiers.filter(t => v >= t).length);
-  });
-  Object.entries(LADDER_TOPS).forEach(([id, L]) => {
-    const a = ACHIEVEMENTS.find(x => x.id === id), k = S.achLevels[id];
-    if (!a || !k) return;
-    const best = L.tiers[Math.min(k, L.tiers.length) - 1];
-    S.achLevels[id] = Math.min(k, a.tiers.filter(t => t <= best).length);
+    const lvl = a.tiers.filter(t => v >= t).length;
+    if (lvl) S.ach[a.id] = lvl;
   });
 }
 let _checkingAchievements = false; // addExp can re-enter via level-up
@@ -353,12 +347,15 @@ function checkAchievements(ev = {}) {
   if (_checkingAchievements) return;
   _checkingAchievements = true;
   try {
-    migrateLadders();
+    migrateAch();
+    // 🏋️ Daily Grind: today's count becomes a record as it grows.
+    const day = todayStudyCorrect();
+    if (day > (S.bestDayCorrect || 0)) S.bestDayCorrect = day;
     const unlocked = [];
     let xpGain = 0;
 
     ACHIEVEMENTS.forEach(a => {
-      const cur = S.achLevels[a.id] || 0;
+      const cur = S.ach[a.id] || 0;
       const max = a.tiers.length;
       if (cur >= max) return;
       let v = 0;
@@ -369,7 +366,7 @@ function checkAchievements(ev = {}) {
         let xp = 0;
         for (let i = cur; i < lvl; i++) xp += xpForTier(i);
         xpGain += xp;
-        S.achLevels[a.id] = lvl;
+        S.ach[a.id] = lvl;
         unlocked.push({ icon: a.icon, name: a.name, sub: (lvl >= max
           ? `MAX LEVEL ${lvl}/${max}!`
           : `Level ${lvl}/${max}`) + ` · +${xp} XP` });
@@ -410,15 +407,15 @@ function checkAchievements(ev = {}) {
 
 // ── ACHIEVEMENTS SCREEN ───────────────────────
 function renderBadgesScreen() {
-  migrateLadders();
+  migrateAch();
   const totalLevels  = ACHIEVEMENTS.reduce((s, a) => s + a.tiers.length, 0) + SECRET_ACHIEVEMENTS.length;
-  const earnedLevels = ACHIEVEMENTS.reduce((s, a) => s + (S.achLevels[a.id] || 0), 0)
+  const earnedLevels = ACHIEVEMENTS.reduce((s, a) => s + (S.ach[a.id] || 0), 0)
     + SECRET_ACHIEVEMENTS.filter(s => S.badges.includes(s.id)).length;
   const categories = [...new Set(ACHIEVEMENTS.map(a => a.category))];
 
   const sections = categories.map(cat => {
     const cards = ACHIEVEMENTS.filter(a => a.category === cat).map(a => {
-      const lvl   = S.achLevels[a.id] || 0;
+      const lvl   = S.ach[a.id] || 0;
       const max   = a.tiers.length;
       const maxed = lvl >= max;
       let v = 0; try { v = a.value(); } catch (e) {}
@@ -462,6 +459,7 @@ function renderBadgesScreen() {
       <div class="screen-label">Achievements · ${earnedLevels}/${totalLevels} levels</div>
       ${backBtnHtml()}
     </div>
+    <div class="badge-pace">🏔️ Every ladder is paced to max out at B1 — ${fmtShortDate(journeyEnd())}${S.path && S.path.deadline ? " (your finish date)" : " (about 9 months in; set a finish date in 🎯 Study plan to pace them to it)"}</div>
     ${sections}
     <div class="badge-category">
       <div class="stats-section-title">Secret</div>
