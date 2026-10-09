@@ -857,6 +857,11 @@ function questEvent(type, d = {}) {
   }
   questRecompute();
   questMarkKept();
+  // 🏋️ Daily Grind (achievements.js): days the goal was reached without Anki.
+  if (type === "answer" && (S.quests.m.okV || 0) >= getDailyGoal()) {
+    if (!Array.isArray(S.vocabGoalDates)) S.vocabGoalDates = [];
+    if (!S.vocabGoalDates.includes(todayISO())) S.vocabGoalDates.push(todayISO());
+  }
   // With a finish date the goal bar shows this same counter: keep it live.
   if (type === "answer" && S.path && S.path.deadline) {
     if (typeof markGoalIfReached === "function") markGoalIfReached();
@@ -875,6 +880,7 @@ function questOnAnswer(m, d) {
   if (d.mode === "path" && (d.ok === true || d.ok === false)) { m.pathAll++; if (ok) m.path++; }
   if (ok) {
     if (!isGame) m.ok++;
+    if (!isGame && d.mode !== "anki") m.okV = (m.okV || 0) + 1; // 🏋️ Daily Grind leaves Anki out
     if (d.typed) {
       m.typed++;
       if (!d.hint) { m.typedNoHint++; m.typedSinceHint++; } else { m.hints++; m.typedSinceHint = 0; }

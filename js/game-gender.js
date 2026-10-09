@@ -38,6 +38,7 @@ registerGame({
   stars: [120, 250, 400],
   onRecord(result) {
     if ((result.maxCombo || 0) > (S.games.bestGenderStreak || 0)) S.games.bestGenderStreak = result.maxCombo;
+    if ((result.maxCombo || 0) >= GENDER_RUN) S.games.genderRuns = (S.games.genderRuns || 0) + 1; // 🎨 Gender Guru
   },
   start(ctx) {
     const rp = ctx.rp;

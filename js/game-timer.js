@@ -38,6 +38,7 @@ registerGame({
     S.timerWins = (S.timerWins || 0) + 1;
     if (res.wrong === 0) S.perfectTimerWins = (S.perfectTimerWins || 0) + 1;
     if (res.secondsLeft > (S.bestTimerSecondsLeft || 0)) S.bestTimerSecondsLeft = res.secondsLeft;
+    S.timerSpareTotal = (S.timerSpareTotal || 0) + (res.secondsLeft || 0);
     res.winsToday = S.timerWinsToday;
   },
   start(ctx) {

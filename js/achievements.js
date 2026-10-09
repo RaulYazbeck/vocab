@@ -11,8 +11,9 @@
 //     the journey brings at a steady pace, worked out from its length:
 //     your first day → your finish date (Study plan), or ~9 months
 //     without one;
-//   • skill ladders (combo, best day, seconds to spare…) climb evenly
-//     to a top a steady player reaches by then.
+//   • no "best ever" ladders: a record (longest combo, best day) is
+//     set in one good week, so skill ladders count how often you do it
+//     (20-combos, goal days, gender runs, seconds banked).
 // Levels come quickly at first and then spread out (ACH_CURVE): half the
 // levels by ~half the journey, the last one at the very end.
 //
@@ -26,7 +27,7 @@
 //   icon/name/category
 //   desc(t)  — description for a given tier target
 //   top()    — the target of the last level (or fixed `tiers`)
-//   curve    — optional: ACH_EVEN for skill ladders
+//   curve    — optional: other level spacing than ACH_CURVE
 //   exact    — optional: end on `top` itself, unrounded
 //   value()  — current metric the targets are measured against
 //
@@ -37,7 +38,6 @@ function xpForTier(tierIndex) { return (tierIndex + 1) * 50; }
 
 // ── PACING ────────────────────────────────────
 const ACH_CURVE = [0.02, 0.05, 0.1, 0.17, 0.26, 0.37, 0.5, 0.64, 0.81, 1];
-const ACH_EVEN  = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1];
 const JOURNEY_DEFAULT_DAYS = 270; // no finish date set: ~9 months
 function journeyStart() { return (S.loginDates && S.loginDates[0]) || todayISO(); }
 function journeyEnd() {
@@ -77,13 +77,8 @@ function tiersTo(top, curve = ACH_CURVE, exact = false) {
 }
 function gamesList() { return typeof GAMES === "undefined" ? [] : GAMES; }
 function cosmeticCount() { return typeof COSMETICS === "undefined" ? 0 : COSMETICS.filter(c => !c.free).length; }
-// Correct answers today while studying (Today, games, bosses, Drill).
-function todayStudyCorrect() {
-  const Q = S.quests;
-  const q = Q && Q.m && Q.day === todayISO() ? (Q.m.ok || 0) : 0;
-  return Math.max(q, typeof drillCorrectTodayCount === "function" ? drillCorrectTodayCount() : 0);
-}
 const plural = (t, one, many) => t === 1 ? one : many;
+const GENDER_RUN = 20;
 
 const ACHIEVEMENTS = [
   // ── Vocabulary ──
@@ -131,14 +126,14 @@ const ACHIEVEMENTS = [
     desc:t => `${t.toLocaleString()} correct answers, all time`,
     top:() => vocabWordCount() * 9.5, // simulated: 8.5–11.7 answers take a word to 💎
     value:() => S.totalCorrect || 0 },
-  { id:"daily_grind", icon:"🏋️", name:"Daily Grind", category:"Practice",
-    desc:t => `${t} correct answers in a single day`,
-    top:() => Math.max(60, vocabWordCount() * 9.5 / journeyDays() * 1.15), curve:ACH_EVEN, // a busy plan day
-    value:() => Math.max(S.bestDayCorrect || 0, todayStudyCorrect()) },
-  { id:"combo_master", icon:"⚡", name:"Combo Master", category:"Practice",
-    desc:t => `${t} correct answers in a row`,
-    top:() => 50, curve:ACH_EVEN,
-    value:() => S.bestCombo || 0 },
+  { id:"goal_days", icon:"🏋️", name:"Daily Grind", category:"Practice",
+    desc:t => `Reach your daily goal on ${t} ${plural(t, "day", "days")} (Anki aside)`,
+    top:() => journeyDays() * 0.8,
+    value:() => (S.vocabGoalDates || []).length },
+  { id:"combo_runs", icon:"⚡", name:"Combo Master", category:"Practice",
+    desc:t => `Reach a 🔥${COMBO_RUN} combo ${t} ${plural(t, "time", "times")}`,
+    top:() => journeyDays() * 0.4,
+    value:() => S.comboRuns || 0 },
 
   // ── Quests ──
   { id:"quest_master", icon:"🏁", name:"Quest Master", category:"Quests",
@@ -189,10 +184,10 @@ const ACHIEVEMENTS = [
     desc:t => `Win ${t} ⏱️ Timer ${plural(t, "round", "rounds")} without a single mistake`,
     top:() => journeyDays() * 0.08,
     value:() => S.perfectTimerWins || 0 },
-  { id:"photo_finish", icon:"⏳", name:"Photo Finish", category:"Arcade",
-    desc:t => `Win a ⏱️ Timer round with ${t} seconds to spare`,
-    top:() => 45, curve:ACH_EVEN,
-    value:() => Math.floor(S.bestTimerSecondsLeft || 0) },
+  { id:"spare_time", icon:"⏳", name:"Photo Finish", category:"Arcade",
+    desc:t => `Bank ${t.toLocaleString()} seconds to spare across ⏱️ Timer wins`,
+    top:() => journeyDays() * 0.2 * 20, // ~20 s left on a typical win
+    value:() => Math.floor(S.timerSpareTotal || 0) },
   { id:"boss_slayer", icon:"👾", name:"Boss Slayer", category:"Arcade",
     desc:t => `Defeat ${t} ${plural(t, "boss", "bosses")}`,
     top:() => journeyDays() * 0.35,
@@ -213,10 +208,10 @@ const ACHIEVEMENTS = [
     desc:t => `Collect the gender of ${t.toLocaleString()} nouns`,
     top:() => vocabNounCount() * 0.85,
     value:() => (S.games && S.games.collect && S.games.collect.g) || 0 },
-  { id:"gender_guru", icon:"🎨", name:"Gender Guru", category:"Arcade",
-    desc:t => `Get ${t} genders right in a row`,
-    top:() => 60, curve:ACH_EVEN,
-    value:() => (S.games && S.games.bestGenderStreak) || 0 },
+  { id:"gender_runs", icon:"🎨", name:"Gender Guru", category:"Arcade",
+    desc:t => `Get ${GENDER_RUN} genders right in a row, ${t} ${plural(t, "time", "times")}`,
+    top:() => journeyDays() * 0.15,
+    value:() => (S.games && S.games.genderRuns) || 0 },
 ];
 
 // Paced ladders work their tiers out when first needed (games, grammar
@@ -351,9 +346,6 @@ function checkAchievements(ev = {}) {
   _checkingAchievements = true;
   try {
     migrateAch();
-    // 🏋️ Daily Grind: today's count becomes a record as it grows.
-    const day = todayStudyCorrect();
-    if (day > (S.bestDayCorrect || 0)) S.bestDayCorrect = day;
     const unlocked = [];
     let xpGain = 0;
 
