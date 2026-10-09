@@ -97,7 +97,7 @@ function freshQuestCounters() {
 function questEnsureToday() {
   migrateQuests();
   const Q = S.quests, today = todayISO();
-  if (Q.day === today && Q.list.length) { questSwapUnusedAnki(); questSwapForSpeak(); questMarkKept(); return false; }
+  if (Q.day === today && Q.list.length) { questSwapUnusedAnki(); questSwapForSpeak(); questSwapRetired(); questMarkKept(); return false; }
   // Quests made before the switch to the 4 AM day (00:00–04:00 that one
   // night) belong to the day that's about to start — keep them.
   if (Q.day > today && Q.list.length) return false;
@@ -282,8 +282,8 @@ qt({ id: "a_deck", slot: "A", fam: "deck", icon: "🗂️", w: 1.5, ok: c => c.m
   target: (c, q) => Math.min(sz(c, 0.25, 8, 40), (c.metDecks.find(d => d.id === q.p.deck) || { met: 10 }).met * 2),
   title: q => `${q.target} correct from ${deckName(q.p.deck)}`, prog: (m, q) => m.decks[q.p.deck] || 0,
   go: q => `focus:deck:${q.p.deck}` });
-qt({ id: "a_timer2", slot: "A", fam: "timer", icon: "⏱", w: 1.5, ok: c => c.scan.met >= 25, target: () => 2,
-  title: () => `Beat a 25-word Timer twice`, prog: m => (m.timerWins[25] || 0) + (m.timerWins[50] || 0), go: "timer:25" });
+qt({ id: "a_timer2", slot: "A", fam: "timer", icon: "⏱", w: 1.5, spell: true, ok: c => gameOk(c, "timer"), target: () => 2,
+  title: () => `Win 2 ⏱️ Timer rounds`, prog: m => (m.timerG || 0) + Object.values(m.timerWins).reduce((a, b) => a + b, 0), go: "game:timer" });
 qt({ id: "a_cloze", slot: "A", fam: "sentence", icon: "📝", w: 1.5, ok: c => c.clozeable >= 15, target: c => sz(c, 0.15, 6, 25),
   title: q => `${q.target} sentence answers (${sayOr("type the word into its sentence", "say the missing word")})`, prog: m => m.cloze, go: "focus:cloze" });
 qt({ id: "a_reverse", slot: "A", fam: "reverse", icon: "🔁", w: 1, ok: c => c.scan.known >= 15, target: c => sz(c, 0.1, 6, 20),
@@ -388,6 +388,11 @@ qt({ id: "b_anki", slot: "B", fam: "anki", icon: "🃏", w: 1.5, ok: c => c.anki
 
 // C · ARCADE — games (≤ 30% of the day)
 const gameOk = (c, id) => c.games.includes(id);
+// A twist comes at random (unless switched off) or is added on the start
+// card, which shows once a game has a rank above Bronze.
+function twistsReachable() {
+  return S.games.twists !== false || Object.values(S.games.rank || {}).some(r => r > 0);
+}
 qt({ id: "c_games", slot: "C", fam: "games", icon: "🎮", w: 3, ok: c => c.games.length >= 2, target: c => sz(c, 0.25, Math.max(3, Math.floor(c.G * 0.3)), 40),
   title: q => `${q.target} correct answers in games`, prog: m => m.game, go: "hub" });
 qt({ id: "c_stars", slot: "C", fam: "stars", icon: "⭐", w: 2.5, ok: c => c.games.length >= 1,
@@ -434,7 +439,7 @@ qt({ id: "c_mix", slot: "C", fam: "variety", icon: "🕹️", w: 1, ok: c => c.g
 qt({ id: "c_best", slot: "C", fam: "best", icon: "🏆", w: 1.2, ok: c => c.games.some(id => S.games.best[id] !== undefined),
   params: (c, rng) => ({ g: pickFrom(c.games.filter(id => S.games.best[id] !== undefined), rng) }), target: () => 1,
   title: q => `Beat your personal best in ${gameLabel(q.p.g)}`, prog: (m, q) => m.bests[q.p.g] ? 1 : 0, go: q => `game:${q.p.g}` });
-qt({ id: "c_twist", slot: "C", fam: "twist", icon: "🌀", w: 1.2, ok: c => c.games.length >= 2, target: () => 1,
+qt({ id: "c_twist", slot: "C", fam: "twist", icon: "🌀", w: 1.2, ok: c => c.games.length >= 2 && twistsReachable(), target: () => 1,
   title: () => `Win a round with a twist`, sub: () => "twists pop up at random — or turn one on in the hub", prog: m => m.twistWins, go: "hub" });
 qt({ id: "c_gold", slot: "C", fam: "gold", icon: "🌟", w: 1, target: () => 3,
   title: q => `Hit ${q.target} golden words`, sub: () => "they shimmer — in sessions and in games", prog: m => m.gold, go: "hub" });
@@ -454,7 +459,7 @@ qt({ id: "c_bossclean", slot: "C", fam: "boss", icon: "🛡️", w: 1, ok: c => 
   title: () => `Win any boss battle without losing a heart`, prog: m => m.bossPerfect, go: "game:boss" });
 // 2, not 3: a Long session offers 3 bonus rounds (one may be a minion),
 // so a single Long session can still finish it with one miss or skip.
-qt({ id: "c_bonus", slot: "C", fam: "bonus", icon: "🎁", w: 1, ok: c => c.G >= 50, target: () => 2,
+qt({ id: "c_bonus", slot: "C", fam: "bonus", icon: "🎁", w: 1, ok: c => c.G >= 50 && !grandmaOn(), target: () => 2,
   title: q => `Clear ${q.target} bonus rounds inside Today sessions`, prog: m => m.bonusCleared, go: "path:long" });
 qt({ id: "c_blitz", slot: "C", fam: "score", icon: "⚡", w: 1, ok: c => gameOk(c, "blitz"), target: () => 300,
   title: q => `Blitz: ${q.target} points in one round`, prog: m => m.blitzPts, go: "game:blitz" });
@@ -513,7 +518,7 @@ qt({ id: "d_leastgame", slot: "D", fam: "variety", icon: "🆕", w: 1.2, ok: c =
   params: (c, rng) => { const plays = S.games.plays || {}; const sorted = c.games.slice().sort((a, b) => (plays[a] || 0) - (plays[b] || 0));
     return { g: sorted[Math.floor(rng() * Math.min(2, sorted.length))] }; },
   target: () => 1, title: q => `Try the game you've played least: ${gameLabel(q.p.g)}`, prog: (m, q) => ((m.games[q.p.g] || {}).plays || 0), go: q => `game:${q.p.g}` });
-qt({ id: "d_retro", slot: "D", fam: "twist", icon: "📼", w: 0.8, ok: c => c.games.length >= 2, target: () => 1,
+qt({ id: "d_retro", slot: "D", fam: "twist", icon: "📼", w: 0.8, ok: c => c.games.length >= 2 && twistsReachable(), target: () => 1,
   title: () => `Retro: 3★ at 🥉 Bronze with a twist on`, sub: () => "pick Bronze and a twist in the game's menu", prog: m => m.retro, go: "hub" });
 qt({ id: "d_ear", slot: "D", fam: "ear", icon: "👂", w: 1, audio: "ear", target: () => 20,
   title: q => `Listening: ${q.target} words by ear`, altTitle: q => `or ${Math.round(q.target * 1.5)} ${sayOr("typed answers", "words recalled")}`,
@@ -532,12 +537,14 @@ qt({ id: "d_earlygrowth", slot: "D", fam: "time", icon: "🌤️", w: 1, ok: c =
 qt({ id: "d_spree", slot: "D", fam: "up", icon: "🎉", w: 1.2, ok: c => c.scan.due >= 10, target: () => 5,
   title: q => `Level-up spree: ${q.target} words up a stage in one session`, prog: m => Math.max(0, ...m.sessions.map(s => s.up || 0)), go: "path" });
 qt({ id: "d_bigrun", slot: "D", fam: "run", icon: "🌊", w: 1, ok: c => c.G >= 100, target: () => 25,
-  title: q => `Drill streak: ${q.target} correct in a row (Today or Drill)`, prog: m => m.bestRun, go: "path" });
-qt({ id: "d_timer50", slot: "D", fam: "timer", icon: "⏳", w: 1, ok: c => c.scan.met >= 60 && c.G >= 100, target: () => 1,
-  title: () => `Beat a 50-word Timer`, prog: m => m.timerWins[50] || 0, go: "timer:50" });
+  title: q => `Big streak: ${q.target} correct in a row`, prog: m => m.bestRun, go: "path" });
+qt({ id: "d_timer50", slot: "D", fam: "timer", icon: "⏳", w: 1, spell: true, ok: c => gameOk(c, "timer") && c.G >= 50, target: () => 1,
+  title: () => `A flawless ⏱️ Timer round: win with no mistakes`, prog: m => (m.timerClean || 0) + (m.timerWins[50] || 0), go: "game:timer" });
 qt({ id: "d_ankiwild", slot: "D", fam: "anki", icon: "🃏", w: 1, ok: c => c.ankiOwed >= 5, target: () => 1,
   title: () => `Clear your Anki cards before 18:00`, prog: m => m.ankiDone && new Date().getHours() < 18 ? 1 : (m.ankiDoneBefore18 || 0), go: "anki" });
-qt({ id: "d_quickfive", slot: "D", fam: "sessions", icon: "5️⃣", w: 0.8, ok: c => c.scan.due >= 5, target: () => 3,
+// Retired: Quick Five has no button any more. Kept so old saves still
+// read; an open one is swapped for free (questSwapRetired).
+qt({ id: "d_quickfive", slot: "D", fam: "sessions", icon: "5️⃣", w: 0.8, retired: true, ok: () => false, target: () => 3,
   title: q => `Snack-sized: ${q.target} Quick Fives across the day`, prog: m => m.sessions.filter(s => s.quick && !s.ab).length, go: "quick5" });
 
 // ── GENERATOR ─────────────────────────────────
@@ -654,17 +661,18 @@ function questSwapUnusedAnki() {
   });
   if (changed) { logEvent("quest_swap", { why: "anki_unused" }); questRecompute(true); saveLocalOnly(); }
 }
-// "Speak, don't spell" switched on: open spelling quests (accents,
-// Scramble, Type Rush) are swapped for free.
-function questSwapForSpeak() {
+// Open quests that can't be done any more are swapped for free: a
+// retired template (Quick Five), or a spelling quest (accents, Scramble,
+// Type Rush, Timer) once "Speak, don't spell" is on.
+// local: at start-up, save on this device only (see recordLogin).
+function questSwapWhere(bad, why, local = false) {
   const Q = S.quests;
-  if (!Q || !Q.list.length || !speakOn()) return;
-  const bad = id => { const t = byId(id); return !!(t && t.spell); };
+  if (!Q || !Q.list.length) return;
   let changed = false;
   Q.list.forEach((q, i) => {
     if (q.done || !(bad(q.tpl) || (q.hidden && bad(q.hidden.tpl)))) return;
     const ctx = questContext();
-    const rng = seededRandom(hashString(Q.day + "|speak|" + i));
+    const rng = seededRandom(hashString(Q.day + "|" + why + "|" + i));
     const used = new Set(Q.list.map(x => x.tpl));
     const fams = new Set(Q.list.filter((x, k) => k !== i).map(x => (byId(x.tpl) || {}).fam));
     const pick = weightedPick(questCandidates(q.slot, ctx, used, fams).filter(x => !x.t.audio && x.t.id !== "d_mystery"), rng);
@@ -672,7 +680,14 @@ function questSwapForSpeak() {
     changed = true;
   });
   if (Q.weekend && !Q.weekend.done && bad(Q.weekend.tpl)) { Q.weekend = null; changed = true; }
-  if (changed) { logEvent("quest_swap", { why: "speak" }); questRecompute(true); saveState(); }
+  if (changed) { logEvent("quest_swap", { why }); questRecompute(true); if (local) saveLocalOnly(); else saveState(); }
+}
+function questSwapForSpeak() {
+  if (!speakOn()) return;
+  questSwapWhere(id => { const t = byId(id); return !!(t && t.spell); }, "speak");
+}
+function questSwapRetired() {
+  questSwapWhere(id => { const t = byId(id); return !!(t && t.retired); }, "retired", true);
 }
 // Replace one quest (reroll, or free 🔇 swap for sound quests).
 function questReroll(idx, free = false) {
@@ -943,6 +958,7 @@ function questOnGame(m, d) {
   if (d.id === "rain" && x.lostHearts === 0 && (r.correct || 0) >= 10) m.rainClean++;
   if (d.id === "scramble") m.scrambleNoHint += x.noHint || 0;
   if (d.id === "typerush") m.typeRushNoHint += x.noHint || 0;
+  if (d.id === "timer" && d.size === "full" && r.won) { m.timerG = (m.timerG || 0) + 1; if (!r.wrong) m.timerClean = (m.timerClean || 0) + 1; }
   if (d.id === "truefalse") m.tfRun = Math.max(m.tfRun, r.maxCombo || 0);
   if (d.id === "cloze") m.clozeNoPeek += x.noPeek || 0;
   if (d.id === "listen") { m.listenNoReplay += x.noReplay || 0; m.ear += r.correct || 0; }
