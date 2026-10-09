@@ -454,7 +454,7 @@ function renderBadgesScreen() {
       <div class="screen-label">Achievements · ${earnedLevels}/${totalLevels} levels</div>
       ${backBtnHtml()}
     </div>
-    <div class="badge-pace">🏔️ Every ladder is paced to max out at B1 — ${fmtShortDate(journeyEnd())}${S.path && S.path.deadline ? " (your finish date)" : " (about 9 months in; set a finish date in 🎯 Study plan to pace them to it)"}. 💎 Locked In and 🧗 Climber end with your last 💎, a few weeks of reviews after that.</div>
+    <div class="badge-pace">🏔️ Every ladder is paced to max out at B1 — ${fmtShortDate(journeyEnd())}${S.path && S.path.deadline ? " (your finish date)" : " (about 9 months in; set a finish date in 🎯 Study plan to pace them to it)"}</div>
     ${sections}
     <div class="badge-category">
       <div class="stats-section-title">Secret</div>
