@@ -45,7 +45,10 @@ function journeyEnd() {
 }
 // Days from your first day to B1 (never under 90, so a date set late
 // in the journey can't shrink the ladders to nothing).
-function journeyDays() { return Math.max(90, daysBetween(journeyStart(), journeyEnd())); }
+function journeyDays() {
+  const d = daysBetween(journeyStart(), journeyEnd());
+  return Number.isFinite(d) ? Math.max(90, d) : JOURNEY_DEFAULT_DAYS; // a malformed date: the default
+}
 function journeyWeeks() { return journeyDays() / 7; }
 function vocabGroupsOnly() { return ALL_GROUPS.filter(g => g.type !== "anki"); }
 function vocabWordCount() {
@@ -102,11 +105,11 @@ const ACHIEVEMENTS = [
     value:() => countLockedIn() },
   { id:"comeback", icon:"🎢", name:"Comeback Kid", category:"Vocabulary",
     desc:t => `Get ${t} ${plural(t, "word", "words")} you missed 3+ times to 🌳 Known`,
-    top:() => vocabWordCount() * 0.03,
+    top:() => vocabWordCount() * 0.05, // simulated: ~200 at 92% right
     value:() => { let n = 0; forEachVocabWord(ws => { if (ws && (ws.wrong || 0) >= 3 && isMastered(ws) && !skipUnearned(ws)) n++; }); return n; } },
   { id:"healer", icon:"🩹", name:"Healer", category:"Vocabulary",
     desc:t => `Repair ${t} slipped ${plural(t, "word", "words")}`,
-    top:() => vocabWordCount() * 0.08,
+    top:() => vocabWordCount() * 0.2, // simulated: ~800 repairs at 92% right
     value:() => S.repairedTotal || 0 },
 
   // ── Today ──
@@ -126,11 +129,11 @@ const ACHIEVEMENTS = [
   // ── Practice ──
   { id:"scholar", icon:"📚", name:"Scholar", category:"Practice",
     desc:t => `${t.toLocaleString()} correct answers, all time`,
-    top:() => vocabWordCount() * 9, // ~9 answers take a word from new to 💎
+    top:() => vocabWordCount() * 9.5, // simulated: 8.5–11.7 answers take a word to 💎
     value:() => S.totalCorrect || 0 },
   { id:"daily_grind", icon:"🏋️", name:"Daily Grind", category:"Practice",
     desc:t => `${t} correct answers in a single day`,
-    top:() => Math.max(60, niceTier(vocabWordCount() * 9 / journeyDays() * 1.6)), curve:ACH_EVEN,
+    top:() => Math.max(60, vocabWordCount() * 9.5 / journeyDays() * 1.15), curve:ACH_EVEN, // a busy plan day
     value:() => Math.max(S.bestDayCorrect || 0, todayStudyCorrect()) },
   { id:"combo_master", icon:"⚡", name:"Combo Master", category:"Practice",
     desc:t => `${t} correct answers in a row`,
@@ -459,7 +462,7 @@ function renderBadgesScreen() {
       <div class="screen-label">Achievements · ${earnedLevels}/${totalLevels} levels</div>
       ${backBtnHtml()}
     </div>
-    <div class="badge-pace">🏔️ Every ladder is paced to max out at B1 — ${fmtShortDate(journeyEnd())}${S.path && S.path.deadline ? " (your finish date)" : " (about 9 months in; set a finish date in 🎯 Study plan to pace them to it)"}</div>
+    <div class="badge-pace">🏔️ Every ladder is paced to max out at B1 — ${fmtShortDate(journeyEnd())}${S.path && S.path.deadline ? " (your finish date)" : " (about 9 months in; set a finish date in 🎯 Study plan to pace them to it)"}. 💎 Locked In and 🧗 Climber end with your last 💎, a few weeks of reviews after that.</div>
     ${sections}
     <div class="badge-category">
       <div class="stats-section-title">Secret</div>

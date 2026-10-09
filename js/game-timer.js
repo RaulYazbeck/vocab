@@ -68,14 +68,14 @@ registerGame({
     const promptEl = document.getElementById("tm-prompt"), leftEl = document.getElementById("tm-left"), fbEl = document.getElementById("tm-fb");
     const target = w => gameForm(w);
 
-    const end = won => {
+    const end = (won, why = "⏰ Time's up") => {
       if (over) return;
       over = true;
       const secondsLeft = won ? Math.max(0, Math.floor((limit - ctx.clock.elapsed()) / 1000)) : 0;
       if (won) score += 100 + secondsLeft * 5;
       ctx.finish({ score, correct, wrong, maxCombo, typedCorrect: correct, won, secondsLeft,
         cleared: ctx.size === "bonus" ? correct >= bonusGoal("timer") : won,
-        note: won ? `⏱️ Won with ${secondsLeft} s to spare` : "⏰ Time's up" });
+        note: won ? `⏱️ Won with ${secondsLeft} s to spare` : why });
     };
     const next = () => {
       if (ctx.finished) return;
@@ -131,7 +131,7 @@ registerGame({
         ctx.say(`It was ${target(cur)}`);
         ctx.teach(wordLessonHtml(cur), "bad");
         ctx.setScore(score); ctx.setCombo(combo);
-        ctx.waitContinue(ctx.sudden ? () => end(false) : next, ctx.sudden ? "See results" : "Continue");
+        ctx.waitContinue(ctx.sudden ? () => end(false, "💀 Sudden death — one miss ends the round") : next, ctx.sudden ? "See results" : "Continue");
       }
     };
 
