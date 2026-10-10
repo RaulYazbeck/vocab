@@ -709,6 +709,7 @@ function settingsMenuHtml() {
     <div class="menu-list">
       ${menuRowHtml("🎮", "Games", "", "menuGo('games')")}
       ${menuRowHtml("🗺️", "Journey", `${scan.known.toLocaleString()} / ${scan.total.toLocaleString()} known`, "menuGo('journey')")}
+      ${typeof vxAvailable === "function" && vxAvailable() ? menuRowHtml("📐", "Grammar", vxOn() ? `${VX_UNITS.filter(u => vxUnitOpen(u.id)).length} / 10 tenses` : `<span class="accent">new</span>`, "menuGo('grammar')") : ""}
       ${menuRowHtml("⚔️", "Bosses", `${beaten} / ${decks} beaten`, "menuGo('bosses')")}
       ${menuRowHtml("🎨", "Collection", chests ? `<span class="accent">🎁 ${chests} to open</span>` : "", "menuGo('collection')")}
       ${menuRowHtml("📊", "Stats", "", "menuGo('stats')")}
@@ -760,6 +761,7 @@ function settingsPlanHtml() {
     ${setChoiceHtml("🎯", "Daily goal", `Right answers a day — your 4 quests add up to it, and ${Math.round(KEEP_GOAL_SHARE * 100)}% of it keeps your 🔥 streak.`,
       GOAL_OPTIONS.map(n => ({ label: n, on: goal === n, onclick: `setDailyGoal(${n})` })),
       plan ? `Auto · ${plan.goal} today — set by your finish date` : "")}
+    ${typeof vxAvailable === "function" && vxAvailable() ? setNavHtml("📐", "Verbs & tenses", vxOn() ? "The verb track: tenses in order, sheets, the ledger" : "The new verb system — see what it changes", "closeSettings();showScreen('grammar')") : ""}
     <div class="set-group-title">Can't be undone</div>
     ${sk ? setNavHtml("⏭️", `Skip ${escapeHtml(sk.name)}`, `Already know ${escapeHtml(sk.name)}? Its ${sk.lift} word${sk.lift === 1 ? "" : "s"} below ⭐ Strong become Strong and you move straight on to ${escapeHtml(sk.next || "the next level")}.`, "confirmSkipLevel()")
       : setNavHtml("⏭️", "Skip a level", "Nothing left to skip — every level is ⭐ Strong or better.", "")}`;
@@ -932,6 +934,7 @@ function renderHome() {
         <button class="tc-quiet ${quiet ? "on" : ""}" onclick="toggleQuiet()" aria-pressed="${quiet}" aria-label="${quiet ? "Muted until tomorrow — tap to unmute" : "Mute until tomorrow"}" title="${quiet ? "Muted until tomorrow — tap to unmute" : "Mute everything until tomorrow"}">${quiet ? "🔇" : "🔈"}</button>
       </div>
       ${note}
+      ${typeof vxTodayHtml === "function" ? vxTodayHtml() : ""}
       <div class="tc-len" role="radiogroup" aria-label="Session length">
         ${Object.entries(PATH.SESSION_LENGTHS).map(([k, n]) => `<button class="tc-len-btn ${k === len ? "on" : ""}" role="radio" aria-checked="${k === len}" onclick="setSessionLen('${k}')">${k[0].toUpperCase() + k.slice(1)} <small>${n}</small></button>`).join("")}
       </div>
@@ -1077,6 +1080,7 @@ function renderJourney() {
     ${levels}
     ${stageGuideHtml()}
     <div class="journey-links">
+      ${typeof vxAvailable === "function" && vxAvailable() ? `<button class="g-sec-btn" onclick="showScreen('grammar')">📐 Grammar</button>` : ""}
       <button class="g-sec-btn" onclick="renderCollection()">🎨 Collection</button>
       <button class="g-sec-btn" onclick="renderBestiary('journey')">⚔️ Bosses</button>
       <button class="g-sec-btn" onclick="showScreen('badges')">🏆 Achievements</button>

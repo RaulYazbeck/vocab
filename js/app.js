@@ -34,6 +34,7 @@ function showScreen(name, from) {
   else if (name === "forecast") renderAnkiForecast();
   else if (name === "games")    openGamesHub(null);
   else if (name === "bosses")   renderBestiary("menu");
+  else if (name === "grammar" && typeof renderGrammar === "function") renderGrammar();
 }
 // The header title: back to Today from anywhere. A Today session with
 // answers, or a game in play, asks first; on Today it scrolls to the top.

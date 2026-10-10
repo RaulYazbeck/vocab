@@ -239,7 +239,7 @@ function buildLearningReport() {
   // (counts added, the higher stage kept).
   const byForm = new Map();
   Object.entries(S.words || {}).forEach(([k, ws]) => {
-    if (!ws || !(ws.st || ws.correct || ws.wrong || ws.mx || ws.sf)) return;
+    if (!ws || ws.rt || !(ws.st || ws.correct || ws.wrong || ws.mx || ws.sf)) return; // rt: a retired card's mirror (verb-track.js)
     const w = _learnWord(k);
     if (!w || w.anki) return;
     const f = form(w), prev = byForm.get(f);
@@ -384,6 +384,8 @@ function buildLearningReport() {
     cardMiss.forEach(x => { const it = conjItem(x.w); L(`${conjJoin(it.pron.split("/")[0], it.ans)} (${x.w.en}) · ${wrote(x.ws) || "—"}`); });
   }
 
+  if (typeof vxLearnLines === "function") L(...vxLearnLines());
+
   // Cases & plurals
   const cs = (S.games && S.games.cases) || {};
   const csl = Object.entries(cs).filter(([, a]) => a && a[1]);
@@ -435,6 +437,7 @@ function buildLearningReport() {
     words: words.filter(x => x.ws.mx || x.ws.sf || (x.ws.wrong || 0) + (x.ws.g ? x.ws.g[1] : 0) >= 3).map(x => [form(x.w), x.ws.st || 0,
       (x.ws.correct || 0) + (x.ws.g ? x.ws.g[0] : 0), (x.ws.wrong || 0) + (x.ws.g ? x.ws.g[1] : 0), x.ws.mx || {}, x.ws.sf || {}, (x.ws.mh || []).map(h => [h[0], h[2], h[3]])]),
     verbs: S.learn.verbs, cases: cs,
+    verbTrack: typeof vxOn === "function" && vxOn() ? { on: S.verb.on, units: S.verb.tu, sheets: S.verb.sh, ledger: vxLedger().levels } : null,
   };
   return lines.join("\n") + "\n\n--- JSON ---\n" + JSON.stringify(json);
 }

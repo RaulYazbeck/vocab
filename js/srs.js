@@ -243,6 +243,8 @@ function applyCorrect(ws, opts = {}) {
   ws.lastAnsweredAt = Date.now();
   ws.correct++; ws.streak++; ws.displayStreak++;
   S.totalCorrect++;
+  // A conjugation card typed right fills its verb's cell in the ledger.
+  if (opts.w && (opts.kind || "recall") === "recall" && typeof vxCardRight === "function") vxCardRight(opts.w);
   const res = srsReview(ws, true, opts.kind || "recall", Date.now(), { ms: opts.ms });
   res._w = opts.w || null;
   celebrateReview(res, opts.quiet);

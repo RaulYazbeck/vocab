@@ -124,6 +124,7 @@ function migrate() {
   migrateGames();
   migratePath();
   if (typeof migrateQuests === "function") migrateQuests();
+  if (typeof migrateVerb === "function") migrateVerb(); // the verb track (German)
   if (typeof migrateUsage === "function") migrateUsage();
   // Re-apply user word-text overrides after every state load — migrate()
   // runs both at startup and after a cloud sync replaces S.

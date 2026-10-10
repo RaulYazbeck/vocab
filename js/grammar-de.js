@@ -583,6 +583,17 @@ function verbCell(F, tense, person) {
 // All accepted spellings of a cell.
 function verbCellAnswers(c) { return c ? [c.ans, ...c.alts] : []; }
 
+// Does the verb change its stem in the Präsens (du fährst, er nimmt)?
+// Compared with the regular form, so a glue e (er arbeitet) or a
+// dropped s (du heißt) is never mistaken for a vowel change.
+function verbStemChanges(F) {
+  if (!F || !F.pr || !F.pr.er || !F.pr.wir) return false;
+  const base = String(F.pr.wir);
+  const eln = /eln$/.test(base), ern = /ern$/.test(base) && !eln;
+  const st = eln || ern ? base.slice(0, -1) : base.replace(/(en|n)$/, "");
+  const er = st + (eln || ern ? "t" : needsE(st) ? "et" : "t");
+  return F.pr.er !== er && lastVowel(F.pr.er) !== lastVowel(st);
+}
 // A short "why" for a verb form, as HTML.
 function verbRuleHtml(F, tense, person) {
   if (!F) return "";
@@ -591,7 +602,7 @@ function verbRuleHtml(F, tense, person) {
     if (["sein", "haben", "werden", "wissen"].includes(b) && !F.insep && !F.sep) return `📏 <strong>${inf}</strong> is irregular in the present — learn the row by heart.`;
     if (MODAL_BASES.includes(b)) return "📏 Modal verbs: <strong>ich</strong> and <strong>er</strong> are the same, with no ending (ich kann, er kann).";
     const stemV = lastVowel(F.pr.wir.replace(/(en|n)$/, "")), erV = lastVowel(F.pr.er.replace(/t$/, ""));
-    if (stemV && erV && stemV !== erV) return `📏 Stem change in <strong>du</strong> and <strong>er/sie/es</strong> only (${stemV} → ${erV}): du ${F.pr.du}, er ${F.pr.er} — but wir ${F.pr.wir}.`;
+    if (stemV && erV && verbStemChanges(F)) return `📏 Stem change in <strong>du</strong> and <strong>er/sie/es</strong> only (${stemV} → ${erV}): du ${F.pr.du}, er ${F.pr.er} — but wir ${F.pr.wir}.`;
     if (F.sep) return `📏 Separable verb: the prefix <strong>${F.sep}-</strong> jumps to the end of the clause.`;
     if (/est$|et$/.test(F.pr.du + F.pr.er) && needsE(F.pr.wir.replace(/en$/, ""))) return "📏 Stem ends in -t/-d (or -m/-n after a consonant): add an <strong>e</strong> — du arbeitest, er öffnet.";
     return "📏 Present endings: ich -e · du -st · er -t · wir -en · ihr -t · sie -en.";
@@ -638,7 +649,11 @@ function verbBank() {
   if (_verbBank) return _verbBank;
   const groups = (typeof ALL_GROUPS !== "undefined" ? ALL_GROUPS : []).filter(g => g.type !== "anki");
   const ev = new Map();
-  const get = inf => { if (!ev.has(inf)) ev.set(inf, { inf, words: [], cards: [] }); return ev.get(inf); };
+  const get = inf => { if (!ev.has(inf)) ev.set(inf, { inf, words: [], cards: [], refs: [] }); return ev.get(inf); };
+  // refs: the grammar-deck cards that ask one of this verb's forms
+  // ({ deckId, idx, tense: "pr"|"pt"|"fu"|"pq"|"p2", person }) — the
+  // verb track (verb-track.js) uses them to know which card covers what.
+  const ref = (e, d, i, tense, person) => e.refs.push({ deckId: d.id, idx: i, tense, person: person || "" });
   const enToInf = new Map();
   const GRAMMAR_DECK = /conj|praet|futur|plusq|p2|partizip|konjunktiv|passiv/;
   const personOf = (pron, fin) => {
@@ -657,6 +672,7 @@ function verbBank() {
       e.words.push({ w, deckId: d.id, idx: i, level: g.id });
       if (!e.en) e.en = en;
       enToInf.set(g.id + "|" + en, de);
+      if (!enToInf.has("*|" + en)) enToInf.set("*|" + en, de); // any level (A2's Partizip II deck repeats A1 verbs)
       const m = hint.match(/^([a-zäöüß]+(?:\s+sich)?(?:\s+[a-zäöü]+)?)\s*·\s*(hat|ist)\s+(?:sich\s+)?([a-zäöüß]+)/);
       if (m) {
         const pp = m[1].split(/\s+/).filter(x => x !== "sich");
@@ -668,27 +684,31 @@ function verbBank() {
   }));
   groups.forEach(g => g.decks.forEach(d => {
     if (!GRAMMAR_DECK.test(d.id)) return;
-    d.words.forEach(w => {
+    d.words.forEach((w, i) => {
       const de = String(w.de || "").trim(), hint = String(w.hint || ""), en = String(w.en || "");
       let m;
       if (/p2|partizip/.test(d.id)) {
         if ((m = en.match(/^(sich\s+)?([a-zäöüß]+)\s+\(Partizip II\)\s+—\s+er\s+(hat|ist)\s+___/))) {
-          const e = get((m[1] || "") + m[2]); e.p2 = de.replace(/^sich\s+/, ""); e.aux = m[3] === "ist" ? "sein" : "haben";
+          const e = get((m[1] || "") + m[2]); e.p2 = de.replace(/^sich\s+/, ""); e.aux = m[3] === "ist" ? "sein" : "haben"; ref(e, d, i, "p2");
           const pt = hint.match(/^Präteritum\s+([a-zäöüß]+)((?:\s+[a-zäöü]+)?)/); if (pt) { e.pt3 = pt[1]; if (pt[2].trim()) e.sep = true; }
         } else if ((m = hint.match(/^Partizip II — (?:takes )?(haben|sein)(?!\s*·)/))) {
-          const inf = enToInf.get(g.id + "|" + en);
-          if (inf) { const e = get(inf); e.p2 = de.replace(/^sich\s+/, ""); e.aux = m[1]; }
+          // By its meaning (this level, then any level), else by the participle itself.
+          const inf = enToInf.get(g.id + "|" + en) || enToInf.get("*|" + en) || (ev.has(verbP2Index().get(de)) ? verbP2Index().get(de) : null);
+          if (inf) { const e = get(inf); e.p2 = de.replace(/^sich\s+/, ""); e.aux = m[1]; ref(e, d, i, "p2"); }
         }
         return;
       }
       if ((m = en.match(/^(sich\s+)?([a-zäöüß]+)(?:\s+\((Präteritum)\))?\s+—\s+(ich|du|er\/sie\/es|wir|ihr|sie\/Sie)\s+___/))) {
-        const inf = (m[1] || "") + m[2];
-        get(inf).cards.push({ tense: m[3] ? "pt" : "pr", person: personOf(m[4]), ans: de.split(/\s+/)[0], full: de });
-      } else if ((m = de.match(/^(ich|du|er|sie|wir|ihr)\s+(werde|wirst|wird|werden|werdet)\s+([a-zäöüß]+)$/))) {
-        get(m[3]).cards.push({ tense: "fu", person: personOf(m[1], m[2]), ans: `${m[2]} ${m[3]}` });
+        const inf = (m[1] || "") + m[2], e = get(inf), tense = m[3] ? "pt" : "pr", person = personOf(m[4]);
+        e.cards.push({ tense, person, ans: de.split(/\s+/)[0], full: de });
+        ref(e, d, i, tense, person);
+      } else if ((m = de.match(/^(ich|du|er|sie|es|wir|ihr)\s+(werde|wirst|wird|werden|werdet)\s+([a-zäöüß]+(?:en|ern|eln))$/))) {
+        const e = get(m[3]), person = personOf(m[1] === "es" ? "er" : m[1], m[2]);
+        e.cards.push({ tense: "fu", person, ans: `${m[2]} ${m[3]}` });
+        ref(e, d, i, "fu", person);
       } else if ((m = de.match(/^(ich|du|er|sie|wir|ihr)\s+(hatte|hattest|hatten|hattet|war|warst|waren|wart)\s+([a-zäöüß]+)$/))) {
         const inf = verbP2Index().get(m[3]);
-        if (inf) get(inf).cards.push({ tense: "pq", person: personOf(m[1], m[2]), ans: `${m[2]} ${m[3]}` });
+        if (inf) { const e = get(inf), person = personOf(m[1], m[2]); e.cards.push({ tense: "pq", person, ans: `${m[2]} ${m[3]}` }); ref(e, d, i, "pq", person); }
       }
     });
   }));
@@ -740,7 +760,10 @@ function verbBank() {
     const tenses = TENSES.map(t => t.id).filter(t => !tenseBad.has(t) && verbCell(F, t, t === "im" ? "du" : "er"));
     if (!tenses.length) { report.dropped.push(e.inf + " (no tense)"); return; }
     const src = e.words[0] || null;
-    verbs.push({ inf: e.inf, F, tenses, word: src ? { ...src.w, deckId: src.deckId, idx: src.idx } : null, level: src ? src.level : "", en: e.en || "", cards: e.cards.length });
+    verbs.push({ inf: e.inf, F, tenses, word: src ? { ...src.w, deckId: src.deckId, idx: src.idx } : null, level: src ? src.level : "", en: e.en || "", cards: e.cards.length,
+      // Every deck card of the verb itself (the same verb can sit in two
+      // decks) and the grammar cards asking its forms.
+      words: e.words.map(x => ({ ...x.w, deckId: x.deckId, idx: x.idx })), refs: e.refs });
   });
   report.verbs = verbs.length;
   _verbBank = { verbs, byInf: new Map(verbs.map(v => [v.inf, v])), report };

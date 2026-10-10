@@ -101,6 +101,8 @@ function bindPathKeys() {
     // Any open sheet (word editor, confirm, chest…) owns the keyboard.
     if (document.querySelector(".modal-overlay") || document.getElementById("settings-panel").style.display === "block") return;
     if (e.key === "Escape") { e.preventDefault(); pathQuit(); return; }
+    // A 📖 lesson: the sheet viewer has its own keys (grammar-ui.js).
+    if (it.t === "sheet") { if (typeof gsKey === "function") gsKey(e); return; }
     if (it.t === "repairOffer") {
       // Guarded: the Enter that pressed the last Next must not also start it.
       // A focused button (Later / Repair now) handles its own Enter.
@@ -148,7 +150,7 @@ function pathProgress() {
   // grows. Mistakes wait for the repair round at the end, which has its
   // own count (🩹 x/N).
   const rep = !!s.repairPhase;
-  const q = x => x.t !== "bonus" && x.t !== "learn" && !x.warm && !!x.repair === rep;
+  const q = x => x.t !== "bonus" && x.t !== "learn" && x.t !== "sheet" && !x.warm && !!x.repair === rep;
   const total = s.items.filter(q).length;
   const done = s.items.slice(0, s.i).filter(q).length;
   const f = document.getElementById("p-prog");
@@ -193,7 +195,8 @@ function pathNext() {
   const card = document.getElementById("p-card");
   if (card) { card.classList.remove("p-swap"); void card.offsetWidth; card.classList.add("p-swap"); card.classList.toggle("golden", !!it.golden); }
   switch (it.t) {
-    case "learn": return renderPathLearn(it);
+    case "sheet": return renderPathSheet(it);
+    case "learn": return it.w && it.w.vx ? renderPathVerbLearn(it) : renderPathLearn(it);
     case "choice": case "listen": return renderPathChoice(it);
     case "bonus": return renderPathBonusOffer(it);
     default: return renderPathTyped(it);
@@ -319,6 +322,7 @@ function pathKickerHtml(it, ws) {
 // Typed recall: plain, spot check, sentence (cloze) or reversed.
 // With "Speak, don't spell" on, the same items are Say-it cards.
 function renderPathTyped(it) {
+  if (it.w && it.w.vx) return renderPathVerb(it); // a verb exercise (grammar-ui.js)
   if (speakOn()) return renderPathSay(it);
   const s = pathSession, w = it.w, ws = getWS(w.deckId, w.idx);
   s.typedSeen++;
@@ -482,6 +486,7 @@ function pathCheckTyped() {
   const val = input ? input.value : "";
   if (!val.trim()) { shakeEl(input); if (input) input.focus({ preventScroll: true }); return; }
   const it = s.cur, w = it.w;
+  if (w && w.vx) return pathCheckVerb();
   if (it.t === "cloze") {
     const ans = it.cloze.answer;
     if (normalize(val) === normalize(ans) || isCorrect(val, ans)) return pathGradeTyped(val, true);
@@ -1020,7 +1025,7 @@ function endPathSession(abandoned) {
   stopPathVoice();
   const moves = s.moves ? [...s.moves.values()] : [];
   logEvent("session_end", { kind: s.quick ? "quick5" : "path", abandoned, n: s.stats.answered, ok: s.stats.correct, ms: Date.now() - s.startedAt, at: s.i,
-    sd: typeof usageDateOf === "function" ? usageDateOf(s.startedAt) : undefined, met: (s.met || []).length, up: moves.filter(m => m.to > m.from).length, down: moves.filter(m => m.to < m.from).length });
+    sd: typeof usageDateOf === "function" ? usageDateOf(s.startedAt) : undefined, met: (s.met || []).filter(w => !w.vx).length, vxNew: (s.met || []).filter(w => w.vx).length, vxCells: s.vxCells || 0, up: moves.filter(m => m.to > m.from).length, down: moves.filter(m => m.to < m.from).length });
   questEvent("session_end", { kind: "path", len: s.lenKey, abandoned, stats: s.stats, ms: Date.now() - s.startedAt, quick: s.quick,
     ok5: s.ok5, up: s.upCount || 0, wotdHit: !!s.wotdHit });
   // 🏃 Session ladders (achievements.js): finished sessions of 5+ answers.
@@ -1051,6 +1056,10 @@ function renderPathSummary(abandoned) {
   const flagged = moves.filter(m => m.events.includes("repair") || m.events.includes("dropped")).length;
   const acc = s.stats.answered ? Math.round(s.stats.correct / s.stats.answered * 100) : 0;
   const stats = { ...s.stats };
+  // The verb track's share of the session.
+  const vxUp = moves.filter(m => m.w && m.w.vx && m.to > m.from).length;
+  const vxNew = s.met.filter(w => w && w.vx).length;
+  const vxSheets = s.items.slice(0, s.i + 1).filter(x => x.t === "sheet" && typeof vxSheetPassed === "function" && vxSheetPassed(x.sheet)).length;
   const missed = s.missed.slice();
   const met = s.met.slice();
   const lenKey = s.lenKey;
@@ -1081,7 +1090,10 @@ function renderPathSummary(abandoned) {
         <div class="result-sub">${stats.answered} answers · ${acc}% right${stats.near ? ` · ${stats.near} almost` : ""}</div>
         <div class="p-chips">
           ${up.length ? `<span class="p-chip ok">📈 ${up.length} moved up</span>` : ""}
-          ${met.length ? `<span class="p-chip">🌱 ${met.length} new word${met.length > 1 ? "s" : ""}</span>` : ""}
+          ${met.length - vxNew ? `<span class="p-chip">🌱 ${met.length - vxNew} new word${met.length - vxNew > 1 ? "s" : ""}</span>` : ""}
+          ${vxSheets ? `<span class="p-chip ok">📖 ${vxSheets} sheet${vxSheets > 1 ? "s" : ""} passed</span>` : ""}
+          ${vxNew || vxUp ? `<span class="p-chip">🧩 ${vxNew ? `${vxNew} new verb item${vxNew > 1 ? "s" : ""}` : ""}${vxNew && vxUp ? " · " : ""}${vxUp ? `${vxUp} moved up` : ""}</span>` : ""}
+          ${s.vxCells ? `<span class="p-chip">📒 ${s.vxCells} verb form${s.vxCells > 1 ? "s" : ""} in your ledger</span>` : ""}
           ${known ? `<span class="p-chip ok">🌳 ${known} Known</span>` : ""}
           ${repaired ? `<span class="p-chip ok">🩹 ${repaired} repaired</span>` : ""}
           ${locked ? `<span class="p-chip gold">💎 ${locked} locked in</span>` : ""}

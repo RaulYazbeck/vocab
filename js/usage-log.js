@@ -121,9 +121,17 @@ function _usageAggregate(type, d, now) {
     }
     case "hint": day.hintTap = (day.hintTap || 0) + 1; break;
     case "session_start": _inc(day.ses, d.kind || "?", 0); break;
+    // The verb track (verb-track.js): vx = { sh: sheets passed, sf: quizzes
+    // not passed, in: verb items started, cell: ledger forms done, u: tenses
+    // opened, on: switched on/off }.
+    case "vx_sheet": { const v = _uf(day, "vx", () => ({})); if (d.ok) v.sh = (v.sh || 0) + 1; else v.sf = (v.sf || 0) + 1; break; }
+    case "vx_intro": { const v = _uf(day, "vx", () => ({})); v.in = (v.in || 0) + 1; break; }
+    case "vx_unit": { const v = _uf(day, "vx", () => ({})); (v.u = v.u || []).push(d.u + ":" + d.st); break; }
+    case "vx_switch": { const v = _uf(day, "vx", () => ({})); v.on = d.on ? 1 : 0; break; }
     case "session_end": {
       const k = d.kind || "?";
       _inc(startDay.ses, k, d.abandoned ? 2 : 1);
+      if (d.vxCells) { const v = _uf(startDay, "vx", () => ({})); v.cell = (v.cell || 0) + d.vxCells; }
       // sx[kind] = [finished: count, ms, answers, abandoned: count, ms, answers]
       const sx = _uf(startDay, "sx", () => ({}));
       if (!sx[k]) sx[k] = [0, 0, 0, 0, 0, 0];
@@ -168,6 +176,7 @@ function _usageAggregate(type, d, now) {
     case "plan": {
       const p = day.plan || (day.plan = { due: d.due, od: d.od });
       Object.assign(p, { pace: d.pace, rev: d.reviews, tgt: d.target, leave: d.leave });
+      if (d.vx) p.vx = d.vx;
       break;
     }
     // Chests: earned by source; opened by source × rarity, what decided
@@ -324,14 +333,16 @@ function buildUsageReport(nDays = 0) {
   if (Object.keys(scr).length) lines.push(`Screens opened: ` + Object.entries(scr).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(" · "));
   lines.push(`Words by tier now: ` + TIERS.map(t => `${t.icon}${t.name} ${tiers[t.id]}`).join(" · "));
   lines.push(`Daily goal ${getDailyGoal()} · new/day ${S.path.deadline ? `auto ${pathPace()} (finish by ${S.path.deadline})` : S.path.newPerDay} · level ${currentLevel()} · streak ${getDailyStreak()}d`);
+  if (typeof vxReportLines === "function") lines.push(...vxReportLines());
   // One line per active day: the trend at a glance.
-  lines.push(``, `Per day (date · min · answers · typed ok · typed latency · path sessions started/finished/abandoned · games started/quit · new words met · words up/down):`);
+  lines.push(``, `Per day (date · min · answers · typed ok · typed latency · path sessions started/finished/abandoned · games started/quit · new words met · words up/down${typeof vxOn === "function" && vxOn() ? " · verbs: sheets passed/failed, items started, ledger forms" : ""}):`);
   activeDays.forEach(([d, v]) => {
     const t = (v.ans || {})["path:typed"] || [0, 0];
     const p = (v.ses || {}).path || [0, 0, 0];
     const g = Object.values(v.gp || {}).reduce((a, x) => [a[0] + (x[0] || 0), a[1] + (x[2] || 0)], [0, 0]);
     const n = Object.values(v.ans || {}).reduce((a, x) => a + (x[0] || 0), 0);
-    lines.push(`${d} · ${Math.round(v.min)} · ${n} · ${pct(t[1], t[0])} · ${secs(v.lat[0], v.lat[1])} · ${p[0]}/${p[1]}/${p[2]} · ${g[0]}/${g[1]} · ${v.met ?? "—"} · ${v.up ?? "—"}/${v.down ?? "—"}`);
+    const vx = v.vx ? ` · 📖${v.vx.sh || 0}/${v.vx.sf || 0} 🧩${v.vx.in || 0} 📒${v.vx.cell || 0}${v.vx.u ? " [" + v.vx.u.join(", ") + "]" : ""}${v.vx.on !== undefined ? (v.vx.on ? " [switched on]" : " [switched off]") : ""}` : "";
+    lines.push(`${d} · ${Math.round(v.min)} · ${n} · ${pct(t[1], t[0])} · ${secs(v.lat[0], v.lat[1])} · ${p[0]}/${p[1]}/${p[2]} · ${g[0]}/${g[1]} · ${v.met ?? "—"} · ${v.up ?? "—"}/${v.down ?? "—"}${vx}`);
   });
   lines.push(...usagePlanLines(activeDays));
   const json = JSON.stringify({ app: STORAGE_KEY, generated: new Date().toISOString(), days: Object.fromEntries(days), quests: qStats, tiers });
@@ -396,7 +407,7 @@ function usagePlanLines(activeDays) {
   rows.forEach(([d, v]) => {
     const p = v.plan || {}, b = v.brk, e = v.end || {};
     const f = x => x == null ? "—" : x;
-    out.push(`${d} · ${f(p.due)}/${f(p.od)} · ${p.rev != null ? `${p.rev}+${p.pace} → ${p.tgt}, leave ${p.leave}` : "—"} · ${f(e.ok)} · ${f(e.rev)} · ${f(v.met)} · ${b ? `${b.am}→${b.now}${b.off != null ? ` (${b.off}h)` : ""}` : "—"} · ${v.planAt != null ? v.planAt + "h" : done(v) ? "done" : "not done"} · ${f(e.due)}/${f(e.od)} · ${f(e.pend)}`);
+    out.push(`${d} · ${f(p.due)}/${f(p.od)} · ${p.rev != null ? `${p.rev}+${p.pace}${p.vx ? ` (verbs: ${p.vx.due} due, ${p.vx.items} new, ${p.vx.cells} drills, ${p.vx.sheets} sheets)` : ""} → ${p.tgt}, leave ${p.leave}` : "—"} · ${f(e.ok)} · ${f(e.rev)} · ${f(v.met)} · ${b ? `${b.am}→${b.now}${b.off != null ? ` (${b.off}h)` : ""}` : "—"} · ${v.planAt != null ? v.planAt + "h" : done(v) ? "done" : "not done"} · ${f(e.due)}/${f(e.od)} · ${f(e.pend)}`);
   });
   return out;
 }

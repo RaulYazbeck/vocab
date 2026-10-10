@@ -300,6 +300,24 @@ function mergeStates(local, cloud, opts = {}) {
     if (ll.since || cl.since) L.since = [ll.since, cl.since].filter(Boolean).sort()[0];
     out.learn = L;
   }
+  // The verb track (verb-track.js): tense states, quiz scores and opened
+  // sheets — the higher; coverage cells — those of both; switched on or
+  // off — whichever side decided last (onAt); today's counters — the
+  // later day's, the higher on the same day.
+  if (syncIsObj(local.verb) || syncIsObj(cloud.verb)) {
+    const lv = syncIsObj(local.verb) ? local.verb : {}, cv = syncIsObj(cloud.verb) ? cloud.verb : {};
+    const V = syncClone(localWins ? lv : cv);
+    ["tu", "sh", "sr"].forEach(k => { V[k] = syncDeepMax(syncIsObj(lv[k]) ? lv[k] : {}, syncIsObj(cv[k]) ? cv[k] : {}); });
+    const cov = {};
+    [lv.cov, cv.cov].forEach(m => { if (syncIsObj(m)) Object.entries(m).forEach(([k, b]) => { cov[k] = (cov[k] || 0) | syncNum(b); }); });
+    V.cov = cov;
+    const dec = syncNum(lv.onAt) >= syncNum(cv.onAt) ? lv : cv;
+    if (lv.onAt !== undefined || cv.onAt !== undefined) { V.on = dec.on || ""; V.onAt = syncNum(dec.onAt); if (dec.seed) V.seed = syncClone(dec.seed); }
+    const ld = String(lv.day || ""), cd = String(cv.day || "");
+    if (ld === cd) ["ni", "nc", "ns"].forEach(k => { V[k] = Math.max(syncNum(lv[k]), syncNum(cv[k])); });
+    else { const src = ld > cd ? lv : cv; V.day = src.day || ""; ["ni", "nc", "ns"].forEach(k => { V[k] = syncNum(src[k]); }); }
+    out.verb = V;
+  }
   out.savedAt = Math.max(syncNum(local.savedAt), syncNum(cloud.savedAt));
   return out;
 }

@@ -355,7 +355,8 @@ function poolWordsForDeck(deck, explicit) {
     unlockedWords(deck).forEach((w, i) => {
       if (explicit) { out.push(mk(w, i)); return; }
       const ws = S.words[deck.id + "_" + i];
-      if (ws && (ws.st || (ws.correct || 0) + (ws.wrong || 0) > 0)) out.push(mk(w, i));
+      // ws.rt: a retired card's mirror (verb-track.js) — not a card you met.
+      if (ws && !ws.rt && (ws.st || (ws.correct || 0) + (ws.wrong || 0) > 0)) out.push(mk(w, i));
     });
   }
   return out;
@@ -1308,6 +1309,8 @@ function defaultGameXp(result, size, stars) {
 function applyGameCredit(ctx) {
   const out = { up: 0, flagged: 0, moved: [] };
   const def = ctx.def;
+  // Verb games feed the verb track (verb-track.js), whatever their own credit.
+  if (typeof vxApplyGameHits === "function") { const v = vxApplyGameHits(ctx); out.up += v.up; out.flagged += v.flagged; }
   if (def.liveCredit) return out;
   const missKeys = new Set(ctx.missedWords.map(wordKey));
   ctx.missedWords.forEach(w => {
@@ -1326,6 +1329,7 @@ function applyGameCredit(ctx) {
     if (!ws || !ws.st) return;
     if (kind === "recall") { ws.correct = (ws.correct || 0) + 1; S.totalCorrect++; }
     ws.lastAnsweredAt = Date.now();
+    if (kind === "recall" && typeof vxCardRight === "function") vxCardRight(w);
     const r = srsReview(ws, true, kind === "recall" ? "recall" : "recognition");
     r._w = w;
     celebrateReview(r, false);
