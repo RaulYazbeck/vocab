@@ -319,6 +319,14 @@ function vxForm(x, kind, p, opt = {}) {
       const c = verbCell(F, "im", p); if (!c) return null;
       return out(`${c.ans} ${String(c.tail || "").replace(/!$/, "")}`);
     }
+    case "imsep": {
+      // The whole command, prefix and pronoun included: the prompt shows
+      // no tail, so the learner must know where the pieces go.
+      const c = verbCell(F, "im", p); if (!c || (!F.sep && !F.refl)) return null;
+      const rest = String(c.tail || "").replace(/!$/, "").trim();
+      const vs = [c.ans, ...(p === "du" ? F.imAlt.du.filter(v => v !== c.ans) : [])];
+      return out(`${c.ans} ${rest}`, vs.slice(1).map(v => `${v} ${rest}`));
+    }
     case "ptsep": {
       const c = engine("pt"); if (!c || !F.sep) return null;
       return out(`${c.ans} ${F.sep}`);
@@ -337,7 +345,7 @@ function vxForm(x, kind, p, opt = {}) {
   return null;
 }
 // The tense a kind of form belongs to (for colours, coverage and logs).
-const VX_KIND_TENSE = { pr: "pr", prsep: "pr", prrefl: "pr", sc: "pr", pt: "pt", pf: "pf", p2: "pf", pq: "pq", fu: "fu", im: "im",
+const VX_KIND_TENSE = { pr: "pr", prsep: "pr", prrefl: "pr", sc: "pr", pt: "pt", pf: "pf", p2: "pf", pq: "pq", fu: "fu", im: "im", imsep: "im",
   k2w: "k2", k2o: "k2", k2p: "k2p", pvpr: "pv", pvpt: "pv", pvmod: "pv" };
 const VX_TENSE_LABEL = { pr: "Präsens", pt: "Präteritum", pf: "Perfekt", pq: "Plusquamperfekt", fu: "Futur I", im: "Imperativ", k2: "Konjunktiv II",
   k2p: "Konjunktiv II · past", pv: "Passiv" };
@@ -358,7 +366,7 @@ const VX_RULES = [
   { id: "pr-end", unit: "pr", sheet: "pr1", kind: "pr", title: "Präsens endings", chip: "stem + e · st · t · en · t · en",
     verbs: x => !x.k.irregular && !x.k.stem && !x.k.glue && !x.F.sep && !x.F.refl && x.F.presSure && !x.F.only, persons: () => PERSONS, order: () => 0 },
   { id: "pr-glue", unit: "pr", sheet: "pr2", kind: "pr", title: "Spelling glue", chip: "arbeitest · heißt · sammle",
-    verbs: x => x.k.glue && !x.k.stem && !x.k.irregular && x.F.presSure && !x.F.only,
+    verbs: x => x.k.glue && !x.k.stem && !x.k.irregular && !x.F.sep && !x.F.refl && x.F.presSure && !x.F.only,
     persons: x => x.k.eln ? ["ich", "wir"] : x.k.ern ? ["wir", "sie"] : ["du", "er", "ihr"], order: x => x.k.eln || x.k.ern ? 1 : 0 },
   { id: "pr-sep", unit: "pr", sheet: "pr6", kind: "prsep", title: "Separable verbs", chip: "the prefix jumps to the end",
     verbs: x => !!x.F.sep && x.F.presSure && !x.F.only, persons: () => PERSONS, order: x => x.k.stem ? 1 : 0 },
@@ -372,11 +380,11 @@ const VX_RULES = [
     verbs: x => (!!x.F.sep || !!x.F.insep || x.k.ieren) && !x.F.strong && !!x.F.aux, persons: () => PERSONS,
     order: x => x.F.sep ? 0 : x.F.insep ? 1 : 2, mix: true },
   { id: "im-reg", unit: "im", sheet: "im1", kind: "im", title: "Imperativ", chip: "du: stem! · ihr: -t! · Sie: -en Sie!",
-    verbs: x => !!x.F.im && !x.F.eToI && !x.k.aux && !x.F.sep && !x.F.refl, persons: () => ["du", "ihr", "Sie"], order: x => x.k.glue ? 1 : 0 },
-  { id: "im-sep", unit: "im", sheet: "im3", kind: "im", title: "Imperativ with prefixes", chip: "Ruf an! · Setz dich!",
-    verbs: x => !!x.F.im && (!!x.F.sep || !!x.F.refl), persons: () => ["du", "ihr", "Sie"], order: x => x.F.sep ? 0 : 1 },
+    verbs: x => !!x.F.im && !x.F.eToI && !x.k.aux && !x.k.modal && !x.F.sep && !x.F.refl && !vxItVerb(x), persons: () => ["du", "ihr", "Sie"], order: x => x.k.glue ? 1 : 0 },
+  { id: "im-sep", unit: "im", sheet: "im3", kind: "imsep", title: "Imperativ with prefixes", chip: "Ruf an! · Setz dich!",
+    verbs: x => !!x.F.im && (!!x.F.sep || !!x.F.refl) && !x.k.modal && !vxItVerb(x), persons: () => ["du", "ihr", "Sie"], order: x => x.F.sep ? 0 : 1 },
   { id: "fu", unit: "fu", sheet: "fu1", kind: "fu", title: "Futur I", chip: "werden + infinitive",
-    verbs: x => !x.F.only && x.v.tenses.includes("fu"), persons: () => PERSONS, order: () => 0 },
+    verbs: x => !x.F.only && !x.k.modal && x.v.tenses.includes("fu"), persons: () => PERSONS, order: () => 0 },
   { id: "k2-wuerde", unit: "k2a", sheet: "k21", kind: "k2w", title: "würde + infinitive", chip: "würde · würdest · würde…",
     verbs: x => !x.F.k2special && !x.F.only, persons: () => PERSONS, order: () => 0 },
   { id: "k2-own", unit: "k2a", sheet: "k22", kind: "k2o", title: "Their own Konjunktiv II", chip: "wäre · hätte · könnte · müsste",
@@ -386,7 +394,7 @@ const VX_RULES = [
   { id: "pt-strong", unit: "pt2", sheet: "pt22", kind: "pt", title: "Strong Präteritum endings", chip: "ging · gingst · ging · gingen",
     verbs: x => x.k.strongPt && !x.k.aux && !x.k.modal, persons: () => ["du", "wir", "ihr", "sie"], order: () => 0 },
   { id: "pq", unit: "pq", sheet: "pq1", kind: "pq", title: "Plusquamperfekt", chip: "hatte / war + Partizip II",
-    verbs: x => !!x.F.aux && !x.F.only, persons: () => PERSONS, order: x => x.F.aux === "sein" ? 1 : 0, mix: true },
+    verbs: x => !!x.F.aux && !x.F.only && !x.k.modal, persons: () => PERSONS, order: x => x.F.aux === "sein" ? 1 : 0, mix: true },
   { id: "pv-pr", unit: "pv", sheet: "pv1", kind: "pvpr", title: "Passiv Präsens", chip: "wird + Partizip II",
     verbs: x => VX_PV_VERBS.has(x.inf), persons: () => ["er", "sie"], order: () => 0 },
   { id: "pv-pt", unit: "pv", sheet: "pv2", kind: "pvpt", title: "Passiv Präteritum", chip: "wurde + Partizip II",
@@ -394,7 +402,7 @@ const VX_RULES = [
   { id: "pv-mod", unit: "pv", sheet: "pv3", kind: "pvmod", title: "Passiv with a modal", chip: "muss + Partizip II + werden",
     verbs: x => VX_PV_VERBS.has(x.inf), persons: () => ["er", "sie"], order: () => 0 },
   { id: "k2p", unit: "k2p", sheet: "k2p1", kind: "k2p", title: "Konjunktiv II · past", chip: "hätte / wäre + Partizip II",
-    verbs: x => !!x.F.aux && !x.F.only, persons: () => PERSONS, order: x => x.F.aux === "sein" ? 1 : 0, mix: true },
+    verbs: x => !!x.F.aux && !x.F.only && !x.k.modal, persons: () => PERSONS, order: x => x.F.aux === "sein" ? 1 : 0, mix: true },
 ];
 const VX_RULE = Object.fromEntries(VX_RULES.map(r => [r.id, r]));
 // Per-verb items: which sheet teaches them and which unit opens them.
@@ -478,7 +486,7 @@ function vxNeedsItem(x, kind) {
   if (kind === "sc") return x.k.stem && !vxActiveRef(x, "pr", ["du"]) && !vxActiveRef(x, "pr", ["er"]);
   if (kind === "p2") return !!F.aux && !!F.p2 && (F.strong || F.aux === "sein") && !x.k.modal && !vxActiveRef(x, "p2");
   if (kind === "pt") return !F.only && x.k.strongPt && !x.k.aux && !x.k.modal && !VX_PT1_VERBS.has(F.base) && !vxActiveRef(x, "pt", ["er", "ich"]);
-  if (kind === "im") return !!F.im && !!F.presSure && (F.eToI || (F.base === "sein" && !F.sep && !F.insep));
+  if (kind === "im") return !!F.im && !!F.presSure && !vxItVerb(x) && (F.eToI || (F.base === "sein" && !F.sep && !F.insep));
   return false;
 }
 let _vxCatalog = null, _vxCatalogAt = "";
@@ -536,9 +544,16 @@ function vxRequiredCells() {
   _vxCells = out;
   return out;
 }
+// Verbs that only take "it" (es regnet, das kostet, es gefällt mir).
+function vxItVerb(x) { return !!x.F.impersonal || DE_WEATHER.test(x.inf) || DE_IT_VERBS.test(x.inf); }
+// The persons a rule may ask of a verb: an "it" verb only in er (es).
+function vxRulePersons(r, x) {
+  const ps = r.persons(x);
+  return vxItVerb(x) && !/^pv/.test(r.kind) ? ps.filter(p => p === "er") : ps;
+}
 function vxCellPersons(x, t) {
   if (x.F.only && !x.F.only.includes(t)) return [];
-  if (x.F.impersonal || DE_WEATHER.test(x.inf) || DE_IT_VERBS.test(x.inf)) return verbCell(x.F, t, "er") ? ["er"] : [];
+  if (vxItVerb(x)) return verbCell(x.F, t, "er") ? ["er"] : [];
   return PERSONS.filter(p => verbCell(x.F, t, p));
 }
 function vxCellOrder(x, t) {
@@ -560,7 +575,7 @@ function vxCellOpen(c) {
 // haben) so each review contrasts with the last.
 function vxRuleVerbs(rule) {
   const r = VX_RULE[rule];
-  const vs = vxVerbs().filter(x => r.verbs(x) && vxVerbReady(x) && r.persons(x).some(p => vxForm(x, r.kind, p, { modal: "müssen" })));
+  const vs = vxVerbs().filter(x => r.verbs(x) && vxVerbReady(x) && vxRulePersons(r, x).some(p => vxForm(x, r.kind, p, { modal: "müssen" })));
   const met = new Map(vs.map(x => [x, vxLemma(x).met || "9999"]));
   vs.sort((a, b) => a.lv - b.lv || (r.mix ? 0 : r.order(a) - r.order(b)) || met.get(a).localeCompare(met.get(b)) || a.i - b.i);
   if (!r.mix) return vs;
@@ -579,8 +594,10 @@ function vxRuleVerbs(rule) {
 function vxNextRuleVerb(rule, avoid) {
   const list = vxRuleVerbs(rule);
   if (!list.length) return null;
+  // Only the ledger's tenses have cells to fill; Passiv and Konjunktiv II
+  // past just go round the list.
   const t = VX_KIND_TENSE[VX_RULE[rule].kind];
-  const open = list.find(x => !vxCovHas(x.inf, t) && x.inf !== avoid);
+  const open = VX_COV.includes(t) && list.find(x => !vxCovHas(x.inf, t) && x.inf !== avoid);
   if (open) return open;
   const V = S.verb, i = (V.rot[rule] || 0) % list.length;
   let x = list[i];
@@ -602,7 +619,7 @@ function vxMakeExercise(item, avoid) {
     for (let tries = 0; tries < 6; tries++) {
       const x = vxNextRuleVerb(item.rule, avoid);
       if (!x) return null;
-      const ps = r.persons(x).filter(p => vxForm(x, r.kind, p, { modal: "müssen" }));
+      const ps = vxRulePersons(r, x).filter(p => vxForm(x, r.kind, p, { modal: "müssen" }));
       if (!ps.length) continue;
       const p = vxPickPerson(ps, x);
       const modal = r.kind === "pvmod" ? Object.keys(VX_PV_MODALS)[Math.floor(Math.random() * 4)] : "";
@@ -640,14 +657,30 @@ function vxWord(ex) {
 
 // ── GRADING ───────────────────────────────────
 // true · "near" · false. A pronoun typed in front is fine.
-function vxGrade(val, ex) {
+// The app's normalize() ignores umlauts (fine for words: Muller = Müller).
+// A verb form can't: fährt ≠ fahrt, hätte ≠ hatte, würde ≠ wurde. So
+// forms are compared with their umlauts (ae / oe / ue spelt out is fine).
+function vxEq(answer, typed) {
+  const f = s => String(s || "").normalize("NFC").trim().toLowerCase().replace(/ß/g, "ss").replace(/['\-]/g, " ").replace(/\s+/g, " ");
+  const a = f(answer), t = f(typed);
+  return a === t || a.replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue") === t;
+}
+// Right but for an umlaut (fahrst for fährst)?
+function vxUmlautSlip(answers, typed) {
+  return answers.some(a => !vxEq(a, typed) && normalize(a) === normalize(typed));
+}
+function vxGradeTries(val) {
   const raw = String(val || "").trim().replace(/!+$/, "").trim();
-  if (!raw) return false;
+  return raw ? [raw, raw.replace(/^(ich|du|er|sie|es|wir|ihr|man)\s+/i, ""), raw.replace(/\s+Sie$/, ""), raw.replace(/\s*[,·/;…]\s*/g, " ")] : [];
+}
+function vxGrade(val, ex) {
+  const tries = vxGradeTries(val);
+  if (!tries.length) return false;
   const acc = ex.form.acc;
-  const tries = [raw, raw.replace(/^(ich|du|er|sie|es|wir|ihr|man)\s+/i, ""), raw.replace(/\s+Sie$/, ""), raw.replace(/\s*[,·/;]\s*/g, " ")];
-  for (const t of tries) if (acc.some(a => normalize(a) === normalize(t))) return true;
-  // An umlaut left out (fahrst) counts as wrong for a form: it IS the form.
-  if (isNearMiss(raw, acc)) return "near";
+  for (const t of tries) if (acc.some(a => vxEq(a, t))) return true;
+  // A missing umlaut: one more try, with a word on why it matters.
+  if (tries.some(t => vxUmlautSlip(acc, t))) return "near";
+  if (isNearMiss(tries[0], acc)) return "near";
   return false;
 }
 // The mistake type, for the learning log and the usage report.
@@ -831,7 +864,7 @@ function vxItemsForForm(x, tense, person) {
   if (tense === "im" && person === "du" && S.words[vxKey("im:" + x.inf)]) out.push("im:" + x.inf);
   VX_RULES.forEach(r => {
     const kt = r.kind === "k2w" || r.kind === "k2o" ? "k2" : r.kind === "prsep" || r.kind === "prrefl" ? null : r.kind;
-    if (kt === tense && r.verbs(x) && r.persons(x).includes(person) && S.words[vxKey("r:" + r.id)]) out.push("r:" + r.id);
+    if (kt === tense && r.verbs(x) && vxRulePersons(r, x).includes(person) && S.words[vxKey("r:" + r.id)]) out.push("r:" + r.id);
   });
   return out;
 }

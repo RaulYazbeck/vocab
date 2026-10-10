@@ -19,3 +19,10 @@ In the real app (Chromium via playwright-core from `../audio/tests`; run
 
 `profile.js` is the test profile: shaped like the real one on 2026-10-10
 (A1 done, 13 A2 words met, finish date 2027-08-15).
+
+Every browser script can run on a real saved state instead: extract the
+`gv5_de` value of a backup file to a JSON file and pass it as `REAL_STATE`
+(never commit it):
+
+    REAL_STATE=/path/state.json node sim.mjs
+    REAL_STATE=/path/state.json OUT=/tmp/dump.txt node dump.mjs   # every exercise the track would ask, for review

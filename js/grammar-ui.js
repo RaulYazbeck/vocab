@@ -264,12 +264,15 @@ function gsQuizCheck() {
   if (Q.k === "type") {
     const inp = document.getElementById("gs-input"), val = inp ? inp.value : "";
     if (!val.trim()) { if (inp) shakeEl(inp); return; }
-    const v = normalize(val.replace(/!+$/, "").replace(/\s*[,·]\s*/g, " "));
-    const ok = Q.a.some(a => normalize(a) === v);
-    if (!ok && isNearMiss(val, Q.a) && !cur.near) {
+    // A pronoun typed in front (du spielst) is fine, as in Today; a
+    // missing umlaut is not (vxEq).
+    const tries = vxGradeTries(val);
+    const ok = tries.some(t => Q.a.some(a => vxEq(a, t)));
+    const uml = !ok && tries.some(t => vxUmlautSlip(Q.a, t));
+    if (!ok && (uml || isNearMiss(val, Q.a)) && !cur.near) {
       cur.near = true;
       inp.classList.add("near");
-      document.getElementById("gs-qfb").innerHTML = `<div class="p-near">≈ Almost — check the spelling and try again</div>`;
+      document.getElementById("gs-qfb").innerHTML = `<div class="p-near">≈ Almost — ${uml ? "mind the umlaut: it changes the form" : "check the spelling"} — try again</div>`;
       setTimeout(() => { inp.classList.remove("near"); inp.select(); }, 600);
       return;
     }
@@ -533,7 +536,7 @@ function renderVerbSwitch() {
         <div><small>Verb work a day</small><b>${p.after.q.items} items · ${p.after.q.cells} drills</b></div>
       </div>
       <ul class="vx-list">
-        <li><b>Tenses in order.</b> Open now: ${prac.map(n => `<b>${escapeHtml(n)}</b>`).join(", ") || "—"}. ${lessons.length ? `Your next lessons: ${lessons.map(n => `<b>${escapeHtml(n)}</b>`).join(", then ")} — their sheets open your Today sessions, two a day, starting with your next session.` : ""} The verb games stop using tenses you haven't been taught.</li>
+        <li><b>Tenses in order.</b> Open now: ${prac.map(n => `<b>${escapeHtml(n)}</b>`).join(", ") || "—"}. ${lessons.length ? `Your next lessons: ${lessons.map(n => `<b>${escapeHtml(n)}</b>`).join(", then ")} — their sheets come into your Today sessions, up to two a day (one opens the session, the next comes midway), starting with your next session.` : ""} The verb games stop using tenses you haven't been taught.</li>
         <li><b>${p.after.items.toLocaleString()} verb items</b> over the whole journey (rules + verbs you can't build by rule), starting from what you've shown: ${p.seeds.rules} rules and ${p.seeds.items} verb items start where your cards are, ${p.seeds.cells} forms are already in your ledger.</li>
         <li><b>${retN} old form cards retired</b> — ones you haven't met yet. They are never introduced again; each mirrors the item that covers it, so your totals and achievements stay whole. ${ret.length ? `<details><summary>Which decks</summary>${ret.map(([d, n]) => `<div class="vx-ret">${escapeHtml(name(d))} <b>${n}</b></div>`).join("")}</details>` : ""}</li>
         <li><b>Nothing you've learned is lost.</b> Every card you've met keeps its stage and its reviews. Your level, XP and streak don't move. Today's plan target stays as it is; the new daily numbers start with tomorrow morning's plan.</li>
@@ -576,12 +579,13 @@ function vxTodayHtml() {
 function vxFormHtml(ex) {
   // Engine tenses split into coloured parts (Verb Thread's colours).
   const t = { pr: 1, pt: 1, pf: 1, pq: 1, fu: 1 }[ex.kind] ? ex.kind : ex.kind === "k2w" || ex.kind === "k2o" ? "k2" : ex.kind === "p2" ? "pf" : null;
-  const pron = ex.p === "Sie" ? "" : (PERSON_LABEL[ex.p] || ex.p).split("/")[0] + " ";
+  const pron = ex.p === "Sie" ? "" : ex.p === "er" && vxItVerb(ex.x) ? "es " : (PERSON_LABEL[ex.p] || ex.p).split("/")[0] + " ";
   if (t && typeof vlCell === "function" && ex.x.v.tenses.includes(t)) {
     const c = vlCell(ex.x.v, t, ex.p);
     if (c) return `<span class="vx-pron">${escapeHtml(pron)}</span>${vlPartsHtml(c.parts, t, ex.p, false)}`;
   }
   if (ex.kind === "sc") return `du <b>${escapeHtml(ex.x.F.pr.du)}</b> · er <b>${escapeHtml(ex.x.F.pr.er)}</b>`;
+  if (ex.kind === "imsep") return `<b>${escapeHtml(ex.form.ans)}</b>!`;
   if (ex.kind === "im" || ex.kind === "imfull") return `<b>${escapeHtml(ex.form.ans)}</b>${ex.form.tail && ex.form.tail !== "!" ? " " + escapeHtml(String(ex.form.tail).replace(/!$/, "")) : ""}!`;
   return `<span class="vx-pron">${escapeHtml(pron)}</span><b>${escapeHtml(ex.form.ans)}</b>`;
 }
@@ -591,9 +595,12 @@ function vxPromptHtml(ex) {
   const gap = n => Array.from({ length: n }, () => `<span class="vx-gap"></span>`).join(" ");
   let line;
   if (ex.kind === "sc") line = `du ${gap(1)} · er ${gap(1)}`;
+  else if (ex.kind === "imsep") line = `<span class="vx-pron">(${ex.p})</span> ${gap(ex.form.n)} !`;
   else if (ex.kind === "im") line = `<span class="vx-pron">(${ex.p === "Sie" ? "Sie" : ex.p})</span> ${gap(1)}${ex.p === "Sie" ? " Sie" : ""}${ex.form.tail && ex.form.tail !== "!" ? ` <span class="vx-tail">${escapeHtml(ex.form.tail.replace(/!$/, "").replace(/^Sie ?/, ""))}</span>` : ""} !`;
   else {
-    const pron = ex.kind === "pvpr" || ex.kind === "pvpt" || ex.kind === "pvmod" ? (ex.p === "sie" ? "sie (they)" : "es") : (PERSON_LABEL[ex.p] || ex.p).split("/")[0];
+    // "sie" alone could be she: the plural says so.
+    const pron = ex.kind === "pvpr" || ex.kind === "pvpt" || ex.kind === "pvmod" ? (ex.p === "sie" ? "sie (they)" : "es")
+      : ex.p === "sie" ? "sie (they)" : ex.p === "er" && vxItVerb(ex.x) ? "es" : (PERSON_LABEL[ex.p] || ex.p).split("/")[0];
     const tail = ex.form.tail ? ` <span class="vx-tail">${escapeHtml(String(ex.form.tail).replace(/^… /, "").replace(/!$/, ""))}</span>` : "";
     line = `<span class="vx-pron">${escapeHtml(pron)}</span> ${gap(ex.form.n)}${tail}`;
   }
@@ -604,7 +611,7 @@ function vxPromptHtml(ex) {
     <div class="vx-chips"><span class="vx-tense">${(VX_UNIT[u] || {}).sign || ""} ${escapeHtml(tl)}</span>${rule ? `<span class="vx-rule">${escapeHtml(rule.title)}</span>` : ex.cell ? `<span class="vx-rule">📒 ${ex.x.level.toUpperCase()} verb</span>` : ""}</div>
     <div class="vx-line">${line}</div>
     <div class="vx-verb"><b>${escapeHtml(ex.x.inf)}</b>${gloss ? ` · ${escapeHtml(gloss)}` : ""}${mod}</div>
-    <div class="vx-fmt">${speakOn() ? "🗣️ Say" : "✍️ Type"} <b>${ex.kind === "sc" ? "both forms" : ex.form.n === 1 ? "one word" : ex.form.n + " words"}</b>${ex.kind === "prsep" ? " — the prefix too" : ex.kind === "prrefl" ? " — with the pronoun" : ""}</div>
+    <div class="vx-fmt">${speakOn() ? "🗣️ Say" : "✍️ Type"} <b>${ex.kind === "sc" ? "both forms" : ex.form.n === 1 ? "one word" : ex.form.n + " words"}</b>${ex.kind === "prsep" ? " — the prefix too" : ex.kind === "prrefl" ? " — with the pronoun" : ex.kind === "imsep" ? " — the whole command" : ""}</div>
   </div>`;
 }
 function vxItemLabel(ex) {
@@ -624,7 +631,7 @@ function renderPathVerbLearn(it) {
     const exs = [];
     for (const x of xs) {
       if (exs.length >= 3) break;
-      const ps = r.persons(x);
+      const ps = vxRulePersons(r, x);
       const p = ps[exs.length % ps.length];
       const form = vxForm(x, r.kind, p, { modal: "müssen" });
       if (form) exs.push({ x, p, form, kind: r.kind, tense: ex.tense });
@@ -714,7 +721,8 @@ function pathGradeVerb(val, ok, said = false) {
     if (ex.item) { const ws = getWS(VX_DECK, ex.item); ws.lastAnsweredAt = Date.now(); ws.near = (ws.near || 0) + 1; pathMissed(w); }
     if (input) input.classList.add("near");
     logEvent("answer", { m: ex.cell ? "path:cell" : "path:verb", ok: false, near: true, typed: true, ms: Date.now() - s.shownAt });
-    document.getElementById("p-fb").innerHTML = `<div class="p-near">≈ Almost — check the spelling</div><div class="p-diff">${diffHtml(val, ex.form.ans)}</div><div class="p-sub">No step up, no step down — one more try at the end of this session.</div>`;
+    const uml = vxGradeTries(val).some(t => vxUmlautSlip(ex.form.acc, t));
+    document.getElementById("p-fb").innerHTML = `<div class="p-near">≈ Almost — ${uml ? "mind the umlaut: in a verb it changes the form (hatte ≠ hätte)" : "check the spelling"}</div><div class="p-diff">${diffHtml(val, ex.form.ans)}</div><div class="p-sub">No step up, no step down — one more try at the end of this session.</div>`;
     pathSetActions(`<button class="g-big-btn p-main" id="p-go" onclick="pathGo()">Next →</button>`);
     holdAfterMistake("p-go");
     saveState();

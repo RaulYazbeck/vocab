@@ -639,8 +639,14 @@ function buildPathQueue(lenKey, opts = {}) {
       if (getDeck(dId) && isMet(dId, idx) && !reviews.some(r => r.w.deckId === dId && r.w.idx === idx))
         reviews.splice(Math.floor(reviews.length * 0.4), 0, { t: "typed", w: pathWord(dId, idx), wotd: true });
     }
-    // Today's lesson sheets open the session: a tense starts with its sheet.
-    if (vxp && vxp.sheets.length) reviews.unshift(...vxp.sheets.map(id => ({ t: "sheet", sheet: id })));
+    // Today's lesson sheets: the first opens the session (a tense starts
+    // with its sheet); a second waits for the middle, so the session
+    // never starts with two lessons in a row.
+    if (vxp && vxp.sheets.length) {
+      const [first, ...rest] = vxp.sheets.map(id => ({ t: "sheet", sheet: id }));
+      rest.forEach((sh, i) => reviews.splice(Math.floor(reviews.length * (i + 1) / (rest.length + 1)), 0, sh));
+      reviews.unshift(first);
+    }
   }
   const nNew = clusters.reduce((s, c) => s + c.length, 0);
 

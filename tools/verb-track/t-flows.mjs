@@ -5,7 +5,7 @@ let pass = 0, fail = 0; const ok = (c, m, x = "") => { if (c) pass++; else { fai
 const r = await page.evaluate(() => {
   const out = {};
   // 1 · games before the switch: level tenses (old behaviour)
-  out.before = { thread: vlLevelTenses(), conj: conjLevelTenses() };
+  out.before = { thread: vlLevelTenses(), conj: conjLevelTenses(), pace: pathPace() };
   out.todayOffer = vxTodayHtml().includes("New verb system");
   // 2 · the preview changes nothing
   const snap = JSON.stringify(S);
@@ -58,7 +58,7 @@ const r = await page.evaluate(() => {
     words: Object.keys(S.words).length === wordsBefore, thread: vlLevelTenses(), pace: pathPace() };
   return out;
 });
-ok(r.before.thread.includes("k2"), "before the switch the games use the level's tenses", r.before.thread);
+ok(r.before.thread.length >= 2 && (process.env.REAL_STATE || r.before.thread.includes("k2")), "before the switch the games use the level's tenses", r.before.thread);
 ok(r.todayOffer, "Today offers the switch");
 ok(r.previewPure, "the preview leaves the state untouched");
 ok(JSON.stringify(r.after.thread) === JSON.stringify(["pf", "pr"]) && !r.after.conj.includes("k2") && !r.after.conj.includes("im"), "after: only taught tenses in Thread and Slots", JSON.stringify(r.after));
@@ -75,7 +75,7 @@ ok(r.gated && r.gatedPicked === 0, "a gated grammar deck is never picked", JSON.
 ok(r.retiredPicked === 0, "a retired card is never a new word");
 ok(r.mirror.st === 5 && r.mirror.rt === 1 && !r.mirror.inPool, "a retired card mirrors its item, out of the games", JSON.stringify(r.mirror));
 ok(r.off.vx === 0 && r.off.rt === 0 && r.off.words, "switching off removes items and mirrors only", JSON.stringify(r.off));
-ok(r.off.thread.includes("k2") && r.off.pace === 14, "switched off: back to the old behaviour", JSON.stringify(r.off));
+ok(r.off.thread.join() === r.before.thread.join() && r.off.pace === r.before.pace, "switched off: back to the old behaviour", JSON.stringify([r.before, r.off]));
 console.log(r.report.join("\n"));
 console.log(`flows: ${pass} passed, ${fail} failed`, errors.length ? errors : "");
 await browser.close();

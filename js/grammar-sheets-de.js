@@ -68,7 +68,7 @@ const GS_SHEETS = [
     ex: [["Ich [[bin]] aus Mexiko.", "I'm from Mexico."], ["[[Hast]] du Zeit?", "Do you have time?"], ["Wir [[sind]] gleich da.", "We'll be there in a moment."]],
     trap: "**sie sind** = they are · **Sie sind** = you are (formal): the same form — only the capital S tells them apart.",
     quiz: [
-      { k: "type", q: "ihr ___ (sein)", a: ["seid"], chk: ["sein", "pr", "ihr"], why: "ihr seid — with a d (not to confuse with seit = since)." },
+      { k: "type", q: "ihr ___ (sein)", a: ["seid"], chk: ["sein", "pr", "ihr"], why: "ihr seid — with a d (not to be confused with seit = since)." },
       { k: "pick", q: "er ___ (haben)", o: ["hat", "habt", "hast"], a: 0, chk: ["haben", "pr", "er"], why: "er hat — the b drops." },
       { k: "type", q: "du ___ (sein)", a: ["bist"], chk: ["sein", "pr", "du"], why: "du bist." },
       { k: "odd", q: "Which one is NOT a form of sein?", o: ["sind", "seid", "hast", "bin"], a: 2, why: "hast is haben (du hast)." },
@@ -149,7 +149,7 @@ const GS_SHEETS = [
 
   // ── ● PERFEKT ─────────────────────────────
   { id: "pf1", unit: "pf", title: "The structure (the spoken past)",
-    struct: [["🍪 Who", "who"], ["haben / sein", "aux"], ["…", "mid"], ["Partizip II", "p2"]],
+    struct: [["Who", "who"], ["haben / sein", "aux"], ["…", "mid"], ["Partizip II", "p2"]],
     why: "Two pieces you already know: the **Präsens of haben or sein** in position 2, and the **Partizip II** at the very end. Everything else sits between them.",
     rules: [
       "Only the auxiliary changes with the person: ich **habe**, du **hast**, er **ist**…",
@@ -190,7 +190,7 @@ const GS_SHEETS = [
       "**Strong → ge + stem + en**, often with a new vowel: sehen → **ge**seh**en** · fahren → **ge**fahr**en** · schreiben → **ge**schr**ie**b**en** · trinken → **ge**tr**u**nk**en** · gehen → **ge**g**ang**en",
       "**Mixed → ge + new stem + t**: bringen → **ge**brach**t** · denken → **ge**dach**t** · kennen → **ge**kann**t** · wissen → **ge**wuss**t**",
     ],
-    ex: [["Hast du schon [[eingekauft]]?", "Have you done the shopping yet?"], ["Ich habe den Brief [[geschrieben]].", "I've written the letter."], ["Er hat Blumen [[mitgebracht]].", "He brought flowers."]],
+    ex: [["Hast du schon [[gekocht]]?", "Have you cooked yet?"], ["Ich habe den Brief [[geschrieben]].", "I've written the letter."], ["Er hat Blumen [[gebracht]].", "He brought flowers."]],
     trap: "A strong verb never ends in -t: **getrunken**, not getrinkt.",
     mine: "strong",
     quiz: [
@@ -219,7 +219,7 @@ const GS_SHEETS = [
     ] },
   { id: "pf5", unit: "pf", title: "The sein verbs",
     struct: [["Who", "who"], ["bin · bist · ist…", "aux"], ["…", "mid"], ["Partizip II", "p2"]],
-    why: "A short list does most of the work. Learn it like your *casa* list — movement, change, and the two special ones.",
+    why: "A short list does most of the work. Learn it like the French *maison d'être* list — movement, change, and a few special ones.",
     lines: [
       ["Movement", "gehen (go) · kommen (come) · fahren (drive, ride) · fliegen (fly) · laufen (run, walk) · reisen (travel) · fallen (fall) · steigen (climb) · umziehen (move house) · ankommen (arrive) · abfahren (leave) · einsteigen (get on) · aussteigen (get off)"],
       ["Change of state", "werden (become) · sterben (die) · wachsen (grow) · aufwachen (wake up) · einschlafen (fall asleep) · aufstehen (get up)"],
@@ -240,9 +240,9 @@ const GS_SHEETS = [
     rules: [
       "Main clause: auxiliary **2nd**, Partizip II **last**: Gestern **habe** ich lange **gearbeitet**.",
       "After **weil / dass / wenn / ob**: the auxiliary goes to the very end: …, weil ich krank **gewesen bin**.",
-      "Speaking → Perfekt. But **sein, haben and the modals** are usually said in the Präteritum: ich **war**, ich **hatte**, ich **konnte** — that's your next tense (Präteritum I).",
+      "Speaking → Perfekt. But **sein, haben and the modals** are usually said in the Präteritum: ich **war**, ich **hatte**, ich **konnte** — they get their own lesson soon (Präteritum I).",
     ],
-    ex: [["Gestern [[habe]] ich lange [[gearbeitet]].", "I worked late yesterday."], ["Ich komme nicht, weil ich krank [[gewesen bin]].", "I'm not coming because I've been ill."], ["Ich [[war]] gestern im Kino.", "I was at the cinema yesterday."]],
+    ex: [["Gestern [[habe]] ich lange [[gearbeitet]].", "I worked late yesterday."], ["Ich bin nicht gekommen, weil ich krank [[gewesen bin]].", "I didn't come because I was ill."], ["Ich [[war]] gestern im Kino.", "I was at the cinema yesterday."]],
     trap: "Not ~~weil ich bin krank gewesen~~ — in the weil-clause the auxiliary is the last word.",
     quiz: [
       { k: "order", q: "Build it: Yesterday I worked a long time.", a: ["Gestern", "habe", "ich", "lange", "gearbeitet"], why: "Auxiliary second even when the sentence starts with a time word." },
@@ -313,7 +313,7 @@ const GS_SHEETS = [
     ],
     table: { head: ["", "sein", "haben"], rows: [["ich", "war", "hatte"], ["du", "warst", "hattest"], ["er/sie/es", "war", "hatte"], ["wir", "waren", "hatten"], ["ihr", "wart", "hattet"], ["sie/Sie", "waren", "hatten"]] },
     ex: [["Ich [[war]] gestern im Kino.", "I was at the cinema yesterday."], ["[[Hattest]] du Zeit?", "Did you have time?"], ["Wir [[waren]] drei Tage in Berlin.", "We were in Berlin for three days."]],
-    trap: "**ihr wart** — no e: not warte (that's warten).",
+    trap: "**ihr wart** = you were · **ihr wartet** = you wait (warten). One letter apart.",
     quiz: [
       { k: "type", q: "du ___ (sein, past)", a: ["warst"], chk: ["sein", "pt", "du"], why: "war + st." },
       { k: "type", q: "wir ___ (haben, past)", a: ["hatten"], chk: ["haben", "pt", "wir"], why: "hatte + n." },
@@ -386,7 +386,7 @@ const GS_SHEETS = [
     quiz: [
       { k: "pick", q: "Which one is a guess about **now**?", o: ["Er wird wohl zu Hause sein.", "Er ist zu Hause.", "Er war zu Hause."], a: 0, why: "Futur I + wohl = a guess." },
       { k: "pick", q: "Most natural for a fixed plan tomorrow:", o: ["Morgen fahre ich nach Köln.", "Morgen bin ich nach Köln gefahren."], a: 0, why: "Präsens + time word." },
-      { k: "type", q: "A promise: Ich ___ dich ___ (anrufen).", a: ["werde anrufen"], why: "werde … anrufen." },
+      { k: "type", q: "A promise: Ich ___ dich ___ (anrufen).", a: ["werde anrufen", "werde dich anrufen"], why: "werde … anrufen." },
     ] },
 
   // ── ☁ KONJUNKTIV II ───────────────────────
@@ -399,7 +399,7 @@ const GS_SHEETS = [
       "Polite and dreamy: **Würden** Sie mir **helfen**? Ich **würde** gern in Italien **leben**.",
     ],
     ex: [["Ich [[würde]] gern mehr [[reisen]].", "I'd like to travel more."], ["[[Würdest]] du mir [[helfen]]?", "Would you help me?"], ["Was [[würdest]] du [[machen]]?", "What would you do?"]],
-    trap: "**wurde** (past: was getting) ≠ **würde** (would). The umlaut is the whole difference.",
+    trap: "**wurde** (past: became / was) ≠ **würde** (would). The umlaut is the whole difference.",
     quiz: [
       { k: "type", q: "du ___ ___ (helfen) — would", a: ["würdest helfen"], chk: ["helfen", "k2w", "du"], why: "würdest + infinitive." },
       { k: "type", q: "wir ___ ___ (kaufen) — would", a: ["würden kaufen"], chk: ["kaufen", "k2w", "wir"], why: "würden + infinitive." },
