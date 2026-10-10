@@ -35,6 +35,8 @@ function timelineSentences(pool) {
     if (!text || seen.has(text)) return;
     const r = vlSentence(text);
     if (!r || !tenses.includes(r.t)) return;
+    // Präteritum before its full lesson: sentences of Präteritum I only.
+    if (r.t === "pt" && typeof vxPt1Sentence === "function" && !vxPt1Sentence(r)) return;
     seen.add(text);
     out.push({ w, text, tr: String(ex.en || ""), r, inPool: inPool.has(wordKey(w)) });
   }));

@@ -73,12 +73,17 @@ const CONJ_LEVEL_TENSES = { a1: ["pr", "pf", "im"], a2: ["pr", "pf", "im", "pt",
 function conjLevelTenses() {
   const fg = typeof pathFrontier === "function" ? pathFrontier() : null;
   const all = CONJ_TENSE_IDS();
+  // With the verb track: only the tenses you've been taught (verb-track.js).
+  const taught = typeof vxGameTenses === "function" ? vxGameTenses(all) : null;
+  if (taught) return taught;
   const lv = fg && CONJ_LEVEL_TENSES[fg.id];
   return lv ? lv.filter(t => all.includes(t)) : all;
 }
 function conjRoundTenses() { return conjLevelTenses(); }
 // Met verbs that have at least one of these tenses.
-function conjMineFor(pool, tenses) { return conjVerbSplit(pool).mine.filter(v => v.tenses.some(t => tenses.includes(t))); }
+function conjMineFor(pool, tenses) { return conjVerbSplit(pool).mine.filter(v => v.tenses.some(t => tenses.includes(t) && conjTenseOk(v, t))); }
+// Präteritum before its full lesson: only the verbs of Präteritum I.
+function conjTenseOk(v, t) { return typeof vxTenseOkFor !== "function" || vxTenseOkFor(v.inf, t); }
 const CONJ_CARD_TENSE = it => /präteritum/i.test(it.verb) ? "pt" : "pr";
 // Verbs you've met (a word record exists for the verb's own card, or it
 // is in the game pool) vs the rest of the A1–B1 list.
@@ -125,8 +130,8 @@ function vfWeight(inf, tense) {
 // find hard in your decks come up more.
 function conjPickSpin(verbs, tenses, lastInf) {
   if (!verbs || !verbs.length) return null;
-  const cands = weightedPickDistinct(verbs.filter(v => v.inf !== lastInf && v.tenses.some(t => tenses.includes(t))), 1, v => {
-    const ts = v.tenses.filter(t => tenses.includes(t));
+  const cands = weightedPickDistinct(verbs.filter(v => v.inf !== lastInf && v.tenses.some(t => tenses.includes(t) && conjTenseOk(v, t))), 1, v => {
+    const ts = v.tenses.filter(t => tenses.includes(t) && conjTenseOk(v, t));
     const w = ts.reduce((s, t) => s + vfWeight(v.inf, t), 0) / Math.max(1, ts.length);
     return w * (v.word ? Math.sqrt(wordWeakness(v.word)) : 1);
   });
@@ -134,7 +139,7 @@ function conjPickSpin(verbs, tenses, lastInf) {
   return conjSpinFor(v, tenses);
 }
 function conjSpinFor(v, tenses, notPerson = "") {
-  const ts = v.tenses.filter(t => tenses.includes(t));
+  const ts = v.tenses.filter(t => tenses.includes(t) && conjTenseOk(v, t));
   const tense = weightedPickDistinct(ts.length ? ts : v.tenses, 1, t => vfWeight(v.inf, t))[0];
   let persons = tense === "im" ? ["du", "ihr", "Sie"] : PERSONS.slice();
   persons = persons.filter(p => verbCell(v.F, tense, p) && p !== notPerson);
@@ -375,6 +380,9 @@ registerGame({
       ctx.busy = true;
       const gen = cur.kind === "gen";
       if (gen) vfRecord(cur.v.inf, cur.tense, res === true && !helped);
+      // Typed: recall credit for the verb items behind the form (a hint
+      // makes it a look), and a miss flags them for a typed check.
+      if (gen && typeof vxGameHit === "function") vxGameHit(ctx, cur.v.inf, cur.tense, cur.person, res === true, res === true && helped ? "recognition" : "recall");
       if (gen && typeof learnNoteVerb === "function") learnNoteVerb(cur.v.F, cur.tense, cur.person, res === true, skip ? "" : val, cur.cell.ans);
       if (gen && res !== true && !retry.some(x => x.v === cur.v)) retry.push({ v: cur.v, tense: cur.tense, person: cur.person, extra: cur.extra, at: r + 3 });
       if (res === true) {

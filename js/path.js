@@ -56,16 +56,25 @@ function pathScan(force = false) {
     groups: [], decks: {}, dueByDay: new Array(8).fill(0),
   };
   TIERS.forEach(t => res.tiers[t.id] = 0);
+  // The verb track (verb-track.js): retired cards (ret, of which retMet
+  // already mirror an item) never come as new words; a grammar deck
+  // waiting for its lesson (gated) neither. avail = what new words can
+  // still be drawn from.
+  const vx = typeof vxOn === "function" && vxOn();
   vocabGroups().forEach(g => {
-    const gs = { id: g.id, name: g.name, icon: g.icon, total: 0, met: 0, known: 0, locked: 0, tiers: {}, repair: 0, decks: [] };
+    const gs = { id: g.id, name: g.name, icon: g.icon, total: 0, met: 0, known: 0, locked: 0, tiers: {}, repair: 0, decks: [], ret: 0, retMet: 0, avail: 0 };
     TIERS.forEach(t => gs.tiers[t.id] = 0);
     g.decks.forEach(d => {
       const ds = { id: d.id, name: d.name, icon: d.icon, group: g.id, total: d.words.length, met: 0, known: 0, locked: 0,
-        tiers: {}, repair: 0, due: 0, unlocked: S.unlocked[d.id] || 0 };
+        tiers: {}, repair: 0, due: 0, unlocked: S.unlocked[d.id] || 0, ret: 0, retMet: 0, avail: 0 };
       TIERS.forEach(t => ds.tiers[t.id] = 0);
+      const gated = vx && vxGated(d.id);
       for (let i = 0; i < d.words.length; i++) {
         const ws = S.words[d.id + "_" + i];
         const st = ws ? (ws.st || 0) : 0;
+        const retired = vx && vxRetired(d.id, i);
+        if (retired) { ds.ret++; if (st) ds.retMet++; }
+        else if (!st && !gated) ds.avail++;
         const tier = tierOfStage(st).id;
         ds.tiers[tier]++;
         if (st) {
@@ -86,12 +95,12 @@ function pathScan(force = false) {
           }
         }
       }
-      ["total", "met", "known", "locked", "repair"].forEach(k => gs[k] += ds[k]);
+      ["total", "met", "known", "locked", "repair", "ret", "retMet", "avail"].forEach(k => gs[k] += ds[k]);
       TIERS.forEach(t => gs.tiers[t.id] += ds.tiers[t.id]);
       gs.decks.push(ds);
       res.decks[d.id] = ds;
     });
-    ["total", "met", "known", "locked"].forEach(k => res[k] += gs[k]);
+    ["total", "met", "known", "locked", "ret", "retMet", "avail"].forEach(k => res[k] = (res[k] || 0) + gs[k]);
     TIERS.forEach(t => res.tiers[t.id] += gs.tiers[t.id]);
     res.groups.push(gs);
   });
@@ -102,26 +111,30 @@ function pathScan(force = false) {
 
 // ── FRONTIER & CLUSTERS ───────────────────────
 function pathFrontier(scan = pathScan()) {
-  return scan.groups.find(g => g.met < g.total) || null;
+  return scan.groups.find(g => g.met - (g.retMet || 0) < g.total - (g.ret || 0)) || null;
 }
-// The next `n` unmet word indices of a deck, in deck order.
+// The next `n` unmet word indices of a deck, in deck order (never a
+// retired card, nothing from a deck waiting for its lesson).
 function unmetIndices(deck, n) {
   const out = [];
-  for (let i = 0; i < deck.words.length && out.length < n; i++) if (!isMet(deck.id, i)) out.push(i);
+  const vx = typeof vxOn === "function" && vxOn();
+  if (vx && vxGated(deck.id)) return out;
+  for (let i = 0; i < deck.words.length && out.length < n; i++) if (!isMet(deck.id, i) && !(vx && vxRetired(deck.id, i))) out.push(i);
   return out;
 }
 // Pick the deck the next cluster comes from.
 function pickClusterDeck(scan, exclude = [], rng = Math.random) {
   const fg = pathFrontier(scan);
   if (!fg) return null;
-  let cands = fg.decks.filter(d => d.met < d.total && !exclude.includes(d.id));
-  if (!cands.length) cands = fg.decks.filter(d => d.met < d.total);
+  const left = d => d.avail !== undefined ? d.avail > 0 : d.met < d.total;
+  let cands = fg.decks.filter(d => left(d) && !exclude.includes(d.id));
+  if (!cands.length) cands = fg.decks.filter(left);
   if (cands.length > 1) { const f = cands.filter(d => d.id !== S.path.lastDeck); if (f.length) cands = f; }
   if (!cands.length) return null;
   // Unlocked-but-unmet words (manual unlocks) go first.
   const pending = cands.filter(d => { const deck = getDeck(d.id); return unmetIndices(deck, 1)[0] < (S.unlocked[d.id] || 0); });
   const pool = pending.length ? pending : cands;
-  const pick = weightedPick(pool.map(d => ({ d, w: d.total - d.met })), rng);
+  const pick = weightedPick(pool.map(d => ({ d, w: d.avail !== undefined ? d.avail : d.total - d.met })), rng);
   return pick ? getDeck(pick.d.id) : null;
 }
 // Returns up to `max` words for new clusters (planned, not yet met).
@@ -140,7 +153,7 @@ function planNewWords(max, rng = Math.random, onlyDeck = null) {
     let size = Math.min(max - n, PATH.CLUSTER_MIN + Math.floor(rng() * (PATH.CLUSTER_MAX - PATH.CLUSTER_MIN + 1)));
     // Never leave a lone word or two behind — neither at the end of a
     // deck nor at the end of this batch: they join this cluster.
-    const deckLeft = scan.decks[deck.id].total - scan.decks[deck.id].met;
+    const deckLeft = scan.decks[deck.id].avail !== undefined ? scan.decks[deck.id].avail : scan.decks[deck.id].total - scan.decks[deck.id].met;
     if (deckLeft - size > 0 && deckLeft - size < PATH.CLUSTER_MIN) size = deckLeft;
     else if (max - n - size > 0 && max - n - size < PATH.CLUSTER_MIN) size = max - n;
     const idx = unmetIndices(deck, size + 8).filter(i => !taken.has(deck.id + "_" + i)).slice(0, size);
@@ -150,6 +163,7 @@ function planNewWords(max, rng = Math.random, onlyDeck = null) {
     n += cluster.length;
     // Pretend they're met so the next pick can see the deck's new size.
     scan.decks[deck.id].met += idx.length;
+    if (scan.decks[deck.id].avail !== undefined) scan.decks[deck.id].avail -= idx.length;
     const g = scan.groups.find(x => x.id === scan.decks[deck.id].group);
     if (g) g.met += idx.length;
   }
@@ -262,7 +276,7 @@ function planToday(scan = pathScan()) {
   const q = pathNewQuota(scan);
   // Never more catching up than the backlog the plan left for later.
   const catchUp = Math.min(plan.leave || 0, Math.round(q.held * 3 / 1.1));
-  return { reviews: plan.reviews, catchUp, newWords: q.base, target: plan.target, reason: q.reason };
+  return { reviews: plan.reviews, catchUp, newWords: q.base, target: plan.target, reason: q.reason, vx: plan.vx || null };
 }
 function pathLearnExtra() {
   pathRollDay();
@@ -286,7 +300,8 @@ function setPathNewPerDay(n) {
 const PLAN = { LAG: 75, MIN_PACE: 5, MAX_PACE: 30, SPREAD: 7, SMALL_BACKLOG: 20, GOAL_MIN: 20, GOAL_MAX: 300 };
 function pathDeadlineOn() { return !!(S.path && S.path.deadline); }
 function pathDaysLeft(today = studyToday()) { return pathDeadlineOn() ? daysBetween(today, S.path.deadline) : 0; }
-function pathUnmet(scan = pathScan()) { return scan.total - scan.met; }
+// Words still to meet — retired cards aside (the verb track covers them).
+function pathUnmet(scan = pathScan()) { return scan.total - scan.met - ((scan.ret || 0) - (scan.retMet || 0)); }
 // New words a day needed from here, uncapped (for the "out of reach" note).
 function pathPaceNeeded(scan = pathScan(), today = studyToday()) {
   const unmet = pathUnmet(scan);
@@ -322,8 +337,11 @@ function pathPace(scan = pathScan(), today = studyToday()) {
 // stays fixed all day: reviews due this morning + today's new words.
 // Only changing the finish date recalculates it (keeping the morning's
 // reviews). App updates never rebuild a day that has started.
-function planTarget(reviews, pace) {
-  return Math.max(PLAN.GOAL_MIN, Math.min(PLAN.GOAL_MAX, Math.ceil((reviews * 1.1 + pace * 3) / 10) * 10));
+// extra: right answers the verb track adds (sheets, new verb items,
+// coverage drills — verb-track.js vxPlanTarget); its due items are in
+// `reviews`.
+function planTarget(reviews, pace, extra = 0) {
+  return Math.max(PLAN.GOAL_MIN, Math.min(PLAN.GOAL_MAX, Math.ceil((reviews * 1.1 + pace * 3 + extra) / 10) * 10));
 }
 function planSyncQuest(plan) {
   const pq = S.quests && S.quests.list && S.quests.list.find(q => q.tpl === "a_plan" && !q.done);
@@ -346,17 +364,17 @@ function pathEnsurePlan(scan) {
     // Go back to this morning's reviews and pace.
     const first = morningPlanEvent();
     if (first) { prev.reviews = first.reviews; prev.pace = first.pace; }
-    prev.target = prev.goal = planTarget(prev.reviews, prev.pace);
+    prev.target = prev.goal = planTarget(prev.reviews, prev.pace, typeof vxPlanTarget === "function" ? vxPlanTarget(prev.vx) : 0);
     prev.v = 4;
     planSyncQuest(prev);
     return prev;
   }
   scan = scan || pathScan(true);
   const pace = pathPace(scan, today);
-  let reviews, leave;
+  let reviews, leave, vx = null;
   if (prev) {
     // Finish date changed today: same morning reviews, new pace.
-    reviews = prev.reviews; leave = prev.leave;
+    reviews = prev.reviews; leave = prev.leave; vx = prev.vx || null;
   } else {
     // A backlog from missed days is spread out: about a week's worth a
     // day, but never more than +20% on a normal day (after several days
@@ -368,11 +386,15 @@ function pathEnsurePlan(scan) {
     // Turned on mid-day: reviews already done today still belong to today.
     reviews = scan.due - backlog + take + pathReviewedToday();
     leave = backlog - take;
+    // The verb track's day: its due items join the reviews; sheets, new
+    // items and coverage drills add their own right answers.
+    vx = typeof vxPlanNumbers === "function" ? vxPlanNumbers(scan) : null;
+    if (vx) reviews += vx.due;
   }
-  const target = planTarget(reviews, pace);
-  P.plan = { v: 4, day: today, deadline: P.deadline, pace, reviews, leave, target, goal: target };
+  const target = planTarget(reviews, pace, typeof vxPlanTarget === "function" ? vxPlanTarget(vx) : 0);
+  P.plan = { v: 4, day: today, deadline: P.deadline, pace, reviews, leave, target, goal: target, ...(vx ? { vx } : {}) };
   planSyncQuest(P.plan);
-  logEvent("plan", { pace, reviews, target, leave, due: scan.due, od: scan.overdue });
+  logEvent("plan", { pace, reviews, target, leave, due: scan.due, od: scan.overdue, ...(vx ? { vx } : {}) });
   return P.plan;
 }
 // Reviews already done today: words that were due and got answered and
@@ -423,7 +445,7 @@ function pathSpotCandidates(n = 1, rng = Math.random) {
     for (let i = 0; i < d.words.length; i++) {
       const ws = S.words[d.id + "_" + i];
       const last = Math.max(ws ? ws.spotAt || 0 : 0, ws ? ws.sAt || 0 : 0);
-      if (ws && ws.st >= STAGE_LOCKED && !ws.rp && !(ws.dueAt && ws.dueAt <= Date.now()) && last < cutoff) out.push(pathWord(d.id, i));
+      if (ws && ws.st >= STAGE_LOCKED && !ws.rp && !ws.rt && !(ws.dueAt && ws.dueAt <= Date.now()) && last < cutoff) out.push(pathWord(d.id, i));
     }
   }));
   return seededShuffle(out, rng).slice(0, n);
@@ -476,7 +498,7 @@ function focusWords(focus, param) {
     if (focus === "level" && g.id !== param) return;
     for (let i = 0; i < d.words.length; i++) {
       const ws = S.words[d.id + "_" + i];
-      if (!ws || !ws.st || ws.sk) continue;
+      if (!ws || !ws.st || ws.sk || ws.rt) continue;
       let keep = true;
       if (focus === "pos") keep = posOf({ ...d.words[i], deckId: d.id, idx: i }) === param;
       else if (focus === "hard") keep = isStruggling(ws) || !!ws.rp || !!ws.fl;
@@ -570,8 +592,23 @@ function buildPathQueue(lenKey, opts = {}) {
     const newCount = opts.reviewOnly ? 0 : Math.min(q.left, Math.floor(newSlots / 3));
     clusters = planNewWords(newCount, rng);
     const nNew0 = clusters.reduce((s, c) => s + c.length, 0);
-    const reviewBudget = Math.max(0, budget - nNew0 * 3);
+    // The verb track (verb-track.js): today's sheets first, then verb
+    // items within a quarter of the session — they take that room from
+    // word reviews, never from new words.
+    const vxp = !opts.reviewOnly && typeof vxOn === "function" && vxOn() ? vxSessionPlan(Math.round(budget * VX_SESSION_SHARE)) : null;
+    const reviewBudget = Math.max(0, budget - nNew0 * 3 - (vxp ? vxp.items.length : 0));
     reviews = [...fix, ...due].slice(0, reviewBudget).map(x => pathItemFor(pathWord(x.d.id, x.i), x.ws, rng));
+    if (vxp && vxp.items.length) {
+      // Spread through the session; a new item's intro card comes three
+      // items before its first typed check.
+      const step = Math.max(1, Math.floor((reviews.length + vxp.items.length) / vxp.items.length));
+      vxp.items.forEach((ex, i) => {
+        const at = Math.min(reviews.length, i * step + 1);
+        const w = vxWord(ex);
+        reviews.splice(at, 0, { t: "typed", w, fresh: !!ex.fresh });
+        if (ex.fresh) reviews.splice(Math.max(0, at - 3), 0, { t: "learn", w });
+      });
+    }
     // Words for open focus quests: the spare room, at least a fifth and
     // at most a third of the session, spread through it.
     const nudges = opts.reviewOnly ? null : questNudges();
@@ -602,13 +639,21 @@ function buildPathQueue(lenKey, opts = {}) {
       if (getDeck(dId) && isMet(dId, idx) && !reviews.some(r => r.w.deckId === dId && r.w.idx === idx))
         reviews.splice(Math.floor(reviews.length * 0.4), 0, { t: "typed", w: pathWord(dId, idx), wotd: true });
     }
+    // Today's lesson sheets: the first opens the session (a tense starts
+    // with its sheet); a second waits for the middle, so the session
+    // never starts with two lessons in a row.
+    if (vxp && vxp.sheets.length) {
+      const [first, ...rest] = vxp.sheets.map(id => ({ t: "sheet", sheet: id }));
+      rest.forEach((sh, i) => reviews.splice(Math.floor(reviews.length * (i + 1) / (rest.length + 1)), 0, sh));
+      reviews.unshift(first);
+    }
   }
   const nNew = clusters.reduce((s, c) => s + c.length, 0);
 
   const out = [];
   const delayed = [];
   let ri = 0, ci = 0;
-  const counted = () => out.filter(x => x.t !== "learn" && x.t !== "bonus").length;
+  const counted = () => out.filter(x => x.t !== "learn" && x.t !== "bonus" && x.t !== "sheet").length;
   const clusterEvery = clusters.length ? Math.max(4, Math.floor(reviews.length / (clusters.length + 1))) : Infinity;
   let nextClusterAt = Math.min(2, reviews.length);
   const spotAt = Math.floor(budget * 0.6);
@@ -644,7 +689,7 @@ function buildPathQueue(lenKey, opts = {}) {
   // run out, the rest is practice on your least recently seen words
   // (stages only move for due words, so it's pure extra practice).
   if (!focus && !opts.reviewOnly && !opts.limit) {
-    const have = new Set(out.map(x => x.w && x.w.deckId + "_" + x.w.idx));
+    const have = new Set(out.filter(x => x.w).map(x => x.w.deckId + "_" + x.w.idx));
     const short = budget - counted();
     if (short > 0) focusWords("stale").filter(x => !have.has(x.d.id + "_" + x.i)).slice(0, short)
       .forEach(x => out.push({ ...focusItem(x, "stale"), practice: true }));
@@ -657,7 +702,7 @@ function buildPathQueue(lenKey, opts = {}) {
   const choiced = new Set();
   for (let i = 0; i < out.length; i++) {
     const it = out[i];
-    if (!it.w) continue;
+    if (!it.w || it.w.vx) continue; // verb items have their own intro card
     const k = it.w.deckId + "_" + it.w.idx;
     if (it.t === "choice" || it.t === "listen") { choiced.add(k); continue; }
     if (!TYPED_T.has(it.t) || choiced.has(k)) continue;
@@ -679,7 +724,7 @@ function buildPathQueue(lenKey, opts = {}) {
     if (budget >= 30 && typeof minionDeckPick === "function" && S.games && S.games.minionDay !== todayISO()
         && Math.random() < MINION_CHANCE && out.filter(x => x.t !== "learn").length >= 10) minion = minionDeckPick();
     const mid = minion ? slots.reduce((a, b) => Math.abs(b - 0.55) < Math.abs(a - 0.55) ? b : a) : -1;
-    const isQ = x => x.t !== "learn" && x.t !== "bonus" && !x.warm;
+    const isQ = x => x.t !== "learn" && x.t !== "bonus" && x.t !== "sheet" && !x.warm;
     const total = out.filter(isQ).length;
     const marks = slots.map(f => ({ at: Math.max(1, Math.round(total * f)), item: f === mid ? { t: "bonus", minion } : { t: "bonus" } }));
     let n = 0;
@@ -752,7 +797,7 @@ function skipLiftWord(ws, now = Date.now(), today = studyToday()) {
   ws.dueAt = null;   // no reviews scheduled
   ws.mastered = true;
   if (ws.metOn === today) delete ws.metOn; // frees today's new-word quota
-  ["rp", "lrn", "fl", "cf", "rc", "dropDay"].forEach(f => delete ws[f]);
+  ["rp", "lrn", "fl", "cf", "rc", "dropDay", "rt"].forEach(f => delete ws[f]);
 }
 // One-time, for levels skipped with the first version of Skip a level
 // (it left the words learnt that day as they were and scheduled checks
@@ -925,7 +970,10 @@ function pathForecast(days = 8) {
   });
   // Today is the plan itself: never show less than this morning's plan.
   if (plan && out[0] && plan.reviews + catchUp0 > out[0].total) { out[0].scheduled += plan.reviews + catchUp0 - out[0].total; out[0].total = plan.reviews + catchUp0; }
-  if (plan) out.forEach((r, i) => { r.target = i === 0 ? plan.target : planTarget(r.total, r.newWords); });
+  // Later days: the verb track adds about what it adds today (its due
+  // items are part of today's plan only — a small share either way).
+  const vxExtra = plan && typeof vxPlanTarget === "function" ? vxPlanTarget(plan.vx) + Math.round(((plan.vx && plan.vx.due) || 0) * 1.1) : 0;
+  if (plan) out.forEach((r, i) => { r.target = i === 0 ? plan.target : planTarget(r.total, r.newWords, vxExtra); });
   return { p, days: out };
 }
 

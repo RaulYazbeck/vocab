@@ -333,6 +333,11 @@ qt({ id: "a_longhaul", slot: "A", fam: "sitting", icon: "🧗", w: 1, ok: c => c
 // B · GROWTH — moving words forward
 qt({ id: "b_meet", slot: "B", fam: "meet", icon: "🌱", w: 3, ok: c => c.quota.left >= 3, target: c => c.quota.left,
   title: q => `Meet your ${q.target} new words`, prog: m => m.met, go: "path" });
+// The verb track (verb-track.js): a lesson waiting — its sheet in Today.
+qt({ id: "b_sheet", slot: "B", fam: "grammar", icon: "📖", w: 4,
+  ok: () => typeof vxOn === "function" && vxOn() && vxPendingSheets().length > 0 && vxQuotas().sheetsLeft > 0, target: () => 1,
+  title: () => `Pass today's grammar sheet`, sub: () => { const p = typeof vxPendingSheets === "function" ? vxPendingSheets() : []; const sh = p.length && vxSheet(p[0]); return sh ? `${VX_UNIT[sh.unit].name} · ${sh.title}` : ""; },
+  prog: m => m.vxSheets || 0, go: "path" });
 qt({ id: "b_up", slot: "B", fam: "up", icon: "📈", w: 3, ok: c => c.scan.due >= 8, target: c => Math.min(c.scan.due, sz(c, 0.13, 5, 25)),
   title: q => `Move ${q.target} words up a stage`, prog: m => m.up, go: "path" });
 qt({ id: "b_heal", slot: "B", fam: "repair", icon: "🩹", w: 3, ok: c => c.scan.repair >= 1, target: c => c.scan.repair,
@@ -869,6 +874,7 @@ function questEvent(type, d = {}) {
     case "anki_done": m.ankiDone = 1; if (new Date().getHours() < 18) m.ankiDoneBefore18 = 1; break;
     case "collect": if (d.kind === "g") m.gCollected++; else if (d.kind === "p") m.pCollected++; break;
     case "bonus_cleared": m.bonusCleared++; break;
+    case "vx_sheet": m.vxSheets = (m.vxSheets || 0) + 1; break;
   }
   questRecompute();
   questMarkKept();

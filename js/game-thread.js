@@ -79,7 +79,7 @@ registerGame({
     // ── Choosing what to unravel ──
     const weightV = v => (vlInPool(v, ctx.pool) ? 3 : 1) * Math.sqrt(v.word ? wordWeakness(v.word) : 1);
     const pickTense = (v) => {
-      const ts = tenses.filter(t => v.tenses.includes(t) && vlMeaning(v, t, vlPersonsOf(v)[0]));
+      const ts = tenses.filter(t => v.tenses.includes(t) && vlMeaning(v, t, vlPersonsOf(v)[0]) && (typeof vxTenseOkFor !== "function" || vxTenseOkFor(v.inf, t)));
       const cand = ts.filter(t => t !== lastT);
       return weightedPickDistinct(cand.length ? cand : ts, 1, t => 1.25 - vlTenseAcc("vt", t))[0];
     };
@@ -272,6 +272,8 @@ registerGame({
       const it = item;
       const perfect = exact.length === 3 && exact.every(Boolean);
       vlTenseRecord("vt", it.t, perfect);
+      // Read right: recognition credit for the verb items behind the form.
+      if (typeof vxGameHit === "function" && !VL_FR) vxGameHit(ctx, it.v.inf, it.t, it.p, perfect, "recognition");
       const t = tally[it.t] || (tally[it.t] = [0, 0]); if (perfect) t[0]++; t[1]++;
       // The colour split.
       const formEl = document.getElementById("vt-form");

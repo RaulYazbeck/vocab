@@ -83,6 +83,10 @@ function vlPersonLabel(p, form) {
 const VL_LEVEL_TENSES = VL_FR ? { a1: ["pr", "pc", "fp"], a2: ["pr", "pc", "fp", "im", "fu"] }
   : { a1: ["pr", "pf"], a2: ["pr", "pf", "pt", "fu", "k2"] };
 function vlLevelTenses() {
+  // With the verb track (German): the tenses you've been taught, never
+  // one whose lesson hasn't come yet (verb-track.js).
+  const taught = typeof vxGameTenses === "function" ? vxGameTenses(VL_TENSES.map(t => t.id)) : null;
+  if (taught) return taught;
   const fg = typeof pathFrontier === "function" ? pathFrontier() : null;
   const lv = fg && VL_LEVEL_TENSES[fg.id];
   return VL_TENSES.map(t => t.id).filter(t => !lv || lv.includes(t));
@@ -306,7 +310,7 @@ function vlVerbs(pool, tenses) {
     if (!/^[\p{L}' ]+$/u.test(v.inf)) return false;
     const met = has(v.word) || (v.words || []).some(has) || vlCards(v).some(c => has(c.w));
     if (!met) return false;
-    const ts = tenses.filter(t => v.tenses.includes(t) && vlMeaning(v, t, vlPersonsOf(v)[0]));
+    const ts = tenses.filter(t => v.tenses.includes(t) && vlMeaning(v, t, vlPersonsOf(v)[0]) && (typeof vxTenseOkFor !== "function" || vxTenseOkFor(v.inf, t)));
     return ts.length >= Math.min(2, tenses.length) && vlPersonsOf(v).length > 1;
   });
 }
