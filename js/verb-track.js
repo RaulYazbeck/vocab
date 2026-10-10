@@ -66,8 +66,16 @@ function migrateVerb() {
   ["tu", "sh", "sr", "cov", "rot"].forEach(k => { if (!V[k] || typeof V[k] !== "object") V[k] = {}; });
   if (typeof V.day !== "string") V.day = "";
   ["ni", "nc", "ns"].forEach(k => { if (!(V[k] >= 0)) V[k] = 0; });
-  if (vxOn()) { vxRollDay(); vxUnitsTick(true); vxMirror(); }
+  if (vxOn()) {
+    vxRollDay(); vxUnitsTick(true);
+    // Seeding learned to read more of your cards: run it again once.
+    // It only fills what hasn't started (or lifts what you never missed).
+    if ((V.seedV || 1) < VX_SEED_V) { V.seedV = VX_SEED_V; const n = vxSeed(false, true); if (typeof logEvent === "function") logEvent("vx_reseed", n); }
+    vxMirror();
+  }
 }
+// Version of vxSeed's reading of your cards (2: rule evidence by person).
+const VX_SEED_V = 2;
 function vxRollDay() {
   const V = S.verb, today = studyToday();
   if (V.day !== today) { V.day = today; V.ni = 0; V.nc = 0; V.ns = 0; }
@@ -364,10 +372,15 @@ const VX_PV_VERBS = new Set(("machen kaufen bauen reparieren schreiben lesen öf
   "wecken werfen zahlen ziehen zerstören beschädigen abschleppen ersetzen bauen sanieren testen begrüßen loben kritisieren unterstützen bewerten").split(/\s+/));
 const VX_RULES = [
   { id: "pr-end", unit: "pr", sheet: "pr1", kind: "pr", title: "Präsens endings", chip: "stem + e · st · t · en · t · en",
-    verbs: x => !x.k.irregular && !x.k.stem && !x.k.glue && !x.F.sep && !x.F.refl && x.F.presSure && !x.F.only, persons: () => PERSONS, order: () => 0 },
+    verbs: x => !x.k.irregular && !x.k.stem && !x.k.glue && !x.F.sep && !x.F.refl && x.F.presSure && !x.F.only, persons: () => PERSONS, order: () => 0,
+    // Your cards that show these endings: any verb that isn't irregular,
+    // in the persons where nothing else changes (ich fahre, wir fahren).
+    evid: (x, p) => !x.k.irregular && (["ich", "wir", "sie"].includes(p) || (!x.k.glue && (p === "ihr" || !x.k.stem))) },
   { id: "pr-glue", unit: "pr", sheet: "pr2", kind: "pr", title: "Spelling glue", chip: "arbeitest · heißt · sammle",
     verbs: x => x.k.glue && !x.k.stem && !x.k.irregular && !x.F.sep && !x.F.refl && x.F.presSure && !x.F.only,
-    persons: x => x.k.eln ? ["ich", "wir"] : x.k.ern ? ["wir", "sie"] : ["du", "er", "ihr"], order: x => x.k.eln || x.k.ern ? 1 : 0 },
+    persons: x => x.k.eln ? ["ich", "wir"] : x.k.ern ? ["wir", "sie"] : ["du", "er", "ihr"], order: x => x.k.eln || x.k.ern ? 1 : 0,
+    // du isst, er liest: a stem changer shows the glue too.
+    evid: (x, p) => x.k.glue && !x.k.irregular && (x.k.eln ? ["ich", "wir"] : x.k.ern ? ["wir", "sie"] : ["du", "er", "ihr"]).includes(p) },
   { id: "pr-sep", unit: "pr", sheet: "pr6", kind: "prsep", title: "Separable verbs", chip: "the prefix jumps to the end",
     verbs: x => !!x.F.sep && x.F.presSure && !x.F.only, persons: () => PERSONS, order: x => x.k.stem ? 1 : 0 },
   { id: "pr-refl", unit: "pr", sheet: "pr7", kind: "prrefl", title: "Reflexive verbs", chip: "mich · dich · sich · uns · euch · sich",
@@ -962,7 +975,9 @@ function vxPreview() {
 //   per-verb items — the verb's own form cards, or right answers in the
 //   conjugation game; coverage cells — any form you got right before.
 // dry: count only. Returns { rules, items, cells }.
-function vxSeed(dry = false) {
+// upgrade: a later re-run may also lift an item you started since but
+// never missed, when your cards say you know it better.
+function vxSeed(dry = false, upgrade = false) {
   const now = Date.now(), n = { rules: 0, items: 0, cells: 0 };
   const stOf = (d, i) => { const ws = S.words[d + "_" + i]; return ws && ws.st && !ws.rt ? ws.st : 0; };
   const med = a => { const s = a.slice().sort((x, y) => x - y); return s[Math.floor((s.length - 1) / 2)]; };
@@ -970,11 +985,13 @@ function vxSeed(dry = false) {
   const place = (id, st) => {
     if (!st) return;
     const ws = getWS(VX_DECK, id);
-    if (ws.st) return;
-    ws.st = st; ws.pk = st; ws.sAt = now;
+    if (ws.st && !(upgrade && ws.st < st && !ws.wrong && !ws.rp && !ws.fl)) return false;
+    ws.st = st; ws.pk = Math.max(ws.pk || 0, st); ws.sAt = now; ws.seed = 1;
+    delete ws.lrn;
     const spread = 1 + hashString(id) % Math.max(1, Math.round(STAGE_DAYS[st] || 1));
     ws.dueAt = studyDayStart(Math.min(spread, STAGE_DAYS[st] || 1), now);
     if (st >= STAGE_KNOWN) ws.mastered = true;
+    return true;
   };
   // Evidence per (inf, tense) from your met cards.
   const ev = new Map();
@@ -1000,13 +1017,14 @@ function vxSeed(dry = false) {
     const t = VX_KIND_TENSE[r.kind];
     const sts = [];
     let ok = 0, bad = 0;
+    const counts = r.evid || ((x, p) => r.verbs(x) && (r.persons(x).includes(p) || t === "pf"));
     vxVerbs().forEach(x => {
+      (ev.get(x.inf + "|" + t) || []).forEach(e => { if (counts(x, e.p)) sts.push(e.st); });
       if (!r.verbs(x)) return;
-      (ev.get(x.inf + "|" + t) || []).forEach(e => { if (r.persons(x).includes(e.p) || t === "pf") sts.push(e.st); });
       const g = learnT(x.inf)[t]; if (g) { ok += g[0] || 0; bad += g[1] || 0; }
     });
-    if (sts.length >= 3) { place("r:" + r.id, cap(med(sts))); n.rules++; }
-    else if (ok >= 3 && ok / (ok + bad) >= 0.7) { place("r:" + r.id, 3); n.rules++; }
+    if (sts.length >= 3) { if (place("r:" + r.id, cap(med(sts)))) n.rules++; }
+    else if (ok >= 3 && ok / (ok + bad) >= 0.7) { if (place("r:" + r.id, 3)) n.rules++; }
   });
   // Per-verb items: their own evidence.
   vxCatalog().forEach(it => {
@@ -1015,7 +1033,7 @@ function vxSeed(dry = false) {
     const sts = (ev.get(x.inf + "|" + t) || []).map(e => e.st);
     const g = (learnT(x.inf)[t] || [0, 0]);
     let st = sts.length ? cap(med(sts)) : g[0] >= 2 && g[0] > g[1] ? 2 : 0;
-    if (st) { place(it.id, st); n.items++; }
+    if (st && place(it.id, st)) n.items++;
   });
   return n;
 }
@@ -1031,6 +1049,7 @@ function vxSwitchOn() {
   S.verb.tu.pr = Math.max(S.verb.tu.pr || 0, 2);
   if (pos >= vxAnchorPos(VX_UNIT.pf) + 0.25) S.verb.tu.pf = Math.max(S.verb.tu.pf || 0, 2);
   const seed = vxSeed(false);
+  S.verb.seedV = VX_SEED_V;
   S.verb.seed = { on: today, ...seed, pos: Math.round(pos * 100) / 100 };
   vxUnitsTick(true);
   vxMirror();

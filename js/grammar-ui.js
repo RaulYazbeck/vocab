@@ -3,7 +3,7 @@
 //
 //   • The sheet viewer — one sheet in bites: structure → rules → the
 //     table → examples & the trap → the quiz. Swipe or ←/→ between
-//     them; the quiz is 3–5 questions (pick, type, put in order, which
+//     them; the quiz is 3 questions (pick, type, put in order, which
 //     rule?). Every miss shows why and comes back at the end of the quiz.
 //     The same viewer runs inside a Today session (a 📖 lesson item),
 //     in ☰ › 📐 Grammar and, read-only, over a verb exercise.
@@ -17,10 +17,13 @@
 // ─────────────────────────────────────────────
 
 // ── MARKUP ────────────────────────────────────
-// **bold** · [[verb]] in the tense colour · ~~struck~~ · *italic*
+// **bold** (in a table: the ending) · [[verb]] in the tense colour ·
+// {{ä}} a changed vowel · ((mich)) a pronoun · ~~struck~~ · *italic*
 function gsMd(s) {
   return escapeHtml(String(s || ""))
     .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>")
+    .replace(/\{\{(.+?)\}\}/g, `<u class="gs-ch">$1</u>`)
+    .replace(/\(\((.+?)\)\)/g, `<span class="gs-pr">$1</span>`)
     .replace(/\[\[(.+?)\]\]/g, `<b class="gs-v">$1</b>`)
     .replace(/~~(.+?)~~/g, "<s>$1</s>")
     .replace(/(^|[\s(])\*([^*\s][^*]*?)\*(?=[\s).,;:!?]|$)/g, "$1<i>$2</i>");
@@ -47,11 +50,15 @@ function gsMineList(kind, n = 14) {
   }[kind];
   if (!test) return [];
   return vxVerbs().filter(x => test(x) && vxLemma(x).st > 0)
-    .sort((a, b) => (vxLemma(a).met || "").localeCompare(vxLemma(b).met || "")).slice(0, n).map(x => x.inf);
+    .sort((a, b) => (vxLemma(a).met || "").localeCompare(vxLemma(b).met || "")).slice(0, n);
 }
+// Hover (or tap) a verb for its meaning; a tap also says it.
 function gsMineHtml(sh) {
   const list = sh.mine ? gsMineList(sh.mine) : [];
-  return list.length ? `<div class="gs-mine"><span>Your verbs that do this</span>${list.map(v => `<i>${escapeHtml(v)}</i>`).join("")}</div>` : "";
+  return list.length ? `<div class="gs-mine"><span>Your verbs that do this · tap for the meaning</span>${list.map(x => {
+    const gl = typeof vlGloss === "function" ? vlGloss(x.v) : "";
+    return `<button type="button" class="gs-chip" data-gloss="${escapeHtml(gl)}" title="${escapeHtml(x.inf + (gl ? " — " + gl : ""))}" data-say="${escapeHtml(x.inf)}" onclick="gsSpeak(this)">${escapeHtml(x.inf)}</button>`;
+  }).join("")}</div>` : "";
 }
 function gsTableHtml(sh) {
   if (sh.table) {
@@ -186,10 +193,23 @@ document.addEventListener("keydown", e => {
 // ── THE QUIZ ──────────────────────────────────
 // Every question once; a miss shows why and comes back at the end (until
 // it's right, three rounds at most). Score = right on the first try.
+const GS_QUIZ_N = 3;
 function gsQuizStart() {
   const g = _gs;
-  const list = g.sh.quiz.map((q, i) => ({ q, i, order: gsOrderOf(q), first: true, picked: [] }));
+  const list = gsQuizPickSet(g.sh.quiz).map(({ q, i }) => ({ q, i, order: gsOrderOf(q), first: true, picked: [] }));
   g.quiz = { list, i: 0, firstRight: 0, n: list.length, answered: false, done: false };
+}
+// Three questions of the sheet's set: at least one you type, the rest a
+// mix of kinds — another three on a retake. In the sheet's order.
+function gsQuizPickSet(quiz) {
+  const all = quiz.map((q, i) => ({ q, i }));
+  if (all.length <= GS_QUIZ_N) return all;
+  const typed = shuffle(all.filter(x => x.q.k === "type")), rest = shuffle(all.filter(x => x.q.k !== "type"));
+  const pick = typed.length ? [typed.shift()] : [];
+  const kinds = new Set(pick.map(x => x.q.k));
+  // A new kind first, then whatever is left.
+  [...rest.filter(x => !kinds.has(x.q.k) && (kinds.add(x.q.k), true)), ...rest, ...typed].forEach(x => { if (pick.length < GS_QUIZ_N && !pick.includes(x)) pick.push(x); });
+  return pick.sort((a, b) => a.i - b.i);
 }
 // Blocks / options in a shuffled order (blocks never already in order).
 function gsOrderOf(q) {
@@ -459,13 +479,24 @@ function renderGrammarUnit(id) {
     <div class="screen-top"><div class="screen-label">📐 Grammar</div><button class="back-btn" onclick="renderGrammar()">← Tenses</button></div>
     <div class="gr-uhead"><span class="gr-sign big">${u.sign}</span><div><h2>${escapeHtml(u.name)}</h2><p>${escapeHtml(u.sub)}</p></div></div>
     ${st === 0 && vxOn() ? `<div class="set-note">🔒 This tense opens ${vxUnitEta(u) ? `around <b>${fmtShortDate(vxUnitEta(u))}</b>` : "soon"}${u.req.some(r => !vxUnitOpen(r)) ? ` — after ${u.req.filter(r => !vxUnitOpen(r)).map(r => `<b>${escapeHtml(VX_UNIT[r].name)}</b>`).join(" and ")}` : ""}. You can read its sheets now; passing every quiz opens it early.</div>` : ""}
-    <div class="gr-sheets">${ids.map((sid, i) => { const sh = vxSheet(sid), p = vxSheetPassed(sid);
-      return `<button class="gr-sheet ${p ? "done" : ""}" onclick="renderGrammarSheet('${sid}')"><span class="gr-sn">${p ? "✓" : i + 1}</span><span class="gr-stt">${escapeHtml(sh.title)}</span>${p ? `<span class="gr-sc">${S.verb.sh[sid]}%</span>` : ""}<span class="set-chev">›</span></button>`; }).join("")}</div>
-    ${rules.length ? `<div class="gr-h">In your reviews</div><div class="gr-rules">${rules.map(r => { const ws = S.words[vxKey("r:" + r.id)];
-      return `<div class="gr-rule"><b>${escapeHtml(r.title)}</b><span>${escapeHtml(r.chip)}</span>${ws && ws.st ? `${tierBadgeHtml(ws)}` : `<small>${st >= 2 ? "comes as a new item" : "after the lesson"}</small>`}</div>`; }).join("")}</div>` : ""}
+    ${vxOn() ? `<div class="gr-unote">${st === 1 ? "📌 These sheets come into Today by themselves, up to two a day — each ends with a short check."
+      : st >= 2 ? (ids.every(vxSheetPassed) ? "All sheets done — reread any time." : "You already use this tense: the sheets are here to read when you want, nothing is due.") : ""}</div>` : ""}
+    <div class="gr-sheets">${ids.map((sid, i) => { const sh = vxSheet(sid), p = vxSheetPassed(sid), due = st === 1 && !p;
+      return `<button class="gr-sheet ${p ? "done" : ""}" onclick="renderGrammarSheet('${sid}')"><span class="gr-sn">${p ? "✓" : i + 1}</span><span class="gr-stt">${escapeHtml(sh.title)}</span>${p ? `<span class="gr-sc">${S.verb.sh[sid]}%</span>` : due ? `<span class="gr-due">in Today</span>` : ""}<span class="set-chev">›</span></button>`; }).join("")}</div>
+    ${rules.length ? `<div class="gr-h">In your reviews</div><div class="gr-unote">Each rule is one review card in Today: one form to type, a different verb each time.</div>
+      <div class="gr-rules">${rules.map(r => `<div class="gr-rule"><b>${escapeHtml(r.title)}</b><span>${escapeHtml(r.chip)}</span>${gsRuleStatusHtml(S.words[vxKey("r:" + r.id)], st)}</div>`).join("")}</div>` : ""}
     ${items.length > rules.length ? `<div class="gr-items">+ ${items.length - rules.length} verbs with their own item · ${met} started · ${known} 🌳 Known</div>` : ""}
   </div>`;
   scrollPageTop();
+}
+// Where a rule (or verb item) stands, in plain words — the app's stage
+// names ("Strong") would read like grammar terms here.
+const GS_STAGE_WORD = ["", "Learning", "Learning", "Familiar", "Familiar", "Known", "Known well", "Locked in"];
+function gsRuleStatusHtml(ws, unitSt) {
+  if (!ws || !ws.st) return `<small>${unitSt >= 2 ? "New — not in your cards yet; starts in Today" : "Starts after the lesson"}</small>`;
+  const t = tierOfStage(ws.st), days = ws.dueAt ? Math.round((ws.dueAt - Date.now()) / 864e5) : 0;
+  const next = ws.rp || ws.fl || ws.lrn ? "to practise" : days <= 0 ? "due now" : days === 1 ? "next check tomorrow" : `next check in ${days} days`;
+  return `<div class="gr-rst"><b class="tier-${t.id}">${t.icon} ${GS_STAGE_WORD[ws.st] || t.name}</b><small>${ws.seed ? "from your cards · " : ""}${next}</small></div>`;
 }
 function renderGrammarSheet(id) {
   const sh = vxSheet(id);

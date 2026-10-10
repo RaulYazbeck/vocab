@@ -311,6 +311,7 @@ function mergeStates(local, cloud, opts = {}) {
     const cov = {};
     [lv.cov, cv.cov].forEach(m => { if (syncIsObj(m)) Object.entries(m).forEach(([k, b]) => { cov[k] = (cov[k] || 0) | syncNum(b); }); });
     V.cov = cov;
+    if (lv.seedV !== undefined || cv.seedV !== undefined) V.seedV = Math.max(syncNum(lv.seedV), syncNum(cv.seedV));
     const dec = syncNum(lv.onAt) >= syncNum(cv.onAt) ? lv : cv;
     if (lv.onAt !== undefined || cv.onAt !== undefined) { V.on = dec.on || ""; V.onAt = syncNum(dec.onAt); if (dec.seed) V.seed = syncClone(dec.seed); }
     const ld = String(lv.day || ""), cd = String(cv.day || "");

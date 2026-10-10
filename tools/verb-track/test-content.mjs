@@ -47,7 +47,7 @@ const formsOf = (inf, p) => {
   if (v.F.im && v.F.im[p]) out.add(norm(v.F.im[p] + (p === "Sie" ? " sie" : "")));
   return out;
 };
-const strip = t => norm(String(t).replace(/\*\*/g, "").replace(/!$/, "").replace(/ … /g, " "));
+const strip = t => norm(String(t).replace(/\*\*|\{\{|\}\}|\(\(|\)\)/g, "").replace(/!$/, "").replace(/ … /g, " "));
 sheets.forEach(s => {
   if (s.table) {
     const verbs = s.table.head.slice(1);
