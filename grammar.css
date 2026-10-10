@@ -58,13 +58,17 @@
   display:grid; place-items:center; font-weight:900; font-size:13px; color:#120c02; background:hsl(var(--th) 85% 66%); }
 .gs-rules b { color:hsl(var(--th) 90% 80%); }
 
-.gs-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; border-radius:var(--r-sm); border:1px solid var(--border); }
+.gs-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; border-radius:var(--r-sm); border:1px solid var(--border); max-width:560px; margin:0 auto; }
 .gs-table { width:100%; border-collapse:collapse; font-size:15px; }
 .gs-table th, .gs-table td { padding:8px 10px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.06); white-space:nowrap; }
 .gs-table thead th { font-size:12px; font-weight:800; letter-spacing:0.4px; color:hsl(var(--th) 85% 72%); background:hsl(var(--th) 70% 50% / 0.1); }
 .gs-table tbody th { color:var(--teal-hi); font-weight:700; font-size:13.5px; width:1%; }
 .gs-table tbody tr:last-child th, .gs-table tbody tr:last-child td { border-bottom:none; }
-.gs-table b { color:var(--accent-hi); }
+/* Tables read like the structure: who (teal) · stem (the tense colour) · ending (accent). */
+.gs-table td { color:hsl(var(--th) 88% 72%); font-weight:600; }
+.gs-table b { color:var(--accent-hi); font-weight:800; }
+.gs-pr { color:var(--teal-hi); font-weight:600; }
+.gs-ch { text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:3px; font-weight:800; color:#fff; }
 .gs-lines { display:flex; flex-direction:column; gap:8px; }
 .gs-line { display:flex; flex-direction:column; gap:3px; padding:9px 12px; border-radius:var(--r-sm); background:rgba(255,255,255,0.04); border:1px solid var(--border); }
 .gs-line b { font-size:12.5px; color:hsl(var(--th) 85% 72%); letter-spacing:0.3px; }
@@ -72,7 +76,13 @@
 .gs-line span b { font-size:inherit; color:var(--accent-hi); }
 .gs-mine { margin-top:12px; display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
 .gs-mine > span { width:100%; font-size:11.5px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; color:var(--text-3); }
-.gs-mine i { font-style:normal; font-size:13px; padding:4px 9px; border-radius:14px; background:var(--teal-dim); color:var(--teal-hi); border:1px solid rgba(0,201,177,0.3); }
+.gs-chip { position:relative; font:inherit; font-size:13px; padding:4px 9px; border-radius:14px; background:var(--teal-dim); color:var(--teal-hi); border:1px solid rgba(0,201,177,0.3); cursor:pointer; }
+.gs-chip:hover, .gs-chip:focus-visible { border-color:var(--teal-hi); outline:none; }
+/* The meaning floats above the chip on hover (desktop) or once tapped (phone). */
+.gs-chip[data-gloss]:not([data-gloss=""]):hover::after, .gs-chip[data-gloss]:not([data-gloss=""]):focus::after {
+  content:attr(data-gloss); position:absolute; left:50%; bottom:calc(100% + 6px); transform:translateX(-50%); z-index:5;
+  white-space:nowrap; max-width:70vw; overflow:hidden; text-overflow:ellipsis; font-size:12.5px; font-weight:600; padding:5px 9px; border-radius:8px;
+  background:#11131a; color:var(--text); border:1px solid var(--border-hi); box-shadow:0 6px 18px rgba(0,0,0,0.45); pointer-events:none; }
 
 .gs-ex { display:flex; flex-direction:column; gap:10px; }
 .gs-ex-row { display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border-radius:var(--r-sm); background:rgba(255,255,255,0.04); border:1px solid var(--border); }
@@ -94,7 +104,10 @@
 .gs-qtext { font-size:18px; font-weight:700; text-align:center; line-height:1.4; }
 .gs-input { text-align:center; }
 .gs-opts { display:flex; flex-direction:column; gap:9px; }
-.gs-opts .g-opt { justify-content:flex-start; text-align:left; min-height:50px; }
+.gs-opts .g-opt { justify-content:flex-start; text-align:left; min-height:50px; gap:12px; padding:10px 14px; }
+/* The key number as a small badge in line, not a corner superscript. */
+.gs-opts .g-key { position:static; flex:0 0 24px; width:24px; height:24px; border-radius:50%; display:inline-grid; place-items:center;
+  background:rgba(255,255,255,0.06); border:1px solid var(--border); font-size:11px; color:var(--text-2); }
 .gs-built { min-height:54px; display:flex; flex-wrap:wrap; gap:7px; padding:9px; border-radius:var(--r-sm);
   border:1.5px dashed var(--border-hi); align-items:center; }
 .gs-built.ok { border-color:var(--success); background:var(--success-dim); }
@@ -171,7 +184,12 @@
 .gr-rule b { font-size:14.5px; }
 .gr-rule span { grid-column:1; font-size:12.5px; color:var(--text-2); }
 .gr-rule > :nth-child(3) { grid-column:2; grid-row:1 / span 2; }
-.gr-rule small { font-size:11.5px; color:var(--text-3); }
+.gr-rule small { font-size:11.5px; color:var(--text-3); text-align:right; }
+.gr-rst { display:flex; flex-direction:column; align-items:flex-end; gap:3px; text-align:right; }
+.gr-rst small { font-weight:500; }
+.gr-rst b { font-size:12.5px; font-weight:700; padding:2px 8px; border-radius:10px; background:rgba(255,255,255,0.05); border:1px solid var(--border); }
+.gr-unote { font-size:13px; color:var(--text-2); margin:2px 0 10px; line-height:1.45; }
+.gr-due { font-size:11px; font-weight:800; padding:3px 8px; border-radius:10px; background:hsl(var(--th) 70% 50% / 0.16); color:hsl(var(--th) 85% 75%); border:1px solid hsl(var(--th) 70% 55% / 0.4); white-space:nowrap; }
 .gr-items { margin-top:10px; font-size:13px; color:var(--text-2); }
 .gr-ledger { display:flex; flex-direction:column; gap:8px; }
 .gr-lv { display:grid; grid-template-columns:38px 1fr auto; grid-template-rows:auto auto; gap:4px 10px; align-items:center; width:100%; padding:11px 13px;
@@ -262,6 +280,11 @@
 .vx-sheet-btn { margin-top:6px; font-size:13.5px; color:var(--accent-hi); }
 
 @media (max-width:480px) {
+  /* A rule's status goes under its name on a phone. */
+  .gr-rule { grid-template-columns:1fr; }
+  .gr-rule > :nth-child(3) { grid-column:1; grid-row:auto; margin-top:6px; }
+  .gr-rst { flex-direction:row; flex-wrap:wrap; align-items:center; gap:4px 8px; text-align:left; }
+  .gr-rule small { text-align:left; }
   .gs-title { font-size:19px; }
   .gs-blk { font-size:14px; min-height:38px; padding:6px 10px; }
   .gs-rules li, .gs-why, .gs-trap { font-size:14.5px; }
