@@ -63,6 +63,8 @@ const GS_SHEETS = [
     trap: "**du liest** — not liesst: the s is already there.",
     mine: "glue",
     quiz: [
+      {"at": "table", "k": "type", "q": "du ___ (arbeiten)", "a": ["arbeitest"], "chk": ["arbeiten", "pr", "du"], "why": "Stem in -t: add e → du arbeit**est**."},
+      {"at": "table", "k": "type", "q": "ihr ___ (heißen)", "a": ["heißt"], "chk": ["heißen", "pr", "ihr"], "why": "ihr → stem + t: heißt."},
       {"at": "r1", "k": "type", "q": "er ___ (warten)", "a": ["wartet"], "chk": ["warten", "pr", "er"], "why": "Stem in -t → add e: wart**et**."},
       {"at": "r1", "k": "type", "q": "ihr ___ (finden)", "a": ["findet"], "chk": ["finden", "pr", "ihr"], "why": "Stem in -d → add e: find**et**."},
       {"at": "r1", "g": "form", "t": "pr", "p": ["du", "er", "ihr"], "v": "glueT", "fb": ["arbeiten", "warten", "finden", "öffnen"], "why": "Stem in -t / -d (or consonant + m/n): add **e** before -st and -t."},
@@ -372,6 +374,8 @@ const GS_SHEETS = [
     ex: [["[[Komm]] doch mit!", "Come along!"], ["[[Wartet]] auf mich!", "Wait for me!"], ["[[Sprechen]] Sie bitte langsamer!", "Please speak more slowly!"]],
     trap: "a → ä verbs keep their **a**: **fahr!** (not fähr!), **schlaf!** — only e → i verbs change (next sheet).",
     quiz: [
+      {"at": "table", "k": "type", "q": "(ihr) ___! (machen)", "a": ["macht"], "chk": ["machen", "im", "ihr"], "why": "ihr → the ihr form: macht!"},
+      {"at": "table", "k": "type", "q": "(du) ___! (warten)", "a": ["warte"], "chk": ["warten", "im", "du"], "why": "Stem in -t: warte!"},
       {"at": "r1", "k": "type", "q": "(du) ___! (kommen)", "a": ["komm", "komme"], "chk": ["kommen", "im", "du"], "why": "du → the stem: komm!"},
       {"at": "r1", "g": "form", "t": "im", "p": ["du"], "v": "imReg", "fb": ["kommen", "machen", "warten", "trinken", "kaufen"], "why": "du → the stem (no du, no -st); after -t / -d add e."},
       {"at": "r2", "k": "type", "q": "(ihr) ___! (warten)", "a": ["wartet"], "chk": ["warten", "im", "ihr"], "why": "ihr → the ihr form: wartet!"},
@@ -475,6 +479,8 @@ const GS_SHEETS = [
     ex: [["Ich [[konnte]] nicht kommen.", "I couldn't come."], ["Wir [[mussten]] lange warten.", "We had to wait a long time."], ["Er [[wollte]] Arzt werden.", "He wanted to become a doctor."]],
     trap: "**konnte** (no umlaut) = could, in the past. **könnte** (umlaut) = could, would be able to — that's Konjunktiv II.",
     quiz: [
+      {"at": "lines", "k": "type", "q": "wir ___ (dürfen, past)", "a": ["durften"], "chk": ["dürfen", "pt", "wir"], "why": "durfte + n — no umlaut."},
+      {"at": "lines", "k": "type", "q": "ihr ___ (wissen, past)", "a": ["wusstet"], "chk": ["wissen", "pt", "ihr"], "why": "wusste + t."},
       {"at": "r1", "k": "type", "q": "ich ___ (können, past)", "a": ["konnte"], "chk": ["können", "pt", "ich"], "why": "Umlaut gone + te: konnte."},
       {"at": "r1", "k": "pick", "q": "er ___ (dürfen, past)", "o": ["durfte", "dürfte", "darfte"], "a": 0, "chk": ["dürfen", "pt", "er"], "why": "The past drops the umlaut: durfte."},
       {"at": "r1", "g": "form", "t": "pt", "p": ["ich", "er"], "v": "modal", "fb": ["können", "müssen", "dürfen", "mögen"], "lbl": " — past", "why": "-te, and the umlaut goes: konnte, musste, durfte, mochte."},
@@ -526,6 +532,8 @@ const GS_SHEETS = [
     ex: [["Es [[wird]] morgen [[regnen]].", "It will rain tomorrow."], ["Du [[wirst]] [[sehen]], alles wird gut.", "You'll see, everything will be fine."], ["Wir [[werden]] bald [[umziehen]].", "We'll be moving soon."]],
     trap: "**werden** alone means *become*: Er **wird** Arzt = he's becoming a doctor. With an infinitive it's the future.",
     quiz: [
+      {"at": "table", "k": "type", "q": "ihr ___ ___ (kommen) — Futur I", "a": ["werdet kommen"], "chk": ["kommen", "fu", "ihr"], "why": "werdet + infinitive."},
+      {"at": "table", "k": "type", "q": "wir ___ ___ (machen) — Futur I", "a": ["werden machen"], "chk": ["machen", "fu", "wir"], "why": "werden + infinitive."},
       {"at": "r1", "k": "type", "q": "du ___ (werden)", "a": ["wirst"], "chk": ["werden", "pr", "du"], "why": "werden: werde · wirst · wird…"},
       {"at": "r1", "k": "type", "q": "er ___ (werden)", "a": ["wird"], "chk": ["werden", "pr", "er"], "why": "er wird."},
       {"at": "r2", "k": "type", "q": "du ___ ___ (kommen) — Futur I", "a": ["wirst kommen"], "chk": ["kommen", "fu", "du"], "why": "wirst + infinitive."},
@@ -600,6 +608,8 @@ const GS_SHEETS = [
     ex: [["Ich [[wäre]] jetzt gern am Meer.", "I'd love to be at the sea now."], ["[[Hättest]] du morgen Zeit?", "Would you have time tomorrow?"], ["Das [[wäre]] toll!", "That would be great!"]],
     trap: "**Ich hätte gern…** is the polite way to order: Ich hätte gern einen Kaffee.",
     quiz: [
+      {"at": "table", "k": "type", "q": "du ___ (sein) — would", "a": ["wärst"], "chk": ["sein", "k2o", "du"], "why": "wäre + st: wärst."},
+      {"at": "table", "k": "type", "q": "ihr ___ (haben) — would", "a": ["hättet"], "chk": ["haben", "k2o", "ihr"], "why": "hätte + t: hättet."},
       {"at": "r1", "k": "type", "q": "du ___ (sein) — would be", "a": ["wärst"], "chk": ["sein", "k2o", "du"], "why": "wärst."},
       {"at": "r1", "k": "type", "q": "ihr ___ (sein) — would be", "a": ["wärt"], "chk": ["sein", "k2o", "ihr"], "why": "ihr wärt."},
       {"at": "r2", "k": "type", "q": "wir ___ (haben) — would have", "a": ["hätten"], "chk": ["haben", "k2o", "wir"], "why": "hätten."},

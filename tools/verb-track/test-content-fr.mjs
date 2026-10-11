@@ -29,6 +29,9 @@ sheets.forEach(s => {
   if (s.mine) ok(!!G.VXF_GQ_SETS[s.mine], `${s.id} mine set ${s.mine}`);
   const pts = G.gqPoints(s);
   pts.forEach(at => ok(G.gqPool(s, at).length >= 3, `${s.id} point ${at} has three questions`, G.gqPool(s, at).length));
+  // A generated question can come up empty (no verb fits, too few wrong
+  // options): every point also has a written one, so it is always asked.
+  pts.forEach(at => ok(G.gqPool(s, at).some(q => !q.g), `${s.id} point ${at} has a written question`));
   s.quiz.forEach((q, i) => ok(pts.includes(q.at), `${s.id} q${i + 1} tests a point of the sheet`, q.at));
   const size = G.gqSheetSize(s);
   ok(size >= 3 && size <= 10, `${s.id} quiz is 3–10 questions`, size);
