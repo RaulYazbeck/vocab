@@ -5,13 +5,16 @@ The German verb track lives in `js/verb-track.js` (model), `js/grammar-sheets-de
 
 Content (no browser):
 
-    node test-content.mjs   # every sheet: well-formed; every quiz answer, table and line = the verb engine
+    node test-content.mjs   # every sheet: well-formed; every quiz answer, table and line = the verb engine;
+                            # every point has questions; thousands of drawn quizzes checked against the engine
     node test-sync.mjs      # S.verb merges between two devices
 
 In the real app (Chromium via playwright-core from `../audio/tests`; run
 `npm install` there once, and serve the repo root: `python3 -m http.server 8765`):
 
     node t-flows.mjs        # switch, preview, gating, mirrors, game credit, reports, switching back
+    node t-quiz.mjs         # sheet quizzes (size, every point, 100%, re-ask) and mastery quizzes
+    node t-review.mjs       # a miss → the sheet → back to the quiz, nothing lost (every kind, menu + Today)
     node t-french.mjs       # the French app is unchanged
     node t-switch.mjs       # what switching on does to the test profile (numbers, first session)
     OUT=/tmp/shots node t-ui.mjs   # walks every new screen, phone + desktop screenshots

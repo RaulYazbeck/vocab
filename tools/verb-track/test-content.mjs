@@ -14,10 +14,20 @@ sheets.forEach(s => {
   ok(!ids.has(s.id), `unique id ${s.id}`); ids.add(s.id);
   ok(units.has(s.unit), `${s.id} unit exists`);
   ok(s.title && s.why && Array.isArray(s.struct) && s.struct.length, `${s.id} has title/why/struct`);
-  ok(s.quiz.length >= 3 && s.quiz.length <= 5, `${s.id} has 3–5 questions`, s.quiz.length);
+  // Every point of the sheet has questions; every question tests a point.
+  const pts = G.gqPoints(s);
+  pts.forEach(at => ok(G.gqPool(s, at).length >= 1, `${s.id} point ${at} has a question`));
+  s.quiz.forEach((q, i) => ok(pts.includes(q.at), `${s.id} q${i + 1} tests a point of the sheet`, q.at));
+  const size = G.gqSheetSize(s);
+  ok(size >= 3 && size <= 10, `${s.id} quiz is 3–10 questions`, size);
   ok(s.trap, `${s.id} has a trap`);
   s.quiz.forEach((q, i) => {
     const tag = `${s.id} q${i + 1}`;
+    if (q.g) {
+      ok(["form", "aux"].includes(q.g) && q.t && G.GQ_SETS[q.v], `${tag} generator is well-formed`, JSON.stringify(q));
+      ok(q.why, `${tag} has a why`);
+      return;
+    }
     ok(["type", "pick", "odd", "order", "why"].includes(q.k), `${tag} kind`);
     ok(q.why, `${tag} has a why`);
     if (q.k === "type") ok(Array.isArray(q.a) && q.a.length, `${tag} answers`);
@@ -70,6 +80,56 @@ sheets.forEach(s => {
     });
   });
 });
+// ── Generated questions ──
+// Every sheet's quiz drawn many times — with no verb met (the fallback
+// verbs) and with every verb met — each answer is the engine's, and no
+// wrong option is ever a right answer.
+const vm = await import("node:vm");
+vm.runInContext(`var S = { words: {}, verb: {}, learn: {} }; var __met = false; var __lemma = vxLemma; vxLemma = x => __met ? { st: 3, met: "2026-01-01" } : __lemma(x);`, G);
+const checkQ = (q, tag) => {
+  if (q.k === "type") ok(q.a.length && q.a.every(a => String(a).trim()), `${tag} has answers`, JSON.stringify(q));
+  else if (q.k !== "order") {
+    ok(Array.isArray(q.o) && q.o.length >= 2 && q.a >= 0 && q.a < q.o.length, `${tag} options`, JSON.stringify(q));
+    ok(new Set(q.o.map(o => norm(o))).size === q.o.length, `${tag} options differ`, q.o.join(" | "));
+  }
+  if (!q.inf) return;
+  const x = G.vxVerb(q.inf), f = x && G.vxForm(x, q.t, q.p, { modal: q.modal || "müssen" });
+  ok(!!f, `${tag} ${q.inf} ${q.t} ${q.p} exists`);
+  if (!f) return;
+  if (q.k === "type") ok(q.a.every(a => f.acc.includes(a)), `${tag} answer = engine`, `${q.a} vs ${f.acc}`);
+  else if (q.aux) {
+    // An auxiliary pick: the right one is the engine's first word.
+    ok(q.o[q.a] === f.ans.split(" ")[0], `${tag} aux = engine`, `${q.o[q.a]} vs ${f.ans}`);
+  } else {
+    ok(f.acc.some(a => G.vxEq(a, q.o[q.a])), `${tag} right option = engine`, `${q.o[q.a]} vs ${f.acc}`);
+    q.o.forEach((o, j) => { if (j !== q.a) ok(!f.acc.some(a => G.vxEq(a, o)), `${tag} wrong option "${o}" is really wrong`, f.acc.join(" | ")); });
+  }
+};
+let drawn = 0;
+for (const met of [false, true]) {
+  vm.runInContext(`__met = ${met};`, G);
+  sheets.forEach(s => {
+    const size = G.gqSheetSize(s);
+    for (let r = 0; r < 25; r++) {
+      const quiz = G.gqSheetQuiz(s);
+      ok(quiz.length === size, `${s.id} draws ${size} questions (met=${met})`, quiz.length);
+      ok(new Set(quiz.map(q => q.at)).size >= Math.min(size, G.gqPoints(s).length), `${s.id} covers every point`, quiz.map(q => q.at).join(","));
+      quiz.forEach((q, i) => { drawn++; checkQ(q, `${s.id} draw ${r} q${i + 1} (met=${met})`); });
+    }
+  });
+  G.VX_UNITS.forEach(u => {
+    const size = G.gqMasterySize(u.id);
+    ok(size >= 8 && size <= 20, `mastery ${u.id} is 8–20`, size);
+    for (let r = 0; r < 10; r++) {
+      const quiz = G.gqMasteryQuiz(u.id);
+      ok(quiz.length === size, `mastery ${u.id} draws ${size}`, quiz.length);
+      const sheetsHit = new Set(quiz.map(q => q.sid));
+      ok(G.vxSheetIds(u.id).every(id => sheetsHit.has(id)), `mastery ${u.id} asks about every sheet`, [...sheetsHit].join(","));
+      quiz.forEach((q, i) => { drawn++; checkQ(q, `mastery ${u.id} draw ${r} q${i + 1}`); });
+    }
+  });
+}
+console.log(`  (${drawn} drawn questions checked)`);
 // Every rule's sheet exists and each rule finds verbs.
 G.VX_RULES.forEach(r => ok(ids.has(r.sheet), `rule ${r.id} sheet ${r.sheet}`));
 console.log(`content: ${pass} passed, ${fail} failed`);

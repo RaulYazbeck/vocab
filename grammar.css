@@ -97,6 +97,7 @@
 .gs-nav .gs-prev { min-width:52px; min-height:50px; font-size:22px; padding:0; }
 .gs-nav .gs-next { min-height:50px; width:100%; max-width:none; }
 .gs-nav > span:empty { display:block; width:0; }
+.gs-nav.gs-nav3 { grid-template-columns:auto 1fr auto; }
 
 /* ── Quiz ─────────────────────── */
 .gs-quiz { display:flex; flex-direction:column; gap:12px; }
@@ -304,3 +305,24 @@
   .gs-step, .gs-step.fwd, .gs-step.back { animation:none; }
   .gs-dots i, .gr-lv-bar i { transition:none; }
 }
+
+/* ── Quiz: misses lead back into the sheet ── */
+.gs-hl { outline:2px solid hsl(var(--th) 85% 65%); outline-offset:3px; border-radius:var(--r-sm); animation:gsHl 1.6s ease 1; }
+@keyframes gsHl { 0% { box-shadow:0 0 0 0 hsl(var(--th) 85% 65% / 0.55); } 100% { box-shadow:0 0 0 14px hsl(var(--th) 85% 65% / 0); } }
+.gs-qrule { margin-top:6px; font-size:13px; color:var(--text-2); }
+.gs-qsee { display:block; width:100%; margin-top:10px; padding:10px 12px; border-radius:var(--r-sm); text-align:left; font:inherit; font-size:14px; font-weight:700;
+  color:hsl(var(--th) 88% 74%); background:hsl(var(--th) 70% 50% / 0.12); border:1px solid hsl(var(--th) 70% 55% / 0.45); cursor:pointer; }
+.gs-qsee:hover { background:hsl(var(--th) 70% 50% / 0.2); }
+.gs-missed { display:flex; flex-direction:column; gap:7px; margin:12px 0 4px; text-align:left; align-self:stretch; width:100%; }
+.gs-missed > b { font-size:12px; letter-spacing:0.4px; text-transform:uppercase; color:var(--text-3); }
+.gs-miss { display:flex; flex-direction:column; gap:2px; padding:9px 12px; border-radius:var(--r-sm); background:rgba(255,255,255,0.04); border:1px solid var(--border); color:var(--text); font:inherit; text-align:left; cursor:pointer; }
+.gs-miss small { color:hsl(var(--th) 85% 72%); font-size:12px; }
+/* ── Mastery card ── */
+.gr-mastery { display:flex; align-items:center; gap:12px; width:100%; margin:12px 0 4px; padding:12px 14px; border-radius:var(--r-sm); font:inherit; color:var(--text); text-align:left; cursor:pointer;
+  background:linear-gradient(135deg, hsl(var(--th) 70% 50% / 0.16), rgba(255,255,255,0.03)); border:1px solid hsl(var(--th) 70% 55% / 0.45); }
+.gr-mastery.locked { cursor:default; opacity:0.75; background:rgba(255,255,255,0.03); border-color:var(--border); }
+.gr-mastery.done { border-color:var(--success); }
+.gr-m-ico { font-size:24px; }
+.gr-m-t { display:flex; flex-direction:column; gap:2px; flex:1; }
+.gr-m-t b { font-size:15px; }
+.gr-m-t small { font-size:12.5px; color:var(--text-2); }

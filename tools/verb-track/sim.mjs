@@ -6,13 +6,13 @@
 //   node sim.mjs [--days N] [--off] [--skip 0.05]
 import { openApp } from "./browser.mjs";
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
-const DAYS = +arg("--days", 330), SKIP = +arg("--skip", 0.04);
+const DAYS = +arg("--days", 330), SKIP = +arg("--skip", 0.04), SEED = +arg("--seed", 99);
 const modes = process.argv.includes("--off") ? [false] : process.argv.includes("--on") ? [true] : [true, false];
 const results = {};
 for (const on of modes) {
   const { browser, page, errors } = await openApp({ width: 900, height: 900 });
   page.setDefaultTimeout(0);
-  const r = await page.evaluate(async ([on, DAYS, SKIP]) => {
+  const r = await page.evaluate(async ([on, DAYS, SKIP, SEED]) => {
     // ── fake clock ──
     const real = Date.now.bind(Date); let off = 0;
     Date.now = () => real() + off;
@@ -20,9 +20,9 @@ for (const on of modes) {
     window.Date = class extends RD { constructor(...a) { if (a.length) super(...a); else super(RD.now() + off); } static now() { return real() + off; } };
     window.saveState = () => {}; window.saveToCloud = () => {}; window.saveLocalOnly = () => {};
     window.showCelebrateToast = () => {}; window.confettiBurst = () => {}; window.playSuccess = () => {}; window.playFailure = () => {}; window.haptic = () => {}; window.speak = () => {};
-    let seed = 99; const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+    let seed = SEED; const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
     Math.random = rnd;
-    const P = { typed: 0.87, choice: 0.98, vx: 0.80, vxGrow: 0.12, sheetFirst: 0.8 };
+    const P = { typed: 0.87, choice: 0.98, vx: 0.80, vxGrow: 0.12, sheetQ: 0.94 };
     if (on) vxSwitchOn();
     const days = [];
     const start = studyToday();
@@ -50,12 +50,16 @@ for (const on of modes) {
           const w = it.w;
           if (it.t === "bonus") continue;
           if (it.t === "sheet") {
-            const ok = rnd() < P.sheetFirst;
-            const n = vxSheet(it.sheet).quiz.length;
+            // Its quiz: the sheet's size, each question right at P.sheetQ;
+            // passing takes every one right first time. Misses come back once.
+            const n = gqSheetSize(vxSheet(it.sheet));
+            let first = 0;
+            for (let k = 0; k < n; k++) if (rnd() < P.sheetQ) first++;
+            const ok = first === n;
             vxRollDay(); S.verb.ns++;
-            vxSheetResult(it.sheet, ok ? 1 : 0.4, ok, "path");
+            vxSheetResult(it.sheet, first / n, ok, "path");
             sheets++; if (!ok) sheetFails++;
-            right += ok ? n : Math.round(n * 0.6); answers += n; vxAns += n;
+            right += n; answers += n + (n - first); vxAns += n + (n - first);
             continue;
           }
           if (it.t === "learn") { if (w.vx) vxIntroduce(w.vx); else pathMeetWord(w); continue; }
@@ -103,7 +107,7 @@ for (const on of modes) {
       units: on ? VX_UNITS.map(u => [u.id, vxUnitState(u.id)]) : null, level: currentLevel(), exp: S.exp,
       unmet: vocabGroups().flatMap(g => g.decks.flatMap(d => d.words.map((w, i) => [d.id, i, w]).filter(([id, i]) => !isMet(id, i)).map(([id, i, w]) => `${id}_${i} ${w.de}${on && vxRetired(id, i) ? " (retired→" + JSON.stringify(vxRetireMap().get(id + "_" + i)) + ")" : ""}${on && vxGated(id) ? " (gated)" : ""}`))),
       stuck: on ? vxCatalog().filter(it => { const ws = S.words[vxKey(it.id)]; return !ws || (ws.st || 0) < STAGE_KNOWN; }).map(it => { const ws = S.words[vxKey(it.id)]; return `${it.id} st${ws ? ws.st : 0}${it.x ? " lemma" + vxLemma(it.x).st + " words:" + (it.x.v.words || []).map(w => w.deckId + "_" + w.idx).join(",") : ""}`; }) : null } };
-  }, [on, DAYS, SKIP]);
+  }, [on, DAYS, SKIP, SEED]);
   results[on ? "on" : "off"] = r;
   if (errors.length) console.log("errors:", errors.slice(0, 5));
   await browser.close();
@@ -115,6 +119,8 @@ for (const [k, r] of Object.entries(results)) {
   const avg = f => Math.round(act.reduce((a, d) => a + f(d), 0) / act.length);
   console.log(`\n=== verb system ${k.toUpperCase()} ===`);
   console.log(`days ${r.days.length} (skipped ${r.days.length - act.length}) · all met ${r.firstAllMet} · all Known ${r.firstAllKnown} · ledger complete ${r.ledgerDone || "—"}`);
+  const sh = act.reduce((a, d) => a + d.sheets, 0), shf = act.reduce((a, d) => a + d.sheetFails, 0);
+  console.log(`sheet quizzes taken ${sh} · not passed first time ${shf} (${sh ? Math.round(shf / sh * 100) : 0}%)`);
   console.log(`avg/day: target ${avg(d => d.target)} · right ${avg(d => d.right)} · answers ${avg(d => d.answers)} · sessions ${(act.reduce((a, d) => a + d.sessions, 0) / act.length).toFixed(1)} · verb answers ${avg(d => d.vxAns)} (${Math.round(act.reduce((a, d) => a + d.vxAns, 0) / act.reduce((a, d) => a + d.answers, 0) * 100)}%)`);
   console.log(`final: met ${r.final.met}/${r.final.total} · known ${r.final.known} · locked ${r.final.locked} · level ${r.final.level}`);
   if (r.final.ledger) console.log(`ledger: ` + r.final.ledger.levels.map(l => `${l.id} ${l.done}/${l.verbs} cells ${l.cellsDone}/${l.cells} items ${l.itemsKnown}/${l.items}`).join(" · "));

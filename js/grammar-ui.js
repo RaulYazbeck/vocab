@@ -3,10 +3,13 @@
 //
 //   • The sheet viewer — one sheet in bites: structure → rules → the
 //     table → examples & the trap → the quiz. Swipe or ←/→ between
-//     them; the quiz is 3 questions (pick, type, put in order, which
-//     rule?). Every miss shows why and comes back at the end of the quiz.
+//     them; then the quiz (grammar-quiz.js): every point of the sheet,
+//     3–10 questions, 100% first time to pass. A miss shows why, opens
+//     that part of the sheet and comes back once at the end.
 //     The same viewer runs inside a Today session (a 📖 lesson item),
 //     in ☰ › 📐 Grammar and, read-only, over a verb exercise.
+//   • 🏆 Mastery — per tense, once all its sheets are passed: optional,
+//     outside the daily plan, 100% to master.
 //   • ☰ › 📐 Grammar — the ten tenses in order (🔒 with the day they
 //     open · 📖 lesson · 🔁 practising · ✅ solid), their sheets, and
 //     the verb ledger level by level.
@@ -83,13 +86,14 @@ function gsBuildsHtml(sh) {
   return `<div class="gs-builds">Builds on: ${names.map(n => `<b>${escapeHtml(n)}</b>`).join(" · ")}</div>`;
 }
 // The reading bites of a sheet (the quiz comes after them).
-function gsSteps(sh) {
-  const steps = [];
-  steps.push({ id: "struct", label: "Structure", html: `${gsStructHtml(sh)}<p class="gs-why">🧠 ${gsMd(sh.why)}</p>${gsBuildsHtml(sh)}` });
-  if (sh.rules && sh.rules.length) steps.push({ id: "rules", label: "Rules", html: `<ol class="gs-rules">${sh.rules.map(r => `<li>${gsMd(r)}</li>`).join("")}</ol>` });
+// hl: a point to light up (after a quiz miss) — { id, li?, trap? }.
+function gsSteps(sh, hl = null) {
+  const steps = [], on = (id, extra) => hl && hl.id === id && (extra === undefined || extra) ? " gs-hl" : "";
+  steps.push({ id: "struct", label: "Structure", html: `${gsStructHtml(sh)}<p class="gs-why${on("struct")}">🧠 ${gsMd(sh.why)}</p>${gsBuildsHtml(sh)}` });
+  if (sh.rules && sh.rules.length) steps.push({ id: "rules", label: "Rules", html: `<ol class="gs-rules">${sh.rules.map((r, i) => `<li class="${on("rules", hl && hl.li === i + 1)}">${gsMd(r)}</li>`).join("")}</ol>` });
   const tbl = gsTableHtml(sh), mine = gsMineHtml(sh);
-  if (tbl || mine) steps.push({ id: "table", label: sh.table ? "Table" : "List", html: `${tbl}${mine}` });
-  steps.push({ id: "ex", label: "Examples", html: `${gsExamplesHtml(sh)}<div class="gs-trap"><b>⚠️ The trap</b><span>${gsMd(sh.trap)}</span></div>` });
+  if (tbl || mine) steps.push({ id: "table", label: sh.table ? "Table" : "List", html: `<div class="${on("table")}">${tbl}</div>${mine}` });
+  steps.push({ id: "ex", label: "Examples", html: `${gsExamplesHtml(sh)}<div class="gs-trap${on("ex", hl && hl.trap)}"><b>⚠️ The trap</b><span>${gsMd(sh.trap)}</span></div>` });
   return steps;
 }
 
@@ -105,19 +109,31 @@ function gsOpen(host, id, opts = {}) {
   if (typeof migrateVerb === "function") { migrateVerb(); S.verb.sr[id] = 1; }
   gsRender();
 }
+// A tense's mastery quiz in the same viewer: no reading steps, the quiz
+// straight away (questions from every sheet of the tense).
+function gsOpenMastery(host, unit, opts = {}) {
+  const u = VX_UNIT[unit];
+  if (!u || !host) return;
+  const sh = { id: "m:" + unit, unit, title: "Mastery quiz", mastery: true, quiz: [] };
+  _gs = { host, sh, steps: [], step: 0, mode: opts.mode || "menu", onDone: opts.onDone || null, quiz: null, mastery: unit };
+  gsQuizStart();
+  gsRender();
+  if (typeof logEvent === "function") logEvent("vx_open", { id: sh.id, where: "menu" });
+}
 function gsClose() { _gs = null; }
 function gsRender(dir = "") {
   const g = _gs;
   if (!g) return;
+  if (g.review) return gsRenderReview(dir);
   const sh = g.sh, u = gsUnitOf(sh);
   const reading = g.step < g.steps.length;
   const total = g.steps.length + (g.mode === "peek" ? 0 : 1);
   const dots = Array.from({ length: total }, (_, i) => `<i class="${i === g.step ? "on" : i < g.step ? "done" : ""}${i === g.steps.length ? " q" : ""}"></i>`).join("");
   const n = vxSheetIds(sh.unit).indexOf(sh.id) + 1, of = vxSheetIds(sh.unit).length;
   const head = `<div class="gs-head" style="${vxUnitStyle(sh.unit)}">
-      <span class="gs-unit"><span class="gs-sign">${u.sign}</span>${escapeHtml(u.name)} · ${n}/${of}</span>
+      <span class="gs-unit"><span class="gs-sign">${u.sign}</span>${escapeHtml(u.name)} · ${g.mastery ? "🏆 optional" : `${n}/${of}`}</span>
       <h2 class="gs-title">${escapeHtml(sh.title)}</h2>
-      <div class="gs-dots" aria-hidden="true">${dots}</div>
+      ${g.mastery ? "" : `<div class="gs-dots" aria-hidden="true">${dots}</div>`}
     </div>`;
   const body = reading ? `<div class="gs-step ${dir}" id="gs-step"><div class="gs-step-label">${escapeHtml(g.steps[g.step].label)}</div>${g.steps[g.step].html}</div>`
     : `<div class="gs-step ${dir}" id="gs-step">${gsQuizHtml()}</div>`;
@@ -132,6 +148,47 @@ function gsRender(dir = "") {
   gsBindSwipe();
   const nx = document.getElementById("gs-next");
   if (nx && g.mode !== "path") try { nx.focus({ preventScroll: true }); } catch (e) {}
+}
+// After a miss: the exact part of the sheet the question tested, lit up,
+// with the rest of that sheet a swipe away — then back to the quiz.
+function gsQuizReview() {
+  const g = _gs, q = g && g.quiz;
+  if (!q || !q.answered) return;
+  const Q = q.list[q.i].q, sh = vxSheet(Q.sid);
+  if (!sh) return;
+  const hl = gqPointStep(Q.at), steps = gsSteps(sh, hl);
+  g.review = { sh, steps, step: Math.max(0, steps.findIndex(st => st.id === hl.id)) };
+  gsRender("fwd");
+  if (typeof logEvent === "function") logEvent("vx_review", { id: Q.sid, at: Q.at });
+}
+function gsRenderReview(dir = "") {
+  const g = _gs, r = g.review, sh = r.sh, u = gsUnitOf(sh);
+  const step = r.steps[r.step];
+  g.host.innerHTML = `<div class="gs-viewer" style="${vxUnitStyle(sh.unit)}" id="gs-viewer">
+    <div class="gs-head"><span class="gs-unit"><span class="gs-sign">${u.sign}</span>${escapeHtml(u.name)} · back to the sheet</span>
+      <h2 class="gs-title">${escapeHtml(sh.title)}</h2></div>
+    <div class="gs-step ${dir}" id="gs-step"><div class="gs-step-label">${escapeHtml(step.label)}</div>${step.html}</div>
+    <div class="gs-nav gs-nav3">
+      ${r.steps.length > 1 ? `<button class="g-sec-btn gs-prev" onclick="gsReviewGo(-1)" aria-label="Previous part" ${r.step ? "" : "disabled"}>‹</button>` : "<span></span>"}
+      <button class="g-big-btn gs-next" id="gs-back-quiz" onclick="gsReviewBack()">Back to the quiz ▶</button>
+      ${r.steps.length > 1 ? `<button class="g-sec-btn gs-prev" onclick="gsReviewGo(1)" aria-label="Next part" ${r.step < r.steps.length - 1 ? "" : "disabled"}>›</button>` : ""}
+    </div></div>`;
+  const v = document.getElementById("gs-viewer");
+  if (v && v.getBoundingClientRect().top < 0) v.scrollIntoView({ block: "start", behavior: "smooth" });
+}
+function gsReviewGo(d) {
+  const r = _gs && _gs.review;
+  if (!r) return;
+  const to = Math.max(0, Math.min(r.steps.length - 1, r.step + d));
+  if (to !== r.step) { r.step = to; gsRenderReview(d > 0 ? "fwd" : "back"); }
+}
+function gsReviewBack() {
+  const g = _gs;
+  if (!g || !g.review) return;
+  g.review = null;
+  gsRender("back");
+  // The answer and its why stay on screen; Next carries on.
+  gsQuizShowAnswered();
 }
 function gsGo(d) {
   const g = _gs;
@@ -162,6 +219,12 @@ function gsKey(e) {
   const g = _gs;
   if (!g || !document.getElementById("gs-viewer")) return false;
   const inInput = e.target && e.target.tagName === "INPUT";
+  if (g.review) {
+    if (e.key === "Enter" || e.key === "Escape") { e.preventDefault(); gsReviewBack(); return true; }
+    if (e.key === "ArrowRight") { e.preventDefault(); gsReviewGo(1); return true; }
+    if (e.key === "ArrowLeft") { e.preventDefault(); gsReviewGo(-1); return true; }
+    return false;
+  }
   if (g.step < g.steps.length) {
     if (e.key === "ArrowRight" || (e.key === "Enter" && !(e.target && e.target.tagName === "BUTTON"))) { e.preventDefault(); if (g.mode === "peek" && g.step === g.steps.length - 1) gsPeekClose(); else gsGo(1); return true; }
     if (e.key === "ArrowLeft") { e.preventDefault(); gsGo(-1); return true; }
@@ -191,25 +254,15 @@ document.addEventListener("keydown", e => {
 });
 
 // ── THE QUIZ ──────────────────────────────────
-// Every question once; a miss shows why and comes back at the end (until
-// it's right, three rounds at most). Score = right on the first try.
-const GS_QUIZ_N = 3;
+// The questions come from grammar-quiz.js: every point of the sheet (or,
+// for a mastery quiz, of the whole tense), drawn fresh each time. A miss
+// shows why, offers that part of the sheet, and the same question comes
+// back once at the end. Passing = every question right the first time.
 function gsQuizStart() {
   const g = _gs;
-  const list = gsQuizPickSet(g.sh.quiz).map(({ q, i }) => ({ q, i, order: gsOrderOf(q), first: true, picked: [] }));
-  g.quiz = { list, i: 0, firstRight: 0, n: list.length, answered: false, done: false };
-}
-// Three questions of the sheet's set: at least one you type, the rest a
-// mix of kinds — another three on a retake. In the sheet's order.
-function gsQuizPickSet(quiz) {
-  const all = quiz.map((q, i) => ({ q, i }));
-  if (all.length <= GS_QUIZ_N) return all;
-  const typed = shuffle(all.filter(x => x.q.k === "type")), rest = shuffle(all.filter(x => x.q.k !== "type"));
-  const pick = typed.length ? [typed.shift()] : [];
-  const kinds = new Set(pick.map(x => x.q.k));
-  // A new kind first, then whatever is left.
-  [...rest.filter(x => !kinds.has(x.q.k) && (kinds.add(x.q.k), true)), ...rest, ...typed].forEach(x => { if (pick.length < GS_QUIZ_N && !pick.includes(x)) pick.push(x); });
-  return pick.sort((a, b) => a.i - b.i);
+  const qs = g.mastery ? gqMasteryQuiz(g.mastery) : gqSheetQuiz(g.sh);
+  const list = qs.map((q, i) => ({ q, i, order: gsOrderOf(q), first: true, picked: [] }));
+  g.quiz = { list, i: 0, firstRight: 0, n: list.length, answered: false, done: false, missed: [] };
 }
 // Blocks / options in a shuffled order (blocks never already in order).
 function gsOrderOf(q) {
@@ -224,7 +277,8 @@ function gsQuizHtml() {
   if (!q) return "";
   if (q.done) return gsQuizResultHtml();
   const cur = q.list[q.i], Q = cur.q;
-  const pos = `<div class="gs-qpos">Question ${Math.min(q.i + 1, q.list.length)} of ${q.list.length}${cur.first ? "" : " · one more try"}</div>`;
+  const from = _gs.mastery && Q.sid ? ` · ${escapeHtml((vxSheet(Q.sid) || {}).title || "")}` : "";
+  const pos = `<div class="gs-qpos">${cur.first ? `Question ${q.i + 1} of ${q.n}` : "Once more — the one you missed"}${from}</div>`;
   let body = "";
   if (Q.k === "type") {
     body = `<div class="gs-qtext">${gsMd(Q.q)}</div>
@@ -310,24 +364,48 @@ function gsQuizCheck() {
 function gsQuizAnswered(ok, given) {
   const g = _gs, q = g.quiz, cur = q.list[q.i], Q = cur.q;
   q.answered = true;
+  cur.ok = ok; cur.given = given;
   if (ok && cur.first) q.firstRight++;
-  // A miss comes back at the end — up to twice more.
-  if (!ok) { cur.missed = true; if (q.list.filter(x => x.i === cur.i).length < 3) q.list.push({ ...cur, first: false, missed: false, picked: [], order: gsOrderOf(Q), near: false }); }
-  const right = Q.k === "type" ? Q.a[0] : Q.k === "order" ? Q.a.join(" ") : Q.o[Q.a];
-  const fb = document.getElementById("gs-qfb");
-  if (fb) fb.innerHTML = ok ? `<div class="p-ok">✓ Right</div><div class="gs-qwhy">${gsMd(Q.why)}</div>`
-    : `<div class="p-bad">✗ ${Q.k === "type" || Q.k === "order" ? `Answer: <strong>${escapeHtml(right)}</strong>` : "Not this one"}</div><div class="gs-qwhy">${gsMd(Q.why)}</div><div class="gs-qback">It comes back at the end.</div>`;
-  const act = document.getElementById("gs-qact");
-  if (act) act.innerHTML = `<button class="g-big-btn" id="gs-qnext" onclick="gsQuizNext()">${q.i + 1 >= q.list.length ? "See result" : "Next ›"}</button>`;
+  // A miss comes back once at the end, after you've seen why.
+  if (!ok && cur.first) { q.missed.push(cur); q.list.push({ ...cur, first: false, picked: [], order: gsOrderOf(Q), near: false, ok: undefined }); }
+  gsQuizShowAnswered();
   if (ok) { if (typeof playSuccess === "function") playSuccess(); if (typeof haptic === "function") haptic("select"); }
   else { if (typeof playFailure === "function") playFailure(); if (typeof haptic === "function") haptic("miss"); if (typeof holdAfterMistake === "function") holdAfterMistake("gs-qnext"); }
   // The answer counts like any other in Today (the day's plan, quests).
-  if (typeof logEvent === "function") logEvent("answer", { m: g.mode === "path" ? "path:quiz" : "grammar:quiz", ok, typed: Q.k === "type" });
+  if (typeof logEvent === "function") logEvent("answer", { m: g.mastery ? "grammar:mastery" : g.mode === "path" ? "path:quiz" : "grammar:quiz", ok, typed: Q.k === "type", sid: Q.sid, at: Q.at, first: cur.first });
+  if (typeof vxQuizAnswer === "function") vxQuizAnswer(Q, ok, given, cur.first);
   if (g.mode === "path" && typeof questEvent === "function") questEvent("answer", { mode: "path", ok, typed: Q.k === "type" });
   if (g.mode === "path" && pathSession) { pathSession.stats.answered++; if (ok) { pathSession.stats.correct++; addExp(3); } else pathSession.stats.wrong++; }
   if (!ok && typeof _learnDay === "function") _learnDay("mk", Q.k === "order" ? "order" : Q.k === "type" ? "verbform" : "recognition");
   const btn = document.getElementById("gs-qnext");
   if (btn && g.mode !== "path") setTimeout(() => { try { btn.focus({ preventScroll: true }); } catch (e) {} }, 30);
+}
+// The feedback of the answered question: right or wrong, why, and after a
+// miss the way back into the sheet. (Drawn again after a review.)
+function gsQuizShowAnswered() {
+  const g = _gs, q = g && g.quiz;
+  if (!q || !q.answered) return;
+  const cur = q.list[q.i], Q = cur.q, ok = cur.ok;
+  const right = Q.k === "type" ? Q.a[0] : Q.k === "order" ? Q.a.join(" ") : Q.o[Q.a];
+  const why = `<div class="gs-qwhy">${gsMd(Q.why)}${Q.whyHtml ? `<div class="gs-qrule">${Q.whyHtml}</div>` : ""}</div>`;
+  const sh = vxSheet(Q.sid);
+  const where = sh ? `${gqPointName(Q.at)}${g.mastery ? ` of “${escapeHtml(sh.title)}”` : ""}` : "";
+  const fb = document.getElementById("gs-qfb");
+  if (fb) fb.innerHTML = ok ? `<div class="p-ok">✓ Right</div>${why}`
+    : `<div class="p-bad">✗ Answer: <strong>${escapeHtml(right)}</strong></div>${why}
+      ${sh ? `<button class="gs-qsee" onclick="gsQuizReview()">📖 See it in the sheet — ${where}</button>` : ""}
+      ${cur.first ? `<div class="gs-qback">This question comes back once at the end.</div>` : ""}`;
+  // Show the inputs as answered (after a review the question is redrawn).
+  const built = document.getElementById("gs-built");
+  if (built && Q.k === "order") { built.classList.add(ok ? "ok" : "bad"); built.querySelectorAll(".gs-tok").forEach(t => { t.disabled = true; }); document.querySelectorAll("#gs-bank .gs-tok").forEach(t => { t.disabled = true; }); }
+  const inp = document.getElementById("gs-input");
+  if (inp) { inp.value = cur.given || inp.value; inp.disabled = true; inp.classList.add(ok ? "correct" : "wrong"); }
+  if (Q.k !== "type" && Q.k !== "order") document.querySelectorAll(".gs-opt").forEach(b => {
+    const o = +b.dataset.o; b.disabled = true;
+    if (o === Q.a) b.classList.add("right"); else if (!ok && Q.o[o] === cur.given) b.classList.add("wrong");
+  });
+  const act = document.getElementById("gs-qact");
+  if (act) act.innerHTML = `<button class="g-big-btn" id="gs-qnext" onclick="gsQuizNext()">${q.i + 1 >= q.list.length ? "See result" : "Next ›"}</button>`;
 }
 function gsQuizNext() {
   const q = _gs && _gs.quiz;
@@ -347,28 +425,55 @@ function gsQuizSettle() {
   if (q.settled) return;
   q.settled = true;
   const score = q.n ? q.firstRight / q.n : 0;
-  // Every question right in the end: the last attempt at each was right.
-  const lastOf = new Map();
-  q.list.forEach(it => lastOf.set(it.i, it));
-  const all = [...lastOf.values()].every(it => !it.missed);
-  q.result = { score, all, passed: false };
-  if (g.mode !== "peek") q.result.passed = vxSheetResult(g.sh.id, score, all, g.mode);
+  q.result = { score, all: q.firstRight === q.n, passed: false };
+  if (g.mastery) q.result.passed = vxMasteryResult(g.mastery, q.firstRight, q.n);
+  else if (g.mode !== "peek") q.result.passed = vxSheetResult(g.sh.id, score, q.result.all, g.mode);
   const step = document.getElementById("gs-step");
   if (step) step.innerHTML = gsQuizHtml();
   if (q.result.passed && typeof confettiBurst === "function") confettiBurst(30);
 }
+// What you missed, each with the way back into its sheet.
+function gsMissedHtml(q) {
+  if (!q.missed.length) return "";
+  return `<div class="gs-missed"><b>To look at again</b>${q.missed.map((m, j) => { const sh = vxSheet(m.q.sid);
+    return `<button class="gs-miss" onclick="gsOpenPoint('${m.q.sid}','${m.q.at}')"><span>${gsMd(m.q.q)}</span><small>${escapeHtml(gqPointName(m.q.at))}${_gs.mastery && sh ? ` · ${escapeHtml(sh.title)}` : ""} ›</small></button>`; }).join("")}</div>`;
+}
+// From the result screen: that point of the sheet, then back here.
+function gsOpenPoint(sid, at) {
+  const g = _gs, sh = vxSheet(sid);
+  if (!g || !sh) return;
+  const hl = gqPointStep(at), steps = gsSteps(sh, hl);
+  g.review = { sh, steps, step: Math.max(0, steps.findIndex(st => st.id === hl.id)), fromResult: true };
+  gsRender("fwd");
+}
+function gsMasteryResultHtml() {
+  const g = _gs, q = g.quiz, r = q.result || { passed: false }, u = VX_UNIT[g.mastery];
+  return `<div class="gs-result ${r.passed ? "ok" : "bad"}">
+    <div class="gs-result-icon">${r.passed ? "🏆" : u.sign}</div>
+    <div class="gs-result-title">${r.passed ? `${escapeHtml(u.name)} mastered!` : "Not yet"}</div>
+    <div class="gs-result-sub">${q.firstRight}/${q.n} right first time${r.passed ? "" : " · mastery takes every question right the first time"}</div>
+    ${gsMissedHtml(q)}
+    <div class="gs-result-act">
+      <button class="g-sec-btn" onclick="gsQuizRetake()">${r.passed ? "Take it again" : "Retake — new questions"}</button>
+      <button class="g-big-btn" onclick="gsQuizFinish()">Done ✓</button>
+    </div></div>`;
+}
+function gsQuizRetake() { if (!_gs) return; _gs.review = null; gsQuizStart(); gsRender("fwd"); }
 function gsQuizResultHtml() {
   const g = _gs, q = g.quiz, r = q.result || { score: 0, passed: false };
+  if (g.mastery) return gsMasteryResultHtml();
   const pct = Math.round(r.score * 100);
   const unitDone = r.passed && vxUnitOpen(g.sh.unit) && vxUnitSheetsPassed(g.sh.unit);
   const next = gsNextSheetOf(g.sh);
   return `<div class="gs-result ${r.passed ? "ok" : "bad"}">
     <div class="gs-result-icon">${r.passed ? (unitDone ? VX_UNIT[g.sh.unit].sign : "✅") : "📖"}</div>
     <div class="gs-result-title">${r.passed ? (unitDone ? `${escapeHtml(VX_UNIT[g.sh.unit].name)} unlocked!` : "Sheet passed") : "Not yet"}</div>
-    <div class="gs-result-sub">${q.firstRight}/${q.n} right first time (${pct}%)${r.passed ? "" : ` · you need ${Math.ceil(VX_PASS_RE * q.n)}/${q.n} and every question right in the end`}</div>
-    ${unitDone ? `<div class="gs-result-note">It joins your reviews and the verb games from now on.</div>` : ""}
+    <div class="gs-result-sub">${q.firstRight}/${q.n} right first time (${pct}%)${r.passed ? "" : " · passing takes every question right the first time"}</div>
+    ${unitDone ? `<div class="gs-result-note">It joins your reviews and the verb games from now on.${typeof vxMasteryOpen === "function" && vxMasteryOpen(g.sh.unit) ? " Its 🏆 mastery quiz is open in 📐 Grammar (optional)." : ""}</div>` : ""}
+    ${r.passed ? "" : gsMissedHtml(q)}
+    ${!r.passed && g.mode === "path" ? `<div class="gs-result-note">The sheet comes back in a later session, with new questions.</div>` : ""}
     <div class="gs-result-act">
-      ${r.passed ? "" : `<button class="g-sec-btn" onclick="gsRestart()">Read it again</button>`}
+      ${r.passed ? "" : `<button class="g-sec-btn" onclick="gsRestart()">Read it again</button>${g.mode === "path" ? "" : `<button class="g-sec-btn" onclick="gsQuizRetake()">Retake</button>`}`}
       ${g.mode === "path" ? `<button class="g-big-btn" id="gs-done" onclick="gsQuizFinish()">${r.passed ? "Continue ▶" : "Later ▶"}</button>`
         : next && r.passed ? `<button class="g-big-btn" onclick="renderGrammarSheet('${next.id}')">Next sheet ›</button>`
         : `<button class="g-big-btn" onclick="renderGrammarUnit('${g.sh.unit}')">Done ✓</button>`}
@@ -453,6 +558,7 @@ function gsUnitRowHtml(u, scan) {
   const eta = st === 0 && vxOn() ? vxUnitEta(u, scan) : null;
   const waits = st === 0 && vxOn() ? u.req.filter(r => !vxUnitOpen(r)).map(r => VX_UNIT[r].name) : [];
   const chip = !vxOn() ? `<span class="gr-st">${done}/${ids.length} read</span>`
+    : vxMastered(u.id) ? `<span class="gr-st solid">🏆 Mastered</span>`
     : st === 3 ? `<span class="gr-st solid">✅ Solid</span>`
     : st === 2 ? `<span class="gr-st open">🔁 Practising</span>`
     : st === 1 ? `<span class="gr-st lesson">📖 Lesson ${done}/${ids.length}</span>`
@@ -483,10 +589,30 @@ function renderGrammarUnit(id) {
       : st >= 2 ? (ids.every(vxSheetPassed) ? "All sheets done — reread any time." : "You already use this tense: the sheets are here to read when you want, nothing is due.") : ""}</div>` : ""}
     <div class="gr-sheets">${ids.map((sid, i) => { const sh = vxSheet(sid), p = vxSheetPassed(sid), due = st === 1 && !p;
       return `<button class="gr-sheet ${p ? "done" : ""}" onclick="renderGrammarSheet('${sid}')"><span class="gr-sn">${p ? "✓" : i + 1}</span><span class="gr-stt">${escapeHtml(sh.title)}</span>${p ? `<span class="gr-sc">${S.verb.sh[sid]}%</span>` : due ? `<span class="gr-due">in Today</span>` : ""}<span class="set-chev">›</span></button>`; }).join("")}</div>
+    ${gsMasteryCardHtml(id)}
     ${rules.length ? `<div class="gr-h">In your reviews</div><div class="gr-unote">Each rule is one review card in Today: one form to type, a different verb each time.</div>
       <div class="gr-rules">${rules.map(r => `<div class="gr-rule"><b>${escapeHtml(r.title)}</b><span>${escapeHtml(r.chip)}</span>${gsRuleStatusHtml(S.words[vxKey("r:" + r.id)], st)}</div>`).join("")}</div>` : ""}
     ${items.length > rules.length ? `<div class="gr-items">+ ${items.length - rules.length} verbs with their own item · ${met} started · ${known} 🌳 Known</div>` : ""}
   </div>`;
+  scrollPageTop();
+}
+// The tense's mastery quiz: optional, opens once every sheet is passed.
+function gsMasteryCardHtml(unit) {
+  const ids = vxSheetIds(unit), done = ids.filter(vxSheetPassed).length, open = vxMasteryOpen(unit);
+  const m = (S.verb && S.verb.ma && S.verb.ma[unit]) || null, n = gqMasterySize(unit);
+  const state = vxMastered(unit) ? `🏆 Mastered${m && m.at ? ` · ${fmtShortDate(new Date(m.at))}` : ""}` : m && m.tries ? `Best ${m.best}% — 100% to master` : `${n} questions · 100% to master`;
+  return `<button class="gr-mastery ${open ? "" : "locked"} ${vxMastered(unit) ? "done" : ""}" ${open ? `onclick="renderGrammarMastery('${unit}')"` : "disabled"}>
+    <span class="gr-m-ico">${open ? "🏆" : "🔒"}</span>
+    <span class="gr-m-t"><b>Mastery quiz</b><small>${open ? state : `Opens when all ${ids.length} sheets are passed (${done}/${ids.length})`} · optional, outside your daily plan</small></span>
+    ${open ? `<span class="set-chev">›</span>` : ""}</button>`;
+}
+function renderGrammarMastery(unit) {
+  if (!vxMasteryOpen(unit)) return renderGrammarUnit(unit);
+  showGameScreen();
+  document.getElementById("main-screen").innerHTML = `<div class="screen grammar gs-screen">
+    <div class="screen-top"><div class="screen-label">📐 Grammar · 🏆 Mastery</div><button class="back-btn" onclick="renderGrammarUnit('${unit}')">← ${escapeHtml(VX_UNIT[unit].name)}</button></div>
+    <div id="gs-host"></div></div>`;
+  gsOpenMastery(document.getElementById("gs-host"), unit, { mode: "menu", onDone: () => renderGrammarUnit(unit) });
   scrollPageTop();
 }
 // Where a rule (or verb item) stands, in plain words — the app's stage
