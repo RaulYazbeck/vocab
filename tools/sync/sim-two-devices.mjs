@@ -9,6 +9,10 @@
 //   offline  the phone can't read the cloud, you study on it, then it can
 //   repair   the state 2026-10-11's sync left behind (kept days gone, a
 //            plan made from the phone's old words): put right on open
+//   outdated the cloud was saved by newer sync rules than the phone runs:
+//            it reloads once, then writes nothing
+// Every scenario also checks the web's other changes (a setting, the
+// daily goal, game data) survive the phone's old copy.
 //
 // Serve the repo root (python3 -m http.server 8765), run `npm install`
 // once in ../audio/tests (playwright-core), then: node sim-two-devices.mjs [scenario…]
@@ -20,7 +24,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(path.join(here, "../audio/tests/package.json"));
 const { chromium } = require("playwright-core");
 const BASE = process.env.BASE || "http://localhost:8765";
-const SCENARIOS = process.argv.slice(2).length ? process.argv.slice(2) : ["plain", "tap", "timeout", "offline", "repair"];
+const SCENARIOS = process.argv.slice(2).length ? process.argv.slice(2) : ["plain", "tap", "timeout", "offline", "repair", "outdated"];
 const DAY = 864e5;
 function chrome() {
   const root = process.env.PLAYWRIGHT_BROWSERS_PATH || "/opt/pw-browsers";
@@ -93,7 +97,8 @@ const snap = p => p.evaluate(() => {
   Object.values(S.words).forEach(ws => { if (!ws.st || ws.sk || ws.rt) return; if (ws.st >= STAGE_KNOWN) known++; if (isDue(ws, now)) due++; });
   const plan = pathEnsurePlan();
   return { exp: S.exp, totalCorrect: S.totalCorrect, streak: getDailyStreak(), kept: S.quests.kept.slice(), qday: S.quests.day, qok: S.quests.m.ok,
-    known, due, plan: plan && { day: plan.day, reviews: plan.reviews, leave: plan.leave, target: plan.target }, sessionLen: S.path.sessionLen };
+    known, due, plan: plan && { day: plan.day, reviews: plan.reviews, leave: plan.leave, target: plan.target }, sessionLen: S.path.sessionLen,
+    other: { goal: S.dailyGoal, grandma: S.prefs.grandma, lastGame: S.games.lastGameId } };
 });
 // A day of study: every due word right in a Today session; the day kept.
 const study = (p, limit = 1e9) => p.evaluate(async limit => {
@@ -130,7 +135,10 @@ async function setup() {
   await phone.page.close(); phone.page = null;
   for (const d of [2, 1]) {
     await open(web, today10 - d * DAY + 7200e3);
-    await study(web.page); await settle(web.page);
+    await study(web.page);
+    // and, on the web only: a setting, the daily goal, game data
+    if (d === 1) await web.page.evaluate(() => { S.dailyGoal = 150; S.prefs.grandma = !S.prefs.grandma; S.games.lastGameId = "web-was-here"; saveState(); });
+    await settle(web.page);
   }
   const before = await snap(web.page);
   await web.page.close(); web.page = null;
@@ -148,6 +156,7 @@ async function checkBoth(name, s, extra = () => {}) {
     ok(x.streak === s.before.streak && x.streak >= 2, `${name}: ${who} keeps the streak (${x.streak})`, JSON.stringify(x.kept));
     ok(x.known >= s.before.known, `${name}: ${who} keeps every Known word (${x.known})`, `before ${s.before.known}`);
     ok(x.exp >= s.before.exp, `${name}: ${who} keeps the XP`, `${x.exp} < ${s.before.exp}`);
+    ok(JSON.stringify(x.other) === JSON.stringify(s.before.other), `${name}: ${who} keeps the web's settings and game data`, JSON.stringify(x.other));
     if (reference) ok(x.plan.leave === reference.plan.leave && x.plan.reviews >= reference.plan.reviews, `${name}: ${who}'s plan made from the real words (${x.plan.reviews} reviews, ${x.plan.leave} left for later)`, JSON.stringify(reference.plan));
   }
   extra(ph, wb);
@@ -213,6 +222,22 @@ for (const sc of SCENARIOS) {
       return getDailyStreak();
     });
     ok(alone === s.before.streak, `repair: from the synced day history alone (${alone})`);
+    await s.web.ctx.close(); await s.phone.ctx.close();
+  } else if (sc === "outdated") {
+    // newer sync rules saved the cloud
+    const meta = JSON.parse(s.cloud.gv5_de); meta._p = 99; s.cloud.gv5_de = JSON.stringify(meta);
+    const before = s.cloud.gv5_de;
+    let navs = 0;
+    const pg = await s.phone.ctx.newPage();
+    pg.on("framenavigated", f => { if (f === pg.mainFrame()) navs++; });
+    await pg.clock.install({ time: today10 }); await pg.clock.resume();
+    await pg.goto(BASE + "/de/index.html");
+    await pg.waitForTimeout(4000);
+    await pg.evaluate(() => { setSessionLen("long"); });
+    await pg.waitForTimeout(4000);
+    ok(navs === 2, `outdated: reloaded once for the new code, no loop (${navs} loads)`);
+    ok(s.cloud.gv5_de === before, "outdated: nothing written over the newer cloud");
+    ok(/reopen/.test(await pg.evaluate(() => document.getElementById("sync-status").textContent)), "outdated: tells you to reopen the app");
     await s.web.ctx.close(); await s.phone.ctx.close();
   }
 }

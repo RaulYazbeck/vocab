@@ -3,7 +3,7 @@
 `js/sync-merge.js` (the merge rules, pure) and `js/sync.js` (when to read,
 merge and write). These scripts check them.
 
-    node test-merge.mjs        # streak days, today's quests, the path's day, old saves (no browser)
+    node test-merge.mjs        # streak days, today's quests, the path's day, piece-by-piece (3-way), old saves (no browser)
 
 In the real app (Chromium via playwright-core from `../audio/tests`; run
 `npm install` there once, and serve the repo root: `python3 -m http.server 8765`):
@@ -20,7 +20,10 @@ phone's copy gets old; then the phone opens today —
 - `offline` — it can't read the cloud, 25 answers on it, then it can
 - `repair` — the state the 2026-10-11 sync left behind (kept days gone, a
   plan made from the phone's old words) is put right on open
+- `outdated` — the cloud was saved by newer sync rules than the phone
+  runs: it reloads once for the new code, then writes nothing
 
-Each checks, on both devices: the streak, every Known word, the XP, and
-today's plan made from the real words. `BASE=http://localhost:8766` runs
+Each checks, on both devices: the streak, every Known word, the XP,
+today's plan made from the real words, and that a setting, the daily goal
+and game data changed only on the web survive the phone's old copy. `BASE=http://localhost:8766` runs
 it against another checkout (e.g. an older version, to see it fail).
