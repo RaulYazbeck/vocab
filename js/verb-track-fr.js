@@ -692,7 +692,7 @@ const VXF_ES = {
   "the structure": "la estructura", "rule {0}": "la regla {0}", "the table": "la tabla", "the list": "la lista", "the trap": "la trampa",
   // the Grammar screens
   "📐 Grammar · Verbs": "📐 Gramática · Verbos", "/ {0} tenses open": "/ {0} tiempos abiertos", "/ {0} sheets": "/ {0} fichas", "/ {0} verbs complete": "/ {0} verbos completos",
-  "📖 Your next lesson — also comes in Today": "📖 Tu próxima lección — también llega en Today", "The tenses, in the order you learn them": "Los tiempos, en el orden en que los aprendes",
+  "📖 Your next lesson — also comes in Today": "📖 Tu próxima lección — también llega en Today", "📖 Your next lesson — in Today tomorrow, or read it now": "📖 Tu próxima lección — llega mañana en Today, o léela ahora", "The tenses, in the order you learn them": "Los tiempos, en el orden en que los aprendes",
   "ℹ️ How the verb track works": "ℹ️ Cómo funciona el sistema de verbos", "Switch back to the old verb cards": "Volver a las tarjetas de verbos de antes",
   "{0}/{1} read": "{0}/{1} leídas", "🏆 Mastered": "🏆 Dominado", "✅ Solid": "✅ Sólido", "🔁 Practising": "🔁 Practicando", "📖 Lesson {0}/{1}": "📖 Lección {0}/{1}",
   "after {0}": "después de {0}", "soon": "pronto", "📐 Grammar": "📐 Gramática", "← Tenses": "← Tiempos",

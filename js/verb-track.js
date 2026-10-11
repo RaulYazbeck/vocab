@@ -267,6 +267,14 @@ function vxPendingSheets() {
   VX_UNITS.forEach(u => { if (vxUnitState(u.id) === 1) vxSheetIds(u.id).forEach(s => { if (!vxSheetPassed(s)) out.push(s); }); });
   return out;
 }
+// The sheets your next Today session brings: today's allowance
+// (VX_SHEETS_PER_DAY) not yet used. The Today banner and the sheet quest
+// show only these — once today's sheets are done, the rest wait for
+// tomorrow and nothing announces them.
+function vxSheetsToday() {
+  if (!vxOn()) return [];
+  return vxPendingSheets().slice(0, vxQuotas().sheetsLeft);
+}
 // A quiz finished: score = first-try share (0–1), all = every question
 // right in the end. Returns true when the sheet counts as passed.
 function vxSheetResult(id, score, all, where) {

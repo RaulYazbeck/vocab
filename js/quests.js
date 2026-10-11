@@ -366,8 +366,8 @@ qt({ id: "b_meet", slot: "B", fam: "meet", icon: "🌱", w: 3, ok: c => c.quota.
   title: q => `Meet your ${q.target} new words`, prog: m => m.met, go: "path" });
 // The verb track (verb-track.js): a lesson waiting — its sheet in Today.
 qt({ id: "b_sheet", slot: "B", fam: "grammar", icon: "📖", w: 4,
-  ok: () => typeof vxOn === "function" && vxOn() && vxPendingSheets().length > 0 && vxQuotas().sheetsLeft > 0, target: () => 1,
-  title: () => `Pass today's grammar sheet`, sub: () => { const p = typeof vxPendingSheets === "function" ? vxPendingSheets() : []; const sh = p.length && vxSheet(p[0]); return sh ? `${VX_UNIT[sh.unit].name} · ${sh.title}` : ""; },
+  ok: () => typeof vxOn === "function" && vxOn() && vxSheetsToday().length > 0, target: () => 1,
+  title: () => `Pass today's grammar sheet`, sub: () => { const p = typeof vxSheetsToday === "function" ? vxSheetsToday() : []; const sh = p.length && vxSheet(p[0]); return sh ? `${VX_UNIT[sh.unit].name} · ${sh.title}` : ""; },
   prog: m => m.vxSheets || 0, go: "path" });
 qt({ id: "b_up", slot: "B", fam: "up", icon: "📈", w: 3, ok: c => c.scan.due >= 8, target: c => Math.min(c.scan.due, sz(c, 0.13, 5, 25)),
   title: q => `Move ${q.target} words up a stage`, prog: m => m.up, go: "path" });

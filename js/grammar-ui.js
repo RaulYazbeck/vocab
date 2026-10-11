@@ -540,7 +540,7 @@ function renderGrammar() {
       <div><b>${L ? L.all.done : "—"}</b><span>${vxT("/ {0} verbs complete", vxVerbs().length)}</span></div>
     </div>
     ${next ? `<button class="gr-next" onclick="renderGrammarSheet('${next.id}')" style="${vxUnitStyle(next.unit)}">
-      <span class="gr-next-k">${vxT("📖 Your next lesson — also comes in Today")}</span>
+      <span class="gr-next-k">${vxSheetsToday().includes(next.id) ? vxT("📖 Your next lesson — also comes in Today") : vxT("📖 Your next lesson — in Today tomorrow, or read it now")}</span>
       <span class="gr-next-t">${VX_UNIT[next.unit].sign} ${escapeHtml(VX_UNIT[next.unit].name)} · ${escapeHtml(next.title)}</span></button>` : ""}
     <div class="gr-h">${vxT("The tenses, in the order you learn them")}</div>
     <div class="gr-units">${units}</div>
@@ -728,7 +728,7 @@ function vxTodayHtml() {
   if (typeof vxAvailable !== "function" || !vxAvailable()) return "";
   migrateVerb();
   if (!vxOn()) return S.verb.offered === studyToday() ? "" : `<button class="tc-vx" onclick="renderVerbSwitch()">${vxT("🧩 <b>New verb system ready</b> — see what changes ›")}</button>`;
-  const pend = vxPendingSheets();
+  const pend = vxSheetsToday();
   if (!pend.length) return "";
   const sh = vxSheet(pend[0]), u = VX_UNIT[sh.unit];
   const ids = vxSheetIds(sh.unit), done = ids.filter(vxSheetPassed).length;
