@@ -29,6 +29,8 @@ In the real app (Chromium via playwright-core from `../audio/tests`; run
                             # screens, a miss and the way back, mastery, Today's verb cards,
                             # game credit, reports, the Spanish screens, switching back
     APP=fr node t-forms.mjs / APP=fr node t-screens.mjs   # the same audits in the French app
+    node t-typing.mjs       # what a typed answer may differ in (accents, ß, œ, ae/oe/ue, apostrophes,
+                            # hyphens, elision), word answers and verb forms, both apps
     node t-switch.mjs       # what switching on does to the test profile (numbers, first session)
     OUT=/tmp/shots node t-ui.mjs   # walks every new screen, phone + desktop screenshots
     node sim.mjs            # the whole journey to the finish date, verb track on vs off

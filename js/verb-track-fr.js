@@ -414,19 +414,27 @@ function vxfItemsForForm(x, tense, person) {
 // ── GRADING ───────────────────────────────────
 // Accents are part of a French verb form (parle ≠ parlé, a ≠ à): forms
 // are compared with them; one missing is "near" with a word on why.
+// An apostrophe counts as a space (m habille), as on word cards; any
+// apostrophe (’ ‘ ´) as the straight one; œ = oe, æ = ae.
 function vxfEq(answer, typed) {
-  const f = s => String(s || "").normalize("NFC").trim().toLowerCase().replace(/[’`´]/g, "'").replace(/œ/g, "oe").replace(/æ/g, "ae")
-    .replace(/-/g, " ").replace(/'\s+/g, "'").replace(/\s+/g, " ");
+  const f = s => String(s || "").normalize("NFC").trim().toLowerCase().replace(/œ/g, "oe").replace(/æ/g, "ae")
+    .replace(/['’‘`´ʼ\-]/g, " ").replace(/\s+/g, " ").trim();
   return f(answer) === f(typed);
 }
-const VXF_PRON_RE = /^(?:(?:que|qu')\s*)?(?:je\s+|j'|tu\s+|il\s+|elle\s+|on\s+|nous\s+|vous\s+|ils\s+|elles\s+)/i;
+const VXF_PRON_RE = /^(?:(?:que|qu['’‘`´ʼ]|qu)\s*)?(?:je\s+|j['’‘`´ʼ]\s*|j\s+|tu\s+|il\s+|elle\s+|on\s+|nous\s+|vous\s+|ils\s+|elles\s+)/i;
+// A word left unelided before a vowel (je aime, me habille, que je aille,
+// viens de arriver) counts too: the elided spelling is tried as well.
+// (Quiz options that teach elision keep it: they are picked, not typed.)
+const VXF_ELIDE_RE = /(^|\s)(je|me|te|se|que|de|ne)\s+(?=[aeiouyhàâäéèêëîïôöûüù])/gi;
+function vxfElide(s) { return s.replace(VXF_ELIDE_RE, (m, sp, w) => sp + w.slice(0, -1) + "'"); }
 // A command never has a pronoun in front: "tu parle" is not "Parle !".
 function vxfGradeTries(val, imp = false) {
-  const raw = String(val || "").trim().replace(/[’`´]/g, "'").replace(/\s*!+$/, "").trim();
+  const raw = String(val || "").trim().replace(/[’‘`´ʼ]/g, "'").replace(/\s*!+$/, "").trim();
   if (!raw) return [];
   if (imp) return [raw];
   const noPron = raw.replace(VXF_PRON_RE, "");
-  return [...new Set([raw, noPron, raw.replace(/^(que|qu')\s*/i, ""), raw.replace(/^en\s+/i, ""), noPron.replace(/\s*[,·/;…]\s*/g, " ")])].filter(Boolean);
+  const base = [raw, noPron, raw.replace(/^(que|qu')\s*/i, ""), raw.replace(/^en\s+/i, ""), noPron.replace(/\s*[,·/;…]\s*/g, " ")];
+  return [...new Set([...base, ...base.map(vxfElide), ...base.map(vxfElide).map(t => t.replace(VXF_PRON_RE, ""))])].filter(Boolean);
 }
 // The mistake type, for the learning log.
 function vxfClassify(given, F, tense, person) {

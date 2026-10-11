@@ -113,6 +113,11 @@ ok(G.vxGrade("elle est allée", ex("aller", "pc", "elle")) === true && G.vxGrade
   ["parler", "ip", "vous", "vous parlez", false], ["se lever", "ip", "tu", "lève-toi", true], ["se lever", "ip", "tu", "leve toi", true],
   ["se lever", "ip", "tu", "lève", false], ["aller", "sj", "je", "que j'aille", true], ["aller", "sj", "je", "aille", true],
   ["payer", "pr", "je", "je paye", true], ["parler", "ge", "il", "en parlant", true], ["parler", "fp", "je", "vais parler", true],
+  // apostrophes: any kind, or a space; an unelided word counts too
+  ["aimer", "pr", "je", "j’aime", true], ["aimer", "pr", "je", "j aime", true], ["aimer", "pr", "je", "je aime", true],
+  ["s'habiller", "pr", "je", "m’habille", true], ["s'habiller", "pr", "je", "m habille", true], ["s'habiller", "pr", "je", "me habille", true],
+  ["s'habiller", "pr", "je", "habille", false], ["aller", "sj", "je", "que j aille", true], ["aller", "sj", "je", "que je aille", true],
+  ["aller", "sj", "il", "qu il aille", true], ["arriver", "vd", "je", "viens de arriver", true], ["parler", "pc", "je", "j’ai parle", true],
 ].forEach(([inf, kind, p, typed, want]) => {
   const got = G.vxGrade(typed, { kind, form: G.vxForm(vx(inf), kind, p) });
   ok(got === want, `grading: ${inf} ${kind} ${p} "${typed}" → ${want}`, String(got));

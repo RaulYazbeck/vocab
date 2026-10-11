@@ -236,13 +236,34 @@ function shuffle(arr) {
 
 
 // ── ANSWER CHECK ──────────────────────────────
+// What a typed answer may differ in, in both apps: case, accents and
+// umlauts (café = cafe, Mädchen = Madchen), ß = ss, œ = oe, æ = ae,
+// hyphens and apostrophes = a space (e mail, l eau) — the curly ’ and
+// its look-alikes (the iPhone's default) like the straight one — and
+// extra spaces. Umlauts may also be spelt ae / oe / ue (Maedchen):
+// see umlautSpellings().
 function stripAccents(s) { return s.normalize("NFD").replace(/[̀-ͯ]/g,""); }
-function normalizeChars(s) { return s.replace(/ß/g, "ss").replace(/['\-]/g, " ").replace(/\s+/g, " "); }
+function normalizeChars(s) { return s.replace(/ß/g, "ss").replace(/œ/g, "oe").replace(/æ/g, "ae").replace(/['’‘`´ʼ\-]/g, " ").replace(/\s+/g, " ").trim(); }
 function normalize(s) { return normalizeChars(stripAccents(s.trim().toLowerCase())); }
+// An answer with umlauts, also spelt with ae / oe / ue (each one either
+// way: Mädchen → Maedchen, Müller → Mueller). Only the answer is spelt
+// out — "Feuer" is never shortened — so nothing wrong slips through.
+function umlautSpellings(s) {
+  const at = [...s.matchAll(/[äöüÄÖÜ]/g)].map(m => m.index);
+  if (!at.length) return [s];
+  if (at.length > 4) return [s, s.replace(/[äöüÄÖÜ]/g, c => ({ ä: "ae", ö: "oe", ü: "ue", Ä: "Ae", Ö: "Oe", Ü: "Ue" })[c])];
+  const out = [];
+  for (let mask = 0; mask < 1 << at.length; mask++) {
+    let r = "", last = 0;
+    at.forEach((pos, k) => { r += s.slice(last, pos) + (mask & (1 << k) ? ({ ä: "ae", ö: "oe", ü: "ue", Ä: "Ae", Ö: "Oe", Ü: "Ue" })[s[pos]] : s[pos]); last = pos + 1; });
+    out.push(r + s.slice(last));
+  }
+  return out;
+}
 function isCorrect(input, answer) {
   if (!input.trim()) return false;
   const ni = normalize(input);
-  return answer.split("/").map(p => normalize(p.trim())).some(p => {
+  return answer.split("/").flatMap(p => umlautSpellings(p.trim())).map(p => normalize(p)).some(p => {
     if (!p.length) return false;
     const escaped = p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     return new RegExp("(?<![a-zäöüß])" + escaped + "(?![a-zäöüß])", "i").test(ni);

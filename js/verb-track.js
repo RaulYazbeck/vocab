@@ -803,7 +803,7 @@ function vxWord(ex) {
 // and the feedback then shows the spelling (fährt, hätte).
 function vxEq(answer, typed) {
   if (VX_FR) return VXF.eq(answer, typed);
-  const f = s => String(s || "").normalize("NFC").trim().toLowerCase().replace(/ß/g, "ss").replace(/['\-]/g, " ").replace(/\s+/g, " ");
+  const f = s => String(s || "").normalize("NFC").trim().toLowerCase().replace(/ß/g, "ss").replace(/['’‘`´ʼ\-]/g, " ").replace(/\s+/g, " ").trim();
   const a = f(answer), t = f(typed);
   return a === t || a.replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue") === t;
 }
