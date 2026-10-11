@@ -130,6 +130,41 @@ for (const met of [false, true]) {
   });
 }
 console.log(`  (${drawn} drawn questions checked)`);
+// ── Grading of typed answers ──
+// [verb, form kind, person, typed, expected: true / "near" / false]
+const G2 = (inf, kind, p) => G.vxForm(G.vxVerb(inf), kind, p);
+// The one-letter-typo helper lives in ui-helpers.js (browser only); none
+// of these cases is a typo, so "no typo" stands in for it here.
+if (typeof G.isNearMiss !== "function") vm.runInContext("var isNearMiss = () => false;", G);
+[
+  ["vermieten", "im", "Sie", "vermieten", false], ["vermieten", "im", "Sie", "vermieten Sie", true],
+  ["vermieten", "im", "Sie", "vermieten sie", true], ["vermieten", "im", "Sie", "Vermieten Sie!", true],
+  ["vermieten", "im", "Sie", "Sie vermieten", false], ["kommen", "im", "du", "du komm", false],
+  ["kommen", "im", "du", "komm!", true], ["anrufen", "imsep", "Sie", "rufen sie an", true],
+  ["anrufen", "imsep", "Sie", "Rufen Sie an!", true], ["anrufen", "imsep", "du", "ruf an", true],
+  ["sich setzen", "imsep", "Sie", "setzen sie sich", true], ["fahren", "im", "du", "fahr", true],
+  ["fahren", "pr", "du", "du fährst", true], ["fahren", "pr", "du", "fährst", true], ["fahren", "pr", "du", "fahrst", true],
+  ["haben", "k2o", "ich", "hatte", true], ["haben", "k2o", "ich", "ich hätte", true], ["einkaufen", "prsep", "du", "kaufst … ein", true],
+  // the stem change: one person, the whole verb (prefix included), umlaut optional
+  ["abfahren", "sc", "du", "fährst", false], ["abfahren", "sc", "du", "fährst ab", true], ["abfahren", "sc", "du", "fahrst ab", true],
+  ["abfahren", "sc", "er", "fährt ab", true], ["abfahren", "sc", "du", "fährst fährt", false], ["nehmen", "sc", "er", "nehmt", false],
+  // the whole verb is the answer: prefix, pronoun and Sie included
+  ["abfahren", "pr", "wir", "fahren", false], ["abfahren", "pr", "wir", "fahren ab", true], ["abfahren", "pt", "er", "fuhr ab", true],
+  ["abfahren", "pt", "er", "fuhr", false], ["sich treffen", "pr", "du", "triffst dich", true], ["sich treffen", "pr", "du", "triffst", false],
+  ["sich treffen", "pf", "du", "hast getroffen", false], ["sich treffen", "pf", "du", "hast dich getroffen", true],
+  ["mitnehmen", "im", "du", "nimm", false], ["mitnehmen", "im", "du", "nimm mit", true], ["sich setzen", "im", "Sie", "setzen Sie sich", true],
+  ["sich anmelden", "prsep", "du", "meldest dich an", true], ["sich anmelden", "prsep", "du", "meldest an", false],
+].forEach(([inf, kind, p, typed, want]) => {
+  const got = G.vxGrade(typed, { kind, form: G2(inf, kind, p) });
+  ok(got === want, `grading: ${inf} ${kind} ${p} "${typed}" → ${want}`, String(got));
+});
+// "With each other" verbs carry their context in the singular only.
+[["sich treffen", "prrefl", "du", "mit Anna"], ["sich treffen", "prrefl", "wir", undefined], ["sich treffen", "pf", "ich", "mit Anna"],
+ ["sich streiten", "prrefl", "er", "mit Anna"], ["sich treffen", "imsep", "du", "mit Anna"], ["sich treffen", "imsep", "ihr", undefined],
+ ["sich freuen", "prrefl", "du", undefined]].forEach(([inf, kind, p, want]) => {
+  const f = G2(inf, kind, p);
+  ok(f && f.ctx === want, `context: ${inf} ${kind} ${p} → ${want || "none"}`, f && f.ctx);
+});
 // Every rule's sheet exists and each rule finds verbs.
 G.VX_RULES.forEach(r => ok(ids.has(r.sheet), `rule ${r.id} sheet ${r.sheet}`));
 console.log(`content: ${pass} passed, ${fail} failed`);

@@ -327,22 +327,49 @@ function vxTenseOkFor(inf, t) {
 //   → { ans: shown answer, acc: [accepted…], tail, n: words to type }
 const VX_PV_MODALS = { können: { er: "kann", sie: "können" }, müssen: { er: "muss", sie: "müssen" }, sollen: { er: "soll", sie: "sollen" }, dürfen: { er: "darf", sie: "dürfen" } };
 const K2_AUX = { haben: { ich: "hätte", du: "hättest", er: "hätte", wir: "hätten", ihr: "hättet", sie: "hätten" }, sein: { ich: "wäre", du: "wärst", er: "wäre", wir: "wären", ihr: "wärt", sie: "wären" } };
+// "With each other" verbs: in the singular they need someone to do it
+// with — du triffst dich MIT ANNA. Without it, "du triffst sie" (you
+// meet her) is just as right. The question shows that context (ctx).
+const VX_RECIPROCAL = new Set(["sich treffen", "sich streiten", "sich unterhalten", "sich verabreden", "sich einigen"]);
 function vxForm(x, kind, p, opt = {}) {
+  const f = vxFormBase(x, kind, p, opt);
+  if (f && VX_RECIPROCAL.has(x.inf) && ["ich", "du", "er", "Sie"].includes(p) && kind !== "p2only" && kind !== "sc" && kind !== "p2") f.ctx = "mit Anna";
+  return f;
+}
+function vxFormBase(x, kind, p, opt = {}) {
   const F = x.F, refl = F.refl ? REFL[p] || "sich" : "";
   const out = (ans, acc = [], tail = "") => {
     const all = [ans, ...acc].map(s => s.replace(/\s+/g, " ").trim()).filter(Boolean);
     return { ans: all[0], acc: [...new Set(all)], tail, n: all[0].split(" ").length };
   };
   const engine = t => { const c = verbCell(F, t, p); return c ? { ans: c.ans, acc: verbCellAnswers(c), tail: c.tail } : null; };
+  // The whole verb, to be produced, never shown: the reflexive pronoun,
+  // a separable prefix and a command's Sie are part of the answer
+  // (wir fahren ab · du triffst dich · vermieten Sie · hast dich beeilt).
+  const whole = c => {
+    if (kind === "im") {
+      const rest = String(c.tail || "").replace(/!$/, "").trim();
+      const fins = [...new Set(c.acc.map(a => a.split(" ")[0]))];
+      return out([c.ans, rest].filter(Boolean).join(" "), fins.slice(1).map(f => [f, rest].filter(Boolean).join(" ")));
+    }
+    if (kind === "pr" || kind === "pt") {
+      const fins = [...new Set(c.acc.map(a => a.split(" ")[0]))];
+      const full = f => [f, refl, F.sep].filter(Boolean).join(" ");
+      return out(full(c.ans), fins.slice(1).map(full));
+    }
+    // Compound tenses carry the pronoun already; it is not optional.
+    const acc = refl ? c.acc.filter(a => a.split(" ").includes(refl)) : c.acc;
+    return out(c.ans, acc);
+  };
   switch (kind) {
     case "pr": case "pt": case "pf": case "pq": case "fu": case "im": {
       const c = engine(kind);
-      return c ? out(c.ans, c.acc, c.tail) : null;
+      return c ? whole(c) : null;
     }
     case "prsep": {
       const c = engine("pr"); if (!c || !F.sep) return null;
-      const fin = c.ans;
-      return out(`${fin} ${F.sep}`, [`${fin} … ${F.sep}`, ...(refl ? [`${fin} ${refl} ${F.sep}`] : [])], refl ? `(${refl} … )` : "");
+      const fin = [c.ans, refl].filter(Boolean).join(" ");
+      return out(`${fin} ${F.sep}`, [`${fin} … ${F.sep}`]);
     }
     case "prrefl": {
       const c = engine("pr"); if (!c || !F.refl) return null;
@@ -351,11 +378,11 @@ function vxForm(x, kind, p, opt = {}) {
     }
     case "k2w": {
       if (F.k2special) return null;
-      const c = engine("k2"); return c ? out(c.ans, c.acc, c.tail) : null;
+      const c = engine("k2"); return c ? out(c.ans, refl ? c.acc.filter(a => a.split(" ").includes(refl)) : c.acc) : null;
     }
     case "k2o": {
       if (!F.k2special || !F.k2 || !F.k2[p]) return null;
-      return out(F.k2[p], [], refl);
+      return out([F.k2[p], refl].filter(Boolean).join(" "));
     }
     case "pvpr": case "pvpt": {
       if (!F.p2 || F.aux !== "haben" || F.refl) return null;
@@ -370,7 +397,7 @@ function vxForm(x, kind, p, opt = {}) {
     case "k2p": {
       if (!F.p2 || !F.aux) return null;
       const a = K2_AUX[F.aux][p];
-      return a ? out(F.refl ? `${a} ${refl} ${F.p2}` : `${a} ${F.p2}`, F.refl ? [`${a} ${F.p2}`] : []) : null;
+      return a ? out(F.refl ? `${a} ${refl} ${F.p2}` : `${a} ${F.p2}`) : null;
     }
     // For the sheets' quizzes (tests check them against the engine).
     case "p2only": return F.p2 ? out(F.p2) : null;
@@ -391,14 +418,15 @@ function vxForm(x, kind, p, opt = {}) {
       return out(`${c.ans} ${F.sep}`);
     }
     case "sc": {
-      const du = F.pr.du, er = F.pr.er;
-      if (!du || !er) return null;
-      return out(`${du} ${er}`, [`${du}, ${er}`, `${du} · ${er}`, `du ${du} er ${er}`, `du ${du}, er ${er}`], F.sep ? `… ${F.sep}` : "");
+      // One person (du or er), the whole verb: du fährst ab, du triffst dich.
+      const f = (p === "du" || p === "er") && F.pr[p];
+      if (!f) return null;
+      return out([f, refl, F.sep].filter(Boolean).join(" "));
     }
     case "p2": {
       if (!F.p2 || !F.aux) return null;
       const a = AUX_PR[F.aux].er;
-      return out(F.refl ? `${a} sich ${F.p2}` : `${a} ${F.p2}`, F.refl ? [`${a} ${F.p2}`] : []);
+      return out(F.refl ? `${a} sich ${F.p2}` : `${a} ${F.p2}`);
     }
   }
   return null;
@@ -693,7 +721,8 @@ function vxMakeExercise(item, avoid) {
     return null;
   }
   const d = VX_ITEM_KINDS[item.kind], x = item.x;
-  const p = item.kind === "sc" ? "du" : item.kind === "im" ? "du" : "er";
+  // A stem change shows in du and er: one of the two each time.
+  const p = item.kind === "sc" ? (Math.random() < 0.5 ? "du" : "er") : item.kind === "im" ? "du" : "er";
   const form = vxForm(x, d.form, p);
   return form ? { kind: d.form, x, p, form, tense: d.tense, item: item.id, sheet: d.sheet } : null;
 }
@@ -721,9 +750,9 @@ function vxWord(ex) {
 
 // ── GRADING ───────────────────────────────────
 // true · "near" · false. A pronoun typed in front is fine.
-// The app's normalize() ignores umlauts (fine for words: Muller = Müller).
-// A verb form can't: fährt ≠ fahrt, hätte ≠ hatte, würde ≠ wurde. So
-// forms are compared with their umlauts (ae / oe / ue spelt out is fine).
+// vxEq compares a form with its umlauts (ae / oe / ue spelt out is
+// fine). Grading forgives a missing umlaut, as the rest of the app does,
+// and the feedback then shows the spelling (fährt, hätte).
 function vxEq(answer, typed) {
   const f = s => String(s || "").normalize("NFC").trim().toLowerCase().replace(/ß/g, "ss").replace(/['\-]/g, " ").replace(/\s+/g, " ");
   const a = f(answer), t = f(typed);
@@ -733,19 +762,36 @@ function vxEq(answer, typed) {
 function vxUmlautSlip(answers, typed) {
   return answers.some(a => !vxEq(a, typed) && normalize(a) === normalize(typed));
 }
-function vxGradeTries(val) {
+// The ways an answer may be typed. A form: with its pronoun in front or
+// not (du gehst). A command: with "Sie" after it or not, in any case
+// (vermieten Sie / vermieten sie) — but never a pronoun in front: "Sie
+// vermieten" is a statement, not a command.
+function vxGradeTries(val, imp = false) {
   const raw = String(val || "").trim().replace(/!+$/, "").trim();
-  return raw ? [raw, raw.replace(/^(ich|du|er|sie|es|wir|ihr|man)\s+/i, ""), raw.replace(/\s+Sie$/, ""), raw.replace(/\s*[,·/;…]\s*/g, " ")] : [];
+  if (!raw) return [];
+  const list = imp ? [raw, raw.replace(/\s+sie$/i, "")] : [raw, raw.replace(/^(ich|du|er|sie|es|wir|ihr|man)\s+/i, "")];
+  return [...list, ...list.map(t => t.replace(/\s*[,·/;…]\s*/g, " "))];
 }
+// Is this exercise (or quiz question) a command?
+function vxIsCommand(ex) {
+  const k = ex && (ex.kind || ex.t || (ex.chk && ex.chk[1]));
+  return /^im/.test(String(k || "")) || /^\((du|ihr|Sie)\)|___ Sie\b/.test(String(ex && ex.q || ""));
+}
+// An umlaut left out counts, as everywhere in the app (no umlaut keys
+// needed); vxUmlautOnly() tells the feedback to show the spelling.
 function vxGrade(val, ex) {
-  const tries = vxGradeTries(val);
+  const tries = vxGradeTries(val, vxIsCommand(ex));
   if (!tries.length) return false;
   const acc = ex.form.acc;
   for (const t of tries) if (acc.some(a => vxEq(a, t))) return true;
-  // A missing umlaut: one more try, with a word on why it matters.
-  if (tries.some(t => vxUmlautSlip(acc, t))) return "near";
+  if (tries.some(t => vxUmlautSlip(acc, t))) return true;
   if (isNearMiss(tries[0], acc)) return "near";
   return false;
+}
+// Right only once the umlauts are ignored (fahrst for fährst)?
+function vxUmlautOnly(val, answers, imp = false) {
+  const tries = vxGradeTries(val, imp);
+  return !tries.some(t => answers.some(a => vxEq(a, t))) && tries.some(t => vxUmlautSlip(answers, t));
 }
 // The mistake type, for the learning log and the usage report.
 function vxMistakeType(given, ex) {
@@ -757,8 +803,9 @@ function vxMistakeType(given, ex) {
     if (t && t !== "umlaut") return t;
   }
   if (ex.kind === "sc") {
-    const [a, b] = g.split(/[\s,·]+/);
-    if (a === normalize(ex.x.F.pr.wir.replace(/en$/, "st")) || b === normalize(ex.x.F.pr.wir.replace(/en$/, "t"))) return "verbform";
+    // The plain stem where the vowel should change (fahrt for fährt).
+    const plain = normalize(ex.x.F.pr.wir.replace(/en$/, ex.p === "du" ? "st" : "t"));
+    if (g.split(/\s+/)[0] === plain) return "verbform";
   }
   return ex.form.acc.some(a => levenshtein(normalize(a), g) <= 2) ? "spelling" : "verbform";
 }
@@ -887,8 +934,9 @@ function vxRecordAnswer(ex, ok, opts = {}) {
     const ws = rk && S.words[vxKey(rk)];
     if (ws && ws.st && !ws.lrn && !ws.rp) { srsReview(ws, false, "recognition"); }
   }
-  if (typeof learnNoteVerb === "function" && ["pr", "pt", "pf", "pq", "fu", "im"].includes(ex.kind))
-    learnNoteVerb(ex.x.F, ex.kind, ex.p, ok === true, opts.given || "", ex.form.ans);
+  const noteT = ex.kind === "sc" ? "pr" : ex.kind;
+  if (typeof learnNoteVerb === "function" && ["pr", "pt", "pf", "pq", "fu", "im"].includes(noteT))
+    learnNoteVerb(ex.x.F, noteT, ex.p, ok === true, opts.given || "", ex.form.ans);
   else if (ok === false && typeof _learnDay === "function") _learnDay("mk", vxMistakeType(opts.given, ex));
   if (typeof logEvent === "function") logEvent("vx_ans", { k: ex.item ? ex.item.split(":")[0] : "cell", t: ex.tense, ok: ok === true });
   vxMirror();
