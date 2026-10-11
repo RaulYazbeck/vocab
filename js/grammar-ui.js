@@ -804,8 +804,12 @@ function renderPathVerbLearn(it) {
       <div class="p-sub">One review, a different verb each time — your verbs, in order.</div>`;
   } else {
     const k = ex.item.split(":")[0];
+    // The intro shows whole forms too (riefen an, triffst dich).
     const other = ex.p === "du" ? "er" : "du";
-    const extra = k === "sc" ? `<div><span class="vx-pron">${other}</span> <b>${escapeHtml(ex.x.F.pr[other])}</b>${ex.x.F.sep ? ` <span class="vx-ctx">${escapeHtml(ex.x.F.sep)}</span>` : ""}</div>` : k === "pt" ? `<div><span class="vx-pron">wir</span> <b>${escapeHtml(ex.x.F.pt.wir)}</b></div>` : k === "p2" ? `<div class="p-sub">Präteritum: er ${escapeHtml(ex.x.F.pt.er)}</div>` : "";
+    const whole = (kind, p) => { const f = vxForm(ex.x, kind, p); return f ? escapeHtml(f.ans) : ""; };
+    const extra = k === "sc" ? `<div><span class="vx-pron">${other}</span> <b>${whole("sc", other)}</b></div>`
+      : k === "pt" ? `<div><span class="vx-pron">wir</span> <b>${whole("pt", "wir")}</b></div>`
+      : k === "p2" ? `<div class="p-sub">Präteritum: er ${whole("pt", "er")}</div>` : "";
     body = `<div class="vx-learn-t">${escapeHtml(ex.x.inf)} <small>· ${escapeHtml(vlGloss(ex.x.v))}</small></div>
       <div class="vx-learn-chip">${escapeHtml(VX_ITEM_KINDS[k].title)} — not built by rule, so it has its own card</div>
       <div class="vx-learn-ex big"><div>${vxFormHtml(ex)}</div>${extra}</div>`;
