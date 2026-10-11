@@ -15,6 +15,10 @@ In the real app (Chromium via playwright-core from `../audio/tests`; run
     node t-flows.mjs        # switch, preview, gating, mirrors, game credit, reports, switching back
     node t-quiz.mjs         # sheet quizzes (size, every point, 100%, re-ask) and mastery quizzes
     node t-review.mjs       # a miss → the sheet → back to the quiz, nothing lost (every kind, menu + Today)
+    node t-logs.mjs         # what the usage report, learning log and sync get from the quizzes
+    node t-forms.mjs        # every form × person: whole verb asked, graded right, nothing shown in the prompt
+    node t-screens.mjs      # every screen and card drawn, phone + desktop: no errors, no broken text
+    node t-buttons.mjs      # every button pressed for real (taps, keys, edge cases), phone + desktop
     node t-french.mjs       # the French app is unchanged
     node t-switch.mjs       # what switching on does to the test profile (numbers, first session)
     OUT=/tmp/shots node t-ui.mjs   # walks every new screen, phone + desktop screenshots
