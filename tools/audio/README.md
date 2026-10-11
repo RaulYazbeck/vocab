@@ -164,6 +164,41 @@ pronouns too when it is short (≤ 3 letters) or ends in a silent "-ent"
 "écrit") stays bare. German forms are fine alone, so German is unchanged
 (`SAY_WITH_PRONOUN` in `lib.mjs`).
 
+### Phrases the app makes while it runs (verb forms, grammar sheets)
+The decks are not everything the app says. Conjugation Slots ("ich würde
+besuchen", "bedeuten Sie"), Verb Thread ("ich hatte gedankt"; the form alone in
+its 🎧 rounds), the verb cards ("triffst dich", "rufen Sie an"), the grammar
+sheets' examples, the idiom cards and Today's "Sentences" items build their
+phrases on the fly. `runtime.mjs` loads the app in a browser and lists every
+one of them in `state/<lang>/runtime.tsv`, which `extract` / `synth` / `pack`
+then treat like deck texts.
+
+It never copies the app's wording: each feature has one function that says
+what is spoken (`conjSayText`, `threadSayText`, `vxSayText`, `gsSayText`), the
+app speaks through it and `runtime.mjs` calls the same one. Change how a game
+speaks there, re-run `runtime.mjs`, and the list follows. It is rebuilt in full
+each time, like the decks: a phrase the app no longer says is dropped, and
+its recording leaves the pack at the next `pack`.
+
+```bash
+node tools/audio/runtime.mjs --lang de --levels a1,a2 --dry   # how many, how many characters
+node tools/audio/runtime.mjs --lang de --levels a1,a2         # write state/de/runtime.tsv
+node tools/audio/runtime.mjs --lang de                        # later: same levels (kept in the file), app changes picked up
+node tools/audio/runtime.mjs --lang de --check                # exit 1 if the file is not what the app says now
+python tools/audio/run_all.py full --langs de                 # record what is new, pack
+```
+All of it is large (German ~710k characters, French ~780k with its verb
+track: more than one month's free tier), so it goes level by level, a month
+apart (`--levels`; `--skip thread-ear` leaves out the 🎧 forms alone). Only
+verbs a game can actually offer are listed (a verb with a card of its own).
+Re-run it after adding verbs, grammar sheets or idioms, or changing what a
+game says. The word clips are split over 80 shards (German) and 60 (French),
+sized for the full lists, so later levels need no re-split (`pack.mjs` keeps
+the count from the published manifest).
+
+A long run inside a Claude session can hit its 2-hour limit for one
+command: `synth.py` simply carries on where it stopped when run again.
+
 ### Fixing one clip or a pronunciation
 - **Flagging in the app:** after a recording plays, a small ⚑ shows at the
   right edge for a few seconds. Tap it, add a note if you like ("French
@@ -267,7 +302,7 @@ change, and a browser that can't play it simply keeps the phone voice.
 
 ## Tests
 ```bash
-node tools/audio/tests/run.mjs          # all four, about 5 minutes; or name some: pack games flag update
+node tools/audio/tests/run.mjs          # all of them, about 10 minutes; or name some: pack games flag logs runtime update
 ```
 They run the app in a real browser (Chromium, through Playwright, installed in
 `tools/audio/tests/` on the first run) and never call the real Google: the
@@ -277,12 +312,14 @@ misbehaves on purpose (rate limits, errors, near-silence, cut-off clips).
   recording, every clip decodes, sound starts fast, no page errors.
 - **games:** every game in both languages, no page errors.
 - **flag:** the ⚑ flag and the "Copy voice log" row.
+- **runtime:** `runtime.tsv` is exactly what the app says now (`--check`), and
+  the published pack has a recording for every text (`status --strict`).
 - **update:** adding decks later on a fresh copy with no work folder. The update
   routine records only what is new; then a phone that has the current pack
   updates by itself, fetches only the changed files, and every card, new ones
   included, plays its recording, also offline.
 
-Run them after changing `js/audio.js` or the tools, and before publishing a
+Run them after changing `js/audio.js`, the tools or what a game says aloud, and before publishing a
 rebuilt pack.
 
 ## What was and wasn't tested
