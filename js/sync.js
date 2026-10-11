@@ -30,6 +30,8 @@
 //   • One load and one commit at a time. Commits wait while a load is
 //     running, so a commit can never interleave with a load that is
 //     about to replace S (that left cloud and device out of step).
+//   • Nothing is written before a load has succeeded in this session:
+//     an unread cloud may hold newer progress from another device.
 //   • A load that finds nothing new in the cloud while local moved on
 //     (or the cloud empty) pushes local up right away instead of waiting
 //     for the next answer.
@@ -501,6 +503,7 @@ function runCloudLoad(uid) {
       // Nothing in the cloud yet: put this device's progress there. The
       // empty cloud is a common state too (nothing shared, all zero).
       loaded();
+      if (typeof pathAfterSync === "function") pathAfterSync(false);
       syncSetBase(null, { words: {} });
       syncedDocCache = {};
       if (S.savedAt) commitAfterLoad = true;
@@ -512,6 +515,7 @@ function runCloudLoad(uid) {
       // Nothing new in the cloud — 1 read. Push local if it moved on
       // (e.g. the app was closed before the last commit landed).
       loaded();
+      if (typeof pathAfterSync === "function") pathAfterSync(false);
       if (syncedMetaSavedAt !== (meta.savedAt || 0)) { syncedDocCache = {}; syncedMetaSavedAt = meta.savedAt || 0; }
       if ((S.savedAt || 0) !== (meta.savedAt || 0)) commitAfterLoad = true;
       setStatus("☁️ Synced", 3000);
@@ -539,6 +543,7 @@ function runCloudLoad(uid) {
       if (typeof questEnsureToday === "function") questEnsureToday();
       if (typeof applyCosmetics === "function") applyCosmetics();
       if (typeof invalidatePathScan === "function") invalidatePathScan();
+      if (typeof pathAfterSync === "function") pathAfterSync(true);
       renderExpBar();
       renderGroups();
       if (typeof renderHome === "function") renderHome();
@@ -567,21 +572,15 @@ function runCloudLoad(uid) {
     console.error("Cloud load failed (no fallback to cache):", e);
     if (stale()) return;
     if (e && e.timedOut) loadTimeouts++;
-    setStatus("⚠️ Offline — using local data", 3000);
-    if (cloudLoadedOnce) return; // background poll; next poll retries
+    if (cloudLoadedOnce) { setStatus("⚠️ Offline — using local data", 3000); return; } // background poll; next poll retries
+    // Nothing goes up until a load has succeeded: this copy may be days
+    // old, and written without reading it would replace newer progress
+    // from another device (a read timing out on a slow phone did exactly
+    // that). Everything is saved on this device meanwhile; the first load
+    // that gets through merges it and pushes the result (retried on a
+    // backoff, on reconnect and on return to the app).
+    setStatus("⚠️ Offline — saved on this device");
     scheduleLoadRetry();
-    // Unblock writes after a delay so the user isn't locked out if
-    // they're offline at open time — but never for a near-empty local
-    // state: pushed up before we've seen the cloud, that would replace
-    // real progress (fresh install, cleared storage). It waits for a
-    // load to succeed instead (retried above, on reconnect, on return).
-    setTimeout(() => {
-      if (stale() || initialLoadComplete) return;
-      if (evidenceCount(S) < 5 && (S.exp || 0) < 50) return;
-      initialLoadComplete = true;
-      // Saves held back while we waited go up now, like any later save.
-      if (savesHeldBack) { savesHeldBack = false; commitToFirestore(); }
-    }, 5000);
   });
 }
 

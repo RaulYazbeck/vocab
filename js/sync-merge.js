@@ -16,14 +16,20 @@
 //     gains of both devices since their last common sync are added
 //     (base + mine + theirs). Without a known common base, the higher.
 //   • Bests, levels, stars, unlocks — the higher.
-//   • Earned collections (badges, login/goal days, owned cosmetics) —
-//     the union.
+//   • Earned collections (badges, login/goal days, owned cosmetics) and
+//     the streak's days (all-quests, kept and frozen days) — the union.
 //   • Day counters (today's drill/game/timer count) — the later day's;
 //     on the same day, the higher.
 //   • Usage history and the learning log — per day / per verb, the higher
 //     counts; mistake histories are combined.
-//   • Everything else (today's quests, the path plan, settings) — the
-//     whole object from the device that saved last, as before.
+//   • Today's quests and the path's day (its plan, extra words…) — from
+//     the device whose day is later, unless all it did was roll the day
+//     over (nothing answered yet): its copy may be days old, so its new
+//     day and plan were made from stale progress — the other side's are
+//     kept and the app rolls the day over again on the merged progress.
+//     Same day: the one with more done; a tie, the cloud's.
+//   • Everything else (path settings, other settings) — the whole object
+//     from the device that saved last, as before.
 //   • Resets — "reset deck" / "reset all" leave a timestamp; words last
 //     studied before it are dropped on both sides, so a reset sticks.
 //
@@ -47,8 +53,10 @@ const SYNC_MAX_MAPS = [
 ];
 // Sets (arrays of unique values) — union.
 const SYNC_SET_PATHS = [
-  "badges", "loginDates", "goalDates", "quests.qdays", "quests.cos.owned", "games.daily.completedDates", "vocabGoalDates",
+  "badges", "loginDates", "goalDates", "quests.qdays", "quests.kept", "quests.frozen", "quests.cos.owned", "games.daily.completedDates", "vocabGoalDates",
 ];
+// S.path keys that belong to the day (the rest are settings).
+const SYNC_PATH_DAY_KEYS = ["day", "introducedToday", "extraToday", "spotToday", "plan", "autoPaused", "autoPausedOn"];
 // [count, day] pairs: the later day's count; the higher on the same day.
 const SYNC_DAY_COUNTERS = [
   ["drillCorrectToday", "drillMilestonesDate", "drillMilestonesClaimed"],
@@ -170,6 +178,27 @@ function syncMergeWord(a, b, preferA, bc) {
   if (p.mh || q.mh) m.mh = syncUnionList(p.mh, q.mh, SYNC_MH_CAP);
   return m;
 }
+// Something done on a quest day: right answers, game answers, a quest done.
+function syncQuestProgress(q) {
+  if (!syncIsObj(q)) return 0;
+  const m = syncIsObj(q.m) ? q.m : {};
+  return syncNum(m.ok) + syncNum(m.game) + (Array.isArray(q.list) ? q.list.filter(x => x && x.done).length : 0) + (q.dayDone ? 1 : 0);
+}
+function syncPathDay(p) {
+  return [String(p.day || ""), String((syncIsObj(p.plan) && p.plan.day) || "")].sort().pop();
+}
+function syncPathProgress(state) {
+  const p = state.path, q = state.quests;
+  return syncNum(p.extraToday) + syncNum(p.spotToday) + (syncIsObj(q) && q.day === syncPathDay(p) ? syncQuestProgress(q) : 0);
+}
+// Which side's day to keep (true = local): the later day if anything was
+// done on it, else the earlier one; the same day — the one with more
+// done, a tie the cloud's (local may not have seen the cloud's progress
+// yet when it started its day).
+function syncLocalDay(ld, cd, lp, cp) {
+  if (ld === cd) return lp > cp;
+  return ld > cd ? lp > 0 : !(cp > 0);
+}
 function syncDeckOf(key) { return key.substring(0, key.lastIndexOf("_")); }
 
 // Words of both sides. `cutFor(deckId)` = the latest reset of that deck
@@ -213,6 +242,8 @@ function mergeStates(local, cloud, opts = {}) {
   const [win, lose] = localWins ? [local, cloud] : [cloud, local];
   const { words: _w1, usageArchive: _u1, learn: _l1, ...winRest } = win;
   const out = syncClone(winRest);
+  // A field only the other side has (a save from an older version) is kept.
+  Object.keys(lose).forEach(k => { if (!(k in out) && !["words", "usageArchive", "learn"].includes(k)) out[k] = syncClone(lose[k]); });
 
   // Resets: deck → latest reset time; "reset all" applies to every deck.
   const resets = syncDeepMax(local.resets || {}, cloud.resets || {});
@@ -224,6 +255,21 @@ function mergeStates(local, cloud, opts = {}) {
   // collections and bests stand as they are (the reset was meant).
   const lr = syncNum(local.resetAllAt), cr = syncNum(cloud.resetAllAt);
   const resetSide = lr > cr ? local : cr > lr ? cloud : null;
+
+  if (syncIsObj(local.quests) && syncIsObj(cloud.quests)) {
+    const lq = local.quests, cq = cloud.quests;
+    const useLocal = syncLocalDay(String(lq.day || ""), String(cq.day || ""), syncQuestProgress(lq), syncQuestProgress(cq));
+    out.quests = syncClone(useLocal ? lq : cq);
+  }
+  if (syncIsObj(local.path) && syncIsObj(cloud.path)) {
+    const useLocal = syncLocalDay(syncPathDay(local.path), syncPathDay(cloud.path), syncPathProgress(local), syncPathProgress(cloud));
+    const src = useLocal ? local.path : cloud.path;
+    SYNC_PATH_DAY_KEYS.forEach(k => { if (src[k] === undefined) delete out.path[k]; else out.path[k] = syncClone(src[k]); });
+    ["lastActiveDay", "planDoneOn"].forEach(k => {
+      const v = [local.path[k], cloud.path[k]].filter(x => typeof x === "string").sort().pop();
+      if (v !== undefined) out.path[k] = v;
+    });
+  }
 
   out.words = syncMergeWords(local.words, cloud.words, localWins, cutFor, syncIsObj(opts.baseWords) ? opts.baseWords : null);
 
