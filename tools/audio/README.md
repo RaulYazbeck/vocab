@@ -187,13 +187,14 @@ node tools/audio/runtime.mjs --lang de                        # later: same leve
 node tools/audio/runtime.mjs --lang de --check                # exit 1 if the file is not what the app says now
 python tools/audio/run_all.py full --langs de                 # record what is new, pack
 ```
-All of it is large (German ~720k characters, French ~510k: more than one
-month's free tier), so it goes level by level, a month apart (`--levels`;
-`--skip thread-ear` leaves out the 🎧 forms alone). Only verbs a game can
-actually offer are listed (a verb with a card of its own). Re-run it after
-adding verbs, grammar sheets or idioms, or changing what a game says. The
-word clips were split once into 80 shards (French: use `--buckets-w 60` the
-first time), sized for the full lists, so later levels need no re-split.
+All of it is large (German ~710k characters, French ~780k with its verb
+track: more than one month's free tier), so it goes level by level, a month
+apart (`--levels`; `--skip thread-ear` leaves out the 🎧 forms alone). Only
+verbs a game can actually offer are listed (a verb with a card of its own).
+Re-run it after adding verbs, grammar sheets or idioms, or changing what a
+game says. The word clips are split over 80 shards (German) and 60 (French),
+sized for the full lists, so later levels need no re-split (`pack.mjs` keeps
+the count from the published manifest).
 
 A long run inside a Claude session can hit its 2-hour limit for one
 command: `synth.py` simply carries on where it stopped when run again.
