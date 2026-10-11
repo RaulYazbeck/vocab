@@ -35,6 +35,10 @@ const THREAD_ROWS = ["p", "t", "m"];
 const THREAD_ROW_LABEL = { p: "Who?", t: "When?", m: "Means" };
 
 function threadTenses() { return vlLevelTenses(); }
+// What a 🎧 round says: the form as one phrase. "regte … auf" is shown
+// with a gap (the rest of the sentence goes there); said, it is "regte
+// auf". The voice packs record exactly this (tools/audio/runtime.mjs).
+function threadSayText(form) { return String(form || "").replace(/\s*…\s*/g, " ").trim(); }
 function threadVerbs(pool) { return vlVerbs(pool, threadTenses()); }
 
 registerGame({
@@ -155,8 +159,8 @@ registerGame({
           </div>
         </div>`;
       if (it.ear) {
-        gTimeout(() => speak(it.form), 250);
-        document.getElementById("vt-ear").onclick = () => speak(it.form, 0.7);
+        gTimeout(() => speak(threadSayText(it.form)), 250);
+        document.getElementById("vt-ear").onclick = () => speak(threadSayText(it.form), 0.7);
       }
       gListen(document.getElementById("vt-check"), "pointerdown", e => e.preventDefault());
       drawThread();

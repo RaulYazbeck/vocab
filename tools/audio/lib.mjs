@@ -90,11 +90,18 @@ export function savedExtras(lang) {
 // Phrases the app makes while it runs (verb forms, grammar-sheet examples…),
 // listed by runtime.mjs in state/<lang>/runtime.tsv: kind, deck, text.
 export function runtimeFile(lang) { return path.join(stateDir(lang), "runtime.tsv"); }
+// First line: "# levels=a1,a2<TAB>skip=…" (what runtime.mjs was asked for).
 export function runtimeTexts(lang) {
   try {
-    return fs.readFileSync(runtimeFile(lang), "utf8").split(/\r?\n/).filter(Boolean)
+    return fs.readFileSync(runtimeFile(lang), "utf8").split(/\r?\n/).filter(l => l && !l.startsWith("#"))
       .map(l => l.split("\t")).filter(x => x.length === 3 && x[2].trim()).map(([kind, deck, text]) => [text, kind === "s" ? "s" : "w", deck]);
   } catch (e) { return []; }
+}
+export function runtimeSettings(lang) {
+  let head;
+  try { head = fs.readFileSync(runtimeFile(lang), "utf8").split(/\r?\n/)[0]; } catch (e) { return null; }
+  const m = /^# levels=([^\t]*)\tskip=(.*)$/.exec(head || "");
+  return m ? { head, levels: m[1], skip: m[2] } : { head: "", levels: "a1,a2,b1", skip: "" };
 }
 export function collectTexts(lang, extraTexts = [], { runtime = true } = {}) {
   extraTexts = [...savedExtras(lang), ...extraTexts];
@@ -108,7 +115,7 @@ export function collectTexts(lang, extraTexts = [], { runtime = true } = {}) {
       add(gameForm(w), "w", d.id);
       try {
         const it = conjItem(w);
-        if (it) { const f = gameForm(w); (conjCtx[f] = conjCtx[f] || []).push(conjJoin(it.pron.split("/")[0], it.ans)); }
+        if (it) { const f = gameForm(w); (conjCtx[f] = conjCtx[f] || []).push(conjSayText({ kind: "card", it })); }
         else vocab.add(gameForm(w));
       } catch (e) {}
       try { const np = typeof nounParts === "function" ? nounParts(w) : null; if (np && np.full) add(np.full, "w", d.id); } catch (e) {}
@@ -117,7 +124,7 @@ export function collectTexts(lang, extraTexts = [], { runtime = true } = {}) {
         const pl = np && typeof germanPluralNoun === "function" ? germanPluralNoun(w) : "";
         if (pl) add("die " + pl, "w", d.id);
       } catch (e) {}
-      try { const it = conjItem(w); if (it) add(conjJoin(it.pron.split("/")[0], it.ans), "w", d.id); } catch (e) {}
+      try { const it = conjItem(w); if (it) add(conjSayText({ kind: "card", it }), "w", d.id); } catch (e) {}
       (w.examples || []).forEach(ex => { if (ex && ex[WORD_KEY]) add(ex[WORD_KEY], "s", d.id); });
     });
     out.conjCtx = conjCtx; out.vocab = [...vocab];

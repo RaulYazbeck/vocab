@@ -6,21 +6,25 @@
 // grammar sheets' examples, the idiom cards, and the word a Today
 // "Sentences" item asks for, as the sentence has it ("Hallo").
 //
-//   node tools/audio/runtime.mjs --lang de [--levels a1,a2] [--skip thread-ear] [--dry]
+//   node tools/audio/runtime.mjs --lang de [--levels a1,a2] [--skip thread-ear] [--dry | --check]
 //
 // The app itself is loaded in a real browser (Chromium via Playwright, as
-// the tests do) and every such phrase is generated with the app's own
-// functions, so the list is exactly what speak() will be asked to say.
+// the tests do) and every phrase is made by the app's own "what is said"
+// functions (conjSayText, threadSayText, vxSayText, gsSayText…), never a
+// copy of them, so the list is exactly what speak() will be asked to say.
 // It is written to state/<lang>/runtime.tsv (kind, deck, text), which
 // extract / synth / pack pick up like the decks (lib.mjs).
 //
+// The list is rebuilt in full each time, like the decks: a phrase the app
+// no longer says is dropped (and its recording leaves the pack).
 // --levels: only verbs of these deck levels (a1, a2, b1; verbs with no
 // level go with the first). The full list is large (German ~700k
 // characters, French ~510k), more than one month of Google's free tier,
-// so it can be recorded level by level, a month apart. A phrase recorded
-// once is kept: phrases already in runtime.tsv are never dropped by a
-// narrower --levels. --skip leaves out sources (cloze, idioms, sheets,
-// track, conj, thread, thread-ear). --dry prints the counts and writes nothing.
+// so it is recorded level by level, a month apart. --skip leaves out
+// sources (cloze, idioms, sheets, track, conj, thread, thread-ear). Both
+// are remembered in the file's first line, so a plain re-run (after
+// adding verbs or sheets) keeps them. --dry prints the counts and writes
+// nothing; --check exits 1 if runtime.tsv is not what the app says now.
 //
 // Deck ids decide the shard (pack.mjs): a verb's forms share "_v:<verb>",
 // so they spread over the shards and a new verb changes one shard.
@@ -29,15 +33,19 @@ import fs from "node:fs";
 import path from "node:path";
 import http from "node:http";
 import { spawnSync } from "node:child_process";
-import { ROOT, stateDir, collectTexts } from "./lib.mjs";
+import { ROOT, collectTexts, runtimeFile, runtimeSettings, runtimeTexts } from "./lib.mjs";
 
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf("--" + n); return i >= 0 ? args[i + 1] : d; };
 const lang = opt("lang");
-if (!["de", "fr"].includes(lang)) { console.error("usage: runtime.mjs --lang de|fr [--levels a1,a2,b1] [--skip source,…] [--dry]"); process.exit(1); }
-const levels = opt("levels", "a1,a2,b1").split(",").map(s => s.trim()).filter(Boolean);
-const skip = new Set(opt("skip", "").split(",").map(s => s.trim()).filter(Boolean));
-const dry = args.includes("--dry");
+if (!["de", "fr"].includes(lang)) { console.error("usage: runtime.mjs --lang de|fr [--levels a1,a2,b1] [--skip source,…] [--dry | --check]"); process.exit(1); }
+const file = runtimeFile(lang);
+const prev = runtimeSettings(lang);
+if (args.includes("--check") && !prev) { console.log(`${lang}: no ${path.relative(ROOT, file)} — nothing to check`); process.exit(0); }
+const list = s => String(s || "").split(",").map(x => x.trim()).filter(Boolean);
+const levels = list(opt("levels", prev ? prev.levels : "a1,a2,b1"));
+const skip = new Set(list(opt("skip", prev ? prev.skip : "")));
+const dry = args.includes("--dry"), check = args.includes("--check");
 
 const TESTS = path.join(ROOT, "tools/audio/tests");
 if (!fs.existsSync(path.join(TESTS, "node_modules", "playwright-core"))) {
@@ -75,33 +83,36 @@ const found = await page.evaluate(() => {
   // Idiom cards (idioms.js): the idiom and its example.
   const idioms = WORD_KEY === "de" ? (typeof IDIOMS_DE !== "undefined" ? IDIOMS_DE : []) : (typeof IDIOMS_FR !== "undefined" ? IDIOMS_FR : []);
   idioms.forEach(c => { add(c.p, "w", "_idioms", "", "idioms"); add(c.ex, "s", "_idioms", "", "idioms"); });
-  // Grammar sheets (grammar-ui.js gsExamplesHtml).
-  if (typeof GS_SHEETS !== "undefined") GS_SHEETS.forEach(sh => (sh.ex || []).forEach(([t]) => add(t.replace(/\[\[|\]\]/g, ""), "s", "_sheet:" + sh.id, "", "sheets")));
-  // The verb track's exercises (grammar-ui.js: ex.form.ans).
+  // Grammar sheets: each example's 🔊 (grammar-ui.js).
+  if (typeof GS_SHEETS !== "undefined") GS_SHEETS.forEach(sh => (sh.ex || []).forEach(([t]) => add(gsSayText(t), "s", "_sheet:" + sh.id, "", "sheets")));
+  // The verb cards (verb-track.js / grammar-ui.js): every exercise a rule,
+  // a verb item or a coverage cell can make — every verb, every person
+  // (which of them you meet depends on your progress).
   if (typeof vxAvailable === "function" && vxAvailable()) vxVerbs().forEach(x => {
-    const d = "_v:" + x.inf, lv = x.level, put = t => add(t, "w", d, lv, "track");
-    VX_RULES.forEach(r => { if (r.verbs(x)) vxRulePersons(r, x).forEach(p => (r.kind === "pvmod" ? Object.keys(VX_PV_MODALS) : [""]).forEach(m => { const f = vxForm(x, r.kind, p, { modal: m }); if (f) put(f.ans); })); });
-    Object.entries(VX_ITEM_KINDS).forEach(([k, it]) => {
-      if (k === "sc") { if (x.k.stem) ["du", "er"].forEach(p => { const f = vxForm(x, "sc", p); if (f) put(f.ans); }); return; }
-      const f = vxForm(x, it.form, k === "im" ? "du" : "er"); if (f) put(f.ans);
-    });
-    ["pr", "pt", "pf", "fu", "pq"].forEach(t => { if (x.v.tenses.includes(t)) vxCellPersons(x, t).forEach(p => { const f = vxForm(x, t, p); if (f) put(f.ans); }); });
+    const d = "_v:" + x.inf, lv = x.level, put = form => { if (form) add(vxSayText({ form }), "w", d, lv, "track"); };
+    VX_RULES.forEach(r => { if (r.verbs(x)) vxRulePersons(r, x).forEach(p => (r.kind === "pvmod" ? Object.keys(VX_PV_MODALS) : [""]).forEach(m => put(vxForm(x, r.kind, p, { modal: m })))); });
+    Object.entries(VX_ITEM_KINDS).forEach(([k, it]) => { if (k !== "sc" || x.k.stem) (k === "sc" ? ["du", "er"] : [k === "im" ? "du" : "er"]).forEach(p => put(vxForm(x, it.form, p))); });
+    ["pr", "pt", "pf", "fu", "pq"].forEach(t => { if (x.v.tenses.includes(t)) vxCellPersons(x, t).forEach(p => put(vxForm(x, t, p))); });
   });
-  // 🎰 Conjugation Slots, unlimited spins (game-conjugation.js sayOf).
+  // The games only take verbs you can meet: a verb with a card of its own
+  // (or, in French, a conjugation card). The bank also holds verbs known
+  // only from other cards' evidence; no game ever shows those.
+  const reachable = v => !!v.word || (v.words || []).length > 0 || vlCards(v).some(c => c.w);
+  // 🎰 Conjugation Slots, unlimited spins: every verb × tense × person.
   if (typeof conjUnlimitedOn === "function" && conjUnlimitedOn()) {
     const all = CONJ_TENSE_IDS();
-    verbBank().verbs.forEach(v => v.tenses.filter(t => all.includes(t)).forEach(t => (t === "im" ? ["du", "ihr", "Sie"] : PERSONS).forEach(p => {
-      const c = verbCell(v.F, t, p); if (!c) return;
-      add(`${t === "im" ? "" : PERSON_LABEL[p].split("/")[0] + " "}${c.ans}${c.tail ? " " + c.tail.replace(/^… /, "").replace(/!$/, "") : ""}`, "w", "_v:" + v.inf, v.level, "conj");
+    verbBank().verbs.filter(v => v.word).forEach(v => v.tenses.filter(t => all.includes(t)).forEach(t => (t === "im" ? ["du", "ihr", "Sie"] : PERSONS).forEach(p => {
+      const cell = verbCell(v.F, t, p);
+      if (cell) add(conjSayText({ tense: t, person: p, cell }), "w", "_v:" + v.inf, v.level, "conj");
     })));
   }
-  // 🧵 Verb Thread (game-thread.js): the full form after each answer, the bare form in 🎧 rounds.
+  // 🧵 Verb Thread: the full form after each answer, the form alone in 🎧 rounds.
   const ts = VL_TENSES.map(t => t.id);
-  vlBank().verbs.forEach(v => ts.forEach(t => vlPersonsOf(v).forEach(p => [false, true].forEach(fem => {
+  vlBank().verbs.filter(reachable).forEach(v => ts.forEach(t => vlPersonsOf(v).forEach(p => [false, true].forEach(fem => {
     if (fem && !VL_FR) return;
     const c = vlCell(v, t, p, { fem }); if (!c) return;
     add(c.full, "w", "_v:" + v.inf, v.level, "thread");
-    add(c.form, "w", "_v:" + v.inf, v.level, "thread-ear");
+    add(threadSayText(c.form), "w", "_v:" + v.inf, v.level, "thread-ear");
   }))));
   return out;
 });
@@ -112,10 +123,8 @@ if (errors.length) { console.error("page errors:\n  " + errors.slice(0, 5).join(
 const inDecks = new Set(collectTexts(lang, [], { runtime: false }).map(t => t.text));
 const order = ["a1", "a2", "b1"];
 const okLevel = lv => !lv || (levels.includes(lv) || (!order.includes(lv) && levels.includes(order[0])));
-const file = path.join(stateDir(lang), "runtime.tsv");
-const kept = new Map();
-try { fs.readFileSync(file, "utf8").split("\n").filter(Boolean).forEach(l => { const [k, d, t] = l.split("\t"); kept.set(t, [k, d]); }); } catch (e) {}
-const now = new Map(kept), bySrc = {};
+const kept = new Map(runtimeTexts(lang).map(([t, k, d]) => [t, [k, d]]));
+const now = new Map(), bySrc = {};
 for (const [text, kind, deck, lv, src] of found) {
   if (inDecks.has(text) || !okLevel(lv) || skip.has(src)) continue;
   const s = bySrc[src] = bySrc[src] || new Set(); s.add(text);
@@ -125,10 +134,16 @@ for (const [text, kind, deck, lv, src] of found) {
 const chars = it => [...it].reduce((n, t) => n + t.length, 0);
 console.log(`${lang}: levels ${levels.join(", ")}`);
 for (const [s, set] of Object.entries(bySrc)) console.log(`  ${s.padEnd(11)} ${String(set.size).padStart(6)} phrases`);
-const added = [...now.keys()].filter(t => !kept.has(t));
-console.log(`  runtime.tsv: ${now.size} phrases (${chars(now.keys())} characters), ${added.length} new (${chars(added)} characters)`);
+const added = [...now.keys()].filter(t => !kept.has(t)), dropped = [...kept.keys()].filter(t => !now.has(t));
+const changed = [...now].filter(([t, v]) => kept.has(t) && kept.get(t).join() !== v.join()).length;
+console.log(`  runtime.tsv: ${now.size} phrases (${chars(now.keys())} characters); vs the file: +${added.length} (${chars(added)} characters), -${dropped.length}${changed ? `, ${changed} moved` : ""}`);
+added.slice(0, 5).forEach(t => console.log(`    + ${t}`));
+dropped.slice(0, 5).forEach(t => console.log(`    - ${t}`));
+const head = `# levels=${levels.join(",")}\tskip=${[...skip].join(",")}`;
+const same = !added.length && !dropped.length && !changed && prev && prev.head === head;
+if (check) { console.log(same ? "  ✓ up to date" : "  ✗ out of date: run  node tools/audio/runtime.mjs --lang " + lang); process.exit(same ? 0 : 1); }
 if (dry) process.exit(0);
 fs.mkdirSync(path.dirname(file), { recursive: true });
-const lines = [...now].map(([t, [k, d]]) => `${k}\t${d}\t${t}`).sort((a, b) => a.split("\t")[1].localeCompare(b.split("\t")[1]) || (a < b ? -1 : 1));
-fs.writeFileSync(file, lines.join("\n") + "\n");
+const lines = [...now].map(([t, [k, d]]) => `${k}\t${d}\t${t}`).sort((a, b) => { const [da, db] = [a.split("\t")[1], b.split("\t")[1]]; return da < db ? -1 : da > db ? 1 : a < b ? -1 : a > b ? 1 : 0; });
+fs.writeFileSync(file, [head, ...lines].join("\n") + "\n");
 console.log(`  → ${path.relative(ROOT, file)}`);

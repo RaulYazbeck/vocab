@@ -742,6 +742,9 @@ function vxCellSheet(c) {
   if (c.t === "pq") return "pq1";
   return "";
 }
+// What a verb card says aloud: the whole answer ("triffst dich", "rufen
+// Sie an"). The voice packs record exactly this (tools/audio/runtime.mjs).
+function vxSayText(ex) { return ex && ex.form ? ex.form.ans : ""; }
 // The word-like object a Today item carries (wordKey(w) = "vx_…").
 function vxWord(ex) {
   const id = ex.item || ("cell:" + ex.cell);

@@ -72,9 +72,12 @@ function gsTableHtml(sh) {
   if (sh.lines) return `<div class="gs-lines">${sh.lines.map(([l, x]) => `<div class="gs-line"><b>${gsMd(l)}</b><span>${gsMd(x)}</span></div>`).join("")}</div>`;
   return "";
 }
+// What a sheet example's 🔊 says: the sentence without its markup. The
+// voice packs record exactly this (tools/audio/runtime.mjs).
+function gsSayText(s) { return String(s || "").replace(/\*+|\{\{|\}\}|\(\(|\)\)|\[\[|\]\]|~~/g, "").replace(/\s+/g, " ").trim(); }
 function gsExamplesHtml(sh) {
   return `<div class="gs-ex">${(sh.ex || []).map(([de, en]) => `<div class="gs-ex-row">
-      <button class="gs-say" type="button" onclick="gsSpeak(this)" data-say="${escapeHtml(de.replace(/\[\[|\]\]/g, ""))}" aria-label="Listen">🔊</button>
+      <button class="gs-say" type="button" onclick="gsSpeak(this)" data-say="${escapeHtml(gsSayText(de))}" aria-label="Listen">🔊</button>
       <div><div class="gs-ex-de">${gsMd(de)}</div><div class="gs-ex-en">${escapeHtml(en)}</div></div></div>`).join("")}</div>`;
 }
 function gsSpeak(btn) { if (typeof speak === "function" && typeof audioOk === "function" && audioOk()) speak(btn.dataset.say); }
@@ -821,7 +824,7 @@ function renderPathVerbLearn(it) {
       ${ex.sheet ? `<button class="g-link-btn vx-sheet-btn" onclick="gsPeek('${ex.sheet}')">📖 The sheet: ${escapeHtml(vxSheet(ex.sheet) ? vxSheet(ex.sheet).title : "")}</button>` : ""}
     </div>`;
   pathSetActions(`<button class="g-big-btn p-main" id="p-go" onclick="pathNext()">Got it →</button>`);
-  if (audioOk() && ex.form) setTimeout(() => { if (pathSession && pathSession.cur === it) speak(ex.form.ans); }, 250);
+  if (audioOk() && ex.form) setTimeout(() => { if (pathSession && pathSession.cur === it) speak(vxSayText(ex)); }, 250);
   saveState();
 }
 // A typed verb exercise (a due item, a new item's check, a ledger drill).
@@ -874,7 +877,7 @@ function pathVerbReveal() {
   s.cur.revealed = true;
   document.getElementById("p-fb").innerHTML = `<div class="p-fb-main"><div class="vx-answer">${vxFormHtml(ex)}</div></div>`;
   pathSetActions(`<button class="g-sec-btn" onclick="pathGradeVerb('', false)">✗ Not yet</button><button class="g-big-btn p-main" onclick="pathGradeVerb('', true, true)">✓ I said it</button>`);
-  speak(ex.form.ans);
+  speak(vxSayText(ex));
 }
 // ok: true / "near" / false. said: graded by yourself (Say-it).
 function pathGradeVerb(val, ok, said = false) {
@@ -959,11 +962,11 @@ function pathGradeVerb(val, ok, said = false) {
     ${why ? `<div class="p-sub vx-why">${why}</div>` : ""}${row}`;
   pathSetActions(`
     ${ex.sheet ? `<button class="audio-btn" onclick="gsPeek('${ex.sheet}')" title="Open the sheet">📖</button>` : ""}
-    ${audioOk() ? `<button class="audio-btn" onclick="speak('${escapeHtml(ex.form.ans).replace(/'/g, "")}')">🔊</button>` : ""}
+    ${audioOk() ? `<button class="audio-btn" ${speakBtnAttrs(vxSayText(ex))}>🔊</button>` : ""}
     <button class="g-big-btn p-main" id="p-go" onclick="pathGo()">Next →</button>`);
   pathPreventBlur();
   if (ok !== true) holdAfterMistake("p-go");
-  if (!said) speak(ex.form.ans);
+  if (!said) speak(vxSayText(ex));
   if (input) input.focus({ preventScroll: true });
 }
 // A 📖 lesson inside a Today session: the sheet, then its quiz.
