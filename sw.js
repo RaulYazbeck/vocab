@@ -10,17 +10,21 @@
 //    mistake here can only cost caching, never break syncing.
 //  • HTML/JS/CSS are network-first: with no build step, serving a
 //    mixed-version set of the app's scripts must be impossible
-//    whenever we're online. The cache serves offline & slow networks.
+//    whenever we're online. The cache serves only when the network
+//    fails (offline) — a merely slow network is waited for (up to
+//    NETWORK_GIVE_UP_MS): an old cached script running against newer
+//    data is how sync lost progress on 2026-10-11.
 //  • One online visit fills the cache; there is no precache manifest
 //    to forget when a new deck file is added.
 // ─────────────────────────────────────────────────────────────────
 
-const CACHE_PAGES = "pages-v1";
+const CACHE_PAGES = "pages-v1"; // sw v2: no cache fallback on a slow network
 const CACHE_APP   = "app-v1";
 const CACHE_CDN   = "cdn-v1";
 const ALL_CACHES  = [CACHE_PAGES, CACHE_APP, CACHE_CDN];
 
-const NETWORK_TIMEOUT_MS = 3000;
+const NETWORK_TIMEOUT_MS = 3000;   // offline by then: the cached copy
+const NETWORK_GIVE_UP_MS = 30000;  // online but hung: the cached copy after all
 const CDN_CACHE_MAX_ENTRIES = 80;
 
 self.addEventListener("install", event => {
@@ -78,7 +82,9 @@ self.addEventListener("fetch", event => {
 async function networkFirst(req, cacheName) {
   const cache = await caches.open(cacheName);
   try {
-    const res = await fetchWithTimeout(req, NETWORK_TIMEOUT_MS);
+    // Offline (as far as the browser knows): don't wait long. Online: wait
+    // for the network unless it's really hung.
+    const res = await fetchWithTimeout(req, self.navigator && self.navigator.onLine === false ? NETWORK_TIMEOUT_MS : NETWORK_GIVE_UP_MS);
     if (res && res.ok) cache.put(req, res.clone());
     return res;
   } catch (e) {

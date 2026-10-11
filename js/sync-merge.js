@@ -16,14 +16,23 @@
 //     gains of both devices since their last common sync are added
 //     (base + mine + theirs). Without a known common base, the higher.
 //   • Bests, levels, stars, unlocks — the higher.
-//   • Earned collections (badges, login/goal days, owned cosmetics) —
-//     the union.
+//   • Earned collections (badges, login/goal days, owned cosmetics) and
+//     the streak's days (all-quests, kept and frozen days) — the union.
 //   • Day counters (today's drill/game/timer count) — the later day's;
 //     on the same day, the higher.
 //   • Usage history and the learning log — per day / per verb, the higher
 //     counts; mistake histories are combined.
-//   • Everything else (today's quests, the path plan, settings) — the
-//     whole object from the device that saved last, as before.
+//   • Today's quests and the path's day (its plan, extra words…) — from
+//     the device whose day is later, unless all it did was roll the day
+//     over (nothing answered yet): its copy may be days old, so its new
+//     day and plan were made from stale progress — the other side's are
+//     kept and the app rolls the day over again on the merged progress.
+//     Same day: the one with more done; a tie, the cloud's.
+//   • Everything else (settings, game progress, chests and items…) —
+//     compared piece by piece with the last state both devices shared: a
+//     piece only one device changed since comes from that device, so an
+//     old copy that was merely opened can't bring back old values. Both
+//     changed it (or no shared state is known): the device that saved last.
 //   • Resets — "reset deck" / "reset all" leave a timestamp; words last
 //     studied before it are dropped on both sides, so a reset sticks.
 //
@@ -47,8 +56,10 @@ const SYNC_MAX_MAPS = [
 ];
 // Sets (arrays of unique values) — union.
 const SYNC_SET_PATHS = [
-  "badges", "loginDates", "goalDates", "quests.qdays", "quests.cos.owned", "games.daily.completedDates", "vocabGoalDates",
+  "badges", "loginDates", "goalDates", "quests.qdays", "quests.kept", "quests.frozen", "quests.cos.owned", "games.daily.completedDates", "vocabGoalDates",
 ];
+// S.path keys that belong to the day (the rest are settings).
+const SYNC_PATH_DAY_KEYS = ["day", "introducedToday", "extraToday", "spotToday", "plan", "autoPaused", "autoPausedOn"];
 // [count, day] pairs: the later day's count; the higher on the same day.
 const SYNC_DAY_COUNTERS = [
   ["drillCorrectToday", "drillMilestonesDate", "drillMilestonesClaimed"],
@@ -170,6 +181,27 @@ function syncMergeWord(a, b, preferA, bc) {
   if (p.mh || q.mh) m.mh = syncUnionList(p.mh, q.mh, SYNC_MH_CAP);
   return m;
 }
+// Something done on a quest day: right answers, game answers, a quest done.
+function syncQuestProgress(q) {
+  if (!syncIsObj(q)) return 0;
+  const m = syncIsObj(q.m) ? q.m : {};
+  return syncNum(m.ok) + syncNum(m.game) + (Array.isArray(q.list) ? q.list.filter(x => x && x.done).length : 0) + (q.dayDone ? 1 : 0);
+}
+function syncPathDay(p) {
+  return [String(p.day || ""), String((syncIsObj(p.plan) && p.plan.day) || "")].sort().pop();
+}
+function syncPathProgress(state) {
+  const p = state.path, q = state.quests;
+  return syncNum(p.extraToday) + syncNum(p.spotToday) + (syncIsObj(q) && q.day === syncPathDay(p) ? syncQuestProgress(q) : 0);
+}
+// Which side's day to keep (true = local): the later day if anything was
+// done on it, else the earlier one; the same day — the one with more
+// done, a tie the cloud's (local may not have seen the cloud's progress
+// yet when it started its day).
+function syncLocalDay(ld, cd, lp, cp) {
+  if (ld === cd) return lp > cp;
+  return ld > cd ? lp > 0 : !(cp > 0);
+}
 function syncDeckOf(key) { return key.substring(0, key.lastIndexOf("_")); }
 
 // Words of both sides. `cutFor(deckId)` = the latest reset of that deck
@@ -189,11 +221,54 @@ function syncMergeWords(lw, cw, preferLocal, cutFor, bw) {
   return out;
 }
 
-// The counters base/local/cloud are compared on.
+// Pieces compared one by one with the shared state (3-way): every
+// top-level field, and each key of these objects on its own. The rest has
+// its own rules above.
+const SYNC_SPLIT = ["games", "path", "prefs", "quests"];
+const SYNC_NO_3WAY = new Set(["words", "usageArchive", "learn", "usage", "verb", "savedAt", "resets", "resetAllAt"]);
+// Quest fields that belong to the day (see syncLocalDay).
+const SYNC_QUEST_DAY_KEYS = ["day", "list", "m", "dayDone", "flash", "weekend", "dbl", "missedYesterday", "prevOk", "history"];
+function syncPiecesOf(state) {
+  const out = {};
+  Object.keys(syncIsObj(state) ? state : {}).forEach(k => {
+    if (SYNC_NO_3WAY.has(k) || k[0] === "_") return;
+    if (SYNC_SPLIT.includes(k) && syncIsObj(state[k])) Object.keys(state[k]).forEach(s => { out[k + "." + s] = state[k][s]; });
+    else out[k] = state[k];
+  });
+  return out;
+}
+// A short fingerprint of a value (stored per piece with the shared state).
+function syncHash(v) {
+  const s = v === undefined ? "~" : JSON.stringify(v);
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+  return h.toString(36) + s.length.toString(36);
+}
+// What a shared state is remembered by: its counters, and the
+// fingerprint of every piece ("#piece").
 function syncScalarsOf(state) {
   const out = {};
   SYNC_ADD_PATHS.forEach(p => { out[p] = syncNum(syncGet(state, p)); });
+  Object.entries(syncPiecesOf(state)).forEach(([p, v]) => { out["#" + p] = syncHash(v); });
   return out;
+}
+// Per piece, which side changed it since `base` — "l", "c", or nothing
+// when neither or both did (or the base has no fingerprints).
+function syncChanges(local, cloud, base) {
+  const out = {};
+  if (!base || !Object.keys(base).some(k => k[0] === "#")) return out;
+  const lp = syncPiecesOf(local), cp = syncPiecesOf(cloud), none = syncHash(undefined);
+  new Set([...Object.keys(lp), ...Object.keys(cp)]).forEach(p => {
+    const h = base["#" + p] || none;
+    const l = syncHash(lp[p]) !== h, c = syncHash(cp[p]) !== h;
+    if (l !== c) out[p] = l ? "l" : "c";
+  });
+  return out;
+}
+function syncTake(out, p, src) {
+  const v = syncGet(src, p);
+  if (v === undefined) { const ks = p.split("."); const last = ks.pop(); const o = ks.length ? syncGet(out, ks.join(".")) : out; if (syncIsObj(o)) delete o[last]; }
+  else syncSet(out, p, syncClone(v));
 }
 
 // Merge two progress states. Neither input is modified.
@@ -213,6 +288,11 @@ function mergeStates(local, cloud, opts = {}) {
   const [win, lose] = localWins ? [local, cloud] : [cloud, local];
   const { words: _w1, usageArchive: _u1, learn: _l1, ...winRest } = win;
   const out = syncClone(winRest);
+  // A field only the other side has (a save from an older version) is kept.
+  Object.keys(lose).forEach(k => { if (!(k in out) && !["words", "usageArchive", "learn"].includes(k)) out[k] = syncClone(lose[k]); });
+  // Pieces only one side changed since the shared state: from that side.
+  const changed = syncChanges(local, cloud, base);
+  Object.entries(changed).forEach(([p, who]) => syncTake(out, p, who === "l" ? local : cloud));
 
   // Resets: deck → latest reset time; "reset all" applies to every deck.
   const resets = syncDeepMax(local.resets || {}, cloud.resets || {});
@@ -224,6 +304,31 @@ function mergeStates(local, cloud, opts = {}) {
   // collections and bests stand as they are (the reset was meant).
   const lr = syncNum(local.resetAllAt), cr = syncNum(cloud.resetAllAt);
   const resetSide = lr > cr ? local : cr > lr ? cloud : null;
+
+  if (syncIsObj(local.quests) && syncIsObj(cloud.quests)) {
+    const lq = local.quests, cq = cloud.quests, ld = String(lq.day || ""), cd = String(cq.day || "");
+    const useLocal = syncLocalDay(ld, cd, syncQuestProgress(lq), syncQuestProgress(cq));
+    const src = useLocal ? lq : cq;
+    // An untouched day rolled over on an old copy is dropped whole: what
+    // that rollover changed (freezes spent, the week, the saga…) was worked
+    // out from stale progress — the day is rolled again on the merged one.
+    const reroll = ld !== cd && src.day < (useLocal ? cd : ld);
+    const Q = syncClone(src);
+    if (!reroll) Object.entries(changed).forEach(([p, who]) => {
+      const k = p.startsWith("quests.") ? p.slice(7) : null;
+      if (k && !SYNC_QUEST_DAY_KEYS.includes(k)) { const v = (who === "l" ? lq : cq)[k]; if (v === undefined) delete Q[k]; else Q[k] = syncClone(v); }
+    });
+    out.quests = Q;
+  }
+  if (syncIsObj(local.path) && syncIsObj(cloud.path)) {
+    const useLocal = syncLocalDay(syncPathDay(local.path), syncPathDay(cloud.path), syncPathProgress(local), syncPathProgress(cloud));
+    const src = useLocal ? local.path : cloud.path;
+    SYNC_PATH_DAY_KEYS.forEach(k => { if (src[k] === undefined) delete out.path[k]; else out.path[k] = syncClone(src[k]); });
+    ["lastActiveDay", "planDoneOn"].forEach(k => {
+      const v = [local.path[k], cloud.path[k]].filter(x => typeof x === "string").sort().pop();
+      if (v !== undefined) out.path[k] = v;
+    });
+  }
 
   out.words = syncMergeWords(local.words, cloud.words, localWins, cutFor, syncIsObj(opts.baseWords) ? opts.baseWords : null);
 
