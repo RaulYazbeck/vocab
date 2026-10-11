@@ -2,9 +2,9 @@
 // The phrases the app MAKES while it runs, which no deck holds as text:
 // the verb forms of 🎰 Conjugation Slots ("ich würde besuchen", "bedeuten
 // Sie"), 🧵 Verb Thread ("ich hatte gedankt", and the bare form in its 🎧
-// rounds), the verb track's exercises ("triffst dich", "du fährst, er
-// fährt"), the grammar sheets' examples, the idiom cards, and the word a
-// Today "Sentences" item asks for, as the sentence has it ("Hallo").
+// rounds), the verb track's exercises ("triffst dich", "rufen an"), the
+// grammar sheets' examples, the idiom cards, and the word a Today
+// "Sentences" item asks for, as the sentence has it ("Hallo").
 //
 //   node tools/audio/runtime.mjs --lang de [--levels a1,a2] [--skip thread-ear] [--dry]
 //
@@ -77,12 +77,12 @@ const found = await page.evaluate(() => {
   idioms.forEach(c => { add(c.p, "w", "_idioms", "", "idioms"); add(c.ex, "s", "_idioms", "", "idioms"); });
   // Grammar sheets (grammar-ui.js gsExamplesHtml).
   if (typeof GS_SHEETS !== "undefined") GS_SHEETS.forEach(sh => (sh.ex || []).forEach(([t]) => add(t.replace(/\[\[|\]\]/g, ""), "s", "_sheet:" + sh.id, "", "sheets")));
-  // The verb track's exercises (grammar-ui.js: ex.form.ans, or "du …, er …").
+  // The verb track's exercises (grammar-ui.js: ex.form.ans).
   if (typeof vxAvailable === "function" && vxAvailable()) vxVerbs().forEach(x => {
     const d = "_v:" + x.inf, lv = x.level, put = t => add(t, "w", d, lv, "track");
     VX_RULES.forEach(r => { if (r.verbs(x)) vxRulePersons(r, x).forEach(p => (r.kind === "pvmod" ? Object.keys(VX_PV_MODALS) : [""]).forEach(m => { const f = vxForm(x, r.kind, p, { modal: m }); if (f) put(f.ans); })); });
     Object.entries(VX_ITEM_KINDS).forEach(([k, it]) => {
-      if (k === "sc") { if (x.k.stem && vxForm(x, "sc", "du")) put(`du ${x.F.pr.du}, er ${x.F.pr.er}`); return; }
+      if (k === "sc") { if (x.k.stem) ["du", "er"].forEach(p => { const f = vxForm(x, "sc", p); if (f) put(f.ans); }); return; }
       const f = vxForm(x, it.form, k === "im" ? "du" : "er"); if (f) put(f.ans);
     });
     ["pr", "pt", "pf", "fu", "pq"].forEach(t => { if (x.v.tenses.includes(t)) vxCellPersons(x, t).forEach(p => { const f = vxForm(x, t, p); if (f) put(f.ans); }); });

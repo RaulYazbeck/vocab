@@ -167,7 +167,7 @@ pronouns too when it is short (≤ 3 letters) or ends in a silent "-ent"
 ### Phrases the app makes while it runs (verb forms, grammar sheets)
 The decks are not everything the app says. Conjugation Slots ("ich würde
 besuchen", "bedeuten Sie"), Verb Thread ("ich hatte gedankt"; the bare form in
-its 🎧 rounds), the verb track ("triffst dich", "du fährst, er fährt"), the
+its 🎧 rounds), the verb track ("triffst dich", "rufen an"), the
 grammar sheets' examples, the idiom cards and Today's "Sentences" items build
 their phrases on the fly. `runtime.mjs` loads the app in a browser, generates
 every one of them with the app's own functions and writes

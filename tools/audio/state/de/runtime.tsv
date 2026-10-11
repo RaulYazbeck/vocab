@@ -274,9 +274,13 @@ w	_v:abfahren	fahren ab
 w	_v:abfahren	fahren … ab
 w	_v:abfahren	fahrt ab
 w	_v:abfahren	fahrt … ab
+w	_v:abfahren	fuhr ab
 w	_v:abfahren	fuhr … ab
+w	_v:abfahren	fuhren ab
 w	_v:abfahren	fuhren … ab
+w	_v:abfahren	fuhrst ab
 w	_v:abfahren	fuhrst … ab
+w	_v:abfahren	fuhrt ab
 w	_v:abfahren	fuhrt … ab
 w	_v:abfahren	fährst ab
 w	_v:abfahren	fährst … ab
@@ -350,9 +354,13 @@ w	_v:abfliegen	fliegst ab
 w	_v:abfliegen	fliegst … ab
 w	_v:abfliegen	fliegt ab
 w	_v:abfliegen	fliegt … ab
+w	_v:abfliegen	flog ab
 w	_v:abfliegen	flog … ab
+w	_v:abfliegen	flogen ab
 w	_v:abfliegen	flogen … ab
+w	_v:abfliegen	flogst ab
 w	_v:abfliegen	flogst … ab
+w	_v:abfliegen	flogt ab
 w	_v:abfliegen	flogt … ab
 w	_v:abfliegen	ich bin abgeflogen
 w	_v:abfliegen	ich fliege ab
@@ -410,9 +418,13 @@ w	_v:abgeben	er hat abgegeben
 w	_v:abgeben	er hatte abgegeben
 w	_v:abgeben	er wird abgeben
 w	_v:abgeben	er würde abgeben
+w	_v:abgeben	gab ab
 w	_v:abgeben	gab … ab
+w	_v:abgeben	gaben ab
 w	_v:abgeben	gaben … ab
+w	_v:abgeben	gabst ab
 w	_v:abgeben	gabst … ab
+w	_v:abgeben	gabt ab
 w	_v:abgeben	gabt … ab
 w	_v:abgeben	gebe ab
 w	_v:abgeben	gebe … ab
@@ -505,9 +517,13 @@ w	_v:abholen	holst ab
 w	_v:abholen	holst … ab
 w	_v:abholen	holt ab
 w	_v:abholen	holt … ab
+w	_v:abholen	holte ab
 w	_v:abholen	holte … ab
+w	_v:abholen	holten ab
 w	_v:abholen	holten … ab
+w	_v:abholen	holtest ab
 w	_v:abholen	holtest … ab
+w	_v:abholen	holtet ab
 w	_v:abholen	holtet … ab
 w	_v:abholen	hätte abgeholt
 w	_v:abholen	hätten abgeholt
@@ -607,9 +623,13 @@ w	_v:abschließen	schließen ab
 w	_v:abschließen	schließen … ab
 w	_v:abschließen	schließt ab
 w	_v:abschließen	schließt … ab
+w	_v:abschließen	schloss ab
 w	_v:abschließen	schloss … ab
+w	_v:abschließen	schlossen ab
 w	_v:abschließen	schlossen … ab
+w	_v:abschließen	schlossest ab
 w	_v:abschließen	schlossest … ab
+w	_v:abschließen	schlosst ab
 w	_v:abschließen	schlosst … ab
 w	_v:abschließen	sie haben abgeschlossen
 w	_v:abschließen	sie hatten abgeschlossen
@@ -638,24 +658,22 @@ w	_v:abschließen	würde abschließen
 w	_v:abschließen	würden abschließen
 w	_v:abschließen	würdest abschließen
 w	_v:abschließen	würdet abschließen
-w	_v:anbieten	biete
 w	_v:anbieten	biete an
 w	_v:anbieten	biete … an
 w	_v:anbieten	bieten Sie an
 w	_v:anbieten	bieten an
 w	_v:anbieten	bieten … an
-w	_v:anbieten	bietest
 w	_v:anbieten	bietest an
 w	_v:anbieten	bietest … an
-w	_v:anbieten	bietet
 w	_v:anbieten	bietet an
 w	_v:anbieten	bietet … an
+w	_v:anbieten	bot an
 w	_v:anbieten	bot … an
-w	_v:anbieten	boten
+w	_v:anbieten	boten an
 w	_v:anbieten	boten … an
-w	_v:anbieten	botest
+w	_v:anbieten	botest an
 w	_v:anbieten	botest … an
-w	_v:anbieten	botet
+w	_v:anbieten	botet an
 w	_v:anbieten	botet … an
 w	_v:anbieten	du botest an
 w	_v:anbieten	du hast angeboten
@@ -781,7 +799,6 @@ w	_v:ändern	ändertest
 w	_v:ändern	ändertet
 w	_v:anfangen	du fingst an
 w	_v:anfangen	du fängst an
-w	_v:anfangen	du fängst, er fängt
 w	_v:anfangen	du hast angefangen
 w	_v:anfangen	du hattest angefangen
 w	_v:anfangen	du wirst anfangen
@@ -792,25 +809,22 @@ w	_v:anfangen	er hat angefangen
 w	_v:anfangen	er hatte angefangen
 w	_v:anfangen	er wird anfangen
 w	_v:anfangen	er würde anfangen
-w	_v:anfangen	fang
 w	_v:anfangen	fang an
-w	_v:anfangen	fange
 w	_v:anfangen	fange an
 w	_v:anfangen	fange … an
 w	_v:anfangen	fangen Sie an
 w	_v:anfangen	fangen an
 w	_v:anfangen	fangen … an
-w	_v:anfangen	fangt
 w	_v:anfangen	fangt an
 w	_v:anfangen	fangt … an
+w	_v:anfangen	fing an
 w	_v:anfangen	fing … an
-w	_v:anfangen	fingen
+w	_v:anfangen	fingen an
 w	_v:anfangen	fingen … an
-w	_v:anfangen	fingst
+w	_v:anfangen	fingst an
 w	_v:anfangen	fingst … an
-w	_v:anfangen	fingt
+w	_v:anfangen	fingt an
 w	_v:anfangen	fingt … an
-w	_v:anfangen	fängst
 w	_v:anfangen	fängst an
 w	_v:anfangen	fängst … an
 w	_v:anfangen	fängt an
@@ -898,27 +912,23 @@ w	_v:anklicken	ihr klickt an
 w	_v:anklicken	ihr klicktet an
 w	_v:anklicken	ihr werdet anklicken
 w	_v:anklicken	ihr würdet anklicken
-w	_v:anklicken	klick
 w	_v:anklicken	klick an
-w	_v:anklicken	klicke
 w	_v:anklicken	klicke an
 w	_v:anklicken	klicke … an
 w	_v:anklicken	klicken Sie an
 w	_v:anklicken	klicken an
 w	_v:anklicken	klicken … an
-w	_v:anklicken	klickst
 w	_v:anklicken	klickst an
 w	_v:anklicken	klickst … an
-w	_v:anklicken	klickt
 w	_v:anklicken	klickt an
 w	_v:anklicken	klickt … an
-w	_v:anklicken	klickte
+w	_v:anklicken	klickte an
 w	_v:anklicken	klickte … an
-w	_v:anklicken	klickten
+w	_v:anklicken	klickten an
 w	_v:anklicken	klickten … an
-w	_v:anklicken	klicktest
+w	_v:anklicken	klicktest an
 w	_v:anklicken	klicktest … an
-w	_v:anklicken	klicktet
+w	_v:anklicken	klicktet an
 w	_v:anklicken	klicktet … an
 w	_v:anklicken	sie haben angeklickt
 w	_v:anklicken	sie hatten angeklickt
@@ -968,25 +978,22 @@ w	_v:ankommen	ihr wart angekommen
 w	_v:ankommen	ihr werdet ankommen
 w	_v:ankommen	ihr würdet ankommen
 w	_v:ankommen	ist angekommen
+w	_v:ankommen	kam an
 w	_v:ankommen	kam … an
-w	_v:ankommen	kamen
+w	_v:ankommen	kamen an
 w	_v:ankommen	kamen … an
-w	_v:ankommen	kamst
+w	_v:ankommen	kamst an
 w	_v:ankommen	kamst … an
-w	_v:ankommen	kamt
+w	_v:ankommen	kamt an
 w	_v:ankommen	kamt … an
-w	_v:ankommen	komm
 w	_v:ankommen	komm an
-w	_v:ankommen	komme
 w	_v:ankommen	komme an
 w	_v:ankommen	komme … an
 w	_v:ankommen	kommen Sie an
 w	_v:ankommen	kommen an
 w	_v:ankommen	kommen … an
-w	_v:ankommen	kommst
 w	_v:ankommen	kommst an
 w	_v:ankommen	kommst … an
-w	_v:ankommen	kommt
 w	_v:ankommen	kommt an
 w	_v:ankommen	kommt … an
 w	_v:ankommen	seid angekommen
@@ -1057,25 +1064,21 @@ w	_v:ankreuzen	ihr kreuzt an
 w	_v:ankreuzen	ihr kreuztet an
 w	_v:ankreuzen	ihr werdet ankreuzen
 w	_v:ankreuzen	ihr würdet ankreuzen
-w	_v:ankreuzen	kreuz
 w	_v:ankreuzen	kreuz an
-w	_v:ankreuzen	kreuze
 w	_v:ankreuzen	kreuze an
 w	_v:ankreuzen	kreuze … an
-w	_v:ankreuzen	kreuzen
 w	_v:ankreuzen	kreuzen Sie an
 w	_v:ankreuzen	kreuzen an
 w	_v:ankreuzen	kreuzen … an
-w	_v:ankreuzen	kreuzt
 w	_v:ankreuzen	kreuzt an
 w	_v:ankreuzen	kreuzt … an
-w	_v:ankreuzen	kreuzte
+w	_v:ankreuzen	kreuzte an
 w	_v:ankreuzen	kreuzte … an
-w	_v:ankreuzen	kreuzten
+w	_v:ankreuzen	kreuzten an
 w	_v:ankreuzen	kreuzten … an
-w	_v:ankreuzen	kreuztest
+w	_v:ankreuzen	kreuztest an
 w	_v:ankreuzen	kreuztest … an
-w	_v:ankreuzen	kreuztet
+w	_v:ankreuzen	kreuztet an
 w	_v:ankreuzen	kreuztet … an
 w	_v:ankreuzen	sie haben angekreuzt
 w	_v:ankreuzen	sie hatten angekreuzt
@@ -1149,9 +1152,13 @@ w	_v:anmachen	machst an
 w	_v:anmachen	machst … an
 w	_v:anmachen	macht an
 w	_v:anmachen	macht … an
+w	_v:anmachen	machte an
 w	_v:anmachen	machte … an
+w	_v:anmachen	machten an
 w	_v:anmachen	machten … an
+w	_v:anmachen	machtest an
 w	_v:anmachen	machtest … an
+w	_v:anmachen	machtet an
 w	_v:anmachen	machtet … an
 w	_v:anmachen	muss angemacht werden
 w	_v:anmachen	müssen angemacht werden
@@ -1225,25 +1232,22 @@ w	_v:anrufen	kann angerufen werden
 w	_v:anrufen	können angerufen werden
 w	_v:anrufen	muss angerufen werden
 w	_v:anrufen	müssen angerufen werden
+w	_v:anrufen	rief an
 w	_v:anrufen	rief … an
-w	_v:anrufen	riefen
+w	_v:anrufen	riefen an
 w	_v:anrufen	riefen … an
-w	_v:anrufen	riefst
+w	_v:anrufen	riefst an
 w	_v:anrufen	riefst … an
-w	_v:anrufen	rieft
+w	_v:anrufen	rieft an
 w	_v:anrufen	rieft … an
-w	_v:anrufen	ruf
 w	_v:anrufen	ruf an
-w	_v:anrufen	rufe
 w	_v:anrufen	rufe an
 w	_v:anrufen	rufe … an
 w	_v:anrufen	rufen Sie an
 w	_v:anrufen	rufen an
 w	_v:anrufen	rufen … an
-w	_v:anrufen	rufst
 w	_v:anrufen	rufst an
 w	_v:anrufen	rufst … an
-w	_v:anrufen	ruft
 w	_v:anrufen	ruft an
 w	_v:anrufen	ruft … an
 w	_v:anrufen	sie haben angerufen
@@ -1309,9 +1313,13 @@ w	_v:ansehen	ihr saht an
 w	_v:ansehen	ihr seht an
 w	_v:ansehen	ihr werdet ansehen
 w	_v:ansehen	ihr würdet ansehen
+w	_v:ansehen	sah an
 w	_v:ansehen	sah … an
+w	_v:ansehen	sahen an
 w	_v:ansehen	sahen … an
+w	_v:ansehen	sahst an
 w	_v:ansehen	sahst … an
+w	_v:ansehen	saht an
 w	_v:ansehen	saht … an
 w	_v:ansehen	sehe an
 w	_v:ansehen	sehe … an
@@ -1508,9 +1516,13 @@ w	_v:aufhören	hörst auf
 w	_v:aufhören	hörst … auf
 w	_v:aufhören	hört auf
 w	_v:aufhören	hört … auf
+w	_v:aufhören	hörte auf
 w	_v:aufhören	hörte … auf
+w	_v:aufhören	hörten auf
 w	_v:aufhören	hörten … auf
+w	_v:aufhören	hörtest auf
 w	_v:aufhören	hörtest … auf
+w	_v:aufhören	hörtet auf
 w	_v:aufhören	hörtet … auf
 w	_v:aufhören	ich habe aufgehört
 w	_v:aufhören	ich hatte aufgehört
@@ -1591,9 +1603,13 @@ w	_v:aufmachen	machst auf
 w	_v:aufmachen	machst … auf
 w	_v:aufmachen	macht auf
 w	_v:aufmachen	macht … auf
+w	_v:aufmachen	machte auf
 w	_v:aufmachen	machte … auf
+w	_v:aufmachen	machten auf
 w	_v:aufmachen	machten … auf
+w	_v:aufmachen	machtest auf
 w	_v:aufmachen	machtest … auf
+w	_v:aufmachen	machtet auf
 w	_v:aufmachen	machtet … auf
 w	_v:aufmachen	sie haben aufgemacht
 w	_v:aufmachen	sie hatten aufgemacht
@@ -1653,9 +1669,7 @@ w	_v:aufpassen	ihr passt auf
 w	_v:aufpassen	ihr passtet auf
 w	_v:aufpassen	ihr werdet aufpassen
 w	_v:aufpassen	ihr würdet aufpassen
-w	_v:aufpassen	pass
 w	_v:aufpassen	pass auf
-w	_v:aufpassen	passe
 w	_v:aufpassen	passe auf
 w	_v:aufpassen	passe … auf
 w	_v:aufpassen	passen Sie auf
@@ -1663,13 +1677,13 @@ w	_v:aufpassen	passen auf
 w	_v:aufpassen	passen … auf
 w	_v:aufpassen	passt auf
 w	_v:aufpassen	passt … auf
-w	_v:aufpassen	passte
+w	_v:aufpassen	passte auf
 w	_v:aufpassen	passte … auf
-w	_v:aufpassen	passten
+w	_v:aufpassen	passten auf
 w	_v:aufpassen	passten … auf
-w	_v:aufpassen	passtest
+w	_v:aufpassen	passtest auf
 w	_v:aufpassen	passtest … auf
-w	_v:aufpassen	passtet
+w	_v:aufpassen	passtet auf
 w	_v:aufpassen	passtet … auf
 w	_v:aufpassen	sie haben aufgepasst
 w	_v:aufpassen	sie hatten aufgepasst
@@ -1735,28 +1749,23 @@ w	_v:aufräumen	kann aufgeräumt werden
 w	_v:aufräumen	können aufgeräumt werden
 w	_v:aufräumen	muss aufgeräumt werden
 w	_v:aufräumen	müssen aufgeräumt werden
-w	_v:aufräumen	räum
 w	_v:aufräumen	räum auf
-w	_v:aufräumen	räume
 w	_v:aufräumen	räume auf
 w	_v:aufräumen	räume … auf
-w	_v:aufräumen	räumen
 w	_v:aufräumen	räumen Sie auf
 w	_v:aufräumen	räumen auf
 w	_v:aufräumen	räumen … auf
-w	_v:aufräumen	räumst
 w	_v:aufräumen	räumst auf
 w	_v:aufräumen	räumst … auf
-w	_v:aufräumen	räumt
 w	_v:aufräumen	räumt auf
 w	_v:aufräumen	räumt … auf
-w	_v:aufräumen	räumte
+w	_v:aufräumen	räumte auf
 w	_v:aufräumen	räumte … auf
-w	_v:aufräumen	räumten
+w	_v:aufräumen	räumten auf
 w	_v:aufräumen	räumten … auf
-w	_v:aufräumen	räumtest
+w	_v:aufräumen	räumtest auf
 w	_v:aufräumen	räumtest … auf
-w	_v:aufräumen	räumtet
+w	_v:aufräumen	räumtet auf
 w	_v:aufräumen	räumtet … auf
 w	_v:aufräumen	sie haben aufgeräumt
 w	_v:aufräumen	sie hatten aufgeräumt
@@ -1818,21 +1827,20 @@ w	_v:aufstehen	sie stehen auf
 w	_v:aufstehen	sie werden aufstehen
 w	_v:aufstehen	sie würden aufstehen
 w	_v:aufstehen	sind aufgestanden
+w	_v:aufstehen	stand auf
 w	_v:aufstehen	stand … auf
-w	_v:aufstehen	standen
+w	_v:aufstehen	standen auf
 w	_v:aufstehen	standen … auf
-w	_v:aufstehen	standest
+w	_v:aufstehen	standest auf
 w	_v:aufstehen	standest … auf
-w	_v:aufstehen	standet
+w	_v:aufstehen	standet auf
 w	_v:aufstehen	standet … auf
-w	_v:aufstehen	steh
 w	_v:aufstehen	steh auf
 w	_v:aufstehen	stehe auf
 w	_v:aufstehen	stehe … auf
 w	_v:aufstehen	stehen Sie auf
 w	_v:aufstehen	stehen auf
 w	_v:aufstehen	stehen … auf
-w	_v:aufstehen	stehst
 w	_v:aufstehen	stehst auf
 w	_v:aufstehen	stehst … auf
 w	_v:aufstehen	steht auf
@@ -1874,28 +1882,23 @@ w	_v:ausfüllen	er hat ausgefüllt
 w	_v:ausfüllen	er hatte ausgefüllt
 w	_v:ausfüllen	er wird ausfüllen
 w	_v:ausfüllen	er würde ausfüllen
-w	_v:ausfüllen	füll
 w	_v:ausfüllen	füll aus
-w	_v:ausfüllen	fülle
 w	_v:ausfüllen	fülle aus
 w	_v:ausfüllen	fülle … aus
-w	_v:ausfüllen	füllen
 w	_v:ausfüllen	füllen Sie aus
 w	_v:ausfüllen	füllen aus
 w	_v:ausfüllen	füllen … aus
-w	_v:ausfüllen	füllst
 w	_v:ausfüllen	füllst aus
 w	_v:ausfüllen	füllst … aus
-w	_v:ausfüllen	füllt
 w	_v:ausfüllen	füllt aus
 w	_v:ausfüllen	füllt … aus
-w	_v:ausfüllen	füllte
+w	_v:ausfüllen	füllte aus
 w	_v:ausfüllen	füllte … aus
-w	_v:ausfüllen	füllten
+w	_v:ausfüllen	füllten aus
 w	_v:ausfüllen	füllten … aus
-w	_v:ausfüllen	fülltest
+w	_v:ausfüllen	fülltest aus
 w	_v:ausfüllen	fülltest … aus
-w	_v:ausfüllen	fülltet
+w	_v:ausfüllen	fülltet aus
 w	_v:ausfüllen	fülltet … aus
 w	_v:ausfüllen	habe ausgefüllt
 w	_v:ausfüllen	haben ausgefüllt
@@ -1965,9 +1968,13 @@ w	_v:ausgeben	er hat ausgegeben
 w	_v:ausgeben	er hatte ausgegeben
 w	_v:ausgeben	er wird ausgeben
 w	_v:ausgeben	er würde ausgeben
+w	_v:ausgeben	gab aus
 w	_v:ausgeben	gab … aus
+w	_v:ausgeben	gaben aus
 w	_v:ausgeben	gaben … aus
+w	_v:ausgeben	gabst aus
 w	_v:ausgeben	gabst … aus
+w	_v:ausgeben	gabt aus
 w	_v:ausgeben	gabt … aus
 w	_v:ausgeben	gebe aus
 w	_v:ausgeben	gebe … aus
@@ -2051,9 +2058,13 @@ w	_v:ausgehen	gehst aus
 w	_v:ausgehen	gehst … aus
 w	_v:ausgehen	geht aus
 w	_v:ausgehen	geht … aus
+w	_v:ausgehen	ging aus
 w	_v:ausgehen	ging … aus
+w	_v:ausgehen	gingen aus
 w	_v:ausgehen	gingen … aus
+w	_v:ausgehen	gingst aus
 w	_v:ausgehen	gingst … aus
+w	_v:ausgehen	gingt aus
 w	_v:ausgehen	gingt … aus
 w	_v:ausgehen	ich bin ausgegangen
 w	_v:ausgehen	ich gehe aus
@@ -2150,9 +2161,13 @@ w	_v:ausmachen	machst aus
 w	_v:ausmachen	machst … aus
 w	_v:ausmachen	macht aus
 w	_v:ausmachen	macht … aus
+w	_v:ausmachen	machte aus
 w	_v:ausmachen	machte … aus
+w	_v:ausmachen	machten aus
 w	_v:ausmachen	machten … aus
+w	_v:ausmachen	machtest aus
 w	_v:ausmachen	machtest … aus
+w	_v:ausmachen	machtet aus
 w	_v:ausmachen	machtet … aus
 w	_v:ausmachen	muss ausgemacht werden
 w	_v:ausmachen	müssen ausgemacht werden
@@ -2220,27 +2235,23 @@ w	_v:auspacken	ihr packt aus
 w	_v:auspacken	ihr packtet aus
 w	_v:auspacken	ihr werdet auspacken
 w	_v:auspacken	ihr würdet auspacken
-w	_v:auspacken	pack
 w	_v:auspacken	pack aus
-w	_v:auspacken	packe
 w	_v:auspacken	packe aus
 w	_v:auspacken	packe … aus
 w	_v:auspacken	packen Sie aus
 w	_v:auspacken	packen aus
 w	_v:auspacken	packen … aus
-w	_v:auspacken	packst
 w	_v:auspacken	packst aus
 w	_v:auspacken	packst … aus
-w	_v:auspacken	packt
 w	_v:auspacken	packt aus
 w	_v:auspacken	packt … aus
-w	_v:auspacken	packte
+w	_v:auspacken	packte aus
 w	_v:auspacken	packte … aus
-w	_v:auspacken	packten
+w	_v:auspacken	packten aus
 w	_v:auspacken	packten … aus
-w	_v:auspacken	packtest
+w	_v:auspacken	packtest aus
 w	_v:auspacken	packtest … aus
-w	_v:auspacken	packtet
+w	_v:auspacken	packtet aus
 w	_v:auspacken	packtet … aus
 w	_v:auspacken	sie haben ausgepackt
 w	_v:auspacken	sie hatten ausgepackt
@@ -2309,9 +2320,13 @@ w	_v:ausschalten	schaltest aus
 w	_v:ausschalten	schaltest … aus
 w	_v:ausschalten	schaltet aus
 w	_v:ausschalten	schaltet … aus
+w	_v:ausschalten	schaltete aus
 w	_v:ausschalten	schaltete … aus
+w	_v:ausschalten	schalteten aus
 w	_v:ausschalten	schalteten … aus
+w	_v:ausschalten	schaltetest aus
 w	_v:ausschalten	schaltetest … aus
+w	_v:ausschalten	schaltetet aus
 w	_v:ausschalten	schaltetet … aus
 w	_v:ausschalten	sie haben ausgeschaltet
 w	_v:ausschalten	sie hatten ausgeschaltet
@@ -2371,9 +2386,13 @@ w	_v:aussehen	ihr saht aus
 w	_v:aussehen	ihr seht aus
 w	_v:aussehen	ihr werdet aussehen
 w	_v:aussehen	ihr würdet aussehen
+w	_v:aussehen	sah aus
 w	_v:aussehen	sah … aus
+w	_v:aussehen	sahen aus
 w	_v:aussehen	sahen … aus
+w	_v:aussehen	sahst aus
 w	_v:aussehen	sahst … aus
+w	_v:aussehen	saht aus
 w	_v:aussehen	saht … aus
 w	_v:aussehen	sehe aus
 w	_v:aussehen	sehe … aus
@@ -2451,9 +2470,13 @@ w	_v:aussprechen	sie sprachen aus
 w	_v:aussprechen	sie sprechen aus
 w	_v:aussprechen	sie werden aussprechen
 w	_v:aussprechen	sie würden aussprechen
+w	_v:aussprechen	sprach aus
 w	_v:aussprechen	sprach … aus
+w	_v:aussprechen	sprachen aus
 w	_v:aussprechen	sprachen … aus
+w	_v:aussprechen	sprachst aus
 w	_v:aussprechen	sprachst … aus
+w	_v:aussprechen	spracht aus
 w	_v:aussprechen	spracht … aus
 w	_v:aussprechen	spreche aus
 w	_v:aussprechen	spreche … aus
@@ -2527,9 +2550,13 @@ w	_v:aussteigen	steigst aus
 w	_v:aussteigen	steigst … aus
 w	_v:aussteigen	steigt aus
 w	_v:aussteigen	steigt … aus
+w	_v:aussteigen	stieg aus
 w	_v:aussteigen	stieg … aus
+w	_v:aussteigen	stiegen aus
 w	_v:aussteigen	stiegen … aus
+w	_v:aussteigen	stiegst aus
 w	_v:aussteigen	stiegst … aus
+w	_v:aussteigen	stiegt aus
 w	_v:aussteigen	stiegt … aus
 w	_v:aussteigen	war ausgestiegen
 w	_v:aussteigen	waren ausgestiegen
@@ -2558,7 +2585,6 @@ w	_v:austragen	du hast ausgetragen
 w	_v:austragen	du hattest ausgetragen
 w	_v:austragen	du trugst aus
 w	_v:austragen	du trägst aus
-w	_v:austragen	du trägst, er trägt
 w	_v:austragen	du wirst austragen
 w	_v:austragen	du würdest austragen
 w	_v:austragen	er hat ausgetragen
@@ -2598,7 +2624,6 @@ w	_v:austragen	sie tragen aus
 w	_v:austragen	sie trugen aus
 w	_v:austragen	sie werden austragen
 w	_v:austragen	sie würden austragen
-w	_v:austragen	trag
 w	_v:austragen	trag aus
 w	_v:austragen	trage aus
 w	_v:austragen	trage … aus
@@ -2607,12 +2632,13 @@ w	_v:austragen	tragen aus
 w	_v:austragen	tragen … aus
 w	_v:austragen	tragt aus
 w	_v:austragen	tragt … aus
+w	_v:austragen	trug aus
 w	_v:austragen	trug … aus
-w	_v:austragen	trugen
+w	_v:austragen	trugen aus
 w	_v:austragen	trugen … aus
-w	_v:austragen	trugst
+w	_v:austragen	trugst aus
 w	_v:austragen	trugst … aus
-w	_v:austragen	trugt
+w	_v:austragen	trugt aus
 w	_v:austragen	trugt … aus
 w	_v:austragen	trägst aus
 w	_v:austragen	trägst … aus
@@ -3407,7 +3433,6 @@ w	_v:beraten	berietet
 w	_v:beraten	berätst
 w	_v:beraten	du berietest
 w	_v:beraten	du berätst
-w	_v:beraten	du berätst, er berät
 w	_v:beraten	du hast beraten
 w	_v:beraten	du hattest beraten
 w	_v:beraten	du wirst beraten
@@ -4176,7 +4201,6 @@ w	_v:braten	brät
 w	_v:braten	brätst
 w	_v:braten	du brietest
 w	_v:braten	du brätst
-w	_v:braten	du brätst, er brät
 w	_v:braten	du hast gebraten
 w	_v:braten	du hattest gebraten
 w	_v:braten	du wirst braten
@@ -5142,9 +5166,13 @@ w	_v:einkaufen	kaufst ein
 w	_v:einkaufen	kaufst … ein
 w	_v:einkaufen	kauft ein
 w	_v:einkaufen	kauft … ein
+w	_v:einkaufen	kaufte ein
 w	_v:einkaufen	kaufte … ein
+w	_v:einkaufen	kauften ein
 w	_v:einkaufen	kauften … ein
+w	_v:einkaufen	kauftest ein
 w	_v:einkaufen	kauftest … ein
+w	_v:einkaufen	kauftet ein
 w	_v:einkaufen	kauftet … ein
 w	_v:einkaufen	sie haben eingekauft
 w	_v:einkaufen	sie hatten eingekauft
@@ -5171,7 +5199,6 @@ w	_v:einladen	darf eingeladen werden
 w	_v:einladen	du hast eingeladen
 w	_v:einladen	du hattest eingeladen
 w	_v:einladen	du ludest ein
-w	_v:einladen	du lädst, er lädt
 w	_v:einladen	du wirst einladen
 w	_v:einladen	du würdest einladen
 w	_v:einladen	dürfen eingeladen werden
@@ -5208,16 +5235,15 @@ w	_v:einladen	können eingeladen werden
 w	_v:einladen	lade … ein
 w	_v:einladen	laden Sie ein
 w	_v:einladen	laden … ein
-w	_v:einladen	ladet
 w	_v:einladen	ladet … ein
+w	_v:einladen	lud ein
 w	_v:einladen	lud … ein
-w	_v:einladen	luden
+w	_v:einladen	luden ein
 w	_v:einladen	luden … ein
-w	_v:einladen	ludest
+w	_v:einladen	ludest ein
 w	_v:einladen	ludest … ein
-w	_v:einladen	ludet
+w	_v:einladen	ludet ein
 w	_v:einladen	ludet … ein
-w	_v:einladen	lädst
 w	_v:einladen	lädst … ein
 w	_v:einladen	lädt … ein
 w	_v:einladen	muss eingeladen werden
@@ -5294,9 +5320,13 @@ w	_v:einpacken	packst ein
 w	_v:einpacken	packst … ein
 w	_v:einpacken	packt ein
 w	_v:einpacken	packt … ein
+w	_v:einpacken	packte ein
 w	_v:einpacken	packte … ein
+w	_v:einpacken	packten ein
 w	_v:einpacken	packten … ein
+w	_v:einpacken	packtest ein
 w	_v:einpacken	packtest … ein
+w	_v:einpacken	packtet ein
 w	_v:einpacken	packtet … ein
 w	_v:einpacken	sie haben eingepackt
 w	_v:einpacken	sie hatten eingepackt
@@ -5356,25 +5386,22 @@ w	_v:einschalten	ihr schaltet ein
 w	_v:einschalten	ihr schaltetet ein
 w	_v:einschalten	ihr werdet einschalten
 w	_v:einschalten	ihr würdet einschalten
-w	_v:einschalten	schalte
 w	_v:einschalten	schalte ein
 w	_v:einschalten	schalte … ein
 w	_v:einschalten	schalten Sie ein
 w	_v:einschalten	schalten ein
 w	_v:einschalten	schalten … ein
-w	_v:einschalten	schaltest
 w	_v:einschalten	schaltest ein
 w	_v:einschalten	schaltest … ein
-w	_v:einschalten	schaltet
 w	_v:einschalten	schaltet ein
 w	_v:einschalten	schaltet … ein
-w	_v:einschalten	schaltete
+w	_v:einschalten	schaltete ein
 w	_v:einschalten	schaltete … ein
-w	_v:einschalten	schalteten
+w	_v:einschalten	schalteten ein
 w	_v:einschalten	schalteten … ein
-w	_v:einschalten	schaltetest
+w	_v:einschalten	schaltetest ein
 w	_v:einschalten	schaltetest … ein
-w	_v:einschalten	schaltetet
+w	_v:einschalten	schaltetet ein
 w	_v:einschalten	schaltetet … ein
 w	_v:einschalten	sie haben eingeschaltet
 w	_v:einschalten	sie hatten eingeschaltet
@@ -5431,25 +5458,22 @@ w	_v:einsteigen	sie waren eingestiegen
 w	_v:einsteigen	sie werden einsteigen
 w	_v:einsteigen	sie würden einsteigen
 w	_v:einsteigen	sind eingestiegen
-w	_v:einsteigen	steig
 w	_v:einsteigen	steig ein
-w	_v:einsteigen	steige
 w	_v:einsteigen	steige ein
 w	_v:einsteigen	steige … ein
 w	_v:einsteigen	steigen Sie ein
 w	_v:einsteigen	steigen ein
 w	_v:einsteigen	steigen … ein
-w	_v:einsteigen	steigst
 w	_v:einsteigen	steigst ein
 w	_v:einsteigen	steigst … ein
-w	_v:einsteigen	steigt
 w	_v:einsteigen	steigt … ein
+w	_v:einsteigen	stieg ein
 w	_v:einsteigen	stieg … ein
-w	_v:einsteigen	stiegen
+w	_v:einsteigen	stiegen ein
 w	_v:einsteigen	stiegen … ein
-w	_v:einsteigen	stiegst
+w	_v:einsteigen	stiegst ein
 w	_v:einsteigen	stiegst … ein
-w	_v:einsteigen	stiegt
+w	_v:einsteigen	stiegt ein
 w	_v:einsteigen	stiegt … ein
 w	_v:einsteigen	war eingestiegen
 w	_v:einsteigen	waren eingestiegen
@@ -5542,13 +5566,16 @@ w	_v:einziehen	ziehst ein
 w	_v:einziehen	ziehst … ein
 w	_v:einziehen	zieht ein
 w	_v:einziehen	zieht … ein
+w	_v:einziehen	zog ein
 w	_v:einziehen	zog … ein
+w	_v:einziehen	zogen ein
 w	_v:einziehen	zogen … ein
+w	_v:einziehen	zogst ein
 w	_v:einziehen	zogst … ein
+w	_v:einziehen	zogt ein
 w	_v:einziehen	zogt … ein
 w	_v:empfehlen	darf empfohlen werden
 w	_v:empfehlen	du empfahlst
-w	_v:empfehlen	du empfiehlst, er empfiehlt
 w	_v:empfehlen	du hast empfohlen
 w	_v:empfehlen	du hattest empfohlen
 w	_v:empfehlen	du wirst empfehlen
@@ -6031,7 +6058,6 @@ w	_v:essen	darf gegessen werden
 w	_v:essen	du aßest
 w	_v:essen	du hast gegessen
 w	_v:essen	du hattest gegessen
-w	_v:essen	du isst, er isst
 w	_v:essen	du wirst essen
 w	_v:essen	du würdest essen
 w	_v:essen	dürfen gegessen werden
@@ -6096,7 +6122,6 @@ w	_v:fahren	bin gefahren
 w	_v:fahren	bist gefahren
 w	_v:fahren	du bist gefahren
 w	_v:fahren	du fuhrst
-w	_v:fahren	du fährst, er fährt
 w	_v:fahren	du wirst fahren
 w	_v:fahren	du würdest fahren
 w	_v:fahren	er ist gefahren
@@ -6152,7 +6177,6 @@ w	_v:fallen	bin gefallen
 w	_v:fallen	bist gefallen
 w	_v:fallen	du bist gefallen
 w	_v:fallen	du fielst
-w	_v:fallen	du fällst, er fällt
 w	_v:fallen	du warst gefallen
 w	_v:fallen	du wirst fallen
 w	_v:fallen	du würdest fallen
@@ -6351,7 +6375,6 @@ w	_v:fernsehen	du hast ferngesehen
 w	_v:fernsehen	du hattest ferngesehen
 w	_v:fernsehen	du sahst fern
 w	_v:fernsehen	du siehst fern
-w	_v:fernsehen	du siehst, er sieht
 w	_v:fernsehen	du wirst fernsehen
 w	_v:fernsehen	du würdest fernsehen
 w	_v:fernsehen	er hat ferngesehen
@@ -6385,12 +6408,13 @@ w	_v:fernsehen	ihr saht fern
 w	_v:fernsehen	ihr seht fern
 w	_v:fernsehen	ihr werdet fernsehen
 w	_v:fernsehen	ihr würdet fernsehen
+w	_v:fernsehen	sah fern
 w	_v:fernsehen	sah … fern
-w	_v:fernsehen	sahen
+w	_v:fernsehen	sahen fern
 w	_v:fernsehen	sahen … fern
-w	_v:fernsehen	sahst
+w	_v:fernsehen	sahst fern
 w	_v:fernsehen	sahst … fern
-w	_v:fernsehen	saht
+w	_v:fernsehen	saht fern
 w	_v:fernsehen	saht … fern
 w	_v:fernsehen	sehe fern
 w	_v:fernsehen	sehe … fern
@@ -6405,7 +6429,6 @@ w	_v:fernsehen	sie sahen fern
 w	_v:fernsehen	sie sehen fern
 w	_v:fernsehen	sie werden fernsehen
 w	_v:fernsehen	sie würden fernsehen
-w	_v:fernsehen	sieh
 w	_v:fernsehen	sieh fern
 w	_v:fernsehen	siehst fern
 w	_v:fernsehen	siehst … fern
@@ -6773,7 +6796,6 @@ w	_v:frühstücken	würden frühstücken
 w	_v:frühstücken	würdest frühstücken
 w	_v:frühstücken	würdet frühstücken
 w	_v:geben	du gabst
-w	_v:geben	du gibst, er gibt
 w	_v:geben	du hast gegeben
 w	_v:geben	du hattest gegeben
 w	_v:geben	du wirst geben
@@ -6830,7 +6852,6 @@ w	_v:geben	würden geben
 w	_v:geben	würdest geben
 w	_v:geben	würdet geben
 w	_v:gefallen	du gefielst
-w	_v:gefallen	du gefällst, er gefällt
 w	_v:gefallen	du hast gefallen
 w	_v:gefallen	du hattest gefallen
 w	_v:gefallen	du wirst gefallen
@@ -7281,7 +7302,6 @@ w	_v:haben	wirst haben
 w	_v:halten	du hast gehalten
 w	_v:halten	du hattest gehalten
 w	_v:halten	du hieltest
-w	_v:halten	du hältst, er hält
 w	_v:halten	du wirst halten
 w	_v:halten	du würdest halten
 w	_v:halten	er hat gehalten
@@ -7526,7 +7546,6 @@ w	_v:heißen	würdet heißen
 w	_v:helfen	du halfst
 w	_v:helfen	du hast geholfen
 w	_v:helfen	du hattest geholfen
-w	_v:helfen	du hilfst, er hilft
 w	_v:helfen	du wirst helfen
 w	_v:helfen	er hat geholfen
 w	_v:helfen	er hatte geholfen
@@ -7632,9 +7651,13 @@ w	_v:herstellen	stellst her
 w	_v:herstellen	stellst … her
 w	_v:herstellen	stellt her
 w	_v:herstellen	stellt … her
+w	_v:herstellen	stellte her
 w	_v:herstellen	stellte … her
+w	_v:herstellen	stellten her
 w	_v:herstellen	stellten … her
+w	_v:herstellen	stelltest her
 w	_v:herstellen	stelltest … her
+w	_v:herstellen	stelltet her
 w	_v:herstellen	stelltet … her
 w	_v:herstellen	werde herstellen
 w	_v:herstellen	werden herstellen
@@ -7695,9 +7718,13 @@ w	_v:herunterladen	laden herunter
 w	_v:herunterladen	laden … herunter
 w	_v:herunterladen	ladet herunter
 w	_v:herunterladen	ladet … herunter
+w	_v:herunterladen	lud herunter
 w	_v:herunterladen	lud … herunter
+w	_v:herunterladen	luden herunter
 w	_v:herunterladen	luden … herunter
+w	_v:herunterladen	ludest herunter
 w	_v:herunterladen	ludest … herunter
+w	_v:herunterladen	ludet herunter
 w	_v:herunterladen	ludet … herunter
 w	_v:herunterladen	lädst herunter
 w	_v:herunterladen	lädst … herunter
@@ -8254,9 +8281,13 @@ w	_v:kennenlernen	lernst kennen
 w	_v:kennenlernen	lernst … kennen
 w	_v:kennenlernen	lernt kennen
 w	_v:kennenlernen	lernt … kennen
+w	_v:kennenlernen	lernte kennen
 w	_v:kennenlernen	lernte … kennen
+w	_v:kennenlernen	lernten kennen
 w	_v:kennenlernen	lernten … kennen
+w	_v:kennenlernen	lerntest kennen
 w	_v:kennenlernen	lerntest … kennen
+w	_v:kennenlernen	lerntet kennen
 w	_v:kennenlernen	lerntet … kennen
 w	_v:kennenlernen	sie haben kennengelernt
 w	_v:kennenlernen	sie hatten kennengelernt
@@ -8398,7 +8429,14 @@ w	_v:kommen	ihr wart gekommen
 w	_v:kommen	ihr werdet kommen
 w	_v:kommen	ihr würdet kommen
 w	_v:kommen	ist gekommen
+w	_v:kommen	kamen
+w	_v:kommen	kamst
+w	_v:kommen	kamt
+w	_v:kommen	komm
+w	_v:kommen	komme
 w	_v:kommen	kommen Sie
+w	_v:kommen	kommst
+w	_v:kommen	kommt
 w	_v:kommen	seid gekommen
 w	_v:kommen	sie kamen
 w	_v:kommen	sie kommen
@@ -8768,7 +8806,6 @@ w	_v:lachen	würdet lachen
 w	_v:lassen	du hast gelassen
 w	_v:lassen	du hattest gelassen
 w	_v:lassen	du ließest
-w	_v:lassen	du lässt, er lässt
 w	_v:lassen	du wirst lassen
 w	_v:lassen	du würdest lassen
 w	_v:lassen	er hat gelassen
@@ -8826,7 +8863,6 @@ w	_v:laufen	bin gelaufen
 w	_v:laufen	bist gelaufen
 w	_v:laufen	du bist gelaufen
 w	_v:laufen	du liefst
-w	_v:laufen	du läufst, er läuft
 w	_v:laufen	du warst gelaufen
 w	_v:laufen	du wirst laufen
 w	_v:laufen	du würdest laufen
@@ -9146,7 +9182,6 @@ w	_v:lesen	darf gelesen werden
 w	_v:lesen	du hast gelesen
 w	_v:lesen	du hattest gelesen
 w	_v:lesen	du lasest
-w	_v:lesen	du liest, er liest
 w	_v:lesen	du wirst lesen
 w	_v:lesen	du würdest lesen
 w	_v:lesen	dürfen gelesen werden
@@ -9916,9 +9951,13 @@ w	_v:mieten	würde mieten
 w	_v:mieten	würden mieten
 w	_v:mieten	würdest mieten
 w	_v:mieten	würdet mieten
+w	_v:mitbringen	brachte mit
 w	_v:mitbringen	brachte … mit
+w	_v:mitbringen	brachten mit
 w	_v:mitbringen	brachten … mit
+w	_v:mitbringen	brachtest mit
 w	_v:mitbringen	brachtest … mit
+w	_v:mitbringen	brachtet mit
 w	_v:mitbringen	brachtet … mit
 w	_v:mitbringen	bring mit
 w	_v:mitbringen	bringe mit
@@ -10015,9 +10054,13 @@ w	_v:mitkommen	ihr wart mitgekommen
 w	_v:mitkommen	ihr werdet mitkommen
 w	_v:mitkommen	ihr würdet mitkommen
 w	_v:mitkommen	ist mitgekommen
+w	_v:mitkommen	kam mit
 w	_v:mitkommen	kam … mit
+w	_v:mitkommen	kamen mit
 w	_v:mitkommen	kamen … mit
+w	_v:mitkommen	kamst mit
 w	_v:mitkommen	kamst … mit
+w	_v:mitkommen	kamt mit
 w	_v:mitkommen	kamt … mit
 w	_v:mitkommen	komm mit
 w	_v:mitkommen	komme mit
@@ -10107,9 +10150,13 @@ w	_v:mitmachen	machst mit
 w	_v:mitmachen	machst … mit
 w	_v:mitmachen	macht mit
 w	_v:mitmachen	macht … mit
+w	_v:mitmachen	machte mit
 w	_v:mitmachen	machte … mit
+w	_v:mitmachen	machten mit
 w	_v:mitmachen	machten … mit
+w	_v:mitmachen	machtest mit
 w	_v:mitmachen	machtest … mit
+w	_v:mitmachen	machtet mit
 w	_v:mitmachen	machtet … mit
 w	_v:mitmachen	sie haben mitgemacht
 w	_v:mitmachen	sie hatten mitgemacht
@@ -10136,7 +10183,6 @@ w	_v:mitnehmen	du hast mitgenommen
 w	_v:mitnehmen	du hattest mitgenommen
 w	_v:mitnehmen	du nahmst mit
 w	_v:mitnehmen	du nimmst mit
-w	_v:mitnehmen	du nimmst, er nimmt
 w	_v:mitnehmen	du wirst mitnehmen
 w	_v:mitnehmen	du würdest mitnehmen
 w	_v:mitnehmen	er hat mitgenommen
@@ -10170,12 +10216,13 @@ w	_v:mitnehmen	ihr nahmt mit
 w	_v:mitnehmen	ihr nehmt mit
 w	_v:mitnehmen	ihr werdet mitnehmen
 w	_v:mitnehmen	ihr würdet mitnehmen
+w	_v:mitnehmen	nahm mit
 w	_v:mitnehmen	nahm … mit
-w	_v:mitnehmen	nahmen
+w	_v:mitnehmen	nahmen mit
 w	_v:mitnehmen	nahmen … mit
-w	_v:mitnehmen	nahmst
+w	_v:mitnehmen	nahmst mit
 w	_v:mitnehmen	nahmst … mit
-w	_v:mitnehmen	nahmt
+w	_v:mitnehmen	nahmt mit
 w	_v:mitnehmen	nahmt … mit
 w	_v:mitnehmen	nehme mit
 w	_v:mitnehmen	nehme … mit
@@ -10184,7 +10231,6 @@ w	_v:mitnehmen	nehmen mit
 w	_v:mitnehmen	nehmen … mit
 w	_v:mitnehmen	nehmt mit
 w	_v:mitnehmen	nehmt … mit
-w	_v:mitnehmen	nimm
 w	_v:mitnehmen	nimm mit
 w	_v:mitnehmen	nimmst mit
 w	_v:mitnehmen	nimmst … mit
@@ -10326,7 +10372,11 @@ w	_v:nehmen	kann genommen werden
 w	_v:nehmen	können genommen werden
 w	_v:nehmen	muss genommen werden
 w	_v:nehmen	müssen genommen werden
+w	_v:nehmen	nahmen
+w	_v:nehmen	nahmst
+w	_v:nehmen	nahmt
 w	_v:nehmen	nehmen Sie
+w	_v:nehmen	nimm
 w	_v:nehmen	sie haben genommen
 w	_v:nehmen	sie hatten genommen
 w	_v:nehmen	sie nahmen
@@ -10695,7 +10745,15 @@ w	_v:packen	kann gepackt werden
 w	_v:packen	können gepackt werden
 w	_v:packen	muss gepackt werden
 w	_v:packen	müssen gepackt werden
+w	_v:packen	pack
+w	_v:packen	packe
 w	_v:packen	packen Sie
+w	_v:packen	packst
+w	_v:packen	packt
+w	_v:packen	packte
+w	_v:packen	packten
+w	_v:packen	packtest
+w	_v:packen	packtet
 w	_v:packen	sie haben gepackt
 w	_v:packen	sie hatten gepackt
 w	_v:packen	sie packen
@@ -10827,7 +10885,13 @@ w	_v:passen	ihr passt
 w	_v:passen	ihr passtet
 w	_v:passen	ihr werdet passen
 w	_v:passen	ihr würdet passen
+w	_v:passen	pass
+w	_v:passen	passe
 w	_v:passen	passen Sie
+w	_v:passen	passte
+w	_v:passen	passten
+w	_v:passen	passtest
+w	_v:passen	passtet
 w	_v:passen	sie haben gepasst
 w	_v:passen	sie hatten gepasst
 w	_v:passen	sie passen
@@ -11171,7 +11235,6 @@ w	_v:putzen	würdet putzen
 w	_v:raten	du hast geraten
 w	_v:raten	du hattest geraten
 w	_v:raten	du rietest
-w	_v:raten	du rätst, er rät
 w	_v:raten	du wirst raten
 w	_v:raten	du würdest raten
 w	_v:raten	er hat geraten
@@ -11863,7 +11926,14 @@ w	_v:rufen	ihr rieft
 w	_v:rufen	ihr ruft
 w	_v:rufen	ihr werdet rufen
 w	_v:rufen	ihr würdet rufen
+w	_v:rufen	riefen
+w	_v:rufen	riefst
+w	_v:rufen	rieft
+w	_v:rufen	ruf
+w	_v:rufen	rufe
 w	_v:rufen	rufen Sie
+w	_v:rufen	rufst
+w	_v:rufen	ruft
 w	_v:rufen	sie haben gerufen
 w	_v:rufen	sie hatten gerufen
 w	_v:rufen	sie riefen
@@ -12374,7 +12444,6 @@ w	_v:schimpfen	würdet schimpfen
 w	_v:schlafen	du hast geschlafen
 w	_v:schlafen	du hattest geschlafen
 w	_v:schlafen	du schliefst
-w	_v:schlafen	du schläfst, er schläft
 w	_v:schlafen	du wirst schlafen
 w	_v:schlafen	du würdest schlafen
 w	_v:schlafen	er hat geschlafen
@@ -12778,12 +12847,16 @@ w	_v:sehen	kann gesehen werden
 w	_v:sehen	können gesehen werden
 w	_v:sehen	muss gesehen werden
 w	_v:sehen	müssen gesehen werden
+w	_v:sehen	sahen
+w	_v:sehen	sahst
+w	_v:sehen	saht
 w	_v:sehen	sehen Sie
 w	_v:sehen	sie haben gesehen
 w	_v:sehen	sie hatten gesehen
 w	_v:sehen	sie sahen
 w	_v:sehen	sie werden sehen
 w	_v:sehen	sie würden sehen
+w	_v:sehen	sieh
 w	_v:sehen	soll gesehen werden
 w	_v:sehen	sollen gesehen werden
 w	_v:sehen	werde sehen
@@ -12898,36 +12971,31 @@ w	_v:sich anmelden	ihr meldetet euch an
 w	_v:sich anmelden	ihr meldetet euch … an
 w	_v:sich anmelden	ihr werdet euch anmelden
 w	_v:sich anmelden	ihr würdet euch anmelden
-w	_v:sich anmelden	melde
-w	_v:sich anmelden	melde an
 w	_v:sich anmelden	melde dich an
 w	_v:sich anmelden	melde mich an
 w	_v:sich anmelden	melde mich … an
 w	_v:sich anmelden	melden Sie sich an
-w	_v:sich anmelden	melden an
 w	_v:sich anmelden	melden sich an
 w	_v:sich anmelden	melden sich … an
 w	_v:sich anmelden	melden uns an
 w	_v:sich anmelden	melden uns … an
-w	_v:sich anmelden	meldest
-w	_v:sich anmelden	meldest an
 w	_v:sich anmelden	meldest dich an
 w	_v:sich anmelden	meldest dich … an
-w	_v:sich anmelden	meldet
-w	_v:sich anmelden	meldet an
 w	_v:sich anmelden	meldet euch an
 w	_v:sich anmelden	meldet euch … an
 w	_v:sich anmelden	meldet sich an
 w	_v:sich anmelden	meldet sich … an
-w	_v:sich anmelden	meldete
+w	_v:sich anmelden	meldete mich an
 w	_v:sich anmelden	meldete mich … an
+w	_v:sich anmelden	meldete sich an
 w	_v:sich anmelden	meldete sich … an
-w	_v:sich anmelden	meldeten
+w	_v:sich anmelden	meldeten sich an
 w	_v:sich anmelden	meldeten sich … an
+w	_v:sich anmelden	meldeten uns an
 w	_v:sich anmelden	meldeten uns … an
-w	_v:sich anmelden	meldetest
+w	_v:sich anmelden	meldetest dich an
 w	_v:sich anmelden	meldetest dich … an
-w	_v:sich anmelden	meldetet
+w	_v:sich anmelden	meldetet euch an
 w	_v:sich anmelden	meldetet euch … an
 w	_v:sich anmelden	sie haben sich angemeldet
 w	_v:sich anmelden	sie hatten sich angemeldet
@@ -13036,28 +13104,30 @@ w	_v:sich anziehen	würden uns anziehen
 w	_v:sich anziehen	würdest dich anziehen
 w	_v:sich anziehen	würdet euch anziehen
 w	_v:sich anziehen	zieh dich an
-w	_v:sich anziehen	ziehe an
 w	_v:sich anziehen	ziehe mich an
 w	_v:sich anziehen	ziehe mich … an
 w	_v:sich anziehen	ziehen Sie sich an
-w	_v:sich anziehen	ziehen an
 w	_v:sich anziehen	ziehen sich an
 w	_v:sich anziehen	ziehen sich … an
 w	_v:sich anziehen	ziehen uns an
 w	_v:sich anziehen	ziehen uns … an
-w	_v:sich anziehen	ziehst an
 w	_v:sich anziehen	ziehst dich an
 w	_v:sich anziehen	ziehst dich … an
-w	_v:sich anziehen	zieht an
 w	_v:sich anziehen	zieht euch an
 w	_v:sich anziehen	zieht euch … an
 w	_v:sich anziehen	zieht sich an
 w	_v:sich anziehen	zieht sich … an
+w	_v:sich anziehen	zog mich an
 w	_v:sich anziehen	zog mich … an
+w	_v:sich anziehen	zog sich an
 w	_v:sich anziehen	zog sich … an
+w	_v:sich anziehen	zogen sich an
 w	_v:sich anziehen	zogen sich … an
+w	_v:sich anziehen	zogen uns an
 w	_v:sich anziehen	zogen uns … an
+w	_v:sich anziehen	zogst dich an
 w	_v:sich anziehen	zogst dich … an
+w	_v:sich anziehen	zogt euch an
 w	_v:sich anziehen	zogt euch … an
 w	_v:sich ärgern	du hast dich geärgert
 w	_v:sich ärgern	du hattest dich geärgert
@@ -13125,26 +13195,18 @@ w	_v:sich ärgern	würden sich ärgern
 w	_v:sich ärgern	würden uns ärgern
 w	_v:sich ärgern	würdest dich ärgern
 w	_v:sich ärgern	würdet euch ärgern
-w	_v:sich ärgern	ärgere
 w	_v:sich ärgern	ärgere dich
-w	_v:sich ärgern	ärgern
 w	_v:sich ärgern	ärgern Sie sich
 w	_v:sich ärgern	ärgern sich
 w	_v:sich ärgern	ärgern uns
-w	_v:sich ärgern	ärgerst
 w	_v:sich ärgern	ärgerst dich
-w	_v:sich ärgern	ärgert
 w	_v:sich ärgern	ärgert euch
 w	_v:sich ärgern	ärgert sich
-w	_v:sich ärgern	ärgerte
 w	_v:sich ärgern	ärgerte mich
 w	_v:sich ärgern	ärgerte sich
-w	_v:sich ärgern	ärgerten
 w	_v:sich ärgern	ärgerten sich
 w	_v:sich ärgern	ärgerten uns
-w	_v:sich ärgern	ärgertest
 w	_v:sich ärgern	ärgertest dich
-w	_v:sich ärgern	ärgertet
 w	_v:sich ärgern	ärgertet euch
 w	_v:sich ausruhen	du hast dich ausgeruht
 w	_v:sich ausruhen	du hattest dich ausgeruht
@@ -13196,38 +13258,31 @@ w	_v:sich ausruhen	ihr ruhtet euch aus
 w	_v:sich ausruhen	ihr ruhtet euch … aus
 w	_v:sich ausruhen	ihr werdet euch ausruhen
 w	_v:sich ausruhen	ihr würdet euch ausruhen
-w	_v:sich ausruhen	ruh
 w	_v:sich ausruhen	ruh dich aus
-w	_v:sich ausruhen	ruhe
-w	_v:sich ausruhen	ruhe aus
 w	_v:sich ausruhen	ruhe mich aus
 w	_v:sich ausruhen	ruhe mich … aus
-w	_v:sich ausruhen	ruhen
 w	_v:sich ausruhen	ruhen Sie sich aus
-w	_v:sich ausruhen	ruhen aus
 w	_v:sich ausruhen	ruhen sich aus
 w	_v:sich ausruhen	ruhen sich … aus
 w	_v:sich ausruhen	ruhen uns aus
 w	_v:sich ausruhen	ruhen uns … aus
-w	_v:sich ausruhen	ruhst
-w	_v:sich ausruhen	ruhst aus
 w	_v:sich ausruhen	ruhst dich aus
 w	_v:sich ausruhen	ruhst dich … aus
-w	_v:sich ausruhen	ruht
-w	_v:sich ausruhen	ruht aus
 w	_v:sich ausruhen	ruht euch aus
 w	_v:sich ausruhen	ruht euch … aus
 w	_v:sich ausruhen	ruht sich aus
 w	_v:sich ausruhen	ruht sich … aus
-w	_v:sich ausruhen	ruhte
+w	_v:sich ausruhen	ruhte mich aus
 w	_v:sich ausruhen	ruhte mich … aus
+w	_v:sich ausruhen	ruhte sich aus
 w	_v:sich ausruhen	ruhte sich … aus
-w	_v:sich ausruhen	ruhten
+w	_v:sich ausruhen	ruhten sich aus
 w	_v:sich ausruhen	ruhten sich … aus
+w	_v:sich ausruhen	ruhten uns aus
 w	_v:sich ausruhen	ruhten uns … aus
-w	_v:sich ausruhen	ruhtest
+w	_v:sich ausruhen	ruhtest dich aus
 w	_v:sich ausruhen	ruhtest dich … aus
-w	_v:sich ausruhen	ruhtet
+w	_v:sich ausruhen	ruhtet euch aus
 w	_v:sich ausruhen	ruhtet euch … aus
 w	_v:sich ausruhen	sie haben sich ausgeruht
 w	_v:sich ausruhen	sie hatten sich ausgeruht
@@ -13336,49 +13391,44 @@ w	_v:sich ausziehen	würden uns ausziehen
 w	_v:sich ausziehen	würdest dich ausziehen
 w	_v:sich ausziehen	würdet euch ausziehen
 w	_v:sich ausziehen	zieh dich aus
-w	_v:sich ausziehen	ziehe aus
 w	_v:sich ausziehen	ziehe mich aus
 w	_v:sich ausziehen	ziehe mich … aus
 w	_v:sich ausziehen	ziehen Sie sich aus
-w	_v:sich ausziehen	ziehen aus
 w	_v:sich ausziehen	ziehen sich aus
 w	_v:sich ausziehen	ziehen sich … aus
 w	_v:sich ausziehen	ziehen uns aus
 w	_v:sich ausziehen	ziehen uns … aus
-w	_v:sich ausziehen	ziehst aus
 w	_v:sich ausziehen	ziehst dich aus
 w	_v:sich ausziehen	ziehst dich … aus
-w	_v:sich ausziehen	zieht aus
 w	_v:sich ausziehen	zieht euch aus
 w	_v:sich ausziehen	zieht euch … aus
 w	_v:sich ausziehen	zieht sich aus
 w	_v:sich ausziehen	zieht sich … aus
+w	_v:sich ausziehen	zog mich aus
 w	_v:sich ausziehen	zog mich … aus
+w	_v:sich ausziehen	zog sich aus
 w	_v:sich ausziehen	zog sich … aus
+w	_v:sich ausziehen	zogen sich aus
 w	_v:sich ausziehen	zogen sich … aus
+w	_v:sich ausziehen	zogen uns aus
 w	_v:sich ausziehen	zogen uns … aus
+w	_v:sich ausziehen	zogst dich aus
 w	_v:sich ausziehen	zogst dich … aus
+w	_v:sich ausziehen	zogt euch aus
 w	_v:sich ausziehen	zogt euch … aus
-w	_v:sich bedanken	bedank
 w	_v:sich bedanken	bedank dich
-w	_v:sich bedanken	bedanke
 w	_v:sich bedanken	bedanke mich
 w	_v:sich bedanken	bedanken Sie sich
 w	_v:sich bedanken	bedanken sich
 w	_v:sich bedanken	bedanken uns
-w	_v:sich bedanken	bedankst
 w	_v:sich bedanken	bedankst dich
 w	_v:sich bedanken	bedankt euch
 w	_v:sich bedanken	bedankt sich
-w	_v:sich bedanken	bedankte
 w	_v:sich bedanken	bedankte mich
 w	_v:sich bedanken	bedankte sich
-w	_v:sich bedanken	bedankten
 w	_v:sich bedanken	bedankten sich
 w	_v:sich bedanken	bedankten uns
-w	_v:sich bedanken	bedanktest
 w	_v:sich bedanken	bedanktest dich
-w	_v:sich bedanken	bedanktet
 w	_v:sich bedanken	bedanktet euch
 w	_v:sich bedanken	du bedankst dich
 w	_v:sich bedanken	du bedanktest dich
@@ -13446,26 +13496,19 @@ w	_v:sich bedanken	würden sich bedanken
 w	_v:sich bedanken	würden uns bedanken
 w	_v:sich bedanken	würdest dich bedanken
 w	_v:sich bedanken	würdet euch bedanken
-w	_v:sich beeilen	beeil
 w	_v:sich beeilen	beeil dich
-w	_v:sich beeilen	beeile
 w	_v:sich beeilen	beeile mich
 w	_v:sich beeilen	beeilen Sie sich
 w	_v:sich beeilen	beeilen sich
 w	_v:sich beeilen	beeilen uns
-w	_v:sich beeilen	beeilst
 w	_v:sich beeilen	beeilst dich
 w	_v:sich beeilen	beeilt euch
 w	_v:sich beeilen	beeilt sich
-w	_v:sich beeilen	beeilte
 w	_v:sich beeilen	beeilte mich
 w	_v:sich beeilen	beeilte sich
-w	_v:sich beeilen	beeilten
 w	_v:sich beeilen	beeilten sich
 w	_v:sich beeilen	beeilten uns
-w	_v:sich beeilen	beeiltest
 w	_v:sich beeilen	beeiltest dich
-w	_v:sich beeilen	beeiltet
 w	_v:sich beeilen	beeiltet euch
 w	_v:sich beeilen	du beeilst dich
 w	_v:sich beeilen	du beeiltest dich
@@ -13533,25 +13576,18 @@ w	_v:sich beeilen	würden sich beeilen
 w	_v:sich beeilen	würden uns beeilen
 w	_v:sich beeilen	würdest dich beeilen
 w	_v:sich beeilen	würdet euch beeilen
-w	_v:sich beschweren	beschwer
 w	_v:sich beschweren	beschwer dich
-w	_v:sich beschweren	beschwere
 w	_v:sich beschweren	beschwere mich
 w	_v:sich beschweren	beschweren Sie sich
 w	_v:sich beschweren	beschweren uns
-w	_v:sich beschweren	beschwerst
 w	_v:sich beschweren	beschwerst dich
 w	_v:sich beschweren	beschwert euch
 w	_v:sich beschweren	beschwert sich
-w	_v:sich beschweren	beschwerte
 w	_v:sich beschweren	beschwerte mich
 w	_v:sich beschweren	beschwerte sich
-w	_v:sich beschweren	beschwerten
 w	_v:sich beschweren	beschwerten sich
 w	_v:sich beschweren	beschwerten uns
-w	_v:sich beschweren	beschwertest
 w	_v:sich beschweren	beschwertest dich
-w	_v:sich beschweren	beschwertet
 w	_v:sich beschweren	beschwertet euch
 w	_v:sich beschweren	du beschwerst dich
 w	_v:sich beschweren	du beschwertest dich
@@ -13621,29 +13657,20 @@ w	_v:sich beschweren	würdest dich beschweren
 w	_v:sich beschweren	würdet euch beschweren
 w	_v:sich bewerben	bewarb mich
 w	_v:sich bewerben	bewarb sich
-w	_v:sich bewerben	bewarben
 w	_v:sich bewerben	bewarben sich
 w	_v:sich bewerben	bewarben uns
-w	_v:sich bewerben	bewarbst
 w	_v:sich bewerben	bewarbst dich
-w	_v:sich bewerben	bewarbt
 w	_v:sich bewerben	bewarbt euch
-w	_v:sich bewerben	bewerbe
 w	_v:sich bewerben	bewerbe mich
 w	_v:sich bewerben	bewerben Sie sich
 w	_v:sich bewerben	bewerben sich
 w	_v:sich bewerben	bewerben uns
-w	_v:sich bewerben	bewerbt
 w	_v:sich bewerben	bewerbt euch
-w	_v:sich bewerben	bewirb
 w	_v:sich bewerben	bewirb dich
-w	_v:sich bewerben	bewirbst
 w	_v:sich bewerben	bewirbst dich
-w	_v:sich bewerben	bewirbt
 w	_v:sich bewerben	bewirbt sich
 w	_v:sich bewerben	du bewarbst dich
 w	_v:sich bewerben	du bewirbst dich
-w	_v:sich bewerben	du bewirbst, er bewirbt
 w	_v:sich bewerben	du hast dich beworben
 w	_v:sich bewerben	du hattest dich beworben
 w	_v:sich bewerben	du wirst dich bewerben
@@ -13767,28 +13794,29 @@ w	_v:sich eintragen	sie trugen sich … ein
 w	_v:sich eintragen	sie werden sich eintragen
 w	_v:sich eintragen	sie würden sich eintragen
 w	_v:sich eintragen	trag dich ein
-w	_v:sich eintragen	trage ein
 w	_v:sich eintragen	trage mich ein
 w	_v:sich eintragen	trage mich … ein
 w	_v:sich eintragen	tragen Sie sich ein
-w	_v:sich eintragen	tragen ein
 w	_v:sich eintragen	tragen sich ein
 w	_v:sich eintragen	tragen sich … ein
 w	_v:sich eintragen	tragen uns ein
 w	_v:sich eintragen	tragen uns … ein
-w	_v:sich eintragen	tragt ein
 w	_v:sich eintragen	tragt euch ein
 w	_v:sich eintragen	tragt euch … ein
+w	_v:sich eintragen	trug mich ein
 w	_v:sich eintragen	trug mich … ein
+w	_v:sich eintragen	trug sich ein
 w	_v:sich eintragen	trug sich … ein
+w	_v:sich eintragen	trugen sich ein
 w	_v:sich eintragen	trugen sich … ein
+w	_v:sich eintragen	trugen uns ein
 w	_v:sich eintragen	trugen uns … ein
+w	_v:sich eintragen	trugst dich ein
 w	_v:sich eintragen	trugst dich … ein
+w	_v:sich eintragen	trugt euch ein
 w	_v:sich eintragen	trugt euch … ein
 w	_v:sich eintragen	trägst dich ein
 w	_v:sich eintragen	trägst dich … ein
-w	_v:sich eintragen	trägst ein
-w	_v:sich eintragen	trägt ein
 w	_v:sich eintragen	trägt sich ein
 w	_v:sich eintragen	trägt sich … ein
 w	_v:sich eintragen	werde mich eintragen
@@ -13823,26 +13851,19 @@ w	_v:sich erinnern	er hat sich erinnert
 w	_v:sich erinnern	er hatte sich erinnert
 w	_v:sich erinnern	er wird sich erinnern
 w	_v:sich erinnern	er würde sich erinnern
-w	_v:sich erinnern	erinnere
 w	_v:sich erinnern	erinnere dich
 w	_v:sich erinnern	erinnere mich
-w	_v:sich erinnern	erinnern
 w	_v:sich erinnern	erinnern Sie sich
 w	_v:sich erinnern	erinnern sich
 w	_v:sich erinnern	erinnern uns
-w	_v:sich erinnern	erinnerst
 w	_v:sich erinnern	erinnerst dich
 w	_v:sich erinnern	erinnert euch
 w	_v:sich erinnern	erinnert sich
-w	_v:sich erinnern	erinnerte
 w	_v:sich erinnern	erinnerte mich
 w	_v:sich erinnern	erinnerte sich
-w	_v:sich erinnern	erinnerten
 w	_v:sich erinnern	erinnerten sich
 w	_v:sich erinnern	erinnerten uns
-w	_v:sich erinnern	erinnertest
 w	_v:sich erinnern	erinnertest dich
-w	_v:sich erinnern	erinnertet
 w	_v:sich erinnern	erinnertet euch
 w	_v:sich erinnern	habe mich erinnert
 w	_v:sich erinnern	haben sich erinnert
@@ -13909,26 +13930,18 @@ w	_v:sich freuen	er hat sich gefreut
 w	_v:sich freuen	er hatte sich gefreut
 w	_v:sich freuen	er wird sich freuen
 w	_v:sich freuen	er würde sich freuen
-w	_v:sich freuen	freu
 w	_v:sich freuen	freu dich
-w	_v:sich freuen	freue
 w	_v:sich freuen	freuen Sie sich
 w	_v:sich freuen	freuen sich
 w	_v:sich freuen	freuen uns
-w	_v:sich freuen	freust
 w	_v:sich freuen	freust dich
-w	_v:sich freuen	freut
 w	_v:sich freuen	freut euch
 w	_v:sich freuen	freut sich
-w	_v:sich freuen	freute
 w	_v:sich freuen	freute mich
 w	_v:sich freuen	freute sich
-w	_v:sich freuen	freuten
 w	_v:sich freuen	freuten sich
 w	_v:sich freuen	freuten uns
-w	_v:sich freuen	freutest
 w	_v:sich freuen	freutest dich
-w	_v:sich freuen	freutet
 w	_v:sich freuen	freutet euch
 w	_v:sich freuen	habe mich gefreut
 w	_v:sich freuen	haben sich gefreut
@@ -13996,27 +14009,18 @@ w	_v:sich fühlen	er hat sich gefühlt
 w	_v:sich fühlen	er hatte sich gefühlt
 w	_v:sich fühlen	er wird sich fühlen
 w	_v:sich fühlen	er würde sich fühlen
-w	_v:sich fühlen	fühl
 w	_v:sich fühlen	fühl dich
-w	_v:sich fühlen	fühle
-w	_v:sich fühlen	fühlen
 w	_v:sich fühlen	fühlen Sie sich
 w	_v:sich fühlen	fühlen sich
 w	_v:sich fühlen	fühlen uns
-w	_v:sich fühlen	fühlst
 w	_v:sich fühlen	fühlst dich
-w	_v:sich fühlen	fühlt
 w	_v:sich fühlen	fühlt euch
 w	_v:sich fühlen	fühlt sich
-w	_v:sich fühlen	fühlte
 w	_v:sich fühlen	fühlte mich
 w	_v:sich fühlen	fühlte sich
-w	_v:sich fühlen	fühlten
 w	_v:sich fühlen	fühlten sich
 w	_v:sich fühlen	fühlten uns
-w	_v:sich fühlen	fühltest
 w	_v:sich fühlen	fühltest dich
-w	_v:sich fühlen	fühltet
 w	_v:sich fühlen	fühltet euch
 w	_v:sich fühlen	habe mich gefühlt
 w	_v:sich fühlen	haben sich gefühlt
@@ -14114,26 +14118,19 @@ w	_v:sich informieren	ihr informiert euch
 w	_v:sich informieren	ihr informiertet euch
 w	_v:sich informieren	ihr werdet euch informieren
 w	_v:sich informieren	ihr würdet euch informieren
-w	_v:sich informieren	informier
 w	_v:sich informieren	informier dich
-w	_v:sich informieren	informiere
 w	_v:sich informieren	informiere mich
 w	_v:sich informieren	informieren Sie sich
 w	_v:sich informieren	informieren sich
 w	_v:sich informieren	informieren uns
-w	_v:sich informieren	informierst
 w	_v:sich informieren	informierst dich
 w	_v:sich informieren	informiert euch
 w	_v:sich informieren	informiert sich
-w	_v:sich informieren	informierte
 w	_v:sich informieren	informierte mich
 w	_v:sich informieren	informierte sich
-w	_v:sich informieren	informierten
 w	_v:sich informieren	informierten sich
 w	_v:sich informieren	informierten uns
-w	_v:sich informieren	informiertest
 w	_v:sich informieren	informiertest dich
-w	_v:sich informieren	informiertet
 w	_v:sich informieren	informiertet euch
 w	_v:sich informieren	sie haben sich informiert
 w	_v:sich informieren	sie hatten sich informiert
@@ -14201,25 +14198,18 @@ w	_v:sich interessieren	ihr interessiert euch
 w	_v:sich interessieren	ihr interessiertet euch
 w	_v:sich interessieren	ihr werdet euch interessieren
 w	_v:sich interessieren	ihr würdet euch interessieren
-w	_v:sich interessieren	interessier
 w	_v:sich interessieren	interessier dich
-w	_v:sich interessieren	interessiere
 w	_v:sich interessieren	interessieren Sie sich
 w	_v:sich interessieren	interessieren sich
 w	_v:sich interessieren	interessieren uns
-w	_v:sich interessieren	interessierst
 w	_v:sich interessieren	interessierst dich
 w	_v:sich interessieren	interessiert euch
 w	_v:sich interessieren	interessiert sich
-w	_v:sich interessieren	interessierte
 w	_v:sich interessieren	interessierte mich
 w	_v:sich interessieren	interessierte sich
-w	_v:sich interessieren	interessierten
 w	_v:sich interessieren	interessierten sich
 w	_v:sich interessieren	interessierten uns
-w	_v:sich interessieren	interessiertest
 w	_v:sich interessieren	interessiertest dich
-w	_v:sich interessieren	interessiertet
 w	_v:sich interessieren	interessiertet euch
 w	_v:sich interessieren	sie haben sich interessiert
 w	_v:sich interessieren	sie hatten sich interessiert
@@ -14287,26 +14277,19 @@ w	_v:sich setzen	ihr setzt euch
 w	_v:sich setzen	ihr setztet euch
 w	_v:sich setzen	ihr werdet euch setzen
 w	_v:sich setzen	ihr würdet euch setzen
-w	_v:sich setzen	setz
 w	_v:sich setzen	setz dich
-w	_v:sich setzen	setze
 w	_v:sich setzen	setze mich
 w	_v:sich setzen	setzen Sie sich
 w	_v:sich setzen	setzen sich
 w	_v:sich setzen	setzen uns
-w	_v:sich setzen	setzt
 w	_v:sich setzen	setzt dich
 w	_v:sich setzen	setzt euch
 w	_v:sich setzen	setzt sich
-w	_v:sich setzen	setzte
 w	_v:sich setzen	setzte mich
 w	_v:sich setzen	setzte sich
-w	_v:sich setzen	setzten
 w	_v:sich setzen	setzten sich
 w	_v:sich setzen	setzten uns
-w	_v:sich setzen	setztest
 w	_v:sich setzen	setztest dich
-w	_v:sich setzen	setztet
 w	_v:sich setzen	setztet euch
 w	_v:sich setzen	sie haben sich gesetzt
 w	_v:sich setzen	sie hatten sich gesetzt
@@ -14380,25 +14363,18 @@ w	_v:sich streiten	sie streiten sich
 w	_v:sich streiten	sie stritten sich
 w	_v:sich streiten	sie werden sich streiten
 w	_v:sich streiten	sie würden sich streiten
-w	_v:sich streiten	streite
 w	_v:sich streiten	streite dich
 w	_v:sich streiten	streite mich
-w	_v:sich streiten	streiten
 w	_v:sich streiten	streiten Sie sich
 w	_v:sich streiten	streiten uns
-w	_v:sich streiten	streitest
 w	_v:sich streiten	streitest dich
-w	_v:sich streiten	streitet
 w	_v:sich streiten	streitet euch
 w	_v:sich streiten	streitet sich
 w	_v:sich streiten	stritt mich
 w	_v:sich streiten	stritt sich
-w	_v:sich streiten	stritten
 w	_v:sich streiten	stritten sich
 w	_v:sich streiten	stritten uns
-w	_v:sich streiten	strittest
 w	_v:sich streiten	strittest dich
-w	_v:sich streiten	strittet
 w	_v:sich streiten	strittet euch
 w	_v:sich streiten	werde mich streiten
 w	_v:sich streiten	werden sich streiten
@@ -14590,17 +14566,22 @@ w	_v:sich umziehen	zieht euch um
 w	_v:sich umziehen	zieht euch … um
 w	_v:sich umziehen	zieht sich um
 w	_v:sich umziehen	zieht sich … um
+w	_v:sich umziehen	zog mich um
 w	_v:sich umziehen	zog mich … um
+w	_v:sich umziehen	zog sich um
 w	_v:sich umziehen	zog sich … um
+w	_v:sich umziehen	zogen sich um
 w	_v:sich umziehen	zogen sich … um
+w	_v:sich umziehen	zogen uns um
 w	_v:sich umziehen	zogen uns … um
+w	_v:sich umziehen	zogst dich um
 w	_v:sich umziehen	zogst dich … um
+w	_v:sich umziehen	zogt euch um
 w	_v:sich umziehen	zogt euch … um
 w	_v:sich unterhalten	du hast dich unterhalten
 w	_v:sich unterhalten	du hattest dich unterhalten
 w	_v:sich unterhalten	du unterhieltest dich
 w	_v:sich unterhalten	du unterhältst dich
-w	_v:sich unterhalten	du unterhältst, er unterhält
 w	_v:sich unterhalten	du wirst dich unterhalten
 w	_v:sich unterhalten	du würdest dich unterhalten
 w	_v:sich unterhalten	er hat sich unterhalten
@@ -14645,26 +14626,19 @@ w	_v:sich unterhalten	sie unterhalten sich
 w	_v:sich unterhalten	sie unterhielten sich
 w	_v:sich unterhalten	sie werden sich unterhalten
 w	_v:sich unterhalten	sie würden sich unterhalten
-w	_v:sich unterhalten	unterhalte
 w	_v:sich unterhalten	unterhalte dich
 w	_v:sich unterhalten	unterhalte mich
 w	_v:sich unterhalten	unterhalten Sie sich
 w	_v:sich unterhalten	unterhalten sich
 w	_v:sich unterhalten	unterhalten uns
-w	_v:sich unterhalten	unterhaltet
 w	_v:sich unterhalten	unterhaltet euch
 w	_v:sich unterhalten	unterhielt mich
 w	_v:sich unterhalten	unterhielt sich
-w	_v:sich unterhalten	unterhielten
 w	_v:sich unterhalten	unterhielten sich
 w	_v:sich unterhalten	unterhielten uns
-w	_v:sich unterhalten	unterhieltest
 w	_v:sich unterhalten	unterhieltest dich
-w	_v:sich unterhalten	unterhieltet
 w	_v:sich unterhalten	unterhieltet euch
-w	_v:sich unterhalten	unterhält
 w	_v:sich unterhalten	unterhält sich
-w	_v:sich unterhalten	unterhältst
 w	_v:sich unterhalten	unterhältst dich
 w	_v:sich unterhalten	werde mich unterhalten
 w	_v:sich unterhalten	werden sich unterhalten
@@ -14806,26 +14780,19 @@ w	_v:sich verletzen	sie verletzen sich
 w	_v:sich verletzen	sie verletzten sich
 w	_v:sich verletzen	sie werden sich verletzen
 w	_v:sich verletzen	sie würden sich verletzen
-w	_v:sich verletzen	verletz
 w	_v:sich verletzen	verletz dich
-w	_v:sich verletzen	verletze
 w	_v:sich verletzen	verletze mich
-w	_v:sich verletzen	verletzen
 w	_v:sich verletzen	verletzen Sie sich
 w	_v:sich verletzen	verletzen sich
 w	_v:sich verletzen	verletzen uns
 w	_v:sich verletzen	verletzt dich
 w	_v:sich verletzen	verletzt euch
 w	_v:sich verletzen	verletzt sich
-w	_v:sich verletzen	verletzte
 w	_v:sich verletzen	verletzte mich
 w	_v:sich verletzen	verletzte sich
-w	_v:sich verletzen	verletzten
 w	_v:sich verletzen	verletzten sich
 w	_v:sich verletzen	verletzten uns
-w	_v:sich verletzen	verletztest
 w	_v:sich verletzen	verletztest dich
-w	_v:sich verletzen	verletztet
 w	_v:sich verletzen	verletztet euch
 w	_v:sich verletzen	werde mich verletzen
 w	_v:sich verletzen	werden sich verletzen
@@ -14893,27 +14860,19 @@ w	_v:sich verlieben	sie verlieben sich
 w	_v:sich verlieben	sie verliebten sich
 w	_v:sich verlieben	sie werden sich verlieben
 w	_v:sich verlieben	sie würden sich verlieben
-w	_v:sich verlieben	verlieb
 w	_v:sich verlieben	verlieb dich
-w	_v:sich verlieben	verliebe
 w	_v:sich verlieben	verliebe mich
-w	_v:sich verlieben	verlieben
 w	_v:sich verlieben	verlieben Sie sich
 w	_v:sich verlieben	verlieben sich
 w	_v:sich verlieben	verlieben uns
-w	_v:sich verlieben	verliebst
 w	_v:sich verlieben	verliebst dich
 w	_v:sich verlieben	verliebt euch
 w	_v:sich verlieben	verliebt sich
-w	_v:sich verlieben	verliebte
 w	_v:sich verlieben	verliebte mich
 w	_v:sich verlieben	verliebte sich
-w	_v:sich verlieben	verliebten
 w	_v:sich verlieben	verliebten sich
 w	_v:sich verlieben	verliebten uns
-w	_v:sich verlieben	verliebtest
 w	_v:sich verlieben	verliebtest dich
-w	_v:sich verlieben	verliebtet
 w	_v:sich verlieben	verliebtet euch
 w	_v:sich verlieben	werde mich verlieben
 w	_v:sich verlieben	werden sich verlieben
@@ -14994,26 +14953,28 @@ w	_v:sich vorstellen	sie würden sich vorstellen
 w	_v:sich vorstellen	stell dich vor
 w	_v:sich vorstellen	stelle mich vor
 w	_v:sich vorstellen	stelle mich … vor
-w	_v:sich vorstellen	stelle vor
 w	_v:sich vorstellen	stellen Sie sich vor
 w	_v:sich vorstellen	stellen sich vor
 w	_v:sich vorstellen	stellen sich … vor
 w	_v:sich vorstellen	stellen uns vor
 w	_v:sich vorstellen	stellen uns … vor
-w	_v:sich vorstellen	stellen vor
 w	_v:sich vorstellen	stellst dich vor
 w	_v:sich vorstellen	stellst dich … vor
-w	_v:sich vorstellen	stellst vor
 w	_v:sich vorstellen	stellt euch vor
 w	_v:sich vorstellen	stellt euch … vor
 w	_v:sich vorstellen	stellt sich vor
 w	_v:sich vorstellen	stellt sich … vor
-w	_v:sich vorstellen	stellt vor
+w	_v:sich vorstellen	stellte mich vor
 w	_v:sich vorstellen	stellte mich … vor
+w	_v:sich vorstellen	stellte sich vor
 w	_v:sich vorstellen	stellte sich … vor
+w	_v:sich vorstellen	stellten sich vor
 w	_v:sich vorstellen	stellten sich … vor
+w	_v:sich vorstellen	stellten uns vor
 w	_v:sich vorstellen	stellten uns … vor
+w	_v:sich vorstellen	stelltest dich vor
 w	_v:sich vorstellen	stelltest dich … vor
+w	_v:sich vorstellen	stelltet euch vor
 w	_v:sich vorstellen	stelltet euch … vor
 w	_v:sich vorstellen	werde mich vorstellen
 w	_v:sich vorstellen	werden sich vorstellen
@@ -15409,7 +15370,6 @@ w	_v:spielen	würdet spielen
 w	_v:sprechen	du hast gesprochen
 w	_v:sprechen	du hattest gesprochen
 w	_v:sprechen	du sprachst
-w	_v:sprechen	du sprichst, er spricht
 w	_v:sprechen	du wirst sprechen
 w	_v:sprechen	du würdest sprechen
 w	_v:sprechen	er hat gesprochen
@@ -15508,6 +15468,7 @@ w	_v:stattfinden	er hat stattgefunden
 w	_v:stattfinden	er hatte stattgefunden
 w	_v:stattfinden	er wird stattfinden
 w	_v:stattfinden	er würde stattfinden
+w	_v:stattfinden	fand statt
 w	_v:stattfinden	fand … statt
 w	_v:stattfinden	findet statt
 w	_v:stattfinden	findet … statt
@@ -15563,7 +15524,12 @@ w	_v:stehen	sie standen
 w	_v:stehen	sie stehen
 w	_v:stehen	sie werden stehen
 w	_v:stehen	sie würden stehen
+w	_v:stehen	standen
+w	_v:stehen	standest
+w	_v:stehen	standet
+w	_v:stehen	steh
 w	_v:stehen	stehen Sie
+w	_v:stehen	stehst
 w	_v:stehen	werde stehen
 w	_v:stehen	werden stehen
 w	_v:stehen	werdet stehen
@@ -15662,7 +15628,6 @@ w	_v:sterben	bist gestorben
 w	_v:sterben	du bist gestorben
 w	_v:sterben	du starbst
 w	_v:sterben	du stirbst
-w	_v:sterben	du stirbst, er stirbt
 w	_v:sterben	du warst gestorben
 w	_v:sterben	du wirst sterben
 w	_v:sterben	du würdest sterben
@@ -15895,7 +15860,14 @@ w	_v:streiten	sie streiten
 w	_v:streiten	sie stritten
 w	_v:streiten	sie werden streiten
 w	_v:streiten	sie würden streiten
+w	_v:streiten	streite
+w	_v:streiten	streiten
 w	_v:streiten	streiten Sie
+w	_v:streiten	streitest
+w	_v:streiten	streitet
+w	_v:streiten	stritten
+w	_v:streiten	strittest
+w	_v:streiten	strittet
 w	_v:streiten	werde streiten
 w	_v:streiten	werden streiten
 w	_v:streiten	werdet streiten
@@ -16358,9 +16330,13 @@ w	_v:teilnehmen	ihr nahmt teil
 w	_v:teilnehmen	ihr nehmt teil
 w	_v:teilnehmen	ihr werdet teilnehmen
 w	_v:teilnehmen	ihr würdet teilnehmen
+w	_v:teilnehmen	nahm teil
 w	_v:teilnehmen	nahm … teil
+w	_v:teilnehmen	nahmen teil
 w	_v:teilnehmen	nahmen … teil
+w	_v:teilnehmen	nahmst teil
 w	_v:teilnehmen	nahmst … teil
+w	_v:teilnehmen	nahmt teil
 w	_v:teilnehmen	nahmt … teil
 w	_v:teilnehmen	nehme teil
 w	_v:teilnehmen	nehme … teil
@@ -16495,7 +16471,11 @@ w	_v:tragen	sie hatten getragen
 w	_v:tragen	sie trugen
 w	_v:tragen	sie werden tragen
 w	_v:tragen	sie würden tragen
+w	_v:tragen	trag
 w	_v:tragen	tragen Sie
+w	_v:tragen	trugen
+w	_v:tragen	trugst
+w	_v:tragen	trugt
 w	_v:tragen	werde tragen
 w	_v:tragen	werden tragen
 w	_v:tragen	werdet tragen
@@ -16645,7 +16625,6 @@ w	_v:träumen	würdet träumen
 w	_v:treffen	du hast getroffen
 w	_v:treffen	du hattest getroffen
 w	_v:treffen	du trafst
-w	_v:treffen	du triffst, er trifft
 w	_v:treffen	du wirst treffen
 w	_v:treffen	du würdest treffen
 w	_v:treffen	er hat getroffen
@@ -17159,9 +17138,13 @@ w	_v:umsteigen	steigst um
 w	_v:umsteigen	steigst … um
 w	_v:umsteigen	steigt um
 w	_v:umsteigen	steigt … um
+w	_v:umsteigen	stieg um
 w	_v:umsteigen	stieg … um
+w	_v:umsteigen	stiegen um
 w	_v:umsteigen	stiegen … um
+w	_v:umsteigen	stiegst um
 w	_v:umsteigen	stiegst … um
+w	_v:umsteigen	stiegt um
 w	_v:umsteigen	stiegt … um
 w	_v:umsteigen	war umgestiegen
 w	_v:umsteigen	waren umgestiegen
@@ -17244,26 +17227,23 @@ w	_v:umziehen	würde umziehen
 w	_v:umziehen	würden umziehen
 w	_v:umziehen	würdest umziehen
 w	_v:umziehen	würdet umziehen
-w	_v:umziehen	zieh
 w	_v:umziehen	zieh um
-w	_v:umziehen	ziehe
 w	_v:umziehen	ziehe um
 w	_v:umziehen	ziehe … um
 w	_v:umziehen	ziehen Sie um
 w	_v:umziehen	ziehen um
 w	_v:umziehen	ziehen … um
-w	_v:umziehen	ziehst
 w	_v:umziehen	ziehst um
 w	_v:umziehen	ziehst … um
-w	_v:umziehen	zieht
 w	_v:umziehen	zieht um
 w	_v:umziehen	zieht … um
+w	_v:umziehen	zog um
 w	_v:umziehen	zog … um
-w	_v:umziehen	zogen
+w	_v:umziehen	zogen um
 w	_v:umziehen	zogen … um
-w	_v:umziehen	zogst
+w	_v:umziehen	zogst um
 w	_v:umziehen	zogst … um
-w	_v:umziehen	zogt
+w	_v:umziehen	zogt um
 w	_v:umziehen	zogt … um
 w	_v:unterhalten	du hast unterhalten
 w	_v:unterhalten	du hattest unterhalten
@@ -17303,7 +17283,14 @@ w	_v:unterhalten	sie unterhalten
 w	_v:unterhalten	sie unterhielten
 w	_v:unterhalten	sie werden unterhalten
 w	_v:unterhalten	sie würden unterhalten
+w	_v:unterhalten	unterhalte
 w	_v:unterhalten	unterhalten Sie
+w	_v:unterhalten	unterhaltet
+w	_v:unterhalten	unterhielten
+w	_v:unterhalten	unterhieltest
+w	_v:unterhalten	unterhieltet
+w	_v:unterhalten	unterhält
+w	_v:unterhalten	unterhältst
 w	_v:unterhalten	werde unterhalten
 w	_v:unterhalten	werden unterhalten
 w	_v:unterhalten	werdet unterhalten
@@ -17323,7 +17310,6 @@ w	_v:unternehmen	du hast unternommen
 w	_v:unternehmen	du hattest unternommen
 w	_v:unternehmen	du unternahmst
 w	_v:unternehmen	du unternimmst
-w	_v:unternehmen	du unternimmst, er unternimmt
 w	_v:unternehmen	du wirst unternehmen
 w	_v:unternehmen	du würdest unternehmen
 w	_v:unternehmen	er hat unternommen
@@ -17736,7 +17722,6 @@ w	_v:vereinbaren	würdet vereinbaren
 w	_v:vergessen	du hast vergessen
 w	_v:vergessen	du hattest vergessen
 w	_v:vergessen	du vergaßest
-w	_v:vergessen	du vergisst, er vergisst
 w	_v:vergessen	du wirst vergessen
 w	_v:vergessen	du würdest vergessen
 w	_v:vergessen	er hat vergessen
@@ -18403,25 +18388,22 @@ w	_v:versuchen	würde versuchen
 w	_v:versuchen	würden versuchen
 w	_v:versuchen	würdest versuchen
 w	_v:versuchen	würdet versuchen
-w	_v:vorbereiten	bereite
 w	_v:vorbereiten	bereite vor
 w	_v:vorbereiten	bereite … vor
-w	_v:vorbereiten	bereiten
 w	_v:vorbereiten	bereiten Sie vor
 w	_v:vorbereiten	bereiten vor
 w	_v:vorbereiten	bereiten … vor
-w	_v:vorbereiten	bereitest
 w	_v:vorbereiten	bereitest vor
 w	_v:vorbereiten	bereitest … vor
 w	_v:vorbereiten	bereitet vor
 w	_v:vorbereiten	bereitet … vor
-w	_v:vorbereiten	bereitete
+w	_v:vorbereiten	bereitete vor
 w	_v:vorbereiten	bereitete … vor
-w	_v:vorbereiten	bereiteten
+w	_v:vorbereiten	bereiteten vor
 w	_v:vorbereiten	bereiteten … vor
-w	_v:vorbereiten	bereitetest
+w	_v:vorbereiten	bereitetest vor
 w	_v:vorbereiten	bereitetest … vor
-w	_v:vorbereiten	bereitetet
+w	_v:vorbereiten	bereitetet vor
 w	_v:vorbereiten	bereitetet … vor
 w	_v:vorbereiten	darf vorbereitet werden
 w	_v:vorbereiten	du bereitest vor
@@ -18680,7 +18662,6 @@ w	_v:waschen	du hast gewaschen
 w	_v:waschen	du hattest gewaschen
 w	_v:waschen	du wirst waschen
 w	_v:waschen	du wuschst
-w	_v:waschen	du wäschst, er wäscht
 w	_v:waschen	du würdest waschen
 w	_v:waschen	dürfen gewaschen werden
 w	_v:waschen	er hat gewaschen
@@ -18893,7 +18874,6 @@ w	_v:wegwerfen	du hast weggeworfen
 w	_v:wegwerfen	du hattest weggeworfen
 w	_v:wegwerfen	du warfst weg
 w	_v:wegwerfen	du wirfst weg
-w	_v:wegwerfen	du wirfst, er wirft
 w	_v:wegwerfen	du wirst wegwerfen
 w	_v:wegwerfen	du würdest wegwerfen
 w	_v:wegwerfen	er hat weggeworfen
@@ -18933,23 +18913,22 @@ w	_v:wegwerfen	sie warfen weg
 w	_v:wegwerfen	sie werden wegwerfen
 w	_v:wegwerfen	sie werfen weg
 w	_v:wegwerfen	sie würden wegwerfen
+w	_v:wegwerfen	warf weg
 w	_v:wegwerfen	warf … weg
-w	_v:wegwerfen	warfen
+w	_v:wegwerfen	warfen weg
 w	_v:wegwerfen	warfen … weg
-w	_v:wegwerfen	warfst
+w	_v:wegwerfen	warfst weg
 w	_v:wegwerfen	warfst … weg
-w	_v:wegwerfen	warft
+w	_v:wegwerfen	warft weg
 w	_v:wegwerfen	warft … weg
 w	_v:wegwerfen	werde wegwerfen
 w	_v:wegwerfen	werden wegwerfen
 w	_v:wegwerfen	werdet wegwerfen
-w	_v:wegwerfen	werfe
 w	_v:wegwerfen	werfe weg
 w	_v:wegwerfen	werfe … weg
 w	_v:wegwerfen	werfen Sie weg
 w	_v:wegwerfen	werfen weg
 w	_v:wegwerfen	werfen … weg
-w	_v:wegwerfen	werft
 w	_v:wegwerfen	werft weg
 w	_v:wegwerfen	werft … weg
 w	_v:wegwerfen	wir haben weggeworfen
@@ -18959,12 +18938,9 @@ w	_v:wegwerfen	wir werden wegwerfen
 w	_v:wegwerfen	wir werfen weg
 w	_v:wegwerfen	wir würden wegwerfen
 w	_v:wegwerfen	wird wegwerfen
-w	_v:wegwerfen	wirf
 w	_v:wegwerfen	wirf weg
-w	_v:wegwerfen	wirfst
 w	_v:wegwerfen	wirfst weg
 w	_v:wegwerfen	wirfst … weg
-w	_v:wegwerfen	wirft
 w	_v:wegwerfen	wirft weg
 w	_v:wegwerfen	wirft … weg
 w	_v:wegwerfen	wirst wegwerfen
@@ -19622,9 +19598,13 @@ w	_v:zuhören	hörst zu
 w	_v:zuhören	hörst … zu
 w	_v:zuhören	hört zu
 w	_v:zuhören	hört … zu
+w	_v:zuhören	hörte zu
 w	_v:zuhören	hörte … zu
+w	_v:zuhören	hörten zu
 w	_v:zuhören	hörten … zu
+w	_v:zuhören	hörtest zu
 w	_v:zuhören	hörtest … zu
+w	_v:zuhören	hörtet zu
 w	_v:zuhören	hörtet … zu
 w	_v:zuhören	ich habe zugehört
 w	_v:zuhören	ich hatte zugehört
@@ -19706,9 +19686,13 @@ w	_v:zumachen	machst zu
 w	_v:zumachen	machst … zu
 w	_v:zumachen	macht zu
 w	_v:zumachen	macht … zu
+w	_v:zumachen	machte zu
 w	_v:zumachen	machte … zu
+w	_v:zumachen	machten zu
 w	_v:zumachen	machten … zu
+w	_v:zumachen	machtest zu
 w	_v:zumachen	machtest … zu
+w	_v:zumachen	machtet zu
 w	_v:zumachen	machtet … zu
 w	_v:zumachen	sie haben zugemacht
 w	_v:zumachen	sie hatten zugemacht
