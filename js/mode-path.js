@@ -770,6 +770,7 @@ function pathReask(w, gap) {
   let pos = s.i + 1, n = 0;
   while (pos < s.items.length && n < gap) { if (s.items[pos].t !== "bonus" && s.items[pos].t !== "learn") n++; pos++; }
   s.items.splice(pos, 0, { t: "choice", w, reask: true, warm: true, rev: Math.random() < 0.5 });
+  pathSpace(s.items, s.i + 1);
 }
 
 // ── REPAIR ROUND (end of session, optional) ───
@@ -840,6 +841,7 @@ function pathRepair(yes) {
     if (pathIsDrill(w)) { const ex = vxCellExercise({ x: w.vx.x, t: w.vx.tense }); s.items.push({ t: "typed", w: ex ? vxWord(ex) : w, fix: true, repair: true }); return; }
     const ws = S.words[wordKey(w)]; s.items.push({ t: "typed", w, fix: true, repair: true, practice: !(ws.lrn || ws.rp || ws.fl) });
   });
+  pathSpace(s.items, start); // never the word you just missed first
   s.i = start - 1; // pathNext steps onto the first repair item
   pathNext();
 }

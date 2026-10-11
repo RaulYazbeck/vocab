@@ -757,7 +757,63 @@ function buildPathQueue(lenKey, opts = {}) {
       if (n >= marks[0].at && i < out.length - 1) { out.splice(i + 1, 0, marks.shift().item); i++; }
     }
   }
+  pathSpace(out, 0);
   return { items: out, budget, newWords: nNew, reviews: reviews.length, quota: q, focus };
+}
+// ── SPACING ───────────────────────────────────
+// The same word is never asked twice in a row — a multiple choice and
+// then its typed check, two checks of a new word, a repair right after
+// its miss — and, where the queue allows, two other cards sit between.
+// "The same word" includes a verb: its word card, its form cards and its
+// verb items. A card that isn't a question (a learn card, a sheet)
+// separates; a bonus offer doesn't. Only items from `start` on move
+// (Today calls it again after a mid-session insert, with the items
+// already shown fixed), and an item never moves past another of the
+// same word, so learn → choice → typed keeps its order.
+function pathAbout(it) {
+  if (!it || !it.w) return it && it.t === "sheet" ? "sheet:" + it.sheet : null;
+  const v = typeof vxVerbOfWord === "function" ? vxVerbOfWord(it.w) : null;
+  return v ? "verb:" + v : it.w.deckId + "_" + it.w.idx;
+}
+function pathIsQuestion(it) { return !!it && !!it.w && it.t !== "learn" && it.t !== "bonus" && it.t !== "repairOffer"; }
+// Does the question at i repeat one of the `gap` cards before it?
+function pathClash(items, i, gap, about = pathAbout(items[i])) {
+  if (!about || !pathIsQuestion(items[i])) return false;
+  for (let j = i - 1, n = 0; j >= 0 && n < gap; j--) {
+    const it = items[j];
+    if (it.t === "bonus") continue;
+    n++;
+    if (pathIsQuestion(it) && pathAbout(it) === about) return true;
+  }
+  return false;
+}
+function pathSpace(items, start = 0) {
+  const sameBetween = (a, b, about) => { for (let k = a; k < b; k++) if (pathAbout(items[k]) === about) return true; return false; };
+  for (const gap of [1, 2]) {
+    for (let i = Math.max(1, start); i < items.length; i++) {
+      if (!pathClash(items, i, gap)) continue;
+      // Bring a later question forward into this place…
+      let done = false;
+      for (let j = i + 1; j < items.length && !done; j++) {
+        const c = items[j], a = pathAbout(c);
+        if (!pathIsQuestion(c) || !a || sameBetween(i, j, a)) continue;
+        items.splice(j, 1); items.splice(i, 0, c);
+        if (pathClash(items, i, gap) || pathClash(items, i + 1, 1) || (j + 1 < items.length && pathClash(items, j + 1, 1))) {
+          items.splice(i, 1); items.splice(j, 0, c); // no good: put it back
+        } else done = true;
+      }
+      // …or, near the end, an earlier one back.
+      for (let j = i - 2; j >= start && !done; j--) {
+        const c = items[j], a = pathAbout(c);
+        if (!pathIsQuestion(c) || !a || sameBetween(j + 1, i, a)) continue;
+        items.splice(j, 1); items.splice(i - 1, 0, c);
+        if (pathClash(items, i - 1, gap) || pathClash(items, i, gap) || pathClash(items, j, 1)) {
+          items.splice(i - 1, 1); items.splice(j, 0, c);
+        } else done = true;
+      }
+    }
+  }
+  return items;
 }
 
 // ── SKIP A LEVEL (⚙️ › 🍪 Cookie) ──────────────

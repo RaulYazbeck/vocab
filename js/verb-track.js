@@ -160,6 +160,22 @@ function vxLemma(x) {
   return { st, met };
 }
 function vxVerbReady(x) { return vxLemma(x).st >= VX_LEMMA_MIN; }
+// Which verb a deck card is about — its word card (hängen) or one of its
+// form cards (gehangen) — so Today never asks it right next to a verb
+// card of the same verb. null for anything else.
+let _vxCardVerb = null;
+function vxVerbOfWord(w) {
+  if (!w || !vxAvailable()) return null;
+  if (w.vx) return w.vx.x.inf;
+  if (!_vxCardVerb) {
+    _vxCardVerb = new Map();
+    vxVerbs().forEach(x => {
+      [...(x.v.words || []), x.v.word, ...(Array.isArray(x.v.cards) ? x.v.cards.map(c => c.w) : [])].forEach(c => { if (c) _vxCardVerb.set(c.deckId + "_" + c.idx, x.inf); });
+      vxRefs(x).forEach(r => _vxCardVerb.set(r.deckId + "_" + r.idx, x.inf));
+    });
+  }
+  return _vxCardVerb.get(w.deckId + "_" + w.idx) || null;
+}
 
 // ── TENSE UNITS ───────────────────────────────
 // anchor [level, share]: opens once your Path is that far (the share of
