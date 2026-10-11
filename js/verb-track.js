@@ -112,9 +112,17 @@ function vxVerbs() {
   if (_vxVerbs) return _vxVerbs;
   const out = [];
   vxBank().verbs.forEach(v => {
-    const lv = VX_LEVELS.indexOf(v.level);
-    if (lv < 0 || !v.word) return; // the track follows the A1 → B1 decks
-    out.push(Object.assign(Object.create(null), { v, inf: v.inf, F: v.F, lv, level: v.level, k: VX_FR ? VXF.kind(v.F) : vxKind(v.F) }));
+    let lv = VX_LEVELS.indexOf(v.level), refOnly = false;
+    // A German verb the decks only conjugate (tragen: trage, trägst…;
+    // trug) has no word card: its form cards stand in for it, at the
+    // level of the first one — so no old card is left outside the track.
+    if (!VX_FR && !v.word && !(v.words && v.words.length)) {
+      const own = (v.refs || []).filter(r => VX_CONJ_DECKS.has(r.deckId)).map(r => VX_LEVELS.indexOf(r.deckId.slice(0, 2))).filter(l => l >= 0);
+      if (!own.length) return;
+      lv = Math.min(...own); refOnly = true;
+    }
+    if (lv < 0 || (!v.word && !refOnly)) return; // the track follows the A1 → B1 decks
+    out.push(Object.assign(Object.create(null), { v, inf: v.inf, F: v.F, lv, level: VX_LEVELS[lv], refOnly, k: VX_FR ? VXF.kind(v.F) : vxKind(v.F) }));
   });
   out.forEach((x, i) => { x.i = i; });
   _vxVerbs = out;
@@ -146,14 +154,18 @@ function vxKind(F) {
 // no word card — its conjugation cards stand in; when every one of them
 // is retired, the verb counts as met once the Path reaches its level, and
 // as Known once its own items are.
+// (German: a verb with no word card — x.refOnly — the same with its form
+// cards.) A card the track took over counts with the record it had.
 function vxLemma(x) {
   let st = 0, met = "";
-  const own = x.v.words && x.v.words.length, cardsOnly = VX_FR && !own;
-  (cardsOnly ? (x.v.cards || []).map(c => c.w) : own ? x.v.words : [x.v.word]).forEach(w => {
-    const ws = w && S.words[w.deckId + "_" + w.idx];
+  const own = x.v.words && x.v.words.length, cardsOnly = (VX_FR || x.refOnly) && !own;
+  const cards = VX_FR ? (x.v.cards || []).map(c => c.w) : vxRefs(x).filter(r => VX_CONJ_DECKS.has(r.deckId)).map(r => ({ deckId: r.deckId, idx: r.idx }));
+  (cardsOnly ? cards : own ? x.v.words : [x.v.word]).forEach(w => {
+    const ws0 = w && S.words[w.deckId + "_" + w.idx];
+    const ws = ws0 && ws0.rt ? ws0.rtWas : ws0;
     if (ws && ws.st && !ws.rt) { st = Math.max(st, ws.st); if (ws.metOn && (!met || ws.metOn < met)) met = ws.metOn; }
   });
-  if (cardsOnly && !st && vxOn() && (x.v.cards || []).every(c => vxRetired(c.w.deckId, c.w.idx)) && vxPathPos() >= x.lv) {
+  if (cardsOnly && !st && vxOn() && cards.every(c => vxRetired(c.deckId, c.idx)) && vxPathPos() >= x.lv) {
     const its = vxCatalog().filter(it => it.x === x).map(it => (S.words[vxKey(it.id)] || {}).st || 0);
     st = Math.max(VX_LEMMA_MIN, its.length ? Math.min(...its) : 0);
   }
@@ -387,10 +399,18 @@ const K2_AUX = { haben: { ich: "hätte", du: "hättest", er: "hätte", wir: "hä
 // with — du triffst dich MIT ANNA. Without it, "du triffst sie" (you
 // meet her) is just as right. The question shows that context (ctx).
 const VX_RECIPROCAL = new Set(["sich treffen", "sich streiten", "sich unterhalten", "sich verabreden", "sich einigen"]);
+// Position verbs take haben in the north and sein in the south and in
+// Austria (hat / ist gestanden): both are right (the old cards said
+// "haben · sein"); the answer shown is the haben one.
+const VX_BOTH_AUX = new Set(["stehen", "liegen", "sitzen", "hängen"]);
+const VX_SEIN_FOR = { habe: "bin", hast: "bist", hat: "ist", haben: "sind", habt: "seid", hatte: "war", hattest: "warst", hatten: "waren", hattet: "wart",
+  hätte: "wäre", hättest: "wärst", hätten: "wären", hättet: "wärt" };
 function vxForm(x, kind, p, opt = {}) {
   if (VX_FR) return VXF.form(x, kind, p, opt);
   const f = vxFormBase(x, kind, p, opt);
   if (f && VX_RECIPROCAL.has(x.inf) && ["ich", "du", "er", "Sie"].includes(p) && kind !== "p2only" && kind !== "sc" && kind !== "p2") f.ctx = "mit Anna";
+  if (f && VX_BOTH_AUX.has(x.inf) && ["pf", "p2", "pq", "k2p"].includes(kind))
+    f.acc = [...new Set([...f.acc, ...f.acc.map(a => a.split(" ").map(t => VX_SEIN_FOR[t] || t).join(" "))])];
   return f;
 }
 function vxFormBase(x, kind, p, opt = {}) {
@@ -560,6 +580,11 @@ const VX_ITEM_KINDS = VX_FR ? VXF.itemKinds : {
   p2: { unit: "pf", sheet: "pf3", form: "p2", title: "Perfekt", tense: "pf" },
   pt: { unit: "pt2", sheet: "pt22", form: "pt", title: "Präteritum", tense: "pt" },
   im: { unit: "im", sheet: "im2", form: "im", title: "Imperativ", tense: "im" },
+  // The verbs no rule builds, in every person: bin · bist · ist…, kann ·
+  // kannst…, weiß — and their Präteritum I: war, hatte, konnte, wusste.
+  // (They were the A1 conjugation and A2 Präteritum cards.)
+  ir: { unit: "pr", sheet: x => x.k.aux ? "pr3" : "pr5", form: "pr", title: "Irregular Präsens", tense: "pr", persons: () => PERSONS },
+  p1: { unit: "pt1", sheet: x => x.k.modal ? "pt12" : "pt11", form: "pt", title: "Präteritum I", tense: "pt", persons: () => PERSONS },
 };
 function vxKey(id) { return VX_DECK + "_" + id; }
 
@@ -568,23 +593,71 @@ function vxKey(id) { return VX_DECK + "_" + id; }
 const VX_GATE = VX_FR ? VXF.gate : { a2_praeteritum: "pt1", b1_konjunktiv2: "k2a", b1_passiv: "pv", a1_conjugation: "pr", a2_conjugation: "pr", a1_verbs_p2: "pf" };
 // Decks whose unmet cards are covered by the verb track — and how.
 const VX_RETIRE_DECKS = VX_FR ? VXF.retireDecks : new Set(["a2_verbs_p2", "b1_partizip2", "b1_praeteritum", "b1_praet_endungen", "a2_conjugation", "a2_futur", "b1_plusquamperfekt"]);
+// Every deck that asks verb forms — the retiring ones and the gated
+// ones: all their cards are covered by the verb track. A card you had met
+// keeps its whole record and hands its progress to what covers it
+// (vxAdopt); nothing of it is asked the old way again.
+const VX_LEGACY_DECKS = new Set([...VX_RETIRE_DECKS, ...Object.keys(VX_GATE)]);
+// The decks of plain verb forms (a person, a Partizip, a Präteritum) — what
+// a verb with no word card of its own is known by.
+const VX_CONJ_DECKS = VX_FR ? new Set() : new Set(["a1_conjugation", "a2_conjugation", "a2_praeteritum", "b1_praeteritum", "b1_praet_endungen", "a1_verbs_p2", "a2_verbs_p2", "b1_partizip2"]);
+// Verb-form cards the engine can't read off by itself (two auxiliaries,
+// a phrase around the verb, a Konjunktiv II or a Passiv): what they ask.
+// Cards that aren't a verb form (als ob, von + Dativ, the Zustandspassiv,
+// the Passiv Perfekt, nachdem clauses) stay ordinary grammar cards.
+const VX_EXTRA_COVER = VX_FR ? {
+  a2_participios_58: ["tomber", "pc", "il"], a2_imparfait_48: ["avoir", "im", "il"], a2_imparfait_49: ["être", "im", "il"],
+} : {
+  a1_verbs_p2_28: ["gehen", "p2"], a1_verbs_p2_30: ["stehen", "p2"], a1_verbs_p2_31: ["liegen", "p2"], a1_verbs_p2_34: ["hängen", "p2"],
+  a1_verbs_p2_47: ["starten", "p2"], a1_verbs_p2_65: ["sich kümmern", "p2"], a1_verbs_p2_76: ["fahren", "p2"],
+  a2_verbs_p2_149: ["anrufen", "p2"], a2_verbs_p2_152: ["aussteigen", "p2"],
+  b1_partizip2_20: ["sich befinden", "p2"], b1_partizip2_38: ["sich entschließen", "p2"], b1_partizip2_82: ["sich verlaufen", "p2"],
+  b1_plusquamperfekt_4: ["vergessen", "pq", "ihr"], b1_plusquamperfekt_8: ["ankommen", "pq"], b1_plusquamperfekt_10: ["aufstehen", "pq", "sie"],
+  a2_futur_8: ["gewinnen", "fu", "Sie"], b1_praet_endungen_12: ["abfahren", "pt"],
+  b1_konjunktiv2_0: ["sein", "k2", "ich"], b1_konjunktiv2_1: ["sein", "k2", "du"], b1_konjunktiv2_2: ["sein", "k2"], b1_konjunktiv2_3: ["sein", "k2", "wir"],
+  b1_konjunktiv2_4: ["haben", "k2", "ich"], b1_konjunktiv2_5: ["haben", "k2", "du"], b1_konjunktiv2_6: ["haben", "k2"], b1_konjunktiv2_7: ["haben", "k2", "wir"],
+  b1_konjunktiv2_8: ["können", "k2", "ich"], b1_konjunktiv2_9: ["können", "k2", "du"], b1_konjunktiv2_10: ["müssen", "k2", "ich"], b1_konjunktiv2_11: ["sollen", "k2", "ich"],
+  b1_konjunktiv2_12: ["dürfen", "k2", "ich"], b1_konjunktiv2_13: ["mögen", "k2", "ich"],
+  b1_konjunktiv2_14: ["kommen", "k2", "ich"], b1_konjunktiv2_15: ["helfen", "k2", "du"], b1_konjunktiv2_16: ["kaufen", "k2"], b1_konjunktiv2_17: ["reisen", "k2", "wir"], b1_konjunktiv2_18: ["fragen", "k2", "sie"],
+  b1_konjunktiv2_19: ["gehen", "k2"], b1_konjunktiv2_20: ["kommen", "k2"], b1_konjunktiv2_21: ["geben", "k2"], b1_konjunktiv2_22: ["wissen", "k2", "ich"], b1_konjunktiv2_23: ["brauchen", "k2", "ich"],
+  b1_konjunktiv2_24: ["machen", "k2p", "ich"], b1_konjunktiv2_25: ["kommen", "k2p"],
+  b1_passiv_0: ["reparieren", "pv", "er", "pv-pr"], b1_passiv_1: ["fragen", "pv", "er", "pv-pr"], b1_passiv_2: ["einladen", "pv", "er", "pv-pr"], b1_passiv_3: ["abholen", "pv", "sie", "pv-pr"],
+  b1_passiv_4: ["bauen", "pv", "sie", "pv-pr"], b1_passiv_5: ["reparieren", "pv", "er", "pv-pt"], b1_passiv_6: ["fragen", "pv", "er", "pv-pt"], b1_passiv_7: ["öffnen", "pv", "er", "pv-pt"],
+  b1_passiv_8: ["schicken", "pv", "sie", "pv-pt"], b1_passiv_11: ["reparieren", "pv", "er", "pv-mod"], b1_passiv_12: ["bezahlen", "pv", "er", "pv-mod"], b1_passiv_13: ["überprüfen", "pv", "er", "pv-mod"],
+};
 let _vxRetire = null;
-// Map "deckId_idx" → { item?, rule?, inf, t } — what covers a card.
+// What covers a German form of a verb: its own item, or the rule that builds it.
+function vxCoverDe(x, t, p) {
+  const F = x.F, k = x.k;
+  if (t === "p2" || t === "pf") return vxNeedsItem(x, "p2") ? { item: "p2:" + x.inf } : { rule: !F.strong && F.aux === "haben" && !F.sep && !F.insep && !k.ieren && !F.refl ? "pf-ge" : !F.strong && (F.sep || F.insep || k.ieren) ? "pf-prefix" : "pf-aux" };
+  if (t === "pt") return vxNeedsItem(x, "p1") ? { item: "p1:" + x.inf } : vxNeedsItem(x, "pt") && (p === "er" || p === "ich") ? { item: "pt:" + x.inf } : { rule: k.strongPt ? "pt-strong" : "pt-weak" };
+  if (t === "pr") {
+    if (vxNeedsItem(x, "ir")) return { item: "ir:" + x.inf };
+    if ((p === "du" || p === "er") && vxNeedsItem(x, "sc")) return { item: "sc:" + x.inf };
+    return { rule: F.sep ? "pr-sep" : F.refl ? "pr-refl" : k.glue && !k.stem ? "pr-glue" : "pr-end" };
+  }
+  if (t === "fu") return { rule: "fu" };
+  if (t === "pq") return { rule: "pq" };
+  if (t === "k2") return { rule: F.k2special ? "k2-own" : "k2-wuerde" };
+  if (t === "k2p") return { rule: "k2p" };
+  return null;
+}
+// Map "deckId_idx" → { item?, rule?, inf, t, p } — what covers a card.
 function vxRetireMap() {
   if (_vxRetire) return _vxRetire;
   const m = new Map();
   vxVerbs().forEach(x => vxRefs(x).forEach(r => {
-    if (!VX_RETIRE_DECKS.has(r.deckId)) return;
-    const key = r.deckId + "_" + r.idx, F = x.F;
-    let c = null;
-    if (VX_FR) c = VXF.cover(x, r);
-    else if (r.tense === "p2") c = vxNeedsItem(x, "p2") ? { item: "p2:" + x.inf } : { rule: F.sep || F.insep || x.k.ieren ? "pf-prefix" : "pf-ge" };
-    else if (r.tense === "pt") c = vxNeedsItem(x, "pt") && (r.person === "er" || r.person === "ich") ? { item: "pt:" + x.inf } : { rule: x.k.strongPt ? "pt-strong" : "pt-weak" };
-    else if (r.tense === "pr") { if (r.person !== "du" && r.person !== "er") c = { rule: F.sep ? "pr-sep" : "pr-end" }; }
-    else if (r.tense === "fu") c = { rule: "fu" };
-    else if (r.tense === "pq") c = { rule: "pq" };
+    if (!VX_LEGACY_DECKS.has(r.deckId)) return;
+    const key = r.deckId + "_" + r.idx;
+    const c = VX_FR ? VXF.cover(x, r) : vxCoverDe(x, r.tense, r.person || "er");
     if (c) m.set(key, { ...c, inf: x.inf, t: r.tense === "p2" ? "pf" : r.tense, p: r.person || "er" });
   }));
+  Object.entries(VX_EXTRA_COVER).forEach(([key, [inf, t, p, rule]]) => {
+    const x = vxVerb(inf);
+    if (!x || m.has(key)) return;
+    const c = rule ? { rule } : VX_FR ? VXF.cover(x, { tense: t, person: p }) : vxCoverDe(x, t, p || "er");
+    if (c) m.set(key, { ...c, inf, t: t === "p2" ? "pf" : t, p: p || VX_IT });
+  });
   _vxRetire = m;
   return m;
 }
@@ -603,41 +676,109 @@ function vxGated(deckId) {
   return !!u && !vxUnitOpen(u);
 }
 // Shadows: a retired card mirrors its cover — a per-verb item's stage,
-// or a rule's stage once that verb's form was produced right.
+// or a rule's stage once that verb's form was produced right. A card you
+// had met (adopted, ws.rtWas) never shows less than it had reached.
 function vxMirror() {
   if (!vxOn()) return;
+  vxAdopt();
   const now = Date.now();
   vxRetireMap().forEach((c, key) => {
     let ws = S.words[key];
-    if (ws && ws.st && !ws.rt) return; // met by you: a normal card
+    if (ws && ws.st && !ws.rt) return; // (adopted just above)
     let st = 0, src = null;
     if (c.item) { src = S.words[vxKey(c.item)]; st = src ? src.st || 0 : 0; }
     else if (vxCovHas(c.inf, c.t)) { src = S.words[vxKey("r:" + c.rule)]; st = src ? src.st || 0 : 0; }
+    const floor = ws && ws.rtWas ? ws.rtWas.st || 0 : 0;
+    st = Math.max(st, floor);
     if (!st && !(ws && ws.rt)) return;
     if (!ws) ws = S.words[key] = { correct: 0, wrong: 0, streak: 0, displayStreak: 0, lastAnsweredAt: null, anki: freshAnki() };
-    if (ws.st === st && ws.rt) return;
+    if (ws.st === st && ws.rt && !ws.dueAt && !ws.lrn && !ws.rp && !ws.fl) return;
     ws.rt = 1; ws.st = st; ws.pk = Math.max(ws.pk || 0, st);
-    ws.dueAt = null; ws.sAt = (src && src.sAt) || now;
+    ws.dueAt = null; ws.sAt = (src && src.sAt) || ws.sAt || now;
     if (st >= STAGE_KNOWN) ws.mastered = true;
     ["lrn", "rp", "fl", "cf", "metOn"].forEach(f => delete ws[f]);
   });
 }
+// A card of a verb-form deck you had met becomes part of the track: its
+// whole record is kept (ws.rtWas — switching back restores it), its form
+// counts as produced in the ledger, and its progress goes to what covers
+// it — a per-verb item takes the cards' stage and schedule when it has
+// less (the middle one of its cards: one card at 💎 and two at 🌱 is not
+// 💎), a rule not yet started is placed like the switch places it. The
+// card itself then mirrors, never below the stage it had.
+const VX_ADOPT_FIELDS = ["st", "dueAt", "sAt", "pk", "k", "cf", "mt", "rc", "lrn", "rp", "fl", "mastered", "metOn", "spotAt", "dropDay"];
+function vxAdopt() {
+  if (!vxOn()) return 0;
+  const groups = new Map();
+  vxRetireMap().forEach((c, key) => {
+    const ws = S.words[key];
+    if (!ws || !ws.st || ws.rt) return;
+    const g = c.item ? "i|" + c.item : "r|" + c.rule;
+    if (!groups.has(g)) groups.set(g, []);
+    groups.get(g).push({ key, ws, c });
+  });
+  if (!groups.size) return 0;
+  const now = Date.now();
+  let items = 0, rules = 0, cards = 0;
+  groups.forEach(list => {
+    const c0 = list[0].c;
+    const sorted = list.slice().sort((a, b) => a.ws.st - b.ws.st || (a.ws.sAt || 0) - (b.ws.sAt || 0));
+    const mid = sorted[Math.floor((sorted.length - 1) / 2)].ws;
+    const pending = list.some(o => o.ws.rp || o.ws.fl || o.ws.lrn);
+    if (c0.item) {
+      const it = getWS(VX_DECK, c0.item);
+      if ((it.st || 0) < mid.st) {
+        VX_ADOPT_FIELDS.forEach(f => { if (mid[f] === undefined) delete it[f]; else it[f] = mid[f]; });
+        it.pk = Math.max(it.pk || 0, ...list.map(o => o.ws.pk || o.ws.st || 0));
+        // A card still waiting for a repair: a quick check soon.
+        if (pending && !it.rp && !it.lrn) it.fl = 1;
+        items++;
+      }
+      it.correct = (it.correct || 0) + list.reduce((n, o) => n + (o.ws.correct || 0), 0);
+      it.wrong = (it.wrong || 0) + list.reduce((n, o) => n + (o.ws.wrong || 0), 0);
+      it.adopted = (it.adopted || 0) + list.length;
+    } else if (c0.rule && VX_RULE[c0.rule]) {
+      const r = getWS(VX_DECK, "r:" + c0.rule);
+      if (!r.st) {
+        const med = mid.st, st = med >= STAGE_KNOWN ? med : Math.min(med, 4);
+        r.st = st; r.pk = Math.max(r.pk || 0, st); r.sAt = now; r.seed = 1;
+        const spread = 1 + hashString(c0.rule) % Math.max(1, Math.round(STAGE_DAYS[st] || 1));
+        r.dueAt = studyDayStart(Math.min(spread, STAGE_DAYS[st] || 1), now);
+        if (st >= STAGE_KNOWN) r.mastered = true;
+        rules++;
+      }
+    }
+    list.forEach(({ ws, c }) => {
+      if (VX_COV.includes(c.t)) vxCovSet(c.inf, c.t);
+      const was = {};
+      Object.keys(ws).forEach(f => { if (f !== "rtWas" && f !== "anki") was[f] = ws[f]; });
+      ws.rtWas = JSON.parse(JSON.stringify(was));
+      ws.rt = 1;
+      cards++;
+    });
+  });
+  vxCatalogReset();
+  if (typeof invalidatePathScan === "function") invalidatePathScan();
+  if (typeof logEvent === "function") logEvent("vx_adopt", { cards, items, rules });
+  return cards;
+}
 
 // ── ITEM CATALOG ──────────────────────────────
 // Does a verb need its own item of this kind (and no active card has it)?
+// (Every card of a verb-form deck is covered by the track now — met ones
+// included, which hand their progress over — so none of them counts.)
 function vxActiveRef(x, tense, persons) {
-  return vxRefs(x).some(r => r.tense === tense && (!persons || persons.includes(r.person)) &&
-    !(VX_RETIRE_DECKS.has(r.deckId) && vxRetireDeckCard(r)));
+  return vxRefs(x).some(r => r.tense === tense && (!persons || persons.includes(r.person)) && !VX_LEGACY_DECKS.has(r.deckId));
 }
-// A card in a retiring deck counts as active only if you met it.
-function vxRetireDeckCard(r) { const ws = S.words[r.deckId + "_" + r.idx]; return !(ws && ws.st && !ws.rt); }
 function vxNeedsItem(x, kind) {
   if (VX_FR) return VXF.needsItem(x, kind);
   const F = x.F;
-  if (kind === "sc") return x.k.stem && !vxActiveRef(x, "pr", ["du"]) && !vxActiveRef(x, "pr", ["er"]);
+  if (kind === "sc") return x.k.stem && !x.k.irregular && !vxActiveRef(x, "pr", ["du"]) && !vxActiveRef(x, "pr", ["er"]);
   if (kind === "p2") return !!F.aux && !!F.p2 && (F.strong || F.aux === "sein") && !x.k.modal && !vxActiveRef(x, "p2");
   if (kind === "pt") return !F.only && x.k.strongPt && !x.k.aux && !x.k.modal && !VX_PT1_VERBS.has(F.base) && !vxActiveRef(x, "pt", ["er", "ich"]);
   if (kind === "im") return !!F.im && !!F.presSure && !vxItVerb(x) && (F.eToI || (F.base === "sein" && !F.sep && !F.insep));
+  if (kind === "ir") return x.k.irregular && !!F.presSure && !F.only && !F.sep && !F.insep && !F.refl && !!vxForm(x, "pr", "ich");
+  if (kind === "p1") return VX_PT1_VERBS.has(F.base) && F.base === x.inf && !!vxForm(x, "pt", "ich");
   return false;
 }
 let _vxCatalog = null, _vxCatalogAt = "";
@@ -667,6 +808,7 @@ function vxItemOrder(x, kind) {
   if (kind === "p2") { if (!F.strong) return 0; if (x.k.mixed) return 4; const a = lastVowel(F.base.replace(/(en|n)$/, "")), b = lastVowel(F.p2.replace(/(en|n|t)$/, "")); return a === b ? 1 : F.aux === "sein" ? 3 : 2; }
   if (kind === "pt") return x.k.mixed ? 2 : 1;
   if (kind === "im") return F.base === "sein" ? 0 : 1;
+  if (kind === "ir" || kind === "p1") return x.k.aux ? 0 : x.k.modal ? 2 : 1;
   return 0;
 }
 
@@ -1050,9 +1192,9 @@ function vxRecordAnswer(ex, ok, opts = {}) {
 function vxCellRuleItem(ex) {
   if (VX_FR) return VXF.cellRuleItem(ex);
   const x = ex.x, F = x.F;
-  if (ex.tense === "pr") return x.k.stem ? (S.words[vxKey("sc:" + x.inf)] ? "sc:" + x.inf : null) : F.sep ? "r:pr-sep" : F.refl ? "r:pr-refl" : x.k.glue ? "r:pr-glue" : x.k.irregular ? null : "r:pr-end";
+  if (ex.tense === "pr") return x.k.irregular ? (S.words[vxKey("ir:" + x.inf)] ? "ir:" + x.inf : null) : x.k.stem ? (S.words[vxKey("sc:" + x.inf)] ? "sc:" + x.inf : null) : F.sep ? "r:pr-sep" : F.refl ? "r:pr-refl" : x.k.glue ? "r:pr-glue" : "r:pr-end";
   if (ex.tense === "pf") return S.words[vxKey("p2:" + x.inf)] ? "p2:" + x.inf : F.sep || F.insep || x.k.ieren ? "r:pf-prefix" : "r:pf-ge";
-  if (ex.tense === "pt") return S.words[vxKey("pt:" + x.inf)] ? "pt:" + x.inf : x.k.ptWeak ? "r:pt-weak" : "r:pt-strong";
+  if (ex.tense === "pt") return S.words[vxKey("p1:" + x.inf)] ? "p1:" + x.inf : S.words[vxKey("pt:" + x.inf)] ? "pt:" + x.inf : x.k.ptWeak ? "r:pt-weak" : "r:pt-strong";
   if (ex.tense === "fu") return "r:fu";
   if (ex.tense === "pq") return "r:pq";
   return null;
@@ -1082,6 +1224,8 @@ function vxItemsForForm(x, tense, person) {
   if (tense === "pf" && S.words[vxKey("p2:" + x.inf)]) out.push("p2:" + x.inf);
   if (tense === "pt" && (person === "er" || person === "ich") && S.words[vxKey("pt:" + x.inf)]) out.push("pt:" + x.inf);
   if (tense === "im" && person === "du" && S.words[vxKey("im:" + x.inf)]) out.push("im:" + x.inf);
+  if (tense === "pr" && S.words[vxKey("ir:" + x.inf)]) out.push("ir:" + x.inf);
+  if (tense === "pt" && S.words[vxKey("p1:" + x.inf)]) out.push("p1:" + x.inf);
   VX_RULES.forEach(r => {
     const kt = r.kind === "k2w" || r.kind === "k2o" ? "k2" : r.kind === "prsep" || r.kind === "prrefl" ? null : r.kind;
     if (kt === tense && r.verbs(x) && vxRulePersons(r, x).includes(person) && S.words[vxKey("r:" + r.id)]) out.push("r:" + r.id);
@@ -1279,8 +1423,11 @@ function vxSwitchOn() {
 function vxSwitchOff() {
   if (!S.verb || !S.verb.on) return;
   Object.keys(S.words).forEach(k => {
+    const ws = S.words[k];
     if (k.startsWith(VX_DECK + "_")) delete S.words[k];
-    else if (S.words[k] && S.words[k].rt) delete S.words[k];
+    // A card you had met: exactly as it was when the track took it over.
+    else if (ws && ws.rt && ws.rtWas) S.words[k] = Object.assign({ anki: ws.anki || freshAnki() }, ws.rtWas);
+    else if (ws && ws.rt) delete S.words[k];
   });
   S.verb.on = ""; S.verb.onAt = Date.now();
   S.verb.tu = {};

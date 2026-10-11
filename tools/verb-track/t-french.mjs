@@ -199,7 +199,7 @@ const r5 = await ev(() => {
   const ll = buildLearningReport();
   out.learn = ll.includes("## VERB TRACK") && /Passé composé/.test(ll) && /Présent · Passé composé · Futur|Présent\/Passé composé\/Futur/.test(ll);
   out.ach = ACHIEVEMENTS.filter(a => a.id.startsWith("vx_")).map(a => [a.id, a.tiers.length]);
-  const before = Object.keys(S.words).filter(k => !k.startsWith("vx_") && !S.words[k].rt).length;
+  const before = Object.keys(S.words).filter(k => !k.startsWith("vx_") && (!S.words[k].rt || S.words[k].rtWas)).length; // cards the track took over come back
   vxSwitchOff();
   out.off = { vx: Object.keys(S.words).filter(k => k.startsWith("vx_")).length, rt: Object.values(S.words).filter(w => w.rt).length,
     words: Object.keys(S.words).length === before, thread: vlLevelTenses() };

@@ -833,7 +833,8 @@ function renderPathVerbLearn(it) {
     const whole = (kind, p) => { const f = vxForm(ex.x, kind, p); return f ? escapeHtml(f.ans) : ""; };
     const extra = VX_FR ? vxRowTableHtml(VXF.rowCells(ex.x, ex.kind, ex.p)) : k === "sc" ? `<div><span class="vx-pron">${other}</span> <b>${whole("sc", other)}</b></div>`
       : k === "pt" ? `<div><span class="vx-pron">wir</span> <b>${whole("pt", "wir")}</b></div>`
-      : k === "p2" ? `<div class="p-sub">Präteritum: er ${whole("pt", "er")}</div>` : "";
+      : k === "p2" ? `<div class="p-sub">Präteritum: er ${whole("pt", "er")}</div>`
+      : k === "ir" || k === "p1" ? vxRowTableHtml(vxRowCellsDe(ex.x.F, k === "ir" ? "pr" : "pt", ex.p)) : "";
     body = `<div class="vx-learn-t">${escapeHtml(ex.x.inf)} <small>· ${escapeHtml(vlGloss(ex.x.v))}</small></div>
       <div class="vx-learn-chip">${escapeHtml(VX_ITEM_KINDS[k].title)}${vxT(" — not built by rule, so it has its own card")}</div>
       <div class="vx-learn-ex big"><div>${vxFormHtml(ex)}</div>${extra}</div>`;

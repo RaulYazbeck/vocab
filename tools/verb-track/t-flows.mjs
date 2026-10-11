@@ -52,7 +52,7 @@ const r = await page.evaluate(() => {
   vxMirror();
   out.mirror = { key: rk, st: S.words[rk] && S.words[rk].st, rt: S.words[rk] && S.words[rk].rt, inPool: buildGamePool(null).some(w => wordKey(w) === rk) };
   // 11 · switch off: verb items and mirrors go, cards stay
-  const wordsBefore = Object.keys(S.words).filter(k => !k.startsWith("vx_") && !S.words[k].rt).length;
+  const wordsBefore = Object.keys(S.words).filter(k => !k.startsWith("vx_") && (!S.words[k].rt || S.words[k].rtWas)).length; // cards the track took over come back
   vxSwitchOff();
   out.off = { vx: Object.keys(S.words).filter(k => k.startsWith("vx_")).length, rt: Object.values(S.words).filter(w => w.rt).length,
     words: Object.keys(S.words).length === wordsBefore, thread: vlLevelTenses(), pace: pathPace() };

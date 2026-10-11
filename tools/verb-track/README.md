@@ -34,6 +34,9 @@ In the real app (Chromium via playwright-core from `../audio/tests`; run
     node t-tense.mjs        # the tense as the card's title; a right form of another tense is named and
                             # gets one more try (right then = right); ich hätte for ich hatte  (APP=fr)
     node t-plural.mjs       # a plural missed in Plural Hunt is repaired as its plural (der Tisch → die ___)
+    node t-adopt.mjs        # every old verb card taken over, nothing lost: no card lower, counts / levels /
+                            # achievements never down, items take the cards' stage, never asked the old way,
+                            # switching back restores every card exactly  (REAL_STATE=, APP=fr)
     node t-typing.mjs       # what a typed answer may differ in (accents, ß, œ, ae/oe/ue, apostrophes,
                             # hyphens, elision), word answers and verb forms, both apps
     node t-switch.mjs       # what switching on does to the test profile (numbers, first session)

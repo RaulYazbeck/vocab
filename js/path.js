@@ -452,7 +452,7 @@ function pathReviewCandidates(now = Date.now()) {
   vocabGroups().forEach(g => g.decks.forEach(d => {
     for (let i = 0; i < d.words.length; i++) {
       const ws = S.words[d.id + "_" + i];
-      if (!ws || !ws.st || (ws.st >= STAGE_LOCKED && !ws.rp && !ws.fl && !(ws.dueAt && ws.dueAt <= now))) continue;
+      if (!ws || !ws.st || ws.rt || (ws.st >= STAGE_LOCKED && !ws.rp && !ws.fl && !(ws.dueAt && ws.dueAt <= now))) continue;
       if (ws.rp || ws.fl || ws.lrn) fix.push({ d, i, ws });
       else if (ws.dueAt && ws.dueAt <= now) due.push({ d, i, ws });
     }
