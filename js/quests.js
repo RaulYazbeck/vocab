@@ -96,6 +96,7 @@ function freshQuestCounters() {
 // ── DAY ROLLOVER ──────────────────────────────
 function questEnsureToday() {
   migrateQuests();
+  questRestoreDays();
   const Q = S.quests, today = todayISO();
   if (Q.day === today && Q.list.length) { questSwapUnusedAnki(); questSwapForSpeak(); questSwapRetired(); questMarkKept(); return false; }
   // Quests made before the switch to the 4 AM day (00:00–04:00 that one
@@ -160,6 +161,36 @@ function questStreak(from) {
   let n = 0;
   while (days.has(d)) { n++; d = addDays(d, -1); }
   return n;
+}
+// Streak days a sync lost (until kept and frozen days were merged, a
+// device with an old copy could replace them with its own): every day the
+// records show was counted is put back — "day kept" / "freeze used" in
+// this device's event log, and in the synced day history, a day with all
+// quests done or with enough right answers to keep it (KEEP_GOAL_SHARE of
+// that day's plan, or of the daily goal) — from the day kept days began.
+// Once per loaded state.
+const KEPT_SINCE = "2026-10-06";
+let _questDaysFor = null;
+function questRestoreDays() {
+  if (_questDaysFor === S) return;
+  _questDaysFor = S;
+  const Q = S.quests, today = todayISO(), from = addDays(today, -60);
+  const counted = new Set([...Q.qdays, ...Q.kept, ...Q.frozen]);
+  let n = 0;
+  const add = (list, d) => { if (d >= from && d < today && !counted.has(d)) { list.push(d); counted.add(d); n++; } };
+  if (typeof _usageLog === "function") _usageLog().forEach(e => {
+    if (e.e === "day_kept") add(Q.kept, usageDateOf(e.t));
+    else if (e.e === "freeze_used" && typeof e.d === "string") add(Q.frozen, e.d);
+  });
+  if (typeof usageAllDays === "function") usageAllDays().forEach(([d, v]) => {
+    if (!v || counted.has(d)) return;
+    if (v.q && v.q[3] > 0) { add(Q.qdays, d); return; }
+    const goal = v.plan && v.plan.tgt > 0 ? v.plan.tgt : GOAL_OPTIONS.includes(S.dailyGoal) ? S.dailyGoal : 20;
+    if (d >= KEPT_SINCE && v.end && v.end.ok >= Math.ceil(goal * KEEP_GOAL_SHARE)) add(Q.kept, d);
+  });
+  if (!n) return;
+  [Q.qdays, Q.kept, Q.frozen].forEach(a => a.sort());
+  logEvent("streak_restored", { n });
 }
 function isoWeekKey(date = new Date(todayISO() + "T12:00")) {
   const d = new Date(date); d.setHours(12, 0, 0, 0);

@@ -359,13 +359,22 @@ function pathEnsurePlan(scan) {
   const today = studyToday();
   const prev = P.plan && P.plan.day === today ? P.plan : null;
   if (prev && prev.deadline === P.deadline) {
-    if (prev.v >= 4) return prev;
+    if (prev.v >= 5) return prev;
+    // One-time repair (v5): a plan a device made from its own old copy,
+    // before a sync brought in the days studied elsewhere, saw that
+    // progress as a backlog. Nothing answered yet today: made again from
+    // the words as they are now.
+    if (prev.v === 4 && !(S.quests && S.quests.day === today && S.quests.m && (S.quests.m.ok || 0) > 0)) {
+      P.plan = null;
+      return pathEnsurePlan(scan);
+    }
+    if (prev.v >= 4) { prev.v = 5; return prev; }
     // One-time repair: earlier versions rebuilt today's plan mid-day.
     // Go back to this morning's reviews and pace.
     const first = morningPlanEvent();
     if (first) { prev.reviews = first.reviews; prev.pace = first.pace; }
     prev.target = prev.goal = planTarget(prev.reviews, prev.pace, typeof vxPlanTarget === "function" ? vxPlanTarget(prev.vx) : 0);
-    prev.v = 4;
+    prev.v = 5;
     planSyncQuest(prev);
     return prev;
   }
@@ -392,10 +401,24 @@ function pathEnsurePlan(scan) {
     if (vx) reviews += vx.due;
   }
   const target = planTarget(reviews, pace, typeof vxPlanTarget === "function" ? vxPlanTarget(vx) : 0);
-  P.plan = { v: 4, day: today, deadline: P.deadline, pace, reviews, leave, target, goal: target, ...(vx ? { vx } : {}) };
+  P.plan = { v: 5, day: today, deadline: P.deadline, pace, reviews, leave, target, goal: target, ...(vx ? { vx } : {}) };
+  // Made before this device synced (sync.js): see pathAfterSync.
+  if (typeof cloudLoadedOnce !== "undefined" && !cloudLoadedOnce) P.plan.pre = 1;
   planSyncQuest(P.plan);
   logEvent("plan", { pace, reviews, target, leave, due: scan.due, od: scan.overdue, ...(vx ? { vx } : {}) });
   return P.plan;
+}
+// A plan made before this device's first sync of the session (opened
+// offline, or used while it was still syncing) only saw this copy's
+// progress: days studied on another device looked like a backlog. Once
+// a sync brings another device's progress in, it is made again — reviews
+// already done today still count (pathReviewedToday). A sync with nothing
+// new leaves it as it is.
+function pathAfterSync(merged) {
+  const p = S.path && S.path.plan;
+  if (!p || !p.pre) return;
+  if (merged && p.day === studyToday()) { S.path.plan = null; invalidatePathScan(); pathEnsurePlan(); }
+  if (S.path.plan) delete S.path.plan.pre;
 }
 // Reviews already done today: words that were due and got answered and
 // rescheduled today (not today's new words, not ones still being fixed).
