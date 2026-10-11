@@ -27,6 +27,7 @@ In the real app (Chromium via playwright-core from `../audio/tests`; run
     node t-switch.mjs       # what switching on does to the test profile (numbers, first session)
     OUT=/tmp/shots node t-ui.mjs   # walks every new screen, phone + desktop screenshots
     node sim.mjs            # the whole journey to the finish date, verb track on vs off
+    node sim.mjs --app fr --on   # the same journey in the French app
 
 `profile.js` is the test profile: shaped like the real one on 2026-10-10
 (A1 done, 13 A2 words met, finish date 2027-08-15).

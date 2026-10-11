@@ -142,12 +142,21 @@ function vxKind(F) {
     irregular: aux || modal || F.base === "tun" || F.base === "wissen" };
 }
 // The verb's own word cards: met? how far? when first met?
+// French: a verb the decks only conjugate (mettre: a2_conjugacion) has
+// no word card — its conjugation cards stand in; when every one of them
+// is retired, the verb counts as met once the Path reaches its level, and
+// as Known once its own items are.
 function vxLemma(x) {
   let st = 0, met = "";
-  (x.v.words && x.v.words.length ? x.v.words : [x.v.word]).forEach(w => {
+  const own = x.v.words && x.v.words.length, cardsOnly = VX_FR && !own;
+  (cardsOnly ? (x.v.cards || []).map(c => c.w) : own ? x.v.words : [x.v.word]).forEach(w => {
     const ws = w && S.words[w.deckId + "_" + w.idx];
     if (ws && ws.st && !ws.rt) { st = Math.max(st, ws.st); if (ws.metOn && (!met || ws.metOn < met)) met = ws.metOn; }
   });
+  if (cardsOnly && !st && vxOn() && (x.v.cards || []).every(c => vxRetired(c.w.deckId, c.w.idx)) && vxPathPos() >= x.lv) {
+    const its = vxCatalog().filter(it => it.x === x).map(it => (S.words[vxKey(it.id)] || {}).st || 0);
+    st = Math.max(VX_LEMMA_MIN, its.length ? Math.min(...its) : 0);
+  }
   return { st, met };
 }
 function vxVerbReady(x) { return vxLemma(x).st >= VX_LEMMA_MIN; }
@@ -634,7 +643,7 @@ function vxRequiredCells() {
   const extraT = VX_FR ? VX_COV.filter(t => !VX_CORE.includes(t)) : ["fu", "pq"];
   vxVerbs().forEach(x => {
     VX_CORE.forEach(t => { if (vxHasTense(x, t) && vxCellPersons(x, t).length) out.push({ x, t }); });
-    extraT.forEach(t => { if (extra.has(x.inf + "|" + t) && vxHasTense(x, t) && vxCellPersons(x, t).length) out.push({ x, t }); });
+    extraT.forEach(t => { if (extra.has(x.inf + "|" + t) && vxHasTense(x, t) && (!VX_FR || vxCellPersons(x, t).length)) out.push({ x, t }); });
   });
   out.forEach(c => { c.ord = vxCellOrder(c.x, c.t); });
   out.sort((a, b) => a.x.lv - b.x.lv || a.ord - b.ord || a.x.i - b.x.i);

@@ -380,7 +380,7 @@ function vxfCellSheet(c) {
 function vxfCellRuleItem(ex) {
   const x = ex.x, has = id => !!S.words[vxKey(id)];
   const t = ex.tense;
-  if (t === "pr") return has("pr:" + x.inf) ? "pr:" + x.inf : x.k.prIrr && !x.F.refl ? null : "r:" + vxfPrRule(x);
+  if (t === "pr") return has("pr:" + x.inf) ? "pr:" + x.inf : x.k.prIrr ? null : "r:" + vxfPrRule(x);
   if (t === "pc") return has("pp:" + x.inf) ? "pp:" + x.inf : x.F.refl ? "r:pc-refl" : x.F.aux === "être" ? "r:pc-aux" : x.k.ppIrr ? null : "r:pc-avoir";
   if (t === "fu") return has("fu:" + x.inf) ? "fu:" + x.inf : x.k.futSpell ? "r:fu-spell" : x.k.futReg ? "r:fu-reg" : null;
   if (t === "im") return has("im:" + x.inf) ? "im:" + x.inf : "r:im";
@@ -415,13 +415,15 @@ function vxfGradeTries(val) {
 }
 // The mistake type, for the learning log.
 function vxfClassify(given, F, tense, person) {
-  const g = normalize(String(given || "")).replace(/^(je|j|tu|il|elle|on|nous|vous|ils|elles) (?=\S)/, "");
-  if (!g) return "blank";
+  // Without the subject pronoun — but "nous nous levons" keeps its second nous.
+  const g0 = normalize(String(given || "")), g1 = g0.replace(/^(je|j|tu|il|elle|on|nous|vous|ils|elles) (?=\S)/, "");
+  if (!g0) return "blank";
   const x = vxVerb(F.inf);
   if (!x) return "verbform";
   const forms = (t, p) => { const f = vxfForm(x, t, p); return f ? f.acc.map(a => normalize(a)) : []; };
   const want = forms(tense, person);
-  if (want.includes(g)) return "umlaut";
+  const g = want.includes(g0) || !want.some(a => a.split(" ").length === g0.split(" ").length) ? g0 : g1;
+  if (want.includes(g0) || want.includes(g1)) return "umlaut";
   const ps = tense === "ip" ? ["tu", "nous", "vous"] : VXF_PERSONS;
   if (ps.some(p => p !== vxfBase(person) && forms(tense, p).includes(g))) return "person";
   if (["pr", "im", "fu", "co", "pc", "pq", "sj", "fp"].some(t => t !== tense && VXF_PERSONS.some(p => forms(t, p).includes(g)))) return "tense";
@@ -437,16 +439,15 @@ function vxfClassify(given, F, tense, person) {
   if (want.some(a => levenshtein(a, g) <= 2)) return "spelling";
   return "verbform";
 }
-function vxfMistakeType(given, ex) {
-  return vxfClassify(given, ex.x.F, VXF_KIND_TENSE[ex.kind] === ex.kind ? ex.kind : ex.kind, ex.p);
-}
+function vxfMistakeType(given, ex) { return vxfClassify(given, ex.x.F, ex.kind, ex.p); }
 
 // ── KINDS, LABELS ─────────────────────────────
-const VXF_KIND_TENSE = { pr: "pr", im: "im", fu: "fu", co: "co", fp: "fp", vd: "fp", pc: "pc", pq: "pq", cp: "cp", sj: "sj", ip: "ip", ge: "ge",
-  pvpr: "pv", pvpc: "pv", pvfu: "pv", pp: "pc" };
+// venir de (vd) and the participle alone (pp) fill no ledger cell.
+const VXF_KIND_TENSE = { pr: "pr", im: "im", fu: "fu", co: "co", fp: "fp", vd: "vd", pc: "pc", pq: "pq", cp: "cp", sj: "sj", ip: "ip", ge: "ge",
+  pvpr: "pv", pvpc: "pv", pvfu: "pv", pp: "pp" };
 const VXF_TENSE_LABEL = { pr: "Présent", im: "Imparfait", fu: "Futur simple", co: "Conditionnel", fp: "Futur proche", pc: "Passé composé",
-  pq: "Plus-que-parfait", cp: "Conditionnel passé", sj: "Subjonctif", ip: "Impératif", ge: "Gérondif", pv: "Voix passive" };
-const VXF_TENSE_UNIT = { pr: "pr", im: "im", fu: "fu", co: "co", fp: "fp", pc: "pc", pq: "pq", cp: "cp", sj: "sj", ip: "ip", ge: "ge", pv: "pv" };
+  pq: "Plus-que-parfait", cp: "Conditionnel passé", sj: "Subjonctif", ip: "Impératif", ge: "Gérondif", pv: "Voix passive", vd: "Passé récent", pp: "Participe passé" };
+const VXF_TENSE_UNIT = { pr: "pr", im: "im", fu: "fu", co: "co", fp: "fp", vd: "fp", pp: "pc", pc: "pc", pq: "pq", cp: "cp", sj: "sj", ip: "ip", ge: "ge", pv: "pv" };
 // The pronoun in front of a gap or an answer: "j'" before a vowel, "que"
 // in the subjonctif, nothing in the impératif, "en" with the gérondif.
 function vxfPron(kind, p, ans) {
