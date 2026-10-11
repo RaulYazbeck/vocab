@@ -695,7 +695,10 @@ function vxMirror() {
     if (ws && ws.st && !ws.rt) return; // (adopted just above)
     let st = 0, src = null;
     if (c.item) { src = S.words[vxKey(c.item)]; st = src ? src.st || 0 : 0; }
-    else if (vxCovHas(c.inf, c.t)) { src = S.words[vxKey("r:" + c.rule)]; st = src ? src.st || 0 : 0; }
+    // A rule: once that verb's form was produced — or straight away when
+    // the ledger never asks that form (würde kommen, es wird repariert):
+    // then the rule is all there is to know about it.
+    else if (vxCovHas(c.inf, c.t) || !vxCellRequired(c.inf, c.t)) { src = S.words[vxKey("r:" + c.rule)]; st = src ? src.st || 0 : 0; }
     const floor = ws && ws.rtWas ? ws.rtWas.st || 0 : 0;
     st = Math.max(st, floor);
     if (!st && !(ws && ws.rt)) return;
@@ -851,6 +854,12 @@ function vxRequiredCells() {
   out.sort((a, b) => a.x.lv - b.x.lv || a.ord - b.ord || a.x.i - b.x.i);
   _vxCells = out;
   return out;
+}
+// Is this verb and tense one of the ledger's forms?
+let _vxCellKeys = null;
+function vxCellRequired(inf, t) {
+  if (!_vxCellKeys || _vxCellKeys.src !== _vxCells) { _vxCellKeys = new Set(vxRequiredCells().map(c => c.x.inf + "|" + c.t)); _vxCellKeys.src = _vxCells; }
+  return _vxCellKeys.has(inf + "|" + t);
 }
 // Verbs that only take "it" (es regnet, das kostet, es gefällt mir).
 function vxItVerb(x) { return VX_FR ? !!x.F.only : !!x.F.impersonal || DE_WEATHER.test(x.inf) || DE_IT_VERBS.test(x.inf); }

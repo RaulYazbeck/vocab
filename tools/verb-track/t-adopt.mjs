@@ -94,6 +94,23 @@ const r = await page.evaluate((RAW) => {
   }
   Date.now = realNow;
   ok(!seen.length, "Today never asks an old verb card", seen.slice(0, 5).join(" "));
+  // Every covered card can reach Known in the end (else the word total —
+  // and Road to B1 — could never be complete): its cover is an item of the
+  // catalog, a rule whose form the ledger asks, or a rule it then mirrors
+  // directly.
+  const dead = [];
+  vxRetireMap().forEach((c, k) => {
+    if (c.item ? !vxCatalog().some(it => it.id === c.item) : !VX_RULE[c.rule]) dead.push(k + " → " + (c.item || c.rule));
+  });
+  ok(!dead.length, `all ${vxRetireMap().size} covered cards can reach Known`, dead.slice(0, 5).join(" | "));
+  // A rule-covered card whose form the ledger never asks mirrors its rule.
+  const rk = [...vxRetireMap().entries()].find(([k, c]) => c.rule && !vxCellRequired(c.inf, c.t));
+  if (rk) {
+    const r0 = getWS(VX_DECK, "r:" + rk[1].rule), was = r0.st;
+    r0.st = 5; vxMirror();
+    ok((S.words[rk[0]] || {}).st >= 5, `${rk[0]} (${rk[1].rule}) mirrors its rule without a ledger form`);
+    r0.st = was; vxMirror();
+  }
   // 6. A second load changes nothing.
   const snap = JSON.stringify(S.words);
   ok(vxAdopt() === 0, "a second load adopts nothing");
