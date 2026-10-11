@@ -35,12 +35,12 @@ function startPathSession(lenKey, opts = {}) {
     lenKey, items: q.items, i: -1, budget: q.budget, startedAt: Date.now(), startExp: S.exp,
     stats: { answered: 0, correct: 0, wrong: 0, near: 0 }, moves: new Map(), met: [], repaired: 0,
     locked: 0, flagged: 0, missed: [], reasks: {}, bonusShown: 0, lastBonus: "", answered: false,
-    cur: null, shownAt: 0, pendingReverse: null, typedSeen: 0, quick: !!opts.quick,
+    cur: null, shownAt: 0, pendingReverse: null, typedSeen: 0,
     focus: q.focus ? q.focus : "", focusParam: opts.param || "", practice: !!opts.practice,
     ok5: 0, upCount: 0, wotdHit: false, golden: 0,
   };
   pathMarkActive();
-  logEvent("session_start", { kind: opts.quick ? "quick5" : "path", len: lenKey, n: q.items.length, nw: q.newWords, focus: q.focus || "" });
+  logEvent("session_start", { kind: "path", len: lenKey, n: q.items.length, nw: q.newWords, focus: q.focus || "" });
   logScreen("path");
   renderPathShell();
   bindPathKeys();
@@ -81,7 +81,6 @@ function renderPathShell() {
 function pathFocusLabel() {
   const s = pathSession;
   if (!s) return "";
-  if (s.quick) return "5️⃣ Quick Five";
   if (s.practice) return "🧺 Extra practice — nothing is due, so this is just for fun";
   if (!s.focus) return "";
   const p = s.focusParam;
@@ -1056,15 +1055,15 @@ function endPathSession(abandoned) {
   if (!s) return;
   stopPathVoice();
   const moves = s.moves ? [...s.moves.values()] : [];
-  logEvent("session_end", { kind: s.quick ? "quick5" : "path", abandoned, n: s.stats.answered, ok: s.stats.correct, ms: Date.now() - s.startedAt, at: s.i,
+  logEvent("session_end", { kind: "path", abandoned, n: s.stats.answered, ok: s.stats.correct, ms: Date.now() - s.startedAt, at: s.i,
     sd: typeof usageDateOf === "function" ? usageDateOf(s.startedAt) : undefined, met: (s.met || []).filter(w => !w.vx).length, vxNew: (s.met || []).filter(w => w.vx).length, vxCells: s.vxCells || 0, up: moves.filter(m => m.to > m.from).length, down: moves.filter(m => m.to < m.from).length });
-  questEvent("session_end", { kind: "path", len: s.lenKey, abandoned, stats: s.stats, ms: Date.now() - s.startedAt, quick: s.quick,
+  questEvent("session_end", { kind: "path", len: s.lenKey, abandoned, stats: s.stats, ms: Date.now() - s.startedAt,
     ok5: s.ok5, up: s.upCount || 0, wotdHit: !!s.wotdHit });
   // 🏃 Session ladders (achievements.js): finished sessions of 5+ answers.
   if (!abandoned && s.stats.answered >= 5) {
     S.sessionsDone = (S.sessionsDone || 0) + 1;
     if (s.stats.answered >= 10 && s.stats.wrong === 0) S.flawlessSessions = (S.flawlessSessions || 0) + 1;
-    if (s.lenKey === "long" && !s.quick) S.longSessions = (S.longSessions || 0) + 1;
+    if (s.lenKey === "long") S.longSessions = (S.longSessions || 0) + 1;
     checkAchievements({ type: "session_end" });
   }
   // ⚡ XP boost from a chest: +50% of this session's XP (achievements
@@ -1171,12 +1170,4 @@ function renderPathCaughtUp() {
         </div>
       </div>
     </div>`;
-}
-
-// Quick Five: five due reviews — keeps words moving on a bad day.
-function startQuickFive() {
-  const { fix, due } = pathReviewCandidates();
-  if (!fix.length && !due.length) { showCelebrateToast("✅", "Nothing due", "You're all caught up"); return; }
-  S.path.quickFiveDay = todayISO();
-  startPathSession("quick", { reviewOnly: true, noBonus: true, quick: true, limit: 5 });
 }

@@ -1215,11 +1215,11 @@ function vxPlanTarget(vx) {
 // counted items stay within `room`. Sheets first, then fixes and due
 // items, then new items (each: an intro card + a typed check), then
 // coverage drills.
-function vxSessionPlan(room, opts = {}) {
+function vxSessionPlan(room) {
   if (!vxOn()) return { sheets: [], items: [], learns: [] };
   vxUnitsTick(false);
   const q = vxQuotas();
-  const sheets = opts.noSheets ? [] : vxPendingSheets().slice(0, q.sheetsLeft);
+  const sheets = vxSheetsToday();
   const items = [], learns = [];
   const { fix, due } = vxDueItems();
   let avoid = "";
@@ -1228,16 +1228,14 @@ function vxSessionPlan(room, opts = {}) {
     const ex = vxMakeExercise(it, avoid);
     if (ex) { items.push(ex); avoid = ex.x.inf; }
   });
-  if (!opts.reviewOnly) {
-    const fresh = vxNewCandidates().slice(0, Math.min(q.itemsLeft, Math.max(0, room - items.length)));
-    fresh.forEach(it => {
-      const ex = vxMakeExercise(it, avoid);
-      if (!ex) return;
-      learns.push(ex); items.push({ ...ex, fresh: true }); avoid = ex.x.inf;
-    });
-    const cells = vxOpenCells(Math.min(q.cellsLeft, Math.max(0, room - items.length)));
-    cells.forEach(c => { const ex = vxCellExercise(c); if (ex) items.push(ex); });
-  }
+  const fresh = vxNewCandidates().slice(0, Math.min(q.itemsLeft, Math.max(0, room - items.length)));
+  fresh.forEach(it => {
+    const ex = vxMakeExercise(it, avoid);
+    if (!ex) return;
+    learns.push(ex); items.push({ ...ex, fresh: true }); avoid = ex.x.inf;
+  });
+  const cells = vxOpenCells(Math.min(q.cellsLeft, Math.max(0, room - items.length)));
+  cells.forEach(c => { const ex = vxCellExercise(c); if (ex) items.push(ex); });
   return { sheets, items, learns };
 }
 

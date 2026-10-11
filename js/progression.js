@@ -67,7 +67,7 @@ function openStreakSheet() {
   const goal = getDailyGoal(), done = goalProgress();
   const keepAt = Math.ceil(goal * (typeof KEEP_GOAL_SHARE === "number" ? KEEP_GOAL_SHARE : 0.4));
   const nDone = (Q.list || []).filter(q => q.done).length, nAll = (Q.list || []).length || 4;
-  const longDone = ((Q.m && Q.m.sessions) || []).some(x => x.len === "long" && !x.ab && !x.quick);
+  const longDone = ((Q.m && Q.m.sessions) || []).some(x => x.len === "long" && !x.ab);
   if (grandmaOn()) {
     const left = Math.max(0, keepAt - done);
     openSheet({ title: "🔥 Streak", html: `

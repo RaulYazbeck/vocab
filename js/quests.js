@@ -143,7 +143,7 @@ function questMarkKept() {
   const Q = S.quests, today = todayISO();
   if (!Array.isArray(Q.kept)) Q.kept = [];
   if (Q.day !== today || (Q.qdays || []).includes(today) || Q.kept.includes(today)) return;
-  const longDone = (Q.m.sessions || []).some(s => s.len === "long" && !s.ab && !s.quick);
+  const longDone = (Q.m.sessions || []).some(s => s.len === "long" && !s.ab);
   if (!longDone && goalProgress() < Math.ceil(getDailyGoal() * KEEP_GOAL_SHARE)) return;
   Q.kept.push(today);
   logEvent("day_kept", { long: longDone });
@@ -594,10 +594,6 @@ qt({ id: "d_timer50", slot: "D", fam: "timer", icon: "⏳", w: 1, spell: true, o
   title: () => `A flawless ⏱️ Timer round: win with no mistakes`, prog: m => (m.timerClean || 0) + (m.timerWins[50] || 0), go: "game:timer" });
 qt({ id: "d_ankiwild", slot: "D", fam: "anki", icon: "🃏", w: 1, ok: c => c.ankiOwed >= 5, target: () => 1,
   title: () => `Clear your Anki cards before 18:00`, prog: m => m.ankiDone && new Date().getHours() < 18 ? 1 : (m.ankiDoneBefore18 || 0), go: "anki" });
-// Retired: Quick Five has no button any more. Kept so old saves still
-// read; an open one is swapped for free (questSwapRetired).
-qt({ id: "d_quickfive", slot: "D", fam: "sessions", icon: "5️⃣", w: 0.8, retired: true, ok: () => false, target: () => 3,
-  title: q => `Snack-sized: ${q.target} Quick Fives across the day`, prog: m => m.sessions.filter(s => s.quick && !s.ab).length, go: "quick5" });
 
 // ── GENERATOR ─────────────────────────────────
 function questRecentTpls(days = QUEST_NO_REPEAT_DAYS) {
@@ -714,7 +710,7 @@ function questSwapUnusedAnki() {
   if (changed) { logEvent("quest_swap", { why: "anki_unused" }); questRecompute(true); saveLocalOnly(); }
 }
 // Open quests that can't be done any more are swapped for free: a
-// retired template (Quick Five), or a spelling quest (accents, Scramble,
+// retired or removed template (an old save's Quick Five), or a spelling quest (accents, Scramble,
 // Type Rush, Timer) once "Speak, don't spell" is on.
 // local: at start-up, save on this device only (see recordLogin).
 function questSwapWhere(bad, why, local = false) {
@@ -739,7 +735,7 @@ function questSwapForSpeak() {
   questSwapWhere(id => { const t = byId(id); return !!(t && t.spell); }, "speak");
 }
 function questSwapRetired() {
-  questSwapWhere(id => { const t = byId(id); return !!(t && t.retired); }, "retired", true);
+  questSwapWhere(id => { const t = byId(id); return !t || !!t.retired; }, "retired", true);
   // A deck quest on a verb-form deck the verb track has taken over
   // entirely: nothing of it can be asked any more — another quest, free.
   if (typeof vxDeckRetired === "function") questSwapWhere((id, q) => !!(q && q.p && [q.p.deck, q.p.d1, q.p.d2].some(d => d && vxDeckRetired(d))), "vx_deck", true);
@@ -897,7 +893,7 @@ function questEvent(type, d = {}) {
       if (d.kind !== "path") break;
       const st = d.stats || {};
       const acc = st.answered ? Math.round(st.correct / st.answered * 100) : 0;
-      m.sessions.push({ t: Date.now(), len: d.len, n: st.answered || 0, acc, ms: d.ms || 0, ab: !!d.abandoned, ok5: d.ok5 || 0, up: d.up || 0, quick: !!d.quick });
+      m.sessions.push({ t: Date.now(), len: d.len, n: st.answered || 0, acc, ms: d.ms || 0, ab: !!d.abandoned, ok5: d.ok5 || 0, up: d.up || 0 });
       if (m.sessions.length > 30) m.sessions = m.sessions.slice(-30);
       m.sittingMax = Math.max(m.sittingMax, st.answered || 0);
       if (d.wotdHit) { const id = m.sessions.length; if (!m.wotd.includes(id)) m.wotd.push(id); }
@@ -1742,7 +1738,6 @@ function runQuestAction(a) {
   const [k, x, y] = a.split(":");
   const len = S.path.sessionLen || "regular";
   if (k === "path") return startPathSession(x || len);
-  if (k === "quick5") return startQuickFive();
   if (k === "focus") return startPathSession(len, { focus: x, param: y });
   if (k === "hub") return openGamesHub(null);
   if (k === "game") { openGamesHub(null); const g = getGame(x); if (g) setTimeout(() => gameTileTap(x), 50); return; }

@@ -584,7 +584,7 @@ function questNudges() {
     const [k, a, b] = String(go).split(":");
     if (k === "focus" && a !== "new") { out.focus.push({ focus: a, param: b }); out.quests.push(q); }
     else if (k === "game" && PATH_BONUS_IDS.includes(a)) { out.games.push(a); out.quests.push(q); }
-    else if (k === "path" || k === "quick5") out.quests.push(q);
+    else if (k === "path") out.quests.push(q);
   });
   return out;
 }
@@ -594,7 +594,7 @@ function questNudges() {
 // choice check → typed recall a few items later), an optional spot
 // check on a 💎 word and optional bonus-round offers.
 function buildPathQueue(lenKey, opts = {}) {
-  const budget = opts.limit || PATH.SESSION_LENGTHS[lenKey] || PATH.SESSION_LENGTHS.regular;
+  const budget = PATH.SESSION_LENGTHS[lenKey] || PATH.SESSION_LENGTHS.regular;
   const rng = Math.random;
   const now = Date.now();
   const scan = pathScan(true);
@@ -616,16 +616,16 @@ function buildPathQueue(lenKey, opts = {}) {
   } else {
     const { fix, due } = pathReviewCandidates(now);
     const reviewsAvail = fix.length + due.length;
-    const newSlots = opts.reviewOnly ? 0 : Math.max(Math.round(budget * 0.3), budget - Math.min(reviewsAvail, Math.round(budget * 0.7)));
+    const newSlots = Math.max(Math.round(budget * 0.3), budget - Math.min(reviewsAvail, Math.round(budget * 0.7)));
     // Each new word costs ~3 counted items: a choice check and two
     // spaced typed recalls (successive relearning, criterion 2).
-    const newCount = opts.reviewOnly ? 0 : Math.min(q.left, Math.floor(newSlots / 3));
+    const newCount = Math.min(q.left, Math.floor(newSlots / 3));
     clusters = planNewWords(newCount, rng);
     const nNew0 = clusters.reduce((s, c) => s + c.length, 0);
     // The verb track (verb-track.js): today's sheets first, then verb
     // items within a quarter of the session — they take that room from
     // word reviews, never from new words.
-    const vxp = !opts.reviewOnly && typeof vxOn === "function" && vxOn() ? vxSessionPlan(Math.round(budget * VX_SESSION_SHARE)) : null;
+    const vxp = typeof vxOn === "function" && vxOn() ? vxSessionPlan(Math.round(budget * VX_SESSION_SHARE)) : null;
     const reviewBudget = Math.max(0, budget - nNew0 * 3 - (vxp ? vxp.items.length : 0));
     reviews = [...fix, ...due].slice(0, reviewBudget).map(x => pathItemFor(pathWord(x.d.id, x.i), x.ws, rng));
     if (vxp && vxp.items.length) {
@@ -641,7 +641,7 @@ function buildPathQueue(lenKey, opts = {}) {
     }
     // Words for open focus quests: the spare room, at least a fifth and
     // at most a third of the session, spread through it.
-    const nudges = opts.reviewOnly ? null : questNudges();
+    const nudges = questNudges();
     if (nudges && nudges.focus.length) {
       // With a finish date, today's plan comes first: quest words only
       // take room the plan's reviews and new words leave free.
@@ -661,10 +661,10 @@ function buildPathQueue(lenKey, opts = {}) {
       }
     }
     // Spot check (at most 2 a day).
-    spots = !opts.reviewOnly && (S.path.spotToday || 0) < 2 && budget >= 15 ? pathSpotCandidates(1, rng) : [];
+    spots = (S.path.spotToday || 0) < 2 && budget >= 15 ? pathSpotCandidates(1, rng) : [];
     // Word of the day (a quest): slip it in once per session.
     const wk = typeof questWotdKey === "function" ? questWotdKey() : null;
-    if (wk && !opts.reviewOnly) {
+    if (wk) {
       const di = wk.lastIndexOf("_"), dId = wk.substring(0, di), idx = +wk.slice(di + 1);
       if (getDeck(dId) && isMet(dId, idx) && !reviews.some(r => r.w.deckId === dId && r.w.idx === idx))
         reviews.splice(Math.floor(reviews.length * 0.4), 0, { t: "typed", w: pathWord(dId, idx), wotd: true });
@@ -718,7 +718,7 @@ function buildPathQueue(lenKey, opts = {}) {
   // The length you picked is the length you get: once due and new words
   // run out, the rest is practice on your least recently seen words
   // (stages only move for due words, so it's pure extra practice).
-  if (!focus && !opts.reviewOnly && !opts.limit) {
+  if (!focus) {
     const have = new Set(out.filter(x => x.w).map(x => x.w.deckId + "_" + x.w.idx));
     const short = budget - counted();
     if (short > 0) focusWords("stale").filter(x => !have.has(x.d.id + "_" + x.i)).slice(0, short)
