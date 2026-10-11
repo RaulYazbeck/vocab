@@ -1327,6 +1327,7 @@ function applyGameCredit(ctx) {
     const fixing = !!(ws.fl || ws.rp || ws.lrn);
     const r = srsReview(ws, false, "recognition");
     if (pluralOnly && (!fixing || ws.fx === "pl")) ws.fx = "pl"; else delete ws.fx;
+    if (pluralOnly) pluralMissed(ws);
     r._w = w;
     if (r.events.includes("flagged")) out.flagged++;
     questEvent("srs", r);

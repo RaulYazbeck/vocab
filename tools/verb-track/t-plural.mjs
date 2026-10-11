@@ -7,6 +7,8 @@
 //   • a word already waiting for its own repair keeps that repair; any
 //     other miss of the word (a game, a choice, a typed answer) asks the
 //     word again.
+//   • a plural missed twice is watched: after its repair, its reviews ask
+//     the plural until it's right on two separate days.
 //   node t-plural.mjs
 import { openApp } from "./browser.mjs";
 const { browser, page, errors } = await openApp({ width: 390, height: 844 });
@@ -71,6 +73,51 @@ const r = await page.evaluate(() => {
   const s2 = pathSession; s2.items.splice(s2.i + 1, 0, pathItemFor(b, wsOf(b))); s2.answered = true; pathNext();
   document.getElementById("p-input").value = pluralItem(b).pl; pathCheckTyped();
   ok(/p-ok/.test(document.getElementById("p-fb").innerHTML), "the plural without die: right");
+  // 6. A plural missed twice is watched: after its repair, its next
+  //    reviews ask the plural until it's right on two separate days.
+  const e = nouns[3] && nouns.find((w, i) => i > 3 && !wsOf(w).fl && !wsOf(w).rp && !wsOf(w).lrn);
+  if (e) {
+    const ws = wsOf(e);
+    game([e], { [wordKey(e)]: "plural" });
+    ok(ws.plm === 1 && !ws.plw, "one plural miss: not watched yet");
+    game([e], { [wordKey(e)]: "plural" });
+    ok(ws.plm === 2 && ws.plw === 2, "a second miss: watched");
+    // repaired (its fix typed right)
+    startPathSession("regular", { noBonus: true });
+    const s3 = pathSession; s3.items.splice(s3.i + 1, 0, pathItemFor(e, ws)); s3.answered = true; pathNext();
+    document.getElementById("p-input").value = "die " + pluralItem(e).pl; pathCheckTyped();
+    ok(!ws.fl && !ws.fx && ws.plw === 2, "repaired: flag gone, still watched");
+    // its next due review asks the plural
+    ws.dueAt = Date.now() - 1000; delete ws.lrn; delete ws.rp;
+    const it1 = pathItemFor(e, ws);
+    ok(it1.ask === "pl" && it1.watch, "a due review of a watched word asks the plural");
+    s3.items.splice(s3.i + 1, 0, it1); s3.answered = true; pathNext();
+    ok(/missed it before/.test(document.getElementById("p-card").innerText), "the card says why");
+    document.getElementById("p-input").value = pluralItem(e).pl; pathCheckTyped();
+    ok(ws.plw === 1 && ws.plDay === studyToday(), "right once: one more day to go");
+    ws.dueAt = Date.now() - 1000;
+    ok(pathItemFor(e, ws).ask !== "pl", "not asked again the same day");
+    ws.plDay = addDays(studyToday(), -1);
+    const it2 = pathItemFor(e, ws);
+    ok(it2.ask === "pl", "asked again another day");
+    s3.items.splice(s3.i + 1, 0, it2); s3.answered = true; pathNext();
+    document.getElementById("p-input").value = "Tisch-falsch"; pathCheckTyped();
+    ok(ws.plw === 2 && ws.fx === "pl" && (ws.fl || ws.rp || ws.lrn), "missed during the watch: watched again from the start, repair asks the plural");
+    ws.plw = 1; ws.plDay = addDays(studyToday(), -1); delete ws.fl; delete ws.rp; delete ws.lrn; delete ws.fx; ws.dueAt = Date.now() - 1000;
+    const it3 = pathItemFor(e, ws);
+    s3.items.splice(s3.i + 1, 0, it3); s3.answered = true; pathNext();
+    document.getElementById("p-input").value = "die " + pluralItem(e).pl; pathCheckTyped();
+    ok(!ws.plw && !ws.plm, "right on the last day: the watch ends");
+    ws.dueAt = Date.now() - 1000;
+    ok(pathItemFor(e, ws).ask !== "pl", "then reviews ask the word again");
+    // A watched word comes back the next day, due or not — a 💎 one too.
+    ws.plw = 1; ws.plDay = addDays(studyToday(), -1); ws.st = STAGE_LOCKED; ws.dueAt = Date.now() + 90 * 864e5;
+    const { due } = pathReviewCandidates();
+    ok(due.some(o => o.d.id + "_" + o.i === wordKey(e)), "a watched plural comes back the next day, even on a 💎 word not due");
+    ws.plDay = studyToday();
+    ok(!pathReviewCandidates().due.some(o => o.d.id + "_" + o.i === wordKey(e)), "…but not twice the same day");
+    delete ws.plw; delete ws.plDay;
+  }
   return out;
 });
 let pass = 0, fail = 0;

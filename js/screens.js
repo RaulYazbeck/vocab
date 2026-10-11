@@ -838,7 +838,8 @@ function deadlineSettingsHtml() {
 }
 function deadlineLineHtml(scan) {
   const d = fmtShortDate(S.path.deadline);
-  if (!pathUnmet(scan)) return `🗓️ Every word is met — reviews only from here`;
+  const vxLeft = typeof vxOn === "function" && vxOn() ? vxPaceNeeded(scan).left : 0;
+  if (!pathUnmet(scan) && !vxLeft) return `🗓️ Every word and verb is met — reviews only from here`;
   if (pathDaysLeft() < 0) return `🗓️ Your finish date (${d}) has passed — pick a new one in ⚙️ Settings whenever you like`;
   const st = pathDeadlineStatus(scan);
   if (!st.ok) return `⚠️ ${d} is out of reach — at the fastest pace you'd finish around <b>${fmtShortDate(st.eta)}</b>. Pick a later date in ⚙️ Settings`;

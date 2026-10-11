@@ -1140,7 +1140,11 @@ function vxPaceNeeded0(scan) {
   // At the caps, when would the last one start?
   const lastStart = (by, cap) => { let t = 0; Object.keys(by).map(u => [open[u] || 0, by[u]]).sort((a, b) => a[0] - b[0]).forEach(([o, n]) => { t = Math.max(t, o) + Math.ceil(n / cap); }); return t; };
   const days = Math.max(lastStart(itemsBy, VX_ITEM_PACE[1]), lastStart(cellsBy, VX_CELL_PACE[1]));
-  return { items: I.need, cells: C.need, ok: I.need <= VX_ITEM_PACE[1] && C.need <= VX_CELL_PACE[1], eta: addDays(studyToday(), days + (typeof KNOWN_LAG === "number" ? KNOWN_LAG : 30)) };
+  // Nothing left to start: nothing to wait for (what's started climbs
+  // with its reviews, as words do once met).
+  const left = I.total + C.total;
+  return { items: I.need, cells: C.need, left, ok: I.need <= VX_ITEM_PACE[1] && C.need <= VX_CELL_PACE[1],
+    eta: left ? addDays(studyToday(), days + (typeof KNOWN_LAG === "number" ? KNOWN_LAG : 30)) : studyToday() };
 }
 // The verb track's share of the Today card's numbers: reviews due (and
 // of them, repairs) and new items still to come today.

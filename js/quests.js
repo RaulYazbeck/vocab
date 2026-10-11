@@ -956,13 +956,6 @@ function questOnAnswer(m, d) {
       if (d.voice) m.voice++;
       if (d.ms && d.ms < 5000) m.fast++;
       if (d.it === "reverse") m.rev++;
-      // Verb track forms (grammar-ui.js pathGradeVerb).
-      if (d.it === "verb" && w && w.vx && !d.hint) {
-        m.vxOk++;
-        if (w.vx.cell) m.vxCells++;
-        if (d.fix) m.vxFixed++;
-        if (!d.retried) m.vxTenseSure++;
-      }
       if (d.it === "cloze") m.cloze++;
       if (w) {
         const p = posOf(w);
@@ -971,6 +964,13 @@ function questOnAnswer(m, d) {
         const re = IS_FRENCH_APP ? /[éèêàâçôîûùëïœ]/i : /[äöüß]/i;
         if (re.test(w[WORD_KEY] || "") && d.raw !== false) m.umlaut++;
       }
+    }
+    // Verb track forms (grammar-ui.js pathGradeVerb) — typed or said.
+    if (d.it === "verb" && w && w.vx && !d.hint) {
+      m.vxOk++;
+      if (w.vx.cell) m.vxCells++;
+      if (d.fix) m.vxFixed++;
+      if (!d.retried) m.vxTenseSure++;
     }
     if (d.ear) m.ear++;
     if (!m.cleanBroken) m.cleanStart++;

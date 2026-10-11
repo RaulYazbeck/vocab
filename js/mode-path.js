@@ -310,7 +310,8 @@ function pathAnswerChoice(i) {
 }
 
 function pathKickerHtml(it, ws) {
-  if (it.plural) return `<div class="p-kicker ${it.repair || ws.rp ? "repair" : "flag"}">🔢 ${it.repair ? "Repair round — " : ""}its plural: you missed it in a game</div>`;
+  if (it.plural) return it.watch && !it.repair ? `<div class="p-kicker flag">🔢 Its plural — you've missed it before (${ws.plw || 1} more to go)</div>`
+    : `<div class="p-kicker ${it.repair || ws.rp ? "repair" : "flag"}">🔢 ${it.repair ? "Repair round — " : ""}its plural: you missed it${(ws.plm || 0) >= 2 ? " again" : " in a game"}</div>`;
   if (it.repair) return `<div class="p-kicker repair">🩹 Repair round — one more try</div>`;
   return it.t === "spot" ? (it.maint ? `<div class="p-kicker spot">💎 Check-in — a locked-in word, ${(ws.mt || 0) ? "a year" : "4 months"} later</div>` : `<div class="p-kicker spot">🔍 Spot check — a 💎 word</div>`)
     : ws.rp ? `<div class="p-kicker repair">🩹 Repair — get it right to keep its badge</div>`
@@ -636,7 +637,7 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     sessionConsecutive++;
     if (it.practice) { ws.lastAnsweredAt = Date.now(); ws.correct++; ws.streak++; ws.displayStreak++; S.totalCorrect++; }
     else res = applyCorrect(ws, { quiet: true, kind, w, ms: Date.now() - s.shownAt });
-    if (it.plural) delete ws.fx; // its plural typed right: repaired
+    if (it.plural) { delete ws.fx; if (it.watch) pluralRight(ws); } // its plural typed right: repaired
     // Fixed = back on schedule (a hint-aided answer leaves it to fix later).
     if (it.repair && !(ws.lrn || ws.rp || ws.fl)) s.repairFixed = (s.repairFixed || 0) + 1;
     addExp(5);
@@ -665,6 +666,8 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     sessionConsecutive = 0;
     const before = JSON.parse(JSON.stringify(ws)), moveBefore = s.moves.get(wordKey(w));
     res = applyWrong(ws, { w, keepFx: !!it.plural });
+    // A plural missed again: its repair asks it, and it is watched after.
+    if (it.plural) { ws.fx = "pl"; pluralMissed(ws); }
     // 🛡️ A memory shield (chest item) can take back a stage loss or a
     // repair — you pick the word: the button sits on this feedback.
     if ((res.demoted || res.events.includes("repair")) && S.quests && S.quests.shields > 0 && !grandmaOn())

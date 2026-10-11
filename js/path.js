@@ -320,8 +320,11 @@ const KNOWN_LAG = 30; // simulated: last word met → 99% Known in ~11 days, plu
 // forms at their fastest pace, each tense from the day it opens.
 function pathDeadlineStatus(scan = pathScan(), today = studyToday()) {
   if (!pathDeadlineOn()) return { ok: true, eta: "" };
+  const vx = typeof vxOn === "function" && vxOn() ? vxPaceNeeded(scan) : null;
+  // Every word met and every verb item and form started: on course.
+  if (!pathUnmet(scan) && !(vx && vx.left)) return { ok: true, eta: S.path.deadline };
   let eta = pathUnmet(scan) ? addDays(today, Math.ceil(pathUnmet(scan) / PLAN.MAX_PACE) + KNOWN_LAG) : today;
-  if (typeof vxOn === "function" && vxOn()) { const v = vxPaceNeeded(scan); if (v.eta > eta) eta = v.eta; }
+  if (vx && vx.eta > eta) eta = vx.eta;
   const ok = pathDaysLeft(today) >= 0 && eta <= S.path.deadline;
   return { ok, eta: ok ? S.path.deadline : eta };
 }
@@ -455,9 +458,12 @@ function pathReviewCandidates(now = Date.now()) {
   vocabGroups().forEach(g => g.decks.forEach(d => {
     for (let i = 0; i < d.words.length; i++) {
       const ws = S.words[d.id + "_" + i];
-      if (!ws || !ws.st || ws.rt || (ws.st >= STAGE_LOCKED && !ws.rp && !ws.fl && !(ws.dueAt && ws.dueAt <= now))) continue;
+      if (!ws || !ws.st || ws.rt) continue;
+      // A watched plural comes back the next day, due or not (its check).
+      const watch = ws.plw > 0 && ws.plDay !== studyToday() && pathHasPlural(pathWord(d.id, i));
+      if (ws.st >= STAGE_LOCKED && !ws.rp && !ws.fl && !(ws.dueAt && ws.dueAt <= now) && !watch) continue;
       if (ws.rp || ws.fl || ws.lrn) fix.push({ d, i, ws });
-      else if (ws.dueAt && ws.dueAt <= now) due.push({ d, i, ws });
+      else if ((ws.dueAt && ws.dueAt <= now) || watch) due.push({ d, i, ws });
     }
   }));
   fix.sort((a, b) => (b.ws.rp || 0) - (a.ws.rp || 0) || (a.ws.dueAt || 0) - (b.ws.dueAt || 0));
@@ -485,11 +491,28 @@ function pathSpotCandidates(n = 1, rng = Math.random) {
 //           ⭐+ sometimes reversed (type the meaning)
 // A word flagged for its plural alone (Plural Hunt): its fix asks the plural.
 function pathFixAsk(w, ws) {
-  return ws && ws.fx === "pl" && !IS_FRENCH_APP && typeof pluralItem === "function" && pluralItem(w) ? "pl" : "";
+  return ws && ws.fx === "pl" && pathHasPlural(w) ? "pl" : "";
+}
+function pathHasPlural(w) { return !IS_FRENCH_APP && typeof pluralItem === "function" && !!pluralItem(w); }
+// Plurals you keep missing (ws.plm: misses, in a game or typed): from
+// the second one the plural is watched (ws.plw) — once repaired, the
+// word's next reviews ask its plural instead of its meaning until it is
+// right on PLURAL_WATCH separate days; a miss starts the watch again.
+const PLURAL_WATCH = 2;
+function pluralMissed(ws) {
+  ws.plm = (ws.plm || 0) + 1;
+  if (ws.plm >= 2) ws.plw = PLURAL_WATCH;
+}
+function pluralRight(ws) {
+  if (!ws.plw || ws.plDay === studyToday()) return; // one day counts once
+  ws.plDay = studyToday();
+  if (--ws.plw <= 0) { delete ws.plw; delete ws.plDay; ws.plm = 0; }
 }
 function pathItemFor(w, ws, rng = Math.random) {
   const st = ws ? ws.st || 0 : 0;
   if (ws && (ws.rp || ws.lrn || ws.fl)) return { t: "typed", w, fix: true, ask: pathFixAsk(w, ws) };
+  // A watched plural: this review asks it (not twice the same day).
+  if (ws && ws.plw > 0 && ws.plDay !== studyToday() && pathHasPlural(w)) return { t: "typed", w, ask: "pl", watch: true };
   if (st >= STAGE_LOCKED) return { t: "spot", w, maint: true };
   if (st <= 1) {
     if (audioOk() && rng() < 0.25) return { t: "listen", w };

@@ -1029,7 +1029,8 @@ function vxRowCellsDe(F, tense, person) {
     const c = verbCell(F, tense, p);
     if (!c) return null;
     const tail = String(c.tail || "").replace(/^… /, "").replace(/!$/, "").trim();
-    return { pron: PERSON_LABEL[p].split("/")[0], form: [c.ans, tail].filter(Boolean).join(" "), on: p === person };
+    // (Sie is asked with the sie form: its row lights up.)
+    return { pron: PERSON_LABEL[p].split("/")[0], form: [c.ans, tail].filter(Boolean).join(" "), on: p === person || (person === "Sie" && p === "sie") };
   }).filter(Boolean);
 }
 // The row as a table: pronouns right-aligned against their forms;

@@ -103,7 +103,10 @@ for (const on of modes) {
       if (!firstAllMet && pathUnmet(scan) === 0) firstAllMet = today;
       if (!firstAllKnown && scan.known >= scan.total) firstAllKnown = today;
       if (on && !ledgerDone && L.done === L.verbs) ledgerDone = today;
-      days.push({ d: today, target, right, answers, sessions, vxAns, vxRight, sheets, sheetFails, pace: plan ? plan.pace : 0, met: scan.met, known: scan.known, total: scan.total, unmet: pathUnmet(scan), due: scan.due, od: scan.overdue,
+      // The last few cards short of Known: which, and why (for the tail).
+      const strag = scan.total - scan.known <= 3 ? vocabGroups().flatMap(g => g.decks.flatMap(d => d.words.map((w, i) => [d.id + "_" + i, S.words[d.id + "_" + i], w])))
+        .filter(([k, ws]) => !(ws && ws.st >= STAGE_KNOWN)).map(([k, ws, w]) => `${k} ${w[WORD_KEY]} st${ws ? ws.st : 0}${ws && ws.rt ? " mirror→" + JSON.stringify(vxRetireMap().get(k)) : ""}${ws && ws.fl ? " fl" : ""}${ws && ws.rp ? " rp" : ""}${ws && ws.lrn ? " lrn" : ""} due ${ws && ws.dueAt ? new Date(ws.dueAt).toISOString().slice(0, 10) : "-"} k${ws && ws.k ? ws.k.toFixed(2) : "-"}`) : null;
+      days.push({ d: today, strag, target, right, answers, sessions, vxAns, vxRight, sheets, sheetFails, pace: plan ? plan.pace : 0, met: scan.met, known: scan.known, total: scan.total, unmet: pathUnmet(scan), due: scan.due, od: scan.overdue,
         units: on ? VX_UNITS.map(u => vxUnitState(u.id)).join("") : "", ledger: L ? [L.done, L.cellsDone, L.itemsKnown] : null, vxq: on ? vxQuotas() : null });
     }
     const scan = pathScan(true);
