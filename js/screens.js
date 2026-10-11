@@ -666,7 +666,7 @@ function settingsAccountName() {
   return (typeof currentUser !== "undefined" && currentUser)
     ? (currentUser.displayName || currentUser.email || "Signed in") : "";
 }
-// ☰ The Menu: you, where to go, Classic mode, Settings.
+// ☰ The Menu: you, where to go, Settings (Classic mode lives in ⚙️ › Modes).
 // 👵 Grandma mode: one short page — games, sound, new words, the modes
 // (Grandma, Speak don't spell) and the account. No sub-pages.
 function grandmaMenuHtml() {
@@ -715,7 +715,6 @@ function settingsMenuHtml() {
       ${menuRowHtml("📊", "Stats", "", "menuGo('stats')")}
       ${menuRowHtml("🏆", "Achievements", "", "menuGo('badges')")}
     </div>
-    ${grandmaOn() ? "" : setSwitchHtml("📚", "Classic mode", "The Library under Today: pick decks yourself — Learn · Drill · Timer · Games", classicOn(), "toggleClassic()")}
     <div class="menu-list">
       ${menuRowHtml("⚙️", "Settings", "", "openSettingsPage('main')")}
       ${menuRowHtml("☁️", account ? name : "Sign in", account ? "synced" : "to sync devices", account ? "openSettingsPage('account')" : "handleAuth()")}
