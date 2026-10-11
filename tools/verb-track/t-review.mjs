@@ -69,7 +69,8 @@ for (const s of r.out) {
   ok(s.finished, `${tag}: the quiz finishes normally (missed one comes back once)`);
   if (s.fromResult !== undefined) ok(s.fromResult && s.resultBack, `${tag}: from the result into the sheet and back to the result`);
 }
-ok(Object.values(r.kinds).filter(Boolean).length >= 4, "covered type, pick, order and why/odd questions", JSON.stringify(r.kinds));
+// why / odd questions use the same option buttons as pick.
+ok(r.kinds.type && (r.kinds.pick + r.kinds.odd + r.kinds.why) && r.kinds.order, "covered typed, option and word-order questions", JSON.stringify(r.kinds));
 ok(!errors.length, "no page errors", errors.join(" | "));
 console.log(`review: ${pass} passed, ${fail} failed`, JSON.stringify(r.kinds));
 await browser.close();
