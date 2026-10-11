@@ -987,7 +987,9 @@ function vxRecordAnswer(ex, ok, opts = {}) {
   vxRollDay();
   const V = S.verb;
   let res = null;
-  if (ex.cell) V.nc++; // a drill uses up today's quota, right or wrong (a miss comes back tomorrow)
+  // A drill uses up today's quota, right or wrong (a miss comes back in
+  // the repair round, or tomorrow) — its repair-round try doesn't.
+  if (ex.cell && !opts.repair) V.nc++;
   if (ok === true && !opts.hint) vxCovSet(ex.x.inf, ex.tense);
   if (ex.cell && ok !== true) {
     // A missed drill: the rule behind it gets a typed check.

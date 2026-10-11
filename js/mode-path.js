@@ -780,14 +780,20 @@ function pathReask(w, gap) {
 // count in tomorrow's plan — the plan is made each morning from what's
 // due, so skipping never breaks it; it just moves the work). Missed
 // again in the round, a word stays open for next time.
+// A verb drill (a ledger form) has no record of its own: it is open
+// until that verb's tense has been produced right.
+function pathIsDrill(w) { return !!(w && w.vx && w.vx.cell); }
 function pathRepairList() {
   const s = pathSession;
-  return s.missed.filter(w => { const ws = S.words[wordKey(w)]; return ws && ws.st; });
+  return s.missed.filter(w => { if (pathIsDrill(w)) return true; const ws = S.words[wordKey(w)]; return ws && ws.st; });
 }
 // Missed words that still need a correct recall.
 function pathOpenMistakes() {
   const s = pathSession;
-  return s.missed.filter(w => { const ws = S.words[wordKey(w)]; return ws && ws.st && (ws.lrn || ws.rp || ws.fl); });
+  return s.missed.filter(w => {
+    if (pathIsDrill(w)) return !vxCovHas(w.vx.x.inf, w.vx.tense);
+    const ws = S.words[wordKey(w)]; return ws && ws.st && (ws.lrn || ws.rp || ws.fl);
+  });
 }
 function renderPathRepairOffer(list) {
   const s = pathSession;
@@ -829,7 +835,11 @@ function pathRepair(yes) {
   const start = s.items.length;
   // A word already back on track (an "≈ Almost", or got right since) is
   // practice here: a miss still counts, a right answer moves nothing.
-  list.forEach(w => { const ws = S.words[wordKey(w)]; s.items.push({ t: "typed", w, fix: true, repair: true, practice: !(ws.lrn || ws.rp || ws.fl) }); });
+  list.forEach(w => {
+    // A missed verb drill: the same verb and tense, another person.
+    if (pathIsDrill(w)) { const ex = vxCellExercise({ x: w.vx.x, t: w.vx.tense }); s.items.push({ t: "typed", w: ex ? vxWord(ex) : w, fix: true, repair: true }); return; }
+    const ws = S.words[wordKey(w)]; s.items.push({ t: "typed", w, fix: true, repair: true, practice: !(ws.lrn || ws.rp || ws.fl) });
+  });
   s.i = start - 1; // pathNext steps onto the first repair item
   pathNext();
 }

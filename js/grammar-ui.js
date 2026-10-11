@@ -905,7 +905,8 @@ function pathGradeVerb(val, ok, said = false) {
     // One slip: no step either way, one more try at the end.
     s.answered = true;
     s.stats.near++; s.stats.answered++;
-    if (ex.item) { const ws = getWS(VX_DECK, ex.item); ws.lastAnsweredAt = Date.now(); ws.near = (ws.near || 0) + 1; pathMissed(w); }
+    if (ex.item) { const ws = getWS(VX_DECK, ex.item); ws.lastAnsweredAt = Date.now(); ws.near = (ws.near || 0) + 1; }
+    pathMissed(w); // a drill too: its try in the repair round
     if (input) input.classList.add("near");
     logEvent("answer", { m: ex.cell ? "path:cell" : "path:verb", ok: false, near: true, typed: true, ms: Date.now() - s.shownAt });
     document.getElementById("p-fb").innerHTML = `<div class="p-near">≈ ${vxT("Almost")} — ${vxT("check the spelling")}</div><div class="p-diff">${vxDiffHtml(val, ex.form.ans)}</div><div class="p-sub">${vxT("No step up, no step down — one more try at the end of this session.")}</div>`;
@@ -918,7 +919,7 @@ function pathGradeVerb(val, ok, said = false) {
   const hint = !!it.usedHint;
   const kind = hint ? "recognition" : "recall";
   let res = null, from = 0;
-  vxRecordAnswer(ex, ok === true, { given: val, hint });
+  vxRecordAnswer(ex, ok === true, { given: val, hint, repair: !!it.repair });
   if (ex.item) {
     const ws = getWS(VX_DECK, ex.item);
     from = stageOf(ws);
@@ -931,12 +932,11 @@ function pathGradeVerb(val, ok, said = false) {
       pathMissed(w);
     }
     pathRecordMove(w, from, res);
-  } else if (ok !== true && !it.reask) {
-    // A missed drill: once more a few items later (another person).
-    const again = vxCellExercise({ x: ex.x, t: ex.tense });
-    if (again) { let pos = s.i + 1, n = 0; while (pos < s.items.length && n < 4) { if (s.items[pos].t !== "learn" && s.items[pos].t !== "bonus" && s.items[pos].t !== "sheet") n++; pos++; }
-      s.items.splice(pos, 0, { t: "typed", w: vxWord(again), reask: true }); }
-  }
+  } else if (ok !== true) {
+    // A missed drill waits for the repair round like every mistake — the
+    // session's count never grows (another person of the same tense then).
+    pathMissed(w);
+  } else if (it.repair && !hint) s.repairFixed = (s.repairFixed || 0) + 1;
   if (ex.cell && ok === true && !hint) s.vxCells = (s.vxCells || 0) + 1;
   if (ok === true) {
     sessionConsecutive++; sessionCorrect++; s.stats.correct++;
