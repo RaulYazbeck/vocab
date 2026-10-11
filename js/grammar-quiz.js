@@ -202,7 +202,10 @@ function gqResolve(item, sid, avoid = new Set()) {
   }
   const gaps = Array.from({ length: form.n }, () => "___").join(" ");
   const imp = /^im/.test(item.t);
-  const q = imp ? `(${p}) ${gaps}! ${verb}${item.lbl || ""}` : `${gqPron(p, x, item.t)} ${gaps} ${verb}${item.lbl || ""}`;
+  // A Sie-command shows its Sie, as in Today: (Sie) ___ Sie!
+  const sie = item.t === "im" && p === "Sie" ? " Sie" : "";
+  const ctx = form.ctx ? " " + form.ctx : "";
+  const q = imp ? `(${p}) ${gaps}${sie}${ctx}! ${verb}${item.lbl || ""}` : `${gqPron(p, x, item.t)} ${gaps}${ctx} ${verb}${item.lbl || ""}`;
   if (item.ask === "pick") {
     const w = gqWrong(x, item.t, p, form, modal);
     if (w.length < 2) return null;

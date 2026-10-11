@@ -326,3 +326,6 @@
 .gr-m-t { display:flex; flex-direction:column; gap:2px; flex:1; }
 .gr-m-t b { font-size:15px; }
 .gr-m-t small { font-size:12.5px; color:var(--text-2); }
+
+.vx-ctx { color:var(--text-2); font-weight:500; }
+.vx-uml { font-weight:500; color:var(--text-2); font-size:0.9em; }

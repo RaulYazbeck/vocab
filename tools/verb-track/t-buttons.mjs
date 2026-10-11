@@ -1,6 +1,6 @@
 // Every button of the verb track, pressed for real (mouse clicks, keys,
 // taps) on a phone and a desktop: the switch, Grammar, units, sheets,
-// quizzes (right, wrong, empty, umlaut slip, double taps, leaving
+// quizzes (right, wrong, empty, no umlaut typed, double taps, leaving
 // halfway), "see it in the sheet" and back, results, mastery, and a
 // Today session with its sheet, verb cards and the 📖 peek. Collects
 // page errors, horizontal overflow and dead buttons on every screen.
@@ -141,11 +141,13 @@ for (const [W, H] of SIZES) {
     const d = await ev(() => _gs.quiz.firstRight); ok(d === q.fr + 1, `${tag}: Enter twice counts once`);
     const still = await Q(); if (still && still.answered) await next();
   } else { await answer(true); await next(); }
-  // an umlaut slip on a typed question gives one more try
+  // an umlaut left out counts, and the feedback shows the spelling
   q = await Q();
   if (q && q.k === "type" && /[äöü]/.test(q.a[0])) {
     await page.fill("#gs-input", q.a[0].replace(/ä/g, "a").replace(/ö/g, "o").replace(/ü/g, "u")); await page.press("#gs-input", "Enter"); await wait(150);
-    ok(!(await Q()).answered && /umlaut/.test(await ev(() => document.getElementById("gs-qfb").innerText)), `${tag}: an umlaut slip → "mind the umlaut", try again`);
+    const u = await Q();
+    ok(u.answered && u.fr === q.fr + 1 && /spelt/.test(await ev(() => document.getElementById("gs-qfb").innerText)), `${tag}: no umlaut typed → right, spelling shown`);
+    await next();
   }
   await finishQuiz();
   await shot("07-result");
