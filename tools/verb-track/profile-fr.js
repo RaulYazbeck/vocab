@@ -1,5 +1,5 @@
-// A French test profile: A1 well under way (every A1 deck but the last
-// fifth met), stages spread like the German profile, a finish date.
+// A French test profile: A1 done (every A1 card met), stages spread
+// like the German profile, a finish date.
 // Runs in the page (needs ALL_GROUPS).
 function vxTestProfile(seed = 11) {
   let a = seed >>> 0;
@@ -15,7 +15,7 @@ function vxTestProfile(seed = 11) {
       anki: { phase: "new", stepIndex: 0, interval: 0, ease: 2.5, due: null, lapses: 0, leech: false, introducedOn: null },
       st, pk: st, sAt: now - Math.max(1, gap - dueIn) * day, dueAt: now + dueIn * day, metOn: iso(metAgo), k: 1, ...(st >= 5 ? { mastered: true } : {}) };
   };
-  groups[0].decks.forEach(d => d.words.forEach((w, idx) => { if (idx < d.words.length * 0.8) put(d, idx, 20 - Math.floor(idx / d.words.length * 19)); }));
+  groups[0].decks.forEach(d => d.words.forEach((w, idx) => { put(d, idx, 20 - Math.floor(idx / d.words.length * 19)); }));
   const unlocked = {};
   groups.forEach(g => g.decks.forEach(d => { let n = 0; d.words.forEach((_, k) => { if (words[d.id + "_" + k]) n = k + 1; }); if (n) unlocked[d.id] = n; }));
   return {

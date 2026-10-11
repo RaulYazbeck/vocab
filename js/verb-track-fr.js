@@ -133,7 +133,20 @@ function vxfOut(ans, acc = [], tail = "") {
 // or one of the track's own: sj · ip · ge · vd (venir de) · cp
 // (conditionnel passé) · pvpr / pvpc / pvfu (passive) · pp (the
 // participle alone). → { ans, acc, tail, n } or null.
+// "Each other" verbs. se rencontrer, se connaître: "je me rencontre"
+// isn't something one says — only nous / vous / ils. se disputer,
+// s'entendre…: the singular needs someone to do it with — je me dispute
+// AVEC ANNA; the question shows that context (ctx), as German does.
+const VXF_RECIP_PLURAL = new Set(["se rencontrer", "se connaître", "se revoir"]);
+const VXF_RECIP_CTX = { "se disputer": "avec Anna", "s'entendre": "avec Anna", "se retrouver": "avec Anna", "se battre": "avec Anna", "se séparer": "de Paul", "se fâcher": "avec Anna" };
 function vxfForm(x, kind, p) {
+  const sing = ["je", "tu", "il", "elle"].includes(p), whole = kind !== "pp" && kind !== "ge";
+  if (VXF_RECIP_PLURAL.has(x.inf) && sing && whole) return null;
+  const r = vxfForm1(x, kind, p);
+  if (r && VXF_RECIP_CTX[x.inf] && sing && whole) r.ctx = VXF_RECIP_CTX[x.inf];
+  return r;
+}
+function vxfForm1(x, kind, p) {
   const r = vxfForm0(x, kind, p);
   // payer: je paie and je paye are both right (paierai / payerai).
   if (r && /ayer$/.test(x.F.bare)) {
@@ -186,7 +199,7 @@ function vxfForm0(x, kind, p) {
 // Every tense the track can ask of this verb (the engine's, + its own).
 function vxfHasTense(x, t) {
   if (x.v.tenses.includes(t)) return true;
-  if (t === "sj") return !!vxfForm(x, "sj", x.F.only || "je");
+  if (t === "sj") return !!vxfForm(x, "sj", x.F.only || "ils");
   if (t === "ip") return !!vxfForm(x, "ip", "vous");
   return false;
 }
@@ -321,7 +334,7 @@ function vxfNeedsItem(x, kind) {
   if (kind === "ip") return k.ipIrr;
   if (kind === "im") return k.imIrr && !vxActiveRef(x, "im", ["je", "nous"]);
   if (kind === "fu") return k.futIrr && x.v.tenses.includes("fu") && !vxActiveRef(x, "fu", ["je", "nous"]);
-  if (kind === "sj") return k.sjIrr && !!vxfForm(x, "sj", x.F.only || "je");
+  if (kind === "sj") return k.sjIrr && !!vxfForm(x, "sj", x.F.only || "ils");
   if (kind === "ge") return k.geIrr;
   return false;
 }
@@ -407,9 +420,11 @@ function vxfEq(answer, typed) {
   return f(answer) === f(typed);
 }
 const VXF_PRON_RE = /^(?:(?:que|qu')\s*)?(?:je\s+|j'|tu\s+|il\s+|elle\s+|on\s+|nous\s+|vous\s+|ils\s+|elles\s+)/i;
-function vxfGradeTries(val) {
+// A command never has a pronoun in front: "tu parle" is not "Parle !".
+function vxfGradeTries(val, imp = false) {
   const raw = String(val || "").trim().replace(/[’`´]/g, "'").replace(/\s*!+$/, "").trim();
   if (!raw) return [];
+  if (imp) return [raw];
   const noPron = raw.replace(VXF_PRON_RE, "");
   return [...new Set([raw, noPron, raw.replace(/^(que|qu')\s*/i, ""), raw.replace(/^en\s+/i, ""), noPron.replace(/\s*[,·/;…]\s*/g, " ")])].filter(Boolean);
 }
@@ -479,8 +494,8 @@ function vxfRuleHtml(x, kind, p) {
     case "vd": return `📏 venir (${b(VXF_VENIR[i])}) + de + infinitivo = acabar de.`;
     case "pc": case "pq": case "cp": {
       const aux = F.aux === "être" ? "être" : "avoir";
-      const why = F.refl ? "verbo pronominal → être" : F.aux === "être" ? "verbo de movimiento / cambio → être, y el participio concuerda" : "avoir";
-      return `📏 ${b(aux)} (${why}) + participio ${b(F.pp)}${x.k.ppIrr ? " (irregular)" : ""}.`;
+      const why = F.refl ? " (verbo pronominal → être)" : F.aux === "être" ? " (verbo de movimiento / cambio → être, y el participio concuerda)" : "";
+      return `📏 ${b(aux)}${why} + participio ${b(F.pp)}${x.k.ppIrr ? " (irregular)" : ""}.`;
     }
     case "sj": return x.k.sjIrr ? `📏 ${b(base)} tiene subjonctif propio.` : i === 3 || i === 4 ? `📏 nous / vous = el imparfait: ${b(F.im[i])}.` : `📏 ils ${b(F.pr[5])} → raíz ${b(F.pr[5].replace(/ent$/, ""))}- + ${b(["e", "es", "e", "", "", "ent"][i])}.`;
     case "ip": return x.k.ipIrr ? `📏 ${b(base)} toma su imperativo del subjonctif.` : `📏 El presente sin pronombre${p === "tu" && (F.group === "er" || x.k.ouvr || base === "aller") ? " — y en -er, tu pierde la s" : ""}.`;
@@ -654,7 +669,7 @@ const VXF_ES = {
   "Previous part": "Parte anterior", "Next part": "Parte siguiente", "Back to the quiz ▶": "Volver al quiz ▶", "🏆 optional": "🏆 opcional",
   "Question {0} of {1}": "Pregunta {0} de {1}", "Once more — the one you missed": "Otra vez — la que fallaste", "type it…": "escríbelo…",
   "tap the words in order": "toca las palabras en orden", "Your sentence": "Tu oración", "Check": "Revisar",
-  "mind the umlaut: it changes the form": "ojo con el acento: cambia la forma", "check the spelling": "revisa la ortografía",
+  "check the spelling": "revisa la ortografía",
   "≈ Almost — {0} — try again": "≈ Casi — {0} — inténtalo otra vez", "✓ Right": "✓ Correcto", "✗ Answer:": "✗ Respuesta:",
   "📖 See it in the sheet — {0}": "📖 Verlo en la ficha — {0}", "This question comes back once at the end.": "Esta pregunta vuelve una vez al final.",
   "See result": "Ver resultado", "To look at again": "Para repasar", "Mastery quiz": "Quiz de dominio", "{0} mastered!": "¡{0} dominado!",
@@ -703,8 +718,7 @@ const VXF_ES = {
   "🧩 <b>New verb system ready</b> — see what changes ›": "🧩 <b>Nuevo sistema de verbos listo</b> — mira qué cambia ›",
   "📖 <b>{0}</b> lesson {1}/{2} · next sheet in your session": "📖 <b>{0}</b> lección {1}/{2} · la siguiente ficha llega en tu sesión",
   // Today's verb cards
-  "Say": "Di", "Type": "Escribe", "both forms": "las dos formas", "one word": "una palabra", "{0} words": "{0} palabras",
-  " — the prefix too": " — también el prefijo", " — with the pronoun": " — con el pronombre", " — the whole command": " — la orden completa",
+  "Say": "Di", "Type": "Escribe",
   "🧩 Rule · {0}": "🧩 Regla · {0}", "📒 Ledger · {0} verbs": "📒 Registro · verbos {0}", "📒 {0} verb": "📒 verbo {0}",
   "One review, a different verb each time — your verbs, in order.": "Un repaso, con un verbo distinto cada vez — tus verbos, en orden.",
   " — not built by rule, so it has its own card": " — no sale de una regla, por eso tiene su propia tarjeta",
@@ -712,12 +726,11 @@ const VXF_ES = {
   "📒 new form": "📒 forma nueva", "🌱 New": "🌱 Nueva", "🩹 Repair round — one more try": "🩹 Ronda de reparación — un intento más",
   "🩹 Repair — get it right to keep its badge": "🩹 Reparación — acierta para conservar su insignia", "⚠️ Quick check": "⚠️ Revisión rápida",
   "↻ Once more": "↻ Otra vez", "🌱 From memory": "🌱 De memoria", "Show ▶": "Mostrar ▶", "💡 Hint": "💡 Pista", "? Don't know": "? No sé",
-  "the form…": "la forma…", "{0} words…": "{0} palabras…", "💡 It starts with": "💡 Empieza con", "✗ Not yet": "✗ Todavía no", "✓ I said it": "✓ Lo dije",
-  "mind the umlaut: in a verb it changes the form (hatte ≠ hätte)": "ojo con el acento: en un verbo cambia la forma (parle ≠ parlé)",
+  "💡 It starts with": "💡 Empieza con", "✗ Not yet": "✗ Todavía no", "✓ I said it": "✓ Lo dije",
   "No step up, no step down — one more try at the end of this session.": "Ni sube ni baja — un intento más al final de esta sesión.",
   "✓ Correct!": "✓ ¡Correcto!", "Answer:": "Respuesta:", "🌳 Known!": "🌳 ¡Known!", "🩹 Repaired": "🩹 Reparada", "✓ Scheduled": "✓ Programada",
   "🩹 Badge kept — repair it next time": "🩹 Insignia conservada — repárala la próxima vez", "↓ back to {0}": "↓ de vuelta a {0}",
-  "💡 with hint — no step up": "💡 con pista — no sube", "you typed": "escribiste", "Open the sheet": "Abrir la ficha", "Next →": "Siguiente →",
+  "💡 with hint — no step up": "💡 con pista — no sube", "you typed": "escribiste", "— spelt {0}": "— se escribe {0}", "the full form": "la forma completa", "the full form…": "la forma completa…", "Almost": "Casi", "Open the sheet": "Abrir la ficha", "Next →": "Siguiente →",
   // verb-track.js
   "It joins your reviews and the verb games": "Entra en tus repasos y en los juegos de verbos", "Every rule of it 🌳 Known": "Todas sus reglas 🌳 Known",
   "{0} unlocked": "{0} desbloqueado", "{0} solid": "{0} sólido", "Verbs": "Verbos",

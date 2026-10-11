@@ -96,10 +96,33 @@ const ex = (inf, k, p) => ({ form: G.vxForm(vx(inf), k, p) });
 ok(G.vxGrade("j'aime", ex("aimer", "pr", "je")) === true, "j'aime accepted for je ___ (aimer)");
 ok(G.vxGrade("que j'aille", ex("aller", "sj", "je")) === true, "que j'aille accepted");
 ok(G.vxGrade("nous nous levons", ex("se lever", "pr", "nous")) === true, "nous nous levons accepted");
-ok(G.vxGrade("leve-toi !", ex("se lever", "ip", "tu")) === "near", "missing accent is near");
+ok(G.vxGrade("leve-toi !", { kind: "ip", ...ex("se lever", "ip", "tu") }) === true && G.vxUmlautOnly("leve-toi", G.vxForm(vx("se lever"), "ip", "tu").acc, true), "a missing accent counts, and is told apart (spelling shown)");
 ok(G.vxGrade("parler", ex("parler", "pp", "il")) !== true, "parler ≠ parlé");
 ok(G.vxGrade("je paye", ex("payer", "pr", "je")) === true, "je paye accepted");
 ok(G.vxGrade("elle est allée", ex("aller", "pc", "elle")) === true && G.vxGrade("est allé", ex("aller", "pc", "elle")) !== true, "agreement required for elle");
+// Grading table: [verb, kind, person, typed, expected] — the whole verb,
+// accents forgiven, a command never with a pronoun in front.
+[
+  ["parler", "pr", "je", "parle", true], ["parler", "pr", "je", "je parle", true], ["aimer", "pr", "je", "j'aime", true],
+  ["acheter", "pr", "je", "achete", true], ["parler", "pp", "il", "parle", true], ["parler", "pp", "il", "parler", false],
+  ["se lever", "pr", "je", "lève", false], ["se lever", "pr", "je", "me lève", true], ["se lever", "pr", "je", "je me lève", true],
+  ["se lever", "pr", "nous", "nous nous levons", true], ["se lever", "pr", "nous", "levons", false],
+  ["se lever", "pc", "je", "suis levé", false], ["se lever", "pc", "je", "me suis levée", true], ["se lever", "pc", "elle", "s'est levé", false],
+  ["aller", "pc", "elle", "est allée", true], ["aller", "pc", "elle", "est allee", true], ["aller", "pc", "je", "ai allé", false],
+  ["parler", "ip", "tu", "parle", true], ["parler", "ip", "tu", "Parle !", true], ["parler", "ip", "tu", "tu parle", false],
+  ["parler", "ip", "vous", "vous parlez", false], ["se lever", "ip", "tu", "lève-toi", true], ["se lever", "ip", "tu", "leve toi", true],
+  ["se lever", "ip", "tu", "lève", false], ["aller", "sj", "je", "que j'aille", true], ["aller", "sj", "je", "aille", true],
+  ["payer", "pr", "je", "je paye", true], ["parler", "ge", "il", "en parlant", true], ["parler", "fp", "je", "vais parler", true],
+].forEach(([inf, kind, p, typed, want]) => {
+  const got = G.vxGrade(typed, { kind, form: G.vxForm(vx(inf), kind, p) });
+  ok(got === want, `grading: ${inf} ${kind} ${p} "${typed}" → ${want}`, String(got));
+});
+// "Each other" verbs: context in the singular, or plural only.
+[["se disputer", "pr", "je", "avec Anna"], ["se disputer", "pr", "nous", undefined], ["se disputer", "pc", "elle", "avec Anna"],
+ ["s'entendre", "pr", "tu", "avec Anna"], ["se lever", "pr", "je", undefined]].forEach(([inf, kind, p, want]) => {
+  const f = G.vxForm(vx(inf), kind, p); ok(f && f.ctx === want, `context: ${inf} ${kind} ${p} → ${want || "none"}`, f && f.ctx);
+});
+ok(!G.vxForm(vx("se rencontrer"), "pr", "je") && !!G.vxForm(vx("se rencontrer"), "pr", "nous"), "se rencontrer: plural only");
 // Generated questions, many draws, met or not.
 vm.runInContext(`var __met = false; var __lemma = vxLemma; vxLemma = x => __met ? { st: 3, met: "2026-01-01" } : __lemma(x);`, G);
 const checkQ = (q, tag) => {

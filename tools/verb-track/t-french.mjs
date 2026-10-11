@@ -144,6 +144,13 @@ const r4 = await ev(() => {
         out.kinds[ex.kind] = (out.kinds[ex.kind] || 0) + 1;
         out.prompts.push(document.getElementById("p-card").innerText.replace(/\s+/g, " ").slice(0, 400));
         const right = out.prompts.length % 3 !== 0;
+        // an accented answer typed without its accents: right, spelling shown
+        const plain = ex.form.ans.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        if (right && plain !== ex.form.ans && !out.accentFb) {
+          document.getElementById("p-input").value = plain; pathCheckTyped();
+          out.accentFb = document.getElementById("p-fb").innerText.replace(/\s+/g, " ").slice(0, 160);
+          pathGo(); continue;
+        }
         document.getElementById("p-input").value = right ? ex.form.ans : "zzz";
         pathCheckTyped();
         out.fb.push(document.getElementById("p-fb").innerText.replace(/\s+/g, " ").slice(0, 160));
@@ -154,7 +161,8 @@ const r4 = await ev(() => {
   }
   // the near miss: a missing accent
   const x = vxVerb("acheter"), form = vxForm(x, "pr", "je");
-  out.near = vxGrade("achete", { form });
+  out.near = vxGrade("achete", { form, kind: "pr" }) === true && vxUmlautOnly("achete", form.acc);
+  out.cmd = vxGrade("tu parle", { kind: "ip", form: vxForm(vxVerb("parler"), "ip", "tu") });
   out.items = Object.keys(S.words).filter(k => k.startsWith("vx_") && S.words[k].st).length;
   // every per-verb item and rule makes an exercise that grades its own answer
   const bad = [];
@@ -174,7 +182,9 @@ ok(!r4.errs.length, "a Today session runs through its verb items", r4.errs.join(
 ok(Object.keys(r4.kinds).length >= 2, "Today brings verb items", JSON.stringify(r4.kinds));
 ok(r4.prompts.every(p => /Escribe|Di/.test(p)), "verb cards are in Spanish", r4.prompts.slice(0, 3).join(" ‖ "));
 ok(r4.fb.some(f => /Correcto/.test(f)) && r4.fb.some(f => /Respuesta/.test(f)), "feedback, right and wrong, in Spanish", r4.fb.slice(0, 3).join(" ‖ "));
-ok(r4.near === "near", "a missing accent is a near miss");
+ok(r4.near, "a missing accent counts, and is told apart");
+ok(!r4.accentFb || /Correcto.*se escribe/.test(r4.accentFb), "a card typed without accents: right, the spelling shown", r4.accentFb);
+ok(r4.cmd === false, "a command with a pronoun in front (tu parle) is not accepted");
 ok(!r4.bad.length, "every item and rule makes an exercise that accepts its own answer", r4.bad.slice(0, 10).join(" | "));
 
 // 5 · reports, the learning log, switching back
@@ -200,6 +210,7 @@ ok(r5.learn, "the learning log has the French verb track");
 ok(r5.ach.length === 3 && r5.ach[0][1] === 12, "three Grammar ladders, 12 tenses", JSON.stringify(r5.ach));
 ok(r5.off.vx === 0 && r5.off.rt === 0 && r5.off.words, "switching back removes items and mirrors only", JSON.stringify(r5.off));
 ok(!errors.length, "no page errors", errors.slice(0, 5).join(" | "));
+console.log("accent card:", r4.accentFb || "(none in this session)");
 console.log(r5.report.join("\n"));
 console.log(`french: ${pass} passed, ${fail} failed`);
 await browser.close();

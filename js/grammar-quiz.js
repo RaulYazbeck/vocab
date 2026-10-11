@@ -206,9 +206,11 @@ function gqResolve(item, sid, avoid = new Set()) {
     if (item.ask === "pick") { const w = gqWrong(x, "p2only", p, form).slice(0, 2); if (!w.length) return null; const o = [form.ans, ...w]; return { ...base, k: "pick", q, o, a: 0 }; }
     return { ...base, k: "type", q, a: form.acc };
   }
-  const gaps = Array.from({ length: form.n }, () => "___").join(" ");
+  // One blank for the whole verb (prefix, pronoun, Sie included).
+  const gaps = "___";
   const imp = /^im/.test(item.t);
-  const q = imp ? `(${p}) ${gaps}! ${verb}${item.lbl || ""}` : `${gqPron(p, x, item.t)} ${gaps} ${verb}${item.lbl || ""}`;
+  const ctx = form.ctx ? " " + form.ctx : "";
+  const q = imp ? `(${p}) ${gaps}${ctx}! ${verb}${item.lbl || ""}` : `${gqPron(p, x, item.t)} ${gaps}${ctx} ${verb}${item.lbl || ""}`;
   if (item.ask === "pick") {
     const w = gqWrong(x, item.t, p, form, modal);
     if (w.length < 2) return null;
@@ -234,9 +236,10 @@ function gqResolveFr(item, sid, x, p, form) {
     if (item.ask === "pick") { const w = gqWrong(x, t, p, form).slice(0, 2); if (w.length < 2) return null; return { ...base, k: "pick", q, o: [form.ans, ...w], a: 0 }; }
     return { ...base, k: "type", q, a: form.acc };
   }
-  const gaps = Array.from({ length: form.n }, () => "___").join(" ");
+  // One blank for the whole verb (the reflexive pronoun included), as in German.
+  const gaps = "___", ctx = form.ctx ? " " + form.ctx : "";
   const pron = VXF.pron(t, p, form.ans);
-  const q = t === "ip" ? `(${p}) ${gaps} ! ${verb}${item.lbl || ""}` : `${pron} ${gaps} ${verb}${item.lbl || ""}`;
+  const q = t === "ip" ? `(${p}) ${gaps}${ctx} ! ${verb}${item.lbl || ""}` : `${pron} ${gaps}${ctx} ${verb}${item.lbl || ""}`;
   if (item.ask === "pick") {
     const w = gqWrong(x, t, p, form);
     if (w.length < 2) return null;
