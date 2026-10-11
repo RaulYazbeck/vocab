@@ -412,7 +412,7 @@ function mergeStates(local, cloud, opts = {}) {
   if (syncIsObj(local.verb) || syncIsObj(cloud.verb)) {
     const lv = syncIsObj(local.verb) ? local.verb : {}, cv = syncIsObj(cloud.verb) ? cloud.verb : {};
     const V = syncClone(localWins ? lv : cv);
-    ["tu", "sh", "sr", "ma"].forEach(k => { V[k] = syncDeepMax(syncIsObj(lv[k]) ? lv[k] : {}, syncIsObj(cv[k]) ? cv[k] : {}); });
+    ["tu", "sh", "sr", "ma", "qm"].forEach(k => { V[k] = syncDeepMax(syncIsObj(lv[k]) ? lv[k] : {}, syncIsObj(cv[k]) ? cv[k] : {}); });
     const cov = {};
     [lv.cov, cv.cov].forEach(m => { if (syncIsObj(m)) Object.entries(m).forEach(([k, b]) => { cov[k] = (cov[k] || 0) | syncNum(b); }); });
     V.cov = cov;

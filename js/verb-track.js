@@ -63,7 +63,7 @@ function migrateVerb() {
   if (!S.verb || typeof S.verb !== "object") S.verb = {};
   const V = S.verb;
   if (typeof V.on !== "string") V.on = "";
-  ["tu", "sh", "sr", "cov", "rot", "ma"].forEach(k => { if (!V[k] || typeof V[k] !== "object") V[k] = {}; });
+  ["tu", "sh", "sr", "cov", "rot", "ma", "qm"].forEach(k => { if (!V[k] || typeof V[k] !== "object") V[k] = {}; });
   if (typeof V.day !== "string") V.day = "";
   ["ni", "nc", "ns"].forEach(k => { if (!(V[k] >= 0)) V[k] = 0; });
   if (vxOn()) {
@@ -266,6 +266,40 @@ function vxMasteryResult(unit, right, n) {
   if (ok && typeof checkAchievements === "function") try { checkAchievements({ type: "vx_mastery" }); } catch (e) {}
   saveState();
   return ok;
+}
+
+// ── WHAT A QUIZ ANSWER LEAVES BEHIND ───────────
+// qm["sheet:point"] = [missed, right] on the first try — the points to
+// work on, for the learning log. A form typed in a quiz is a form like
+// any other: it goes into the verb's learning history, and a right one
+// fills its ledger cell.
+function vxQuizAnswer(Q, ok, given, first) {
+  if (!vxAvailable() || !Q) return;
+  migrateVerb();
+  if (first && Q.sid && Q.at) {
+    const k = Q.sid + ":" + Q.at, m = S.verb.qm[k] || (S.verb.qm[k] = [0, 0]);
+    m[ok ? 1 : 0]++;
+  }
+  if (!first || !Q.inf || Q.k !== "type") return;
+  const x = vxVerb(Q.inf);
+  if (!x) return;
+  const t = { pr: "pr", pt: "pt", pf: "pf", pq: "pq", fu: "fu", im: "im" }[Q.t];
+  if (t && typeof learnNoteVerb === "function") learnNoteVerb(x.F, t, Q.p, ok, given || "", Array.isArray(Q.a) ? Q.a[0] : "");
+  const cell = VX_KIND_TENSE[Q.t];
+  if (ok && vxOn() && VX_COV.includes(cell) && !vxCovHas(x.inf, cell)) {
+    vxCovSet(x.inf, cell);
+    if (typeof logEvent === "function") logEvent("vx_cell", { inf: x.inf, t: cell, from: "quiz" });
+  }
+}
+// The sheet points missed most (first try), worst first.
+function vxQuizWeakPoints(n = 8) {
+  const qm = (S.verb && S.verb.qm) || {};
+  return Object.entries(qm).filter(([, m]) => m[0] > 0 && m[0] >= m[1])
+    .sort((a, b) => (b[1][0] - b[1][1]) - (a[1][0] - a[1][1]) || b[1][0] - a[1][0]).slice(0, n)
+    .map(([k, m]) => { const [sid, at] = k.split(":"), sh = vxSheet(sid); if (!sh) return null;
+      const txt = /^r\d$/.test(at) ? (sh.rules || [])[+at.slice(1) - 1] : at === "trap" ? sh.trap : at === "why" ? sh.why : "";
+      return { sid, at, title: sh.title, missed: m[0], right: m[1], text: String(txt || "").replace(/\*\*|\{\{|\}\}|\(\(|\)\)|\[\[|\]\]|~~/g, "") }; })
+    .filter(Boolean);
 }
 
 // ── GAMES: only the tenses you've been taught ─
@@ -1144,6 +1178,7 @@ function vxReportLines() {
       ` · ledger ${L.all.done}/${L.all.verbs} verbs complete (` + L.levels.map(l => `${l.id.toUpperCase()} ${l.done}/${l.verbs}`).join(", ") + `) · cells ${L.all.cellsDone}/${L.all.cells}` +
       ` · per day: ${q.items} new items, ${q.cells} drills`,
     ...vxMasteryLines(),
+    ...(vxQuizWeakPoints(3).length ? [`Quiz points to work on: ` + vxQuizWeakPoints(3).map(w => `${w.sid} ${w.at} (${w.missed}✗/${w.right}✓)`).join(" · ")] : []),
   ];
 }
 // Mastery quizzes taken (optional): mastered, or the best score so far.
@@ -1161,6 +1196,8 @@ function vxLearnLines() {
   out.push(`Tenses: ` + VX_UNITS.map(u => `${u.name} ${["🔒", "📖", "🔁", "✅"][vxUnitState(u.id)]}`).join(" · ") + `  (🔒 not taught yet — please don't use these tenses with me · 📖 being taught · 🔁 practising · ✅ solid)`);
   const passed = GS_SHEETS.filter(sh => vxSheetPassed(sh.id)).map(sh => `${sh.id} ${S.verb.sh[sh.id]}%`);
   if (passed.length) out.push(`Sheets passed (first-try quiz score): ${passed.join(" · ")}`);
+  const weakPts = vxQuizWeakPoints();
+  if (weakPts.length) out.push(`Grammar points I miss in quizzes (missed/right first try): ` + weakPts.map(w => `${w.title} — ${typeof gqPointName === "function" ? gqPointName(w.at) : w.at}${w.text ? ` (“${w.text.slice(0, 90)}”)` : ""} ${w.missed}/${w.right}`).join(" · "));
   out.push(...vxMasteryLines());
   const rules = VX_RULES.map(r => { const ws = S.words[vxKey("r:" + r.id)]; return ws && ws.st ? `${r.title} ${tierOfStage(ws.st).icon}${ws.rp ? "🩹" : ws.fl ? "⚠️" : ""}${(ws.k || 1) < EASE.HARD_K ? " (hard for me)" : ""}` : ""; }).filter(Boolean);
   if (rules.length) out.push(`Rules in my reviews: ${rules.join(" · ")}`);

@@ -372,7 +372,8 @@ function gsQuizAnswered(ok, given) {
   if (ok) { if (typeof playSuccess === "function") playSuccess(); if (typeof haptic === "function") haptic("select"); }
   else { if (typeof playFailure === "function") playFailure(); if (typeof haptic === "function") haptic("miss"); if (typeof holdAfterMistake === "function") holdAfterMistake("gs-qnext"); }
   // The answer counts like any other in Today (the day's plan, quests).
-  if (typeof logEvent === "function") logEvent("answer", { m: g.mode === "path" ? "path:quiz" : "grammar:quiz", ok, typed: Q.k === "type" });
+  if (typeof logEvent === "function") logEvent("answer", { m: g.mastery ? "grammar:mastery" : g.mode === "path" ? "path:quiz" : "grammar:quiz", ok, typed: Q.k === "type", sid: Q.sid, at: Q.at, first: cur.first });
+  if (typeof vxQuizAnswer === "function") vxQuizAnswer(Q, ok, given, cur.first);
   if (g.mode === "path" && typeof questEvent === "function") questEvent("answer", { mode: "path", ok, typed: Q.k === "type" });
   if (g.mode === "path" && pathSession) { pathSession.stats.answered++; if (ok) { pathSession.stats.correct++; addExp(3); } else pathSession.stats.wrong++; }
   if (!ok && typeof _learnDay === "function") _learnDay("mk", Q.k === "order" ? "order" : Q.k === "type" ? "verbform" : "recognition");

@@ -123,8 +123,12 @@ function _usageAggregate(type, d, now) {
     case "session_start": _inc(day.ses, d.kind || "?", 0); break;
     // The verb track (verb-track.js): vx = { sh: sheets passed, sf: quizzes
     // not passed, in: verb items started, cell: ledger forms done, u: tenses
-    // opened, on: switched on/off }.
+    // opened, on: switched on/off, ma / mp: mastery quizzes taken / passed,
+    // rv: times a quiz miss was looked up in its sheet }.
     case "vx_sheet": { const v = _uf(day, "vx", () => ({})); if (d.ok) v.sh = (v.sh || 0) + 1; else v.sf = (v.sf || 0) + 1; break; }
+    case "vx_mastery": { const v = _uf(day, "vx", () => ({})); v.ma = (v.ma || 0) + 1; if (d.ok) v.mp = (v.mp || 0) + 1; break; }
+    case "vx_cell": { const v = _uf(day, "vx", () => ({})); v.cell = (v.cell || 0) + 1; break; }
+    case "vx_review": { const v = _uf(day, "vx", () => ({})); v.rv = (v.rv || 0) + 1; break; }
     case "vx_intro": { const v = _uf(day, "vx", () => ({})); v.in = (v.in || 0) + 1; break; }
     case "vx_unit": { const v = _uf(day, "vx", () => ({})); (v.u = v.u || []).push(d.u + ":" + d.st); break; }
     case "vx_switch": { const v = _uf(day, "vx", () => ({})); v.on = d.on ? 1 : 0; break; }
@@ -335,13 +339,13 @@ function buildUsageReport(nDays = 0) {
   lines.push(`Daily goal ${getDailyGoal()} · new/day ${S.path.deadline ? `auto ${pathPace()} (finish by ${S.path.deadline})` : S.path.newPerDay} · level ${currentLevel()} · streak ${getDailyStreak()}d`);
   if (typeof vxReportLines === "function") lines.push(...vxReportLines());
   // One line per active day: the trend at a glance.
-  lines.push(``, `Per day (date · min · answers · typed ok · typed latency · path sessions started/finished/abandoned · games started/quit · new words met · words up/down${typeof vxOn === "function" && vxOn() ? " · verbs: sheets passed/failed, items started, ledger forms" : ""}):`);
+  lines.push(``, `Per day (date · min · answers · typed ok · typed latency · path sessions started/finished/abandoned · games started/quit · new words met · words up/down${typeof vxOn === "function" && vxOn() ? " · verbs: 📖 sheets passed/failed, ↩ misses looked up in the sheet, 🏆 mastery passed/taken, 🧩 items started, 📒 ledger forms" : ""}):`);
   activeDays.forEach(([d, v]) => {
     const t = (v.ans || {})["path:typed"] || [0, 0];
     const p = (v.ses || {}).path || [0, 0, 0];
     const g = Object.values(v.gp || {}).reduce((a, x) => [a[0] + (x[0] || 0), a[1] + (x[2] || 0)], [0, 0]);
     const n = Object.values(v.ans || {}).reduce((a, x) => a + (x[0] || 0), 0);
-    const vx = v.vx ? ` · 📖${v.vx.sh || 0}/${v.vx.sf || 0} 🧩${v.vx.in || 0} 📒${v.vx.cell || 0}${v.vx.u ? " [" + v.vx.u.join(", ") + "]" : ""}${v.vx.on !== undefined ? (v.vx.on ? " [switched on]" : " [switched off]") : ""}` : "";
+    const vx = v.vx ? ` · 📖${v.vx.sh || 0}/${v.vx.sf || 0}${v.vx.rv ? ` ↩${v.vx.rv}` : ""}${v.vx.ma ? ` 🏆${v.vx.mp || 0}/${v.vx.ma}` : ""} 🧩${v.vx.in || 0} 📒${v.vx.cell || 0}${v.vx.u ? " [" + v.vx.u.join(", ") + "]" : ""}${v.vx.on !== undefined ? (v.vx.on ? " [switched on]" : " [switched off]") : ""}` : "";
     lines.push(`${d} · ${Math.round(v.min)} · ${n} · ${pct(t[1], t[0])} · ${secs(v.lat[0], v.lat[1])} · ${p[0]}/${p[1]}/${p[2]} · ${g[0]}/${g[1]} · ${v.met ?? "—"} · ${v.up ?? "—"}/${v.down ?? "—"}${vx}`);
   });
   lines.push(...usagePlanLines(activeDays));
