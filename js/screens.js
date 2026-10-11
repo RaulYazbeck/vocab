@@ -80,7 +80,7 @@ function renderGroups() {
         <div class="folder-icon">${deck.icon}</div>
         <div class="folder-name">${deck.name}</div>
         <div class="folder-meta">${mastered}/${total} mastered</div>
-        <div class="folder-unlock">${unlocked}/${all} unlocked</div>
+        <div class="folder-unlock">${typeof vxDeckRetired === "function" && vxDeckRetired(deck.id) ? "📐 now in the verb track" : `${unlocked}/${all} unlocked`}</div>
         <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
         <div class="progress-bar" style="margin-top:3px;"><div class="progress-fill" style="background:linear-gradient(90deg,#7C5CBF,#B39DDB);width:${Math.round((masteryPlus/total)*100)||0}%"></div></div>
         <div style="font-size:10px;color:#7C5CBF;margin-top:2px;">${masteryPlus} ⭐</div>
