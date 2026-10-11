@@ -742,9 +742,9 @@ function vxAdopt() {
         if (pending && !it.rp && !it.lrn) it.fl = 1;
         items++;
       }
-      it.correct = (it.correct || 0) + list.reduce((n, o) => n + (o.ws.correct || 0), 0);
-      it.wrong = (it.wrong || 0) + list.reduce((n, o) => n + (o.ws.wrong || 0), 0);
-      it.adopted = (it.adopted || 0) + list.length;
+      // (Right / wrong counts stay with the cards: added here, two devices
+      // adopting the same cards would count them twice when they sync.)
+      it.adopted = 1;
     } else if (c0.rule && VX_RULE[c0.rule]) {
       const r = getWS(VX_DECK, "r:" + c0.rule);
       if (!r.st) {
