@@ -85,14 +85,20 @@ const found = await page.evaluate(() => {
   idioms.forEach(c => { add(c.p, "w", "_idioms", "", "idioms"); add(c.ex, "s", "_idioms", "", "idioms"); });
   // Grammar sheets: each example's 🔊 (grammar-ui.js).
   if (typeof GS_SHEETS !== "undefined") GS_SHEETS.forEach(sh => (sh.ex || []).forEach(([t]) => add(gsSayText(t), "s", "_sheet:" + sh.id, "", "sheets")));
-  // The verb cards (verb-track.js / grammar-ui.js): every exercise a rule,
-  // a verb item or a coverage cell can make — every verb, every person
-  // (which of them you meet depends on your progress).
+  // The verb cards (verb-track.js / grammar-ui.js), German and French
+  // alike: every exercise a rule, a verb item or a coverage cell can make —
+  // every verb, every person (which you meet depends on your progress).
   if (typeof vxAvailable === "function" && vxAvailable()) vxVerbs().forEach(x => {
-    const d = "_v:" + x.inf, lv = x.level, put = form => { if (form) add(vxSayText({ form }), "w", d, lv, "track"); };
-    VX_RULES.forEach(r => { if (r.verbs(x)) vxRulePersons(r, x).forEach(p => (r.kind === "pvmod" ? Object.keys(VX_PV_MODALS) : [""]).forEach(m => put(vxForm(x, r.kind, p, { modal: m })))); });
-    Object.entries(VX_ITEM_KINDS).forEach(([k, it]) => { if (k !== "sc" || x.k.stem) (k === "sc" ? ["du", "er"] : [k === "im" ? "du" : "er"]).forEach(p => put(vxForm(x, it.form, p))); });
-    ["pr", "pt", "pf", "fu", "pq"].forEach(t => { if (x.v.tenses.includes(t)) vxCellPersons(x, t).forEach(p => put(vxForm(x, t, p))); });
+    const d = "_v:" + x.inf, lv = x.level;
+    const put = (kind, p, form) => { if (form) add(vxSayText({ kind, x, p, form }), "w", d, lv, "track"); };
+    VX_RULES.forEach(r => { if (r.verbs(x)) vxRulePersons(r, x).forEach(p =>
+      (r.kind === "pvmod" && typeof VX_PV_MODALS !== "undefined" ? Object.keys(VX_PV_MODALS) : [""]).forEach(m => put(r.kind, p, vxForm(x, r.kind, p, { modal: m })))); });
+    Object.entries(VX_ITEM_KINDS).forEach(([k, it]) => {
+      // French items ask any of their persons; German ones a fixed one (vxMakeExercise).
+      const ps = it.persons ? it.persons(x) : k === "sc" ? (x.k.stem ? ["du", "er"] : []) : [k === "im" ? "du" : "er"];
+      ps.forEach(p => put(it.form, p, vxForm(x, it.form, p)));
+    });
+    VX_COV.forEach(t => { if (vxHasTense(x, t)) vxCellPersons(x, t).forEach(p => put(t, p, vxForm(x, t, p))); });
   });
   // The games only take verbs you can meet: a verb with a card of its own
   // (or, in French, a conjugation card). The bank also holds verbs known

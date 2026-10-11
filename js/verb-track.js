@@ -34,8 +34,28 @@
 // record, ws.rt), so totals, levels and achievements stay whole and
 // fill up as you learn the verbs the new way.
 //
-// Nothing here runs in the French app, nor before the switch.
+// Nothing here runs before the switch. The French app runs the same
+// system: verb-track-fr.js (loaded first) is VXF — its tenses, rules,
+// forms and grading, in Spanish — and every place below where the two
+// languages differ asks it (VX_FR).
 // ─────────────────────────────────────────────
+
+const VX_FR = typeof VXF !== "undefined" && !!VXF;
+// The engine's verb list: grammar-de.js, or grammar-fr.js.
+function vxBank() { return VX_FR ? VXF.bank() : verbBank(); }
+// Words on the track's screens: English, or the French app's Spanish.
+// "{0}" … are filled in from the arguments.
+function vxT(s, ...a) {
+  const t = VX_FR && Object.prototype.hasOwnProperty.call(VXF.es, s) ? VXF.es[s] : s;
+  return a.length ? t.replace(/\{(\d)\}/g, (m, i) => a[+i] !== undefined ? a[+i] : m) : t;
+}
+// The persons of the engine, and the one an "it" verb takes.
+const VX_PERSONS = VX_FR ? VXF.persons : (typeof PERSONS !== "undefined" ? PERSONS : []);
+const VX_IT = VX_FR ? VXF.it : "er";
+// A verb's deck cards that ask one of its forms: { deckId, idx, tense, person }.
+function vxRefs(x) { return VX_FR ? VXF.refs(x) : (x.v.refs || []); }
+// Can the track ask this tense of the verb at all?
+function vxHasTense(x, t) { return VX_FR ? VXF.hasTense(x, t) : x.v.tenses.includes(t); }
 
 const VX_DECK = "vx";
 const VX_PASS_RE = 1;            // a quiz: every question right the first time (grammar-quiz.js)
@@ -46,7 +66,10 @@ const VX_ITEM_PACE = [1, 8];     // new verb items a day (min, max) with a finis
 const VX_CELL_PACE = [2, 20];    // coverage drills a day (min, max)
 const VX_DEFAULT = { items: 3, cells: 6 }; // without a finish date
 
-function vxAvailable() { return typeof GR_DE !== "undefined" && GR_DE && typeof verbBank === "function" && verbBank().verbs.length >= 20; }
+function vxAvailable() {
+  if (VX_FR) return typeof GR_FR !== "undefined" && GR_FR && vxBank().verbs.length >= 20;
+  return typeof GR_DE !== "undefined" && GR_DE && typeof verbBank === "function" && verbBank().verbs.length >= 20;
+}
 function vxOn() { return vxAvailable() && !!(S.verb && S.verb.on); }
 
 // ── STATE ─────────────────────────────────────
@@ -88,10 +111,10 @@ let _vxVerbs = null;
 function vxVerbs() {
   if (_vxVerbs) return _vxVerbs;
   const out = [];
-  verbBank().verbs.forEach(v => {
+  vxBank().verbs.forEach(v => {
     const lv = VX_LEVELS.indexOf(v.level);
     if (lv < 0 || !v.word) return; // the track follows the A1 → B1 decks
-    out.push(Object.assign(Object.create(null), { v, inf: v.inf, F: v.F, lv, level: v.level, k: vxKind(v.F) }));
+    out.push(Object.assign(Object.create(null), { v, inf: v.inf, F: v.F, lv, level: v.level, k: VX_FR ? VXF.kind(v.F) : vxKind(v.F) }));
   });
   out.forEach((x, i) => { x.i = i; });
   _vxVerbs = out;
@@ -119,12 +142,21 @@ function vxKind(F) {
     irregular: aux || modal || F.base === "tun" || F.base === "wissen" };
 }
 // The verb's own word cards: met? how far? when first met?
+// French: a verb the decks only conjugate (mettre: a2_conjugacion) has
+// no word card — its conjugation cards stand in; when every one of them
+// is retired, the verb counts as met once the Path reaches its level, and
+// as Known once its own items are.
 function vxLemma(x) {
   let st = 0, met = "";
-  (x.v.words && x.v.words.length ? x.v.words : [x.v.word]).forEach(w => {
+  const own = x.v.words && x.v.words.length, cardsOnly = VX_FR && !own;
+  (cardsOnly ? (x.v.cards || []).map(c => c.w) : own ? x.v.words : [x.v.word]).forEach(w => {
     const ws = w && S.words[w.deckId + "_" + w.idx];
     if (ws && ws.st && !ws.rt) { st = Math.max(st, ws.st); if (ws.metOn && (!met || ws.metOn < met)) met = ws.metOn; }
   });
+  if (cardsOnly && !st && vxOn() && (x.v.cards || []).every(c => vxRetired(c.w.deckId, c.w.idx)) && vxPathPos() >= x.lv) {
+    const its = vxCatalog().filter(it => it.x === x).map(it => (S.words[vxKey(it.id)] || {}).st || 0);
+    st = Math.max(VX_LEMMA_MIN, its.length ? Math.min(...its) : 0);
+  }
   return { st, met };
 }
 function vxVerbReady(x) { return vxLemma(x).st >= VX_LEMMA_MIN; }
@@ -132,7 +164,7 @@ function vxVerbReady(x) { return vxLemma(x).st >= VX_LEMMA_MIN; }
 // ── TENSE UNITS ───────────────────────────────
 // anchor [level, share]: opens once your Path is that far (the share of
 // that level's words met), or as soon as it's past it.
-const VX_UNITS = [
+const VX_UNITS = VX_FR ? VXF.units : [
   { id: "pr", name: "Präsens", sub: "now, habits, plans", sign: "◉", hue: 142, vl: "pr", anchor: ["a1", 0], req: [] },
   { id: "pf", name: "Perfekt", sub: "the spoken past", sign: "●", hue: 186, vl: "pf", anchor: ["a1", 0.25], req: ["pr"] },
   { id: "im", name: "Imperativ", sub: "commands, requests, tips", sign: "!", hue: 96, vl: "im", anchor: ["a1", 0.9], req: ["pr"] },
@@ -204,8 +236,8 @@ function vxSetUnit(id, st, quiet) {
   if (typeof logEvent === "function") logEvent("vx_unit", { u: id, st: VX_STATE[st] });
   if (st === 2) { _vxQueueCache = null; if (typeof invalidatePathScan === "function") invalidatePathScan(); }
   if (!quiet && st >= 2 && typeof showCelebrateToast === "function")
-    showCelebrateToast(VX_UNIT[id].sign, st === 2 ? `${VX_UNIT[id].name} unlocked` : `${VX_UNIT[id].name} solid`,
-      st === 2 ? "It joins your reviews and the verb games" : "Every rule of it 🌳 Known");
+    showCelebrateToast(VX_UNIT[id].sign, st === 2 ? vxT("{0} unlocked", VX_UNIT[id].name) : vxT("{0} solid", VX_UNIT[id].name),
+      st === 2 ? vxT("It joins your reviews and the verb games") : vxT("Every rule of it 🌳 Known"));
   if (typeof checkAchievements === "function") checkAchievements({ type: "vx" });
 }
 function vxUnitSheetsPassed(id) {
@@ -283,7 +315,7 @@ function vxQuizAnswer(Q, ok, given, first) {
   if (!first || !Q.inf || Q.k !== "type") return;
   const x = vxVerb(Q.inf);
   if (!x) return;
-  const t = { pr: "pr", pt: "pt", pf: "pf", pq: "pq", fu: "fu", im: "im" }[Q.t];
+  const t = VX_FR ? (VXF.logKinds.includes(Q.t) ? Q.t : null) : { pr: "pr", pt: "pt", pf: "pf", pq: "pq", fu: "fu", im: "im" }[Q.t];
   if (t && typeof learnNoteVerb === "function") learnNoteVerb(x.F, t, Q.p, ok, given || "", Array.isArray(Q.a) ? Q.a[0] : "");
   const cell = VX_KIND_TENSE[Q.t];
   if (ok && vxOn() && VX_COV.includes(cell) && !vxCovHas(x.inf, cell)) {
@@ -313,7 +345,7 @@ function vxGameTenses(all) {
   return all.filter(t => out.includes(t));
 }
 function vxTenseOkFor(inf, t) {
-  if (!vxOn()) return true;
+  if (!vxOn() || VX_FR) return true;
   if (t !== "pt") return true;
   return vxUnitOpen("pt2") || VX_PT1_VERBS.has(String(inf).replace(/^sich\s+/, ""));
 }
@@ -332,6 +364,7 @@ const K2_AUX = { haben: { ich: "hätte", du: "hättest", er: "hätte", wir: "hä
 // meet her) is just as right. The question shows that context (ctx).
 const VX_RECIPROCAL = new Set(["sich treffen", "sich streiten", "sich unterhalten", "sich verabreden", "sich einigen"]);
 function vxForm(x, kind, p, opt = {}) {
+  if (VX_FR) return VXF.form(x, kind, p, opt);
   const f = vxFormBase(x, kind, p, opt);
   if (f && VX_RECIPROCAL.has(x.inf) && ["ich", "du", "er", "Sie"].includes(p) && kind !== "p2only" && kind !== "sc" && kind !== "p2") f.ctx = "mit Anna";
   return f;
@@ -432,11 +465,11 @@ function vxFormBase(x, kind, p, opt = {}) {
   return null;
 }
 // The tense a kind of form belongs to (for colours, coverage and logs).
-const VX_KIND_TENSE = { pr: "pr", prsep: "pr", prrefl: "pr", sc: "pr", pt: "pt", pf: "pf", p2: "pf", pq: "pq", fu: "fu", im: "im", imsep: "im",
+const VX_KIND_TENSE = VX_FR ? VXF.kindTense : { pr: "pr", prsep: "pr", prrefl: "pr", sc: "pr", pt: "pt", pf: "pf", p2: "pf", pq: "pq", fu: "fu", im: "im", imsep: "im",
   k2w: "k2", k2o: "k2", k2p: "k2p", pvpr: "pv", pvpt: "pv", pvmod: "pv" };
-const VX_TENSE_LABEL = { pr: "Präsens", pt: "Präteritum", pf: "Perfekt", pq: "Plusquamperfekt", fu: "Futur I", im: "Imperativ", k2: "Konjunktiv II",
+const VX_TENSE_LABEL = VX_FR ? VXF.tenseLabel : { pr: "Präsens", pt: "Präteritum", pf: "Perfekt", pq: "Plusquamperfekt", fu: "Futur I", im: "Imperativ", k2: "Konjunktiv II",
   k2p: "Konjunktiv II · past", pv: "Passiv" };
-const VX_TENSE_UNIT = { pr: "pr", pf: "pf", im: "im", pt: "pt2", fu: "fu", k2: "k2a", pq: "pq", pv: "pv", k2p: "k2p" };
+const VX_TENSE_UNIT = VX_FR ? VXF.tenseUnit : { pr: "pr", pf: "pf", im: "im", pt: "pt2", fu: "fu", k2: "k2a", pq: "pq", pv: "pv", k2p: "k2p" };
 
 // ── RULES ─────────────────────────────────────
 // One per idea a sheet teaches that applies to many verbs. verbs(x):
@@ -449,7 +482,7 @@ const VX_PV_VERBS = new Set(("machen kaufen bauen reparieren schreiben lesen öf
   "anrufen anmelden abschließen aufräumen ausmachen anmachen benutzen bestätigen buchen empfehlen erledigen feiern gewinnen heizen lieben " +
   "messen mieten nennen packen sammeln sauber stellen suchen tragen trocknen verbessern verlieren verschicken versichern vorbereiten waschen " +
   "wecken werfen zahlen ziehen zerstören beschädigen abschleppen ersetzen bauen sanieren testen begrüßen loben kritisieren unterstützen bewerten").split(/\s+/));
-const VX_RULES = [
+const VX_RULES = VX_FR ? VXF.rules : [
   { id: "pr-end", unit: "pr", sheet: "pr1", kind: "pr", title: "Präsens endings", chip: "stem + e · st · t · en · t · en",
     verbs: x => !x.k.irregular && !x.k.stem && !x.k.glue && !x.F.sep && !x.F.refl && x.F.presSure && !x.F.only, persons: () => PERSONS, order: () => 0,
     // Your cards that show these endings: any verb that isn't irregular,
@@ -498,7 +531,7 @@ const VX_RULES = [
 ];
 const VX_RULE = Object.fromEntries(VX_RULES.map(r => [r.id, r]));
 // Per-verb items: which sheet teaches them and which unit opens them.
-const VX_ITEM_KINDS = {
+const VX_ITEM_KINDS = VX_FR ? VXF.itemKinds : {
   sc: { unit: "pr", sheet: "pr4", form: "sc", title: "Stem change", tense: "pr" },
   p2: { unit: "pf", sheet: "pf3", form: "p2", title: "Perfekt", tense: "pf" },
   pt: { unit: "pt2", sheet: "pt22", form: "pt", title: "Präteritum", tense: "pt" },
@@ -508,19 +541,20 @@ function vxKey(id) { return VX_DECK + "_" + id; }
 
 // ── RETIRED CARDS & GATED DECKS ───────────────
 // Grammar decks whose cards only come once their tense is taught.
-const VX_GATE = { a2_praeteritum: "pt1", b1_konjunktiv2: "k2a", b1_passiv: "pv", a1_conjugation: "pr", a2_conjugation: "pr", a1_verbs_p2: "pf" };
+const VX_GATE = VX_FR ? VXF.gate : { a2_praeteritum: "pt1", b1_konjunktiv2: "k2a", b1_passiv: "pv", a1_conjugation: "pr", a2_conjugation: "pr", a1_verbs_p2: "pf" };
 // Decks whose unmet cards are covered by the verb track — and how.
-const VX_RETIRE_DECKS = new Set(["a2_verbs_p2", "b1_partizip2", "b1_praeteritum", "b1_praet_endungen", "a2_conjugation", "a2_futur", "b1_plusquamperfekt"]);
+const VX_RETIRE_DECKS = VX_FR ? VXF.retireDecks : new Set(["a2_verbs_p2", "b1_partizip2", "b1_praeteritum", "b1_praet_endungen", "a2_conjugation", "a2_futur", "b1_plusquamperfekt"]);
 let _vxRetire = null;
 // Map "deckId_idx" → { item?, rule?, inf, t } — what covers a card.
 function vxRetireMap() {
   if (_vxRetire) return _vxRetire;
   const m = new Map();
-  vxVerbs().forEach(x => (x.v.refs || []).forEach(r => {
+  vxVerbs().forEach(x => vxRefs(x).forEach(r => {
     if (!VX_RETIRE_DECKS.has(r.deckId)) return;
     const key = r.deckId + "_" + r.idx, F = x.F;
     let c = null;
-    if (r.tense === "p2") c = vxNeedsItem(x, "p2") ? { item: "p2:" + x.inf } : { rule: F.sep || F.insep || x.k.ieren ? "pf-prefix" : "pf-ge" };
+    if (VX_FR) c = VXF.cover(x, r);
+    else if (r.tense === "p2") c = vxNeedsItem(x, "p2") ? { item: "p2:" + x.inf } : { rule: F.sep || F.insep || x.k.ieren ? "pf-prefix" : "pf-ge" };
     else if (r.tense === "pt") c = vxNeedsItem(x, "pt") && (r.person === "er" || r.person === "ich") ? { item: "pt:" + x.inf } : { rule: x.k.strongPt ? "pt-strong" : "pt-weak" };
     else if (r.tense === "pr") { if (r.person !== "du" && r.person !== "er") c = { rule: F.sep ? "pr-sep" : "pr-end" }; }
     else if (r.tense === "fu") c = { rule: "fu" };
@@ -568,12 +602,13 @@ function vxMirror() {
 // ── ITEM CATALOG ──────────────────────────────
 // Does a verb need its own item of this kind (and no active card has it)?
 function vxActiveRef(x, tense, persons) {
-  return (x.v.refs || []).some(r => r.tense === tense && (!persons || persons.includes(r.person)) &&
+  return vxRefs(x).some(r => r.tense === tense && (!persons || persons.includes(r.person)) &&
     !(VX_RETIRE_DECKS.has(r.deckId) && vxRetireDeckCard(r)));
 }
 // A card in a retiring deck counts as active only if you met it.
 function vxRetireDeckCard(r) { const ws = S.words[r.deckId + "_" + r.idx]; return !(ws && ws.st && !ws.rt); }
 function vxNeedsItem(x, kind) {
+  if (VX_FR) return VXF.needsItem(x, kind);
   const F = x.F;
   if (kind === "sc") return x.k.stem && !vxActiveRef(x, "pr", ["du"]) && !vxActiveRef(x, "pr", ["er"]);
   if (kind === "p2") return !!F.aux && !!F.p2 && (F.strong || F.aux === "sein") && !x.k.modal && !vxActiveRef(x, "p2");
@@ -591,15 +626,18 @@ function vxCatalog() {
   vxVerbs().forEach(x => Object.keys(VX_ITEM_KINDS).forEach(kind => {
     if (!vxNeedsItem(x, kind)) return;
     const d = VX_ITEM_KINDS[kind];
-    out.push({ id: kind + ":" + x.inf, kind, unit: d.unit, sheet: d.sheet, x, lv: x.lv, ord: vxItemOrder(x, kind) });
+    out.push({ id: kind + ":" + x.inf, kind, unit: d.unit, sheet: vxItemSheet(d, x), x, lv: x.lv, ord: vxItemOrder(x, kind) });
   }));
   _vxCatalog = out; _vxCatalogAt = stamp;
   return out;
 }
+// A per-verb item's sheet (French: it depends on the verb).
+function vxItemSheet(d, x) { return typeof d.sheet === "function" ? d.sheet(x) : d.sheet; }
 function vxCatalogReset() { _vxCatalog = null; _vxRetire = null; _vxQueueCache = null; _vxCells = null; }
 // The logical order inside a level (lower first): the shapes a learner
 // meets first, the odd ones last.
 function vxItemOrder(x, kind) {
+  if (VX_FR) return VXF.itemOrder(x, kind);
   const F = x.F;
   if (kind === "sc") { const er = lastVowel(F.pr.er.replace(/t$/, "")); return er === "ä" || er === "äu" ? 0 : er === "i" ? 1 : er === "ie" ? 2 : 3; }
   if (kind === "p2") { if (!F.strong) return 0; if (x.k.mixed) return 4; const a = lastVowel(F.base.replace(/(en|n)$/, "")), b = lastVowel(F.p2.replace(/(en|n|t)$/, "")); return a === b ? 1 : F.aux === "sein" ? 3 : 2; }
@@ -609,7 +647,10 @@ function vxItemOrder(x, kind) {
 }
 
 // ── COVERAGE (the ledger's cells) ─────────────
-const VX_COV = ["pr", "pt", "pf", "pq", "fu", "k2", "im"];
+const VX_COV = VX_FR ? VXF.cov : ["pr", "pt", "pf", "pq", "fu", "k2", "im"];
+// The three tenses every other one is built from: each verb's ledger cells.
+const VX_CORE = VX_FR ? VXF.core : ["pr", "pt", "pf"];
+const VX_CORE_LABEL = VX_FR ? VXF.coreLabel : "Präsens · Präteritum · Perfekt";
 function vxCovHas(inf, t) { const i = VX_COV.indexOf(t); return i >= 0 && !!(((S.verb && S.verb.cov && S.verb.cov[inf]) || 0) & (1 << i)); }
 function vxCovSet(inf, t) {
   const i = VX_COV.indexOf(t);
@@ -625,11 +666,12 @@ let _vxCells = null;
 function vxRequiredCells() {
   if (_vxCells) return _vxCells;
   const extra = new Map();
-  vxRetireMap().forEach(c => { if (!["pr", "pt", "pf"].includes(c.t)) { const k = c.inf + "|" + c.t; extra.set(k, c); } });
+  vxRetireMap().forEach(c => { if (!VX_CORE.includes(c.t)) { const k = c.inf + "|" + c.t; extra.set(k, c); } });
   const out = [];
+  const extraT = VX_FR ? VX_COV.filter(t => !VX_CORE.includes(t)) : ["fu", "pq"];
   vxVerbs().forEach(x => {
-    ["pr", "pt", "pf"].forEach(t => { if (x.v.tenses.includes(t) && vxCellPersons(x, t).length) out.push({ x, t }); });
-    ["fu", "pq"].forEach(t => { if (extra.has(x.inf + "|" + t) && x.v.tenses.includes(t)) out.push({ x, t }); });
+    VX_CORE.forEach(t => { if (vxHasTense(x, t) && vxCellPersons(x, t).length) out.push({ x, t }); });
+    extraT.forEach(t => { if (extra.has(x.inf + "|" + t) && vxHasTense(x, t) && (!VX_FR || vxCellPersons(x, t).length)) out.push({ x, t }); });
   });
   out.forEach(c => { c.ord = vxCellOrder(c.x, c.t); });
   out.sort((a, b) => a.x.lv - b.x.lv || a.ord - b.ord || a.x.i - b.x.i);
@@ -637,18 +679,20 @@ function vxRequiredCells() {
   return out;
 }
 // Verbs that only take "it" (es regnet, das kostet, es gefällt mir).
-function vxItVerb(x) { return !!x.F.impersonal || DE_WEATHER.test(x.inf) || DE_IT_VERBS.test(x.inf); }
+function vxItVerb(x) { return VX_FR ? !!x.F.only : !!x.F.impersonal || DE_WEATHER.test(x.inf) || DE_IT_VERBS.test(x.inf); }
 // The persons a rule may ask of a verb: an "it" verb only in er (es).
 function vxRulePersons(r, x) {
   const ps = r.persons(x);
-  return vxItVerb(x) && !/^pv/.test(r.kind) ? ps.filter(p => p === "er") : ps;
+  return vxItVerb(x) && !/^pv/.test(r.kind) ? ps.filter(p => p === VX_IT) : ps;
 }
 function vxCellPersons(x, t) {
+  if (VX_FR) return VXF.cellPersons(x, t);
   if (x.F.only && !x.F.only.includes(t)) return [];
   if (vxItVerb(x)) return verbCell(x.F, t, "er") ? ["er"] : [];
   return PERSONS.filter(p => verbCell(x.F, t, p));
 }
 function vxCellOrder(x, t) {
+  if (VX_FR) return VXF.cellOrder(x, t);
   const k = x.k, F = x.F;
   if (t === "pr") return k.irregular ? 4 : k.stem ? 3 : F.sep || F.refl ? 2 : k.glue ? 1 : 0;
   if (t === "pf") return k.irregular ? 4 : F.aux === "sein" ? 3 : F.strong ? 2 : F.sep || F.insep || k.ieren ? 1 : 0;
@@ -657,7 +701,7 @@ function vxCellOrder(x, t) {
 }
 // Which unit a cell's tense waits for.
 function vxCellOpen(c) {
-  if (c.t === "pt") return vxUnitOpen("pt2") || (vxUnitOpen("pt1") && VX_PT1_VERBS.has(c.x.F.base) && !c.x.F.sep && !c.x.F.insep);
+  if (c.t === "pt" && !VX_FR) return vxUnitOpen("pt2") || (vxUnitOpen("pt1") && VX_PT1_VERBS.has(c.x.F.base) && !c.x.F.sep && !c.x.F.insep);
   return vxUnitOpen(VX_TENSE_UNIT[c.t]);
 }
 
@@ -721,10 +765,13 @@ function vxMakeExercise(item, avoid) {
     return null;
   }
   const d = VX_ITEM_KINDS[item.kind], x = item.x;
-  // A stem change shows in du and er: one of the two each time.
-  const p = item.kind === "sc" ? (Math.random() < 0.5 ? "du" : "er") : item.kind === "im" ? "du" : "er";
+  // French items ask any of their persons; German ones a fixed one —
+  // a stem change one of du and er each time.
+  const ps = d.persons ? d.persons(x).filter(q => vxForm(x, d.form, q)) : null;
+  if (ps && !ps.length) return null;
+  const p = ps ? vxPickPerson(ps, x) : item.kind === "sc" ? (Math.random() < 0.5 ? "du" : "er") : item.kind === "im" ? "du" : "er";
   const form = vxForm(x, d.form, p);
-  return form ? { kind: d.form, x, p, form, tense: d.tense, item: item.id, sheet: d.sheet } : null;
+  return form ? { kind: d.form, x, p, form, tense: d.tense, item: item.id, sheet: vxItemSheet(d, x) } : null;
 }
 function vxCellExercise(c) {
   const ps = vxCellPersons(c.x, c.t);
@@ -734,6 +781,7 @@ function vxCellExercise(c) {
   return form ? { kind: c.t, x: c.x, p, form, tense: c.t, cell: c.x.inf + "|" + c.t, sheet: vxCellSheet(c) } : null;
 }
 function vxCellSheet(c) {
+  if (VX_FR) return VXF.cellSheet(c);
   const k = c.x.k, F = c.x.F;
   if (c.t === "pr") return k.irregular ? "pr5" : k.stem ? "pr4" : F.sep ? "pr6" : F.refl ? "pr7" : k.glue ? "pr2" : "pr1";
   if (c.t === "pf") return F.aux === "sein" ? "pf5" : F.sep || F.insep || k.ieren ? "pf4" : "pf3";
@@ -742,13 +790,10 @@ function vxCellSheet(c) {
   if (c.t === "pq") return "pq1";
   return "";
 }
-// What a verb card says aloud: the whole answer ("triffst dich", "rufen
-// Sie an"). The voice packs record exactly this (tools/audio/runtime.mjs).
-function vxSayText(ex) { return ex && ex.form ? ex.form.ans : ""; }
 // The word-like object a Today item carries (wordKey(w) = "vx_…").
 function vxWord(ex) {
   const id = ex.item || ("cell:" + ex.cell);
-  return { deckId: VX_DECK, idx: id, deckName: "Verbs", de: ex.form.ans, en: `${ex.x.inf} — ${VX_TENSE_LABEL[ex.tense] || ""}`, hint: "verb", vx: ex };
+  return { deckId: VX_DECK, idx: id, deckName: vxT("Verbs"), de: ex.form.ans, fr: ex.form.ans, en: `${ex.x.inf} — ${VX_TENSE_LABEL[ex.tense] || ""}`, hint: "verb", vx: ex };
 }
 
 // ── GRADING ───────────────────────────────────
@@ -757,7 +802,8 @@ function vxWord(ex) {
 // fine). Grading forgives a missing umlaut, as the rest of the app does,
 // and the feedback then shows the spelling (fährt, hätte).
 function vxEq(answer, typed) {
-  const f = s => String(s || "").normalize("NFC").trim().toLowerCase().replace(/ß/g, "ss").replace(/['\-]/g, " ").replace(/\s+/g, " ");
+  if (VX_FR) return VXF.eq(answer, typed);
+  const f = s => String(s || "").normalize("NFC").trim().toLowerCase().replace(/ß/g, "ss").replace(/['’‘`´ʼ\-]/g, " ").replace(/\s+/g, " ").trim();
   const a = f(answer), t = f(typed);
   return a === t || a.replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue") === t;
 }
@@ -770,6 +816,7 @@ function vxUmlautSlip(answers, typed) {
 // (vermieten Sie / vermieten sie) — but never a pronoun in front: "Sie
 // vermieten" is a statement, not a command.
 function vxGradeTries(val, imp = false) {
+  if (VX_FR) return VXF.gradeTries(val, imp);
   const raw = String(val || "").trim().replace(/!+$/, "").trim();
   if (!raw) return [];
   const list = imp ? [raw, raw.replace(/\s+sie$/i, "")] : [raw, raw.replace(/^(ich|du|er|sie|es|wir|ihr|man)\s+/i, "")];
@@ -778,6 +825,8 @@ function vxGradeTries(val, imp = false) {
 // Is this exercise (or quiz question) a command?
 function vxIsCommand(ex) {
   const k = ex && (ex.kind || ex.t || (ex.chk && ex.chk[1]));
+  // French: the impératif ("im" there is the imparfait).
+  if (VX_FR) return k === "ip" || /^\((tu|nous|vous)\)/.test(String(ex && ex.q || ""));
   return /^im/.test(String(k || "")) || /^\((du|ihr|Sie)\)|___ Sie\b/.test(String(ex && ex.q || ""));
 }
 // An umlaut left out counts, as everywhere in the app (no umlaut keys
@@ -798,6 +847,7 @@ function vxUmlautOnly(val, answers, imp = false) {
 }
 // The mistake type, for the learning log and the usage report.
 function vxMistakeType(given, ex) {
+  if (VX_FR) return VXF.mistake(given, ex);
   const g = normalize(String(given || ""));
   if (!g) return "blank";
   const engineT = { pr: 1, pt: 1, pf: 1, pq: 1, fu: 1, im: 1 }[ex.kind] ? ex.kind : ex.kind === "p2" ? "pf" : ex.kind === "k2w" || ex.kind === "k2o" ? "k2" : null;
@@ -938,7 +988,7 @@ function vxRecordAnswer(ex, ok, opts = {}) {
     if (ws && ws.st && !ws.lrn && !ws.rp) { srsReview(ws, false, "recognition"); }
   }
   const noteT = ex.kind === "sc" ? "pr" : ex.kind;
-  if (typeof learnNoteVerb === "function" && ["pr", "pt", "pf", "pq", "fu", "im"].includes(noteT))
+  if (typeof learnNoteVerb === "function" && (VX_FR ? VXF.logKinds : ["pr", "pt", "pf", "pq", "fu", "im"]).includes(noteT))
     learnNoteVerb(ex.x.F, noteT, ex.p, ok === true, opts.given || "", ex.form.ans);
   else if (ok === false && typeof _learnDay === "function") _learnDay("mk", vxMistakeType(opts.given, ex));
   if (typeof logEvent === "function") logEvent("vx_ans", { k: ex.item ? ex.item.split(":")[0] : "cell", t: ex.tense, ok: ok === true });
@@ -947,6 +997,7 @@ function vxRecordAnswer(ex, ok, opts = {}) {
 }
 // The rule item a coverage drill exercises (for a miss to flag).
 function vxCellRuleItem(ex) {
+  if (VX_FR) return VXF.cellRuleItem(ex);
   const x = ex.x, F = x.F;
   if (ex.tense === "pr") return x.k.stem ? (S.words[vxKey("sc:" + x.inf)] ? "sc:" + x.inf : null) : F.sep ? "r:pr-sep" : F.refl ? "r:pr-refl" : x.k.glue ? "r:pr-glue" : x.k.irregular ? null : "r:pr-end";
   if (ex.tense === "pf") return S.words[vxKey("p2:" + x.inf)] ? "p2:" + x.inf : F.sep || F.insep || x.k.ieren ? "r:pf-prefix" : "r:pf-ge";
@@ -974,6 +1025,7 @@ function vxGameHit(ctx, inf, tense, person, ok, kind) {
   (ctx.vxHits || (ctx.vxHits = [])).push({ inf, tense, person, ok, kind });
 }
 function vxItemsForForm(x, tense, person) {
+  if (VX_FR) return VXF.itemsForForm(x, tense, person);
   const out = [];
   if (tense === "pr" && (person === "du" || person === "er") && S.words[vxKey("sc:" + x.inf)]) out.push("sc:" + x.inf);
   if (tense === "pf" && S.words[vxKey("p2:" + x.inf)]) out.push("p2:" + x.inf);
@@ -1018,7 +1070,7 @@ function vxCardRight(w) {
   if (!w || !vxOn() || w.deckId === VX_DECK) return;
   if (!_vxRefIdx) {
     _vxRefIdx = new Map();
-    vxVerbs().forEach(x => (x.v.refs || []).forEach(r => _vxRefIdx.set(r.deckId + "_" + r.idx, { inf: x.inf, t: r.tense === "p2" ? "pf" : r.tense })));
+    vxVerbs().forEach(x => vxRefs(x).forEach(r => _vxRefIdx.set(r.deckId + "_" + r.idx, { inf: x.inf, t: r.tense === "p2" ? "pf" : r.tense })));
   }
   const r = _vxRefIdx.get(w.deckId + "_" + w.idx);
   if (r && vxCovSet(r.inf, r.t)) vxMirror();
@@ -1027,7 +1079,7 @@ function vxCardRight(w) {
 // its verb is one of Präteritum I (war, hatte, konnte, wurde…).
 let _vxPt1Forms = null;
 function vxPt1Sentence(r) {
-  if (!vxOn() || vxUnitOpen("pt2")) return true;
+  if (!vxOn() || VX_FR || vxUnitOpen("pt2")) return true;
   if (!vxUnitOpen("pt1")) return false;
   if (!_vxPt1Forms) {
     _vxPt1Forms = new Set();
@@ -1055,8 +1107,7 @@ function vxPreview() {
   try {
     S.verb.on = studyToday();
     const pos0 = vxPathPos(pathScan(true));
-    S.verb.tu.pr = Math.max(S.verb.tu.pr || 0, 2);
-    if (pos0 >= vxAnchorPos(VX_UNIT.pf) + 0.25) S.verb.tu.pf = Math.max(S.verb.tu.pf || 0, 2);
+    vxSwitchUnits(pos0).forEach(u => { S.verb.tu[u] = Math.max(S.verb.tu[u] || 0, 2); });
     vxCatalogReset(); invalidatePathScan();
     seeds = vxSeed(true);
     vxUnitsTick(true);
@@ -1099,7 +1150,7 @@ function vxSeed(dry = false, upgrade = false) {
   };
   // Evidence per (inf, tense) from your met cards.
   const ev = new Map();
-  vxVerbs().forEach(x => (x.v.refs || []).forEach(r => {
+  vxVerbs().forEach(x => vxRefs(x).forEach(r => {
     const st = stOf(r.deckId, r.idx);
     if (!st) return;
     const t = r.tense === "p2" ? "pf" : r.tense;
@@ -1141,6 +1192,13 @@ function vxSeed(dry = false, upgrade = false) {
   });
   return n;
 }
+// Tenses you've already been using when you switch: Präsens (and Perfekt
+// once A1 is well under way) — in French Présent, then Futur proche and
+// Passé composé the same way.
+function vxSwitchUnits(pos) {
+  if (VX_FR) return VXF.switchOpen(pos);
+  return ["pr", ...(pos >= vxAnchorPos(VX_UNIT.pf) + 0.25 ? ["pf"] : [])];
+}
 function vxSwitchOn() {
   migrateVerb();
   if (S.verb.on) return;
@@ -1150,8 +1208,7 @@ function vxSwitchOn() {
   // Tenses you've already been using: Präsens (and Perfekt once A1 is
   // well under way) count as practising — their sheets are there to read.
   const pos = vxPathPos(pathScan(true));
-  S.verb.tu.pr = Math.max(S.verb.tu.pr || 0, 2);
-  if (pos >= vxAnchorPos(VX_UNIT.pf) + 0.25) S.verb.tu.pf = Math.max(S.verb.tu.pf || 0, 2);
+  vxSwitchUnits(pos).forEach(u => { S.verb.tu[u] = Math.max(S.verb.tu[u] || 0, 2); });
   const seed = vxSeed(false);
   S.verb.seedV = VX_SEED_V;
   S.verb.seed = { on: today, ...seed, pos: Math.round(pos * 100) / 100 };
@@ -1207,7 +1264,7 @@ function vxLedger() {
 // One verb's row for the map: { x, lemma, cells: {t: done}, items: [{id, st}] }
 function vxVerbRow(x) {
   const cells = {};
-  ["pr", "pt", "pf"].forEach(t => { if (x.v.tenses.includes(t)) cells[t] = vxCovHas(x.inf, t); });
+  VX_CORE.forEach(t => { if (vxHasTense(x, t)) cells[t] = vxCovHas(x.inf, t); });
   const items = vxCatalog().filter(it => it.x === x).map(it => ({ id: it.id, kind: it.kind, st: (S.words[vxKey(it.id)] || {}).st || 0 }));
   return { x, lemma: vxLemma(x), cells, items };
 }
@@ -1248,36 +1305,37 @@ function vxLearnLines() {
   const passed = GS_SHEETS.filter(sh => vxSheetPassed(sh.id)).map(sh => `${sh.id} ${S.verb.sh[sh.id]}%`);
   if (passed.length) out.push(`Sheets passed (first-try quiz score): ${passed.join(" · ")}`);
   const weakPts = vxQuizWeakPoints();
-  if (weakPts.length) out.push(`Grammar points I miss in quizzes (missed/right first try): ` + weakPts.map(w => `${w.title} — ${typeof gqPointName === "function" ? gqPointName(w.at) : w.at}${w.text ? ` (“${w.text.slice(0, 90)}”)` : ""} ${w.missed}/${w.right}`).join(" · "));
+  if (weakPts.length) out.push(`Grammar points I miss in quizzes (missed/right first try): ` + weakPts.map(w => `${w.title} — ${typeof gqPointName === "function" ? gqPointName(w.at, true) : w.at}${w.text ? ` (“${w.text.slice(0, 90)}”)` : ""} ${w.missed}/${w.right}`).join(" · "));
   out.push(...vxMasteryLines());
   const rules = VX_RULES.map(r => { const ws = S.words[vxKey("r:" + r.id)]; return ws && ws.st ? `${r.title} ${tierOfStage(ws.st).icon}${ws.rp ? "🩹" : ws.fl ? "⚠️" : ""}${(ws.k || 1) < EASE.HARD_K ? " (hard for me)" : ""}` : ""; }).filter(Boolean);
   if (rules.length) out.push(`Rules in my reviews: ${rules.join(" · ")}`);
   const weak = vxCatalog().filter(it => it.x).map(it => ({ it, ws: S.words[vxKey(it.id)] })).filter(o => o.ws && o.ws.st && (o.ws.rp || o.ws.fl || (o.ws.k || 1) < EASE.HARD_K || (o.ws.wrong || 0) >= 2))
-    .map(o => `${o.it.x.inf} (${VX_ITEM_KINDS[o.it.kind].title}: ${vxForm(o.it.x, VX_ITEM_KINDS[o.it.kind].form, o.it.kind === "sc" || o.it.kind === "im" ? "du" : "er").ans})`);
+    .map(o => { const d = VX_ITEM_KINDS[o.it.kind], p = d.persons ? d.persons(o.it.x)[0] : o.it.kind === "sc" || o.it.kind === "im" ? "du" : "er", f = vxForm(o.it.x, d.form, p);
+      return `${o.it.x.inf} (${d.title}: ${f ? f.ans : "—"})`; });
   if (weak.length) out.push(`Irregular verb forms I struggle with: ${weak.join(" · ")}`);
-  out.push(`Verb ledger: ${L.all.done}/${L.all.verbs} verbs complete (meaning Known + irregular forms Known + Präsens/Präteritum/Perfekt produced) — ` +
+  out.push(`Verb ledger: ${L.all.done}/${L.all.verbs} verbs complete (meaning Known + irregular forms Known + ${VX_CORE_LABEL.replace(/ · /g, "/")} produced) — ` +
     L.levels.map(l => `${l.id.toUpperCase()} ${l.done}/${l.verbs} (forms ${l.cellsDone}/${l.cells})`).join(" · "));
   return out;
 }
 
 // ── ACHIEVEMENTS ──────────────────────────────
-if (typeof ACHIEVEMENTS !== "undefined" && typeof GR_DE !== "undefined" && GR_DE) {
+if (typeof ACHIEVEMENTS !== "undefined" && (VX_FR ? typeof GR_FR !== "undefined" && GR_FR : typeof GR_DE !== "undefined" && GR_DE)) {
   ACHIEVEMENTS.push(
     { id: "vx_tenses", icon: "🧭", name: "Tense Explorer", category: "Grammar",
-      desc: t => `Open ${t} of the 10 German tenses (every sheet of each passed)`,
-      tiers: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      desc: t => `Open ${t} of the ${VX_UNITS.length} ${VX_FR ? "French" : "German"} tenses (every sheet of each passed)`,
+      tiers: VX_UNITS.map((u, i) => i + 1),
       value: () => vxOn() ? VX_UNITS.filter(u => vxUnitOpen(u.id)).length : 0 },
     { id: "vx_ledger", exact: true, icon: "📒", name: "Verb Ledger", category: "Grammar",
-      desc: t => `Complete ${t.toLocaleString()} verbs: meaning Known, irregular forms Known, Präsens · Präteritum · Perfekt produced`,
+      desc: t => `Complete ${t.toLocaleString()} verbs: meaning Known, irregular forms Known, ${VX_CORE_LABEL} produced`,
       top: () => vxAvailable() ? vxVerbs().length : 1,
       value: () => vxOn() ? vxLedger().all.done : 0 },
     { id: "vx_mastery", icon: "🏆", name: "Tense Master", category: "Grammar",
       desc: t => `Pass the mastery quiz of ${t} tense${t > 1 ? "s" : ""} at 100% (optional quizzes in 📐 Grammar)`,
-      tiers: [1, 3, 5, 8, 10],
+      tiers: VX_FR ? [1, 3, 6, 9, 12] : [1, 3, 5, 8, 10],
       value: () => VX_UNITS.filter(u => vxMastered(u.id)).length });
   const _vxL = ACHIEVEMENTS.find(a => a.id === "vx_ledger");
   let key = null, memo = null;
   Object.defineProperty(_vxL, "tiers", { get() { const top = Math.round(_vxL.top()) || 0; if (top !== key) { key = top; memo = tiersTo(top, _vxL.curve, true); } return memo; } });
 }
 
-if (typeof module !== "undefined") module.exports = { vxForm, vxGrade, VX_RULES, VX_UNITS };
+if (typeof module !== "undefined") module.exports = { vxForm, vxGrade, VX_RULES, VX_UNITS, VX_FR };

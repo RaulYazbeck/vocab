@@ -1,11 +1,11 @@
 // Every screen of the verb track drawn (Grammar, units, ledger pages, every
 // sheet step, quiz, miss → sheet → back, result, every mastery quiz, every
 // rule card and a sample of verb-item cards), phone and desktop: no page
-// errors, no undefined/NaN text, no sideways scrolling.
+// errors, no undefined/NaN text, no sideways scrolling. APP=fr: the French app.
 import { openApp } from "./browser.mjs";
 let failed = 0;
 for (const [w, h] of [[390, 844], [1280, 900]]) {
-  const { browser, page, errors } = await openApp({ width: w, height: h });
+  const { browser, page, errors } = await openApp({ width: w, height: h, app: process.env.APP || "de" });
   const out = await page.evaluate(async () => {
     vxSwitchOn(); window.mistakeHeld = () => false; window.speak = () => {};
     const bad = [], seen = { cards: 0, screens: 0 };
