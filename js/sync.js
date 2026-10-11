@@ -119,6 +119,12 @@ const PRECHECK_FRESH_MS = 15000;
 const SYNC_HIST_KEEP = 60;
 const SYNC_HIST_MAX = 400;
 const SYNC_HIST_PAUSE_MS = 120000;
+const SYNC_HIST_PIECES = 20;
+// The sync rules' version, stamped on every save (_p). A device that finds
+// a newer one in the cloud is running old code: it reloads (or, mid-
+// session, stops writing) instead of merging by rules that lose data.
+const SYNC_PROTOCOL = 2;
+let syncOutdated = false;
 let syncRec = { dev: "", uid: null, lastAt: 0, know: {}, base: null, hist: [], pend: [] };
 
 // ── AUTH ──────────────────────────────────────
@@ -287,6 +293,12 @@ function syncAdvanceBase(nb) {
     }
     syncRec.hist = syncRec.hist.concat([{ id: ob.id, sv: ob.sv, seen: ob.seen, scal: ob.scal, undo, t: Date.now() }]);
     syncThinHistory();
+    // Piece fingerprints ("#…", see sync-merge.js) only on the recent
+    // entries — they're what a merge compares with; older ones keep counters.
+    syncRec.hist.forEach((h, i) => {
+      if (i >= syncRec.hist.length - SYNC_HIST_PIECES || !h.scal) return;
+      if (Object.keys(h.scal).some(k => k[0] === "#")) h.scal = Object.fromEntries(Object.entries(h.scal).filter(([k]) => k[0] !== "#"));
+    });
   }
   syncRec.base = nb;
   syncSaveRec();
@@ -394,7 +406,7 @@ function syncCloudState(snapshot) {
     else if (doc.id.startsWith(STORAGE_KEY + "_usage_")) usageArchive[doc.id.slice((STORAGE_KEY + "_usage_").length)] = data.days || {};
   });
   if (!meta) return { meta: null, state: null };
-  const { _evidence, _dev, _seen, _at, _sv, ...rest } = meta;
+  const { _evidence, _dev, _seen, _at, _sv, _p, ...rest } = meta;
   const state = { ...rest, words, usageArchive };
   if (learn) state.learn = learn;
   return { meta, state, deckSeen };
@@ -433,7 +445,7 @@ function buildSyncDocs(state = S) {
   Object.keys(state.resets || {}).forEach(deckId => { if (!wordsByDeck[deckId]) wordsByDeck[deckId] = {}; });
   // (_dev/_seen/_at/_sv: save stamps an older app version may have copied
   // into its state — never content; each commit adds its own.)
-  const { words, usageArchive, learn, _dev, _seen, _at, _sv, _evidence, ...meta } = state;
+  const { words, usageArchive, learn, _dev, _seen, _at, _sv, _p, _evidence, ...meta } = state;
   meta._evidence = evidenceCount(state); // answers in total, for a quick look at the meta doc
   const docs = { [STORAGE_KEY]: meta };
   Object.entries(wordsByDeck).forEach(([deckId, deckWords]) => {
@@ -510,6 +522,7 @@ function runCloudLoad(uid) {
       setStatus("☁️ Synced", 3000);
       return;
     }
+    if ((meta._p || 0) > SYNC_PROTOCOL) { syncOnOutdated(); return; }
     syncAdoptLanded(meta);
     if (!force && syncClassify(meta) !== "changed") {
       // Nothing new in the cloud — 1 read. Push local if it moved on
@@ -526,6 +539,7 @@ function runCloudLoad(uid) {
     return withTimeout(ref.get({ source: 'server' }), growTimeout(LOAD_ALL_TIMEOUT_MS, loadTimeouts), "Cloud load").then(snapshot => {
       if (stale()) return;
       const cloud = syncCloudState(snapshot);
+      if (cloud.meta && (cloud.meta._p || 0) > SYNC_PROTOCOL) { syncOnOutdated(); return; }
       if (!cloud.meta) { loaded(); syncedDocCache = {}; if (S.savedAt) commitAfterLoad = true; setStatus("☁️ Synced", 3000); return; }
       syncAdoptLanded(cloud.meta);
       const metaSeen = syncTrusted(cloud.meta) ? cloud.meta._seen : null;
@@ -582,6 +596,17 @@ function runCloudLoad(uid) {
     setStatus("⚠️ Offline — saved on this device");
     scheduleLoadRetry();
   });
+}
+
+// The cloud was saved by newer sync rules than this page runs (a cached
+// old version). Opening: reload once to get the new code. Mid-session:
+// nothing more is written or merged here; saved on this device only.
+function syncOnOutdated() {
+  syncOutdated = true;
+  let tried = false;
+  try { tried = sessionStorage.getItem("gv_sync_reload") === "1"; sessionStorage.setItem("gv_sync_reload", "1"); } catch (e) { tried = true; }
+  if (!cloudLoadedOnce && !tried) { location.reload(); return; }
+  setStatus("⬆️ App updated — close and reopen it to sync");
 }
 
 // Until the first load succeeds, keep trying on a backoff (then every
@@ -654,6 +679,7 @@ async function commitToFirestore() {
   clearTimeout(syncTimeout); syncTimeout = null;
   commitPendingSince = 0;
   if (!S.savedAt) return; // never-stamped state has nothing to push
+  if (syncOutdated) return;
   if (loadInFlight) { commitAfterLoad = true; return; }
   if (commitInFlight) { commitAgain = true; return; }
   clearTimeout(commitRetryT); commitRetryT = 0;
@@ -715,6 +741,7 @@ async function sendCommit(user, changed, c) {
       } catch (e) { console.warn("[sync] pre-check failed, saving anyway:", e.message); meta = undefined; }
       if (!currentUser || currentUser.uid !== user.uid) return;
       if (meta) {
+        if ((meta._p || 0) > SYNC_PROTOCOL) { syncOnOutdated(); return; }
         syncAdoptLanded(meta);
         // Changed by another device — or not the save this page's diff
         // cache describes: merge / re-read first, then save.
@@ -724,7 +751,7 @@ async function sendCommit(user, changed, c) {
     }
     // Who wrote this save, and every save it includes.
     const at = syncNextAt();
-    ident = { _dev: syncRec.dev, _at: at, _sv: c.savedAt, _seen: { ...syncRec.know, [syncRec.dev]: at } };
+    ident = { _dev: syncRec.dev, _at: at, _sv: c.savedAt, _p: SYNC_PROTOCOL, _seen: { ...syncRec.know, [syncRec.dev]: at } };
     // Word counts as sent, kept as the change from the base (small).
     const b = syncRec.base;
     let wcd = c.wc, full = true;

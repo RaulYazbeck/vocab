@@ -28,8 +28,11 @@
 //     day and plan were made from stale progress — the other side's are
 //     kept and the app rolls the day over again on the merged progress.
 //     Same day: the one with more done; a tie, the cloud's.
-//   • Everything else (path settings, other settings) — the whole object
-//     from the device that saved last, as before.
+//   • Everything else (settings, game progress, chests and items…) —
+//     compared piece by piece with the last state both devices shared: a
+//     piece only one device changed since comes from that device, so an
+//     old copy that was merely opened can't bring back old values. Both
+//     changed it (or no shared state is known): the device that saved last.
 //   • Resets — "reset deck" / "reset all" leave a timestamp; words last
 //     studied before it are dropped on both sides, so a reset sticks.
 //
@@ -218,11 +221,54 @@ function syncMergeWords(lw, cw, preferLocal, cutFor, bw) {
   return out;
 }
 
-// The counters base/local/cloud are compared on.
+// Pieces compared one by one with the shared state (3-way): every
+// top-level field, and each key of these objects on its own. The rest has
+// its own rules above.
+const SYNC_SPLIT = ["games", "path", "prefs", "quests"];
+const SYNC_NO_3WAY = new Set(["words", "usageArchive", "learn", "usage", "verb", "savedAt", "resets", "resetAllAt"]);
+// Quest fields that belong to the day (see syncLocalDay).
+const SYNC_QUEST_DAY_KEYS = ["day", "list", "m", "dayDone", "flash", "weekend", "dbl", "missedYesterday", "prevOk", "history"];
+function syncPiecesOf(state) {
+  const out = {};
+  Object.keys(syncIsObj(state) ? state : {}).forEach(k => {
+    if (SYNC_NO_3WAY.has(k) || k[0] === "_") return;
+    if (SYNC_SPLIT.includes(k) && syncIsObj(state[k])) Object.keys(state[k]).forEach(s => { out[k + "." + s] = state[k][s]; });
+    else out[k] = state[k];
+  });
+  return out;
+}
+// A short fingerprint of a value (stored per piece with the shared state).
+function syncHash(v) {
+  const s = v === undefined ? "~" : JSON.stringify(v);
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+  return h.toString(36) + s.length.toString(36);
+}
+// What a shared state is remembered by: its counters, and the
+// fingerprint of every piece ("#piece").
 function syncScalarsOf(state) {
   const out = {};
   SYNC_ADD_PATHS.forEach(p => { out[p] = syncNum(syncGet(state, p)); });
+  Object.entries(syncPiecesOf(state)).forEach(([p, v]) => { out["#" + p] = syncHash(v); });
   return out;
+}
+// Per piece, which side changed it since `base` — "l", "c", or nothing
+// when neither or both did (or the base has no fingerprints).
+function syncChanges(local, cloud, base) {
+  const out = {};
+  if (!base || !Object.keys(base).some(k => k[0] === "#")) return out;
+  const lp = syncPiecesOf(local), cp = syncPiecesOf(cloud), none = syncHash(undefined);
+  new Set([...Object.keys(lp), ...Object.keys(cp)]).forEach(p => {
+    const h = base["#" + p] || none;
+    const l = syncHash(lp[p]) !== h, c = syncHash(cp[p]) !== h;
+    if (l !== c) out[p] = l ? "l" : "c";
+  });
+  return out;
+}
+function syncTake(out, p, src) {
+  const v = syncGet(src, p);
+  if (v === undefined) { const ks = p.split("."); const last = ks.pop(); const o = ks.length ? syncGet(out, ks.join(".")) : out; if (syncIsObj(o)) delete o[last]; }
+  else syncSet(out, p, syncClone(v));
 }
 
 // Merge two progress states. Neither input is modified.
@@ -244,6 +290,9 @@ function mergeStates(local, cloud, opts = {}) {
   const out = syncClone(winRest);
   // A field only the other side has (a save from an older version) is kept.
   Object.keys(lose).forEach(k => { if (!(k in out) && !["words", "usageArchive", "learn"].includes(k)) out[k] = syncClone(lose[k]); });
+  // Pieces only one side changed since the shared state: from that side.
+  const changed = syncChanges(local, cloud, base);
+  Object.entries(changed).forEach(([p, who]) => syncTake(out, p, who === "l" ? local : cloud));
 
   // Resets: deck → latest reset time; "reset all" applies to every deck.
   const resets = syncDeepMax(local.resets || {}, cloud.resets || {});
@@ -257,9 +306,19 @@ function mergeStates(local, cloud, opts = {}) {
   const resetSide = lr > cr ? local : cr > lr ? cloud : null;
 
   if (syncIsObj(local.quests) && syncIsObj(cloud.quests)) {
-    const lq = local.quests, cq = cloud.quests;
-    const useLocal = syncLocalDay(String(lq.day || ""), String(cq.day || ""), syncQuestProgress(lq), syncQuestProgress(cq));
-    out.quests = syncClone(useLocal ? lq : cq);
+    const lq = local.quests, cq = cloud.quests, ld = String(lq.day || ""), cd = String(cq.day || "");
+    const useLocal = syncLocalDay(ld, cd, syncQuestProgress(lq), syncQuestProgress(cq));
+    const src = useLocal ? lq : cq;
+    // An untouched day rolled over on an old copy is dropped whole: what
+    // that rollover changed (freezes spent, the week, the saga…) was worked
+    // out from stale progress — the day is rolled again on the merged one.
+    const reroll = ld !== cd && src.day < (useLocal ? cd : ld);
+    const Q = syncClone(src);
+    if (!reroll) Object.entries(changed).forEach(([p, who]) => {
+      const k = p.startsWith("quests.") ? p.slice(7) : null;
+      if (k && !SYNC_QUEST_DAY_KEYS.includes(k)) { const v = (who === "l" ? lq : cq)[k]; if (v === undefined) delete Q[k]; else Q[k] = syncClone(v); }
+    });
+    out.quests = Q;
   }
   if (syncIsObj(local.path) && syncIsObj(cloud.path)) {
     const useLocal = syncLocalDay(syncPathDay(local.path), syncPathDay(cloud.path), syncPathProgress(local), syncPathProgress(cloud));

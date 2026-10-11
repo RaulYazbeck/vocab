@@ -2,7 +2,7 @@
 // (pure, no browser): node test-merge.mjs
 import fs from "node:fs"; import vm from "node:vm";
 const src = fs.readFileSync(new URL("../../js/sync-merge.js", import.meta.url), "utf8");
-const ctx = {}; vm.createContext(ctx); vm.runInContext(src + "\n;this.mergeStates = mergeStates;", ctx);
+const ctx = {}; vm.createContext(ctx); vm.runInContext(src + "\n;this.mergeStates = mergeStates; this.syncScalarsOf = syncScalarsOf;", ctx);
 const merge = (l, c, o = {}) => ctx.mergeStates(l, c, o);
 let pass = 0, fail = 0; const ok = (c, m, x = "") => { if (c) pass++; else { fail++; console.log("  ✗", m, x); } };
 const J = JSON.stringify;
@@ -70,5 +70,48 @@ ok(m.quests.kept.length === 3 && m.path.plan.day === "2026-10-10", "a save witho
 // ── reset all on one side: its streak days stand ──
 m = merge({ ...phone, resetAllAt: 9 }, web, { localWins: true });
 ok(J(m.quests.kept) === J(["2026-10-08"]), "a newer reset-all keeps its own days", J(m.quests.kept));
+
+// ── piece by piece against the shared state (3-way) ──
+const shared = { savedAt: 100, dailyGoal: 120, prefs: { grandma: false, speak: false },
+  games: { world: { stage: 3, dmg: 40 }, pool: "all", daily: { day: "2026-10-08", done: true, completedDates: ["2026-10-08"] } },
+  path: path("2026-10-08"), quests: quests("2026-10-08", 90, { freezes: 1, tokens: 2, pending: [], week: { key: "w41", ok: 300 } }) };
+const base = ctx.syncScalarsOf(shared);
+const C = x => JSON.parse(JSON.stringify(x));
+// the web, two days on: boss world, a setting, a chest with a freeze, the week
+const web2 = C(shared); web2.savedAt = 2000;
+web2.games.world = { stage: 5, dmg: 10 }; web2.prefs.grandma = true; web2.dailyGoal = 150;
+web2.quests = quests("2026-10-10", 193, { freezes: 2, tokens: 2, pending: [{ src: "lucky", at: 9 }], week: { key: "w41", ok: 700 }, kept: ["2026-10-09", "2026-10-10"] });
+web2.path = path("2026-10-10");
+// the phone, opened today on its old copy: day rolled, Long tapped (newest save)
+const phone2 = C(shared); phone2.savedAt = 3000;
+phone2.quests = quests("2026-10-11", 0, { freezes: 0, frozen: ["2026-10-09"], tokens: 2, pending: [], week: { key: "w41", ok: 300 } });
+phone2.path = path("2026-10-11", { sessionLen: "long" });
+m = merge(phone2, web2, { localWins: true, base });
+ok(m.games.world.stage === 5, "game progress only the web changed: the web's, though the phone saved last", J(m.games.world));
+ok(m.prefs.grandma === true && m.dailyGoal === 150, "settings only the web changed: the web's");
+ok(m.path.sessionLen === "long", "a setting only the phone changed: the phone's");
+ok(m.quests.freezes === 2 && m.quests.pending.length === 1 && m.quests.week.ok === 700, "chests, freezes, the week: the web's (the phone's rollover was stale)", J([m.quests.freezes, m.quests.pending, m.quests.week]));
+ok(m.quests.day === "2026-10-10" && m.quests.kept.length === 2, "the day: the web's, to be rolled again");
+// the phone studied offline today: its day stays, the web's chest and freeze too
+const phone3 = C(phone2); phone3.quests.m.ok = 30; phone3.quests.freezes = 1; phone3.quests.frozen = []; phone3.quests.tokens = 1;
+m = merge(phone3, web2, { localWins: true, base });
+ok(m.quests.day === "2026-10-11" && m.quests.m.ok === 30, "a day with answers on the phone stays");
+ok(m.quests.freezes === 2 && m.quests.pending.length === 1, "… with the freeze and chest the web earned meanwhile", J([m.quests.freezes, m.quests.pending]));
+ok(m.quests.tokens === 1, "… and the token the phone spent", m.quests.tokens);
+// both changed the same piece: the one that saved last
+const webB = C(web2), phoneB = C(phone2); phoneB.games.world = { stage: 4, dmg: 0 };
+m = merge(phoneB, webB, { localWins: true, base });
+ok(m.games.world.stage === 4, "both changed it: the device that saved last");
+// a piece one side removed
+const webR = C(web2); delete webR.games.pool;
+m = merge(phone2, webR, { localWins: true, base });
+ok(m.games.pool === undefined, "a piece only one side removed stays removed");
+// no fingerprints in the base (a base from the previous version): as before
+const oldBase = Object.fromEntries(Object.entries(base).filter(([k]) => k[0] !== "#"));
+m = merge(phone2, web2, { localWins: true, base: oldBase });
+ok(m.games.world.stage === 3, "no fingerprints: the device that saved last, as before");
+// the cloud is the shared state itself (nothing new there): every local change stands
+m = merge(phone3, shared, { localWins: true, base });
+ok(m.path.sessionLen === "long" && m.quests.tokens === 1, "nothing new in the cloud: local changes stand");
 
 console.log(`merge: ${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);
