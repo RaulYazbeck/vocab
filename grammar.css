@@ -255,10 +255,14 @@
 
 /* ── Today: verb cards ───────── */
 .vx-q { --th:38; display:flex; flex-direction:column; align-items:center; gap:10px; margin:2px 0 18px; text-align:center; }
-.vx-chips { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
-.vx-tense { font-size:12px; font-weight:800; padding:4px 10px; border-radius:20px; color:hsl(var(--th) 88% 74%);
-  background:hsl(var(--th) 70% 50% / 0.16); border:1px solid hsl(var(--th) 70% 60% / 0.4); }
-.vx-rule { font-size:12px; font-weight:700; padding:4px 10px; border-radius:20px; color:var(--text-2); background:rgba(255,255,255,0.06); border:1px solid var(--border); }
+/* The tense: the first thing you read, in its own colour. */
+.vx-tt-row { display:flex; justify-content:center; }
+.vx-tt { display:inline-flex; align-items:center; gap:7px; font-size:19px; font-weight:900; letter-spacing:0.2px; padding:6px 16px; border-radius:999px;
+  color:hsl(var(--th) 90% 74%); background:hsl(var(--th) 70% 50% / 0.16); border:1.5px solid hsl(var(--th) 75% 62% / 0.55); line-height:1.2; }
+.vx-tt.md { font-size:15px; padding:4px 13px; margin-bottom:4px; }
+.vx-tt.sm { font-size:inherit; font-weight:800; padding:1px 9px; gap:4px; border-width:1px; vertical-align:baseline; }
+.vx-flash .vx-tt { animation:vxFlash 0.9s ease 1; }
+@keyframes vxFlash { 0%, 100% { transform:scale(1); } 30% { transform:scale(1.12); box-shadow:0 0 0 6px hsl(var(--th) 80% 60% / 0.25); } }
 .vx-line { font-size:26px; font-weight:800; display:flex; flex-wrap:wrap; align-items:baseline; justify-content:center; gap:8px; line-height:1.3; }
 .vx-pron { color:var(--teal-hi); }
 .vx-gap { display:inline-block; width:74px; height:4px; border-radius:2px; background:hsl(var(--th) 80% 62% / 0.7); transform:translateY(-6px); }
@@ -267,9 +271,38 @@
 .vx-verb b { color:var(--text); font-size:17px; }
 .vx-fmt { font-size:12.5px; color:var(--text-3); }
 .vx-fmt b { color:var(--text-2); }
-.vx-answer { font-size:22px; font-weight:800; margin:6px 0; display:flex; flex-wrap:wrap; justify-content:center; align-items:flex-start; gap:4px; }
+/* Feedback: one centred column. */
+.vx-fb { display:flex; flex-direction:column; align-items:center; gap:8px; text-align:center; margin-bottom:6px; }
+.vx-res { font-size:15px; font-weight:800; }
+.vx-res.ok { color:var(--success); }
+.vx-res.bad { color:var(--error); }
+.vx-res.near { color:var(--accent-hi); }
+.vx-fb .p-diff { margin-top:0; text-align:center; overflow-wrap:anywhere; }
+.vx-chip { display:flex; flex-wrap:wrap; justify-content:center; gap:6px; }
+.vx-chip .p-chip { margin:0; }
+.vx-note { font-size:12.5px; color:var(--text-3); line-height:1.45; max-width:420px; }
+.vx-answer { font-size:24px; font-weight:800; line-height:1.35; margin:2px 0; text-align:center; overflow-wrap:anywhere; }
+.vx-answer .vl-part { display:inline-block; vertical-align:baseline; padding:0 3px; animation:none; }
+.vx-answer .vl-s, .vx-answer .vl-x { padding:0; }
+.vx-answer .vl-part + .vl-part { margin-left:0; }
+.vx-answer .vl-sp { width:6px; }
 .vx-answer b { color:var(--accent-hi); }
-.vx-why { margin-top:6px; }
+.vx-why { font-size:13px; color:var(--text-2); line-height:1.5; max-width:440px; }
+.vx-why b, .vx-why strong { color:var(--text); }
+/* The whole row: pronoun | form, singular beside plural. */
+.vx-row { display:grid; grid-template-columns:auto auto; column-gap:0; row-gap:3px; justify-content:center; align-items:baseline;
+  font-family:'JetBrains Mono',monospace; font-size:13.5px; margin-top:4px; }
+.vx-row.pairs { grid-template-columns:auto auto auto auto; }
+.vx-row.pairs .vx-rf:nth-child(4n+2) { margin-right:18px; }
+.vx-rp { text-align:right; color:var(--text-3); padding:1px 8px 1px 6px; }
+.vx-rf { text-align:left; color:var(--text-2); padding:1px 6px 1px 0; }
+.vx-rp.on, .vx-rf.on { background:var(--accent-dim); color:var(--text); font-weight:700; }
+.vx-rp.on { border-radius:5px 0 0 5px; color:var(--accent-hi); }
+.vx-rf.on { border-radius:0 5px 5px 0; }
+/* A right form of another tense: named, and one more try. */
+.vx-retry { font-size:15px; font-weight:700; color:var(--text); line-height:1.7; }
+.vx-retry-sub { font-size:12.5px; color:var(--text-3); }
+.german-input.retry { border-color:hsl(48 90% 60% / 0.8); box-shadow:0 0 0 3px hsl(48 90% 60% / 0.15); }
 .vx-learn { --th:38; }
 .vx-learn-t { font-size:24px; font-weight:900; margin:4px 0 6px; }
 .vx-learn-t small { font-size:15px; font-weight:500; color:var(--text-2); }
@@ -293,6 +326,9 @@
   .gs-table th, .gs-table td { padding:7px 8px; }
   .vx-line { font-size:23px; }
   .vx-gap { width:62px; }
+  .vx-tt { font-size:18px; }
+  .vx-answer { font-size:22px; }
+  .vx-row { font-size:12.5px; }
   .gr-sum b { font-size:19px; }
   .vx-cmp { grid-template-columns:1fr; }
   .gr-vlegend, .gr-verb { grid-template-columns:1fr 26px 70px 56px; gap:6px; }

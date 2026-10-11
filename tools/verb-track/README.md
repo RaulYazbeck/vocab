@@ -31,6 +31,8 @@ In the real app (Chromium via playwright-core from `../audio/tests`; run
     APP=fr node t-forms.mjs / APP=fr node t-screens.mjs   # the same audits in the French app
     node t-session.mjs      # whole Today sessions, right and wrong, repair round: the count (x/N) never
                             # grows, the same word (or verb) never twice in a row  (SEED=, DAYS=, APP=fr)
+    node t-tense.mjs        # the tense as the card's title; a right form of another tense is named and
+                            # gets one more try (right then = right); ich hätte for ich hatte  (APP=fr)
     node t-typing.mjs       # what a typed answer may differ in (accents, ß, œ, ae/oe/ue, apostrophes,
                             # hyphens, elision), word answers and verb forms, both apps
     node t-switch.mjs       # what switching on does to the test profile (numbers, first session)

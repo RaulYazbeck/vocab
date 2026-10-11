@@ -864,6 +864,31 @@ function vxGrade(val, ex) {
   if (isNearMiss(tries[0], acc)) return "near";
   return false;
 }
+// A wrong answer that is the same verb and person, right, in another
+// tense (er kommt where the Perfekt was asked): that tense, or null.
+// Today then names both tenses and gives one more try. Exact forms only
+// (umlauts forgiven as always) — a near miss of another tense is a miss.
+const VX_OTHER_KINDS = VX_FR ? ["pr", "im", "fu", "co", "pc", "pq", "cp", "sj", "ip", "fp", "vd"] : ["pr", "pt", "pf", "pq", "fu", "k2w", "k2o", "im"];
+// exact: spelt exactly (umlauts too) — for an answer that only passed
+// because a missing umlaut is forgiven: ich hätte for ich hatte is the
+// Konjunktiv II, not a slip.
+function vxOtherTense(val, ex, exact = false) {
+  if (!ex || !ex.x || !String(val || "").trim()) return null;
+  for (const k of VX_OTHER_KINDS) {
+    const t = VX_KIND_TENSE[k];
+    if (!t || t === ex.tense) continue;
+    // German: the Sie of a command is the sie (they) form of the other tenses.
+    const p = !VX_FR && ex.p === "Sie" && !/^im/.test(k) ? "sie" : ex.p;
+    let f = null;
+    try { f = vxForm(ex.x, k, p); } catch (e) { f = null; }
+    if (!f || !f.acc || !f.acc.length) continue;
+    // The asked form itself is never "another tense" (Präsens wir = Imperativ wir…).
+    if (f.acc.some(a => ex.form.acc.some(b => vxEq(a, b)))) continue;
+    const oex = { kind: k, x: ex.x, p, form: f };
+    if (exact ? vxGradeTries(val, vxIsCommand(oex)).some(tr => f.acc.some(a => vxEq(a, tr))) : vxGrade(val, oex) === true) return t;
+  }
+  return null;
+}
 // Right only once the umlauts are ignored (fahrst for fährst)?
 function vxUmlautOnly(val, answers, imp = false) {
   const tries = vxGradeTries(val, imp);

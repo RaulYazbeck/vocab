@@ -142,7 +142,7 @@ const r4 = await ev(() => {
       if (it.t === "typed" && it.w && it.w.vx) {
         const ex = it.w.vx;
         out.kinds[ex.kind] = (out.kinds[ex.kind] || 0) + 1;
-        out.prompts.push(document.getElementById("p-card").innerText.replace(/\s+/g, " ").slice(0, 400));
+        out.prompts.push(document.getElementById("p-card").innerText.replace(/\s+/g, " ").slice(0, 400) + " ⟨" + document.getElementById("p-input").placeholder + "⟩");
         const right = out.prompts.length % 3 !== 0;
         // an accented answer typed without its accents: right, spelling shown
         const plain = ex.form.ans.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -180,7 +180,8 @@ const r4 = await ev(() => {
 });
 ok(!r4.errs.length, "a Today session runs through its verb items", r4.errs.join(" | "));
 ok(Object.keys(r4.kinds).length >= 2, "Today brings verb items", JSON.stringify(r4.kinds));
-ok(r4.prompts.every(p => /Escribe|Di/.test(p)), "verb cards are in Spanish", r4.prompts.slice(0, 3).join(" ‖ "));
+// The card's label and the input are in Spanish (the tense keeps its French name).
+ok(r4.prompts.every(p => /Regla|Registro|Verbo|Cambio|Irregular|Participio|Forma|🧩|📒/.test(p) && /la forma completa|Di /.test(p) && !/\bType\b|full form|From memory/.test(p)), "verb cards are in Spanish", r4.prompts.slice(0, 3).join(" ‖ "));
 ok(r4.fb.some(f => /Correcto/.test(f)) && r4.fb.some(f => /Respuesta/.test(f)), "feedback, right and wrong, in Spanish", r4.fb.slice(0, 3).join(" ‖ "));
 ok(r4.near, "a missing accent counts, and is told apart");
 ok(!r4.accentFb || /Correcto.*se escribe/.test(r4.accentFb), "a card typed without accents: right, the spelling shown", r4.accentFb);
