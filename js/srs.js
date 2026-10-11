@@ -257,6 +257,8 @@ function applyCorrect(ws, opts = {}) {
 }
 function applyWrong(ws, opts = {}) {
   ws.lastAnsweredAt = Date.now();
+  // A miss of the word itself: its repair asks the word, not its plural.
+  if (!opts.keepFx) delete ws.fx;
   ws.wrong++; ws.streak = 0; ws.displayStreak = 0;
   const res = srsReview(ws, false, opts.kind || "recall");
   res._w = opts.w || null;

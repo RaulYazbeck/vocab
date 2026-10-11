@@ -480,9 +480,13 @@ function pathSpotCandidates(n = 1, rng = Math.random) {
 //   st 2–4  typed
 //   st ≥ 5  typed; every second review typed into its example sentence;
 //           ⭐+ sometimes reversed (type the meaning)
+// A word flagged for its plural alone (Plural Hunt): its fix asks the plural.
+function pathFixAsk(w, ws) {
+  return ws && ws.fx === "pl" && !IS_FRENCH_APP && typeof pluralItem === "function" && pluralItem(w) ? "pl" : "";
+}
 function pathItemFor(w, ws, rng = Math.random) {
   const st = ws ? ws.st || 0 : 0;
-  if (ws && (ws.rp || ws.lrn || ws.fl)) return { t: "typed", w, fix: true };
+  if (ws && (ws.rp || ws.lrn || ws.fl)) return { t: "typed", w, fix: true, ask: pathFixAsk(w, ws) };
   if (st >= STAGE_LOCKED) return { t: "spot", w, maint: true };
   if (st <= 1) {
     if (audioOk() && rng() < 0.25) return { t: "listen", w };

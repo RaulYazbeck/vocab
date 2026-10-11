@@ -287,7 +287,7 @@ function pathAnswerChoice(i) {
     playSuccess(); haptic("select");
     speak(gameForm(w));
   } else {
-    ws.lastAnsweredAt = Date.now(); ws.wrong++;
+    ws.lastAnsweredAt = Date.now(); ws.wrong++; delete ws.fx;
     const res = it.fresh || it.warm ? null : srsReview(ws, false, "recognition");
     if (res) { res._w = w; questEvent("srs", res); }
     pathRecordMove(w, from, res);
@@ -311,6 +311,7 @@ function pathAnswerChoice(i) {
 }
 
 function pathKickerHtml(it, ws) {
+  if (it.plural) return `<div class="p-kicker ${it.repair || ws.rp ? "repair" : "flag"}">🔢 ${it.repair ? "Repair round — " : ""}its plural: you missed it in a game</div>`;
   if (it.repair) return `<div class="p-kicker repair">🩹 Repair round — one more try</div>`;
   return it.t === "spot" ? (it.maint ? `<div class="p-kicker spot">💎 Check-in — a locked-in word, ${(ws.mt || 0) ? "a year" : "4 months"} later</div>` : `<div class="p-kicker spot">🔍 Spot check — a 💎 word</div>`)
     : ws.rp ? `<div class="p-kicker repair">🩹 Repair — get it right to keep its badge</div>`
@@ -327,6 +328,7 @@ function renderPathTyped(it) {
   const s = pathSession, w = it.w, ws = getWS(w.deckId, w.idx);
   s.typedSeen++;
   let body = "", placeholder = "type the answer…";
+  if (it.ask === "pl" && !it.plural) { const item = pluralItem(w); if (item) it.plural = "die " + item.pl; else it.ask = ""; }
   const kicker = pathKickerHtml(it, ws);
   if (it.t === "cloze") {
     const info = clozeTarget(w);
@@ -337,6 +339,12 @@ function renderPathTyped(it) {
       <div class="cz-trans">${escapeHtml(info.example.en || "")}</div>
       <div class="p-cloze-meaning">(${escapeHtml(gamePrompt(w))})</div>`;
     placeholder = "the word as it appears in the sentence…";
+  } else if (it.plural) {
+    const item = pluralItem(w);
+    body = `<div class="g-q-label">One → many</div>
+      <div class="english-word p-target"><span class="${genderClass(item.np.answer)}-text">${escapeHtml(item.np.full)}</span></div>
+      <div class="word-hint">${escapeHtml(gamePrompt(w))} · ↓ the plural</div>`;
+    placeholder = "die …";
   } else if (it.t === "reverse") {
     body = `<div class="g-q-label">What does it mean?</div>
       <div class="english-word p-target">${colorArticleHtml(gameForm(w))}</div>`;
@@ -350,7 +358,7 @@ function renderPathTyped(it) {
   // 💡 is always there for a plain prompt. Using it is fine — the answer
   // then counts as recognition: right, but no step up (repairs and new
   // words simply come back for an unaided try).
-  const hint = it.t === "typed" || it.t === "spot" ? buildHint(w) : null;
+  const hint = (it.t === "typed" || it.t === "spot") && !it.plural ? buildHint(w) : null;
   it.hintHtml = hint; it.hintKind = "context";
   pathSetActions(`
     ${hint ? `<button class="hint-btn" id="p-hint-btn" onclick="pathShowHint()">💡 Hint</button>` : ""}
@@ -500,6 +508,16 @@ function pathCheckTyped() {
     if (reverseOk(val, w)) return pathGradeTyped(val, true);
     return pathReverseMismatch(val);
   }
+  if (it.plural) {
+    // "die Tische" or just "Tische".
+    const bare = it.plural.replace(/^die\s+/, "");
+    if (isCorrect(val, it.plural) || isCorrect(val, bare)) return pathGradeTyped(val, true);
+    // The singular is not a slip of the plural.
+    const np = pluralItem(w).np;
+    if (pathTypedOk(val, w) || isCorrect(val, np.full) || normalize(val) === normalize(np.noun)) return pathGradeTyped(val, false, `That's the singular — the plural is <strong>${escapeHtml(it.plural)}</strong>.`);
+    if (isNearMiss(val, [it.plural, bare])) return pathGradeTyped(val, "near");
+    return pathGradeTyped(val, false);
+  }
   if (pathTypedOk(val, w)) return pathGradeTyped(val, true);
   if (isNearMiss(val, [w[WORD_KEY], gameForm(w)])) return pathGradeTyped(val, "near");
   return pathGradeTyped(val, false);
@@ -604,10 +622,11 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
   const spoken = !!it.spoken;
   pathLogAnswer(it, ok === true, { typed: true, near: ok === "near", hint: !!it.usedHint, voice: spoken, say: !!it.said, fast: !!it.fast });
   if (typeof learnNoteMiss === "function" && !it.said && !spoken) {
-    if (ok === true) { if (!fromReverse && it.t !== "reverse" && it.t !== "cloze") learnNoteSoft(w, val); }
+    if (ok === true) { if (!fromReverse && it.t !== "reverse" && it.t !== "cloze" && !it.plural) learnNoteSoft(w, val); }
     else if (it.t === "reverse") learnNoteMiss(w, { src: "path:reverse", type: String(val).trim() ? "meaning" : "blank", given: val });
     else if (it.t === "cloze") learnNoteMiss(w, { src: "path:cloze", given: val, expected: it.cloze.answer, alsoOk: [w[WORD_KEY], gameForm(w)], noNoun: true,
       type: ok === "near" ? "spelling" : undefined });
+    else if (it.plural) learnNoteMiss(w, { src: "path:plural", given: val, type: ok === "near" ? "spelling" : "plural", expected: [it.plural] });
     else learnNoteMiss(w, { src: "path:" + it.t, given: val, type: ok === "near" ? "spelling" : undefined });
   }
   // After the mistake note above, so learnUndoLast removes exactly that one.
@@ -618,6 +637,7 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     sessionConsecutive++;
     if (it.practice) { ws.lastAnsweredAt = Date.now(); ws.correct++; ws.streak++; ws.displayStreak++; S.totalCorrect++; }
     else res = applyCorrect(ws, { quiet: true, kind, w, ms: Date.now() - s.shownAt });
+    if (it.plural) delete ws.fx; // its plural typed right: repaired
     // Fixed = back on schedule (a hint-aided answer leaves it to fix later).
     if (it.repair && !(ws.lrn || ws.rp || ws.fl)) s.repairFixed = (s.repairFixed || 0) + 1;
     addExp(5);
@@ -629,7 +649,7 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     questEvent("answer", { mode: "path", ok: true, typed: true, st: from, w, it: it.t, hint: !!it.usedHint || (it.said && it.fast), voice: spoken,
       ms: Date.now() - s.shownAt, prevAt, raw: exact, said: !!it.said });
     // Typed unaided with its article: a day towards the gender collection.
-    if ((it.t === "typed" || it.t === "spot") && !it.usedHint && !it.said && !spoken && typedGenderOk(val, w))
+    if ((it.t === "typed" || it.t === "spot") && !it.plural && !it.usedHint && !it.said && !spoken && typedGenderOk(val, w))
       genderCollected = collectAttr(w, "g");
     if (genderCollected) checkAchievements({ type: "collect" }); // 🎨 Gender Collector
     pathGolden(it);
@@ -645,7 +665,7 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
   } else {
     sessionConsecutive = 0;
     const before = JSON.parse(JSON.stringify(ws)), moveBefore = s.moves.get(wordKey(w));
-    res = applyWrong(ws, { w });
+    res = applyWrong(ws, { w, keepFx: !!it.plural });
     // 🛡️ A memory shield (chest item) can take back a stage loss or a
     // repair — you pick the word: the button sits on this feedback.
     if ((res.demoted || res.events.includes("repair")) && S.quests && S.quests.shields > 0 && !grandmaOn())
@@ -663,7 +683,7 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
   pathRecordMove(w, from, res);
   saveState();
   // Feedback
-  const answerText = it.t === "cloze" ? it.cloze.answer : it.t === "reverse" ? gamePrompt(w) : w[WORD_KEY];
+  const answerText = it.t === "cloze" ? it.cloze.answer : it.t === "reverse" ? gamePrompt(w) : it.plural || w[WORD_KEY];
   const evs = res ? res.events : [];
   const chip = evs.includes("locked") ? `<span class="p-chip gold">💎 Locked in!</span>`
     : evs.includes("strong") ? `<span class="p-chip gold">⭐ Strong!</span>`
@@ -687,9 +707,9 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     : `<div class="p-bad">${typoOk ? `<span class="p-typo" onpointerdown="event.preventDefault();pathSecretTap()">✗</span> Answer:` : val.trim() ? "✗ Answer:" : "Answer:"} <strong>${colorArticleHtml(answerText)}</strong></div>${val.trim() ? `<div class="p-diff">${diffHtml(val, answerText)}</div>` : ""}${note ? `<div class="p-sub">${note}</div>` : ""}`;
   const fb = document.getElementById("p-fb");
   if (fb) fb.innerHTML = `
-    <div class="p-fb-main">${head}${chip}${collectChip}${it.said && it.t !== "reverse" ? frGenderNoteHtml(w) : ""}${w.pl && it.t !== "cloze" && it.t !== "reverse" ? `<div class="p-sub">plural: ${escapeHtml(w.pl)}</div>` : ""}</div>
+    <div class="p-fb-main">${head}${chip}${collectChip}${it.said && it.t !== "reverse" ? frGenderNoteHtml(w) : ""}${w.pl && it.t !== "cloze" && it.t !== "reverse" && !it.plural ? `<div class="p-sub">plural: ${escapeHtml(w.pl)}</div>` : ""}</div>
     ${it.t === "reverse" ? `<div class="p-sub">${colorArticleHtml(gameForm(w))} = ${escapeHtml(gamePrompt(w))}</div>` : ""}
-    ${pathCaseNote(it)}
+    ${pathCaseNote(it)}${it.plural && typeof pluralRuleHtml === "function" && pluralRuleHtml(pluralItem(w).np.full, it.plural.replace(/^die /, "")) ? `<div class="p-sub">${pluralRuleHtml(pluralItem(w).np.full, it.plural.replace(/^die /, ""))}</div>` : ""}
     ${examplesHtml(w, "first")}`;
   pathSetActions(`
     <button class="audio-btn" onclick="pathEditWord()" title="Edit this word">✏️</button>
@@ -839,7 +859,7 @@ function pathRepair(yes) {
   list.forEach(w => {
     // A missed verb drill: the same verb and tense, another person.
     if (pathIsDrill(w)) { const ex = vxCellExercise({ x: w.vx.x, t: w.vx.tense }); s.items.push({ t: "typed", w: ex ? vxWord(ex) : w, fix: true, repair: true }); return; }
-    const ws = S.words[wordKey(w)]; s.items.push({ t: "typed", w, fix: true, repair: true, practice: !(ws.lrn || ws.rp || ws.fl) });
+    const ws = S.words[wordKey(w)]; s.items.push({ t: "typed", w, fix: true, repair: true, practice: !(ws.lrn || ws.rp || ws.fl), ask: pathFixAsk(w, ws) });
   });
   pathSpace(s.items, start); // never the word you just missed first
   s.i = start - 1; // pathNext steps onto the first repair item
