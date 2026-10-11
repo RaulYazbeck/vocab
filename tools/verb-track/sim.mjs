@@ -3,14 +3,14 @@
 // the way the profile answers (typed ≈87%, choice ≈98%, verbs ≈80%),
 // until the day's plan target is reached. Runs once with the new verb
 // system switched on and once without, and compares.
-//   node sim.mjs [--days N] [--off] [--skip 0.05]
+//   node sim.mjs [--days N] [--off] [--skip 0.05] [--app fr]
 import { openApp } from "./browser.mjs";
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
-const DAYS = +arg("--days", 330), SKIP = +arg("--skip", 0.04), SEED = +arg("--seed", 99);
+const DAYS = +arg("--days", 330), SKIP = +arg("--skip", 0.04), SEED = +arg("--seed", 99), APP = arg("--app", "de");
 const modes = process.argv.includes("--off") ? [false] : process.argv.includes("--on") ? [true] : [true, false];
 const results = {};
 for (const on of modes) {
-  const { browser, page, errors } = await openApp({ width: 900, height: 900 });
+  const { browser, page, errors } = await openApp({ width: 900, height: 900, app: APP });
   page.setDefaultTimeout(0);
   const r = await page.evaluate(async ([on, DAYS, SKIP, SEED]) => {
     // ── fake clock ──
@@ -105,7 +105,7 @@ for (const on of modes) {
     const scan = pathScan(true);
     return { start, days, firstAllMet, firstAllKnown, ledgerDone, final: { met: scan.met, known: scan.known, total: scan.total, locked: scan.locked, ledger: on ? vxLedger() : null,
       units: on ? VX_UNITS.map(u => [u.id, vxUnitState(u.id)]) : null, level: currentLevel(), exp: S.exp,
-      unmet: vocabGroups().flatMap(g => g.decks.flatMap(d => d.words.map((w, i) => [d.id, i, w]).filter(([id, i]) => !isMet(id, i)).map(([id, i, w]) => `${id}_${i} ${w.de}${on && vxRetired(id, i) ? " (retired→" + JSON.stringify(vxRetireMap().get(id + "_" + i)) + ")" : ""}${on && vxGated(id) ? " (gated)" : ""}`))),
+      unmet: vocabGroups().flatMap(g => g.decks.flatMap(d => d.words.map((w, i) => [d.id, i, w]).filter(([id, i]) => !isMet(id, i)).map(([id, i, w]) => `${id}_${i} ${w[WORD_KEY]}${on && vxRetired(id, i) ? " (retired→" + JSON.stringify(vxRetireMap().get(id + "_" + i)) + ")" : ""}${on && vxGated(id) ? " (gated)" : ""}`))),
       stuck: on ? vxCatalog().filter(it => { const ws = S.words[vxKey(it.id)]; return !ws || (ws.st || 0) < STAGE_KNOWN; }).map(it => { const ws = S.words[vxKey(it.id)]; return `${it.id} st${ws ? ws.st : 0}${it.x ? " lemma" + vxLemma(it.x).st + " words:" + (it.x.v.words || []).map(w => w.deckId + "_" + w.idx).join(",") : ""}`; }) : null } };
   }, [on, DAYS, SKIP, SEED]);
   results[on ? "on" : "off"] = r;

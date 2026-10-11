@@ -23,7 +23,8 @@ const MISTAKE_LABEL = {
   gender: "wrong gender / article", article: "article missing or extra", plural: "plural",
   case: "case (den/dem/des…)", spelling: "spelling", umlaut: "ä/ö/ü/ß or accents",
   order: "word order / separable prefix", person: "verb: wrong person", tense: "verb: wrong tense",
-  aux: "verb: haben/sein", participle: "verb: past participle", verbform: "verb: other wrong form",
+  aux: typeof WORD_KEY !== "undefined" && WORD_KEY === "fr" ? "verb: avoir/être" : "verb: haben/sein", participle: "verb: past participle", verbform: "verb: other wrong form",
+  agree: "verb: participle agreement (-e / -s)",
   confused: "mixed up with another word", meaning: "didn't know the word", blank: "no answer / don't know",
   listening: "misheard (listening)", recognition: "picked the wrong meaning", context: "wrong word for the sentence",
 };
@@ -102,8 +103,10 @@ function classifyMistake(given, expected, w, opts = {}) {
   if (_learnFind(given, w)) return "confused";
   return "meaning";
 }
-// A German verb form (conjugation game): which kind of slip?
+// A verb form (conjugation game, verb track): which kind of slip? The
+// French app's forms are told apart by verb-track-fr.js.
 function classifyVerbMistake(given, F, tense, person) {
+  if (IS_FRENCH_APP) return typeof VXF !== "undefined" && VXF ? VXF.classify(given, F, tense, person) : "verbform";
   // A pronoun typed in front ("sie haben gekommen") isn't part of the form.
   const g = normalize(String(given || "")).replace(/^(ich|du|er|sie|es|wir|ihr|man) (?=\S)/, "");
   if (!g) return "blank";
@@ -303,9 +306,9 @@ function buildLearningReport() {
   if (csF.length) { const [k, a] = csF[0]; focus.push(`Weakest case: ${(typeof GRAMMAR_LABEL !== "undefined" && GRAMMAR_LABEL[k]) || k} (${Math.round(a[0] / a[1] * 100)}% right).`); }
   const tF = {}; Object.values(S.learn.verbs).forEach(v => Object.entries(v.t || {}).forEach(([t, a]) => { const r = tF[t] || (tF[t] = [0, 0]); r[0] += a[0]; r[1] += a[1]; }));
   const tW = Object.entries(tF).filter(([, a]) => a[0] + a[1] >= 5).sort((a, b) => a[1][0] / (a[1][0] + a[1][1]) - b[1][0] / (b[1][0] + b[1][1]));
-  if (tW.length) { const [t, a] = tW[0]; focus.push(`Weakest tense: ${typeof TENSE_BY_ID !== "undefined" && TENSE_BY_ID[t] ? TENSE_BY_ID[t].name : t} (${Math.round(a[0] / (a[0] + a[1]) * 100)}% right).`); }
+  if (tW.length) { const [t, a] = tW[0]; focus.push(`Weakest tense: ${IS_FRENCH_APP ? (typeof VX_TENSE_LABEL !== "undefined" && VX_TENSE_LABEL[t]) || t : typeof TENSE_BY_ID !== "undefined" && TENSE_BY_ID[t] ? TENSE_BY_ID[t].name : t} (${Math.round(a[0] / (a[0] + a[1]) * 100)}% right).`); }
   const auxN = Object.values(S.learn.verbs).reduce((n, v) => n + ((v.mx || {}).aux || 0), 0);
-  if (auxN >= 3) focus.push(`Perfekt with haben vs sein: ${auxN} mistakes.`);
+  if (auxN >= 3) focus.push(IS_FRENCH_APP ? `Passé composé with avoir vs être: ${auxN} mistakes.` : `Perfekt with haben vs sein: ${auxN} mistakes.`);
   const softU = softAll.umlaut || 0;
   if (softU >= 5) focus.push(`I often leave out ä/ö/ü/ß (${softU}× on answers the app still accepted).`);
   const worst = words.filter(x => _wscore(x.ws) > 1).sort((a, b) => _wscore(b.ws) - _wscore(a.ws)).slice(0, 12).map(x => form(x.w));
@@ -349,7 +352,7 @@ function buildLearningReport() {
   L(``, `## VERBS & CONJUGATION`);
   const vf = (S.games && S.games.vf) || {};
   const tenseIds = typeof CONJ_TENSE_IDS === "function" ? CONJ_TENSE_IDS() : [];
-  const tname = id => (typeof TENSE_BY_ID !== "undefined" && TENSE_BY_ID[id] ? TENSE_BY_ID[id].name : id);
+  const tname = id => IS_FRENCH_APP ? (typeof VX_TENSE_LABEL !== "undefined" && VX_TENSE_LABEL[id]) || id : (typeof TENSE_BY_ID !== "undefined" && TENSE_BY_ID[id] ? TENSE_BY_ID[id].name : id);
   const tAcc = {}, pMiss = {}, vType = {};
   Object.values(S.learn.verbs).forEach(v => {
     Object.entries(v.t || {}).forEach(([t, a]) => { const r = tAcc[t] || (tAcc[t] = [0, 0]); r[0] += a[0]; r[1] += a[1]; });

@@ -273,7 +273,7 @@ registerGame({
       const perfect = exact.length === 3 && exact.every(Boolean);
       vlTenseRecord("vt", it.t, perfect);
       // Read right: recognition credit for the verb items behind the form.
-      if (typeof vxGameHit === "function" && !VL_FR) vxGameHit(ctx, it.v.inf, it.t, it.p, perfect, "recognition");
+      if (typeof vxGameHit === "function") vxGameHit(ctx, it.v.inf, it.t, it.p, perfect, "recognition");
       const t = tally[it.t] || (tally[it.t] = [0, 0]); if (perfect) t[0]++; t[1]++;
       // The colour split.
       const formEl = document.getElementById("vt-form");
