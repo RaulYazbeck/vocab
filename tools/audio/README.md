@@ -164,6 +164,29 @@ pronouns too when it is short (≤ 3 letters) or ends in a silent "-ent"
 "écrit") stays bare. German forms are fine alone, so German is unchanged
 (`SAY_WITH_PRONOUN` in `lib.mjs`).
 
+### Phrases the app makes while it runs (verb forms, grammar sheets)
+The decks are not everything the app says. Conjugation Slots ("ich würde
+besuchen", "bedeuten Sie"), Verb Thread ("ich hatte gedankt"; the bare form in
+its 🎧 rounds), the verb track ("triffst dich", "du fährst, er fährt"), the
+grammar sheets' examples, the idiom cards and Today's "Sentences" items build
+their phrases on the fly. `runtime.mjs` loads the app in a browser, generates
+every one of them with the app's own functions and writes
+`state/<lang>/runtime.tsv`, which `extract` / `synth` / `pack` then treat like
+deck texts:
+
+```bash
+node tools/audio/runtime.mjs --lang de --levels a1,a2 --dry   # how many, how many characters
+node tools/audio/runtime.mjs --lang de --levels a1,a2         # add them to state/de/runtime.tsv
+python tools/audio/run_all.py full                            # record (then pack: see below)
+```
+All of it is large (German ~730k characters, French ~530k: more than one
+month's free tier), so it goes level by level (`--levels`, a month apart;
+`--skip thread-ear` leaves out the 🎧 bare forms). A phrase once listed is
+kept by later, narrower runs. Re-run it after adding verbs, grammar sheets or
+idioms. These clips make the word packs much bigger, so pack with more word
+shards once (`node tools/audio/pack.mjs --lang de --buckets-w 80`, French 60:
+sized for the full lists, so later levels don't need another re-split).
+
 ### Fixing one clip or a pronunciation
 - **Flagging in the app:** after a recording plays, a small ⚑ shows at the
   right edge for a few seconds. Tap it, add a note if you like ("French

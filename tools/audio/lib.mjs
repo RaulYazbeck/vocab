@@ -87,7 +87,16 @@ export function extraFile(lang) { return path.join(stateDir(lang), "extra.txt");
 export function savedExtras(lang) {
   try { return fs.readFileSync(extraFile(lang), "utf8").split(/\r?\n/).map(l => l.trim()).filter(Boolean); } catch (e) { return []; }
 }
-export function collectTexts(lang, extraTexts = []) {
+// Phrases the app makes while it runs (verb forms, grammar-sheet examples…),
+// listed by runtime.mjs in state/<lang>/runtime.tsv: kind, deck, text.
+export function runtimeFile(lang) { return path.join(stateDir(lang), "runtime.tsv"); }
+export function runtimeTexts(lang) {
+  try {
+    return fs.readFileSync(runtimeFile(lang), "utf8").split(/\r?\n/).filter(Boolean)
+      .map(l => l.split("\t")).filter(x => x.length === 3 && x[2].trim()).map(([kind, deck, text]) => [text, kind === "s" ? "s" : "w", deck]);
+  } catch (e) { return []; }
+}
+export function collectTexts(lang, extraTexts = [], { runtime = true } = {}) {
   extraTexts = [...savedExtras(lang), ...extraTexts];
   const app = loadApp(lang);
   const audioKey = evalIn(app, "audioKey");
@@ -128,6 +137,7 @@ export function collectTexts(lang, extraTexts = []) {
       if (uniq.length === 1 || risky) sayFor.set(form, uniq[0]);
     }
   }
+  if (runtime) for (const x of runtimeTexts(lang)) found.push(x);
   for (const t of extraTexts) {
     const x = String(t).trim();
     if (x) found.push([x, x.length > 28 && /\s/.test(x) && /[.!?]$/.test(x) || x.split(/\s+/).length > 4 ? "s" : "w", "_extra"]);
