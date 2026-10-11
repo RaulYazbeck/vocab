@@ -137,7 +137,7 @@ const G2 = (inf, kind, p) => G.vxForm(G.vxVerb(inf), kind, p);
 // of these cases is a typo, so "no typo" stands in for it here.
 if (typeof G.isNearMiss !== "function") vm.runInContext("var isNearMiss = () => false;", G);
 [
-  ["vermieten", "im", "Sie", "vermieten", true], ["vermieten", "im", "Sie", "vermieten Sie", true],
+  ["vermieten", "im", "Sie", "vermieten", false], ["vermieten", "im", "Sie", "vermieten Sie", true],
   ["vermieten", "im", "Sie", "vermieten sie", true], ["vermieten", "im", "Sie", "Vermieten Sie!", true],
   ["vermieten", "im", "Sie", "Sie vermieten", false], ["kommen", "im", "du", "du komm", false],
   ["kommen", "im", "du", "komm!", true], ["anrufen", "imsep", "Sie", "rufen sie an", true],
@@ -145,9 +145,15 @@ if (typeof G.isNearMiss !== "function") vm.runInContext("var isNearMiss = () => 
   ["sich setzen", "imsep", "Sie", "setzen sie sich", true], ["fahren", "im", "du", "fahr", true],
   ["fahren", "pr", "du", "du fährst", true], ["fahren", "pr", "du", "fährst", true], ["fahren", "pr", "du", "fahrst", true],
   ["haben", "k2o", "ich", "hatte", true], ["haben", "k2o", "ich", "ich hätte", true], ["einkaufen", "prsep", "du", "kaufst … ein", true],
-  // the stem change: one person, the prefix optional, umlaut optional
-  ["abfahren", "sc", "du", "fährst", true], ["abfahren", "sc", "du", "fährst ab", true], ["abfahren", "sc", "du", "fahrst ab", true],
+  // the stem change: one person, the whole verb (prefix included), umlaut optional
+  ["abfahren", "sc", "du", "fährst", false], ["abfahren", "sc", "du", "fährst ab", true], ["abfahren", "sc", "du", "fahrst ab", true],
   ["abfahren", "sc", "er", "fährt ab", true], ["abfahren", "sc", "du", "fährst fährt", false], ["nehmen", "sc", "er", "nehmt", false],
+  // the whole verb is the answer: prefix, pronoun and Sie included
+  ["abfahren", "pr", "wir", "fahren", false], ["abfahren", "pr", "wir", "fahren ab", true], ["abfahren", "pt", "er", "fuhr ab", true],
+  ["abfahren", "pt", "er", "fuhr", false], ["sich treffen", "pr", "du", "triffst dich", true], ["sich treffen", "pr", "du", "triffst", false],
+  ["sich treffen", "pf", "du", "hast getroffen", false], ["sich treffen", "pf", "du", "hast dich getroffen", true],
+  ["mitnehmen", "im", "du", "nimm", false], ["mitnehmen", "im", "du", "nimm mit", true], ["sich setzen", "im", "Sie", "setzen Sie sich", true],
+  ["sich anmelden", "prsep", "du", "meldest dich an", true], ["sich anmelden", "prsep", "du", "meldest an", false],
 ].forEach(([inf, kind, p, typed, want]) => {
   const got = G.vxGrade(typed, { kind, form: G2(inf, kind, p) });
   ok(got === want, `grading: ${inf} ${kind} ${p} "${typed}" → ${want}`, String(got));

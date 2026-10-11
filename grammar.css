@@ -329,3 +329,4 @@
 
 .vx-ctx { color:var(--text-2); font-weight:500; }
 .vx-uml { font-weight:500; color:var(--text-2); font-size:0.9em; }
+.vx-gap.wide { min-width:120px; }

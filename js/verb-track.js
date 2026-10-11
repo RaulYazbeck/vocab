@@ -343,15 +343,33 @@ function vxFormBase(x, kind, p, opt = {}) {
     return { ans: all[0], acc: [...new Set(all)], tail, n: all[0].split(" ").length };
   };
   const engine = t => { const c = verbCell(F, t, p); return c ? { ans: c.ans, acc: verbCellAnswers(c), tail: c.tail } : null; };
+  // The whole verb, to be produced, never shown: the reflexive pronoun,
+  // a separable prefix and a command's Sie are part of the answer
+  // (wir fahren ab · du triffst dich · vermieten Sie · hast dich beeilt).
+  const whole = c => {
+    if (kind === "im") {
+      const rest = String(c.tail || "").replace(/!$/, "").trim();
+      const fins = [...new Set(c.acc.map(a => a.split(" ")[0]))];
+      return out([c.ans, rest].filter(Boolean).join(" "), fins.slice(1).map(f => [f, rest].filter(Boolean).join(" ")));
+    }
+    if (kind === "pr" || kind === "pt") {
+      const fins = [...new Set(c.acc.map(a => a.split(" ")[0]))];
+      const full = f => [f, refl, F.sep].filter(Boolean).join(" ");
+      return out(full(c.ans), fins.slice(1).map(full));
+    }
+    // Compound tenses carry the pronoun already; it is not optional.
+    const acc = refl ? c.acc.filter(a => a.split(" ").includes(refl)) : c.acc;
+    return out(c.ans, acc);
+  };
   switch (kind) {
     case "pr": case "pt": case "pf": case "pq": case "fu": case "im": {
       const c = engine(kind);
-      return c ? out(c.ans, c.acc, c.tail) : null;
+      return c ? whole(c) : null;
     }
     case "prsep": {
       const c = engine("pr"); if (!c || !F.sep) return null;
-      const fin = c.ans;
-      return out(`${fin} ${F.sep}`, [`${fin} … ${F.sep}`, ...(refl ? [`${fin} ${refl} ${F.sep}`] : [])], refl ? `(${refl} … )` : "");
+      const fin = [c.ans, refl].filter(Boolean).join(" ");
+      return out(`${fin} ${F.sep}`, [`${fin} … ${F.sep}`]);
     }
     case "prrefl": {
       const c = engine("pr"); if (!c || !F.refl) return null;
@@ -360,11 +378,11 @@ function vxFormBase(x, kind, p, opt = {}) {
     }
     case "k2w": {
       if (F.k2special) return null;
-      const c = engine("k2"); return c ? out(c.ans, c.acc, c.tail) : null;
+      const c = engine("k2"); return c ? out(c.ans, refl ? c.acc.filter(a => a.split(" ").includes(refl)) : c.acc) : null;
     }
     case "k2o": {
       if (!F.k2special || !F.k2 || !F.k2[p]) return null;
-      return out(F.k2[p], [], refl);
+      return out([F.k2[p], refl].filter(Boolean).join(" "));
     }
     case "pvpr": case "pvpt": {
       if (!F.p2 || F.aux !== "haben" || F.refl) return null;
@@ -379,7 +397,7 @@ function vxFormBase(x, kind, p, opt = {}) {
     case "k2p": {
       if (!F.p2 || !F.aux) return null;
       const a = K2_AUX[F.aux][p];
-      return a ? out(F.refl ? `${a} ${refl} ${F.p2}` : `${a} ${F.p2}`, F.refl ? [`${a} ${F.p2}`] : []) : null;
+      return a ? out(F.refl ? `${a} ${refl} ${F.p2}` : `${a} ${F.p2}`) : null;
     }
     // For the sheets' quizzes (tests check them against the engine).
     case "p2only": return F.p2 ? out(F.p2) : null;
@@ -400,16 +418,15 @@ function vxFormBase(x, kind, p, opt = {}) {
       return out(`${c.ans} ${F.sep}`);
     }
     case "sc": {
-      // One person (du or er), one form; a separable prefix is shown and
-      // may be typed or left out (du fährst … ab).
+      // One person (du or er), the whole verb: du fährst ab, du triffst dich.
       const f = (p === "du" || p === "er") && F.pr[p];
       if (!f) return null;
-      return out(f, F.sep ? [`${f} ${F.sep}`] : [], F.sep ? `… ${F.sep}` : "");
+      return out([f, refl, F.sep].filter(Boolean).join(" "));
     }
     case "p2": {
       if (!F.p2 || !F.aux) return null;
       const a = AUX_PR[F.aux].er;
-      return out(F.refl ? `${a} sich ${F.p2}` : `${a} ${F.p2}`, F.refl ? [`${a} ${F.p2}`] : []);
+      return out(F.refl ? `${a} sich ${F.p2}` : `${a} ${F.p2}`);
     }
   }
   return null;

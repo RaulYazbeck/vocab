@@ -748,23 +748,24 @@ function vxFormHtmlBase(ex) {
     if (c) return `<span class="vx-pron">${escapeHtml(pron)}</span>${vlPartsHtml(c.parts, t, ex.p, false)}`;
   }
   if (ex.kind === "imsep") return `<b>${escapeHtml(ex.form.ans)}</b>!`;
-  if (ex.kind === "im" || ex.kind === "imfull") return `<b>${escapeHtml(ex.form.ans)}</b>${ex.form.tail && ex.form.tail !== "!" ? " " + escapeHtml(String(ex.form.tail).replace(/!$/, "")) : ""}!`;
+  if (ex.kind === "im" || ex.kind === "imfull") return `<b>${escapeHtml(ex.form.ans)}</b>!`;
   return `<span class="vx-pron">${escapeHtml(pron)}</span><b>${escapeHtml(ex.form.ans)}</b>`;
 }
 // The question: tense chip, the person, gaps, the verb and its meaning.
 function vxPromptHtml(ex) {
   const t = ex.tense, u = VX_TENSE_UNIT[t] || "pr", tl = VX_TENSE_LABEL[t] || "";
-  const gap = n => Array.from({ length: n }, () => `<span class="vx-gap"></span>`).join(" ");
+  // One blank for the whole verb: no word count, no prefix, pronoun or
+  // Sie shown — those are part of what you produce. Only context that
+  // isn't the answer (mit Anna) is shown.
+  const gap = `<span class="vx-gap wide"></span>`;
+  const ctx = ex.form.ctx ? ` <span class="vx-tail">${escapeHtml(ex.form.ctx)}</span>` : "";
   let line;
-  if (ex.kind === "imsep") line = `<span class="vx-pron">(${ex.p})</span> ${gap(ex.form.n)}${ex.form.ctx ? ` <span class="vx-tail">${escapeHtml(ex.form.ctx)}</span>` : ""} !`;
-  else if (ex.kind === "im") line = `<span class="vx-pron">(${ex.p === "Sie" ? "Sie" : ex.p})</span> ${gap(1)}${ex.p === "Sie" ? " Sie" : ""}${ex.form.tail && ex.form.tail !== "!" ? ` <span class="vx-tail">${escapeHtml(ex.form.tail.replace(/!$/, "").replace(/^Sie ?/, ""))}</span>` : ""} !`;
+  if (ex.kind === "im" || ex.kind === "imsep" || ex.kind === "imfull") line = `<span class="vx-pron">(${ex.p})</span> ${gap}${ctx} !`;
   else {
     // "sie" alone could be she: the plural says so.
     const pron = ex.kind === "pvpr" || ex.kind === "pvpt" || ex.kind === "pvmod" ? (ex.p === "sie" ? "sie (they)" : "es")
       : ex.p === "sie" ? "sie (they)" : ex.p === "er" && vxItVerb(ex.x) ? "es" : (PERSON_LABEL[ex.p] || ex.p).split("/")[0];
-    const tail = ex.form.tail ? ` <span class="vx-tail">${escapeHtml(String(ex.form.tail).replace(/^… /, "").replace(/!$/, ""))}</span>` : "";
-    const ctx = ex.form.ctx ? ` <span class="vx-tail">${escapeHtml(ex.form.ctx)}</span>` : "";
-    line = `<span class="vx-pron">${escapeHtml(pron)}</span> ${gap(ex.form.n)}${tail}${ctx}`;
+    line = `<span class="vx-pron">${escapeHtml(pron)}</span> ${gap}${ctx}`;
   }
   const rule = ex.rule ? VX_RULE[ex.rule] : null;
   const mod = ex.kind === "pvmod" ? ` · with <b>${escapeHtml(ex.modal)}</b>` : "";
@@ -773,7 +774,7 @@ function vxPromptHtml(ex) {
     <div class="vx-chips"><span class="vx-tense">${(VX_UNIT[u] || {}).sign || ""} ${escapeHtml(tl)}</span>${rule ? `<span class="vx-rule">${escapeHtml(rule.title)}</span>` : ex.cell ? `<span class="vx-rule">📒 ${ex.x.level.toUpperCase()} verb</span>` : ""}</div>
     <div class="vx-line">${line}</div>
     <div class="vx-verb"><b>${escapeHtml(ex.x.inf)}</b>${gloss ? ` · ${escapeHtml(gloss)}` : ""}${mod}</div>
-    <div class="vx-fmt">${speakOn() ? "🗣️ Say" : "✍️ Type"} <b>${ex.form.n === 1 ? "one word" : ex.form.n + " words"}</b>${ex.kind === "prsep" ? " — the prefix too" : ex.kind === "prrefl" ? " — with its pronoun (mich, dich, sich…)" : ex.kind === "imsep" ? " — the whole command" : ""}</div>
+    <div class="vx-fmt">${speakOn() ? "🗣️ Say" : "✍️ Type"} <b>the full form</b></div>
   </div>`;
 }
 function vxItemLabel(ex) {
@@ -836,7 +837,7 @@ function renderPathVerb(it) {
     pathSetActions(`<button class="g-big-btn p-main" id="p-show" onclick="pathVerbReveal()">Show ▶</button>`);
     return;
   }
-  pathShowTyped(true, ex.form.n > 1 ? `${ex.form.n} words…` : "the form…");
+  pathShowTyped(true, "the full form…");
   pathSetActions(`
     <button class="hint-btn" id="p-hint-btn" onclick="pathVerbHint()">💡 Hint</button>
     <button class="dontknow-btn" onclick="pathGradeVerb('', false)">? Don't know</button>
@@ -941,7 +942,10 @@ function pathGradeVerb(val, ok, said = false) {
     : ex.cell && ok === true && !hint ? `<span class="p-chip ok">📒 ${escapeHtml(ex.x.inf)} · ${escapeHtml(VX_TENSE_LABEL[ex.tense])} ✓</span>`
     : hint && ok === true ? `<span class="p-chip">💡 with hint — no step up</span>` : "";
   const engineT = { pr: 1, pt: 1, pf: 1, pq: 1, fu: 1, im: 1 }[ex.kind] ? ex.kind : ex.kind === "p2" ? "pf" : ex.kind === "sc" ? "pr" : ex.kind === "k2w" || ex.kind === "k2o" ? "k2" : null;
-  const why = engineT ? verbRuleHtml(ex.x.F, engineT, ex.p) : ex.rule ? `📏 ${escapeHtml(VX_RULE[ex.rule].chip)}` : "";
+  // A separable verb: the prefix rule too, whatever else the form shows.
+  const sepWhy = (engineT === "pr" || engineT === "pt" || engineT === "im") && ex.x.F.sep && !/Separable/.test(verbRuleHtml(ex.x.F, engineT, ex.p))
+    ? ` <br>📏 Separable: <strong>${escapeHtml(ex.x.F.sep)}-</strong> goes to the end.` : "";
+  const why = engineT ? verbRuleHtml(ex.x.F, engineT, ex.p) + sepWhy : ex.rule ? `📏 ${escapeHtml(VX_RULE[ex.rule].chip)}` : "";
   const row = engineT && engineT !== "im" ? verbRowHtml(ex.x.F, engineT, ex.p) : "";
   const umlNote = ok === true && val && vxUmlautOnly(val, ex.form.acc, vxIsCommand(ex));
   const head = ok === true ? `<div class="p-ok">✓ Correct!${umlNote ? ` <span class="vx-uml">— spelt <b>${escapeHtml(ex.form.ans)}</b></span>` : ""}</div>` : `<div class="p-bad">${val.trim() ? "✗ Answer:" : "Answer:"}</div>`;
