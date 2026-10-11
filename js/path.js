@@ -316,9 +316,12 @@ function pathPaceNeeded(scan = pathScan(), today = studyToday()) {
 // every word 75 days early, so a date can be reachable at the maximum
 // pace even when that margin no longer fits.
 const KNOWN_LAG = 30; // simulated: last word met → 99% Known in ~11 days, plus the slower last weeks
+// The verb track counts too (verb-track.js vxPaceNeeded): its items and
+// forms at their fastest pace, each tense from the day it opens.
 function pathDeadlineStatus(scan = pathScan(), today = studyToday()) {
-  if (!pathDeadlineOn() || !pathUnmet(scan)) return { ok: true, eta: S.path.deadline || "" };
-  const eta = addDays(today, Math.ceil(pathUnmet(scan) / PLAN.MAX_PACE) + KNOWN_LAG);
+  if (!pathDeadlineOn()) return { ok: true, eta: "" };
+  let eta = pathUnmet(scan) ? addDays(today, Math.ceil(pathUnmet(scan) / PLAN.MAX_PACE) + KNOWN_LAG) : today;
+  if (typeof vxOn === "function" && vxOn()) { const v = vxPaceNeeded(scan); if (v.eta > eta) eta = v.eta; }
   const ok = pathDaysLeft(today) >= 0 && eta <= S.path.deadline;
   return { ok, eta: ok ? S.path.deadline : eta };
 }

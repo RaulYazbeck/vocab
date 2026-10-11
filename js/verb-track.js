@@ -62,8 +62,8 @@ const VX_PASS_RE = 1;            // a quiz: every question right the first time 
 const VX_SHEETS_PER_DAY = 2;     // new sheets brought into Today per day
 const VX_SESSION_SHARE = 0.25;   // verb items take at most this share of a session
 const VX_LEMMA_MIN = 2;          // a verb joins the verb track once its word is past day 0
-const VX_ITEM_PACE = [1, 8];     // new verb items a day (min, max) with a finish date
-const VX_CELL_PACE = [2, 20];    // coverage drills a day (min, max)
+const VX_ITEM_PACE = [1, 12];    // new verb items a day (min, max) with a finish date
+const VX_CELL_PACE = [2, 30];    // coverage drills a day (min, max)
 const VX_DEFAULT = { items: 3, cells: 6 }; // without a finish date
 
 function vxAvailable() {
@@ -95,6 +95,7 @@ function migrateVerb() {
     // It only fills what hasn't started (or lifts what you never missed).
     if ((V.seedV || 1) < VX_SEED_V) { V.seedV = VX_SEED_V; const n = vxSeed(false, true); if (typeof logEvent === "function") logEvent("vx_reseed", n); }
     vxMirror();
+    vxAchCatchUp();
   }
 }
 // Version of vxSeed's reading of your cards (2: rule evidence by person).
@@ -669,6 +670,13 @@ function vxRetired(deckId, idx) {
   const ws = S.words[k];
   return !(ws && ws.st && !ws.rt);
 }
+// A verb-form deck the track has taken over entirely: none of its cards
+// can be asked as a card any more (quests leave it alone).
+function vxDeckRetired(deckId) {
+  if (!vxOn() || !VX_LEGACY_DECKS.has(deckId)) return false;
+  const d = getDeck(deckId);
+  return !!d && d.words.every((w, i) => vxRetired(deckId, i));
+}
 // A grammar deck still waiting for its lesson.
 function vxGated(deckId) {
   if (!vxOn()) return false;
@@ -798,7 +806,7 @@ function vxCatalog() {
 }
 // A per-verb item's sheet (French: it depends on the verb).
 function vxItemSheet(d, x) { return typeof d.sheet === "function" ? d.sheet(x) : d.sheet; }
-function vxCatalogReset() { _vxCatalog = null; _vxRetire = null; _vxQueueCache = null; _vxCells = null; }
+function vxCatalogReset() { _vxCatalog = null; _vxRetire = null; _vxQueueCache = null; _vxCells = null; _vxOpenDays = null; _vxPace = null; }
 // The logical order inside a level (lower first): the shapes a learner
 // meets first, the odd ones last.
 function vxItemOrder(x, kind) {
@@ -1056,20 +1064,82 @@ function vxMistakeType(given, ex) {
 
 // ── TODAY: WHAT THE VERB TRACK ADDS ───────────
 let _vxQueueCache = null;
+// With a finish date the verb work is paced like the words: everything
+// started by the plan's margin (PLAN.LAG) before the date, so it has time
+// to climb to Known. A tense's items and forms can only start once it
+// opens, so the pace is the one the busiest stretch needs: for each day
+// a tense opens, what opens from then on over the days left after it.
 function vxQuotas(scan) {
   vxRollDay();
   const V = S.verb;
   let items = VX_DEFAULT.items, cells = VX_DEFAULT.cells;
   if (pathDeadlineOn()) {
-    const days = Math.max(14, pathDaysLeft() - PLAN.LAG);
-    const left = vxLeft();
-    items = Math.max(VX_ITEM_PACE[0], Math.min(VX_ITEM_PACE[1], Math.ceil(left.items / days)));
-    cells = Math.max(VX_CELL_PACE[0], Math.min(VX_CELL_PACE[1], Math.ceil(left.cells / days)));
-    if (!left.items) items = 0;
-    if (!left.cells) cells = 0;
+    const need = vxPaceNeeded(scan);
+    items = need.items ? Math.max(VX_ITEM_PACE[0], Math.min(VX_ITEM_PACE[1], need.items)) : 0;
+    cells = need.cells ? Math.max(VX_CELL_PACE[0], Math.min(VX_CELL_PACE[1], need.cells)) : 0;
   }
-  void scan;
   return { items, cells, itemsLeft: Math.max(0, items - V.ni), cellsLeft: Math.max(0, cells - V.nc), sheetsLeft: Math.max(0, VX_SHEETS_PER_DAY - V.ns) };
+}
+// The day (from today) each tense can start its work: 0 when open; a
+// lesson waits for its sheets (two a day); a locked one for its Path
+// anchor (vxUnitEta) and the tenses it needs.
+let _vxOpenDays = null, _vxOpenDaysAt = 0;
+function vxUnitOpenDays(scan) {
+  if (_vxOpenDays && Date.now() - _vxOpenDaysAt < 2000) return _vxOpenDays;
+  scan = scan || pathScan();
+  const today = studyToday(), out = {};
+  VX_UNITS.forEach(u => {
+    const st = vxUnitState(u.id);
+    if (st >= 2) { out[u.id] = 0; return; }
+    const sheets = vxSheetIds(u.id).filter(id => !vxSheetPassed(id)).length;
+    const eta = st === 1 ? null : vxUnitEta(u, scan);
+    let d = (eta ? Math.max(0, daysBetween(today, eta)) : 0) + Math.ceil(sheets / VX_SHEETS_PER_DAY);
+    u.req.forEach(r => { if (out[r] !== undefined) d = Math.max(d, out[r] + 1); });
+    out[u.id] = d;
+  });
+  _vxOpenDays = out; _vxOpenDaysAt = Date.now();
+  return out;
+}
+// New items and drills a day the finish date needs (uncapped), and
+// whether the caps can keep it: { items, cells, ok, eta }.
+let _vxPace = null, _vxPaceAt = 0;
+function vxPaceNeeded(scan) {
+  if (_vxPace && Date.now() - _vxPaceAt < 2000 && _vxPace.day === studyToday()) return _vxPace;
+  _vxPace = vxPaceNeeded0(scan); _vxPace.day = studyToday(); _vxPaceAt = Date.now();
+  return _vxPace;
+}
+function vxPaceNeeded0(scan) {
+  const end = Math.max(14, pathDaysLeft() - PLAN.LAG);
+  const open = vxUnitOpenDays(scan);
+  const itemsBy = {}, cellsBy = {};
+  vxCatalog().forEach(it => { const ws = S.words[vxKey(it.id)]; if (!ws || !ws.st) itemsBy[it.unit] = (itemsBy[it.unit] || 0) + 1; });
+  vxRequiredCells().forEach(c => {
+    if (vxCovHas(c.x.inf, c.t)) return;
+    const u = VX_FR ? VX_TENSE_UNIT[c.t] : c.t === "pt" ? (VX_PT1_VERBS.has(c.x.F.base) && !c.x.F.sep && !c.x.F.insep ? "pt1" : "pt2") : VX_TENSE_UNIT[c.t];
+    cellsBy[u] = (cellsBy[u] || 0) + 1;
+  });
+  const pace = by => {
+    const starts = [...new Set(Object.keys(by).map(u => open[u] || 0))].sort((a, b) => a - b);
+    let need = 0, eta = 0;
+    starts.forEach(o => {
+      const n = Object.keys(by).filter(u => (open[u] || 0) >= o).reduce((a, u) => a + by[u], 0);
+      need = Math.max(need, Math.ceil(n / Math.max(7, end - o)));
+    });
+    return { need, total: Object.values(by).reduce((a, b) => a + b, 0) };
+  };
+  const I = pace(itemsBy), C = pace(cellsBy);
+  // At the caps, when would the last one start?
+  const lastStart = (by, cap) => { let t = 0; Object.keys(by).map(u => [open[u] || 0, by[u]]).sort((a, b) => a[0] - b[0]).forEach(([o, n]) => { t = Math.max(t, o) + Math.ceil(n / cap); }); return t; };
+  const days = Math.max(lastStart(itemsBy, VX_ITEM_PACE[1]), lastStart(cellsBy, VX_CELL_PACE[1]));
+  return { items: I.need, cells: C.need, ok: I.need <= VX_ITEM_PACE[1] && C.need <= VX_CELL_PACE[1], eta: addDays(studyToday(), days + (typeof KNOWN_LAG === "number" ? KNOWN_LAG : 30)) };
+}
+// The verb track's share of the Today card's numbers: reviews due (and
+// of them, repairs) and new items still to come today.
+function vxTodayCounts() {
+  if (!vxOn()) return { due: 0, fix: 0, fresh: 0 };
+  const { fix, due } = vxDueItems();
+  const q = vxQuotas();
+  return { due: fix.length + due.length, fix: fix.length, fresh: Math.min(q.itemsLeft, vxNewCandidates().length) };
 }
 // Work left on the whole journey (every verb, every unit).
 function vxLeft() {
@@ -1530,10 +1600,29 @@ if (typeof ACHIEVEMENTS !== "undefined" && (VX_FR ? typeof GR_FR !== "undefined"
     { id: "vx_mastery", icon: "🏆", name: "Tense Master", category: "Grammar",
       desc: t => `Pass the mastery quiz of ${t} tense${t > 1 ? "s" : ""} at 100% (optional quizzes in 📐 Grammar)`,
       tiers: VX_FR ? [1, 3, 6, 9, 12] : [1, 3, 5, 8, 10],
-      value: () => VX_UNITS.filter(u => vxMastered(u.id)).length });
-  const _vxL = ACHIEVEMENTS.find(a => a.id === "vx_ledger");
-  let key = null, memo = null;
-  Object.defineProperty(_vxL, "tiers", { get() { const top = Math.round(_vxL.top()) || 0; if (top !== key) { key = top; memo = tiersTo(top, _vxL.curve, true); } return memo; } });
+      value: () => VX_UNITS.filter(u => vxMastered(u.id)).length },
+    { id: "vx_forms", exact: true, icon: "🧩", name: "Irregular Forms", category: "Grammar",
+      desc: t => `Get ${t.toLocaleString()} irregular verb forms to 🌳 Known (${VX_FR ? "suis · fait · eu · irai" : "ging · ist gegangen · fährt · nimm! · war"})`,
+      top: () => vxAvailable() ? vxCatalog().filter(it => it.kind !== "r").length : 1,
+      value: () => vxOn() ? vxCatalog().filter(it => it.kind !== "r" && ((S.words[vxKey(it.id)] || {}).st || 0) >= STAGE_KNOWN).length : 0 },
+    { id: "vx_cells", exact: true, icon: "📒", name: "Form Filler", category: "Grammar",
+      desc: t => `Produce ${t.toLocaleString()} verb forms for your ledger (a verb in ${VX_CORE_LABEL}…)`,
+      top: () => vxAvailable() ? vxRequiredCells().length : 1,
+      value: () => vxOn() ? vxRequiredCells().filter(c => vxCovHas(c.x.inf, c.t)).length : 0 });
+  ["vx_ledger", "vx_forms", "vx_cells"].forEach(id => {
+    const a = ACHIEVEMENTS.find(x => x.id === id);
+    let key = null, memo = null;
+    Object.defineProperty(a, "tiers", { get() { const top = Math.round(a.top()) || 0; if (top !== key) { key = top; memo = tiersTo(top, a.curve, true); } return memo; } });
+  });
+}
+// Ladders added after you switched on start where you are, quietly (as
+// the switch does for the first ones): no burst of old levels at once.
+function vxAchCatchUp() {
+  if (!vxOn() || !S.ach || typeof ACHIEVEMENTS === "undefined") return;
+  ACHIEVEMENTS.filter(a => (a.id === "vx_forms" || a.id === "vx_cells") && S.ach[a.id] === undefined).forEach(a => {
+    let v = 0; try { v = a.value(); } catch (e) {}
+    S.ach[a.id] = a.tiers.filter(t => v >= t).length;
+  });
 }
 
 if (typeof module !== "undefined") module.exports = { vxForm, vxGrade, VX_RULES, VX_UNITS, VX_FR };

@@ -694,7 +694,7 @@ function settingsMenuHtml() {
   const Q = S.quests || {};
   const scan = pathScan();
   const chests = Q.pending ? Q.pending.length : 0;
-  const decks = vocabGroups().reduce((s, g) => s + g.decks.length, 0);
+  const decks = typeof bossDeckCount === "function" ? bossDeckCount() : vocabGroups().reduce((s, g) => s + g.decks.length, 0);
   const beaten = Object.values((S.games && S.games.bestiary) || {}).filter(r => r && r.wins).length;
   const account = settingsAccountName();
   const name = account ? escapeHtml(account.split(" ")[0]) : "";
@@ -729,7 +729,7 @@ function openMenu() { openSettings("menu"); }
 function settingsMainHtml() {
   const plan = pathEnsurePlan();
   const planSub = plan
-    ? `Finish by ${fmtShortDate(S.path.deadline)} · ${plan.pace} new words today`
+    ? `Finish by ${fmtShortDate(S.path.deadline)} · ${plan.pace + ((plan.vx && plan.vx.items) || 0)} new today`
     : `${S.path.newPerDay ? S.path.newPerDay + " new words a day" : "New words paused"} · goal ${getDailyGoal()}`;
   const account = settingsAccountName();
   const modes = [classicOn() && "📚 Classic", grandmaOn() && "👵 Grandma", speakOn() && "🗣️ Speak, don't spell"].filter(Boolean);
@@ -825,7 +825,7 @@ function deadlineSettingsHtml() {
   const scan = pathScan();
   const st = pathDeadlineStatus(scan);
   const late = !st.ok
-    ? `<span>⚠️ Out of reach: even at the maximum pace (${PLAN.MAX_PACE} new words a day) you'd finish around ${fmtShortDate(st.eta)}. Pick a later date to get an honest daily plan.</span>` : "";
+    ? `<span>⚠️ Out of reach: even at the fastest pace (${PLAN.MAX_PACE} new words a day, and the verbs as fast as their tenses open) you'd finish around ${fmtShortDate(st.eta)}. Pick a later date to get an honest daily plan.</span>` : "";
   return `<div class="set-choice">
       <div class="set-choice-head"><span class="set-icon">🗓️</span><span class="set-label">Finish everything by</span></div>
       <div class="set-date-row">
@@ -841,8 +841,9 @@ function deadlineLineHtml(scan) {
   if (!pathUnmet(scan)) return `🗓️ Every word is met — reviews only from here`;
   if (pathDaysLeft() < 0) return `🗓️ Your finish date (${d}) has passed — pick a new one in ⚙️ Settings whenever you like`;
   const st = pathDeadlineStatus(scan);
-  if (!st.ok) return `⚠️ ${d} is out of reach — at the maximum pace (${PLAN.MAX_PACE} new a day) you'd finish around <b>${fmtShortDate(st.eta)}</b>. Pick a later date in ⚙️ Settings`;
-  return `🗓️ Quests are sized to finish everything by <b>${d}</b> · ${pathEnsurePlan().pace} new today`;
+  if (!st.ok) return `⚠️ ${d} is out of reach — at the fastest pace you'd finish around <b>${fmtShortDate(st.eta)}</b>. Pick a later date in ⚙️ Settings`;
+  const plan = pathEnsurePlan();
+  return `🗓️ Quests are sized to finish everything — words and verbs — by <b>${d}</b> · ${plan.pace + ((plan.vx && plan.vx.items) || 0)} new today`;
 }
 function setDeadlineFromSettings(iso) {
   setPathDeadline(iso);
@@ -917,9 +918,13 @@ function renderHome() {
   const note = t.reason === "autopaused"
     ? `<div class="tc-note">⏸ New words paused after a few days away — they resume ${pathDeadlineOn() ? "as soon as you finish today's plan" : "as reviews clear"}. <button class="tc-link" onclick="pathResume();renderHome()">Resume now</button></div>`
     : t.reason === "catchup" ? `<div class="tc-note">🧹 Catching up first: ${t.overdue} overdue reviews. New words return ${pathDeadlineOn() ? "as soon as you finish today's plan" : "when the pile is smaller"}.</div>` : "";
+  // Verbs are part of the same day: their reviews, repairs and new items
+  // are in these numbers too (verb-track.js).
+  const vx = typeof vxTodayCounts === "function" ? vxTodayCounts() : { due: 0, fix: 0, fresh: 0 };
+  t.due += vx.due; t.fix += vx.fix; t.newLeft += vx.fresh;
   const extra = t.frontier && !t.newLeft && t.reason !== "autopaused";
   const stats = [];
-  if (t.fix) stats.push(`<span class="tc-stat warn" title="Words you slipped on — Start fixes them first">🩹 ${t.fix} to fix</span>`);
+  if (t.fix) stats.push(`<span class="tc-stat warn" title="Words and verbs you slipped on — Start fixes them first">🩹 ${t.fix} to fix</span>`);
   stats.push(`<span class="tc-stat" title="Reviews due today">📚 ${t.due} due</span>`);
   stats.push(!t.frontier ? `<span class="tc-stat">🏔️ all met</span>`
     : extra ? `<button class="tc-stat tc-stat-btn" onclick="pathLearnExtra();startPathSession('quick')" title="Today's new words are done — learn ${PATH.EXTRA_NEW} more">🌱 +${PATH.EXTRA_NEW} new</button>`
@@ -949,6 +954,8 @@ function renderHome() {
 // quests, the weekly saga and Games. Everything else waits in ⚙️.
 function renderGrandmaHome(home) {
   const t = pathTodaySummary();
+  const vx = typeof vxTodayCounts === "function" ? vxTodayCounts() : { due: 0, fix: 0, fresh: 0 };
+  t.due += vx.due; t.fix += vx.fix; t.newLeft += vx.fresh;
   const Q = S.quests;
   const len = S.path.sessionLen || "regular";
   const sg = sagaProgress();

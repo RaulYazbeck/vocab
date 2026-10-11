@@ -4,15 +4,19 @@
 // until the day's plan target is reached. Runs once with the new verb
 // system switched on and once without, and compares.
 //   node sim.mjs [--days N] [--off] [--skip 0.05] [--app fr]
+//                [--typed 0.87] [--cloze 0.87] [--vx 0.80] [--vxgrow 0.12]   (accuracy: typed, sentence,
+//                verb forms at the start and how much they gain over 200 days — set them from a real
+//                profile's usage log to simulate that learner)
 import { openApp } from "./browser.mjs";
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
 const DAYS = +arg("--days", 330), SKIP = +arg("--skip", 0.04), SEED = +arg("--seed", 99), APP = arg("--app", "de");
+const ACC = { typed: +arg("--typed", 0.87), cloze: +arg("--cloze", NaN), vx: +arg("--vx", 0.80), vxGrow: +arg("--vxgrow", 0.12) };
 const modes = process.argv.includes("--off") ? [false] : process.argv.includes("--on") ? [true] : [true, false];
 const results = {};
 for (const on of modes) {
   const { browser, page, errors } = await openApp({ width: 900, height: 900, app: APP });
   page.setDefaultTimeout(0);
-  const r = await page.evaluate(async ([on, DAYS, SKIP, SEED]) => {
+  const r = await page.evaluate(async ([on, DAYS, SKIP, SEED, ACC]) => {
     // ── fake clock ──
     const real = Date.now.bind(Date); let off = 0;
     Date.now = () => real() + off;
@@ -22,7 +26,7 @@ for (const on of modes) {
     window.showCelebrateToast = () => {}; window.confettiBurst = () => {}; window.playSuccess = () => {}; window.playFailure = () => {}; window.haptic = () => {}; window.speak = () => {};
     let seed = SEED; const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
     Math.random = rnd;
-    const P = { typed: 0.87, choice: 0.98, vx: 0.80, vxGrow: 0.12, sheetQ: 0.94 };
+    const P = { typed: ACC.typed, cloze: ACC.cloze, choice: 0.98, vx: ACC.vx, vxGrow: ACC.vxGrow, sheetQ: 0.94 };
     if (on) vxSwitchOn();
     const days = [];
     const start = studyToday();
@@ -78,7 +82,7 @@ for (const on of modes) {
             if (!(it.fresh || it.warm)) srsReview(ws, ok, "recognition");
             continue;
           }
-          const ok = rnd() < P.typed + (ws.st >= 5 ? 0.06 : 0);
+          const ok = rnd() < (it.t === "cloze" && P.cloze === P.cloze ? P.cloze : P.typed + (ws.st >= 5 ? 0.06 : 0));
           answers++;
           if (ok) { right++; if (!it.practice) applyCorrect(ws, { quiet: true, kind: "recall", w }); }
           else { applyWrong(ws, { w }); missed.push(it); }
@@ -107,7 +111,7 @@ for (const on of modes) {
       units: on ? VX_UNITS.map(u => [u.id, vxUnitState(u.id)]) : null, level: currentLevel(), exp: S.exp,
       unmet: vocabGroups().flatMap(g => g.decks.flatMap(d => d.words.map((w, i) => [d.id, i, w]).filter(([id, i]) => !isMet(id, i)).map(([id, i, w]) => `${id}_${i} ${w[WORD_KEY]}${on && vxRetired(id, i) ? " (retired→" + JSON.stringify(vxRetireMap().get(id + "_" + i)) + ")" : ""}${on && vxGated(id) ? " (gated)" : ""}`))),
       stuck: on ? vxCatalog().filter(it => { const ws = S.words[vxKey(it.id)]; return !ws || (ws.st || 0) < STAGE_KNOWN; }).map(it => { const ws = S.words[vxKey(it.id)]; return `${it.id} st${ws ? ws.st : 0}${it.x ? " lemma" + vxLemma(it.x).st + " words:" + (it.x.v.words || []).map(w => w.deckId + "_" + w.idx).join(",") : ""}`; }) : null } };
-  }, [on, DAYS, SKIP, SEED]);
+  }, [on, DAYS, SKIP, SEED, ACC]);
   results[on ? "on" : "off"] = r;
   if (errors.length) console.log("errors:", errors.slice(0, 5));
   await browser.close();

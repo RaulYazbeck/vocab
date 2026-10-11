@@ -37,12 +37,16 @@ In the real app (Chromium via playwright-core from `../audio/tests`; run
     node t-adopt.mjs        # every old verb card taken over, nothing lost: no card lower, counts / levels /
                             # achievements never down, items take the cards' stage, never asked the old way,
                             # switching back restores every card exactly  (REAL_STATE=, APP=fr)
+    node t-plan.mjs         # verbs in the finish-date plan (pace by tense opening, status, Today numbers),
+                            # the verb quests, quests / bosses never on a taken-over deck, the new ladders
     node t-typing.mjs       # what a typed answer may differ in (accents, ß, œ, ae/oe/ue, apostrophes,
                             # hyphens, elision), word answers and verb forms, both apps
     node t-switch.mjs       # what switching on does to the test profile (numbers, first session)
     OUT=/tmp/shots node t-ui.mjs   # walks every new screen, phone + desktop screenshots
     node sim.mjs            # the whole journey to the finish date, verb track on vs off
     node sim.mjs --app fr --on   # the same journey in the French app
+    node sim.mjs --on --typed 0.85 --cloze 0.80 --vx 0.60 --vxgrow 0.30 --skip 0.08
+                            # a learner's own accuracy and skipped days (read them off the usage log)
 
 `profile.js` is the test profile: shaped like the real one on 2026-10-10
 (A1 done, 13 A2 words met, finish date 2027-08-15).

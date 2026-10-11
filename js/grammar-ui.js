@@ -949,6 +949,8 @@ function pathGradeVerb(val, ok, said = false) {
   s.answered = true;
   const hint = !!it.usedHint;
   const kind = hint ? "recognition" : "recall";
+  // Was it waiting for a repair (for the quests)?
+  const fixWs = ex.item ? S.words[vxKey(ex.item)] : null, wasFix = !!(fixWs && (fixWs.rp || fixWs.fl || fixWs.lrn));
   let res = null, from = 0;
   vxRecordAnswer(ex, ok === true, { given: val, hint, repair: !!it.repair });
   if (ex.item) {
@@ -983,7 +985,7 @@ function pathGradeVerb(val, ok, said = false) {
   }
   s.stats.answered++;
   logEvent("answer", { m: ex.cell ? "path:cell" : "path:verb", ok: ok === true, typed: !said, hint, ms: Date.now() - s.shownAt });
-  questEvent("answer", { mode: "path", ok: ok === true, typed: !said, st: from, w, it: "verb", hint, ms: Date.now() - s.shownAt, said });
+  questEvent("answer", { mode: "path", ok: ok === true, typed: !said, st: from, w, it: "verb", hint, ms: Date.now() - s.shownAt, said, fix: wasFix || !!it.repair, retried: !!it.tenseRetry });
   saveState();
   // Feedback: the form in colour, the rule behind it, the whole row.
   const evs = res ? res.events : [];

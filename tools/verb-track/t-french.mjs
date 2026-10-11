@@ -208,7 +208,7 @@ const r5 = await ev(() => {
 ok(r5.mx.aux >= 1, "an avoir/être mix-up is logged as such", JSON.stringify(r5.mx));
 ok(r5.report.length >= 2, "the usage report has the Verbs lines", r5.report.join(" | "));
 ok(r5.learn, "the learning log has the French verb track");
-ok(r5.ach.length === 3 && r5.ach[0][1] === 12, "three Grammar ladders, 12 tenses", JSON.stringify(r5.ach));
+ok(r5.ach.length === 5 && r5.ach[0][1] === 12, "five Grammar ladders, 12 tenses", JSON.stringify(r5.ach));
 ok(r5.off.vx === 0 && r5.off.rt === 0 && r5.off.words, "switching back removes items and mirrors only", JSON.stringify(r5.off));
 ok(!errors.length, "no page errors", errors.slice(0, 5).join(" | "));
 console.log("accent card:", r4.accentFb || "(none in this session)");
