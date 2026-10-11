@@ -29,7 +29,7 @@ const GQ_MIN = 3, GQ_MAX = 10, GQ_M_MIN = 8, GQ_M_MAX = 20;
 // ── VERB SETS ─────────────────────────────────
 // Which verbs a generated question may use (x: a vxVerbs() entry).
 function gqStem(x) { const F = x.F, b = F.insep + F.base; return x.k.eln || x.k.ern ? b.slice(0, -1) : b.replace(/(en|n)$/, ""); }
-const GQ_SETS = {
+const GQ_SETS = VX_FR ? VXF.gqSets : {
   any: () => true,
   regular: x => !x.k.irregular && !x.k.stem && !x.k.glue && !x.F.sep && !x.F.refl && x.F.presSure && !x.F.only,
   glueT: x => x.k.glue && !x.k.stem && !x.k.irregular && !x.F.sep && !x.F.refl && needsE(gqStem(x)),
@@ -91,8 +91,8 @@ function gqVerbFor(item, avoid) {
 }
 function gqPersons(item, x) {
   const t = item.t;
-  let ps = item.p || PERSONS;
-  if (vxItVerb(x) && !/^pv/.test(t)) ps = ps.filter(p => p === "er");
+  let ps = item.p || VX_PERSONS;
+  if (vxItVerb(x) && !/^pv/.test(t)) ps = ps.filter(p => p === VX_IT);
   return ps.filter(p => vxForm(x, t, p, { modal: item.modal || "müssen" }));
 }
 // "sie" alone could be she; an "it" verb speaks of es.
@@ -116,6 +116,7 @@ function gqP2Wrong(x) {
   return out;
 }
 function gqWrong(x, t, p, form, modal) {
+  if (VX_FR) return gqClean(VXF.gqWrong(x, t, p, form), form);
   const F = x.F, ans = form.ans, out = [];
   const cell = (tt, pp) => { const f = vxForm(x, tt, pp, { modal }); return f ? f.ans : ""; };
   const others = ps => ps.filter(q => q !== p).map(q => cell(t, q));
@@ -163,7 +164,11 @@ function gqWrong(x, t, p, form, modal) {
     case "pvmod": out.push(`${words[0]} ${F.p2} worden`, `${words[0]} ${F.inf} werden`, `${words[0]} werden ${F.p2}`); break;
     default: out.push(...others(PERSONS));
   }
-  const seen = new Set([normalize(ans)]), res = [];
+  return gqClean(out, form);
+}
+// Wrong options: each one once, never one of the right answers.
+function gqClean(out, form) {
+  const seen = new Set([normalize(form.ans)]), res = [];
   for (const w of out) {
     const s = String(w || "").replace(/\s+/g, " ").trim();
     if (!s || form.acc.some(a => vxEq(a, s)) || seen.has(s.toLowerCase())) continue;
@@ -185,6 +190,7 @@ function gqResolve(item, sid, avoid = new Set()) {
   const modal = item.modal || (item.t === "pvmod" ? Object.keys(VX_PV_MODALS)[Math.floor(Math.random() * 4)] : "");
   const form = vxForm(x, item.t, p, { modal });
   if (!form) return null;
+  if (VX_FR) return gqResolveFr(item, sid, x, p, form);
   const et = GQ_ENGINE_T[item.t];
   const rule = et && typeof verbRuleHtml === "function" ? verbRuleHtml(x.F, et, p) : "";
   const base = { at: item.at, sid, inf: x.inf, p, t: item.t, modal, why: item.why || "", whyHtml: rule };
@@ -207,6 +213,33 @@ function gqResolve(item, sid, avoid = new Set()) {
     const w = gqWrong(x, item.t, p, form, modal);
     if (w.length < 2) return null;
     // Two wrong ones: the most telling first, then one at random.
+    const o = [form.ans, w[0], w[1 + Math.floor(Math.random() * Math.min(2, w.length - 1))]];
+    return { ...base, k: "pick", q, o, a: 0 };
+  }
+  return { ...base, k: "type", q, a: form.acc };
+}
+
+// The French app's generated questions: "nous ___ (manger)", "que j' ___
+// (aller)", "(tu) ___ ! (finir)", "en ___ (lire)", "(elle) ___ partie".
+function gqResolveFr(item, sid, x, p, form) {
+  const t = item.t, base = { at: item.at, sid, inf: x.inf, p, t, modal: "", why: item.why || "", whyHtml: VXF.ruleHtml(x, t, p) };
+  const verb = `(${x.inf})`;
+  if (item.g === "aux") {
+    const words = form.ans.split(" "), o = VXF.auxOptions(t, p);
+    if (x.F.refl || o.indexOf(words[0]) < 0) return null;
+    return { ...base, aux: true, k: "pick", q: `(${p}) ___ ${words.slice(1).join(" ")} ${verb}${item.lbl || ""}`, o, a: o.indexOf(words[0]) };
+  }
+  if (t === "pp") {
+    const q = `Participio de **${x.inf}**`;
+    if (item.ask === "pick") { const w = gqWrong(x, t, p, form).slice(0, 2); if (w.length < 2) return null; return { ...base, k: "pick", q, o: [form.ans, ...w], a: 0 }; }
+    return { ...base, k: "type", q, a: form.acc };
+  }
+  const gaps = Array.from({ length: form.n }, () => "___").join(" ");
+  const pron = VXF.pron(t, p, form.ans);
+  const q = t === "ip" ? `(${p}) ${gaps} ! ${verb}${item.lbl || ""}` : `${pron} ${gaps} ${verb}${item.lbl || ""}`;
+  if (item.ask === "pick") {
+    const w = gqWrong(x, t, p, form);
+    if (w.length < 2) return null;
     const o = [form.ans, w[0], w[1 + Math.floor(Math.random() * Math.min(2, w.length - 1))]];
     return { ...base, k: "pick", q, o, a: 0 };
   }
@@ -304,8 +337,11 @@ function gqPointStep(at) {
   if (at === "table" || at === "lines") return { id: "table" };
   return { id: "ex", trap: true };
 }
-function gqPointName(at) {
-  return at === "why" ? "the structure" : /^r\d$/.test(at) ? "rule " + at.slice(1) : at === "table" ? "the table" : at === "lines" ? "the list" : "the trap";
+// en: in English whatever the app (the learning log is for a tutor).
+function gqPointName(at, en = false) {
+  const T = en ? s => s.replace("{0}", at.slice(1)) : vxT;
+  if (en) return at === "why" ? "the structure" : /^r\d$/.test(at) ? T("rule {0}") : at === "table" ? "the table" : at === "lines" ? "the list" : "the trap";
+  return at === "why" ? vxT("the structure") : /^r\d$/.test(at) ? vxT("rule {0}", at.slice(1)) : at === "table" ? vxT("the table") : at === "lines" ? vxT("the list") : vxT("the trap");
 }
 
 if (typeof module !== "undefined") module.exports = { gqSheetQuiz, gqMasteryQuiz, gqSheetSize, gqPoints, gqResolve, GQ_SETS };

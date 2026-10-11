@@ -17,7 +17,8 @@ function chrome() {
 }
 // state: a file with a real saved state (the "gv5_de" value of a backup)
 // to load instead of the test profile. Also REAL_STATE in the environment.
-export async function openApp({ width = 390, height = 844, profile = true, extra = null, state = process.env.REAL_STATE || "" } = {}) {
+// app: "de" or "fr" (the French app gets profile-fr.js).
+export async function openApp({ width = 390, height = 844, profile = true, extra = null, state = process.env.REAL_STATE || "", app = "de" } = {}) {
   const browser = await chromium.launch({ executablePath: chrome(), args: ["--no-sandbox"] });
   const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 2 });
   const page = await ctx.newPage();
@@ -25,7 +26,7 @@ export async function openApp({ width = 390, height = 844, profile = true, extra
   page.on("pageerror", e => errors.push(String(e.stack || e)));
   page.on("console", m => { if (m.type() === "error" && !/firebase|gstatic|Failed to load resource|net::ERR/i.test(m.text())) errors.push(m.text()); });
   await page.route(/gstatic\.com|googleapis\.com|firebaseio|google\.com/, r => r.abort());
-  await page.goto(BASE + "/de/index.html");
+  await page.goto(BASE + `/${app}/index.html`);
   await page.waitForFunction(() => typeof S !== "undefined" && typeof ALL_GROUPS !== "undefined");
   if (state) {
     const raw = fs.readFileSync(state, "utf8");
@@ -36,7 +37,7 @@ export async function openApp({ width = 390, height = 844, profile = true, extra
     await page.reload();
     await page.waitForFunction(() => typeof S !== "undefined" && S.words && Object.keys(S.words).length > 500);
   } else if (profile) {
-    const src = fs.readFileSync(path.join(here, "profile.js"), "utf8");
+    const src = fs.readFileSync(path.join(here, app === "fr" ? "profile-fr.js" : "profile.js"), "utf8");
     await page.evaluate(([src, extra]) => {
       eval(src + "\nwindow.vxTestProfile = vxTestProfile;");
       const st = window.vxTestProfile();

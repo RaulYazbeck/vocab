@@ -1,13 +1,19 @@
 # Verb track — tests and the journey simulator
 
-The German verb track lives in `js/verb-track.js` (model), `js/grammar-sheets-de.js`
-(the 37 sheets) and `js/grammar-ui.js` (screens). These scripts check it.
+The verb track lives in `js/verb-track.js` (model), `js/grammar-quiz.js` (quizzes)
+and `js/grammar-ui.js` (screens), shared by both apps. German: `js/grammar-sheets-de.js`
+(the 37 sheets). French: `js/verb-track-fr.js` (its tenses, rules, forms, grading and
+the Spanish screen texts) and `js/grammar-sheets-fr.js` (38 sheets in Spanish, for a
+speaker from México). These scripts check it.
 
 Content (no browser):
 
     node test-content.mjs   # every sheet: well-formed; every quiz answer, table and line = the verb engine;
                             # every point has questions; thousands of drawn quizzes checked against the engine
     node test-sync.mjs      # S.verb merges between two devices
+    node test-content-fr.mjs   # the same for French (load-fr.mjs): sheets in Spanish only, every
+                               # answer / table / list = the engine, Subjonctif and participles
+                               # against the deck cards, every Spanish screen string present
 
 In the real app (Chromium via playwright-core from `../audio/tests`; run
 `npm install` there once, and serve the repo root: `python3 -m http.server 8765`):
@@ -15,7 +21,9 @@ In the real app (Chromium via playwright-core from `../audio/tests`; run
     node t-flows.mjs        # switch, preview, gating, mirrors, game credit, reports, switching back
     node t-quiz.mjs         # sheet quizzes (size, every point, 100%, re-ask) and mastery quizzes
     node t-review.mjs       # a miss → the sheet → back to the quiz, nothing lost (every kind, menu + Today)
-    node t-french.mjs       # the French app is unchanged
+    node t-french.mjs       # the French app: switch, preview, gating, every sheet through the
+                            # screens, a miss and the way back, mastery, Today's verb cards,
+                            # game credit, reports, the Spanish screens, switching back
     node t-switch.mjs       # what switching on does to the test profile (numbers, first session)
     OUT=/tmp/shots node t-ui.mjs   # walks every new screen, phone + desktop screenshots
     node sim.mjs            # the whole journey to the finish date, verb track on vs off

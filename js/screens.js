@@ -709,7 +709,7 @@ function settingsMenuHtml() {
     <div class="menu-list">
       ${menuRowHtml("🎮", "Games", "", "menuGo('games')")}
       ${menuRowHtml("🗺️", "Journey", `${scan.known.toLocaleString()} / ${scan.total.toLocaleString()} known`, "menuGo('journey')")}
-      ${typeof vxAvailable === "function" && vxAvailable() ? menuRowHtml("📐", "Grammar", vxOn() ? `${VX_UNITS.filter(u => vxUnitOpen(u.id)).length} / 10 tenses` : `<span class="accent">new</span>`, "menuGo('grammar')") : ""}
+      ${typeof vxAvailable === "function" && vxAvailable() ? menuRowHtml("📐", "Grammar", vxOn() ? `${VX_UNITS.filter(u => vxUnitOpen(u.id)).length} / ${VX_UNITS.length} tenses` : `<span class="accent">new</span>`, "menuGo('grammar')") : ""}
       ${menuRowHtml("⚔️", "Bosses", `${beaten} / ${decks} beaten`, "menuGo('bosses')")}
       ${menuRowHtml("🎨", "Collection", chests ? `<span class="accent">🎁 ${chests} to open</span>` : "", "menuGo('collection')")}
       ${menuRowHtml("📊", "Stats", "", "menuGo('stats')")}
