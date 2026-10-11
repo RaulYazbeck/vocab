@@ -38,7 +38,7 @@
 // ─────────────────────────────────────────────
 
 const VX_DECK = "vx";
-const VX_PASS_RE = 0.6;          // a quiz: ≥60% first try, and every question right in the end
+const VX_PASS_RE = 1;            // a quiz: every question right the first time (grammar-quiz.js)
 const VX_SHEETS_PER_DAY = 2;     // new sheets brought into Today per day
 const VX_SESSION_SHARE = 0.25;   // verb items take at most this share of a session
 const VX_LEMMA_MIN = 2;          // a verb joins the verb track once its word is past day 0
@@ -63,7 +63,7 @@ function migrateVerb() {
   if (!S.verb || typeof S.verb !== "object") S.verb = {};
   const V = S.verb;
   if (typeof V.on !== "string") V.on = "";
-  ["tu", "sh", "sr", "cov", "rot"].forEach(k => { if (!V[k] || typeof V[k] !== "object") V[k] = {}; });
+  ["tu", "sh", "sr", "cov", "rot", "ma"].forEach(k => { if (!V[k] || typeof V[k] !== "object") V[k] = {}; });
   if (typeof V.day !== "string") V.day = "";
   ["ni", "nc", "ns"].forEach(k => { if (!(V[k] >= 0)) V[k] = 0; });
   if (vxOn()) {
@@ -249,6 +249,23 @@ function vxSheetResult(id, score, all, where) {
   if (typeof questEvent === "function" && passed) questEvent("vx_sheet", { id });
   saveState();
   return passed;
+}
+
+// ── MASTERY (optional, outside the daily plan) ─
+// A tense's mastery quiz opens once all its sheets are passed. ma[unit]:
+// { best: % first try, n: questions, at: ms, ok: 1 once passed at 100% }.
+function vxMasteryOpen(unit) { return vxUnitSheetsPassed(unit); }
+function vxMastered(unit) { return !!(S.verb && S.verb.ma && S.verb.ma[unit] && S.verb.ma[unit].ok); }
+function vxMasteryResult(unit, right, n) {
+  migrateVerb();
+  const V = S.verb, pct = n ? Math.round(right / n * 100) : 0, ok = n > 0 && right === n;
+  const m = V.ma[unit] || (V.ma[unit] = { best: 0, n: 0, at: 0, ok: 0 });
+  m.best = Math.max(m.best || 0, pct); m.n = n; m.at = Date.now(); m.tries = (m.tries || 0) + 1;
+  if (ok) m.ok = 1;
+  if (typeof logEvent === "function") logEvent("vx_mastery", { u: unit, pct, n, ok });
+  if (ok && typeof checkAchievements === "function") try { checkAchievements({ type: "vx_mastery" }); } catch (e) {}
+  saveState();
+  return ok;
 }
 
 // ── GAMES: only the tenses you've been taught ─
@@ -780,13 +797,15 @@ function vxPlanNumbers(scan) {
   const { fix, due } = vxDueItems();
   const items = Math.min(q.items, vxNewCandidates().length);
   const cells = Math.min(q.cells, vxOpenCells(q.cells).length);
-  const sheets = Math.min(VX_SHEETS_PER_DAY, vxPendingSheets().length);
-  return { due: fix.length + due.length, items, cells, sheets };
+  const pend = vxPendingSheets().slice(0, VX_SHEETS_PER_DAY);
+  // Each sheet asks its own number of questions (grammar-quiz.js).
+  const sheetQ = pend.reduce((n, id) => n + (typeof gqSheetSize === "function" ? gqSheetSize(vxSheet(id)) : 4), 0);
+  return { due: fix.length + due.length, items, cells, sheets: pend.length, sheetQ };
 }
 // Right answers the verb track adds to the day's target.
 function vxPlanTarget(vx) {
   if (!vx) return 0;
-  return Math.round(vx.items * 2 + vx.cells * 1.1 + vx.sheets * 4);
+  return Math.round(vx.items * 2 + vx.cells * 1.1 + (vx.sheetQ != null ? vx.sheetQ : vx.sheets * 4));
 }
 // Items for one Today session: { sheets:[ids], learn:[ex], items:[ex] }.
 // counted items stay within `room`. Sheets first, then fixes and due
@@ -1124,7 +1143,14 @@ function vxReportLines() {
     `Verb sheets passed ${passed}/${sheets} · verb items ${n}: ` + TIERS.map(t => `${t.icon}${tiers[t.id] || 0}`).join(" ") +
       ` · ledger ${L.all.done}/${L.all.verbs} verbs complete (` + L.levels.map(l => `${l.id.toUpperCase()} ${l.done}/${l.verbs}`).join(", ") + `) · cells ${L.all.cellsDone}/${L.all.cells}` +
       ` · per day: ${q.items} new items, ${q.cells} drills`,
+    ...vxMasteryLines(),
   ];
+}
+// Mastery quizzes taken (optional): mastered, or the best score so far.
+function vxMasteryLines() {
+  const ma = (S.verb && S.verb.ma) || {}, taken = VX_UNITS.filter(u => ma[u.id] && ma[u.id].tries);
+  if (!taken.length) return [];
+  return [`Mastery quizzes: ` + taken.map(u => `${u.name} ${ma[u.id].ok ? "🏆" : `best ${ma[u.id].best}%`} (${ma[u.id].tries} tr${ma[u.id].tries > 1 ? "ies" : "y"})`).join(" · ")];
 }
 
 // For the learning log (learning-log.js): where the verb track stands,
@@ -1135,6 +1161,7 @@ function vxLearnLines() {
   out.push(`Tenses: ` + VX_UNITS.map(u => `${u.name} ${["🔒", "📖", "🔁", "✅"][vxUnitState(u.id)]}`).join(" · ") + `  (🔒 not taught yet — please don't use these tenses with me · 📖 being taught · 🔁 practising · ✅ solid)`);
   const passed = GS_SHEETS.filter(sh => vxSheetPassed(sh.id)).map(sh => `${sh.id} ${S.verb.sh[sh.id]}%`);
   if (passed.length) out.push(`Sheets passed (first-try quiz score): ${passed.join(" · ")}`);
+  out.push(...vxMasteryLines());
   const rules = VX_RULES.map(r => { const ws = S.words[vxKey("r:" + r.id)]; return ws && ws.st ? `${r.title} ${tierOfStage(ws.st).icon}${ws.rp ? "🩹" : ws.fl ? "⚠️" : ""}${(ws.k || 1) < EASE.HARD_K ? " (hard for me)" : ""}` : ""; }).filter(Boolean);
   if (rules.length) out.push(`Rules in my reviews: ${rules.join(" · ")}`);
   const weak = vxCatalog().filter(it => it.x).map(it => ({ it, ws: S.words[vxKey(it.id)] })).filter(o => o.ws && o.ws.st && (o.ws.rp || o.ws.fl || (o.ws.k || 1) < EASE.HARD_K || (o.ws.wrong || 0) >= 2))
@@ -1155,8 +1182,12 @@ if (typeof ACHIEVEMENTS !== "undefined" && typeof GR_DE !== "undefined" && GR_DE
     { id: "vx_ledger", exact: true, icon: "📒", name: "Verb Ledger", category: "Grammar",
       desc: t => `Complete ${t.toLocaleString()} verbs: meaning Known, irregular forms Known, Präsens · Präteritum · Perfekt produced`,
       top: () => vxAvailable() ? vxVerbs().length : 1,
-      value: () => vxOn() ? vxLedger().all.done : 0 });
-  const _vxL = ACHIEVEMENTS[ACHIEVEMENTS.length - 1];
+      value: () => vxOn() ? vxLedger().all.done : 0 },
+    { id: "vx_mastery", icon: "🏆", name: "Tense Master", category: "Grammar",
+      desc: t => `Pass the mastery quiz of ${t} tense${t > 1 ? "s" : ""} at 100% (optional quizzes in 📐 Grammar)`,
+      tiers: [1, 3, 5, 8, 10],
+      value: () => VX_UNITS.filter(u => vxMastered(u.id)).length });
+  const _vxL = ACHIEVEMENTS.find(a => a.id === "vx_ledger");
   let key = null, memo = null;
   Object.defineProperty(_vxL, "tiers", { get() { const top = Math.round(_vxL.top()) || 0; if (top !== key) { key = top; memo = tiersTo(top, _vxL.curve, true); } return memo; } });
 }
