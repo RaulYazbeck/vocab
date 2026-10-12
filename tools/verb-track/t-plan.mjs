@@ -33,6 +33,16 @@ const r = await page.evaluate(() => {
   const st = pathDeadlineStatus();
   ok(!st.ok && st.eta > S.path.deadline, `a date 40 days away is out of reach (eta ${st.eta})`);
   S.path.deadline = keep; _vxPace = null;
+  // The final stretch: a word not yet Known waits less near the date.
+  const keep2 = S.path.deadline, w0 = { st: 4, k: 1 }, now0 = Date.now();
+  S.path.deadline = addDays(studyToday(), 200); scheduleStage(w0, now0);
+  const far = Math.round((w0.dueAt - studyDayStart(0, now0)) / 864e5);
+  S.path.deadline = addDays(studyToday(), 24); scheduleStage(w0, now0);
+  const near = Math.round((w0.dueAt - studyDayStart(0, now0)) / 864e5);
+  const known = { st: STAGE_KNOWN, k: 1 }; scheduleStage(known, now0);
+  const kd = Math.round((known.dueAt - studyDayStart(0, now0)) / 864e5);
+  S.path.deadline = keep2; _vxPace = null;
+  ok(far === STAGE_DAYS[4] && near === 3 && kd === STAGE_DAYS[STAGE_KNOWN], `final stretch: a 🌿4 word waits ${far} days far from the date, ${near} with 24 days left; a Known one still ${kd}`);
   // 2. Today numbers
   const words = pathTodaySummary(), vx = vxTodayCounts();
   renderHome();

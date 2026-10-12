@@ -80,7 +80,18 @@ function scheduleStage(ws, now, halve = false) {
   }
   let d = stageIntervalDays(ws, st);
   if (halve) d = Math.max(1, Math.round(d / 2));
+  // The final stretch before a finish date: a word (or verb item) not yet
+  // 🌳 Known waits less between its checks — a slip near the end costs
+  // days, not weeks, so the last few still make it in time.
+  if (st < STAGE_KNOWN) { const left = finalStretchDays(); if (left !== null) d = Math.min(d, Math.max(1, Math.floor(left / 8))); }
   ws.dueAt = studyDayStart(d, now);
+}
+const FINAL_STRETCH = 60; // days before the finish date
+// Days left when inside the final stretch, else null.
+function finalStretchDays() {
+  if (typeof pathDeadlineOn !== "function" || !pathDeadlineOn()) return null;
+  const left = pathDaysLeft();
+  return left >= 0 && left <= FINAL_STRETCH ? left : null;
 }
 // Early review: for intervals of 4+ days, half the interval elapsed.
 function isEarlyOk(ws, now) {
