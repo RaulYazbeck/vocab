@@ -741,7 +741,7 @@ const VXF_ES = {
   "↻ Once more": "↻ Otra vez", "🌱 From memory": "🌱 De memoria", "Show ▶": "Mostrar ▶", "💡 Hint": "💡 Pista", "? Don't know": "? No sé",
   "💡 It starts with": "💡 Empieza con", "✗ Not yet": "✗ Todavía no", "✓ I said it": "✓ Lo dije",
   "No step up, no step down — one more try at the end of this session.": "Ni sube ni baja — un intento más al final de esta sesión.",
-  "✓ Correct!": "✓ ¡Correcto!", "Answer:": "Respuesta:", "🌳 Known!": "🌳 ¡Known!", "🩹 Repaired": "🩹 Reparada", "✓ Scheduled": "✓ Programada",
+  "✓ Correct!": "✓ ¡Correcto!", "✓ Counted": "✓ Contada", "— only the verb was needed": "— solo hacía falta el verbo", "Answer:": "Respuesta:", "🌳 Known!": "🌳 ¡Known!", "🩹 Repaired": "🩹 Reparada", "✓ Scheduled": "✓ Programada",
   "🩹 Badge kept — repair it next time": "🩹 Insignia conservada — repárala la próxima vez", "↓ back to {0}": "↓ de vuelta a {0}",
   "💡 with hint — no step up": "💡 con pista — no sube", "you typed": "escribiste", "— spelt {0}": "— se escribe {0}", "the full form": "la forma completa", "the full form…": "la forma completa…", "{0} — the full form…": "{0} — la forma completa…", "↺ That's the {0} — this one asks for the {1}.": "↺ Eso es {0} — aquí se pide {1}.", "Right verb, other tense: one more try.": "Verbo correcto, otro tiempo: un intento más.", "Almost": "Casi", "Open the sheet": "Abrir la ficha", "Next →": "Siguiente →",
   // verb-track.js

@@ -119,6 +119,14 @@ const r = await page.evaluate((APP) => {
     ok(vxGrade("wohnen Sie", imSie) === true && vxGrade("wohnen sie", imSie) === true, "a Sie command: with its Sie, either case");
     ok(vxIsCommand({ q: "(Sie) ___! (sein)", chk: ["sein", "im", "Sie"] }) === "Sie" && vxIsCommand({ q: "(du) ___! (sein)", chk: ["sein", "im", "du"] }) === true && vxIsCommand(mk("wohnen", "pr", "er")) === false, "sheet questions: the Sie command told apart");
     ok(vxGrade("wohnt seit Jahren hier", mk("wohnen", "pr", "er")) === true && vxGrade("ging warum", pt) === true, "seit / warum are context, not verbs: right");
+    // 6b. the sheet quizzes: the same context words, the same limits
+    const QQ = { k: "type", q: "er ___ ___ (gehen) — Perfekt", a: ["ist gegangen"], inf: "gehen", p: "er", t: "pf" };
+    const qg = v => gsQuizGrade(v, QQ);
+    ok(qg("ist gegangen").ok && !qg("ist gegangen").extra, "quiz: the form itself is right");
+    ok(qg("ist zu Fuß gegangen").ok && qg("ist zu Fuß gegangen").extra, "quiz: with context words, right (and says so)");
+    ok(!qg("ist nicht gegangen").ok && !qg("ist ging gegangen").ok && !qg("ist gegangen gegangen").ok, "quiz: nicht / another form added: not right");
+    ok(!gsQuizGrade("lern heute", { k: "type", q: "Stem of **lernen**", a: ["lern"] }).ok, "quiz: no verb named, no context words");
+    ok(!gsQuizGrade("wohn sie", { k: "type", q: "(du) ___! (wohnen)", a: ["wohn", "wohne"], chk: ["wohnen", "im", "du"] }).ok, "quiz: no Sie after a du command");
     // 7. Shift+Enter ×3 on a wrong verb answer: counted, all rolled back
     const shift = () => document.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", shiftKey: true, bubbles: true }));
     S.path.secretOk = null;
@@ -138,6 +146,7 @@ const r = await page.evaluate((APP) => {
     shift(); shift(); shift();
     ok(s.stats.near === st0.near && s.stats.correct === st0.correct + 1 && S.path.secretOk.n === 1, "Shift+Enter ×3 on ≈: counted, no allowance used");
   }
+  if (APP === "fr") ok(vxT("✓ Counted") === "✓ Contada" && vxT("— only the verb was needed") === "— solo hacía falta el verbo", "the override's words in Spanish");
   return out.filter(([c, m]) => m);
 }, APP);
 let pass = 0, fail = 0;

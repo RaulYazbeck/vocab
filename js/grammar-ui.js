@@ -335,6 +335,18 @@ function gsQuizPick(oi) {
   });
   gsQuizAnswered(ok, cur.q.o[oi]);
 }
+// A typed quiz answer: a pronoun typed in front (du spielst) is fine, as
+// in Today; so is an umlaut left out, and a few words of context around
+// the right form (only for a question about one verb: its other forms
+// never count as context). The feedback shows the spelling / says so.
+function gsQuizGrade(val, Q) {
+  const tries = vxGradeTries(val, vxIsCommand(Q));
+  const uml = vxUmlautOnly(val, Q.a, vxIsCommand(Q));
+  if (uml || tries.some(t => Q.a.some(a => vxEq(a, t)))) return { ok: true, uml, extra: false };
+  const x = vxVerb(Q.inf || (Q.chk && Q.chk[0]) || "");
+  const extra = !!x && vxExtraOk(tries, Q.a, x);
+  return { ok: extra, uml: false, extra };
+}
 function gsQuizCheck() {
   const q = _gs && _gs.quiz;
   if (!q || q.answered || q.done) return;
@@ -342,12 +354,8 @@ function gsQuizCheck() {
   if (Q.k === "type") {
     const inp = document.getElementById("gs-input"), val = inp ? inp.value : "";
     if (!val.trim()) { if (inp) shakeEl(inp); return; }
-    // A pronoun typed in front (du spielst) is fine, as in Today; so is
-    // an umlaut left out — the feedback shows the spelling.
-    const tries = vxGradeTries(val, vxIsCommand(Q));
-    const uml = vxUmlautOnly(val, Q.a, vxIsCommand(Q));
-    const ok = uml || tries.some(t => Q.a.some(a => vxEq(a, t)));
-    cur.uml = uml;
+    const { ok, uml, extra } = gsQuizGrade(val, Q);
+    cur.uml = uml; cur.extra = extra;
     if (!ok && isNearMiss(val, Q.a) && !cur.near) {
       cur.near = true;
       inp.classList.add("near");
@@ -396,7 +404,7 @@ function gsQuizShowAnswered() {
   const sh = vxSheet(Q.sid);
   const where = sh ? `${gqPointName(Q.at)}${g.mastery ? ` ${VX_FR ? "de" : "of"} “${escapeHtml(sh.title)}”` : ""}` : "";
   const fb = document.getElementById("gs-qfb");
-  if (fb) fb.innerHTML = ok ? `<div class="p-ok">${vxT("✓ Right")}${cur.uml ? ` <span class="vx-uml">${vxT("— spelt {0}", `<b>${escapeHtml(right)}</b>`)}</span>` : ""}</div>${why}`
+  if (fb) fb.innerHTML = ok ? `<div class="p-ok">${vxT("✓ Right")}${cur.uml ? ` <span class="vx-uml">${vxT("— spelt {0}", `<b>${escapeHtml(right)}</b>`)}</span>` : ""}${cur.extra ? ` <span class="vx-uml">${vxT("— only the verb was needed")}</span>` : ""}</div>${why}`
     : `<div class="p-bad">${vxT("✗ Answer:")} <strong>${escapeHtml(right)}</strong></div>${why}
       ${sh ? `<button class="gs-qsee" onclick="gsQuizReview()">${vxT("📖 See it in the sheet — {0}", where)}</button>` : ""}
       ${cur.first ? `<div class="gs-qback">${vxT("This question comes back once at the end.")}</div>` : ""}`;
@@ -1023,7 +1031,7 @@ function pathGradeVerb(val, ok, said = false) {
   const row = vxRowTableHtml(VX_FR ? VXF.rowCells(ex.x, ex.kind, ex.p) : engineT && engineT !== "im" ? vxRowCellsDe(ex.x.F, engineT, ex.p) : []);
   const umlNote = ok === true && val && vxUmlautOnly(val, ex.form.acc, vxIsCommand(ex));
   const extraNote = ok === true && val && !umlNote && vxExtraOnly(val, ex);
-  const head = ok === true ? `<div class="vx-res ok">${vxT("✓ Correct!")}${umlNote ? ` <span class="vx-uml">${vxT("— spelt {0}", `<b>${escapeHtml(ex.form.ans)}</b>`)}</span>` : ""}${extraNote ? ` <span class="vx-uml">— only the verb was needed</span>` : ""}</div>`
+  const head = ok === true ? `<div class="vx-res ok">${vxT("✓ Correct!")}${umlNote ? ` <span class="vx-uml">${vxT("— spelt {0}", `<b>${escapeHtml(ex.form.ans)}</b>`)}</span>` : ""}${extraNote ? ` <span class="vx-uml">${vxT("— only the verb was needed")}</span>` : ""}</div>`
     : `<div class="vx-res bad">${val.trim() ? `${mark("✗")} ${vxT("Answer:")}` : vxT("Answer:")}</div>`;
   // One centred column: verdict, the form in colour, what you typed,
   // the step it took, the rule, the whole row.
@@ -1079,7 +1087,7 @@ function pathVerbSecretOk(u) {
   pathGradeVerb(u.val, true);
   _mistakeHoldUntil = 0; // a success now: Next must not wait on the old miss
   const ok = document.querySelector("#p-fb .vx-res.ok");
-  if (ok) ok.innerHTML = ok.innerHTML.replace(vxT("✓ Correct!"), "✓ Counted");
+  if (ok) ok.innerHTML = ok.innerHTML.replace(vxT("✓ Correct!"), vxT("✓ Counted"));
 }
 // The whole row of a German form as cells (verbRowHtml's content).
 function vxRowCellsDe(F, tense, person) {
