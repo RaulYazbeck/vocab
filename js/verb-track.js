@@ -16,8 +16,11 @@
 //                   verb you've met, in a fixed, logical order
 //        sc:<inf>   a stem change in the Präsens (du fährst, er fährt)
 //        p2:<inf>   Perfekt of a verb you can't build by rule (ist gegangen)
-//        pt:<inf>   Präteritum of a strong / mixed verb (ging)
+//        pt:<inf>   Präteritum of a strong / mixed verb (ging, brachte)
 //        im:<inf>   an irregular imperative (nimm!, sei!)
+//        ir:<inf>   the Präsens no rule builds (bin, kann, weiß), and
+//        p1:<inf>   its Präteritum (war, konnte, wusste), every person
+//        k2s:<inf>  a strong verb's own Konjunktiv II (käme, ginge, gäbe)
 //      Per-verb items exist only for verbs that need them and that no
 //      active deck card already covers.
 //
@@ -476,6 +479,11 @@ function vxFormBase(x, kind, p, opt = {}) {
       if (!F.k2special || !F.k2 || !F.k2[p]) return null;
       return out([F.k2[p], refl].filter(Boolean).join(" "));
     }
+    case "k2s": {
+      if (!F.k2own || !F.k2own[p]) return null;
+      const whole = f => [f, refl, F.sep].filter(Boolean).join(" ");
+      return out(whole(F.k2own[p]), (F.k2ownAlt[p] || []).map(whole));
+    }
     case "pvpr": case "pvpt": {
       if (!F.p2 || F.aux !== "haben" || F.refl) return null;
       const w = (kind === "pvpr" ? { er: "wird", sie: "werden" } : { er: "wurde", sie: "wurden" })[p];
@@ -518,14 +526,15 @@ function vxFormBase(x, kind, p, opt = {}) {
     case "p2": {
       if (!F.p2 || !F.aux) return null;
       const a = AUX_PR[F.aux].er;
-      return out(F.refl ? `${a} sich ${F.p2}` : `${a} ${F.p2}`);
+      const f = p2 => F.refl ? `${a} sich ${p2}` : `${a} ${p2}`;
+      return out(f(F.p2), (F.p2Alt || []).map(f));
     }
   }
   return null;
 }
 // The tense a kind of form belongs to (for colours, coverage and logs).
 const VX_KIND_TENSE = VX_FR ? VXF.kindTense : { pr: "pr", prsep: "pr", prrefl: "pr", sc: "pr", pt: "pt", pf: "pf", p2: "pf", pq: "pq", fu: "fu", im: "im", imsep: "im",
-  k2w: "k2", k2o: "k2", k2p: "k2p", pvpr: "pv", pvpt: "pv", pvmod: "pv" };
+  k2w: "k2", k2o: "k2", k2s: "k2", k2p: "k2p", pvpr: "pv", pvpt: "pv", pvmod: "pv" };
 const VX_TENSE_LABEL = VX_FR ? VXF.tenseLabel : { pr: "Präsens", pt: "Präteritum", pf: "Perfekt", pq: "Plusquamperfekt", fu: "Futur I", im: "Imperativ", k2: "Konjunktiv II",
   k2p: "Konjunktiv II · past", pv: "Passiv" };
 const VX_TENSE_UNIT = VX_FR ? VXF.tenseUnit : { pr: "pr", pf: "pf", im: "im", pt: "pt2", fu: "fu", k2: "k2a", pq: "pq", pv: "pv", k2p: "k2p" };
@@ -593,7 +602,7 @@ const VX_RULE = Object.fromEntries(VX_RULES.map(r => [r.id, r]));
 const VX_ITEM_KINDS = VX_FR ? VXF.itemKinds : {
   sc: { unit: "pr", sheet: "pr4", form: "sc", title: "Stem change", tense: "pr" },
   p2: { unit: "pf", sheet: "pf3", form: "p2", title: "Perfekt", tense: "pf" },
-  pt: { unit: "pt2", sheet: "pt22", form: "pt", title: "Präteritum", tense: "pt" },
+  pt: { unit: "pt2", sheet: x => x.k.mixed ? "pt23" : "pt22", form: "pt", title: "Präteritum", tense: "pt" },
   im: { unit: "im", sheet: "im2", form: "im", title: "Imperativ", tense: "im" },
   // The verbs no rule builds, in every person: bin · bist · ist…, kann ·
   // kannst…, weiß — and their Präteritum I: war, hatte, konnte, wusste.
@@ -601,6 +610,11 @@ const VX_ITEM_KINDS = VX_FR ? VXF.itemKinds : {
   // (persons: every one — for the verbs that have the item; none for the rest)
   ir: { unit: "pr", sheet: x => x.k.aux ? "pr3" : "pr5", form: "pr", title: "Irregular Präsens", tense: "pr", persons: x => vxNeedsItem(x, "ir") ? PERSONS : [] },
   p1: { unit: "pt1", sheet: x => x.k.modal ? "pt12" : "pt11", form: "pt", title: "Präteritum I", tense: "pt", persons: x => vxNeedsItem(x, "p1") ? PERSONS : [] },
+  // A strong verb's own Konjunktiv II, next to würde + infinitive:
+  // käme · kämest · käme… (grammar-de.js K2_OWN): every person whose
+  // form isn't the Präteritum's too (wir gingen: there, würde gehen).
+  k2s: { unit: "k2a", sheet: "k25", form: "k2s", title: "Own Konjunktiv II", tense: "k2",
+    persons: x => vxNeedsItem(x, "k2s") ? PERSONS.filter(p => { const f = vxForm(x, "k2s", p), pt = vxForm(x, "pt", p); return f && !(pt && pt.acc.includes(f.ans)); }) : [] },
 };
 function vxKey(id) { return VX_DECK + "_" + id; }
 
@@ -634,7 +648,7 @@ const VX_EXTRA_COVER = VX_FR ? {
   b1_konjunktiv2_4: ["haben", "k2", "ich"], b1_konjunktiv2_5: ["haben", "k2", "du"], b1_konjunktiv2_6: ["haben", "k2"], b1_konjunktiv2_7: ["haben", "k2", "wir"],
   b1_konjunktiv2_8: ["können", "k2", "ich"], b1_konjunktiv2_9: ["können", "k2", "du"], b1_konjunktiv2_10: ["müssen", "k2", "ich"], b1_konjunktiv2_11: ["sollen", "k2", "ich"],
   b1_konjunktiv2_12: ["dürfen", "k2", "ich"], b1_konjunktiv2_13: ["mögen", "k2", "ich"],
-  b1_konjunktiv2_14: ["kommen", "k2", "ich"], b1_konjunktiv2_15: ["helfen", "k2", "du"], b1_konjunktiv2_16: ["kaufen", "k2"], b1_konjunktiv2_17: ["reisen", "k2", "wir"], b1_konjunktiv2_18: ["fragen", "k2", "sie"],
+  b1_konjunktiv2_14: ["kommen", "k2", "ich", "k2-wuerde"], b1_konjunktiv2_15: ["helfen", "k2", "du", "k2-wuerde"], b1_konjunktiv2_16: ["kaufen", "k2"], b1_konjunktiv2_17: ["reisen", "k2", "wir"], b1_konjunktiv2_18: ["fragen", "k2", "sie"],
   b1_konjunktiv2_19: ["gehen", "k2"], b1_konjunktiv2_20: ["kommen", "k2"], b1_konjunktiv2_21: ["geben", "k2"], b1_konjunktiv2_22: ["wissen", "k2", "ich"], b1_konjunktiv2_23: ["brauchen", "k2", "ich"],
   b1_konjunktiv2_24: ["machen", "k2p", "ich"], b1_konjunktiv2_25: ["kommen", "k2p"],
   b1_passiv_0: ["reparieren", "pv", "er", "pv-pr"], b1_passiv_1: ["fragen", "pv", "er", "pv-pr"], b1_passiv_2: ["einladen", "pv", "er", "pv-pr"], b1_passiv_3: ["abholen", "pv", "sie", "pv-pr"],
@@ -654,7 +668,7 @@ function vxCoverDe(x, t, p) {
   }
   if (t === "fu") return { rule: "fu" };
   if (t === "pq") return { rule: "pq" };
-  if (t === "k2") return { rule: F.k2special ? "k2-own" : "k2-wuerde" };
+  if (t === "k2") return vxNeedsItem(x, "k2s") ? { item: "k2s:" + x.inf } : { rule: F.k2special ? "k2-own" : "k2-wuerde" };
   if (t === "k2p") return { rule: "k2p" };
   return null;
 }
@@ -738,26 +752,42 @@ function vxAdopt() {
   const groups = new Map();
   vxRetireMap().forEach((c, key) => {
     const ws = S.words[key];
-    if (!ws || !ws.st || ws.rt) return;
+    if (!ws) return;
+    // A card you met, not handed over yet — or one handed over before
+    // its own kind of item existed (brachte, käme: a rule covered them
+    // then): its record (rtWas) goes to that item, once.
+    let rec = null, again = false;
+    if (ws.st && !ws.rt) rec = ws;
+    else if (ws.rt && ws.rtWas && ws.rtWas.st && c.item) {
+      const it = S.words[vxKey(c.item)];
+      if (!(it && it.adopted)) { rec = ws.rtWas; again = true; }
+    }
+    if (!rec) return;
     const g = c.item ? "i|" + c.item : "r|" + c.rule;
     if (!groups.has(g)) groups.set(g, []);
-    groups.get(g).push({ key, ws, c });
+    groups.get(g).push({ key, ws, rec, c, again });
   });
   if (!groups.size) return 0;
   const now = Date.now();
   let items = 0, rules = 0, cards = 0;
   groups.forEach(list => {
     const c0 = list[0].c;
-    const sorted = list.slice().sort((a, b) => a.ws.st - b.ws.st || (a.ws.sAt || 0) - (b.ws.sAt || 0));
-    const mid = sorted[Math.floor((sorted.length - 1) / 2)].ws;
-    const pending = list.some(o => o.ws.rp || o.ws.fl || o.ws.lrn);
+    const sorted = list.slice().sort((a, b) => a.rec.st - b.rec.st || (a.rec.sAt || 0) - (b.rec.sAt || 0));
+    const mid = sorted[Math.floor((sorted.length - 1) / 2)].rec;
+    const pending = list.some(o => o.rec.rp || o.rec.fl || o.rec.lrn);
     if (c0.item) {
       const it = getWS(VX_DECK, c0.item);
       if ((it.st || 0) < mid.st) {
         VX_ADOPT_FIELDS.forEach(f => { if (mid[f] === undefined) delete it[f]; else it[f] = mid[f]; });
-        it.pk = Math.max(it.pk || 0, ...list.map(o => o.ws.pk || o.ws.st || 0));
+        it.pk = Math.max(it.pk || 0, ...list.map(o => o.rec.pk || o.rec.st || 0));
         // A card still waiting for a repair: a quick check soon.
         if (pending && !it.rp && !it.lrn) it.fl = 1;
+        // A record handed over a while ago: its review date passed long
+        // since — due again within its stage's gap, not all at once today.
+        if (list[0].again && it.dueAt && it.dueAt < now && it.st) {
+          const gap = Math.max(1, Math.round(STAGE_DAYS[it.st] || 1));
+          it.dueAt = studyDayStart(1 + hashString(c0.item) % gap, now);
+        }
         items++;
       }
       // (Right / wrong counts stay with the cards: added here, two devices
@@ -774,8 +804,9 @@ function vxAdopt() {
         rules++;
       }
     }
-    list.forEach(({ ws, c }) => {
+    list.forEach(({ ws, c, again }) => {
       if (VX_COV.includes(c.t)) vxCovSet(c.inf, c.t);
+      if (again) return; // (handed over already: its record stays as it was)
       const was = {};
       Object.keys(ws).forEach(f => { if (f !== "rtWas" && f !== "anki") was[f] = ws[f]; });
       ws.rtWas = JSON.parse(JSON.stringify(was));
@@ -801,11 +832,22 @@ function vxNeedsItem(x, kind) {
   const F = x.F;
   if (kind === "sc") return x.k.stem && !x.k.irregular && !vxActiveRef(x, "pr", ["du"]) && !vxActiveRef(x, "pr", ["er"]);
   if (kind === "p2") return !!F.aux && !!F.p2 && (F.strong || F.aux === "sein") && !x.k.modal && !vxActiveRef(x, "p2");
-  if (kind === "pt") return !F.only && x.k.strongPt && !x.k.aux && !x.k.modal && !VX_PT1_VERBS.has(F.base) && !vxActiveRef(x, "pt", ["er", "ich"]);
+  if (kind === "pt") return !F.only && (x.k.strongPt || vxMixedPt(x)) && !x.k.aux && !x.k.modal && !VX_PT1_VERBS.has(F.base) && !vxActiveRef(x, "pt", ["er", "ich"]);
   if (kind === "im") return !!F.im && !!F.presSure && !vxItVerb(x) && (F.eToI || (F.base === "sein" && !F.sep && !F.insep));
   if (kind === "ir") return x.k.irregular && !!F.presSure && !F.only && !F.sep && !F.insep && !F.refl && !!vxForm(x, "pr", "ich");
   if (kind === "p1") return VX_PT1_VERBS.has(F.base) && F.base === x.inf && !!vxForm(x, "pt", "ich");
+  // The plain verb only (kommen → käme): its prefixed ones build theirs
+  // the same way, and würde + infinitive is right for them too.
+  if (kind === "k2s") return !!F.k2own && !F.sep && !F.insep && !F.refl && !F.only && vxHasTense(x, "k2") && !!vxForm(x, "k2s", "ich");
   return false;
+}
+// A mixed verb: a new stem AND -te (brachte, dachte, kannte) — no rule
+// builds that, so it has its own card like a strong verb. (backen →
+// backte is regular in the Präteritum: only its Partizip is strong.)
+function vxMixedPt(x) {
+  if (!x.k.mixed) return false;
+  const F = x.F, st = (F.insep + F.base).replace(/(en|n)$/, "");
+  return ![st + "te", st + "ete"].includes(F.pt.er || "");
 }
 let _vxCatalog = null, _vxCatalogAt = "";
 // Every item the track can ever have: { id, kind, unit, sheet, rule?, x?, lv, ord }
@@ -833,6 +875,7 @@ function vxItemOrder(x, kind) {
   if (kind === "sc") { const er = lastVowel(F.pr.er.replace(/t$/, "")); return er === "ä" || er === "äu" ? 0 : er === "i" ? 1 : er === "ie" ? 2 : 3; }
   if (kind === "p2") { if (!F.strong) return 0; if (x.k.mixed) return 4; const a = lastVowel(F.base.replace(/(en|n)$/, "")), b = lastVowel(F.p2.replace(/(en|n|t)$/, "")); return a === b ? 1 : F.aux === "sein" ? 3 : 2; }
   if (kind === "pt") return x.k.mixed ? 2 : 1;
+  if (kind === "k2s") return ["kommen", "gehen", "geben", "bleiben", "lassen", "finden"].includes(F.base) ? 0 : 1;
   if (kind === "im") return F.base === "sein" ? 0 : 1;
   if (kind === "ir" || kind === "p1") return x.k.aux ? 0 : x.k.modal ? 2 : 1;
   return 0;
@@ -1048,6 +1091,12 @@ const VX_OTHER_KINDS = VX_FR ? ["pr", "im", "fu", "co", "pc", "pq", "cp", "sj", 
 // Konjunktiv II, not a slip.
 function vxOtherTense(val, ex, exact = false) {
   if (!ex || !ex.x || !String(val || "").trim()) return null;
+  // Its own Konjunktiv II asked (käme), würde + infinitive given: right
+  // German, but not what this card is for — "k2w", one more try.
+  if (ex.kind === "k2s" && !exact) {
+    const f = vxForm(ex.x, "k2w", ex.p), acc = f ? f.acc.filter(a => /^würd/.test(a)) : [];
+    if (acc.length && vxGrade(val, { kind: "k2w", x: ex.x, p: ex.p, form: { ...f, acc } }) === true) return "k2w";
+  }
   for (const k of VX_OTHER_KINDS) {
     const t = VX_KIND_TENSE[k];
     if (!t || t === ex.tense) continue;
@@ -1073,7 +1122,7 @@ function vxMistakeType(given, ex) {
   if (VX_FR) return VXF.mistake(given, ex);
   const g = normalize(String(given || ""));
   if (!g) return "blank";
-  const engineT = { pr: 1, pt: 1, pf: 1, pq: 1, fu: 1, im: 1 }[ex.kind] ? ex.kind : ex.kind === "p2" ? "pf" : ex.kind === "k2w" || ex.kind === "k2o" ? "k2" : null;
+  const engineT = { pr: 1, pt: 1, pf: 1, pq: 1, fu: 1, im: 1 }[ex.kind] ? ex.kind : ex.kind === "p2" ? "pf" : ex.kind === "k2w" || ex.kind === "k2o" || ex.kind === "k2s" ? "k2" : null;
   if (engineT && typeof classifyVerbMistake === "function") {
     const t = classifyVerbMistake(given, ex.x.F, engineT, ex.p === "Sie" ? "Sie" : ex.p);
     if (t && t !== "umlaut") return t;

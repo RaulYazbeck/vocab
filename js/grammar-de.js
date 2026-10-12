@@ -433,6 +433,10 @@ function verbParse(inf, hints = {}) {
 // All forms of one verb, or null.
 //   data: { sep, weak, pt3, p2, aux } — deck evidence (optional).
 const MODAL_BASES = ["dürfen", "können", "mögen", "müssen", "sollen", "wollen", "wissen"];
+// The strong verbs' own Konjunktiv II in everyday use (verbForms): its stem(s).
+const K2_OWN = { kommen: ["käm"], gehen: ["ging"], geben: ["gäb"], bleiben: ["blieb"], lassen: ["ließ"], halten: ["hielt"], liegen: ["läg"],
+  sitzen: ["säß"], stehen: ["stünd", "ständ"], finden: ["fänd"], tun: ["tät"], heißen: ["hieß"], fallen: ["fiel"], sehen: ["säh"],
+  nehmen: ["nähm"], ziehen: ["zög"], bringen: ["brächt"], brauchen: ["bräucht"] };
 function verbForms(inf, data = {}) {
   if (!GR_DE) return null;
   const P = verbParse(inf, { sep: data.sep, weak: data.weak });
@@ -504,6 +508,13 @@ function verbForms(inf, data = {}) {
     p2 = pre || ieren ? t : "ge" + t;
   }
   F.p2 = sep + p2;
+  // senden, wenden: sandte / gesandt, and just as right the weak sendete
+  // / gesendet (the only one for "broadcast" and "turn over").
+  if (["senden", "wenden"].includes(base) && tbl) {
+    const w = pre + base.slice(0, -2) + "ete";
+    F.ptAlt = { ich: [w], du: [w + "st"], er: [w], wir: [w + "n"], ihr: [w + "t"], sie: [w + "n"] };
+    F.p2Alt = [sep + (pre ? "" : "ge") + pre + base.slice(0, -2) + "et"];
+  }
 
   // ── aux: base verbs from the table; weak simple verbs haben unless
   // they're motion/change verbs; compounds only from deck data.
@@ -543,6 +554,26 @@ function verbForms(inf, data = {}) {
     F.k2 = base === "sein" ? { ich: "wäre", du: "wärst", er: "wäre", wir: "wären", ihr: "wärt", sie: "wären" }
       : { ich: s + "e", du: s + "est", er: s + "e", wir: s + "en", ihr: s + "et", sie: s + "en" };
   }
+  // …and the strong verbs (and brauchen) whose own Konjunktiv II is in
+  // everyday use next to würde + infinitive: käme, ginge, gäbe, bliebe…
+  // Both are right; the würde form stays the answer the engine shows.
+  // Prefixed verbs build theirs the same way (bekäme, käme … an). Rarer
+  // ones (führe, schliefe, würfe) sound bookish: würde only.
+  if (K2_OWN[base] && !F.k2special && (base !== "brauchen" || (!pre && !sep))) { // (verbrauchen: verbrauchte)
+    const ends = { ich: "e", du: "est", er: "e", wir: "en", ihr: "et", sie: "en" };
+    F.k2own = {}; F.k2ownAlt = {};
+    PERSONS.forEach(p => {
+      const all = [];
+      K2_OWN[base].forEach(s0 => {
+        const s = pre + s0;
+        all.push(s + ends[p]);
+        // du kämst / ihr kämt — the short forms are just as common.
+        // (Not for ging, blieb…: gingst, gingt are the Präteritum.)
+        if ((p === "du" || p === "ihr") && /[äöü]/.test(s0) && !/[tdsßz]$/.test(s)) all.push(s + ends[p].slice(1));
+      });
+      F.k2own[p] = all[0]; F.k2ownAlt[p] = all.slice(1);
+    });
+  }
   return F;
 }
 
@@ -565,9 +596,19 @@ function verbCell(F, tense, person) {
   if (F.impersonal && !["er", "sie"].includes(person)) return null;
   if (tense === "pr") { if (!F.presSure || !PERSONS.includes(person)) return null; r = simple(F.pr[person]); }
   else if (tense === "pt") { if (!PERSONS.includes(person)) return null; r = simple(F.pt[person]); if (F.ptAlt && F.ptAlt[person]) r.alts.push(...F.ptAlt[person]); }
-  else if (tense === "pf" || tense === "pq") { if (!F.aux || !PERSONS.includes(person)) return null; r = compound((tense === "pf" ? AUX_PR : AUX_PT)[F.aux][person], F.p2); }
+  else if (tense === "pf" || tense === "pq") {
+    if (!F.aux || !PERSONS.includes(person)) return null;
+    const a = (tense === "pf" ? AUX_PR : AUX_PT)[F.aux][person];
+    r = compound(a, F.p2);
+    (F.p2Alt || []).forEach(p2 => { const c = compound(a, p2); r.alts.push(c.ans, ...c.alts); });
+  }
   else if (tense === "fu") { if (!PERSONS.includes(person)) return null; r = compound(WERDEN_PR[person], F.inf); }
-  else if (tense === "k2") { if (!PERSONS.includes(person)) return null; r = F.k2special ? simple(F.k2[person]) : compound(WUERDE[person], F.inf); }
+  else if (tense === "k2") {
+    if (!PERSONS.includes(person)) return null;
+    r = F.k2special ? simple(F.k2[person]) : compound(WUERDE[person], F.inf);
+    // käme (an) for würde (an)kommen: right too.
+    if (F.k2own) [F.k2own[person], ...F.k2ownAlt[person]].forEach(f => r.alts.push([f, refl, sep].filter(Boolean).join(" ")));
+  }
   else if (tense === "im") {
     if (!F.im || !F.presSure || !["du", "ihr", "Sie"].includes(person)) return null;
     const fin = F.im[person];

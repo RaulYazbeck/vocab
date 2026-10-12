@@ -52,7 +52,7 @@ const out = await page.evaluate(() => {
   const strip = h => { const d = document.createElement("div"); d.innerHTML = h; return d.innerText.replace(/…/g, " ").replace(/!/g, " ").replace(/\s+/g, " ").trim(); };
   const issues = {}, add = (k, s) => { (issues[k] = issues[k] || []).push(s); };
   let n = 0;
-  const kinds = new Set(VX_RULES.map(r => r.kind).concat(["pr", "pt", "pf", "pq", "fu", "im", "sc", "p2"]));
+  const kinds = new Set(VX_RULES.map(r => r.kind).concat(["pr", "pt", "pf", "pq", "fu", "im", "sc", "p2", "k2s"]));
   for (const x of vxVerbs()) for (const kind of kinds) for (const p of ["ich", "du", "er", "wir", "ihr", "sie", "Sie"]) {
     if (kind === "p2" && p !== "er") continue; // the Partizip II card asks er only
     const form = vxForm(x, kind, p, { modal: "müssen" });

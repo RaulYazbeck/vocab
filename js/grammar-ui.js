@@ -50,7 +50,7 @@ function gsMineList(kind, n = 14) {
     stem: x => x.k.stem, sep: x => !!x.F.sep, refl: x => !!x.F.refl,
     sein: x => x.F.aux === "sein", strong: x => x.k.strongPt && !x.k.irregular, mixed: x => x.k.mixed,
     prefix: x => (!!x.F.sep || !!x.F.insep || x.k.ieren) && !x.F.strong, etoi: x => !!x.F.eToI,
-    weakpt: x => x.k.ptWeak,
+    weakpt: x => x.k.ptWeak, k2own: x => vxNeedsItem(x, "k2s"),
   }[kind];
   if (!test) return [];
   return vxVerbs().filter(x => test(x) && vxLemma(x).st > 0)
@@ -838,7 +838,9 @@ function renderPathVerbLearn(it) {
     const extra = VX_FR ? vxRowTableHtml(VXF.rowCells(ex.x, ex.kind, ex.p)) : k === "sc" ? `<div><span class="vx-pron">${other}</span> <b>${whole("sc", other)}</b></div>`
       : k === "pt" ? `<div><span class="vx-pron">wir</span> <b>${whole("pt", "wir")}</b></div>`
       : k === "p2" ? `<div class="p-sub">Präteritum: er ${whole("pt", "er")}</div>`
-      : k === "ir" || k === "p1" ? vxRowTableHtml(vxRowCellsDe(ex.x.F, k === "ir" ? "pr" : "pt", ex.p)) : "";
+      : k === "ir" || k === "p1" ? vxRowTableHtml(vxRowCellsDe(ex.x.F, k === "ir" ? "pr" : "pt", ex.p))
+      : k === "k2s" ? vxRowTableHtml(PERSONS.map(p => { const f = vxForm(ex.x, "k2s", p); return f && { pron: PERSON_LABEL[p].split("/")[0], form: f.ans, on: p === ex.p }; }).filter(Boolean))
+        + `<div class="p-sub">${ex.p} ${whole("k2w", ex.p)} — right too</div>` : "";
     body = `<div class="vx-learn-t">${escapeHtml(ex.x.inf)} <small>· ${escapeHtml(vlGloss(ex.x.v))}</small></div>
       <div class="vx-learn-chip">${escapeHtml(VX_ITEM_KINDS[k].title)}${vxT(" — not built by rule, so it has its own card")}</div>
       <div class="vx-learn-ex big"><div>${vxFormHtml(ex)}</div>${extra}</div>`;
@@ -909,7 +911,11 @@ function pathVerbTenseRetry(other, val) {
   it.tenseRetry = other;
   const input = document.getElementById("p-input");
   if (typeof logEvent === "function") logEvent("vx_tense_slip", { want: ex.tense, got: other, inf: ex.x.inf });
-  document.getElementById("p-fb").innerHTML = `<div class="vx-fb"><div class="vx-retry">${vxT("↺ That's the {0} — this one asks for the {1}.", vxTenseTitleHtml(other, "sm"), vxTenseTitleHtml(ex.tense, "sm"))}</div>
+  // (k2w: würde + infinitive for a card that asks the verb's own form.)
+  document.getElementById("p-fb").innerHTML = other === "k2w"
+    ? `<div class="vx-fb"><div class="vx-retry">↺ würde + infinitive is right too — this card asks for the verb's <b>own</b> ${vxTenseTitleHtml(ex.tense, "sm")}.</div>
+    <div class="vx-retry-sub">One word, like wäre or hätte: one more try.</div></div>`
+    : `<div class="vx-fb"><div class="vx-retry">${vxT("↺ That's the {0} — this one asks for the {1}.", vxTenseTitleHtml(other, "sm"), vxTenseTitleHtml(ex.tense, "sm"))}</div>
     <div class="vx-retry-sub">${vxT("Right verb, other tense: one more try.")}</div></div>`;
   const tt = document.getElementById("vx-tt");
   if (tt) { tt.classList.remove("vx-flash"); void tt.offsetWidth; tt.classList.add("vx-flash"); }
