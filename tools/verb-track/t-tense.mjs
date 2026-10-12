@@ -114,6 +114,10 @@ const r = await page.evaluate((APP) => {
     const pt = mk("gehen", "pt", "er"), pr = mk("danken", "pr", "er");
     ok(vxGrade("ging gegangen", pt) !== true && vxGrade("dankt gedankt", pr) !== true && vxGrade("dankt dankte", pr) !== true, "another form of the same verb added: not right");
     ok(vxGrade("ist wirst gegangen", g) !== true && vxGrade("ging kann", pt) !== true, "an auxiliary or modal added: not right");
+    const imDu = mk("wohnen", "im", "du"), imIhr = mk("wohnen", "im", "ihr"), imSie = mk("wohnen", "im", "Sie");
+    ok(vxGrade("wohn sie", imDu) !== true && vxGrade("wohnt sie", imIhr) !== true && vxGrade("wohn", imDu) === true && vxGrade("wohnt", imIhr) === true, "a du / ihr command: no Sie after it");
+    ok(vxGrade("wohnen Sie", imSie) === true && vxGrade("wohnen sie", imSie) === true, "a Sie command: with its Sie, either case");
+    ok(vxIsCommand({ q: "(Sie) ___! (sein)", chk: ["sein", "im", "Sie"] }) === "Sie" && vxIsCommand({ q: "(du) ___! (sein)", chk: ["sein", "im", "du"] }) === true && vxIsCommand(mk("wohnen", "pr", "er")) === false, "sheet questions: the Sie command told apart");
     ok(vxGrade("wohnt seit Jahren hier", mk("wohnen", "pr", "er")) === true && vxGrade("ging warum", pt) === true, "seit / warum are context, not verbs: right");
     // 7. Shift+Enter ×3 on a wrong verb answer: counted, all rolled back
     const shift = () => document.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", shiftKey: true, bubbles: true }));

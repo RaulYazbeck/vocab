@@ -1053,22 +1053,26 @@ function vxUmlautSlip(answers, typed) {
   return answers.some(a => !vxEq(a, typed) && normalize(a) === normalize(typed));
 }
 // The ways an answer may be typed. A form: with its pronoun in front or
-// not (du gehst). A command: with "Sie" after it or not, in any case
-// (vermieten Sie / vermieten sie) — but never a pronoun in front: "Sie
+// not (du gehst). A Sie command (imp "Sie"): with "Sie" after it or not,
+// in any case (vermieten Sie / vermieten sie); a du / ihr command never
+// takes one (wohn sie is wrong). Never a pronoun in front: "Sie
 // vermieten" is a statement, not a command.
 function vxGradeTries(val, imp = false) {
   if (VX_FR) return VXF.gradeTries(val, imp);
   const raw = String(val || "").trim().replace(/!+$/, "").trim();
   if (!raw) return [];
-  const list = imp ? [raw, raw.replace(/\s+sie$/i, "")] : [raw, raw.replace(/^(ich|du|er|sie|es|wir|ihr|man)\s+/i, "")];
+  const list = imp ? (imp === "Sie" ? [raw, raw.replace(/\s+sie$/i, "")] : [raw]) : [raw, raw.replace(/^(ich|du|er|sie|es|wir|ihr|man)\s+/i, "")];
   return [...list, ...list.map(t => t.replace(/\s*[,·/;…]\s*/g, " "))];
 }
-// Is this exercise (or quiz question) a command?
+// Is this exercise (or quiz question) a command? German: "Sie" for a Sie
+// command, true for a du / ihr one, false for none.
 function vxIsCommand(ex) {
   const k = ex && (ex.kind || ex.t || (ex.chk && ex.chk[1]));
   // French: the impératif ("im" there is the imparfait).
   if (VX_FR) return k === "ip" || /^\((tu|nous|vous)\)/.test(String(ex && ex.q || ""));
-  return /^im/.test(String(k || "")) || /^\((du|ihr|Sie)\)|___ Sie\b/.test(String(ex && ex.q || ""));
+  const q = String(ex && ex.q || "");
+  if (!/^im/.test(String(k || "")) && !/^\((du|ihr|Sie)\)|___ Sie\b/.test(q)) return false;
+  return ex.p === "Sie" || /^\(Sie\)|___ Sie\b/.test(q) ? "Sie" : true;
 }
 // An umlaut left out counts, as everywhere in the app (no umlaut keys
 // needed); vxUmlautOnly() tells the feedback to show the spelling.
