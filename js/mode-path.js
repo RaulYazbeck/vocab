@@ -569,6 +569,12 @@ function pathSecretOk() {
   // An "≈ Almost" is never capped; a wrong answer uses the daily allowance.
   if (!u.near && P.secretOk.n >= SECRET_OK_PER_DAY) { shakeEl(document.getElementById("p-fb")); return; }
   s.undo = null; s.shield = null; s.secretUsed = true;
+  if (u.verb) {
+    if (!u.near) P.secretOk.n++;
+    logEvent("secretOk", { m: "path:verb", n: P.secretOk.n, near: !!u.near });
+    pathVerbSecretOk(u);
+    return;
+  }
   // Roll the wrong back…
   const ws = getWS(w.deckId, w.idx);
   Object.keys(ws).forEach(key => delete ws[key]);

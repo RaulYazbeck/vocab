@@ -1053,22 +1053,26 @@ function vxUmlautSlip(answers, typed) {
   return answers.some(a => !vxEq(a, typed) && normalize(a) === normalize(typed));
 }
 // The ways an answer may be typed. A form: with its pronoun in front or
-// not (du gehst). A command: with "Sie" after it or not, in any case
-// (vermieten Sie / vermieten sie) — but never a pronoun in front: "Sie
+// not (du gehst). A Sie command (imp "Sie"): with "Sie" after it or not,
+// in any case (vermieten Sie / vermieten sie); a du / ihr command never
+// takes one (wohn sie is wrong). Never a pronoun in front: "Sie
 // vermieten" is a statement, not a command.
 function vxGradeTries(val, imp = false) {
   if (VX_FR) return VXF.gradeTries(val, imp);
   const raw = String(val || "").trim().replace(/!+$/, "").trim();
   if (!raw) return [];
-  const list = imp ? [raw, raw.replace(/\s+sie$/i, "")] : [raw, raw.replace(/^(ich|du|er|sie|es|wir|ihr|man)\s+/i, "")];
+  const list = imp ? (imp === "Sie" ? [raw, raw.replace(/\s+sie$/i, "")] : [raw]) : [raw, raw.replace(/^(ich|du|er|sie|es|wir|ihr|man)\s+/i, "")];
   return [...list, ...list.map(t => t.replace(/\s*[,·/;…]\s*/g, " "))];
 }
-// Is this exercise (or quiz question) a command?
+// Is this exercise (or quiz question) a command? German: "Sie" for a Sie
+// command, true for a du / ihr one, false for none.
 function vxIsCommand(ex) {
   const k = ex && (ex.kind || ex.t || (ex.chk && ex.chk[1]));
   // French: the impératif ("im" there is the imparfait).
   if (VX_FR) return k === "ip" || /^\((tu|nous|vous)\)/.test(String(ex && ex.q || ""));
-  return /^im/.test(String(k || "")) || /^\((du|ihr|Sie)\)|___ Sie\b/.test(String(ex && ex.q || ""));
+  const q = String(ex && ex.q || "");
+  if (!/^im/.test(String(k || "")) && !/^\((du|ihr|Sie)\)|___ Sie\b/.test(q)) return false;
+  return ex.p === "Sie" || /^\(Sie\)|___ Sie\b/.test(q) ? "Sie" : true;
 }
 // An umlaut left out counts, as everywhere in the app (no umlaut keys
 // needed); vxUmlautOnly() tells the feedback to show the spelling.
@@ -1078,8 +1082,51 @@ function vxGrade(val, ex) {
   const acc = ex.form.acc;
   for (const t of tries) if (acc.some(a => vxEq(a, t))) return true;
   if (tries.some(t => vxUmlautSlip(acc, t))) return true;
+  if (vxExtraOk(tries, acc, ex.x)) return true;
   if (isNearMiss(tries[0], acc)) return "near";
   return false;
+}
+// A right form with a few words of context added (er ist zu Fuß gegangen,
+// the "(on foot)" of the meaning in German): still right — every word of
+// the form there, in order, starting with its first, and nothing that
+// changes it: nicht / kein, a pronoun, an auxiliary or modal, or any form
+// of the verb itself (ging gegangen). German only.
+const VX_EXTRA_BAN = /^(nicht|nichts|nie|niemals|kein\w*|ich|du|er|sie|es|wir|ihr|man|mich|dich|sich|mir|dir|uns|euch|bin|bist|ist|sind|seid|sei|seist|seien|seiet|sein|war|warst|waren|wart|ware|warest|waret|gewesen|hab\w*|hast|hat|hatt\w*|gehabt|wird|wirst|werd\w*|wurd\w*|worden|geworden|kann\w*|konn\w*|muss\w*|must\w*|will\w*|woll\w*|soll\w*|darf\w*|durf\w*|mag|magst|moch\w*|lass\w*|lies\w*)$/;
+const _vxVerbWords = new Map();
+function vxVerbWords(x) {
+  if (!x || !x.inf) return new Set();
+  let set = _vxVerbWords.get(x.inf);
+  if (set) return set;
+  set = new Set(normalize(x.inf).split(" "));
+  for (const k of VX_OTHER_KINDS.concat(["k2s", "sc", "p2"])) for (const p of VX_PERSONS.concat(["Sie"])) {
+    let f = null;
+    try { f = vxForm(x, k, p); } catch (e) { f = null; }
+    if (f && f.acc) f.acc.forEach(a => normalize(a).split(" ").forEach(w => set.add(w)));
+  }
+  _vxVerbWords.set(x.inf, set);
+  return set;
+}
+function vxExtraOk(tries, acc, x) {
+  if (VX_FR) return false;
+  const words = s => normalize(String(s || "")).split(" ").filter(Boolean);
+  const same = (a, t) => vxEq(a, t) || normalize(a) === normalize(t);
+  const own = vxVerbWords(x);
+  return tries.some(t => {
+    const tw = words(t);
+    return acc.some(a => {
+      const aw = words(a);
+      if (!aw.length || tw.length <= aw.length || tw.length - aw.length > 4 || !same(aw[0], tw[0])) return false;
+      let j = 0;
+      const extra = [];
+      for (const w of tw) { if (j < aw.length && same(aw[j], w)) j++; else extra.push(w); }
+      return j === aw.length && !extra.some(w => VX_EXTRA_BAN.test(w) || own.has(w) || aw.some(y => same(y, w)));
+    });
+  });
+}
+// Right only with the extra words left out (the feedback says so)?
+function vxExtraOnly(val, ex) {
+  const tries = vxGradeTries(val, vxIsCommand(ex)), acc = ex.form.acc;
+  return !tries.some(t => acc.some(a => vxEq(a, t))) && !tries.some(t => vxUmlautSlip(acc, t)) && vxExtraOk(tries, acc, ex.x);
 }
 // A wrong answer that is the same verb and person, right, in another
 // tense (er kommt where the Perfekt was asked): that tense, or null.
