@@ -1049,7 +1049,11 @@ function renderJourney() {
   const levels = scan.groups.map(g => {
     const eta = pathEta(g);
     const left = [];
-    if (g.tiers.new) left.push(`${g.tiers.new} not met`);
+    // Cards the verb track took over never come as new words: they fill in
+    // as you learn those verbs, so they aren't "not met" words to learn.
+    const viaVx = (g.ret || 0) - (g.retMet || 0);
+    if (g.tiers.new - viaVx > 0) left.push(`${g.tiers.new - viaVx} not met`);
+    if (viaVx > 0) left.push(`📐 ${viaVx} verb forms the verb track fills in`);
     if (g.tiers.learning) left.push(`${g.tiers.learning} learning`);
     if (g.tiers.familiar) left.push(`${g.tiers.familiar} familiar`);
     if (g.repair) left.push(`🩹 ${g.repair} in repair`);
@@ -1074,6 +1078,7 @@ function renderJourney() {
     </div>`;
   }).join("");
   const fcHtml = forecastHtml();
+  const vxLeftOver = (scan.ret || 0) - (scan.retMet || 0); // see "What's left" above
   document.getElementById("main-screen").innerHTML = `<div class="screen journey">
     <div class="screen-top"><div class="screen-label">🗺️ Journey</div>${backBtnHtml()}</div>
     <div class="jh">
@@ -1081,7 +1086,7 @@ function renderJourney() {
       ${pathDeadlineOn() ? `<div class="jh-plan">${deadlineLineHtml(scan)}</div>` : ""}
       <div class="jh-sub">💎 ${scan.locked.toLocaleString()} locked in · 🌱 ${scan.met.toLocaleString()} met${scan.repair ? ` · 🩹 ${scan.repair} in repair` : ""}${scan.flagged ? ` · ⚠️ ${scan.flagged} flagged` : ""}</div>
       ${tierBarHtml(scan.tiers, scan.total, "big")}
-      <div class="tier-legend">${TIERS.map(t => `<span><i class="tb-${t.id}"></i>${t.icon} ${t.name} ${scan.tiers[t.id] || 0}</span>`).join("")}</div>
+      <div class="tier-legend">${TIERS.map(t => `<span><i class="tb-${t.id}"></i>${t.icon} ${t.name} ${(scan.tiers[t.id] || 0) - (t.id === "new" ? vxLeftOver : 0)}</span>`).join("")}${vxLeftOver ? `<span>📐 via the verb track ${vxLeftOver}</span>` : ""}</div>
     </div>
     ${fcHtml}
     ${levels}
@@ -1157,18 +1162,26 @@ function renderDeckWords(deckId) {
   const rows = d.words.map((w, i) => {
     const ws = S.words[d.id + "_" + i];
     const st = ws ? ws.st || 0 : 0;
-    const due = !st ? "" : ws.rp ? "🩹 repair" : ws.fl ? "⚠️ check" : ws.lrn ? "now" : st >= STAGE_LOCKED ? "💎" :
+    // A card the verb track took over (or covers, not met yet): its verb's
+    // items are what get asked — never this card, so never "due".
+    const vx = typeof vxRetired === "function" && vxRetired(d.id, i);
+    const due = vx ? "📐 verbs" : !st ? "" : ws.rp ? "🩹 repair" : ws.fl ? "⚠️ check" : ws.lrn ? "now" : st >= STAGE_LOCKED ? "💎" :
       ws.dueAt <= now ? "due" : (() => { const n = Math.round((ws.dueAt - dayStart) / 864e5); return n <= 0 ? "today" : n === 1 ? "tomorrow" : `in ${n}d`; })();
-    return `<div class="dw-row ${st ? "" : "unmet"}"><div class="dw-en">${escapeHtml(w.en)}</div><div class="dw-de">${st ? colorArticleHtml(w[WORD_KEY]) : `<span class="dw-hidden">not met yet</span>`}</div>
+    return `<div class="dw-row ${st ? "" : "unmet"}"><div class="dw-en">${escapeHtml(w.en)}</div><div class="dw-de">${st ? colorArticleHtml(w[WORD_KEY]) : `<span class="dw-hidden">${vx ? "in the verb track" : "not met yet"}</span>`}</div>
       <div class="dw-pips">${st ? pipsHtml(ws) : ""}</div><div class="dw-due ${due === "due" || due === "now" ? "now" : ""}">${due}</div></div>`;
   }).join("");
   const ds = pathScan().decks[deckId];
+  // A deck the verb track took over whole: no boss (its cards never come)
+  // unless already beaten, and its practice is the track's.
+  const taken = typeof vxDeckRetired === "function" && vxDeckRetired(deckId);
   document.getElementById("main-screen").innerHTML = `<div class="screen">
     <div class="screen-top"><div class="screen-label">${d.icon} ${escapeHtml(d.name)}</div><button class="back-btn" onclick="renderJourney()">← Journey</button></div>
     ${ds ? tierBarHtml(ds.tiers, ds.total, "big") : ""}
-    <div class="jh-sub" style="margin:8px 0 12px">${ds ? `${ds.known}/${ds.total} known · ${ds.locked} 💎 · ${ds.total - ds.met} not met` : ""}</div>
-    ${typeof deckBossRowHtml === "function" ? deckBossRowHtml(deckId) : ""}
-    <div class="g-result-actions" style="margin:0 0 12px"><button class="g-sec-btn" onclick="startPathSession(S.path.sessionLen, { focus: 'deck', param: '${deckId}' })">📖 Practise this deck</button></div>
+    <div class="jh-sub" style="margin:8px 0 12px">${ds ? `${ds.known}/${ds.total} known · ${ds.locked} 💎 · ${ds.total - ds.met - ((ds.ret || 0) - (ds.retMet || 0))} not met${(ds.ret || 0) ? ` · 📐 ${ds.ret} in the verb track` : ""}` : ""}</div>
+    ${typeof deckBossRowHtml === "function" && !(taken && !((S.games && S.games.bestiary && S.games.bestiary[deckId]) || {}).wins) ? deckBossRowHtml(deckId) : ""}
+    <div class="g-result-actions" style="margin:0 0 12px">${taken
+      ? `<button class="g-sec-btn" onclick="showScreen('grammar')">📐 Practised in the verb track ›</button>`
+      : `<button class="g-sec-btn" onclick="startPathSession(S.path.sessionLen, { focus: 'deck', param: '${deckId}' })">📖 Practise this deck</button>`}</div>
     <div class="dw-list">${rows}</div>
   </div>`;
 }

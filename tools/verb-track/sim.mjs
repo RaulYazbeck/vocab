@@ -7,10 +7,13 @@
 //                [--typed 0.87] [--cloze 0.87] [--vx 0.80] [--vxgrow 0.12]   (accuracy: typed, sentence,
 //                verb forms at the start and how much they gain over 200 days — set them from a real
 //                profile's usage log to simulate that learner)
+//                [--decay 0.15]  (typed, sentence and verb accuracy fall this much, steadily, by the finish date)
+//                [--breaks 60:10,150:7]  (busy periods: from day 60, 10 days without studying; …)
 import { openApp } from "./browser.mjs";
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
 const DAYS = +arg("--days", 330), SKIP = +arg("--skip", 0.04), SEED = +arg("--seed", 99), APP = arg("--app", "de");
-const ACC = { typed: +arg("--typed", 0.87), cloze: +arg("--cloze", NaN), vx: +arg("--vx", 0.80), vxGrow: +arg("--vxgrow", 0.12) };
+const ACC = { typed: +arg("--typed", 0.87), cloze: +arg("--cloze", NaN), vx: +arg("--vx", 0.80), vxGrow: +arg("--vxgrow", 0.12), decay: +arg("--decay", 0),
+  breaks: String(arg("--breaks", "")).split(",").filter(Boolean).map(b => b.split(":").map(Number)) };
 const modes = process.argv.includes("--off") ? [false] : process.argv.includes("--on") ? [true] : [true, false];
 const results = {};
 for (const on of modes) {
@@ -37,14 +40,16 @@ for (const on of modes) {
       if (day > 0) { off += 864e5; to8pm(); }
       const today = studyToday();
       if (today > S.path.deadline && firstAllKnown) break;
-      if (rnd() < SKIP && day > 2) { days.push({ d: today, skipped: true }); continue; }
+      if ((rnd() < SKIP && day > 2) || ACC.breaks.some(([from, n]) => day >= from && day < from + n)) { days.push({ d: today, skipped: true }); continue; }
+      // Accuracy falling steadily until the finish date (--decay).
+      const fall = ACC.decay * Math.min(1, day / Math.max(1, daysBetween(start, S.path.deadline)));
       pathRollDay(); pathMarkActive();
       const scan0 = pathScan(true);
       pathCheckAutoPause(scan0);
       const plan = pathEnsurePlan(scan0);
       const target = plan ? plan.target : 180;
       let right = 0, answers = 0, vxAns = 0, vxRight = 0, sessions = 0, sheets = 0, sheetFails = 0;
-      const vxAcc = Math.min(0.95, P.vx + P.vxGrow * day / 200);
+      const vxAcc = Math.min(0.95, P.vx + P.vxGrow * day / 200) - fall;
       while (right < target && sessions < 12) {
         const q = buildPathQueue("regular");
         if (!q.items.length) break;
@@ -82,14 +87,14 @@ for (const on of modes) {
             if (!(it.fresh || it.warm)) srsReview(ws, ok, "recognition");
             continue;
           }
-          const ok = rnd() < (it.t === "cloze" && P.cloze === P.cloze ? P.cloze : P.typed + (ws.st >= 5 ? 0.06 : 0));
+          const ok = rnd() < (it.t === "cloze" && P.cloze === P.cloze ? P.cloze : P.typed + (ws.st >= 5 ? 0.06 : 0)) - fall;
           answers++;
           if (ok) { right++; if (!it.practice) applyCorrect(ws, { quiet: true, kind: "recall", w }); }
           else { applyWrong(ws, { w }); missed.push(it); }
         }
         // the repair round
         for (const it of missed) {
-          const w = it.w, ok = rnd() < 0.9;
+          const w = it.w, ok = rnd() < 0.9 - fall;
           answers++; if (ok) right++;
           if (w.vx) { if (it.w.vx.item) { const ws = getWS("vx", w.vx.item); if (ok) applyCorrect(ws, { quiet: true, kind: "recall", w }); } vxAns++; }
           else { const ws = getWS(w.deckId, w.idx); if (ok) applyCorrect(ws, { quiet: true, kind: "recall", w }); }
