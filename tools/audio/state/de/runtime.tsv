@@ -1,4 +1,4 @@
-# levels=a1,a2	skip=
+# levels=a1,a2	skip=	verbs=erziehen,begleiten,sich verabreden,siezen,trennen,sich fürchten,aufregen,beruhigen,erschrecken,leiden,behandeln,operieren,pflegen,atmen,bluten,schwitzen,spülen
 s	_idioms	Am Sonntag ist in der Stadt tote Hose.
 s	_idioms	Am Wochenende schlafe ich bis in die Puppen.
 s	_idioms	Bei Schnee schwimmen gehen? Du hast doch einen Vogel!
@@ -1314,6 +1314,72 @@ w	_v:arbeiten	würde arbeiten
 w	_v:arbeiten	würden arbeiten
 w	_v:arbeiten	würdest arbeiten
 w	_v:arbeiten	würdet arbeiten
+w	_v:atmen	atme
+w	_v:atmen	atmen Sie
+w	_v:atmen	atmest
+w	_v:atmen	atmet
+w	_v:atmen	atmete
+w	_v:atmen	atmeten
+w	_v:atmen	atmetest
+w	_v:atmen	atmetet
+w	_v:atmen	du atmest
+w	_v:atmen	du atmetest
+w	_v:atmen	du hast geatmet
+w	_v:atmen	du hattest geatmet
+w	_v:atmen	du wirst atmen
+w	_v:atmen	du würdest atmen
+w	_v:atmen	er atmet
+w	_v:atmen	er atmete
+w	_v:atmen	er hat geatmet
+w	_v:atmen	er hatte geatmet
+w	_v:atmen	er wird atmen
+w	_v:atmen	er würde atmen
+w	_v:atmen	habe geatmet
+w	_v:atmen	haben geatmet
+w	_v:atmen	habt geatmet
+w	_v:atmen	hast geatmet
+w	_v:atmen	hat geatmet
+w	_v:atmen	hatte geatmet
+w	_v:atmen	hatten geatmet
+w	_v:atmen	hattest geatmet
+w	_v:atmen	hattet geatmet
+w	_v:atmen	hätte geatmet
+w	_v:atmen	hätten geatmet
+w	_v:atmen	hättest geatmet
+w	_v:atmen	hättet geatmet
+w	_v:atmen	ich atme
+w	_v:atmen	ich atmete
+w	_v:atmen	ich habe geatmet
+w	_v:atmen	ich hatte geatmet
+w	_v:atmen	ich werde atmen
+w	_v:atmen	ich würde atmen
+w	_v:atmen	ihr atmet
+w	_v:atmen	ihr atmetet
+w	_v:atmen	ihr habt geatmet
+w	_v:atmen	ihr hattet geatmet
+w	_v:atmen	ihr werdet atmen
+w	_v:atmen	ihr würdet atmen
+w	_v:atmen	sie atmen
+w	_v:atmen	sie atmeten
+w	_v:atmen	sie haben geatmet
+w	_v:atmen	sie hatten geatmet
+w	_v:atmen	sie werden atmen
+w	_v:atmen	sie würden atmen
+w	_v:atmen	werde atmen
+w	_v:atmen	werden atmen
+w	_v:atmen	werdet atmen
+w	_v:atmen	wir atmen
+w	_v:atmen	wir atmeten
+w	_v:atmen	wir haben geatmet
+w	_v:atmen	wir hatten geatmet
+w	_v:atmen	wir werden atmen
+w	_v:atmen	wir würden atmen
+w	_v:atmen	wird atmen
+w	_v:atmen	wirst atmen
+w	_v:atmen	würde atmen
+w	_v:atmen	würden atmen
+w	_v:atmen	würdest atmen
+w	_v:atmen	würdet atmen
 w	_v:aufhören	du hast aufgehört
 w	_v:aufhören	du hattest aufgehört
 w	_v:aufhören	du hörst auf
@@ -1516,6 +1582,74 @@ w	_v:aufpassen	würde aufpassen
 w	_v:aufpassen	würden aufpassen
 w	_v:aufpassen	würdest aufpassen
 w	_v:aufpassen	würdet aufpassen
+w	_v:aufregen	du hast aufgeregt
+w	_v:aufregen	du hattest aufgeregt
+w	_v:aufregen	du regst auf
+w	_v:aufregen	du regtest auf
+w	_v:aufregen	du wirst aufregen
+w	_v:aufregen	du würdest aufregen
+w	_v:aufregen	er hat aufgeregt
+w	_v:aufregen	er hatte aufgeregt
+w	_v:aufregen	er regt auf
+w	_v:aufregen	er regte auf
+w	_v:aufregen	er wird aufregen
+w	_v:aufregen	er würde aufregen
+w	_v:aufregen	habe aufgeregt
+w	_v:aufregen	haben aufgeregt
+w	_v:aufregen	habt aufgeregt
+w	_v:aufregen	hast aufgeregt
+w	_v:aufregen	hat aufgeregt
+w	_v:aufregen	hatte aufgeregt
+w	_v:aufregen	hatten aufgeregt
+w	_v:aufregen	hattest aufgeregt
+w	_v:aufregen	hattet aufgeregt
+w	_v:aufregen	hätte aufgeregt
+w	_v:aufregen	hätten aufgeregt
+w	_v:aufregen	hättest aufgeregt
+w	_v:aufregen	hättet aufgeregt
+w	_v:aufregen	ich habe aufgeregt
+w	_v:aufregen	ich hatte aufgeregt
+w	_v:aufregen	ich rege auf
+w	_v:aufregen	ich regte auf
+w	_v:aufregen	ich werde aufregen
+w	_v:aufregen	ich würde aufregen
+w	_v:aufregen	ihr habt aufgeregt
+w	_v:aufregen	ihr hattet aufgeregt
+w	_v:aufregen	ihr regt auf
+w	_v:aufregen	ihr regtet auf
+w	_v:aufregen	ihr werdet aufregen
+w	_v:aufregen	ihr würdet aufregen
+w	_v:aufregen	reg auf
+w	_v:aufregen	rege auf
+w	_v:aufregen	regen Sie auf
+w	_v:aufregen	regen auf
+w	_v:aufregen	regst auf
+w	_v:aufregen	regt auf
+w	_v:aufregen	regte auf
+w	_v:aufregen	regten auf
+w	_v:aufregen	regtest auf
+w	_v:aufregen	regtet auf
+w	_v:aufregen	sie haben aufgeregt
+w	_v:aufregen	sie hatten aufgeregt
+w	_v:aufregen	sie regen auf
+w	_v:aufregen	sie regten auf
+w	_v:aufregen	sie werden aufregen
+w	_v:aufregen	sie würden aufregen
+w	_v:aufregen	werde aufregen
+w	_v:aufregen	werden aufregen
+w	_v:aufregen	werdet aufregen
+w	_v:aufregen	wir haben aufgeregt
+w	_v:aufregen	wir hatten aufgeregt
+w	_v:aufregen	wir regen auf
+w	_v:aufregen	wir regten auf
+w	_v:aufregen	wir werden aufregen
+w	_v:aufregen	wir würden aufregen
+w	_v:aufregen	wird aufregen
+w	_v:aufregen	wirst aufregen
+w	_v:aufregen	würde aufregen
+w	_v:aufregen	würden aufregen
+w	_v:aufregen	würdest aufregen
+w	_v:aufregen	würdet aufregen
 w	_v:aufräumen	darf aufgeräumt werden
 w	_v:aufräumen	du hast aufgeräumt
 w	_v:aufräumen	du hattest aufgeräumt
@@ -2928,6 +3062,71 @@ w	_v:beginnen	würde beginnen
 w	_v:beginnen	würden beginnen
 w	_v:beginnen	würdest beginnen
 w	_v:beginnen	würdet beginnen
+w	_v:begleiten	begleiten Sie
+w	_v:begleiten	begleitest
+w	_v:begleiten	begleitet
+w	_v:begleiten	begleitete
+w	_v:begleiten	begleiteten
+w	_v:begleiten	begleitetest
+w	_v:begleiten	begleitetet
+w	_v:begleiten	du begleitest
+w	_v:begleiten	du begleitetest
+w	_v:begleiten	du hast begleitet
+w	_v:begleiten	du hattest begleitet
+w	_v:begleiten	du wirst begleiten
+w	_v:begleiten	du würdest begleiten
+w	_v:begleiten	er begleitet
+w	_v:begleiten	er begleitete
+w	_v:begleiten	er hat begleitet
+w	_v:begleiten	er hatte begleitet
+w	_v:begleiten	er wird begleiten
+w	_v:begleiten	er würde begleiten
+w	_v:begleiten	habe begleitet
+w	_v:begleiten	haben begleitet
+w	_v:begleiten	habt begleitet
+w	_v:begleiten	hast begleitet
+w	_v:begleiten	hat begleitet
+w	_v:begleiten	hatte begleitet
+w	_v:begleiten	hatten begleitet
+w	_v:begleiten	hattest begleitet
+w	_v:begleiten	hattet begleitet
+w	_v:begleiten	hätte begleitet
+w	_v:begleiten	hätten begleitet
+w	_v:begleiten	hättest begleitet
+w	_v:begleiten	hättet begleitet
+w	_v:begleiten	ich begleite
+w	_v:begleiten	ich begleitete
+w	_v:begleiten	ich habe begleitet
+w	_v:begleiten	ich hatte begleitet
+w	_v:begleiten	ich werde begleiten
+w	_v:begleiten	ich würde begleiten
+w	_v:begleiten	ihr begleitet
+w	_v:begleiten	ihr begleitetet
+w	_v:begleiten	ihr habt begleitet
+w	_v:begleiten	ihr hattet begleitet
+w	_v:begleiten	ihr werdet begleiten
+w	_v:begleiten	ihr würdet begleiten
+w	_v:begleiten	sie begleiten
+w	_v:begleiten	sie begleiteten
+w	_v:begleiten	sie haben begleitet
+w	_v:begleiten	sie hatten begleitet
+w	_v:begleiten	sie werden begleiten
+w	_v:begleiten	sie würden begleiten
+w	_v:begleiten	werde begleiten
+w	_v:begleiten	werden begleiten
+w	_v:begleiten	werdet begleiten
+w	_v:begleiten	wir begleiten
+w	_v:begleiten	wir begleiteten
+w	_v:begleiten	wir haben begleitet
+w	_v:begleiten	wir hatten begleitet
+w	_v:begleiten	wir werden begleiten
+w	_v:begleiten	wir würden begleiten
+w	_v:begleiten	wird begleiten
+w	_v:begleiten	wirst begleiten
+w	_v:begleiten	würde begleiten
+w	_v:begleiten	würden begleiten
+w	_v:begleiten	würdest begleiten
+w	_v:begleiten	würdet begleiten
 w	_v:begründen	begründe
 w	_v:begründen	begründen Sie
 w	_v:begründen	begründest
@@ -2994,6 +3193,83 @@ w	_v:begründen	würde begründen
 w	_v:begründen	würden begründen
 w	_v:begründen	würdest begründen
 w	_v:begründen	würdet begründen
+w	_v:behandeln	behandeln Sie
+w	_v:behandeln	behandelst
+w	_v:behandeln	behandelte
+w	_v:behandeln	behandelten
+w	_v:behandeln	behandeltest
+w	_v:behandeln	behandeltet
+w	_v:behandeln	behandle
+w	_v:behandeln	darf behandelt werden
+w	_v:behandeln	du behandelst
+w	_v:behandeln	du behandeltest
+w	_v:behandeln	du hast behandelt
+w	_v:behandeln	du hattest behandelt
+w	_v:behandeln	du wirst behandeln
+w	_v:behandeln	du würdest behandeln
+w	_v:behandeln	dürfen behandelt werden
+w	_v:behandeln	er behandelt
+w	_v:behandeln	er behandelte
+w	_v:behandeln	er hat behandelt
+w	_v:behandeln	er hatte behandelt
+w	_v:behandeln	er wird behandeln
+w	_v:behandeln	er würde behandeln
+w	_v:behandeln	habe behandelt
+w	_v:behandeln	haben behandelt
+w	_v:behandeln	habt behandelt
+w	_v:behandeln	hast behandelt
+w	_v:behandeln	hat behandelt
+w	_v:behandeln	hatte behandelt
+w	_v:behandeln	hatten behandelt
+w	_v:behandeln	hattest behandelt
+w	_v:behandeln	hattet behandelt
+w	_v:behandeln	hätte behandelt
+w	_v:behandeln	hätten behandelt
+w	_v:behandeln	hättest behandelt
+w	_v:behandeln	hättet behandelt
+w	_v:behandeln	ich behandelte
+w	_v:behandeln	ich behandle
+w	_v:behandeln	ich habe behandelt
+w	_v:behandeln	ich hatte behandelt
+w	_v:behandeln	ich werde behandeln
+w	_v:behandeln	ich würde behandeln
+w	_v:behandeln	ihr behandelt
+w	_v:behandeln	ihr behandeltet
+w	_v:behandeln	ihr habt behandelt
+w	_v:behandeln	ihr hattet behandelt
+w	_v:behandeln	ihr werdet behandeln
+w	_v:behandeln	ihr würdet behandeln
+w	_v:behandeln	kann behandelt werden
+w	_v:behandeln	können behandelt werden
+w	_v:behandeln	muss behandelt werden
+w	_v:behandeln	müssen behandelt werden
+w	_v:behandeln	sie behandeln
+w	_v:behandeln	sie behandelten
+w	_v:behandeln	sie haben behandelt
+w	_v:behandeln	sie hatten behandelt
+w	_v:behandeln	sie werden behandeln
+w	_v:behandeln	sie würden behandeln
+w	_v:behandeln	soll behandelt werden
+w	_v:behandeln	sollen behandelt werden
+w	_v:behandeln	werde behandeln
+w	_v:behandeln	werden behandeln
+w	_v:behandeln	werden behandelt
+w	_v:behandeln	werdet behandeln
+w	_v:behandeln	wir behandeln
+w	_v:behandeln	wir behandelten
+w	_v:behandeln	wir haben behandelt
+w	_v:behandeln	wir hatten behandelt
+w	_v:behandeln	wir werden behandeln
+w	_v:behandeln	wir würden behandeln
+w	_v:behandeln	wird behandeln
+w	_v:behandeln	wird behandelt
+w	_v:behandeln	wirst behandeln
+w	_v:behandeln	wurde behandelt
+w	_v:behandeln	wurden behandelt
+w	_v:behandeln	würde behandeln
+w	_v:behandeln	würden behandeln
+w	_v:behandeln	würdest behandeln
+w	_v:behandeln	würdet behandeln
 w	_v:bekommen	bekamen
 w	_v:bekommen	bekamst
 w	_v:bekommen	bekamt
@@ -3263,6 +3539,73 @@ w	_v:berichten	würde berichten
 w	_v:berichten	würden berichten
 w	_v:berichten	würdest berichten
 w	_v:berichten	würdet berichten
+w	_v:beruhigen	beruhig
+w	_v:beruhigen	beruhige
+w	_v:beruhigen	beruhigen Sie
+w	_v:beruhigen	beruhigst
+w	_v:beruhigen	beruhigt
+w	_v:beruhigen	beruhigte
+w	_v:beruhigen	beruhigten
+w	_v:beruhigen	beruhigtest
+w	_v:beruhigen	beruhigtet
+w	_v:beruhigen	du beruhigst
+w	_v:beruhigen	du beruhigtest
+w	_v:beruhigen	du hast beruhigt
+w	_v:beruhigen	du hattest beruhigt
+w	_v:beruhigen	du wirst beruhigen
+w	_v:beruhigen	du würdest beruhigen
+w	_v:beruhigen	er beruhigt
+w	_v:beruhigen	er beruhigte
+w	_v:beruhigen	er hat beruhigt
+w	_v:beruhigen	er hatte beruhigt
+w	_v:beruhigen	er wird beruhigen
+w	_v:beruhigen	er würde beruhigen
+w	_v:beruhigen	habe beruhigt
+w	_v:beruhigen	haben beruhigt
+w	_v:beruhigen	habt beruhigt
+w	_v:beruhigen	hast beruhigt
+w	_v:beruhigen	hat beruhigt
+w	_v:beruhigen	hatte beruhigt
+w	_v:beruhigen	hatten beruhigt
+w	_v:beruhigen	hattest beruhigt
+w	_v:beruhigen	hattet beruhigt
+w	_v:beruhigen	hätte beruhigt
+w	_v:beruhigen	hätten beruhigt
+w	_v:beruhigen	hättest beruhigt
+w	_v:beruhigen	hättet beruhigt
+w	_v:beruhigen	ich beruhige
+w	_v:beruhigen	ich beruhigte
+w	_v:beruhigen	ich habe beruhigt
+w	_v:beruhigen	ich hatte beruhigt
+w	_v:beruhigen	ich werde beruhigen
+w	_v:beruhigen	ich würde beruhigen
+w	_v:beruhigen	ihr beruhigt
+w	_v:beruhigen	ihr beruhigtet
+w	_v:beruhigen	ihr habt beruhigt
+w	_v:beruhigen	ihr hattet beruhigt
+w	_v:beruhigen	ihr werdet beruhigen
+w	_v:beruhigen	ihr würdet beruhigen
+w	_v:beruhigen	sie beruhigen
+w	_v:beruhigen	sie beruhigten
+w	_v:beruhigen	sie haben beruhigt
+w	_v:beruhigen	sie hatten beruhigt
+w	_v:beruhigen	sie werden beruhigen
+w	_v:beruhigen	sie würden beruhigen
+w	_v:beruhigen	werde beruhigen
+w	_v:beruhigen	werden beruhigen
+w	_v:beruhigen	werdet beruhigen
+w	_v:beruhigen	wir beruhigen
+w	_v:beruhigen	wir beruhigten
+w	_v:beruhigen	wir haben beruhigt
+w	_v:beruhigen	wir hatten beruhigt
+w	_v:beruhigen	wir werden beruhigen
+w	_v:beruhigen	wir würden beruhigen
+w	_v:beruhigen	wird beruhigen
+w	_v:beruhigen	wirst beruhigen
+w	_v:beruhigen	würde beruhigen
+w	_v:beruhigen	würden beruhigen
+w	_v:beruhigen	würdest beruhigen
+w	_v:beruhigen	würdet beruhigen
 w	_v:beschreiben	beschreib
 w	_v:beschreiben	beschreibe
 w	_v:beschreiben	beschreiben Sie
@@ -3904,6 +4247,71 @@ w	_v:bleiben	würde bleiben
 w	_v:bleiben	würden bleiben
 w	_v:bleiben	würdest bleiben
 w	_v:bleiben	würdet bleiben
+w	_v:bluten	blute
+w	_v:bluten	bluten Sie
+w	_v:bluten	blutest
+w	_v:bluten	blutete
+w	_v:bluten	bluteten
+w	_v:bluten	blutetest
+w	_v:bluten	blutetet
+w	_v:bluten	du blutest
+w	_v:bluten	du blutetest
+w	_v:bluten	du hast geblutet
+w	_v:bluten	du hattest geblutet
+w	_v:bluten	du wirst bluten
+w	_v:bluten	du würdest bluten
+w	_v:bluten	er blutet
+w	_v:bluten	er blutete
+w	_v:bluten	er hat geblutet
+w	_v:bluten	er hatte geblutet
+w	_v:bluten	er wird bluten
+w	_v:bluten	er würde bluten
+w	_v:bluten	habe geblutet
+w	_v:bluten	haben geblutet
+w	_v:bluten	habt geblutet
+w	_v:bluten	hast geblutet
+w	_v:bluten	hat geblutet
+w	_v:bluten	hatte geblutet
+w	_v:bluten	hatten geblutet
+w	_v:bluten	hattest geblutet
+w	_v:bluten	hattet geblutet
+w	_v:bluten	hätte geblutet
+w	_v:bluten	hätten geblutet
+w	_v:bluten	hättest geblutet
+w	_v:bluten	hättet geblutet
+w	_v:bluten	ich blute
+w	_v:bluten	ich blutete
+w	_v:bluten	ich habe geblutet
+w	_v:bluten	ich hatte geblutet
+w	_v:bluten	ich werde bluten
+w	_v:bluten	ich würde bluten
+w	_v:bluten	ihr blutet
+w	_v:bluten	ihr blutetet
+w	_v:bluten	ihr habt geblutet
+w	_v:bluten	ihr hattet geblutet
+w	_v:bluten	ihr werdet bluten
+w	_v:bluten	ihr würdet bluten
+w	_v:bluten	sie bluten
+w	_v:bluten	sie bluteten
+w	_v:bluten	sie haben geblutet
+w	_v:bluten	sie hatten geblutet
+w	_v:bluten	sie werden bluten
+w	_v:bluten	sie würden bluten
+w	_v:bluten	werde bluten
+w	_v:bluten	werden bluten
+w	_v:bluten	werdet bluten
+w	_v:bluten	wir bluten
+w	_v:bluten	wir bluteten
+w	_v:bluten	wir haben geblutet
+w	_v:bluten	wir hatten geblutet
+w	_v:bluten	wir werden bluten
+w	_v:bluten	wir würden bluten
+w	_v:bluten	wird bluten
+w	_v:bluten	wirst bluten
+w	_v:bluten	würde bluten
+w	_v:bluten	würden bluten
+w	_v:bluten	würdest bluten
+w	_v:bluten	würdet bluten
 w	_v:braten	brate
 w	_v:braten	braten Sie
 w	_v:braten	bratet
@@ -5615,6 +6023,137 @@ w	_v:erreichen	würde erreichen
 w	_v:erreichen	würden erreichen
 w	_v:erreichen	würdest erreichen
 w	_v:erreichen	würdet erreichen
+w	_v:erschrecken	bin erschrocken
+w	_v:erschrecken	bist erschrocken
+w	_v:erschrecken	du bist erschrocken
+w	_v:erschrecken	du erschrakst
+w	_v:erschrecken	du erschrickst
+w	_v:erschrecken	du warst erschrocken
+w	_v:erschrecken	du wirst erschrecken
+w	_v:erschrecken	du würdest erschrecken
+w	_v:erschrecken	er erschrickt
+w	_v:erschrecken	er ist erschrocken
+w	_v:erschrecken	er war erschrocken
+w	_v:erschrecken	er wird erschrecken
+w	_v:erschrecken	er würde erschrecken
+w	_v:erschrecken	erschraken
+w	_v:erschrecken	erschrakst
+w	_v:erschrecken	erschrakt
+w	_v:erschrecken	erschrecke
+w	_v:erschrecken	erschrecken Sie
+w	_v:erschrecken	erschreckt
+w	_v:erschrecken	erschrick
+w	_v:erschrecken	erschrickst
+w	_v:erschrecken	erschrickt
+w	_v:erschrecken	ich bin erschrocken
+w	_v:erschrecken	ich erschrak
+w	_v:erschrecken	ich erschrecke
+w	_v:erschrecken	ich war erschrocken
+w	_v:erschrecken	ich werde erschrecken
+w	_v:erschrecken	ich würde erschrecken
+w	_v:erschrecken	ihr erschrakt
+w	_v:erschrecken	ihr erschreckt
+w	_v:erschrecken	ihr seid erschrocken
+w	_v:erschrecken	ihr wart erschrocken
+w	_v:erschrecken	ihr werdet erschrecken
+w	_v:erschrecken	ihr würdet erschrecken
+w	_v:erschrecken	ist erschrocken
+w	_v:erschrecken	seid erschrocken
+w	_v:erschrecken	sie erschraken
+w	_v:erschrecken	sie erschrecken
+w	_v:erschrecken	sie sind erschrocken
+w	_v:erschrecken	sie waren erschrocken
+w	_v:erschrecken	sie werden erschrecken
+w	_v:erschrecken	sie würden erschrecken
+w	_v:erschrecken	sind erschrocken
+w	_v:erschrecken	war erschrocken
+w	_v:erschrecken	waren erschrocken
+w	_v:erschrecken	warst erschrocken
+w	_v:erschrecken	wart erschrocken
+w	_v:erschrecken	werde erschrecken
+w	_v:erschrecken	werden erschrecken
+w	_v:erschrecken	werdet erschrecken
+w	_v:erschrecken	wir erschraken
+w	_v:erschrecken	wir erschrecken
+w	_v:erschrecken	wir sind erschrocken
+w	_v:erschrecken	wir waren erschrocken
+w	_v:erschrecken	wir werden erschrecken
+w	_v:erschrecken	wir würden erschrecken
+w	_v:erschrecken	wird erschrecken
+w	_v:erschrecken	wirst erschrecken
+w	_v:erschrecken	wäre erschrocken
+w	_v:erschrecken	wären erschrocken
+w	_v:erschrecken	wärst erschrocken
+w	_v:erschrecken	wärt erschrocken
+w	_v:erschrecken	würde erschrecken
+w	_v:erschrecken	würden erschrecken
+w	_v:erschrecken	würdest erschrecken
+w	_v:erschrecken	würdet erschrecken
+w	_v:erziehen	du erziehst
+w	_v:erziehen	du erzogst
+w	_v:erziehen	du hast erzogen
+w	_v:erziehen	du hattest erzogen
+w	_v:erziehen	du wirst erziehen
+w	_v:erziehen	du würdest erziehen
+w	_v:erziehen	er erzieht
+w	_v:erziehen	er hat erzogen
+w	_v:erziehen	er hatte erzogen
+w	_v:erziehen	er wird erziehen
+w	_v:erziehen	er würde erziehen
+w	_v:erziehen	erzieh
+w	_v:erziehen	erziehe
+w	_v:erziehen	erziehen Sie
+w	_v:erziehen	erziehst
+w	_v:erziehen	erzieht
+w	_v:erziehen	erzogen
+w	_v:erziehen	erzogst
+w	_v:erziehen	erzogt
+w	_v:erziehen	habe erzogen
+w	_v:erziehen	haben erzogen
+w	_v:erziehen	habt erzogen
+w	_v:erziehen	hast erzogen
+w	_v:erziehen	hat erzogen
+w	_v:erziehen	hatte erzogen
+w	_v:erziehen	hatten erzogen
+w	_v:erziehen	hattest erzogen
+w	_v:erziehen	hattet erzogen
+w	_v:erziehen	hätte erzogen
+w	_v:erziehen	hätten erzogen
+w	_v:erziehen	hättest erzogen
+w	_v:erziehen	hättet erzogen
+w	_v:erziehen	ich erziehe
+w	_v:erziehen	ich erzog
+w	_v:erziehen	ich habe erzogen
+w	_v:erziehen	ich hatte erzogen
+w	_v:erziehen	ich werde erziehen
+w	_v:erziehen	ich würde erziehen
+w	_v:erziehen	ihr erzieht
+w	_v:erziehen	ihr erzogt
+w	_v:erziehen	ihr habt erzogen
+w	_v:erziehen	ihr hattet erzogen
+w	_v:erziehen	ihr werdet erziehen
+w	_v:erziehen	ihr würdet erziehen
+w	_v:erziehen	sie erziehen
+w	_v:erziehen	sie erzogen
+w	_v:erziehen	sie haben erzogen
+w	_v:erziehen	sie hatten erzogen
+w	_v:erziehen	sie werden erziehen
+w	_v:erziehen	sie würden erziehen
+w	_v:erziehen	werde erziehen
+w	_v:erziehen	werden erziehen
+w	_v:erziehen	werdet erziehen
+w	_v:erziehen	wir erziehen
+w	_v:erziehen	wir erzogen
+w	_v:erziehen	wir haben erzogen
+w	_v:erziehen	wir hatten erzogen
+w	_v:erziehen	wir werden erziehen
+w	_v:erziehen	wir würden erziehen
+w	_v:erziehen	wird erziehen
+w	_v:erziehen	wirst erziehen
+w	_v:erziehen	würde erziehen
+w	_v:erziehen	würden erziehen
+w	_v:erziehen	würdest erziehen
+w	_v:erziehen	würdet erziehen
 w	_v:erzählen	du erzählst
 w	_v:erzählen	du erzähltest
 w	_v:erzählen	du hast erzählt
@@ -8667,6 +9206,69 @@ w	_v:legen	würde legen
 w	_v:legen	würden legen
 w	_v:legen	würdest legen
 w	_v:legen	würdet legen
+w	_v:leiden	du hast gelitten
+w	_v:leiden	du hattest gelitten
+w	_v:leiden	du leidest
+w	_v:leiden	du littest
+w	_v:leiden	du wirst leiden
+w	_v:leiden	du würdest leiden
+w	_v:leiden	er hat gelitten
+w	_v:leiden	er hatte gelitten
+w	_v:leiden	er leidet
+w	_v:leiden	er wird leiden
+w	_v:leiden	er würde leiden
+w	_v:leiden	habe gelitten
+w	_v:leiden	haben gelitten
+w	_v:leiden	habt gelitten
+w	_v:leiden	hast gelitten
+w	_v:leiden	hat gelitten
+w	_v:leiden	hatte gelitten
+w	_v:leiden	hatten gelitten
+w	_v:leiden	hattest gelitten
+w	_v:leiden	hattet gelitten
+w	_v:leiden	hätte gelitten
+w	_v:leiden	hätten gelitten
+w	_v:leiden	hättest gelitten
+w	_v:leiden	hättet gelitten
+w	_v:leiden	ich habe gelitten
+w	_v:leiden	ich hatte gelitten
+w	_v:leiden	ich leide
+w	_v:leiden	ich litt
+w	_v:leiden	ich werde leiden
+w	_v:leiden	ich würde leiden
+w	_v:leiden	ihr habt gelitten
+w	_v:leiden	ihr hattet gelitten
+w	_v:leiden	ihr leidet
+w	_v:leiden	ihr littet
+w	_v:leiden	ihr werdet leiden
+w	_v:leiden	ihr würdet leiden
+w	_v:leiden	leide
+w	_v:leiden	leiden Sie
+w	_v:leiden	leidest
+w	_v:leiden	litten
+w	_v:leiden	littest
+w	_v:leiden	littet
+w	_v:leiden	sie haben gelitten
+w	_v:leiden	sie hatten gelitten
+w	_v:leiden	sie leiden
+w	_v:leiden	sie litten
+w	_v:leiden	sie werden leiden
+w	_v:leiden	sie würden leiden
+w	_v:leiden	werde leiden
+w	_v:leiden	werden leiden
+w	_v:leiden	werdet leiden
+w	_v:leiden	wir haben gelitten
+w	_v:leiden	wir hatten gelitten
+w	_v:leiden	wir leiden
+w	_v:leiden	wir litten
+w	_v:leiden	wir werden leiden
+w	_v:leiden	wir würden leiden
+w	_v:leiden	wird leiden
+w	_v:leiden	wirst leiden
+w	_v:leiden	würde leiden
+w	_v:leiden	würden leiden
+w	_v:leiden	würdest leiden
+w	_v:leiden	würdet leiden
 w	_v:leihen	du hast geliehen
 w	_v:leihen	du hattest geliehen
 w	_v:leihen	du leihst
@@ -10141,6 +10743,85 @@ w	_v:notieren	würde notieren
 w	_v:notieren	würden notieren
 w	_v:notieren	würdest notieren
 w	_v:notieren	würdet notieren
+w	_v:operieren	darf operiert werden
+w	_v:operieren	du hast operiert
+w	_v:operieren	du hattest operiert
+w	_v:operieren	du operierst
+w	_v:operieren	du operiertest
+w	_v:operieren	du wirst operieren
+w	_v:operieren	du würdest operieren
+w	_v:operieren	dürfen operiert werden
+w	_v:operieren	er hat operiert
+w	_v:operieren	er hatte operiert
+w	_v:operieren	er operiert
+w	_v:operieren	er operierte
+w	_v:operieren	er wird operieren
+w	_v:operieren	er würde operieren
+w	_v:operieren	habe operiert
+w	_v:operieren	haben operiert
+w	_v:operieren	habt operiert
+w	_v:operieren	hast operiert
+w	_v:operieren	hat operiert
+w	_v:operieren	hatte operiert
+w	_v:operieren	hatten operiert
+w	_v:operieren	hattest operiert
+w	_v:operieren	hattet operiert
+w	_v:operieren	hätte operiert
+w	_v:operieren	hätten operiert
+w	_v:operieren	hättest operiert
+w	_v:operieren	hättet operiert
+w	_v:operieren	ich habe operiert
+w	_v:operieren	ich hatte operiert
+w	_v:operieren	ich operiere
+w	_v:operieren	ich operierte
+w	_v:operieren	ich werde operieren
+w	_v:operieren	ich würde operieren
+w	_v:operieren	ihr habt operiert
+w	_v:operieren	ihr hattet operiert
+w	_v:operieren	ihr operiert
+w	_v:operieren	ihr operiertet
+w	_v:operieren	ihr werdet operieren
+w	_v:operieren	ihr würdet operieren
+w	_v:operieren	kann operiert werden
+w	_v:operieren	können operiert werden
+w	_v:operieren	muss operiert werden
+w	_v:operieren	müssen operiert werden
+w	_v:operieren	operier
+w	_v:operieren	operiere
+w	_v:operieren	operieren Sie
+w	_v:operieren	operierst
+w	_v:operieren	operiert
+w	_v:operieren	operierte
+w	_v:operieren	operierten
+w	_v:operieren	operiertest
+w	_v:operieren	operiertet
+w	_v:operieren	sie haben operiert
+w	_v:operieren	sie hatten operiert
+w	_v:operieren	sie operieren
+w	_v:operieren	sie operierten
+w	_v:operieren	sie werden operieren
+w	_v:operieren	sie würden operieren
+w	_v:operieren	soll operiert werden
+w	_v:operieren	sollen operiert werden
+w	_v:operieren	werde operieren
+w	_v:operieren	werden operieren
+w	_v:operieren	werden operiert
+w	_v:operieren	werdet operieren
+w	_v:operieren	wir haben operiert
+w	_v:operieren	wir hatten operiert
+w	_v:operieren	wir operieren
+w	_v:operieren	wir operierten
+w	_v:operieren	wir werden operieren
+w	_v:operieren	wir würden operieren
+w	_v:operieren	wird operieren
+w	_v:operieren	wird operiert
+w	_v:operieren	wirst operieren
+w	_v:operieren	wurde operiert
+w	_v:operieren	wurden operiert
+w	_v:operieren	würde operieren
+w	_v:operieren	würden operieren
+w	_v:operieren	würdest operieren
+w	_v:operieren	würdet operieren
 w	_v:organisieren	darf organisiert werden
 w	_v:organisieren	du hast organisiert
 w	_v:organisieren	du hattest organisiert
@@ -10448,6 +11129,73 @@ w	_v:passieren	war passiert
 w	_v:passieren	wird passieren
 w	_v:passieren	wäre passiert
 w	_v:passieren	würde passieren
+w	_v:pflegen	du hast gepflegt
+w	_v:pflegen	du hattest gepflegt
+w	_v:pflegen	du pflegst
+w	_v:pflegen	du pflegtest
+w	_v:pflegen	du wirst pflegen
+w	_v:pflegen	du würdest pflegen
+w	_v:pflegen	er hat gepflegt
+w	_v:pflegen	er hatte gepflegt
+w	_v:pflegen	er pflegt
+w	_v:pflegen	er pflegte
+w	_v:pflegen	er wird pflegen
+w	_v:pflegen	er würde pflegen
+w	_v:pflegen	habe gepflegt
+w	_v:pflegen	haben gepflegt
+w	_v:pflegen	habt gepflegt
+w	_v:pflegen	hast gepflegt
+w	_v:pflegen	hat gepflegt
+w	_v:pflegen	hatte gepflegt
+w	_v:pflegen	hatten gepflegt
+w	_v:pflegen	hattest gepflegt
+w	_v:pflegen	hattet gepflegt
+w	_v:pflegen	hätte gepflegt
+w	_v:pflegen	hätten gepflegt
+w	_v:pflegen	hättest gepflegt
+w	_v:pflegen	hättet gepflegt
+w	_v:pflegen	ich habe gepflegt
+w	_v:pflegen	ich hatte gepflegt
+w	_v:pflegen	ich pflege
+w	_v:pflegen	ich pflegte
+w	_v:pflegen	ich werde pflegen
+w	_v:pflegen	ich würde pflegen
+w	_v:pflegen	ihr habt gepflegt
+w	_v:pflegen	ihr hattet gepflegt
+w	_v:pflegen	ihr pflegt
+w	_v:pflegen	ihr pflegtet
+w	_v:pflegen	ihr werdet pflegen
+w	_v:pflegen	ihr würdet pflegen
+w	_v:pflegen	pfleg
+w	_v:pflegen	pflege
+w	_v:pflegen	pflegen Sie
+w	_v:pflegen	pflegst
+w	_v:pflegen	pflegt
+w	_v:pflegen	pflegte
+w	_v:pflegen	pflegten
+w	_v:pflegen	pflegtest
+w	_v:pflegen	pflegtet
+w	_v:pflegen	sie haben gepflegt
+w	_v:pflegen	sie hatten gepflegt
+w	_v:pflegen	sie pflegen
+w	_v:pflegen	sie pflegten
+w	_v:pflegen	sie werden pflegen
+w	_v:pflegen	sie würden pflegen
+w	_v:pflegen	werde pflegen
+w	_v:pflegen	werden pflegen
+w	_v:pflegen	werdet pflegen
+w	_v:pflegen	wir haben gepflegt
+w	_v:pflegen	wir hatten gepflegt
+w	_v:pflegen	wir pflegen
+w	_v:pflegen	wir pflegten
+w	_v:pflegen	wir werden pflegen
+w	_v:pflegen	wir würden pflegen
+w	_v:pflegen	wird pflegen
+w	_v:pflegen	wirst pflegen
+w	_v:pflegen	würde pflegen
+w	_v:pflegen	würden pflegen
+w	_v:pflegen	würdest pflegen
+w	_v:pflegen	würdet pflegen
 w	_v:planen	darf geplant werden
 w	_v:planen	du hast geplant
 w	_v:planen	du hattest geplant
@@ -12327,6 +13075,72 @@ w	_v:schwimmen	würde schwimmen
 w	_v:schwimmen	würden schwimmen
 w	_v:schwimmen	würdest schwimmen
 w	_v:schwimmen	würdet schwimmen
+w	_v:schwitzen	du hast geschwitzt
+w	_v:schwitzen	du hattest geschwitzt
+w	_v:schwitzen	du schwitzt
+w	_v:schwitzen	du schwitztest
+w	_v:schwitzen	du wirst schwitzen
+w	_v:schwitzen	du würdest schwitzen
+w	_v:schwitzen	er hat geschwitzt
+w	_v:schwitzen	er hatte geschwitzt
+w	_v:schwitzen	er schwitzt
+w	_v:schwitzen	er schwitzte
+w	_v:schwitzen	er wird schwitzen
+w	_v:schwitzen	er würde schwitzen
+w	_v:schwitzen	habe geschwitzt
+w	_v:schwitzen	haben geschwitzt
+w	_v:schwitzen	habt geschwitzt
+w	_v:schwitzen	hast geschwitzt
+w	_v:schwitzen	hat geschwitzt
+w	_v:schwitzen	hatte geschwitzt
+w	_v:schwitzen	hatten geschwitzt
+w	_v:schwitzen	hattest geschwitzt
+w	_v:schwitzen	hattet geschwitzt
+w	_v:schwitzen	hätte geschwitzt
+w	_v:schwitzen	hätten geschwitzt
+w	_v:schwitzen	hättest geschwitzt
+w	_v:schwitzen	hättet geschwitzt
+w	_v:schwitzen	ich habe geschwitzt
+w	_v:schwitzen	ich hatte geschwitzt
+w	_v:schwitzen	ich schwitze
+w	_v:schwitzen	ich schwitzte
+w	_v:schwitzen	ich werde schwitzen
+w	_v:schwitzen	ich würde schwitzen
+w	_v:schwitzen	ihr habt geschwitzt
+w	_v:schwitzen	ihr hattet geschwitzt
+w	_v:schwitzen	ihr schwitzt
+w	_v:schwitzen	ihr schwitztet
+w	_v:schwitzen	ihr werdet schwitzen
+w	_v:schwitzen	ihr würdet schwitzen
+w	_v:schwitzen	schwitz
+w	_v:schwitzen	schwitze
+w	_v:schwitzen	schwitzen Sie
+w	_v:schwitzen	schwitzt
+w	_v:schwitzen	schwitzte
+w	_v:schwitzen	schwitzten
+w	_v:schwitzen	schwitztest
+w	_v:schwitzen	schwitztet
+w	_v:schwitzen	sie haben geschwitzt
+w	_v:schwitzen	sie hatten geschwitzt
+w	_v:schwitzen	sie schwitzen
+w	_v:schwitzen	sie schwitzten
+w	_v:schwitzen	sie werden schwitzen
+w	_v:schwitzen	sie würden schwitzen
+w	_v:schwitzen	werde schwitzen
+w	_v:schwitzen	werden schwitzen
+w	_v:schwitzen	werdet schwitzen
+w	_v:schwitzen	wir haben geschwitzt
+w	_v:schwitzen	wir hatten geschwitzt
+w	_v:schwitzen	wir schwitzen
+w	_v:schwitzen	wir schwitzten
+w	_v:schwitzen	wir werden schwitzen
+w	_v:schwitzen	wir würden schwitzen
+w	_v:schwitzen	wird schwitzen
+w	_v:schwitzen	wirst schwitzen
+w	_v:schwitzen	würde schwitzen
+w	_v:schwitzen	würden schwitzen
+w	_v:schwitzen	würdest schwitzen
+w	_v:schwitzen	würdet schwitzen
 w	_v:sehen	darf gesehen werden
 w	_v:sehen	du hast gesehen
 w	_v:sehen	du hattest gesehen
@@ -13398,6 +14212,85 @@ w	_v:sich fühlen	würden sich fühlen
 w	_v:sich fühlen	würden uns fühlen
 w	_v:sich fühlen	würdest dich fühlen
 w	_v:sich fühlen	würdet euch fühlen
+w	_v:sich fürchten	du fürchtest dich
+w	_v:sich fürchten	du fürchtetest dich
+w	_v:sich fürchten	du hast dich gefürchtet
+w	_v:sich fürchten	du hattest dich gefürchtet
+w	_v:sich fürchten	du wirst dich fürchten
+w	_v:sich fürchten	du würdest dich fürchten
+w	_v:sich fürchten	er fürchtet sich
+w	_v:sich fürchten	er fürchtete sich
+w	_v:sich fürchten	er hat sich gefürchtet
+w	_v:sich fürchten	er hatte sich gefürchtet
+w	_v:sich fürchten	er wird sich fürchten
+w	_v:sich fürchten	er würde sich fürchten
+w	_v:sich fürchten	fürchte dich
+w	_v:sich fürchten	fürchte mich
+w	_v:sich fürchten	fürchten Sie sich
+w	_v:sich fürchten	fürchten sich
+w	_v:sich fürchten	fürchten uns
+w	_v:sich fürchten	fürchtest dich
+w	_v:sich fürchten	fürchtet euch
+w	_v:sich fürchten	fürchtete mich
+w	_v:sich fürchten	fürchtete sich
+w	_v:sich fürchten	fürchteten sich
+w	_v:sich fürchten	fürchteten uns
+w	_v:sich fürchten	fürchtetest dich
+w	_v:sich fürchten	fürchtetet euch
+w	_v:sich fürchten	habe mich gefürchtet
+w	_v:sich fürchten	haben sich gefürchtet
+w	_v:sich fürchten	haben uns gefürchtet
+w	_v:sich fürchten	habt euch gefürchtet
+w	_v:sich fürchten	hast dich gefürchtet
+w	_v:sich fürchten	hat sich gefürchtet
+w	_v:sich fürchten	hatte mich gefürchtet
+w	_v:sich fürchten	hatte sich gefürchtet
+w	_v:sich fürchten	hatten sich gefürchtet
+w	_v:sich fürchten	hatten uns gefürchtet
+w	_v:sich fürchten	hattest dich gefürchtet
+w	_v:sich fürchten	hattet euch gefürchtet
+w	_v:sich fürchten	hätte mich gefürchtet
+w	_v:sich fürchten	hätte sich gefürchtet
+w	_v:sich fürchten	hätten sich gefürchtet
+w	_v:sich fürchten	hätten uns gefürchtet
+w	_v:sich fürchten	hättest dich gefürchtet
+w	_v:sich fürchten	hättet euch gefürchtet
+w	_v:sich fürchten	ich fürchte mich
+w	_v:sich fürchten	ich fürchtete mich
+w	_v:sich fürchten	ich habe mich gefürchtet
+w	_v:sich fürchten	ich hatte mich gefürchtet
+w	_v:sich fürchten	ich werde mich fürchten
+w	_v:sich fürchten	ich würde mich fürchten
+w	_v:sich fürchten	ihr fürchtet euch
+w	_v:sich fürchten	ihr fürchtetet euch
+w	_v:sich fürchten	ihr habt euch gefürchtet
+w	_v:sich fürchten	ihr hattet euch gefürchtet
+w	_v:sich fürchten	ihr werdet euch fürchten
+w	_v:sich fürchten	ihr würdet euch fürchten
+w	_v:sich fürchten	sie fürchten sich
+w	_v:sich fürchten	sie fürchteten sich
+w	_v:sich fürchten	sie haben sich gefürchtet
+w	_v:sich fürchten	sie hatten sich gefürchtet
+w	_v:sich fürchten	sie werden sich fürchten
+w	_v:sich fürchten	sie würden sich fürchten
+w	_v:sich fürchten	werde mich fürchten
+w	_v:sich fürchten	werden sich fürchten
+w	_v:sich fürchten	werden uns fürchten
+w	_v:sich fürchten	werdet euch fürchten
+w	_v:sich fürchten	wir fürchten uns
+w	_v:sich fürchten	wir fürchteten uns
+w	_v:sich fürchten	wir haben uns gefürchtet
+w	_v:sich fürchten	wir hatten uns gefürchtet
+w	_v:sich fürchten	wir werden uns fürchten
+w	_v:sich fürchten	wir würden uns fürchten
+w	_v:sich fürchten	wird sich fürchten
+w	_v:sich fürchten	wirst dich fürchten
+w	_v:sich fürchten	würde mich fürchten
+w	_v:sich fürchten	würde sich fürchten
+w	_v:sich fürchten	würden sich fürchten
+w	_v:sich fürchten	würden uns fürchten
+w	_v:sich fürchten	würdest dich fürchten
+w	_v:sich fürchten	würdet euch fürchten
 w	_v:sich informieren	du hast dich informiert
 w	_v:sich informieren	du hattest dich informiert
 w	_v:sich informieren	du informierst dich
@@ -13956,6 +14849,86 @@ w	_v:sich unterhalten	würden sich unterhalten
 w	_v:sich unterhalten	würden uns unterhalten
 w	_v:sich unterhalten	würdest dich unterhalten
 w	_v:sich unterhalten	würdet euch unterhalten
+w	_v:sich verabreden	du hast dich verabredet
+w	_v:sich verabreden	du hattest dich verabredet
+w	_v:sich verabreden	du verabredest dich
+w	_v:sich verabreden	du verabredetest dich
+w	_v:sich verabreden	du wirst dich verabreden
+w	_v:sich verabreden	du würdest dich verabreden
+w	_v:sich verabreden	er hat sich verabredet
+w	_v:sich verabreden	er hatte sich verabredet
+w	_v:sich verabreden	er verabredet sich
+w	_v:sich verabreden	er verabredete sich
+w	_v:sich verabreden	er wird sich verabreden
+w	_v:sich verabreden	er würde sich verabreden
+w	_v:sich verabreden	habe mich verabredet
+w	_v:sich verabreden	haben sich verabredet
+w	_v:sich verabreden	haben uns verabredet
+w	_v:sich verabreden	habt euch verabredet
+w	_v:sich verabreden	hast dich verabredet
+w	_v:sich verabreden	hat sich verabredet
+w	_v:sich verabreden	hatte mich verabredet
+w	_v:sich verabreden	hatte sich verabredet
+w	_v:sich verabreden	hatten sich verabredet
+w	_v:sich verabreden	hatten uns verabredet
+w	_v:sich verabreden	hattest dich verabredet
+w	_v:sich verabreden	hattet euch verabredet
+w	_v:sich verabreden	hätte mich verabredet
+w	_v:sich verabreden	hätte sich verabredet
+w	_v:sich verabreden	hätten sich verabredet
+w	_v:sich verabreden	hätten uns verabredet
+w	_v:sich verabreden	hättest dich verabredet
+w	_v:sich verabreden	hättet euch verabredet
+w	_v:sich verabreden	ich habe mich verabredet
+w	_v:sich verabreden	ich hatte mich verabredet
+w	_v:sich verabreden	ich verabrede mich
+w	_v:sich verabreden	ich verabredete mich
+w	_v:sich verabreden	ich werde mich verabreden
+w	_v:sich verabreden	ich würde mich verabreden
+w	_v:sich verabreden	ihr habt euch verabredet
+w	_v:sich verabreden	ihr hattet euch verabredet
+w	_v:sich verabreden	ihr verabredet euch
+w	_v:sich verabreden	ihr verabredetet euch
+w	_v:sich verabreden	ihr werdet euch verabreden
+w	_v:sich verabreden	ihr würdet euch verabreden
+w	_v:sich verabreden	sie haben sich verabredet
+w	_v:sich verabreden	sie hatten sich verabredet
+w	_v:sich verabreden	sie verabreden sich
+w	_v:sich verabreden	sie verabredeten sich
+w	_v:sich verabreden	sie werden sich verabreden
+w	_v:sich verabreden	sie würden sich verabreden
+w	_v:sich verabreden	verabrede dich
+w	_v:sich verabreden	verabrede mich
+w	_v:sich verabreden	verabreden Sie sich
+w	_v:sich verabreden	verabreden sich
+w	_v:sich verabreden	verabreden uns
+w	_v:sich verabreden	verabredest dich
+w	_v:sich verabreden	verabredet euch
+w	_v:sich verabreden	verabredet sich
+w	_v:sich verabreden	verabredete mich
+w	_v:sich verabreden	verabredete sich
+w	_v:sich verabreden	verabredeten sich
+w	_v:sich verabreden	verabredeten uns
+w	_v:sich verabreden	verabredetest dich
+w	_v:sich verabreden	verabredetet euch
+w	_v:sich verabreden	werde mich verabreden
+w	_v:sich verabreden	werden sich verabreden
+w	_v:sich verabreden	werden uns verabreden
+w	_v:sich verabreden	werdet euch verabreden
+w	_v:sich verabreden	wir haben uns verabredet
+w	_v:sich verabreden	wir hatten uns verabredet
+w	_v:sich verabreden	wir verabreden uns
+w	_v:sich verabreden	wir verabredeten uns
+w	_v:sich verabreden	wir werden uns verabreden
+w	_v:sich verabreden	wir würden uns verabreden
+w	_v:sich verabreden	wird sich verabreden
+w	_v:sich verabreden	wirst dich verabreden
+w	_v:sich verabreden	würde mich verabreden
+w	_v:sich verabreden	würde sich verabreden
+w	_v:sich verabreden	würden sich verabreden
+w	_v:sich verabreden	würden uns verabreden
+w	_v:sich verabreden	würdest dich verabreden
+w	_v:sich verabreden	würdet euch verabreden
 w	_v:sich verletzen	du hast dich verletzt
 w	_v:sich verletzen	du hattest dich verletzt
 w	_v:sich verletzen	du verletzt dich
@@ -14275,6 +15248,72 @@ w	_v:sich ärgern	ärgerten sich
 w	_v:sich ärgern	ärgerten uns
 w	_v:sich ärgern	ärgertest dich
 w	_v:sich ärgern	ärgertet euch
+w	_v:siezen	du hast gesiezt
+w	_v:siezen	du hattest gesiezt
+w	_v:siezen	du siezt
+w	_v:siezen	du sieztest
+w	_v:siezen	du wirst siezen
+w	_v:siezen	du würdest siezen
+w	_v:siezen	er hat gesiezt
+w	_v:siezen	er hatte gesiezt
+w	_v:siezen	er siezt
+w	_v:siezen	er siezte
+w	_v:siezen	er wird siezen
+w	_v:siezen	er würde siezen
+w	_v:siezen	habe gesiezt
+w	_v:siezen	haben gesiezt
+w	_v:siezen	habt gesiezt
+w	_v:siezen	hast gesiezt
+w	_v:siezen	hat gesiezt
+w	_v:siezen	hatte gesiezt
+w	_v:siezen	hatten gesiezt
+w	_v:siezen	hattest gesiezt
+w	_v:siezen	hattet gesiezt
+w	_v:siezen	hätte gesiezt
+w	_v:siezen	hätten gesiezt
+w	_v:siezen	hättest gesiezt
+w	_v:siezen	hättet gesiezt
+w	_v:siezen	ich habe gesiezt
+w	_v:siezen	ich hatte gesiezt
+w	_v:siezen	ich sieze
+w	_v:siezen	ich siezte
+w	_v:siezen	ich werde siezen
+w	_v:siezen	ich würde siezen
+w	_v:siezen	ihr habt gesiezt
+w	_v:siezen	ihr hattet gesiezt
+w	_v:siezen	ihr siezt
+w	_v:siezen	ihr sieztet
+w	_v:siezen	ihr werdet siezen
+w	_v:siezen	ihr würdet siezen
+w	_v:siezen	sie haben gesiezt
+w	_v:siezen	sie hatten gesiezt
+w	_v:siezen	sie siezen
+w	_v:siezen	sie siezten
+w	_v:siezen	sie werden siezen
+w	_v:siezen	sie würden siezen
+w	_v:siezen	siez
+w	_v:siezen	sieze
+w	_v:siezen	siezen Sie
+w	_v:siezen	siezt
+w	_v:siezen	siezte
+w	_v:siezen	siezten
+w	_v:siezen	sieztest
+w	_v:siezen	sieztet
+w	_v:siezen	werde siezen
+w	_v:siezen	werden siezen
+w	_v:siezen	werdet siezen
+w	_v:siezen	wir haben gesiezt
+w	_v:siezen	wir hatten gesiezt
+w	_v:siezen	wir siezen
+w	_v:siezen	wir siezten
+w	_v:siezen	wir werden siezen
+w	_v:siezen	wir würden siezen
+w	_v:siezen	wird siezen
+w	_v:siezen	wirst siezen
+w	_v:siezen	würde siezen
+w	_v:siezen	würden siezen
+w	_v:siezen	würdest siezen
+w	_v:siezen	würdet siezen
 w	_v:singen	du hast gesungen
 w	_v:singen	du hattest gesungen
 w	_v:singen	du sangst
@@ -14706,6 +15745,73 @@ w	_v:sprechen	würde sprechen
 w	_v:sprechen	würden sprechen
 w	_v:sprechen	würdest sprechen
 w	_v:sprechen	würdet sprechen
+w	_v:spülen	du hast gespült
+w	_v:spülen	du hattest gespült
+w	_v:spülen	du spülst
+w	_v:spülen	du spültest
+w	_v:spülen	du wirst spülen
+w	_v:spülen	du würdest spülen
+w	_v:spülen	er hat gespült
+w	_v:spülen	er hatte gespült
+w	_v:spülen	er spült
+w	_v:spülen	er spülte
+w	_v:spülen	er wird spülen
+w	_v:spülen	er würde spülen
+w	_v:spülen	habe gespült
+w	_v:spülen	haben gespült
+w	_v:spülen	habt gespült
+w	_v:spülen	hast gespült
+w	_v:spülen	hat gespült
+w	_v:spülen	hatte gespült
+w	_v:spülen	hatten gespült
+w	_v:spülen	hattest gespült
+w	_v:spülen	hattet gespült
+w	_v:spülen	hätte gespült
+w	_v:spülen	hätten gespült
+w	_v:spülen	hättest gespült
+w	_v:spülen	hättet gespült
+w	_v:spülen	ich habe gespült
+w	_v:spülen	ich hatte gespült
+w	_v:spülen	ich spüle
+w	_v:spülen	ich spülte
+w	_v:spülen	ich werde spülen
+w	_v:spülen	ich würde spülen
+w	_v:spülen	ihr habt gespült
+w	_v:spülen	ihr hattet gespült
+w	_v:spülen	ihr spült
+w	_v:spülen	ihr spültet
+w	_v:spülen	ihr werdet spülen
+w	_v:spülen	ihr würdet spülen
+w	_v:spülen	sie haben gespült
+w	_v:spülen	sie hatten gespült
+w	_v:spülen	sie spülen
+w	_v:spülen	sie spülten
+w	_v:spülen	sie werden spülen
+w	_v:spülen	sie würden spülen
+w	_v:spülen	spül
+w	_v:spülen	spüle
+w	_v:spülen	spülen Sie
+w	_v:spülen	spülst
+w	_v:spülen	spült
+w	_v:spülen	spülte
+w	_v:spülen	spülten
+w	_v:spülen	spültest
+w	_v:spülen	spültet
+w	_v:spülen	werde spülen
+w	_v:spülen	werden spülen
+w	_v:spülen	werdet spülen
+w	_v:spülen	wir haben gespült
+w	_v:spülen	wir hatten gespült
+w	_v:spülen	wir spülen
+w	_v:spülen	wir spülten
+w	_v:spülen	wir werden spülen
+w	_v:spülen	wir würden spülen
+w	_v:spülen	wird spülen
+w	_v:spülen	wirst spülen
+w	_v:spülen	würde spülen
+w	_v:spülen	würden spülen
+w	_v:spülen	würdest spülen
+w	_v:spülen	würdet spülen
 w	_v:starten	du startest
 w	_v:starten	du startetest
 w	_v:starten	du wirst starten
@@ -15814,6 +16920,73 @@ w	_v:treffen	würde treffen
 w	_v:treffen	würden treffen
 w	_v:treffen	würdest treffen
 w	_v:treffen	würdet treffen
+w	_v:trennen	du hast getrennt
+w	_v:trennen	du hattest getrennt
+w	_v:trennen	du trennst
+w	_v:trennen	du trenntest
+w	_v:trennen	du wirst trennen
+w	_v:trennen	du würdest trennen
+w	_v:trennen	er hat getrennt
+w	_v:trennen	er hatte getrennt
+w	_v:trennen	er trennt
+w	_v:trennen	er trennte
+w	_v:trennen	er wird trennen
+w	_v:trennen	er würde trennen
+w	_v:trennen	habe getrennt
+w	_v:trennen	haben getrennt
+w	_v:trennen	habt getrennt
+w	_v:trennen	hast getrennt
+w	_v:trennen	hat getrennt
+w	_v:trennen	hatte getrennt
+w	_v:trennen	hatten getrennt
+w	_v:trennen	hattest getrennt
+w	_v:trennen	hattet getrennt
+w	_v:trennen	hätte getrennt
+w	_v:trennen	hätten getrennt
+w	_v:trennen	hättest getrennt
+w	_v:trennen	hättet getrennt
+w	_v:trennen	ich habe getrennt
+w	_v:trennen	ich hatte getrennt
+w	_v:trennen	ich trenne
+w	_v:trennen	ich trennte
+w	_v:trennen	ich werde trennen
+w	_v:trennen	ich würde trennen
+w	_v:trennen	ihr habt getrennt
+w	_v:trennen	ihr hattet getrennt
+w	_v:trennen	ihr trennt
+w	_v:trennen	ihr trenntet
+w	_v:trennen	ihr werdet trennen
+w	_v:trennen	ihr würdet trennen
+w	_v:trennen	sie haben getrennt
+w	_v:trennen	sie hatten getrennt
+w	_v:trennen	sie trennen
+w	_v:trennen	sie trennten
+w	_v:trennen	sie werden trennen
+w	_v:trennen	sie würden trennen
+w	_v:trennen	trenn
+w	_v:trennen	trenne
+w	_v:trennen	trennen Sie
+w	_v:trennen	trennst
+w	_v:trennen	trennt
+w	_v:trennen	trennte
+w	_v:trennen	trennten
+w	_v:trennen	trenntest
+w	_v:trennen	trenntet
+w	_v:trennen	werde trennen
+w	_v:trennen	werden trennen
+w	_v:trennen	werdet trennen
+w	_v:trennen	wir haben getrennt
+w	_v:trennen	wir hatten getrennt
+w	_v:trennen	wir trennen
+w	_v:trennen	wir trennten
+w	_v:trennen	wir werden trennen
+w	_v:trennen	wir würden trennen
+w	_v:trennen	wird trennen
+w	_v:trennen	wirst trennen
+w	_v:trennen	würde trennen
+w	_v:trennen	würden trennen
+w	_v:trennen	würdest trennen
+w	_v:trennen	würdet trennen
 w	_v:trinken	darf getrunken werden
 w	_v:trinken	du hast getrunken
 w	_v:trinken	du hattest getrunken

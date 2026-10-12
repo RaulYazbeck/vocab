@@ -1064,6 +1064,7 @@ tr:hover td { background:rgba(255,255,255,0.03); }
 .audio-pill > span:first-child { white-space:nowrap; }
 .audio-pill-bar { width:64px; height:5px; border-radius:3px; background:rgba(255,255,255,0.14); overflow:hidden; flex:none; }
 .audio-pill-bar i { display:block; height:100%; background:var(--accent); transition:width 0.25s linear; }
+.audio-update-go { border:none; cursor:pointer; border-radius:14px; padding:5px 12px; font-size:12px; font-weight:800; background:var(--accent); color:#fff; }
 .audio-pill-x { width:26px; height:26px; border-radius:50%; border:none; cursor:pointer; background:rgba(255,255,255,0.08); color:var(--text-2); font-size:12px; }
 /* ⚑ flag a recording: a small tab on the right edge, only just after a recording plays */
 .audio-flag {

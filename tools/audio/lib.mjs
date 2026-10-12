@@ -100,8 +100,8 @@ export function runtimeTexts(lang) {
 export function runtimeSettings(lang) {
   let head;
   try { head = fs.readFileSync(runtimeFile(lang), "utf8").split(/\r?\n/)[0]; } catch (e) { return null; }
-  const m = /^# levels=([^\t]*)\tskip=(.*)$/.exec(head || "");
-  return m ? { head, levels: m[1], skip: m[2] } : { head: "", levels: "a1,a2,b1", skip: "" };
+  const m = /^# levels=([^\t]*)\tskip=([^\t]*)(?:\tverbs=(.*))?$/.exec(head || "");
+  return m ? { head, levels: m[1], skip: m[2], verbs: m[3] || "" } : { head: "", levels: "a1,a2,b1", skip: "", verbs: "" };
 }
 export function collectTexts(lang, extraTexts = [], { runtime = true } = {}) {
   extraTexts = [...savedExtras(lang), ...extraTexts];

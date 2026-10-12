@@ -71,6 +71,17 @@ for (const lang of ["de", "fr"]) {
   await ctx.setOffline(true);
   const off = await page.evaluate(async (t) => { const el = _audioEl(); return await new Promise(res => { const h = () => { el.removeEventListener("playing", h); res(true); }; el.addEventListener("playing", h); speak(t); setTimeout(() => res(false), 3000); }); }, cov.newDeck[0]);
   ok(off, "a new card plays offline");
+
+  // a big update is not fetched by itself: a banner offers it, one tap fetches it
+  await ctx.setOffline(false);
+  await page.evaluate(() => { AUDIO_AUTO_UPDATE_BYTES = 0; });
+  publish(OLD, lang);
+  await page.evaluate(() => { AUDIO.remote = null; _aRefreshAt = 0; return audioRefreshRemote(); });
+  await page.waitForSelector("#audio-update", { timeout: 10000 }).catch(() => {});
+  ok(await page.evaluate(v => !!document.querySelector("#audio-update .audio-update-go") && AUDIO.manifest.v !== v, v1), "a big update shows the banner and waits");
+  await page.click("#audio-update .audio-update-go").catch(() => {});
+  await page.waitForFunction(v => AUDIO.manifest.v === v && !AUDIO.dl, v1, { timeout: 30000 }).catch(() => {});
+  ok(await page.evaluate(v => AUDIO.manifest.v === v && !document.getElementById("audio-update") && audioInstalledKinds().join("") === "ws", v1), "its Download button fetches it");
   ok(errs.length === 0, "no page errors", errs.join(" | "));
   await ctx.close();
 }
