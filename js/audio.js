@@ -64,7 +64,7 @@ function audioPrefs() {
   let p = null;
   try { p = JSON.parse(localStorage.getItem(AUDIO_PREF) || "null"); } catch (e) {}
   if (!p || typeof p !== "object") p = {};
-  _aPrefs = { asked: !!p.asked, want: Array.isArray(p.want) ? p.want.filter(k => k === "w" || k === "s") : [] };
+  _aPrefs = { asked: !!p.asked, want: Array.isArray(p.want) ? p.want.filter(k => k === "w" || k === "s") : [], later: typeof p.later === "string" ? p.later : "" };
   return _aPrefs;
 }
 function audioSavePrefs() { try { localStorage.setItem(AUDIO_PREF, JSON.stringify(audioPrefs())); } catch (e) {} }
@@ -188,14 +188,16 @@ async function _audioMissingBytes(M, kinds) {
 }
 // Installed, and either a different pack is published or files the browser
 // dropped need restoring: if what's missing is small, fetch it now. Never
-// starts a big download by itself.
+// starts a big download by itself: a big one gets a small banner instead.
 async function audioMaybeAutoUpdate() {
   try {
     const M = AUDIO.remote;
     if (AUDIO.dl || !AUDIO.manifest || !M || navigator.onLine === false) return;
     if (M.v === AUDIO.manifest.v && !audioNeedsRepair()) return;           // nothing to do
     const kinds = audioPrefs().want.length ? audioPrefs().want : audioInstalledKinds();
-    if (!kinds.length || (await _audioMissingBytes(M, kinds)) > AUDIO_AUTO_UPDATE_BYTES) return;
+    if (!kinds.length) return;
+    const need = await _audioMissingBytes(M, kinds);
+    if (need > AUDIO_AUTO_UPDATE_BYTES) return audioUpdateBanner(kinds, need);
     const before = AUDIO.manifest.v;
     const out = await audioDownload(kinds);
     if (out === "done" && typeof showCelebrateToast === "function") showCelebrateToast("🔊", "Voices updated", M.v === before ? "A missing file was restored" : "New words now have recordings");
@@ -686,10 +688,29 @@ function audioOfferSheet() {
   setTimeout(() => { const b = el.querySelector("#ao-all"); if (b) b.focus(); }, 50);
 }
 
+// A big update (or a big repair) waits for a tap: a small banner at the
+// bottom says so, with the button. "Later" hides it until the next pack
+// is published; Settings → Sound & voice keeps its Update button.
+function audioUpdateBanner(kinds, bytes) {
+  const v = AUDIO.remote ? AUDIO.remote.v : "";
+  if (AUDIO.dl || audioPrefs().later === v || document.getElementById("audio-update")) return;
+  const el = document.createElement("div");
+  el.id = "audio-update"; el.className = "audio-pill audio-update";
+  el.setAttribute("role", "status");
+  const fresh = AUDIO.manifest && AUDIO.manifest.v !== v;
+  el.innerHTML = `<span>🔊 ${fresh ? "New voice recordings" : "Voice files missing"} · ${audioFmtMB(bytes)}</span>` +
+    `<button class="audio-update-go">${fresh ? "Download" : "Repair"}</button>` +
+    `<button class="audio-pill-x" aria-label="Later">✕</button>`;
+  el.querySelector(".audio-update-go").onclick = () => { el.remove(); audioDownloadWithPill(kinds); };
+  el.querySelector(".audio-pill-x").onclick = () => { el.remove(); audioPrefs().later = v; audioSavePrefs(); };
+  document.body.appendChild(el);
+}
+
 // Start a download and show a small progress pill at the bottom until
 // it ends (the Settings page shows the same progress).
 function audioDownloadWithPill(kinds) {
   if (AUDIO.dl) return;                                // already running: its pill and toast stay
+  const ub = document.getElementById("audio-update"); if (ub) ub.remove();
   audioPill(true);
   audioDownload(kinds).then(outcome => {
     audioPill(false);

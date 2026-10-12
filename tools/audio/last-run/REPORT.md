@@ -89,3 +89,12 @@ besuchen", "bedeuten Sie"), the verb cards' answers ("triffst dich"), grammar-sh
 - Characters sent this month: 929,028 (limit set for October: 930,000; free tier 1,000,000).
 - Still to record: German B1 (~397k), French A2 + B1 + 🎧 forms (~619k): November and December.
 
+
+## Seventh pass (Oct 12): the first B1 verbs
+The voice log's 40 phrases all had recordings already (the phone had an older pack, whose
+update is too big to come quietly; the app now shows a banner with a Download button for that).
+German A1 + A2 stay 100% covered. The month's leftover characters went to the first 17 B1 verbs
+in deck order, in full (`runtime.mjs --verbs`): erziehen, begleiten, sich verabreden, siezen,
+trennen, sich fürchten, aufregen, beruhigen, erschrecken, leiden, behandeln, operieren, pflegen,
+atmen, bluten, schwitzen, spülen — 1,173 clips. Coverage 33,335/33,335; tests pack, runtime,
+flag, update pass. Characters sent this month: 948,755 (limit set: 950,000).

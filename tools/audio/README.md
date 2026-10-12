@@ -109,7 +109,9 @@ later run includes them, so their recordings are never dropped) and
 ### What people get
 On launch the app compares versions. If the update is **small** (under 8 MB,
 which is any ordinary round of deck edits) it downloads quietly and shows
-"Voices updated". A bigger one waits at Settings → Sound & voice → **Update**.
+"Voices updated". A bigger one waits for a tap: a small banner at the bottom
+("New voice recordings · 25 MB", **Download**, ✕ hides it until the next pack),
+and Settings → Sound & voice → **Update**.
 Files the browser has dropped are restored the same way. Until a new text is
 recorded it simply uses the phone's voice.
 
@@ -192,7 +194,9 @@ track: more than one month's free tier), so it goes level by level, a month
 apart (`--levels`; `--skip thread-ear` leaves out the 🎧 forms alone). Only
 verbs a game can actually offer are listed (a verb with a card of its own).
 Re-run it after adding verbs, grammar sheets or idioms, or changing what a
-game says. The word clips are split over 80 shards (German) and 60 (French),
+game says. `--verbs erziehen,begleiten,…` adds single verbs of a later level
+in full (a month's leftover characters spent verb by verb; remembered in the
+file like `--levels`). The word clips are split over 80 shards (German) and 60 (French),
 sized for the full lists, so later levels need no re-split (`pack.mjs` keeps
 the count from the published manifest).
 

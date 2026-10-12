@@ -112,6 +112,8 @@ try {
     // 1. a fresh copy of the repo, without the work folder (as a new session has it)
     const SIM = path.join(TMP, "sim");
     fs.cpSync(ROOT, SIM, { recursive: true, filter: s => !/[\\/](\.git|node_modules|__pycache__)$/.test(s) && !s.startsWith(path.join(ROOT, "tools", "audio", "work")) });
+    // the fake Google costs nothing: the real month's count (maybe near the cap) must not stop it
+    fs.rmSync(path.join(SIM, "tools", "audio", "state", "usage.json"), { force: true });
     // 2. deck edits: a new German deck, one card removed, one sentence edited, a new French conjugation card
     const deF = path.join(SIM, "de", "jm_deck_sammy.js");
     let de = fs.readFileSync(deF, "utf8");

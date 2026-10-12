@@ -6,7 +6,7 @@
 // grammar sheets' examples, the idiom cards, and the word a Today
 // "Sentences" item asks for, as the sentence has it ("Hallo").
 //
-//   node tools/audio/runtime.mjs --lang de [--levels a1,a2] [--skip thread-ear] [--dry | --check]
+//   node tools/audio/runtime.mjs --lang de [--levels a1,a2] [--verbs lernen,…] [--skip thread-ear] [--dry | --check]
 //
 // The app itself is loaded in a real browser (Chromium via Playwright, as
 // the tests do) and every phrase is made by the app's own "what is said"
@@ -23,7 +23,9 @@
 // so it is recorded level by level, a month apart. --skip leaves out
 // sources (cloze, idioms, sheets, track, conj, thread, thread-ear). Both
 // are remembered in the file's first line, so a plain re-run (after
-// adding verbs or sheets) keeps them. --dry prints the counts and writes
+// adding verbs or sheets) keeps them. --verbs lists single verbs whose
+// forms go in whatever their level (a month's leftover characters spent on
+// the next level, verb by verb); remembered the same way. --dry prints the counts and writes
 // nothing; --check exits 1 if runtime.tsv is not what the app says now.
 //
 // Deck ids decide the shard (pack.mjs): a verb's forms share "_v:<verb>",
@@ -38,13 +40,14 @@ import { ROOT, collectTexts, runtimeFile, runtimeSettings, runtimeTexts } from "
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf("--" + n); return i >= 0 ? args[i + 1] : d; };
 const lang = opt("lang");
-if (!["de", "fr"].includes(lang)) { console.error("usage: runtime.mjs --lang de|fr [--levels a1,a2,b1] [--skip source,…] [--dry | --check]"); process.exit(1); }
+if (!["de", "fr"].includes(lang)) { console.error("usage: runtime.mjs --lang de|fr [--levels a1,a2,b1] [--verbs inf,…] [--skip source,…] [--dry | --check]"); process.exit(1); }
 const file = runtimeFile(lang);
 const prev = runtimeSettings(lang);
 if (args.includes("--check") && !prev) { console.log(`${lang}: no ${path.relative(ROOT, file)} — nothing to check`); process.exit(0); }
 const list = s => String(s || "").split(",").map(x => x.trim()).filter(Boolean);
 const levels = list(opt("levels", prev ? prev.levels : "a1,a2,b1"));
 const skip = new Set(list(opt("skip", prev ? prev.skip : "")));
+const verbs = new Set(list(opt("verbs", prev ? prev.verbs : "")));
 const dry = args.includes("--dry"), check = args.includes("--check");
 
 const TESTS = path.join(ROOT, "tools/audio/tests");
@@ -129,23 +132,24 @@ if (errors.length) { console.error("page errors:\n  " + errors.slice(0, 5).join(
 const inDecks = new Set(collectTexts(lang, [], { runtime: false }).map(t => t.text));
 const order = ["a1", "a2", "b1"];
 const okLevel = lv => !lv || (levels.includes(lv) || (!order.includes(lv) && levels.includes(order[0])));
+const okVerb = deck => deck.startsWith("_v:") && verbs.has(deck.slice(3));
 const kept = new Map(runtimeTexts(lang).map(([t, k, d]) => [t, [k, d]]));
 const now = new Map(), bySrc = {};
 for (const [text, kind, deck, lv, src] of found) {
-  if (inDecks.has(text) || !okLevel(lv) || skip.has(src)) continue;
+  if (inDecks.has(text) || !(okLevel(lv) || okVerb(deck)) || skip.has(src)) continue;
   const s = bySrc[src] = bySrc[src] || new Set(); s.add(text);
   if (!now.has(text)) now.set(text, [kind, deck]);
   else if (kind === "w") now.get(text)[0] = "w";       // used as a word anywhere = a word
 }
 const chars = it => [...it].reduce((n, t) => n + t.length, 0);
-console.log(`${lang}: levels ${levels.join(", ")}`);
+console.log(`${lang}: levels ${levels.join(", ")}${verbs.size ? ` + ${verbs.size} verb(s): ${[...verbs].join(", ")}` : ""}`);
 for (const [s, set] of Object.entries(bySrc)) console.log(`  ${s.padEnd(11)} ${String(set.size).padStart(6)} phrases`);
 const added = [...now.keys()].filter(t => !kept.has(t)), dropped = [...kept.keys()].filter(t => !now.has(t));
 const changed = [...now].filter(([t, v]) => kept.has(t) && kept.get(t).join() !== v.join()).length;
 console.log(`  runtime.tsv: ${now.size} phrases (${chars(now.keys())} characters); vs the file: +${added.length} (${chars(added)} characters), -${dropped.length}${changed ? `, ${changed} moved` : ""}`);
 added.slice(0, 5).forEach(t => console.log(`    + ${t}`));
 dropped.slice(0, 5).forEach(t => console.log(`    - ${t}`));
-const head = `# levels=${levels.join(",")}\tskip=${[...skip].join(",")}`;
+const head = `# levels=${levels.join(",")}\tskip=${[...skip].join(",")}` + (verbs.size ? `\tverbs=${[...verbs].join(",")}` : "");
 const same = !added.length && !dropped.length && !changed && prev && prev.head === head;
 if (check) { console.log(same ? "  ✓ up to date" : "  ✗ out of date: run  node tools/audio/runtime.mjs --lang " + lang); process.exit(same ? 0 : 1); }
 if (dry) process.exit(0);
