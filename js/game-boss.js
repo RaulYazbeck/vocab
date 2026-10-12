@@ -61,9 +61,14 @@ function deckMetWords(deckId) {
   const d = getDeck(deckId);
   if (!d) return [];
   const out = [];
-  d.words.forEach((w, i) => { const ws = S.words[d.id + "_" + i]; if (ws && ws.st) out.push({ ...w, deckId: d.id, deckName: d.name, idx: i, anki: false }); });
+  // ws.rt: a card the verb track took over — part of it now, not a card to fight.
+  d.words.forEach((w, i) => { const ws = S.words[d.id + "_" + i]; if (ws && ws.st && !ws.rt) out.push({ ...w, deckId: d.id, deckName: d.name, idx: i, anki: false }); });
   return out;
 }
+// The decks with a boss: all of them, but a verb-form deck the verb
+// track has taken over only if you'd beaten its boss already (a trophy).
+function bossDecks(g) { return g.decks.filter(d => !(typeof vxDeckRetired === "function" && vxDeckRetired(d.id)) || ((S.games.bestiary[d.id] || {}).wins > 0)); }
+function bossDeckCount() { return vocabGroups().reduce((s, g) => s + bossDecks(g).length, 0); }
 // 👑 The ultimate deck boss: unlocks once every word of the deck is met,
 // has the whole deck as HP and must be beaten without a single mistake
 // — or with the ❤️ boss hearts you bring (1 per 20 words, from chests).
@@ -206,16 +211,17 @@ function renderBestiary(from) {
   showGameScreen();
   if (typeof logScreen === "function") logScreen("bestiary");
   const W = worldBossState();
-  const total = vocabGroups().reduce((s, g) => s + g.decks.length, 0);
+  const total = bossDeckCount();
   const beaten = Object.values(S.games.bestiary).filter(r => r.wins).length;
   // Open the level you're on: the first with an unbeaten boss and met
   // words — or simply the first level.
   const levels = vocabGroups();
-  const cur = Math.max(0, levels.findIndex(g => g.decks.some(d => !(S.games.bestiary[d.id] || {}).wins && deckMetWords(d.id).length > 0)));
+  const cur = Math.max(0, levels.findIndex(g => bossDecks(g).some(d => !(S.games.bestiary[d.id] || {}).wins && deckMetWords(d.id).length > 0)));
   const groups = levels.map((g, gi) => {
-    const won = g.decks.filter(d => (S.games.bestiary[d.id] || {}).wins).length;
+    const decks = bossDecks(g);
+    const won = decks.filter(d => (S.games.bestiary[d.id] || {}).wins).length;
     const open = gi === cur;
-    const tiles = g.decks.map(d => {
+    const tiles = decks.map(d => {
       const b = deckBoss(d.id), rec = S.games.bestiary[d.id] || {};
       const known = rec.wins > 0, ready = deckBossReady(d.id), seen = known || ready || rec.minions;
       return `<button class="bst-tile ${known ? "won" : ready ? "ready" : "locked"}" onclick="openBossSheet('${d.id}')" aria-label="${seen ? escapeHtml(b.name) : "Unknown boss"} · ${escapeHtml(d.name)}">
@@ -223,7 +229,7 @@ function renderBestiary(from) {
         <span class="bst-badge">${known ? "👑" : ready ? "⚔️" : ""}</span>
       </button>`;
     }).join("");
-    return `<details class="bst-level" ${open ? "open" : ""}><summary><span>${g.icon} ${escapeHtml(g.name)}</span><small>${won} / ${g.decks.length} beaten</small></summary><div class="bst-grid">${tiles}</div></details>`;
+    return `<details class="bst-level" ${open ? "open" : ""}><summary><span>${g.icon} ${escapeHtml(g.name)}</span><small>${won} / ${decks.length} beaten</small></summary><div class="bst-grid">${tiles}</div></details>`;
   }).join("");
   const back = _bestiaryFrom === "games" ? "openGamesHub(null)" : _bestiaryFrom === "journey" ? "renderJourney()" : "";
   document.getElementById("main-screen").innerHTML = `<div class="screen">

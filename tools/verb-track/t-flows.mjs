@@ -52,7 +52,7 @@ const r = await page.evaluate(() => {
   vxMirror();
   out.mirror = { key: rk, st: S.words[rk] && S.words[rk].st, rt: S.words[rk] && S.words[rk].rt, inPool: buildGamePool(null).some(w => wordKey(w) === rk) };
   // 11 · switch off: verb items and mirrors go, cards stay
-  const wordsBefore = Object.keys(S.words).filter(k => !k.startsWith("vx_") && !S.words[k].rt).length;
+  const wordsBefore = Object.keys(S.words).filter(k => !k.startsWith("vx_") && (!S.words[k].rt || S.words[k].rtWas)).length; // cards the track took over come back
   vxSwitchOff();
   out.off = { vx: Object.keys(S.words).filter(k => k.startsWith("vx_")).length, rt: Object.values(S.words).filter(w => w.rt).length,
     words: Object.keys(S.words).length === wordsBefore, thread: vlLevelTenses(), pace: pathPace() };
@@ -68,7 +68,7 @@ ok(r.game.flagged >= 1 || r.game.pfgeFl[1], "a typed game miss flags its rule", 
 ok(r.card.cov, "a conjugation card answered right fills the ledger", JSON.stringify(r.card));
 ok(r.report.length >= 2, "usage report has the Verbs lines", JSON.stringify(r.report));
 ok(r.learn, "learning log has the verb track");
-ok(r.ach.length === 3, "three Grammar ladders", JSON.stringify(r.ach));
+ok(r.ach.length === 5, "five Grammar ladders", JSON.stringify(r.ach));
 ok(r.menu, "☰ has Grammar");
 ok(/Imperativ/.test(r.todayLesson), "Today names the lesson", r.todayLesson);
 ok(r.gated && r.gatedPicked === 0, "a gated grammar deck is never picked", JSON.stringify([r.gated, r.gatedPicked]));

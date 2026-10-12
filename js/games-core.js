@@ -995,7 +995,7 @@ function makeCtx(def, pool, size, opts) {
     stage: $("g-stage"),
     clock: makeClock(),
     busy: false, dead: false, paused: false, started: false, finished: false,
-    missedWords: [], hits: new Map(), rank: 0, twist: null, golden: 0, goldenKeys: null,
+    missedWords: [], missKinds: {}, hits: new Map(), rank: 0, twist: null, golden: 0, goldenKeys: null,
     // Speak, don't spell: a typed rank stays multiple choice, one more option.
     get rp() {
       const r = def.ranks || [], p = r[Math.min(ctx.rank, r.length - 1)] || {};
@@ -1111,6 +1111,9 @@ function makeCtx(def, pool, size, opts) {
     // A typed answer is picked up from gradeTyped by itself.
     missed(word, info = {}) {
       if (word && !ctx.missedWords.some(w => sameWord(w, word))) ctx.missedWords.push(word);
+      // What was missed, per word: "plural" when only its plural was —
+      // its Today repair then asks the plural (applyGameCredit).
+      if (word) { const k = wordKey(word), t = info.type || GAME_MISS_TYPE[def.id] || "word"; ctx.missKinds[k] = ctx.missKinds[k] && ctx.missKinds[k] !== t ? "word" : t; }
       if (word && typeof learnNoteMiss === "function") {
         const given = info.given != null ? info.given : ctx.lastGiven;
         const typed = given != null;
@@ -1317,7 +1320,14 @@ function applyGameCredit(ctx) {
     if (w.anki) return;
     const ws = S.words[wordKey(w)];
     if (!ws || !ws.st) return;
+    // Only its plural missed: the repair asks the plural — unless the word
+    // already waits for a repair of its own (that one comes first). Any
+    // other miss: the repair asks the word again.
+    const pluralOnly = (ctx.missKinds || {})[wordKey(w)] === "plural";
+    const fixing = !!(ws.fl || ws.rp || ws.lrn);
     const r = srsReview(ws, false, "recognition");
+    if (pluralOnly && (!fixing || ws.fx === "pl")) ws.fx = "pl"; else delete ws.fx;
+    if (pluralOnly) pluralMissed(ws);
     r._w = w;
     if (r.events.includes("flagged")) out.flagged++;
     questEvent("srs", r);

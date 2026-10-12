@@ -543,7 +543,7 @@ function renderGrammar() {
       <div><b>${L ? L.all.done : "—"}</b><span>${vxT("/ {0} verbs complete", vxVerbs().length)}</span></div>
     </div>
     ${next ? `<button class="gr-next" onclick="renderGrammarSheet('${next.id}')" style="${vxUnitStyle(next.unit)}">
-      <span class="gr-next-k">${vxT("📖 Your next lesson — also comes in Today")}</span>
+      <span class="gr-next-k">${vxSheetsToday().includes(next.id) ? vxT("📖 Your next lesson — also comes in Today") : vxT("📖 Your next lesson — in Today tomorrow, or read it now")}</span>
       <span class="gr-next-t">${VX_UNIT[next.unit].sign} ${escapeHtml(VX_UNIT[next.unit].name)} · ${escapeHtml(next.title)}</span></button>` : ""}
     <div class="gr-h">${vxT("The tenses, in the order you learn them")}</div>
     <div class="gr-units">${units}</div>
@@ -731,7 +731,7 @@ function vxTodayHtml() {
   if (typeof vxAvailable !== "function" || !vxAvailable()) return "";
   migrateVerb();
   if (!vxOn()) return S.verb.offered === studyToday() ? "" : `<button class="tc-vx" onclick="renderVerbSwitch()">${vxT("🧩 <b>New verb system ready</b> — see what changes ›")}</button>`;
-  const pend = vxPendingSheets();
+  const pend = vxSheetsToday();
   if (!pend.length) return "";
   const sh = vxSheet(pend[0]), u = VX_UNIT[sh.unit];
   const ids = vxSheetIds(sh.unit), done = ids.filter(vxSheetPassed).length;
@@ -771,9 +771,15 @@ function vxFormHtmlFr(ex) {
 }
 // What to say aloud for an answer.
 function vxSayText(ex) { return VX_FR ? VXF.say(ex) : ex.form.ans; }
-// The question: tense chip, the person, gaps, the verb and its meaning.
+// The question: the tense as its title, the person and one gap, the
+// verb and its meaning. Nothing else competes with the tense: the rule
+// it practises is in the label above the card.
+function vxTenseTitleHtml(t, cls = "") {
+  const u = VX_TENSE_UNIT[t] || "pr";
+  return `<span class="vx-tt ${cls}" style="${vxUnitStyle(u)}">${(VX_UNIT[u] || {}).sign || ""} ${escapeHtml(VX_TENSE_LABEL[t] || "")}</span>`;
+}
 function vxPromptHtml(ex) {
-  const t = ex.tense, u = VX_TENSE_UNIT[t] || "pr", tl = VX_TENSE_LABEL[t] || "";
+  const t = ex.tense, u = VX_TENSE_UNIT[t] || "pr";
   // One blank for the whole verb: no word count, no prefix, pronoun or
   // Sie shown — those are part of what you produce. Only context that
   // isn't the answer (mit Anna) is shown.
@@ -788,20 +794,20 @@ function vxPromptHtml(ex) {
       : ex.p === "sie" ? "sie (they)" : ex.p === "er" && vxItVerb(ex.x) ? "es" : (PERSON_LABEL[ex.p] || ex.p).split("/")[0];
     line = `<span class="vx-pron">${escapeHtml(pron)}</span> ${gap}${ctx}`;
   }
-  const rule = ex.rule ? VX_RULE[ex.rule] : null;
   const mod = ex.kind === "pvmod" ? ` · with <b>${escapeHtml(ex.modal)}</b>` : "";
-  const gloss = typeof vlGloss === "function" ? vlGloss(ex.x.v) : "";
+  // Only what it means: the verb itself (its infinitive) is yours to find.
+  const gloss = vxMeaning(ex.x);
   return `<div class="vx-q" style="${vxUnitStyle(u)}">
-    <div class="vx-chips"><span class="vx-tense">${(VX_UNIT[u] || {}).sign || ""} ${escapeHtml(tl)}</span>${rule ? `<span class="vx-rule">${escapeHtml(rule.title)}</span>` : ex.cell ? `<span class="vx-rule">${vxT("📒 {0} verb", ex.x.level.toUpperCase())}</span>` : ""}</div>
+    <div class="vx-tt-row" id="vx-tt">${vxTenseTitleHtml(t)}</div>
     <div class="vx-line">${line}</div>
-    <div class="vx-verb"><b>${escapeHtml(ex.x.inf)}</b>${gloss ? ` · ${escapeHtml(gloss)}` : ""}${mod}</div>
-    <div class="vx-fmt">${speakOn() ? "🗣️ " + vxT("Say") : "✍️ " + vxT("Type")} <b>${vxT("the full form")}</b></div>
+    <div class="vx-verb">${escapeHtml(gloss)}${mod}</div>
+    ${speakOn() ? `<div class="vx-fmt">🗣️ ${vxT("Say")} <b>${vxT("the full form")}</b></div>` : ""}
   </div>`;
 }
 function vxItemLabel(ex) {
   if (ex.rule) return vxT("🧩 Rule · {0}", VX_RULE[ex.rule].title);
   if (ex.cell) return vxT("📒 Ledger · {0} verbs", ex.x.level.toUpperCase());
-  return `🧩 ${VX_ITEM_KINDS[ex.item.split(":")[0]].title} · ${ex.x.inf}`;
+  return `🧩 ${VX_ITEM_KINDS[ex.item.split(":")[0]].title}`; // (not the verb: that's the answer)
 }
 // A new verb item: what it is, before its first typed check.
 function renderPathVerbLearn(it) {
@@ -829,9 +835,10 @@ function renderPathVerbLearn(it) {
     // French the whole row it belongs to (ils font, que nous fassions…).
     const other = ex.p === "du" ? "er" : "du";
     const whole = (kind, p) => { const f = vxForm(ex.x, kind, p); return f ? escapeHtml(f.ans) : ""; };
-    const extra = VX_FR ? VXF.rowHtml(ex.x, ex.kind, ex.p) : k === "sc" ? `<div><span class="vx-pron">${other}</span> <b>${whole("sc", other)}</b></div>`
+    const extra = VX_FR ? vxRowTableHtml(VXF.rowCells(ex.x, ex.kind, ex.p)) : k === "sc" ? `<div><span class="vx-pron">${other}</span> <b>${whole("sc", other)}</b></div>`
       : k === "pt" ? `<div><span class="vx-pron">wir</span> <b>${whole("pt", "wir")}</b></div>`
-      : k === "p2" ? `<div class="p-sub">Präteritum: er ${whole("pt", "er")}</div>` : "";
+      : k === "p2" ? `<div class="p-sub">Präteritum: er ${whole("pt", "er")}</div>`
+      : k === "ir" || k === "p1" ? vxRowTableHtml(vxRowCellsDe(ex.x.F, k === "ir" ? "pr" : "pt", ex.p)) : "";
     body = `<div class="vx-learn-t">${escapeHtml(ex.x.inf)} <small>· ${escapeHtml(vlGloss(ex.x.v))}</small></div>
       <div class="vx-learn-chip">${escapeHtml(VX_ITEM_KINDS[k].title)}${vxT(" — not built by rule, so it has its own card")}</div>
       <div class="vx-learn-ex big"><div>${vxFormHtml(ex)}</div>${extra}</div>`;
@@ -839,6 +846,7 @@ function renderPathVerbLearn(it) {
   document.getElementById("p-card").innerHTML = `
     <div class="p-learn vx-learn" style="${vxUnitStyle(VX_TENSE_UNIT[ex.tense] || "pr")}">
       <div class="p-kicker">${vxT("🧩 New verb item")}</div>
+      <div class="vx-tt-row">${vxTenseTitleHtml(ex.tense, "md")}</div>
       ${body}
       ${ex.sheet ? `<button class="g-link-btn vx-sheet-btn" onclick="gsPeek('${ex.sheet}')">${vxT("📖 The sheet: {0}", escapeHtml(vxSheet(ex.sheet) ? vxSheet(ex.sheet).title : ""))}</button>` : ""}
     </div>`;
@@ -855,7 +863,7 @@ function renderPathVerb(it) {
   const kicker = it.repair ? `<div class="p-kicker repair">${vxT("🩹 Repair round — one more try")}</div>`
     : ws && ws.rp ? `<div class="p-kicker repair">${vxT("🩹 Repair — get it right to keep its badge")}</div>`
     : ws && ws.fl ? `<div class="p-kicker flag">${vxT("⚠️ Quick check")}</div>`
-    : it.reask ? `<div class="p-kicker">${vxT("↻ Once more")}</div>` : it.fresh ? `<div class="p-kicker">${vxT("🌱 From memory")}</div>` : "";
+    : it.reask ? `<div class="p-kicker">${vxT("↻ Once more")}</div>` : "";
   document.getElementById("p-card").innerHTML = `<div class="p-meta"><span class="p-deck">${escapeHtml(vxItemLabel(ex))}</span>${badge}</div>${kicker}${vxPromptHtml(ex)}<div id="p-hint"></div>`;
   if (speakOn()) {
     it.said = false; it.revealed = false;
@@ -863,7 +871,7 @@ function renderPathVerb(it) {
     pathSetActions(`<button class="g-big-btn p-main" id="p-show" onclick="pathVerbReveal()">${vxT("Show ▶")}</button>`);
     return;
   }
-  pathShowTyped(true, vxT("the full form…"));
+  pathShowTyped(true, vxT("{0} — the full form…", VX_TENSE_LABEL[ex.tense] || ""));
   pathSetActions(`
     <button class="hint-btn" id="p-hint-btn" onclick="pathVerbHint()">${vxT("💡 Hint")}</button>
     <button class="dontknow-btn" onclick="pathGradeVerb('', false)">${vxT("? Don't know")}</button>
@@ -886,7 +894,28 @@ function pathCheckVerb() {
   const input = document.getElementById("p-input");
   const val = input ? input.value : "";
   if (!val.trim()) { shakeEl(input); if (input) input.focus({ preventScroll: true }); return; }
-  pathGradeVerb(val, vxGrade(val, s.cur.w.vx));
+  const ex = s.cur.w.vx, g = vxGrade(val, ex);
+  // The right verb and person in another tense (er kommt for the
+  // Perfekt): not a miss yet — the tense is pointed out, one more try.
+  const other = s.cur.tenseRetry ? null : g !== true ? vxOtherTense(val, ex)
+    : vxUmlautOnly(val, ex.form.acc, vxIsCommand(ex)) ? vxOtherTense(val, ex, true) : null;
+  if (other) { pathVerbTenseRetry(other, val); return; }
+  // Second time the other tense by its umlaut alone: that's a miss.
+  if (g === true && s.cur.tenseRetry && vxUmlautOnly(val, ex.form.acc, vxIsCommand(ex)) && vxOtherTense(val, ex, true)) { pathGradeVerb(val, false); return; }
+  pathGradeVerb(val, g);
+}
+function pathVerbTenseRetry(other, val) {
+  const s = pathSession, it = s.cur, ex = it.w.vx;
+  it.tenseRetry = other;
+  const input = document.getElementById("p-input");
+  if (typeof logEvent === "function") logEvent("vx_tense_slip", { want: ex.tense, got: other, inf: ex.x.inf });
+  document.getElementById("p-fb").innerHTML = `<div class="vx-fb"><div class="vx-retry">${vxT("↺ That's the {0} — this one asks for the {1}.", vxTenseTitleHtml(other, "sm"), vxTenseTitleHtml(ex.tense, "sm"))}</div>
+    <div class="vx-retry-sub">${vxT("Right verb, other tense: one more try.")}</div></div>`;
+  const tt = document.getElementById("vx-tt");
+  if (tt) { tt.classList.remove("vx-flash"); void tt.offsetWidth; tt.classList.add("vx-flash"); }
+  if (input) { input.classList.add("retry"); input.select(); input.focus({ preventScroll: true }); input.addEventListener("input", () => input.classList.remove("retry"), { once: true }); }
+  haptic("select");
+  void val;
 }
 // Say-it mode: Show, hear it, ✗ / ✓.
 function pathVerbReveal() {
@@ -894,7 +923,7 @@ function pathVerbReveal() {
   if (!s || s.answered || !s.cur) return;
   const ex = s.cur.w.vx;
   s.cur.revealed = true;
-  document.getElementById("p-fb").innerHTML = `<div class="p-fb-main"><div class="vx-answer">${vxFormHtml(ex)}</div></div>`;
+  document.getElementById("p-fb").innerHTML = `<div class="vx-fb"><div class="vx-answer">${vxFormHtml(ex)}</div></div>`;
   pathSetActions(`<button class="g-sec-btn" onclick="pathGradeVerb('', false)">${vxT("✗ Not yet")}</button><button class="g-big-btn p-main" onclick="pathGradeVerb('', true, true)">${vxT("✓ I said it")}</button>`);
   speak(vxSayText(ex));
 }
@@ -904,14 +933,18 @@ function pathGradeVerb(val, ok, said = false) {
   if (!s || s.answered || !it || !it.w.vx) return;
   const w = it.w, ex = w.vx;
   const input = document.getElementById("p-input");
+  if (input) input.classList.remove("retry");
   if (ok === "near") {
     // One slip: no step either way, one more try at the end.
     s.answered = true;
     s.stats.near++; s.stats.answered++;
-    if (ex.item) { const ws = getWS(VX_DECK, ex.item); ws.lastAnsweredAt = Date.now(); ws.near = (ws.near || 0) + 1; pathMissed(w); }
+    if (ex.item) { const ws = getWS(VX_DECK, ex.item); ws.lastAnsweredAt = Date.now(); ws.near = (ws.near || 0) + 1; }
+    pathMissed(w); // a drill too: its try in the repair round
     if (input) input.classList.add("near");
     logEvent("answer", { m: ex.cell ? "path:cell" : "path:verb", ok: false, near: true, typed: true, ms: Date.now() - s.shownAt });
-    document.getElementById("p-fb").innerHTML = `<div class="p-near">≈ ${vxT("Almost")} — ${vxT("check the spelling")}</div><div class="p-diff">${vxDiffHtml(val, ex.form.ans)}</div><div class="p-sub">${vxT("No step up, no step down — one more try at the end of this session.")}</div>`;
+    document.getElementById("p-fb").innerHTML = `<div class="vx-fb"><div class="vx-res near">≈ ${vxT("Almost")} — ${vxT("check the spelling")}</div>
+      <div class="vx-answer">${vxFormHtml(ex)}</div><div class="p-diff">${vxDiffHtml(val, ex.form.ans)}</div>
+      <div class="vx-note">${vxT("No step up, no step down — one more try at the end of this session.")}</div></div>`;
     pathSetActions(`<button class="g-big-btn p-main" id="p-go" onclick="pathGo()">${vxT("Next →")}</button>`);
     holdAfterMistake("p-go");
     saveState();
@@ -920,8 +953,10 @@ function pathGradeVerb(val, ok, said = false) {
   s.answered = true;
   const hint = !!it.usedHint;
   const kind = hint ? "recognition" : "recall";
+  // Was it waiting for a repair (for the quests)?
+  const fixWs = ex.item ? S.words[vxKey(ex.item)] : null, wasFix = !!(fixWs && (fixWs.rp || fixWs.fl || fixWs.lrn));
   let res = null, from = 0;
-  vxRecordAnswer(ex, ok === true, { given: val, hint });
+  vxRecordAnswer(ex, ok === true, { given: val, hint, repair: !!it.repair });
   if (ex.item) {
     const ws = getWS(VX_DECK, ex.item);
     from = stageOf(ws);
@@ -934,12 +969,11 @@ function pathGradeVerb(val, ok, said = false) {
       pathMissed(w);
     }
     pathRecordMove(w, from, res);
-  } else if (ok !== true && !it.reask) {
-    // A missed drill: once more a few items later (another person).
-    const again = vxCellExercise({ x: ex.x, t: ex.tense });
-    if (again) { let pos = s.i + 1, n = 0; while (pos < s.items.length && n < 4) { if (s.items[pos].t !== "learn" && s.items[pos].t !== "bonus" && s.items[pos].t !== "sheet") n++; pos++; }
-      s.items.splice(pos, 0, { t: "typed", w: vxWord(again), reask: true }); }
-  }
+  } else if (ok !== true) {
+    // A missed drill waits for the repair round like every mistake — the
+    // session's count never grows (another person of the same tense then).
+    pathMissed(w);
+  } else if (it.repair && !hint) s.repairFixed = (s.repairFixed || 0) + 1;
   if (ex.cell && ok === true && !hint) s.vxCells = (s.vxCells || 0) + 1;
   if (ok === true) {
     sessionConsecutive++; sessionCorrect++; s.stats.correct++;
@@ -955,7 +989,7 @@ function pathGradeVerb(val, ok, said = false) {
   }
   s.stats.answered++;
   logEvent("answer", { m: ex.cell ? "path:cell" : "path:verb", ok: ok === true, typed: !said, hint, ms: Date.now() - s.shownAt });
-  questEvent("answer", { mode: "path", ok: ok === true, typed: !said, st: from, w, it: "verb", hint, ms: Date.now() - s.shownAt, said });
+  questEvent("answer", { mode: "path", ok: ok === true, typed: !said, st: from, w, it: "verb", hint, ms: Date.now() - s.shownAt, said, fix: wasFix || !!it.repair, retried: !!it.tenseRetry });
   saveState();
   // Feedback: the form in colour, the rule behind it, the whole row.
   const evs = res ? res.events : [];
@@ -973,13 +1007,17 @@ function pathGradeVerb(val, ok, said = false) {
     ? ` <br>📏 Separable: <strong>${escapeHtml(ex.x.F.sep)}-</strong> goes to the end.` : "";
   const why = VX_FR ? VXF.ruleHtml(ex.x, ex.kind, ex.p) || (ex.rule ? `📏 ${escapeHtml(VX_RULE[ex.rule].chip)}` : "")
     : engineT ? verbRuleHtml(ex.x.F, engineT, ex.p) + sepWhy : ex.rule ? `📏 ${escapeHtml(VX_RULE[ex.rule].chip)}` : "";
-  const row = VX_FR ? VXF.rowHtml(ex.x, ex.kind, ex.p) : engineT && engineT !== "im" ? verbRowHtml(ex.x.F, engineT, ex.p) : "";
+  const row = vxRowTableHtml(VX_FR ? VXF.rowCells(ex.x, ex.kind, ex.p) : engineT && engineT !== "im" ? vxRowCellsDe(ex.x.F, engineT, ex.p) : []);
   const umlNote = ok === true && val && vxUmlautOnly(val, ex.form.acc, vxIsCommand(ex));
-  const head = ok === true ? `<div class="p-ok">${vxT("✓ Correct!")}${umlNote ? ` <span class="vx-uml">${vxT("— spelt {0}", `<b>${escapeHtml(ex.form.ans)}</b>`)}</span>` : ""}</div>` : `<div class="p-bad">${val.trim() ? vxT("✗ Answer:") : vxT("Answer:")}</div>`;
-  document.getElementById("p-fb").innerHTML = `
-    <div class="p-fb-main">${head}<div class="vx-answer">${vxFormHtml(ex)}</div>${chip}</div>
+  const head = ok === true ? `<div class="vx-res ok">${vxT("✓ Correct!")}${umlNote ? ` <span class="vx-uml">${vxT("— spelt {0}", `<b>${escapeHtml(ex.form.ans)}</b>`)}</span>` : ""}</div>`
+    : `<div class="vx-res bad">${val.trim() ? vxT("✗ Answer:") : vxT("Answer:")}</div>`;
+  // One centred column: verdict, the form in colour, what you typed,
+  // the step it took, the rule, the whole row.
+  document.getElementById("p-fb").innerHTML = `<div class="vx-fb">
+    ${head}<div class="vx-answer">${vxFormHtml(ex)}</div>
     ${ok !== true && val.trim() ? `<div class="p-diff">${vxDiffHtml(val, ex.form.ans)}</div>` : ""}
-    ${why ? `<div class="p-sub vx-why">${why}</div>` : ""}${row}`;
+    ${chip ? `<div class="vx-chip">${chip}</div>` : ""}
+    ${why ? `<div class="vx-why">${why}</div>` : ""}${row}</div>`;
   pathSetActions(`
     ${ex.sheet ? `<button class="audio-btn" onclick="gsPeek('${ex.sheet}')" title="${vxT("Open the sheet")}">📖</button>` : ""}
     ${audioOk() ? `<button class="audio-btn" onclick="vxSayCur()">🔊</button>` : ""}
@@ -988,6 +1026,24 @@ function pathGradeVerb(val, ok, said = false) {
   if (ok !== true) holdAfterMistake("p-go");
   if (!said) speak(vxSayText(ex));
   if (input) input.focus({ preventScroll: true });
+}
+// The whole row of a German form as cells (verbRowHtml's content).
+function vxRowCellsDe(F, tense, person) {
+  return PERSONS.map(p => {
+    const c = verbCell(F, tense, p);
+    if (!c) return null;
+    const tail = String(c.tail || "").replace(/^… /, "").replace(/!$/, "").trim();
+    // (Sie is asked with the sie form: its row lights up.)
+    return { pron: PERSON_LABEL[p].split("/")[0], form: [c.ans, tail].filter(Boolean).join(" "), on: p === person || (person === "Sie" && p === "sie") };
+  }).filter(Boolean);
+}
+// The row as a table: pronouns right-aligned against their forms;
+// singular | plural side by side when the forms are short enough.
+function vxRowTableHtml(cells) {
+  if (!cells || cells.length < 2) return "";
+  const pairs = cells.length === 6 && cells.every(c => (c.pron + " " + c.form).length <= 19);
+  const list = pairs ? [0, 3, 1, 4, 2, 5].map(i => cells[i]) : cells;
+  return `<div class="vx-row ${pairs ? "pairs" : ""}">${list.map(c => `<span class="vx-rp${c.on ? " on" : ""}">${escapeHtml(c.pron)}</span><span class="vx-rf${c.on ? " on" : ""}">${escapeHtml(c.form)}</span>`).join("")}</div>`;
 }
 // The typed answer against the right one (ui-helpers.js), its words ours.
 function vxDiffHtml(val, ans) { return diffHtml(val, ans).replace(/>you typed /, `>${vxT("you typed")} `); }

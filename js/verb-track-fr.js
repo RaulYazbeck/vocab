@@ -513,12 +513,17 @@ function vxfRuleHtml(x, kind, p) {
   return "";
 }
 // The whole row of a tense for the feedback (je … ils).
-function vxfRowHtml(x, kind, p) {
-  if (!["pr", "im", "fu", "co", "sj", "pc", "pq"].includes(kind)) return "";
+// The whole row of a form, as cells: { pron, form, on } (Today's table).
+function vxfRowCells(x, kind, p) {
+  if (!["pr", "im", "fu", "co", "sj", "pc", "pq"].includes(kind)) return [];
   const cells = VXF_PERSONS.map(q => { const f = vxfForm(x, kind, q); return f ? { q, f: f.ans } : null; }).filter(Boolean);
-  if (cells.length < 2) return "";
-  return `<div class="vr-row">${cells.map(c => { const pr = vxfPron(kind, c.q, c.f);
-    return `<span class="vr-c${c.q === vxfBase(p) ? " on" : ""}"><span class="vr-p">${escapeHtml(pr)}</span>${/'$/.test(pr) ? "" : " "}${escapeHtml(c.f)}</span>`; }).join("")}</div>`;
+  if (cells.length < 2) return [];
+  return cells.map(c => ({ pron: vxfPron(kind, c.q, c.f), form: c.f, on: c.q === vxfBase(p) }));
+}
+function vxfRowHtml(x, kind, p) {
+  const cells = vxfRowCells(x, kind, p);
+  if (!cells.length) return "";
+  return `<div class="vr-row">${cells.map(c => `<span class="vr-c${c.on ? " on" : ""}"><span class="vr-p">${escapeHtml(c.pron)}</span>${/'$/.test(c.pron) ? "" : " "}${escapeHtml(c.form)}</span>`).join("")}</div>`;
 }
 // Units already in use when the system is switched on.
 function vxfSwitchOpen(pos) {
@@ -692,7 +697,7 @@ const VXF_ES = {
   "the structure": "la estructura", "rule {0}": "la regla {0}", "the table": "la tabla", "the list": "la lista", "the trap": "la trampa",
   // the Grammar screens
   "📐 Grammar · Verbs": "📐 Gramática · Verbos", "/ {0} tenses open": "/ {0} tiempos abiertos", "/ {0} sheets": "/ {0} fichas", "/ {0} verbs complete": "/ {0} verbos completos",
-  "📖 Your next lesson — also comes in Today": "📖 Tu próxima lección — también llega en Today", "The tenses, in the order you learn them": "Los tiempos, en el orden en que los aprendes",
+  "📖 Your next lesson — also comes in Today": "📖 Tu próxima lección — también llega en Today", "📖 Your next lesson — in Today tomorrow, or read it now": "📖 Tu próxima lección — llega mañana en Today, o léela ahora", "The tenses, in the order you learn them": "Los tiempos, en el orden en que los aprendes",
   "ℹ️ How the verb track works": "ℹ️ Cómo funciona el sistema de verbos", "Switch back to the old verb cards": "Volver a las tarjetas de verbos de antes",
   "{0}/{1} read": "{0}/{1} leídas", "🏆 Mastered": "🏆 Dominado", "✅ Solid": "✅ Sólido", "🔁 Practising": "🔁 Practicando", "📖 Lesson {0}/{1}": "📖 Lección {0}/{1}",
   "after {0}": "después de {0}", "soon": "pronto", "📐 Grammar": "📐 Gramática", "← Tenses": "← Tiempos",
@@ -738,7 +743,7 @@ const VXF_ES = {
   "No step up, no step down — one more try at the end of this session.": "Ni sube ni baja — un intento más al final de esta sesión.",
   "✓ Correct!": "✓ ¡Correcto!", "Answer:": "Respuesta:", "🌳 Known!": "🌳 ¡Known!", "🩹 Repaired": "🩹 Reparada", "✓ Scheduled": "✓ Programada",
   "🩹 Badge kept — repair it next time": "🩹 Insignia conservada — repárala la próxima vez", "↓ back to {0}": "↓ de vuelta a {0}",
-  "💡 with hint — no step up": "💡 con pista — no sube", "you typed": "escribiste", "— spelt {0}": "— se escribe {0}", "the full form": "la forma completa", "the full form…": "la forma completa…", "Almost": "Casi", "Open the sheet": "Abrir la ficha", "Next →": "Siguiente →",
+  "💡 with hint — no step up": "💡 con pista — no sube", "you typed": "escribiste", "— spelt {0}": "— se escribe {0}", "the full form": "la forma completa", "the full form…": "la forma completa…", "{0} — the full form…": "{0} — la forma completa…", "↺ That's the {0} — this one asks for the {1}.": "↺ Eso es {0} — aquí se pide {1}.", "Right verb, other tense: one more try.": "Verbo correcto, otro tiempo: un intento más.", "Almost": "Casi", "Open the sheet": "Abrir la ficha", "Next →": "Siguiente →",
   // verb-track.js
   "It joins your reviews and the verb games": "Entra en tus repasos y en los juegos de verbos", "Every rule of it 🌳 Known": "Todas sus reglas 🌳 Known",
   "{0} unlocked": "{0} desbloqueado", "{0} solid": "{0} sólido", "Verbs": "Verbos",
@@ -765,7 +770,7 @@ const VXF = {
   bank: () => frVerbBank(), kind: vxfKind, form: vxfForm, hasTense: vxfHasTense, refs: vxfRefs, cover: vxfCover, needsItem: vxfNeedsItem,
   itemOrder: vxfItemOrder, cellPersons: vxfCellPersons, cellOrder: vxfCellOrder, cellSheet: vxfCellSheet, cellRuleItem: vxfCellRuleItem,
   itemsForForm: vxfItemsForForm, switchOpen: vxfSwitchOpen, eq: vxfEq, gradeTries: vxfGradeTries, mistake: vxfMistakeType, classify: vxfClassify,
-  pron: vxfPron, join: vxfJoin, say: vxfSay, ruleHtml: vxfRuleHtml, rowHtml: vxfRowHtml, gqSets: VXF_GQ_SETS, gqWrong: vxfGqWrong, auxOptions: vxfAuxOptions,
+  pron: vxfPron, join: vxfJoin, say: vxfSay, ruleHtml: vxfRuleHtml, rowHtml: vxfRowHtml, rowCells: vxfRowCells, gqSets: VXF_GQ_SETS, gqWrong: vxfGqWrong, auxOptions: vxfAuxOptions,
   es: VXF_ES, how: VXF_HOW, switchList: vxfSwitchList,
 };
 

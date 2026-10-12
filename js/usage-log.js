@@ -144,7 +144,7 @@ function _usageAggregate(type, d, now) {
       if (d.met) startDay.met = (startDay.met || 0) + d.met;
       if (d.up) startDay.up = (startDay.up || 0) + d.up;
       if (d.down) startDay.down = (startDay.down || 0) + d.down;
-      if (k === "path" || k === "quick5") _usageTierSnapshot();
+      if (k === "path") _usageTierSnapshot();
       break;
     }
     case "game_start": _inc(day.gp, d.id || "?", 0); break;

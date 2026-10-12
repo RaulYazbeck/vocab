@@ -80,7 +80,7 @@ function renderGroups() {
         <div class="folder-icon">${deck.icon}</div>
         <div class="folder-name">${deck.name}</div>
         <div class="folder-meta">${mastered}/${total} mastered</div>
-        <div class="folder-unlock">${unlocked}/${all} unlocked</div>
+        <div class="folder-unlock">${typeof vxDeckRetired === "function" && vxDeckRetired(deck.id) ? "📐 now in the verb track" : `${unlocked}/${all} unlocked`}</div>
         <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
         <div class="progress-bar" style="margin-top:3px;"><div class="progress-fill" style="background:linear-gradient(90deg,#7C5CBF,#B39DDB);width:${Math.round((masteryPlus/total)*100)||0}%"></div></div>
         <div style="font-size:10px;color:#7C5CBF;margin-top:2px;">${masteryPlus} ⭐</div>
@@ -666,7 +666,7 @@ function settingsAccountName() {
   return (typeof currentUser !== "undefined" && currentUser)
     ? (currentUser.displayName || currentUser.email || "Signed in") : "";
 }
-// ☰ The Menu: you, where to go, Classic mode, Settings.
+// ☰ The Menu: you, where to go, Settings (Classic mode lives in ⚙️ › Modes).
 // 👵 Grandma mode: one short page — games, sound, new words, the modes
 // (Grandma, Speak don't spell) and the account. No sub-pages.
 function grandmaMenuHtml() {
@@ -694,7 +694,7 @@ function settingsMenuHtml() {
   const Q = S.quests || {};
   const scan = pathScan();
   const chests = Q.pending ? Q.pending.length : 0;
-  const decks = vocabGroups().reduce((s, g) => s + g.decks.length, 0);
+  const decks = typeof bossDeckCount === "function" ? bossDeckCount() : vocabGroups().reduce((s, g) => s + g.decks.length, 0);
   const beaten = Object.values((S.games && S.games.bestiary) || {}).filter(r => r && r.wins).length;
   const account = settingsAccountName();
   const name = account ? escapeHtml(account.split(" ")[0]) : "";
@@ -715,7 +715,6 @@ function settingsMenuHtml() {
       ${menuRowHtml("📊", "Stats", "", "menuGo('stats')")}
       ${menuRowHtml("🏆", "Achievements", "", "menuGo('badges')")}
     </div>
-    ${grandmaOn() ? "" : setSwitchHtml("📚", "Classic mode", "The Library under Today: pick decks yourself — Learn · Drill · Timer · Games", classicOn(), "toggleClassic()")}
     <div class="menu-list">
       ${menuRowHtml("⚙️", "Settings", "", "openSettingsPage('main')")}
       ${menuRowHtml("☁️", account ? name : "Sign in", account ? "synced" : "to sync devices", account ? "openSettingsPage('account')" : "handleAuth()")}
@@ -730,7 +729,7 @@ function openMenu() { openSettings("menu"); }
 function settingsMainHtml() {
   const plan = pathEnsurePlan();
   const planSub = plan
-    ? `Finish by ${fmtShortDate(S.path.deadline)} · ${plan.pace} new words today`
+    ? `Finish by ${fmtShortDate(S.path.deadline)} · ${plan.pace + ((plan.vx && plan.vx.items) || 0)} new today`
     : `${S.path.newPerDay ? S.path.newPerDay + " new words a day" : "New words paused"} · goal ${getDailyGoal()}`;
   const account = settingsAccountName();
   const modes = [classicOn() && "📚 Classic", grandmaOn() && "👵 Grandma", speakOn() && "🗣️ Speak, don't spell"].filter(Boolean);
@@ -826,7 +825,7 @@ function deadlineSettingsHtml() {
   const scan = pathScan();
   const st = pathDeadlineStatus(scan);
   const late = !st.ok
-    ? `<span>⚠️ Out of reach: even at the maximum pace (${PLAN.MAX_PACE} new words a day) you'd finish around ${fmtShortDate(st.eta)}. Pick a later date to get an honest daily plan.</span>` : "";
+    ? `<span>⚠️ Out of reach: even at the fastest pace (${PLAN.MAX_PACE} new words a day, and the verbs as fast as their tenses open) you'd finish around ${fmtShortDate(st.eta)}. Pick a later date to get an honest daily plan.</span>` : "";
   return `<div class="set-choice">
       <div class="set-choice-head"><span class="set-icon">🗓️</span><span class="set-label">Finish everything by</span></div>
       <div class="set-date-row">
@@ -839,11 +838,13 @@ function deadlineSettingsHtml() {
 }
 function deadlineLineHtml(scan) {
   const d = fmtShortDate(S.path.deadline);
-  if (!pathUnmet(scan)) return `🗓️ Every word is met — reviews only from here`;
+  const vxLeft = typeof vxOn === "function" && vxOn() ? vxPaceNeeded(scan).left : 0;
+  if (!pathUnmet(scan) && !vxLeft) return `🗓️ Every word and verb is met — reviews only from here`;
   if (pathDaysLeft() < 0) return `🗓️ Your finish date (${d}) has passed — pick a new one in ⚙️ Settings whenever you like`;
   const st = pathDeadlineStatus(scan);
-  if (!st.ok) return `⚠️ ${d} is out of reach — at the maximum pace (${PLAN.MAX_PACE} new a day) you'd finish around <b>${fmtShortDate(st.eta)}</b>. Pick a later date in ⚙️ Settings`;
-  return `🗓️ Quests are sized to finish everything by <b>${d}</b> · ${pathEnsurePlan().pace} new today`;
+  if (!st.ok) return `⚠️ ${d} is out of reach — at the fastest pace you'd finish around <b>${fmtShortDate(st.eta)}</b>. Pick a later date in ⚙️ Settings`;
+  const plan = pathEnsurePlan();
+  return `🗓️ Quests are sized to finish everything — words and verbs — by <b>${d}</b> · ${plan.pace + ((plan.vx && plan.vx.items) || 0)} new today`;
 }
 function setDeadlineFromSettings(iso) {
   setPathDeadline(iso);
@@ -918,9 +919,13 @@ function renderHome() {
   const note = t.reason === "autopaused"
     ? `<div class="tc-note">⏸ New words paused after a few days away — they resume ${pathDeadlineOn() ? "as soon as you finish today's plan" : "as reviews clear"}. <button class="tc-link" onclick="pathResume();renderHome()">Resume now</button></div>`
     : t.reason === "catchup" ? `<div class="tc-note">🧹 Catching up first: ${t.overdue} overdue reviews. New words return ${pathDeadlineOn() ? "as soon as you finish today's plan" : "when the pile is smaller"}.</div>` : "";
+  // Verbs are part of the same day: their reviews, repairs and new items
+  // are in these numbers too (verb-track.js).
+  const vx = typeof vxTodayCounts === "function" ? vxTodayCounts() : { due: 0, fix: 0, fresh: 0 };
+  t.due += vx.due; t.fix += vx.fix; t.newLeft += vx.fresh;
   const extra = t.frontier && !t.newLeft && t.reason !== "autopaused";
   const stats = [];
-  if (t.fix) stats.push(`<span class="tc-stat warn" title="Words you slipped on — Start fixes them first">🩹 ${t.fix} to fix</span>`);
+  if (t.fix) stats.push(`<span class="tc-stat warn" title="Words and verbs you slipped on — Start fixes them first">🩹 ${t.fix} to fix</span>`);
   stats.push(`<span class="tc-stat" title="Reviews due today">📚 ${t.due} due</span>`);
   stats.push(!t.frontier ? `<span class="tc-stat">🏔️ all met</span>`
     : extra ? `<button class="tc-stat tc-stat-btn" onclick="pathLearnExtra();startPathSession('quick')" title="Today's new words are done — learn ${PATH.EXTRA_NEW} more">🌱 +${PATH.EXTRA_NEW} new</button>`
@@ -950,6 +955,8 @@ function renderHome() {
 // quests, the weekly saga and Games. Everything else waits in ⚙️.
 function renderGrandmaHome(home) {
   const t = pathTodaySummary();
+  const vx = typeof vxTodayCounts === "function" ? vxTodayCounts() : { due: 0, fix: 0, fresh: 0 };
+  t.due += vx.due; t.fix += vx.fix; t.newLeft += vx.fresh;
   const Q = S.quests;
   const len = S.path.sessionLen || "regular";
   const sg = sagaProgress();
@@ -1042,7 +1049,11 @@ function renderJourney() {
   const levels = scan.groups.map(g => {
     const eta = pathEta(g);
     const left = [];
-    if (g.tiers.new) left.push(`${g.tiers.new} not met`);
+    // Cards the verb track took over never come as new words: they fill in
+    // as you learn those verbs, so they aren't "not met" words to learn.
+    const viaVx = (g.ret || 0) - (g.retMet || 0);
+    if (g.tiers.new - viaVx > 0) left.push(`${g.tiers.new - viaVx} not met`);
+    if (viaVx > 0) left.push(`📐 ${viaVx} verb forms the verb track fills in`);
     if (g.tiers.learning) left.push(`${g.tiers.learning} learning`);
     if (g.tiers.familiar) left.push(`${g.tiers.familiar} familiar`);
     if (g.repair) left.push(`🩹 ${g.repair} in repair`);
@@ -1067,6 +1078,7 @@ function renderJourney() {
     </div>`;
   }).join("");
   const fcHtml = forecastHtml();
+  const vxLeftOver = (scan.ret || 0) - (scan.retMet || 0); // see "What's left" above
   document.getElementById("main-screen").innerHTML = `<div class="screen journey">
     <div class="screen-top"><div class="screen-label">🗺️ Journey</div>${backBtnHtml()}</div>
     <div class="jh">
@@ -1074,7 +1086,7 @@ function renderJourney() {
       ${pathDeadlineOn() ? `<div class="jh-plan">${deadlineLineHtml(scan)}</div>` : ""}
       <div class="jh-sub">💎 ${scan.locked.toLocaleString()} locked in · 🌱 ${scan.met.toLocaleString()} met${scan.repair ? ` · 🩹 ${scan.repair} in repair` : ""}${scan.flagged ? ` · ⚠️ ${scan.flagged} flagged` : ""}</div>
       ${tierBarHtml(scan.tiers, scan.total, "big")}
-      <div class="tier-legend">${TIERS.map(t => `<span><i class="tb-${t.id}"></i>${t.icon} ${t.name} ${scan.tiers[t.id] || 0}</span>`).join("")}</div>
+      <div class="tier-legend">${TIERS.map(t => `<span><i class="tb-${t.id}"></i>${t.icon} ${t.name} ${(scan.tiers[t.id] || 0) - (t.id === "new" ? vxLeftOver : 0)}</span>`).join("")}${vxLeftOver ? `<span>📐 via the verb track ${vxLeftOver}</span>` : ""}</div>
     </div>
     ${fcHtml}
     ${levels}
@@ -1150,18 +1162,26 @@ function renderDeckWords(deckId) {
   const rows = d.words.map((w, i) => {
     const ws = S.words[d.id + "_" + i];
     const st = ws ? ws.st || 0 : 0;
-    const due = !st ? "" : ws.rp ? "🩹 repair" : ws.fl ? "⚠️ check" : ws.lrn ? "now" : st >= STAGE_LOCKED ? "💎" :
+    // A card the verb track took over (or covers, not met yet): its verb's
+    // items are what get asked — never this card, so never "due".
+    const vx = typeof vxRetired === "function" && vxRetired(d.id, i);
+    const due = vx ? "📐 verbs" : !st ? "" : ws.rp ? "🩹 repair" : ws.fl ? "⚠️ check" : ws.lrn ? "now" : st >= STAGE_LOCKED ? "💎" :
       ws.dueAt <= now ? "due" : (() => { const n = Math.round((ws.dueAt - dayStart) / 864e5); return n <= 0 ? "today" : n === 1 ? "tomorrow" : `in ${n}d`; })();
-    return `<div class="dw-row ${st ? "" : "unmet"}"><div class="dw-en">${escapeHtml(w.en)}</div><div class="dw-de">${st ? colorArticleHtml(w[WORD_KEY]) : `<span class="dw-hidden">not met yet</span>`}</div>
+    return `<div class="dw-row ${st ? "" : "unmet"}"><div class="dw-en">${escapeHtml(w.en)}</div><div class="dw-de">${st ? colorArticleHtml(w[WORD_KEY]) : `<span class="dw-hidden">${vx ? "in the verb track" : "not met yet"}</span>`}</div>
       <div class="dw-pips">${st ? pipsHtml(ws) : ""}</div><div class="dw-due ${due === "due" || due === "now" ? "now" : ""}">${due}</div></div>`;
   }).join("");
   const ds = pathScan().decks[deckId];
+  // A deck the verb track took over whole: no boss (its cards never come)
+  // unless already beaten, and its practice is the track's.
+  const taken = typeof vxDeckRetired === "function" && vxDeckRetired(deckId);
   document.getElementById("main-screen").innerHTML = `<div class="screen">
     <div class="screen-top"><div class="screen-label">${d.icon} ${escapeHtml(d.name)}</div><button class="back-btn" onclick="renderJourney()">← Journey</button></div>
     ${ds ? tierBarHtml(ds.tiers, ds.total, "big") : ""}
-    <div class="jh-sub" style="margin:8px 0 12px">${ds ? `${ds.known}/${ds.total} known · ${ds.locked} 💎 · ${ds.total - ds.met} not met` : ""}</div>
-    ${typeof deckBossRowHtml === "function" ? deckBossRowHtml(deckId) : ""}
-    <div class="g-result-actions" style="margin:0 0 12px"><button class="g-sec-btn" onclick="startPathSession(S.path.sessionLen, { focus: 'deck', param: '${deckId}' })">📖 Practise this deck</button></div>
+    <div class="jh-sub" style="margin:8px 0 12px">${ds ? `${ds.known}/${ds.total} known · ${ds.locked} 💎 · ${ds.total - ds.met - ((ds.ret || 0) - (ds.retMet || 0))} not met${(ds.ret || 0) ? ` · 📐 ${ds.ret} in the verb track` : ""}` : ""}</div>
+    ${typeof deckBossRowHtml === "function" && !(taken && !((S.games && S.games.bestiary && S.games.bestiary[deckId]) || {}).wins) ? deckBossRowHtml(deckId) : ""}
+    <div class="g-result-actions" style="margin:0 0 12px">${taken
+      ? `<button class="g-sec-btn" onclick="showScreen('grammar')">📐 Practised in the verb track ›</button>`
+      : `<button class="g-sec-btn" onclick="startPathSession(S.path.sessionLen, { focus: 'deck', param: '${deckId}' })">📖 Practise this deck</button>`}</div>
     <div class="dw-list">${rows}</div>
   </div>`;
 }

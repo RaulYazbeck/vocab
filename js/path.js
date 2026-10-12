@@ -316,9 +316,15 @@ function pathPaceNeeded(scan = pathScan(), today = studyToday()) {
 // every word 75 days early, so a date can be reachable at the maximum
 // pace even when that margin no longer fits.
 const KNOWN_LAG = 30; // simulated: last word met → 99% Known in ~11 days, plus the slower last weeks
+// The verb track counts too (verb-track.js vxPaceNeeded): its items and
+// forms at their fastest pace, each tense from the day it opens.
 function pathDeadlineStatus(scan = pathScan(), today = studyToday()) {
-  if (!pathDeadlineOn() || !pathUnmet(scan)) return { ok: true, eta: S.path.deadline || "" };
-  const eta = addDays(today, Math.ceil(pathUnmet(scan) / PLAN.MAX_PACE) + KNOWN_LAG);
+  if (!pathDeadlineOn()) return { ok: true, eta: "" };
+  const vx = typeof vxOn === "function" && vxOn() ? vxPaceNeeded(scan) : null;
+  // Every word met and every verb item and form started: on course.
+  if (!pathUnmet(scan) && !(vx && vx.left)) return { ok: true, eta: S.path.deadline };
+  let eta = pathUnmet(scan) ? addDays(today, Math.ceil(pathUnmet(scan) / PLAN.MAX_PACE) + KNOWN_LAG) : today;
+  if (vx && vx.eta > eta) eta = vx.eta;
   const ok = pathDaysLeft(today) >= 0 && eta <= S.path.deadline;
   return { ok, eta: ok ? S.path.deadline : eta };
 }
@@ -452,9 +458,12 @@ function pathReviewCandidates(now = Date.now()) {
   vocabGroups().forEach(g => g.decks.forEach(d => {
     for (let i = 0; i < d.words.length; i++) {
       const ws = S.words[d.id + "_" + i];
-      if (!ws || !ws.st || (ws.st >= STAGE_LOCKED && !ws.rp && !ws.fl && !(ws.dueAt && ws.dueAt <= now))) continue;
+      if (!ws || !ws.st || ws.rt) continue;
+      // A watched plural comes back the next day, due or not (its check).
+      const watch = ws.plw > 0 && ws.plDay !== studyToday() && pathHasPlural(pathWord(d.id, i));
+      if (ws.st >= STAGE_LOCKED && !ws.rp && !ws.fl && !(ws.dueAt && ws.dueAt <= now) && !watch) continue;
       if (ws.rp || ws.fl || ws.lrn) fix.push({ d, i, ws });
-      else if (ws.dueAt && ws.dueAt <= now) due.push({ d, i, ws });
+      else if ((ws.dueAt && ws.dueAt <= now) || watch) due.push({ d, i, ws });
     }
   }));
   fix.sort((a, b) => (b.ws.rp || 0) - (a.ws.rp || 0) || (a.ws.dueAt || 0) - (b.ws.dueAt || 0));
@@ -480,9 +489,30 @@ function pathSpotCandidates(n = 1, rng = Math.random) {
 //   st 2–4  typed
 //   st ≥ 5  typed; every second review typed into its example sentence;
 //           ⭐+ sometimes reversed (type the meaning)
+// A word flagged for its plural alone (Plural Hunt): its fix asks the plural.
+function pathFixAsk(w, ws) {
+  return ws && ws.fx === "pl" && pathHasPlural(w) ? "pl" : "";
+}
+function pathHasPlural(w) { return !IS_FRENCH_APP && typeof pluralItem === "function" && !!pluralItem(w); }
+// Plurals you keep missing (ws.plm: misses, in a game or typed): from
+// the second one the plural is watched (ws.plw) — once repaired, the
+// word's next reviews ask its plural instead of its meaning until it is
+// right on PLURAL_WATCH separate days; a miss starts the watch again.
+const PLURAL_WATCH = 2;
+function pluralMissed(ws) {
+  ws.plm = (ws.plm || 0) + 1;
+  if (ws.plm >= 2) ws.plw = PLURAL_WATCH;
+}
+function pluralRight(ws) {
+  if (!ws.plw || ws.plDay === studyToday()) return; // one day counts once
+  ws.plDay = studyToday();
+  if (--ws.plw <= 0) { delete ws.plw; delete ws.plDay; ws.plm = 0; }
+}
 function pathItemFor(w, ws, rng = Math.random) {
   const st = ws ? ws.st || 0 : 0;
-  if (ws && (ws.rp || ws.lrn || ws.fl)) return { t: "typed", w, fix: true };
+  if (ws && (ws.rp || ws.lrn || ws.fl)) return { t: "typed", w, fix: true, ask: pathFixAsk(w, ws) };
+  // A watched plural: this review asks it (not twice the same day).
+  if (ws && ws.plw > 0 && ws.plDay !== studyToday() && pathHasPlural(w)) return { t: "typed", w, ask: "pl", watch: true };
   if (st >= STAGE_LOCKED) return { t: "spot", w, maint: true };
   if (st <= 1) {
     if (audioOk() && rng() < 0.25) return { t: "listen", w };
@@ -577,7 +607,7 @@ function questNudges() {
     const [k, a, b] = String(go).split(":");
     if (k === "focus" && a !== "new") { out.focus.push({ focus: a, param: b }); out.quests.push(q); }
     else if (k === "game" && PATH_BONUS_IDS.includes(a)) { out.games.push(a); out.quests.push(q); }
-    else if (k === "path" || k === "quick5") out.quests.push(q);
+    else if (k === "path") out.quests.push(q);
   });
   return out;
 }
@@ -587,7 +617,7 @@ function questNudges() {
 // choice check → typed recall a few items later), an optional spot
 // check on a 💎 word and optional bonus-round offers.
 function buildPathQueue(lenKey, opts = {}) {
-  const budget = opts.limit || PATH.SESSION_LENGTHS[lenKey] || PATH.SESSION_LENGTHS.regular;
+  const budget = PATH.SESSION_LENGTHS[lenKey] || PATH.SESSION_LENGTHS.regular;
   const rng = Math.random;
   const now = Date.now();
   const scan = pathScan(true);
@@ -609,16 +639,16 @@ function buildPathQueue(lenKey, opts = {}) {
   } else {
     const { fix, due } = pathReviewCandidates(now);
     const reviewsAvail = fix.length + due.length;
-    const newSlots = opts.reviewOnly ? 0 : Math.max(Math.round(budget * 0.3), budget - Math.min(reviewsAvail, Math.round(budget * 0.7)));
+    const newSlots = Math.max(Math.round(budget * 0.3), budget - Math.min(reviewsAvail, Math.round(budget * 0.7)));
     // Each new word costs ~3 counted items: a choice check and two
     // spaced typed recalls (successive relearning, criterion 2).
-    const newCount = opts.reviewOnly ? 0 : Math.min(q.left, Math.floor(newSlots / 3));
+    const newCount = Math.min(q.left, Math.floor(newSlots / 3));
     clusters = planNewWords(newCount, rng);
     const nNew0 = clusters.reduce((s, c) => s + c.length, 0);
     // The verb track (verb-track.js): today's sheets first, then verb
     // items within a quarter of the session — they take that room from
     // word reviews, never from new words.
-    const vxp = !opts.reviewOnly && typeof vxOn === "function" && vxOn() ? vxSessionPlan(Math.round(budget * VX_SESSION_SHARE)) : null;
+    const vxp = typeof vxOn === "function" && vxOn() ? vxSessionPlan(Math.round(budget * VX_SESSION_SHARE)) : null;
     const reviewBudget = Math.max(0, budget - nNew0 * 3 - (vxp ? vxp.items.length : 0));
     reviews = [...fix, ...due].slice(0, reviewBudget).map(x => pathItemFor(pathWord(x.d.id, x.i), x.ws, rng));
     if (vxp && vxp.items.length) {
@@ -634,7 +664,7 @@ function buildPathQueue(lenKey, opts = {}) {
     }
     // Words for open focus quests: the spare room, at least a fifth and
     // at most a third of the session, spread through it.
-    const nudges = opts.reviewOnly ? null : questNudges();
+    const nudges = questNudges();
     if (nudges && nudges.focus.length) {
       // With a finish date, today's plan comes first: quest words only
       // take room the plan's reviews and new words leave free.
@@ -654,10 +684,10 @@ function buildPathQueue(lenKey, opts = {}) {
       }
     }
     // Spot check (at most 2 a day).
-    spots = !opts.reviewOnly && (S.path.spotToday || 0) < 2 && budget >= 15 ? pathSpotCandidates(1, rng) : [];
+    spots = (S.path.spotToday || 0) < 2 && budget >= 15 ? pathSpotCandidates(1, rng) : [];
     // Word of the day (a quest): slip it in once per session.
     const wk = typeof questWotdKey === "function" ? questWotdKey() : null;
-    if (wk && !opts.reviewOnly) {
+    if (wk) {
       const di = wk.lastIndexOf("_"), dId = wk.substring(0, di), idx = +wk.slice(di + 1);
       if (getDeck(dId) && isMet(dId, idx) && !reviews.some(r => r.w.deckId === dId && r.w.idx === idx))
         reviews.splice(Math.floor(reviews.length * 0.4), 0, { t: "typed", w: pathWord(dId, idx), wotd: true });
@@ -711,7 +741,7 @@ function buildPathQueue(lenKey, opts = {}) {
   // The length you picked is the length you get: once due and new words
   // run out, the rest is practice on your least recently seen words
   // (stages only move for due words, so it's pure extra practice).
-  if (!focus && !opts.reviewOnly && !opts.limit) {
+  if (!focus) {
     const have = new Set(out.filter(x => x.w).map(x => x.w.deckId + "_" + x.w.idx));
     const short = budget - counted();
     if (short > 0) focusWords("stale").filter(x => !have.has(x.d.id + "_" + x.i)).slice(0, short)
@@ -757,7 +787,63 @@ function buildPathQueue(lenKey, opts = {}) {
       if (n >= marks[0].at && i < out.length - 1) { out.splice(i + 1, 0, marks.shift().item); i++; }
     }
   }
+  pathSpace(out, 0);
   return { items: out, budget, newWords: nNew, reviews: reviews.length, quota: q, focus };
+}
+// ── SPACING ───────────────────────────────────
+// The same word is never asked twice in a row — a multiple choice and
+// then its typed check, two checks of a new word, a repair right after
+// its miss — and, where the queue allows, two other cards sit between.
+// "The same word" includes a verb: its word card, its form cards and its
+// verb items. A card that isn't a question (a learn card, a sheet)
+// separates; a bonus offer doesn't. Only items from `start` on move
+// (Today calls it again after a mid-session insert, with the items
+// already shown fixed), and an item never moves past another of the
+// same word, so learn → choice → typed keeps its order.
+function pathAbout(it) {
+  if (!it || !it.w) return it && it.t === "sheet" ? "sheet:" + it.sheet : null;
+  const v = typeof vxVerbOfWord === "function" ? vxVerbOfWord(it.w) : null;
+  return v ? "verb:" + v : it.w.deckId + "_" + it.w.idx;
+}
+function pathIsQuestion(it) { return !!it && !!it.w && it.t !== "learn" && it.t !== "bonus" && it.t !== "repairOffer"; }
+// Does the question at i repeat one of the `gap` cards before it?
+function pathClash(items, i, gap, about = pathAbout(items[i])) {
+  if (!about || !pathIsQuestion(items[i])) return false;
+  for (let j = i - 1, n = 0; j >= 0 && n < gap; j--) {
+    const it = items[j];
+    if (it.t === "bonus") continue;
+    n++;
+    if (pathIsQuestion(it) && pathAbout(it) === about) return true;
+  }
+  return false;
+}
+function pathSpace(items, start = 0) {
+  const sameBetween = (a, b, about) => { for (let k = a; k < b; k++) if (pathAbout(items[k]) === about) return true; return false; };
+  for (const gap of [1, 2]) {
+    for (let i = Math.max(1, start); i < items.length; i++) {
+      if (!pathClash(items, i, gap)) continue;
+      // Bring a later question forward into this place…
+      let done = false;
+      for (let j = i + 1; j < items.length && !done; j++) {
+        const c = items[j], a = pathAbout(c);
+        if (!pathIsQuestion(c) || !a || sameBetween(i, j, a)) continue;
+        items.splice(j, 1); items.splice(i, 0, c);
+        if (pathClash(items, i, gap) || pathClash(items, i + 1, 1) || (j + 1 < items.length && pathClash(items, j + 1, 1))) {
+          items.splice(i, 1); items.splice(j, 0, c); // no good: put it back
+        } else done = true;
+      }
+      // …or, near the end, an earlier one back.
+      for (let j = i - 2; j >= start && !done; j--) {
+        const c = items[j], a = pathAbout(c);
+        if (!pathIsQuestion(c) || !a || sameBetween(j + 1, i, a)) continue;
+        items.splice(j, 1); items.splice(i - 1, 0, c);
+        if (pathClash(items, i - 1, gap) || pathClash(items, i, gap) || pathClash(items, j, 1)) {
+          items.splice(i - 1, 1); items.splice(j, 0, c);
+        } else done = true;
+      }
+    }
+  }
+  return items;
 }
 
 // ── SKIP A LEVEL (⚙️ › 🍪 Cookie) ──────────────
