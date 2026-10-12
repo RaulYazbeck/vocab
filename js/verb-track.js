@@ -598,8 +598,9 @@ const VX_ITEM_KINDS = VX_FR ? VXF.itemKinds : {
   // The verbs no rule builds, in every person: bin · bist · ist…, kann ·
   // kannst…, weiß — and their Präteritum I: war, hatte, konnte, wusste.
   // (They were the A1 conjugation and A2 Präteritum cards.)
-  ir: { unit: "pr", sheet: x => x.k.aux ? "pr3" : "pr5", form: "pr", title: "Irregular Präsens", tense: "pr", persons: () => PERSONS },
-  p1: { unit: "pt1", sheet: x => x.k.modal ? "pt12" : "pt11", form: "pt", title: "Präteritum I", tense: "pt", persons: () => PERSONS },
+  // (persons: every one — for the verbs that have the item; none for the rest)
+  ir: { unit: "pr", sheet: x => x.k.aux ? "pr3" : "pr5", form: "pr", title: "Irregular Präsens", tense: "pr", persons: x => vxNeedsItem(x, "ir") ? PERSONS : [] },
+  p1: { unit: "pt1", sheet: x => x.k.modal ? "pt12" : "pt11", form: "pt", title: "Präteritum I", tense: "pt", persons: x => vxNeedsItem(x, "p1") ? PERSONS : [] },
 };
 function vxKey(id) { return VX_DECK + "_" + id; }
 
