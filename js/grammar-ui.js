@@ -898,19 +898,21 @@ function pathCheckVerb() {
   if (!val.trim()) { shakeEl(input); if (input) input.focus({ preventScroll: true }); return; }
   const ex = s.cur.w.vx, g = vxGrade(val, ex);
   // The right verb and person in another tense (er kommt for the
-  // Perfekt): not a miss yet — the tense is pointed out, one more try.
-  const other = s.cur.tenseRetry ? null : g !== true ? vxOtherTense(val, ex)
+  // Perfekt): never graded — the tense is pointed out, try again, as often
+  // as it takes (a stray second Enter never turns it into a miss). The
+  // way out is the asked tense, another answer, or ? Don't know.
+  const other = g !== true ? vxOtherTense(val, ex)
     : vxUmlautOnly(val, ex.form.acc, vxIsCommand(ex)) ? vxOtherTense(val, ex, true) : null;
   if (other) { pathVerbTenseRetry(other, val); return; }
-  // Second time the other tense by its umlaut alone: that's a miss.
-  if (g === true && s.cur.tenseRetry && vxUmlautOnly(val, ex.form.acc, vxIsCommand(ex)) && vxOtherTense(val, ex, true)) { pathGradeVerb(val, false); return; }
   pathGradeVerb(val, g);
 }
 function pathVerbTenseRetry(other, val) {
   const s = pathSession, it = s.cur, ex = it.w.vx;
+  const again = !!it.tenseRetry;
   it.tenseRetry = other;
   const input = document.getElementById("p-input");
-  if (typeof logEvent === "function") logEvent("vx_tense_slip", { want: ex.tense, got: other, inf: ex.x.inf });
+  if (again) shakeEl(input);
+  else if (typeof logEvent === "function") logEvent("vx_tense_slip", { want: ex.tense, got: other, inf: ex.x.inf });
   // (k2w: würde + infinitive for a card that asks the verb's own form.)
   document.getElementById("p-fb").innerHTML = other === "k2w"
     ? `<div class="vx-fb"><div class="vx-retry">↺ würde + infinitive is right too — this card asks for the verb's <b>own</b> ${vxTenseTitleHtml(ex.tense, "sm")}.</div>
@@ -940,6 +942,11 @@ function pathGradeVerb(val, ok, said = false) {
   const w = it.w, ex = w.vx;
   const input = document.getElementById("p-input");
   if (input) input.classList.remove("retry");
+  // The private "my typo" override (Shift+Enter ×3, or the ✗ / ≈ tapped
+  // ×3) can turn a typed answer around: snapshot what it touches.
+  const typoOk = ok !== true && !said && !!String(val || "").trim();
+  if (typoOk) pathVerbSnap(val, ok === "near", ex);
+  const mark = sign => typoOk ? `<span class="p-typo" onpointerdown="event.preventDefault();pathSecretTap()">${sign}</span>` : sign;
   if (ok === "near") {
     // One slip: no step either way, one more try at the end.
     s.answered = true;
@@ -948,7 +955,7 @@ function pathGradeVerb(val, ok, said = false) {
     pathMissed(w); // a drill too: its try in the repair round
     if (input) input.classList.add("near");
     logEvent("answer", { m: ex.cell ? "path:cell" : "path:verb", ok: false, near: true, typed: true, ms: Date.now() - s.shownAt });
-    document.getElementById("p-fb").innerHTML = `<div class="vx-fb"><div class="vx-res near">≈ ${vxT("Almost")} — ${vxT("check the spelling")}</div>
+    document.getElementById("p-fb").innerHTML = `<div class="vx-fb"><div class="vx-res near">${mark("≈")} ${vxT("Almost")} — ${vxT("check the spelling")}</div>
       <div class="vx-answer">${vxFormHtml(ex)}</div><div class="p-diff">${vxDiffHtml(val, ex.form.ans)}</div>
       <div class="vx-note">${vxT("No step up, no step down — one more try at the end of this session.")}</div></div>`;
     pathSetActions(`<button class="g-big-btn p-main" id="p-go" onclick="pathGo()">${vxT("Next →")}</button>`);
@@ -1015,8 +1022,9 @@ function pathGradeVerb(val, ok, said = false) {
     : engineT ? verbRuleHtml(ex.x.F, engineT, ex.p) + sepWhy : ex.rule ? `📏 ${escapeHtml(VX_RULE[ex.rule].chip)}` : "";
   const row = vxRowTableHtml(VX_FR ? VXF.rowCells(ex.x, ex.kind, ex.p) : engineT && engineT !== "im" ? vxRowCellsDe(ex.x.F, engineT, ex.p) : []);
   const umlNote = ok === true && val && vxUmlautOnly(val, ex.form.acc, vxIsCommand(ex));
-  const head = ok === true ? `<div class="vx-res ok">${vxT("✓ Correct!")}${umlNote ? ` <span class="vx-uml">${vxT("— spelt {0}", `<b>${escapeHtml(ex.form.ans)}</b>`)}</span>` : ""}</div>`
-    : `<div class="vx-res bad">${val.trim() ? vxT("✗ Answer:") : vxT("Answer:")}</div>`;
+  const extraNote = ok === true && val && !umlNote && vxExtraOnly(val, ex);
+  const head = ok === true ? `<div class="vx-res ok">${vxT("✓ Correct!")}${umlNote ? ` <span class="vx-uml">${vxT("— spelt {0}", `<b>${escapeHtml(ex.form.ans)}</b>`)}</span>` : ""}${extraNote ? ` <span class="vx-uml">— only the verb was needed</span>` : ""}</div>`
+    : `<div class="vx-res bad">${val.trim() ? `${mark("✗")} ${vxT("Answer:")}` : vxT("Answer:")}</div>`;
   // One centred column: verdict, the form in colour, what you typed,
   // the step it took, the rule, the whole row.
   document.getElementById("p-fb").innerHTML = `<div class="vx-fb">
@@ -1032,6 +1040,46 @@ function pathGradeVerb(val, ok, said = false) {
   if (ok !== true) holdAfterMistake("p-go");
   if (!said) speak(vxSayText(ex));
   if (input) input.focus({ preventScroll: true });
+}
+// The private "my typo" override for a verb card (see pathSecretOk):
+// everything a wrong or near answer touches, to roll it back.
+function pathVerbSnap(val, near, ex) {
+  const s = pathSession, w = s.cur.w, Q = S.quests, J = o => o === undefined || o === null ? null : JSON.stringify(o);
+  const rk = ex.cell ? vxCellRuleItem(ex) : null;
+  const keys = [ex.item, rk].filter(Boolean).map(vxKey);
+  let mk = null;
+  try { mk = J(usageDay().mk); } catch (e) {}
+  s.undo = { verb: true, val, near,
+    ws: keys.map(k => [k, J(S.words[k])]),
+    vstate: J(S.verb), lv: S.learn && S.learn.verbs ? J(S.learn.verbs[ex.x.inf]) : null, mk,
+    consec: sessionConsecutive, stats: { ...s.stats }, move: s.moves.get(wordKey(w)),
+    wasMissed: s.missed.some(x => sameWord(x, w)),
+    qm: Q && Q.m ? JSON.stringify(Q.m) : null, qw: Q && Q.week ? JSON.stringify(Q.week) : null };
+}
+function pathVerbSecretOk(u) {
+  const s = pathSession, it = s.cur, w = it.w, ex = w.vx;
+  const put = (obj, json) => { Object.keys(obj).forEach(k => delete obj[k]); Object.assign(obj, JSON.parse(json)); };
+  u.ws.forEach(([k, j]) => { if (j === null) delete S.words[k]; else if (S.words[k]) put(S.words[k], j); else S.words[k] = JSON.parse(j); });
+  if (u.vstate && S.verb) put(S.verb, u.vstate);
+  if (S.learn && S.learn.verbs) { if (u.lv === null) delete S.learn.verbs[ex.x.inf]; else S.learn.verbs[ex.x.inf] = JSON.parse(u.lv); }
+  try { const d = usageDay(); if (u.mk === null) delete d.mk; else d.mk = JSON.parse(u.mk); } catch (e) {}
+  sessionConsecutive = u.consec;
+  Object.assign(s.stats, u.stats);
+  const Q = S.quests;
+  if (Q && u.qm && Q.m) put(Q.m, u.qm);
+  if (Q && u.qw && Q.week) put(Q.week, u.qw);
+  if (!u.wasMissed) s.missed = s.missed.filter(x => !sameWord(x, w));
+  const k = wordKey(w);
+  if (u.move) s.moves.set(k, u.move); else s.moves.delete(k);
+  if (typeof invalidatePathScan === "function") invalidatePathScan();
+  // …and grade it as right.
+  s.answered = false;
+  const input = document.getElementById("p-input");
+  if (input) input.classList.remove("wrong", "near");
+  pathGradeVerb(u.val, true);
+  _mistakeHoldUntil = 0; // a success now: Next must not wait on the old miss
+  const ok = document.querySelector("#p-fb .vx-res.ok");
+  if (ok) ok.innerHTML = ok.innerHTML.replace(vxT("✓ Correct!"), "✓ Counted");
 }
 // The whole row of a German form as cells (verbRowHtml's content).
 function vxRowCellsDe(F, tense, person) {

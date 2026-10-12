@@ -1078,8 +1078,35 @@ function vxGrade(val, ex) {
   const acc = ex.form.acc;
   for (const t of tries) if (acc.some(a => vxEq(a, t))) return true;
   if (tries.some(t => vxUmlautSlip(acc, t))) return true;
+  if (vxExtraOk(tries, acc)) return true;
   if (isNearMiss(tries[0], acc)) return "near";
   return false;
+}
+// A right form with a few words of context added (er ist zu Fuß gegangen,
+// the "(on foot)" of the meaning in German): still right — every word of
+// the form there, in order, starting with its first, and nothing that
+// changes it (nicht / kein, a pronoun, another auxiliary). German only.
+const VX_EXTRA_BAN = /^(nicht|nichts|nie|niemals|kein\w*|ich|du|er|sie|es|wir|ihr|man|mich|dich|sich|mir|dir|uns|euch|bin|bist|ist|sind|seid|sein|war\w*|gewesen|hab\w*|hast|hat|hatte\w*|gehabt|wird|werd\w*|wurd\w*|wurde|worden|würd\w*)$/;
+function vxExtraOk(tries, acc) {
+  if (VX_FR) return false;
+  const words = s => normalize(String(s || "")).split(" ").filter(Boolean);
+  const same = (a, t) => vxEq(a, t) || normalize(a) === normalize(t);
+  return tries.some(t => {
+    const tw = words(t);
+    return acc.some(a => {
+      const aw = words(a);
+      if (!aw.length || tw.length <= aw.length || tw.length - aw.length > 4 || !same(aw[0], tw[0])) return false;
+      let j = 0;
+      const extra = [];
+      for (const x of tw) { if (j < aw.length && same(aw[j], x)) j++; else extra.push(x); }
+      return j === aw.length && !extra.some(x => VX_EXTRA_BAN.test(x) || aw.some(y => same(y, x)));
+    });
+  });
+}
+// Right only with the extra words left out (the feedback says so)?
+function vxExtraOnly(val, ex) {
+  const tries = vxGradeTries(val, vxIsCommand(ex)), acc = ex.form.acc;
+  return !tries.some(t => acc.some(a => vxEq(a, t))) && !tries.some(t => vxUmlautSlip(acc, t)) && vxExtraOk(tries, acc);
 }
 // A wrong answer that is the same verb and person, right, in another
 // tense (er kommt where the Perfekt was asked): that tense, or null.

@@ -2,7 +2,7 @@
 //   • a right form of the same verb and person in another tense is
 //     named (both tenses) and gets one more try — nothing is graded;
 //   • right on that try = a full right answer; wrong = a normal miss;
-//   • only one second chance per card; a near miss of another tense, a
+//   • a wrong-tense form is never graded (Don't know is the way out); a near miss of another tense, a
 //     plain wrong answer, a blank or "Don't know" are graded as before;
 //   • an answer right only because an umlaut is forgiven, that is
 //     exactly another tense (ich hätte for ich hatte), is that tense;
@@ -76,12 +76,14 @@ const r = await page.evaluate((APP) => {
   ok(/vx-res ok/.test(document.getElementById("p-fb").innerHTML), "right on the second try: ✓ Correct");
   ok(vxCovHas(ex.x.inf, ex.tense), "right on the second try: the ledger form is set");
   ok(!document.getElementById("p-input").classList.contains("retry"), "the retry outline goes");
-  // 2. other tense, then the other tense again → a miss (one chance only)
+  // 2. other tense, again and again → never graded; ? Don't know is the way out
   ex = show(APP === "fr" ? "finir" : "gehen", APP === "fr" ? "fu" : "pr", APP === "fr" ? "ils" : "er");
   st0 = { ...s.stats };
   const slip2 = APP === "fr" ? "ils finissent" : "er ist gegangen";
   type(slip2); ok(!s.answered, "second card: retry offered");
-  type(slip2); ok(s.answered && s.stats.wrong === st0.wrong + 1, "the other tense twice: a miss");
+  type(slip2); ok(!s.answered && s.stats.wrong === st0.wrong, "the other tense twice: still not graded");
+  type(slip2); ok(!s.answered && /vx-retry/.test(document.getElementById("p-fb").innerHTML), "the other tense three times: the retry stays");
+  pathGradeVerb("", false); ok(s.answered && s.stats.wrong === st0.wrong + 1, "Don't know after the retry: a miss");
   ok(s.missed.some(w => w.vx && w.vx.x === ex.x), "the miss waits for the repair round");
   // 3. plain wrong: graded at once
   ex = show(inf, k, p);
@@ -91,13 +93,43 @@ const r = await page.evaluate((APP) => {
   if (APP !== "fr") {
     ex = show("haben", "pt", "ich"); st0 = { ...s.stats };
     type("ich hätte"); ok(!s.answered, "ich hätte for the Präteritum: the Konjunktiv II is named");
-    type("ich hätte"); ok(s.answered && s.stats.wrong === st0.wrong + 1, "ich hätte twice: a miss, not a forgiven umlaut");
+    type("ich hätte"); ok(!s.answered && s.stats.correct === st0.correct, "ich hätte twice: still the Konjunktiv II, never a forgiven umlaut");
+    type("ich hatte"); ok(s.answered && s.stats.correct === st0.correct + 1, "then ich hatte: right");
     ex = show("fahren", "pr", "du"); st0 = { ...s.stats };
     type("du fahrst"); ok(s.answered && s.stats.correct === st0.correct + 1, "du fahrst: still a forgiven umlaut");
   }
   // 5. Don't know is never a retry
   ex = show(inf, k, p); st0 = { ...s.stats };
   pathGradeVerb("", false); ok(s.answered && s.stats.wrong === st0.wrong + 1, "Don't know: a miss");
+  if (APP !== "fr") {
+    // 6. the meaning's hint in German around a right form: right
+    const g = mk("gehen", "pf", "er");
+    ok(vxGrade("ist zu fuss gegangen", g) === true && vxGrade("er ist zu Fuß gegangen", g) === true, "ist zu Fuß gegangen: right");
+    ok(vxExtraOnly("ist zu fuss gegangen", g) && !vxExtraOnly("ist gegangen", g), "…and the feedback says only the verb was needed");
+    ok(vxGrade("geht zu Fuß", mk("gehen", "pr", "er")) === true, "geht zu Fuß: right");
+    ok(vxGrade("ist nicht gegangen", g) !== true && vxGrade("ist kein gegangen", g) !== true, "nicht / kein added: not right");
+    ok(vxGrade("hat ist gegangen", g) !== true && vxGrade("zu fuss ist gegangen", g) !== true && vxGrade("ist zu fuss", g) !== true, "another auxiliary, words in front, or the form cut: not right");
+    ok(vxGrade("ist gegangen gegangen", g) !== true && vxGrade("ist sie gegangen", g) !== true, "the form doubled, a pronoun added: not right");
+    ok(vxGrade("ist gestern mit ihm sehr weit gegangen", g) !== true, "more than four extra words: not right");
+    // 7. Shift+Enter ×3 on a wrong verb answer: counted, all rolled back
+    const shift = () => document.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", shiftKey: true, bubbles: true }));
+    S.path.secretOk = null;
+    ex = show("gehen", "pf", "er"); st0 = { ...s.stats };
+    const verb0 = JSON.stringify(S.verb), missed0 = s.missed.length;
+    type("ist gegangn x"); ok(s.answered && s.stats.wrong === st0.wrong + 1, "a wrong verb answer: a miss");
+    ok(document.querySelector("#p-fb .vx-res.bad .p-typo"), "the ✗ can be tapped");
+    shift(); shift(); shift();
+    ok(s.answered && s.stats.wrong === st0.wrong && s.stats.correct === st0.correct + 1 && s.stats.answered === st0.answered + 1, "Shift+Enter ×3: counted right, the miss gone");
+    ok(/Counted/.test(document.getElementById("p-fb").innerHTML), "…shown as ✓ Counted");
+    ok(s.missed.length === missed0 && S.path.secretOk.n === 1, "…not waiting for the repair round, one of today's 3 used");
+    ok(JSON.parse(verb0).nc + 1 === S.verb.nc && vxCovHas("gehen", "pf"), "…the verb ledger rolled back, then counted once, the form set");
+    shift(); ok(s.answered && s.stats.correct === st0.correct + 1, "a 4th Shift+Enter does nothing");
+    // A near miss: no daily cap.
+    ex = show("gehen", "pf", "er"); st0 = { ...s.stats };
+    type("ist gegagen"); ok(s.answered && s.stats.near === st0.near + 1, "a near miss");
+    shift(); shift(); shift();
+    ok(s.stats.near === st0.near && s.stats.correct === st0.correct + 1 && S.path.secretOk.n === 1, "Shift+Enter ×3 on ≈: counted, no allowance used");
+  }
   return out.filter(([c, m]) => m);
 }, APP);
 let pass = 0, fail = 0;
