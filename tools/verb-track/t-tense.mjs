@@ -111,6 +111,10 @@ const r = await page.evaluate((APP) => {
     ok(vxGrade("hat ist gegangen", g) !== true && vxGrade("zu fuss ist gegangen", g) !== true && vxGrade("ist zu fuss", g) !== true, "another auxiliary, words in front, or the form cut: not right");
     ok(vxGrade("ist gegangen gegangen", g) !== true && vxGrade("ist sie gegangen", g) !== true, "the form doubled, a pronoun added: not right");
     ok(vxGrade("ist gestern mit ihm sehr weit gegangen", g) !== true, "more than four extra words: not right");
+    const pt = mk("gehen", "pt", "er"), pr = mk("danken", "pr", "er");
+    ok(vxGrade("ging gegangen", pt) !== true && vxGrade("dankt gedankt", pr) !== true && vxGrade("dankt dankte", pr) !== true, "another form of the same verb added: not right");
+    ok(vxGrade("ist wirst gegangen", g) !== true && vxGrade("ging kann", pt) !== true, "an auxiliary or modal added: not right");
+    ok(vxGrade("wohnt seit Jahren hier", mk("wohnen", "pr", "er")) === true && vxGrade("ging warum", pt) === true, "seit / warum are context, not verbs: right");
     // 7. Shift+Enter ×3 on a wrong verb answer: counted, all rolled back
     const shift = () => document.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", shiftKey: true, bubbles: true }));
     S.path.secretOk = null;
