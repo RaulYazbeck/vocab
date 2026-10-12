@@ -73,9 +73,12 @@ function gsTableHtml(sh) {
   if (sh.lines) return `<div class="gs-lines">${sh.lines.map(([l, x]) => `<div class="gs-line"><b>${gsMd(l)}</b><span>${gsMd(x)}</span></div>`).join("")}</div>`;
   return "";
 }
+// What a sheet example's 🔊 says: the sentence without its markup. The
+// voice packs record exactly this (tools/audio/runtime.mjs).
+function gsSayText(s) { return String(s || "").replace(/\*+|\{\{|\}\}|\(\(|\)\)|\[\[|\]\]|~~/g, "").replace(/\s+/g, " ").trim(); }
 function gsExamplesHtml(sh) {
   return `<div class="gs-ex">${(sh.ex || []).map(([de, en]) => `<div class="gs-ex-row">
-      <button class="gs-say" type="button" onclick="gsSpeak(this)" data-say="${escapeHtml(de.replace(/\[\[|\]\]/g, ""))}" aria-label="${vxT("Listen")}">🔊</button>
+      <button class="gs-say" type="button" onclick="gsSpeak(this)" data-say="${escapeHtml(gsSayText(de))}" aria-label="${vxT("Listen")}">🔊</button>
       <div><div class="gs-ex-de">${gsMd(de)}</div><div class="gs-ex-en">${escapeHtml(en)}</div></div></div>`).join("")}</div>`;
 }
 function gsSpeak(btn) { if (typeof speak === "function" && typeof audioOk === "function" && audioOk()) speak(btn.dataset.say); }

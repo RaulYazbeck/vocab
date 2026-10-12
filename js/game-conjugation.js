@@ -60,6 +60,16 @@ function frCardTense(verb) {
 // "je aime" → "j'aime": no space after an elided pronoun.
 const conjJoin = (pron, form) => /(['’]|&#39;)$/.test(pron) ? pron + form : pron + " " + form;
 function conjWords(pool) { return dedupeWords(pool.filter(w => conjItem(w))); }
+// What a spin says aloud: the pronoun and the whole form, its prefix and
+// reflexive pronoun too ("ich strenge mich an", "bedeuten Sie"). The "…"
+// of the shown tail only marks where the rest of the sentence goes.
+// c: { kind: "card", it } or { tense, person, cell }. The voice packs
+// record exactly this (tools/audio: lib.mjs, runtime.mjs).
+function conjSayText(c) {
+  if (c.kind === "card") return conjJoin(c.it.pron.split("/")[0], c.it.ans);
+  const tail = c.cell.tail ? " " + c.cell.tail.replace(/…\s*/g, "").replace(/!$/, "") : "";
+  return `${c.tense === "im" ? "" : PERSON_LABEL[c.person].split("/")[0] + " "}${c.cell.ans}${tail}`.replace(/\s+/g, " ").trim();
+}
 
 // ── The unlimited verb track ──────────────────
 const CONJ_TENSE_IDS = () => (typeof TENSES !== "undefined" ? TENSES.map(t => t.id) : []);
@@ -348,15 +358,14 @@ registerGame({
     };
     const shownOf = c => c.kind === "card" ? `${conjJoin(escapeHtml(c.it.pron), `<strong>${escapeHtml(c.it.ans)}</strong>`)}${c.it.tail ? " " + escapeHtml(c.it.tail) : ""}`
       : `${c.tense === "im" ? "" : escapeHtml(PERSON_LABEL[c.person].split("/")[0]) + " "}<strong>${escapeHtml(c.cell.ans)}</strong>${c.cell.tail ? " " + escapeHtml(c.cell.tail.replace(/^… /, "")) : ""}`;
-    const sayOf = c => c.kind === "card" ? conjJoin(c.it.pron.split("/")[0], c.it.ans) : `${c.tense === "im" ? "" : PERSON_LABEL[c.person].split("/")[0] + " "}${c.cell.ans}${c.cell.tail ? " " + c.cell.tail.replace(/^… /, "").replace(/!$/, "") : ""}`;
     const reveal = () => {
       if (!sayMode || revealed || !cur || ctx.busy || ctx.finished || ctx.paused || ctx.waiting) return;
       revealed = true; revealAtMs = Date.now();
       document.getElementById("cj-actions").style.display = "none";
       document.querySelector(".cj-say-label").style.display = "none";
       document.getElementById("cj-say").innerHTML = sayRevealHtml(cur.kind === "card" ? cur.w : null,
-        { html: shownOf(cur), audio: sayOf(cur), noSentence: true, ask: "short" }) + sayGradeHtml("conjSayGrade", { close: false });
-      speak(sayOf(cur));
+        { html: shownOf(cur), audio: conjSayText(cur), noSentence: true, ask: "short" }) + sayGradeHtml("conjSayGrade", { close: false });
+      speak(conjSayText(cur));
     };
     _conjSayGrade = v => { if (sayMode && revealed && !ctx.busy && !ctx.finished) submit(v !== true, v === true); };
     // said: true = ✓ Got it (right without typing).
@@ -396,7 +405,7 @@ registerGame({
         floatScore(input, "+" + pts, !gen && ctx.isGolden(cur.w) ? "gold" : "");
         if (combo >= 3) playCombo(combo); else playSuccess();
         haptic("select");
-        if (!revealed) speak(sayOf(cur));
+        if (!revealed) speak(conjSayText(cur));
         gTimeout(spin, 900);
       } else {
         wrong++;
@@ -407,7 +416,7 @@ registerGame({
         input.classList.add("wrong");
         fb.innerHTML = `<span class="bb-bad">${val.trim() ? `<s>${escapeHtml(val.trim())}</s> → ` : ""}${shownOf(cur)}</span>`;
         playMiss(); haptic("miss");
-        if (!revealed) speak(sayOf(cur));
+        if (!revealed) speak(conjSayText(cur));
         if (gen) ctx.teach(`<div class="g-teach-main">${escapeHtml(cur.v.inf)} · ${TENSE_BY_ID[cur.tense].name}${cur.v.en ? ` <span class="g-teach-pl">— ${escapeHtml(cur.v.en)}</span>` : ""}</div>${verbRowHtml(cur.v.F, cur.tense, cur.person)}<div class="g-teach-rule">${verbRuleHtml(cur.v.F, cur.tense, cur.person)}</div>`, "bad");
         else {
           // A deck card whose verb the engine knows: show its whole row too.

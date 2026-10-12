@@ -72,3 +72,20 @@ the takes and the old versions side by side. Characters sent this month: 418,904
   either language now ends abruptly.
 - 100% coverage, browser test 12/12. Characters sent this month: 419,249.
   Page: `check-latest.html` (these 10 clips).
+
+## Sixth pass (Oct 11): phrases the app makes while it runs
+The voice log showed phrases with no recording: verb forms the games build ("ich würde
+besuchen", "bedeuten Sie"), the verb cards' answers ("triffst dich"), grammar-sheet examples.
+`runtime.mjs` now lists every such phrase from the app itself (state/<lang>/runtime.tsv):
+- **German A1 + A2:** Conjugation Slots, Verb Thread (also its 🎧 forms), the verb cards,
+  grammar sheets, idioms, Today's cloze answers: 22,112 clips. "circa" re-made as "zirka"
+  (it sounded Spanish).
+- **French A1** (with the new French verb track): 10,826 clips; Verb Thread's 🎧-only forms wait.
+- Verb forms are said without the display gap ("ich melde mich an", not "… an"); each game
+  speaks through one function (conjSayText, threadSayText, vxSayText, gsSayText) that the
+  tools call too. Word clips re-split: 80 shards (de), 60 (fr).
+- Coverage: German 32,061/32,061, French 18,518/18,518; every clip decodes (browser test);
+  tests pack, games, flag, runtime, update all pass.
+- Characters sent this month: 929,028 (limit set for October: 930,000; free tier 1,000,000).
+- Still to record: German B1 (~397k), French A2 + B1 + 🎧 forms (~619k): November and December.
+

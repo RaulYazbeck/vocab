@@ -11,6 +11,9 @@
 //   flag    the ⚑ flag and the "Copy voice log" row
 //   logs    usage and learning logs: day attribution, quits and abandoned runs,
 //           history kept through a cloud load, mistake types, report building
+//   runtime the phrases the app makes while it runs (verb forms, grammar
+//           sheets…): state/<lang>/runtime.tsv is exactly what the app says
+//           now, and the published pack has a recording for every text
 //   update  adding decks later, on a fresh copy with no work folder: the update
 //           routine (run_all.py full) records only what is new, then a phone
 //           that has the current pack updates by itself, fetches only the
@@ -28,7 +31,7 @@ import { fileURLToPath } from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "../../..");
-const ALL = ["pack", "games", "flag", "logs", "update"];
+const ALL = ["pack", "games", "flag", "logs", "runtime", "update"];
 const want = process.argv.slice(2).length ? process.argv.slice(2) : ALL;
 for (const w of want) if (!ALL.includes(w)) { console.error(`unknown test "${w}" (choose from ${ALL.join(", ")})`); process.exit(2); }
 
@@ -89,6 +92,19 @@ try {
     console.log(`\n━━ ${name} ━━`);
     const r = await run("node", [path.join(HERE, `test_${name}.mjs`)], { env });
     results.push([name, r.code === 0]);
+  }
+
+  if (want.includes("runtime")) {
+    console.log("\n━━ runtime ━━");
+    let ok = true;
+    for (const lang of ["de", "fr"]) {
+      const c = await run("node", [path.join(ROOT, "tools/audio/runtime.mjs"), "--lang", lang, "--check"], { echo: false });
+      const st = await run("node", [path.join(ROOT, "tools/audio/status.mjs"), "--lang", lang, "--strict"], { echo: false });
+      console.log(`  ${c.code === 0 ? "✓" : "✗ FAIL:"} ${lang}: runtime.tsv ${c.code === 0 ? "matches what the app says" : "is out of date — run tools/audio/runtime.mjs --lang " + lang}`);
+      console.log(`  ${st.code === 0 ? "✓" : "✗ FAIL:"} ${lang}: ${(st.out.split("\n")[0] || "").replace(/^\w+: /, "")}`);
+      ok = ok && c.code === 0 && st.code === 0;
+    }
+    results.push(["runtime", ok]);
   }
 
   if (want.includes("update")) {
