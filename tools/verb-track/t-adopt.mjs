@@ -111,6 +111,27 @@ const r = await page.evaluate((RAW) => {
     ok((S.words[rk[0]] || {}).st >= 5, `${rk[0]} (${rk[1].rule}) mirrors its rule without a ledger form`);
     r0.st = was; vxMirror();
   }
+  // A card handed over before its own kind of item existed (a rule
+  // covered it then: er käme, er brachte): its record goes to that item
+  // once, due within its stage's gap — the card itself stays as it was.
+  const late = VX_FR ? null : [...vxRetireMap().entries()].find(([k, c]) => c.item && /^k2s:/.test(c.item));
+  ok(VX_FR || !!late, "an old card covered by a newer kind of item" + (late ? `: ${late[0]} → ${late[1].item}` : ""));
+  if (late) {
+    const [key, c] = late, ik = vxKey(c.item);
+    const keepCard = S.words[key] ? clone(S.words[key]) : undefined, keepItem = S.words[ik] ? clone(S.words[ik]) : undefined;
+    const rec = { st: 5, pk: 5, k: 1.1, sAt: Date.now() - 90 * 864e5, dueAt: Date.now() - 60 * 864e5, correct: 7, wrong: 1, streak: 3, displayStreak: 3, lastAnsweredAt: Date.now() - 90 * 864e5 };
+    S.words[key] = { ...clone(rec), rt: 1, rtWas: clone(rec) };
+    delete S.words[ik];
+    const got = vxAdopt(), it = S.words[ik] || {};
+    ok(got === 0 && it.st === 5 && it.adopted === 1, `its item takes the record (${c.item}: stage ${it.st})`);
+    ok(it.dueAt > Date.now() && it.dueAt <= studyDayStart(STAGE_DAYS[5] + 1), "due within its stage's gap, not 60 days overdue");
+    ok(JSON.stringify(S.words[key].rtWas) === JSON.stringify(rec) && S.words[key].rt === 1, "the card keeps its record");
+    const again = JSON.stringify(it); vxAdopt();
+    ok(JSON.stringify(S.words[ik]) === again, "only once");
+    if (keepCard === undefined) delete S.words[key]; else S.words[key] = keepCard;
+    if (keepItem === undefined) delete S.words[ik]; else S.words[ik] = keepItem;
+    vxMirror();
+  }
   // 6. A second load changes nothing.
   const snap = JSON.stringify(S.words);
   ok(vxAdopt() === 0, "a second load adopts nothing");

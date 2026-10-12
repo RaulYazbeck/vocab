@@ -6,7 +6,7 @@ let pass = 0, fail = 0;
 const ok = (c, m, x = "") => { if (c) pass++; else { fail++; console.log("  ✗", m, x); } };
 const norm = s => String(s).trim().toLowerCase();
 const sheets = G.GS_SHEETS;
-ok(sheets.length === 37, "37 sheets", sheets.length);
+ok(sheets.length === 38, "38 sheets", sheets.length);
 const units = new Set(G.VX_UNITS.map(u => u.id));
 G.VX_UNITS.forEach(u => ok(sheets.some(s => s.unit === u.id), `unit ${u.id} has sheets`));
 const ids = new Set();

@@ -72,6 +72,9 @@ const GQ_SETS = VX_FR ? VXF.gqSets : {
   ptInsep: x => !!x.F.insep && !x.F.sep && !x.F.refl,
   fu: x => !x.F.only && !x.k.modal,
   k2w: x => !x.F.k2special && !x.F.only && !x.k.modal,
+  // käme, ginge… (a verb with a k2s card); k2same: no umlaut to add.
+  k2own: x => typeof vxNeedsItem === "function" && vxNeedsItem(x, "k2s"),
+  k2same: x => typeof vxNeedsItem === "function" && vxNeedsItem(x, "k2s") && !/[äöü]/.test(x.F.k2own.ich),
   pv: x => typeof VX_PV_VERBS !== "undefined" && VX_PV_VERBS.has(x.inf),
 };
 

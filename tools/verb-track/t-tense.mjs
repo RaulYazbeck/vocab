@@ -20,6 +20,8 @@ const r = await page.evaluate((APP) => {
   const DE = [["kommen", "pf", "wir", "wir kommen", "pr"], ["kommen", "pf", "wir", "wir kamen", "pt"], ["gehen", "pr", "er", "er ist gegangen", "pf"],
     ["aufstehen", "im", "Sie", "Sie stehen auf", "pr"], ["aufstehen", "im", "du", "du stehst auf", "pr"], ["kommen", "pf", "er", "er wird kommen", "fu"],
     ["haben", "pt", "ich", "ich hätte", "k2"], ["werden", "pt", "wir", "wir würden", "k2"], ["sein", "k2o", "ich", "ich war", "pt"],
+    ["kommen", "k2s", "er", "er würde kommen", "k2w"], ["kommen", "k2s", "er", "er kam", "pt"], ["gehen", "k2s", "er", "er ging", "pt"], ["kommen", "pt", "er", "er käme", "k2"],
+    ["kommen", "k2w", "er", "er käme", null], ["bringen", "pt", "er", "er brachte", null],
     ["fahren", "pr", "du", "du fahrst", null], ["machen", "pr", "wir", "wir mache", null], ["kommen", "pf", "wir", "wir kommten", null], ["kommen", "pf", "wir", "", null]];
   const FR = [["venir", "pc", "nous", "nous venons", "pr"], ["finir", "fu", "ils", "ils finissent", "pr"], ["parler", "pr", "je", "je parlais", "im"],
     ["avoir", "pr", "je", "j'aurai", "fu"], ["parler", "pr", "nous", "nous parlerons", "fu"], ["parler", "pr", "je", "je parl", null], ["parler", "pr", "je", "", null]];
@@ -44,6 +46,13 @@ const r = await page.evaluate((APP) => {
   });
   ok(!named.length, `no verb card names its verb (${vxVerbs().length} verbs)`, named.slice(0, 8).join(", "));
   ok(vxVerbs().every(x => vxMeaning(x)), "every verb has a meaning to show");
+  if (APP !== "fr") {
+    // käme for "würde kommen": right; würde kommen / kämst for a käme card: right / retry.
+    const k2w = mk("kommen", "k2w", "er"), k2s = mk("kommen", "k2s", "du"), br = mk("bringen", "pt", "er");
+    ok(vxGrade("er käme", k2w) === true && vxGrade("er würde kommen", k2w) === true, "würde kommen asked: käme is right too");
+    ok(vxGrade("du kämest", k2s) === true && vxGrade("du kämst", k2s) === true && vxGrade("du würdest kommen", k2s) !== true, "käme asked: kämest / kämst right, würdest kommen not");
+    ok(br.form.ans === "brachte" && !!S.words && vxCatalog().some(it => it.id === "pt:bringen"), "brachte has its own card");
+  }
   // The flow in a Today session.
   startPathSession("regular", { noBonus: true });
   const s = pathSession;

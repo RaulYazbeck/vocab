@@ -184,6 +184,10 @@ s	_sheet:k23	Könnten Sie das wiederholen?
 s	_sheet:k24	An deiner Stelle würde ich warten.
 s	_sheet:k24	Ich hätte gern ein Wasser.
 s	_sheet:k24	Wenn ich Zeit hätte, würde ich mitkommen.
+s	_sheet:k25	Das ginge auch morgen.
+s	_sheet:k25	Gäbe es eine andere Lösung?
+s	_sheet:k25	Ich bräuchte mehr Zeit.
+s	_sheet:k25	Wenn er doch nur käme!
 s	_sheet:k2p1	Ich hätte dich gern gesehen.
 s	_sheet:k2p1	Wenn ich das gewusst hätte, wäre ich gekommen.
 s	_sheet:k2p2	Du hättest mich anrufen können.
@@ -3840,7 +3844,10 @@ w	_v:bleiben	bleibe
 w	_v:bleiben	bleiben Sie
 w	_v:bleiben	bleibst
 w	_v:bleiben	bleibt
+w	_v:bleiben	bliebe
 w	_v:bleiben	blieben
+w	_v:bleiben	bliebest
+w	_v:bleiben	bliebet
 w	_v:bleiben	bliebst
 w	_v:bleiben	bliebt
 w	_v:bleiben	du bist geblieben
@@ -3970,6 +3977,10 @@ w	_v:brauchen	brauchte
 w	_v:brauchen	brauchten
 w	_v:brauchen	brauchtest
 w	_v:brauchen	brauchtet
+w	_v:brauchen	bräuchte
+w	_v:brauchen	bräuchten
+w	_v:brauchen	bräuchtest
+w	_v:brauchen	bräuchtet
 w	_v:brauchen	du brauchst
 w	_v:brauchen	du brauchtest
 w	_v:brauchen	du hast gebraucht
@@ -4035,6 +4046,10 @@ w	_v:bringen	brachtet
 w	_v:bringen	bring
 w	_v:bringen	bringst
 w	_v:bringen	bringt
+w	_v:bringen	brächte
+w	_v:bringen	brächten
+w	_v:bringen	brächtest
+w	_v:bringen	brächtet
 w	_v:bringen	darf gebracht werden
 w	_v:bringen	du brachtest
 w	_v:bringen	du bringst
@@ -5801,7 +5816,10 @@ w	_v:fallen	er wird fallen
 w	_v:fallen	er würde fallen
 w	_v:fallen	fall
 w	_v:fallen	fallen Sie
+w	_v:fallen	fiele
 w	_v:fallen	fielen
+w	_v:fallen	fielest
+w	_v:fallen	fielet
 w	_v:fallen	fielst
 w	_v:fallen	fielt
 w	_v:fallen	ich bin gefallen
@@ -6075,6 +6093,10 @@ w	_v:finden	finde
 w	_v:finden	finden Sie
 w	_v:finden	findest
 w	_v:finden	findet
+w	_v:finden	fände
+w	_v:finden	fänden
+w	_v:finden	fändest
+w	_v:finden	fändet
 w	_v:finden	habe gefunden
 w	_v:finden	haben gefunden
 w	_v:finden	habt gefunden
@@ -6415,6 +6437,10 @@ w	_v:geben	gabst
 w	_v:geben	gabt
 w	_v:geben	geben Sie
 w	_v:geben	gib
+w	_v:geben	gäbe
+w	_v:geben	gäben
+w	_v:geben	gäbest
+w	_v:geben	gäbet
 w	_v:geben	habe gegeben
 w	_v:geben	haben gegeben
 w	_v:geben	habt gegeben
@@ -6508,6 +6534,9 @@ w	_v:gehen	er würde gehen
 w	_v:gehen	geh
 w	_v:gehen	gehen Sie
 w	_v:gehen	gehst
+w	_v:gehen	ginge
+w	_v:gehen	gingest
+w	_v:gehen	ginget
 w	_v:gehen	ich bin gegangen
 w	_v:gehen	ich gehe
 w	_v:gehen	ich werde gehen
@@ -6924,6 +6953,7 @@ w	_v:halten	hatte gehalten
 w	_v:halten	hatten gehalten
 w	_v:halten	hattest gehalten
 w	_v:halten	hattet gehalten
+w	_v:halten	hielte
 w	_v:halten	hielten
 w	_v:halten	hieltest
 w	_v:halten	hieltet
@@ -7047,8 +7077,10 @@ w	_v:heißen	hattest geheißen
 w	_v:heißen	hattet geheißen
 w	_v:heißen	heißen Sie
 w	_v:heißen	heißt
+w	_v:heißen	hieße
 w	_v:heißen	hießen
 w	_v:heißen	hießest
+w	_v:heißen	hießet
 w	_v:heißen	hießt
 w	_v:heißen	hätte geheißen
 w	_v:heißen	hätten geheißen
@@ -8018,6 +8050,10 @@ w	_v:kommen	komme
 w	_v:kommen	kommen Sie
 w	_v:kommen	kommst
 w	_v:kommen	kommt
+w	_v:kommen	käme
+w	_v:kommen	kämen
+w	_v:kommen	kämest
+w	_v:kommen	kämet
 w	_v:kommen	seid gekommen
 w	_v:kommen	sie kamen
 w	_v:kommen	sie kommen
@@ -8418,8 +8454,10 @@ w	_v:lassen	ihr werdet lassen
 w	_v:lassen	ihr würdet lassen
 w	_v:lassen	lass
 w	_v:lassen	lassen Sie
+w	_v:lassen	ließe
 w	_v:lassen	ließen
 w	_v:lassen	ließest
+w	_v:lassen	ließet
 w	_v:lassen	ließt
 w	_v:lassen	sie haben gelassen
 w	_v:lassen	sie hatten gelassen
@@ -9025,6 +9063,10 @@ w	_v:liegen	lieg
 w	_v:liegen	liege
 w	_v:liegen	liegen Sie
 w	_v:liegen	liegst
+w	_v:liegen	läge
+w	_v:liegen	lägen
+w	_v:liegen	lägest
+w	_v:liegen	läget
 w	_v:liegen	sie haben gelegen
 w	_v:liegen	sie hatten gelegen
 w	_v:liegen	sie lagen
@@ -9925,6 +9967,10 @@ w	_v:nehmen	nahmst
 w	_v:nehmen	nahmt
 w	_v:nehmen	nehmen Sie
 w	_v:nehmen	nimm
+w	_v:nehmen	nähme
+w	_v:nehmen	nähmen
+w	_v:nehmen	nähmest
+w	_v:nehmen	nähmet
 w	_v:nehmen	sie haben genommen
 w	_v:nehmen	sie hatten genommen
 w	_v:nehmen	sie nahmen
@@ -12330,6 +12376,10 @@ w	_v:sehen	sie würden sehen
 w	_v:sehen	sieh
 w	_v:sehen	soll gesehen werden
 w	_v:sehen	sollen gesehen werden
+w	_v:sehen	sähe
+w	_v:sehen	sähen
+w	_v:sehen	sähest
+w	_v:sehen	sähet
 w	_v:sehen	werde sehen
 w	_v:sehen	werden gesehen
 w	_v:sehen	werden sehen
@@ -14338,6 +14388,10 @@ w	_v:sitzen	sie würden sitzen
 w	_v:sitzen	sitz
 w	_v:sitzen	sitze
 w	_v:sitzen	sitzen Sie
+w	_v:sitzen	säße
+w	_v:sitzen	säßen
+w	_v:sitzen	säßest
+w	_v:sitzen	säßet
 w	_v:sitzen	werde sitzen
 w	_v:sitzen	werden sitzen
 w	_v:sitzen	werdet sitzen
@@ -14757,6 +14811,10 @@ w	_v:stehen	standet
 w	_v:stehen	steh
 w	_v:stehen	stehen Sie
 w	_v:stehen	stehst
+w	_v:stehen	stünde
+w	_v:stehen	stünden
+w	_v:stehen	stündest
+w	_v:stehen	stündet
 w	_v:stehen	werde stehen
 w	_v:stehen	werden stehen
 w	_v:stehen	werdet stehen
@@ -15948,6 +16006,10 @@ w	_v:tun	tue
 w	_v:tun	tun Sie
 w	_v:tun	tust
 w	_v:tun	tut
+w	_v:tun	täte
+w	_v:tun	täten
+w	_v:tun	tätest
+w	_v:tun	tätet
 w	_v:tun	werde tun
 w	_v:tun	werden tun
 w	_v:tun	werdet tun
