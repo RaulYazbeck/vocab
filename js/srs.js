@@ -209,7 +209,9 @@ function srsReview(ws, ok, kind = "recall", now = Date.now(), opts = {}) {
   if (!recall && from >= STAGE_RECOG_CAP) return res;
   if (recall) nudgeEase(ws, opts.ms > 0 && opts.ms < EASE.FAST_MS ? EASE.UP_FAST : EASE.UP);
   // Hard words need a second correct review at this stage first.
-  if (recall && isHard(ws) && !ws.cf) {
+  // (Not in the final stretch before a finish date: there the next stage
+  // can't wait for a second check.)
+  if (recall && isHard(ws) && !ws.cf && finalStretchDays() === null) {
     ws.cf = 1;
     scheduleStage(ws, now, true);
     res.events.push("confirm");

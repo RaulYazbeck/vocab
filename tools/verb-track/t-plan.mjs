@@ -43,6 +43,14 @@ const r = await page.evaluate(() => {
   const kd = Math.round((known.dueAt - studyDayStart(0, now0)) / 864e5);
   S.path.deadline = keep2; _vxPace = null;
   ok(far === STAGE_DAYS[4] && near === 3 && kd === STAGE_DAYS[STAGE_KNOWN], `final stretch: a 🌿4 word waits ${far} days far from the date, ${near} with 24 days left; a Known one still ${kd}`);
+  // …and a hard word moves up on one right answer there (no second check).
+  const hard = () => ({ st: 3, k: 0.56, pk: 3, dueAt: Date.now() - 1000, sAt: Date.now() - 5 * 864e5, correct: 0, wrong: 0 });
+  S.path.deadline = addDays(studyToday(), 200);
+  const h1 = hard(); srsReview(h1, true, "recall");
+  S.path.deadline = addDays(studyToday(), 20);
+  const h2 = hard(); srsReview(h2, true, "recall");
+  S.path.deadline = keep2;
+  ok(h1.st === 3 && h1.cf === 1 && h2.st === 4, `a hard word: a second check far from the date (st ${h1.st}), straight up in the final stretch (st ${h2.st})`);
   // 2. Today numbers
   const words = pathTodaySummary(), vx = vxTodayCounts();
   renderHome();
