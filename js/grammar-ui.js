@@ -792,18 +792,19 @@ function vxPromptHtml(ex) {
     line = `<span class="vx-pron">${escapeHtml(pron)}</span> ${gap}${ctx}`;
   }
   const mod = ex.kind === "pvmod" ? ` · with <b>${escapeHtml(ex.modal)}</b>` : "";
-  const gloss = typeof vlGloss === "function" ? vlGloss(ex.x.v) : "";
+  // Only what it means: the verb itself (its infinitive) is yours to find.
+  const gloss = vxMeaning(ex.x);
   return `<div class="vx-q" style="${vxUnitStyle(u)}">
     <div class="vx-tt-row" id="vx-tt">${vxTenseTitleHtml(t)}</div>
     <div class="vx-line">${line}</div>
-    <div class="vx-verb"><b>${escapeHtml(ex.x.inf)}</b>${gloss ? ` · ${escapeHtml(gloss)}` : ""}${mod}</div>
+    <div class="vx-verb">${escapeHtml(gloss)}${mod}</div>
     ${speakOn() ? `<div class="vx-fmt">🗣️ ${vxT("Say")} <b>${vxT("the full form")}</b></div>` : ""}
   </div>`;
 }
 function vxItemLabel(ex) {
   if (ex.rule) return vxT("🧩 Rule · {0}", VX_RULE[ex.rule].title);
   if (ex.cell) return vxT("📒 Ledger · {0} verbs", ex.x.level.toUpperCase());
-  return `🧩 ${VX_ITEM_KINDS[ex.item.split(":")[0]].title} · ${ex.x.inf}`;
+  return `🧩 ${VX_ITEM_KINDS[ex.item.split(":")[0]].title}`; // (not the verb: that's the answer)
 }
 // A new verb item: what it is, before its first typed check.
 function renderPathVerbLearn(it) {

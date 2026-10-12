@@ -267,8 +267,8 @@
 .vx-pron { color:var(--teal-hi); }
 .vx-gap { display:inline-block; width:74px; height:4px; border-radius:2px; background:hsl(var(--th) 80% 62% / 0.7); transform:translateY(-6px); }
 .vx-tail { color:var(--text-2); }
-.vx-verb { font-size:15px; color:var(--text-2); }
-.vx-verb b { color:var(--text); font-size:17px; }
+.vx-verb { font-size:18px; font-weight:600; color:var(--text); }
+.vx-verb b { color:var(--text); }
 .vx-fmt { font-size:12.5px; color:var(--text-3); }
 .vx-fmt b { color:var(--text-2); }
 /* Feedback: one centred column. */

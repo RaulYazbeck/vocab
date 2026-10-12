@@ -29,6 +29,21 @@ const r = await page.evaluate((APP) => {
     const got = other(ex, val);
     ok(got === want, `${inf} ${k} ${p} "${val}" → ${got} (want ${want})`);
   });
+  // The card never names its verb: only its meaning, and the label above
+  // doesn't either (a French verb spelt the same in Spanish aside).
+  const named = [];
+  vxVerbs().forEach(x => {
+    const t = VX_CORE.find(t => vxHasTense(x, t)), p = t && vxCellPersons(x, t)[0];
+    const f = p && vxForm(x, t, p);
+    if (!f) return;
+    const ex = { kind: t, x, p, form: f, tense: t, cell: x.inf + "|" + t };
+    const div = document.createElement("div"); div.innerHTML = vxPromptHtml(ex) + vxItemLabel(ex);
+    const text = " " + div.textContent.toLowerCase().replace(/[^a-zäöüßéèêàâçôîûùëïœ' ]+/g, " ") + " ";
+    const bare = x.inf.toLowerCase().replace(/^(sich |se |s')/, "");
+    if (text.includes(" " + bare + " ") && !vxMeaning(x).toLowerCase().includes(bare)) named.push(x.inf);
+  });
+  ok(!named.length, `no verb card names its verb (${vxVerbs().length} verbs)`, named.slice(0, 8).join(", "));
+  ok(vxVerbs().every(x => vxMeaning(x)), "every verb has a meaning to show");
   // The flow in a Today session.
   startPathSession("regular", { noBonus: true });
   const s = pathSession;

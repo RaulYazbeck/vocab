@@ -173,6 +173,20 @@ function vxLemma(x) {
   return { st, met };
 }
 function vxVerbReady(x) { return vxLemma(x).st >= VX_LEMMA_MIN; }
+// What a verb means, as its card says it — the whole meaning, so verbs
+// that share one (to know: wissen / kennen) stay apart: "to know (a
+// fact)". A verb card shows only this, never the verb. French: its word
+// card's Spanish. The verbs the decks only conjugate get one here.
+const VX_MEANING_EXTRA = { tragen: "to carry / to wear", streiten: "to fight / to dispute (no sich)", unterhalten: "to entertain / to keep (no sich)", "sich verhalten": "to behave" };
+function vxMeaning(x) {
+  if (VX_FR) {
+    // (a verb with no word card of its own: its Spanish gloss — its
+    // conjugation cards' text names the verb: "mettre — je")
+    const w = x.v.word, d = w && !VX_LEGACY_DECKS.has(w.deckId) && getDeck(w.deckId), card = d && d.words[w.idx];
+    return String((card && card.en) || x.v.es || "").trim();
+  }
+  return String(x.v.en || VX_MEANING_EXTRA[x.inf] || (typeof vlGloss === "function" ? vlGloss(x.v) : "")).trim();
+}
 // Which verb a deck card is about — its word card (hängen) or one of its
 // form cards (gehangen) — so Today never asks it right next to a verb
 // card of the same verb. null for anything else.
