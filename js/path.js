@@ -541,7 +541,8 @@ function clozeTarget(w) {
 // Quests can open a session on a slice of your words: one deck, one
 // level, a part of speech, the hard ones, the dusty ones… Due words of
 // the slice come first; the rest is practice (stats and quests count,
-// stages only move for due words — same rules as everywhere).
+// stages only move for due words, or ones near enough to their review —
+// same rules as everywhere).
 function focusWords(focus, param) {
   const now = Date.now();
   const out = [];
@@ -635,7 +636,9 @@ function buildPathQueue(lenKey, opts = {}) {
     if (n > q.left) { S.path.extraToday = (S.path.extraToday || 0) + (n - q.left); }
     clusters = planNewWords(n, rng, deck ? deck.id : null);
   } else if (focus) {
-    reviews = focusWords(focus, opts.param).slice(0, budget).map(x => focusItem(x, focus));
+    // "Practise anyway" (nothing due): its words are 🧺 extra practice.
+    reviews = focusWords(focus, opts.param).slice(0, budget)
+      .map(x => opts.practice && !x.due ? { ...focusItem(x, focus), practice: true } : focusItem(x, focus));
   } else {
     const { fix, due } = pathReviewCandidates(now);
     const reviewsAvail = fix.length + due.length;
@@ -740,7 +743,8 @@ function buildPathQueue(lenKey, opts = {}) {
   }
   // The length you picked is the length you get: once due and new words
   // run out, the rest is practice on your least recently seen words
-  // (stages only move for due words, so it's pure extra practice).
+  // (normal rules: a word near its review can step up early, the rest
+  // just stay on schedule).
   if (!focus) {
     const have = new Set(out.filter(x => x.w).map(x => x.w.deckId + "_" + x.w.idx));
     const short = budget - counted();
