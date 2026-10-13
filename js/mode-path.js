@@ -705,7 +705,8 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     : evs.includes("maintained") ? `<span class="p-chip gold">💎 Check-in passed</span>`
     : evs.includes("spotcheck") ? `<span class="p-chip gold">💎 Still solid</span>`
     : evs.includes("confirmed") ? `<span class="p-chip ok">✓ Scheduled — see you ${stageIntervalDays(ws, stageOf(ws)) === 1 ? "tomorrow" : "in " + stageIntervalDays(ws, stageOf(ws)) + " days"}</span>`
-    : it.practice && ok === true ? `<span class="p-chip ok">🩹 Fixed — already on schedule</span>`
+    : it.practice && ok === true ? (it.repair ? `<span class="p-chip ok">🩹 Fixed — already on schedule</span>`
+      : `<span class="p-chip ok">✓ Still remembered — schedule unchanged</span>`)
     : it.usedHint && ok === true ? `<span class="p-chip">💡 with hint — no step up</span>`
     : it.said && it.fast && ok === true ? `<span class="p-chip">⚡ Shown straight away — counts as a look, no step up</span>` : "";
   const collectChip = genderCollected ? ` <span class="p-chip gold">🎨 Added to your Gender collection</span>` : "";
