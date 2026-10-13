@@ -1613,7 +1613,7 @@ function questCardsHtml(opts = {}) {
 // What a quest asks for, in plain words — by family, then by where it
 // is played. Shown on the quest's sheet.
 const QUEST_FAM_HOW = {
-  plan: "Right answers while studying today — Today sessions, Drill, Timer and bosses all count. Doing it keeps you on time for your finish date.",
+  plan: "Right answers while studying today — Today sessions, Drill, Timer, bosses and new grammar sheets all count. Doing it keeps you on time for your finish date.",
   path: "Every answer in a Today session counts. Tap Start on the Today card.",
   typed: () => sayOr("Typed answers anywhere count: Today sessions, Drill, Timer.", "Words recalled out loud anywhere count: Today sessions, Drill, Timer."),
   clear: "Answer every review that's due today. Start takes them first.",
