@@ -31,6 +31,9 @@ In the real app (Chromium via playwright-core from `../audio/tests`; run
     APP=fr node t-forms.mjs / APP=fr node t-screens.mjs   # the same audits in the French app
     node t-session.mjs      # whole Today sessions, right and wrong, repair round: the count (x/N) never
                             # grows, the same word (or verb) never twice in a row  (SEED=, DAYS=, APP=fr)
+    node t-sheetday.mjs     # a sheet's place in the day: one of the day's two wherever it's passed, its
+                            # answers in the plan (not a retake / mastery / peek), Today's count (x/N)
+                            # with each sheet's questions, never back, never a new total  (APP=fr)
     node t-tense.mjs        # the tense as the card's title; a right form of another tense is named and
                             # gets one more try (right then = right); ich hätte for ich hatte  (APP=fr)
     node t-plural.mjs       # a plural missed in Plural Hunt is repaired as its plural (der Tisch → die ___)
