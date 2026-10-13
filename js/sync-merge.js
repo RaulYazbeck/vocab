@@ -408,7 +408,8 @@ function mergeStates(local, cloud, opts = {}) {
   // The verb track (verb-track.js): tense states, quiz scores and opened
   // sheets — the higher; coverage cells — those of both; switched on or
   // off — whichever side decided last (onAt); today's counters — the
-  // later day's, the higher on the same day.
+  // later day's, the higher on the same day (today's sheets: those of
+  // both, each sheet's plan answers the higher).
   if (syncIsObj(local.verb) || syncIsObj(cloud.verb)) {
     const lv = syncIsObj(local.verb) ? local.verb : {}, cv = syncIsObj(cloud.verb) ? cloud.verb : {};
     const V = syncClone(localWins ? lv : cv);
@@ -420,8 +421,14 @@ function mergeStates(local, cloud, opts = {}) {
     const dec = syncNum(lv.onAt) >= syncNum(cv.onAt) ? lv : cv;
     if (lv.onAt !== undefined || cv.onAt !== undefined) { V.on = dec.on || ""; V.onAt = syncNum(dec.onAt); if (dec.seed) V.seed = syncClone(dec.seed); }
     const ld = String(lv.day || ""), cd = String(cv.day || "");
-    if (ld === cd) ["ni", "nc", "ns"].forEach(k => { V[k] = Math.max(syncNum(lv[k]), syncNum(cv[k])); });
-    else { const src = ld > cd ? lv : cv; V.day = src.day || ""; ["ni", "nc", "ns"].forEach(k => { V[k] = syncNum(src[k]); }); }
+    if (ld === cd) {
+      ["ni", "nc", "ns"].forEach(k => { V[k] = Math.max(syncNum(lv[k]), syncNum(cv[k])); });
+      ["su", "sq"].forEach(k => { V[k] = syncDeepMax(syncIsObj(lv[k]) ? lv[k] : {}, syncIsObj(cv[k]) ? cv[k] : {}); });
+    } else {
+      const src = ld > cd ? lv : cv; V.day = src.day || "";
+      ["ni", "nc", "ns"].forEach(k => { V[k] = syncNum(src[k]); });
+      ["su", "sq"].forEach(k => { V[k] = syncIsObj(src[k]) ? syncClone(src[k]) : {}; });
+    }
     out.verb = V;
   }
   out.savedAt = Math.max(syncNum(local.savedAt), syncNum(cloud.savedAt));

@@ -84,12 +84,14 @@ function vxOn() { return vxAvailable() && !!(S.verb && S.verb.on); }
 //   cov   { inf: bitmask of VX_COV tenses produced right at least once }
 //   rot   { rule: index } — where each rule's verb rotation stands
 //   day / ni / nc / ns — today's new items, coverage drills, sheets shown
+//   su    { sheet: 1 } — today's sheets that used up one of the day's two
+//   sq    { sheet: n } — today's answers of each sheet counted in the plan
 //   seed  what the switch did (for the report)
 function migrateVerb() {
   if (!S.verb || typeof S.verb !== "object") S.verb = {};
   const V = S.verb;
   if (typeof V.on !== "string") V.on = "";
-  ["tu", "sh", "sr", "cov", "rot", "ma", "qm"].forEach(k => { if (!V[k] || typeof V[k] !== "object") V[k] = {}; });
+  ["tu", "sh", "sr", "cov", "rot", "ma", "qm", "su", "sq"].forEach(k => { if (!V[k] || typeof V[k] !== "object") V[k] = {}; });
   if (typeof V.day !== "string") V.day = "";
   ["ni", "nc", "ns"].forEach(k => { if (!(V[k] >= 0)) V[k] = 0; });
   if (vxOn()) {
@@ -105,7 +107,9 @@ function migrateVerb() {
 const VX_SEED_V = 2;
 function vxRollDay() {
   const V = S.verb, today = studyToday();
-  if (V.day !== today) { V.day = today; V.ni = 0; V.nc = 0; V.ns = 0; }
+  if (V.day !== today) { V.day = today; V.ni = 0; V.nc = 0; V.ns = 0; V.su = {}; V.sq = {}; }
+  if (!V.su || typeof V.su !== "object") V.su = {};
+  if (!V.sq || typeof V.sq !== "object") V.sq = {};
 }
 
 // ── VERBS ─────────────────────────────────────
@@ -322,6 +326,27 @@ function vxSheetsToday() {
   if (!vxOn()) return [];
   return vxPendingSheets().slice(0, vxQuotas().sheetsLeft);
 }
+// A sheet uses up one of the day's VX_SHEETS_PER_DAY once: opened in
+// Today, or passed on the grammar screen — the same sheet again that day
+// (a retry, another device) doesn't. ns counts them too (and what an
+// older version of the app counted without naming the sheet).
+function vxSheetUse(id) {
+  vxRollDay();
+  const V = S.verb;
+  if (!V.su[id]) { V.su[id] = 1; V.ns++; }
+}
+function vxSheetsUsed() { const V = S.verb; return Math.max(V.ns || 0, Object.keys(V.su || {}).length); }
+// May this answer of sheet `id` (n questions) count in the day's plan?
+// Each sheet counts its n questions' worth of right answers once a day,
+// wherever it's done; retries until it's passed still teach, but don't
+// add to the plan. A right answer that counts is taken from the room.
+function vxSheetPlanTake(id, n, ok) {
+  vxRollDay();
+  const V = S.verb, k = V.sq[id] || 0;
+  if (k >= n) return false;
+  if (ok) V.sq[id] = k + 1;
+  return true;
+}
 // A quiz finished: score = first-try share (0–1), all = every question
 // right in the end. Returns true when the sheet counts as passed.
 function vxSheetResult(id, score, all, where) {
@@ -330,7 +355,7 @@ function vxSheetResult(id, score, all, where) {
   const passed = all && score >= VX_PASS_RE - 1e-9;
   // A first pass outside Today (the grammar screen) uses up one of the
   // day's sheets too; a sheet in Today counted when it opened.
-  if (passed && where !== "path" && !vxSheetPassed(id)) { vxRollDay(); V.ns++; }
+  if (passed && where !== "path" && !vxSheetPassed(id)) vxSheetUse(id);
   if (passed) V.sh[id] = Math.max(V.sh[id] || 0, Math.max(1, pct));
   V.sr[id] = 1;
   if (typeof logEvent === "function") logEvent("vx_sheet", { id, pct, ok: passed, where: where || "" });
@@ -1202,7 +1227,7 @@ function vxQuotas(scan) {
     items = need.items ? Math.max(VX_ITEM_PACE[0], Math.min(VX_ITEM_PACE[1], need.items)) : 0;
     cells = need.cells ? Math.max(VX_CELL_PACE[0], Math.min(VX_CELL_PACE[1], need.cells)) : 0;
   }
-  return { items, cells, itemsLeft: Math.max(0, items - V.ni), cellsLeft: Math.max(0, cells - V.nc), sheetsLeft: Math.max(0, VX_SHEETS_PER_DAY - V.ns) };
+  return { items, cells, itemsLeft: Math.max(0, items - V.ni), cellsLeft: Math.max(0, cells - V.nc), sheetsLeft: Math.max(0, VX_SHEETS_PER_DAY - vxSheetsUsed()) };
 }
 // The day (from today) each tense can start its work: 0 when open; a
 // lesson waits for its sheets (two a day); a locked one for its Path

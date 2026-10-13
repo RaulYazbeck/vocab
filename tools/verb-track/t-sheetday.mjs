@@ -1,6 +1,7 @@
 // A sheet's place in the day, driven in the real app: a new sheet passed on the
 // grammar screen uses up one of the day's two and its answers count in the plan;
-// a retake of a passed sheet, a mastery quiz or a peek counts nothing; in Today
+// a retry until it's passed adds nothing past the sheet's questions (once a day); a
+// retake of a passed sheet, a mastery quiz or a peek counts nothing; in Today
 // the count (x/N) adds each sheet's questions, moves with them, never goes back
 // and never changes its total ("Read it again" included).  (APP=fr)
 import { openApp } from "./browser.mjs";
@@ -30,9 +31,12 @@ const r = await page.evaluate(() => {
   id = vxPendingSheets()[0]; m0 = mok(); ns0 = S.verb.ns;
   renderGrammarSheet(id); toQuiz(); n = _gs.quiz.n; rights = runQuiz(true);
   ok(!vxSheetPassed(id) && mok() - m0 === rights && S.verb.ns === ns0, `grammar screen, ${id} failed (1 miss): plan +${mok() - m0} (= ${rights} right answers incl. the re-ask), daily sheets +${S.verb.ns - ns0}, still pending`);
-  // 3b · Retake button after failing: still not passed → counts
-  m0 = mok(); gsQuizRetake(); n = _gs.quiz.n; runQuiz(false);
-  ok(vxSheetPassed(id) && mok() - m0 === n && S.verb.ns - ns0 === 1, `Retake after failing ${id}, all right: plan +${mok() - m0}, now passed, daily sheets +${S.verb.ns - ns0}`);
+  // 3b · retries until it's passed: the sheet's questions count once a day, no more
+  const mFail = mok() - m0;
+  gsQuizRetake(); runQuiz(true); gsQuizRetake(); runQuiz(true);
+  ok(!vxSheetPassed(id) && mok() - m0 === Math.min(n, mFail), `2 more failed retries of ${id}: plan still +${mok() - m0} in all (room: ${n})`);
+  gsQuizRetake(); runQuiz(false);
+  ok(vxSheetPassed(id) && mok() - m0 === n && S.verb.ns - ns0 === 1, `then passed: plan +${mok() - m0} in all (= its ${n} questions, once), daily sheets +${S.verb.ns - ns0}`);
   // 4 · mastery quiz (not part of the plan)
   const unit = VX_UNITS.find(u => vxUnitState(u.id) >= 1).id;
   vxSheetIds(unit).forEach(s => { S.verb.sh[s] = S.verb.sh[s] || 100; });
@@ -43,7 +47,7 @@ const r = await page.evaluate(() => {
   gsPeek(id); const peekQuiz = _gs.mode === "peek" && _gs.steps.length > 0; while (_gs.step < _gs.steps.length - 1) gsGo(1); gsPeekClose();
   ok(peekQuiz && mok() === m0 && S.verb.ns === ns0 && !vxSheetPassed(id), `peek at ${id} (read to the end): plan +${mok() - m0}, daily sheets +${S.verb.ns - ns0}, not passed`);
   // 6 · Today, with a sheet: counter includes its questions, moves per question, total never changes
-  S.verb.ns = 0; // fresh allowance for the Today part
+  S.verb.ns = 0; S.verb.su = {}; // fresh allowance for the Today part
   const pendT = vxSheetsToday();
   startPathSession("regular", { noBonus: true });
   const s = pathSession, cnt = () => (document.getElementById("p-count") || {}).textContent;
@@ -51,7 +55,7 @@ const r = await page.evaluate(() => {
   const cards = s.items.filter(x => x.t !== "bonus" && x.t !== "learn" && x.t !== "sheet" && !x.warm && !x.repair).length;
   const sq = sheets.reduce((a, x) => a + gqSheetSize(vxSheet(x.sheet)), 0);
   const total0 = +cnt().split("/")[1];
-  ok(sheets.length === pendT.length && total0 === cards + sq, `Today: ${sheets.length} sheet(s) [${sheets.map(x => x.sheet)}], counter total ${total0} = ${cards} cards + ${sq} sheet questions`);
+  ok(sheets.length > 0 && sheets.length === pendT.length && total0 === cards + sq, `Today: ${sheets.length} sheet(s) [${sheets.map(x => x.sheet)}], counter total ${total0} = ${cards} cards + ${sq} sheet questions`);
   let guard = 0, totals = new Set([total0]), seq = [], plan0 = mok(), sheetRights = 0, sheetMiss = false, mono = true, last = 0;
   while (pathSession && s.cur && guard++ < 400) {
     const it = s.cur;
@@ -78,7 +82,7 @@ const r = await page.evaluate(() => {
   }
   ok(totals.size === 1, `counter total never changed during the session (${[...totals]})`);
   ok(mono, `counter only moves forward`);
-  ok(mok() - plan0 === sheetRights, `Today sheet answers in the plan: +${mok() - plan0} (= ${sheetRights} right, incl. a re-ask)`);
+  ok(mok() - plan0 === sq, `Today sheet answers in the plan: +${mok() - plan0} (= the sheets' ${sq} questions; ${sheetRights} right answers given, "Read it again" included)`);
   log.push("  counter during the sheets: " + seq.join(" "));
   return { log, fails };
 });
