@@ -794,14 +794,11 @@ function vxPromptHtml(ex) {
   const gap = `<span class="vx-gap wide"></span>`;
   const ctx = ex.form.ctx ? ` <span class="vx-tail">${escapeHtml(ex.form.ctx)}</span>` : "";
   let line;
-  if (VX_FR) line = ex.kind === "ip" ? `<span class="vx-pron">(${ex.p})</span> ${gap}${ctx} !` : `${vxPronHtml(VXF.pron(ex.kind, ex.p, ex.form.ans))}${gap}${ctx}`;
-  else if (ex.kind === "im" || ex.kind === "imsep" || ex.kind === "imfull") line = `<span class="vx-pron">(${ex.p})</span> ${gap}${ctx} !`;
-  else {
-    // "sie" alone could be she: the plural says so.
-    const pron = ex.kind === "pvpr" || ex.kind === "pvpt" || ex.kind === "pvmod" ? (ex.p === "sie" ? "sie (they)" : "es")
-      : ex.p === "sie" ? "sie (they)" : ex.p === "er" && vxItVerb(ex.x) ? "es" : (PERSON_LABEL[ex.p] || ex.p).split("/")[0];
-    line = `<span class="vx-pron">${escapeHtml(pron)}</span> ${gap}${ctx}`;
-  }
+  // "sie" alone could be she: the plural says so (vxPronText).
+  const cmd = VX_FR ? ex.kind === "ip" : ex.kind === "im" || ex.kind === "imsep" || ex.kind === "imfull";
+  if (cmd) line = `<span class="vx-pron">${escapeHtml(vxPronText(ex))}</span> ${gap}${ctx} !`;
+  else if (VX_FR) line = `${vxPronHtml(vxPronText(ex))}${gap}${ctx}`;
+  else line = `<span class="vx-pron">${escapeHtml(vxPronText(ex))}</span> ${gap}${ctx}`;
   const mod = ex.kind === "pvmod" ? ` · with <b>${escapeHtml(ex.modal)}</b>` : "";
   // Only what it means: the verb itself (its infinitive) is yours to find.
   const gloss = vxMeaning(ex.x);

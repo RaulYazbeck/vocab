@@ -1031,10 +1031,37 @@ function vxCellSheet(c) {
   if (c.t === "pq") return "pq1";
   return "";
 }
+// Who the form is for, as the question shows it: "er", "sie (they)",
+// "es" for an it-verb (es regnet), "(du)" for a command, "j'" / "que
+// nous" in French. Passiv asks es / sie (they).
+function vxPronText(ex) {
+  if (VX_FR) return ex.kind === "ip" ? `(${ex.p})` : VXF.pron(ex.kind, ex.p, ex.form.ans) || "";
+  if (ex.kind === "im" || ex.kind === "imsep" || ex.kind === "imfull") return `(${ex.p})`;
+  if (ex.kind === "pvpr" || ex.kind === "pvpt" || ex.kind === "pvmod") return ex.p === "sie" ? "sie (they)" : "es";
+  return ex.p === "sie" ? "sie (they)" : ex.p === "er" && vxItVerb(ex.x) ? "es" : (PERSON_LABEL[ex.p] || ex.p).split("/")[0];
+}
+// The tense as a game names it: the Passiv says which one, and its modal.
+function vxGameTense(ex) {
+  if (VX_FR) return VX_TENSE_LABEL[ex.tense] || "";
+  if (ex.kind === "pvpr") return "Passiv Präsens";
+  if (ex.kind === "pvpt") return "Passiv Präteritum";
+  if (ex.kind === "pvmod") return `Passiv with ${ex.modal}`;
+  return VX_TENSE_LABEL[ex.tense] || "";
+}
+// A verb item as one line of text for the games (their prompt): the
+// verb, the tense, and the person with a gap — "waschen (Präsens) — er
+// ___", "gehen (Imperativ) — (du) ___!". Without the person a form can't
+// be guessed (wasche? wäschst? wäscht?).
+function vxCueText(ex) {
+  const pron = vxPronText(ex), ctx = ex.form.ctx ? " " + ex.form.ctx : "";
+  const cmd = VX_FR ? ex.kind === "ip" : /^im/.test(ex.kind);
+  const gap = !pron ? "___" : /'$/.test(pron) ? pron + "___" : pron + " ___";
+  return `${ex.x.inf} (${vxGameTense(ex)}) — ${gap}${ctx}${cmd ? (VX_FR ? " !" : "!") : ""}`;
+}
 // The word-like object a Today item carries (wordKey(w) = "vx_…").
 function vxWord(ex) {
   const id = ex.item || ("cell:" + ex.cell);
-  return { deckId: VX_DECK, idx: id, deckName: vxT("Verbs"), de: ex.form.ans, fr: ex.form.ans, en: `${ex.x.inf} — ${VX_TENSE_LABEL[ex.tense] || ""}`, hint: "verb", vx: ex };
+  return { deckId: VX_DECK, idx: id, deckName: vxT("Verbs"), de: ex.form.ans, fr: ex.form.ans, en: vxCueText(ex), hint: "verb", vx: ex };
 }
 
 // ── GRADING ───────────────────────────────────

@@ -33,6 +33,8 @@ In the real app (Chromium via playwright-core from `../audio/tests`; run
                             # grows, the same word (or verb) never twice in a row  (SEED=, DAYS=, APP=fr)
     node t-tense.mjs        # the tense as the card's title; a right form of another tense is named and
                             # gets one more try (right then = right); ich hätte for ich hatte  (APP=fr)
+    node t-gameverbs.mjs    # verb items in the games (bonus rounds): the prompt names verb, tense and person,
+                            # typed forms graded like Today (pronoun, umlaut), the lesson shows the whole form  (APP=fr)
     node t-plural.mjs       # a plural missed in Plural Hunt is repaired as its plural (der Tisch → die ___)
     node t-adopt.mjs        # every old verb card taken over, nothing lost: no card lower, counts / levels /
                             # achievements never down, items take the cards' stage, never asked the old way,

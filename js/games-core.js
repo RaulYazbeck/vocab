@@ -95,7 +95,10 @@ function sharesPromptAlt(a, b) { const s = new Set(promptAlts(a)); return prompt
 // Typed recall (Boss Battle): the stored answer or its clean display
 // form — "die Katze" must count for "die Katze, -n", "sie" for
 // "sie (plural 3rd person)".
+// A verb item (Today's verb track) is graded as Today grades it: the
+// pronoun may be typed in front (er wäscht), a missing umlaut is fine.
 function typedCorrect(input, word) {
+  if (word && word.vx && typeof vxGrade === "function" && vxGrade(input, word.vx) === true) return true;
   return isCorrect(input, word[WORD_KEY]) || isCorrect(input, gameForm(word));
 }
 const _normCache = new Map();
@@ -322,6 +325,12 @@ function wordLessonHtml(w, picked = null, extra = "") {
   else if (picked && picked.trap) pick = `<div class="g-teach-sub">✗ <s>${escapeHtml(picked.text)}</s> — wrong article: it's ${colorArticleHtml(gameForm(w))}</div>`;
   else if (picked && picked.none) pick = `<div class="g-teach-sub">✗ It was there: ${colorArticleHtml(gameForm(w))}</div>`;
   else if (picked && picked.word && !sameWord(picked.word, w)) pick = `<div class="g-teach-sub">✗ You picked ${colorArticleHtml(gameForm(picked.word))} = ${escapeHtml(gamePrompt(picked.word))}</div>`;
+  // A verb item: the whole form with its person (er wäscht), then the
+  // verb, its tense and what it means.
+  if (w.vx && typeof vxFormHtml === "function") {
+    const v = w.vx, gloss = typeof vxMeaning === "function" ? vxMeaning(v.x) : "";
+    return `<div class="g-teach-main">${vxFormHtml(v)}</div><div class="g-teach-sub">${escapeHtml(v.x.inf)} · ${escapeHtml(vxGameTense(v))}${gloss ? ` · ${escapeHtml(gloss)}` : ""}</div>${pick}${extra}`;
+  }
   return `<div class="g-teach-main">${colorArticleHtml(gameForm(w))} = ${escapeHtml(gamePrompt(w))}${pl}</div>${pick}${extra}
     ${ex && ex[WORD_KEY] ? `<div class="g-teach-ex">${escapeHtml(ex[WORD_KEY])}${ex.en ? `<span>${escapeHtml(ex.en)}</span>` : ""}</div>` : ""}`;
 }
