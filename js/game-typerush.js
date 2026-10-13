@@ -110,7 +110,9 @@ registerGame({
         floatScore(input, `−${pen / 1000}s`, "bad");
         playMiss(); haptic("miss");
         ctx.say(`It was ${target(cur)}`);
-        ctx.teach(wordLessonHtml(cur), "bad");
+        // A real form of the verb, wrong person or tense: say which.
+        const owner = cur.vx && val.trim() && typeof vxFormOwner === "function" ? vxFormOwner(val, cur.vx) : "";
+        ctx.teach(wordLessonHtml(cur, null, owner ? `<div class="g-teach-sub">✗ <s>${escapeHtml(val.trim())}</s> is ${escapeHtml(owner)}</div>` : ""), "bad");
         ctx.waitContinue(ctx.sudden ? end : next, ctx.sudden ? "See results" : "Continue");
       }
       ctx.setScore(score); ctx.setCombo(combo);

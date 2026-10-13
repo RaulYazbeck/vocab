@@ -1117,8 +1117,48 @@ function vxGrade(val, ex) {
   for (const t of tries) if (acc.some(a => vxEq(a, t))) return true;
   if (tries.some(t => vxUmlautSlip(acc, t))) return true;
   if (vxExtraOk(tries, acc, ex.x)) return true;
-  if (isNearMiss(tries[0], acc)) return "near";
+  if (vxNearTry(val, ex)) return "near";
   return false;
+}
+// A typo (one letter off) is "Almost" — one more try. Another real form
+// of the verb is not a typo but a wrong conjugation (wasche for wäscht:
+// the ich form; kam for kamen): a miss. Returns what was typed, without
+// its pronoun (for the diff), or "".
+function vxNearTry(val, ex) {
+  const tries = vxGradeTries(val, vxIsCommand(ex));
+  if (!tries.length || tries.some(t => vxIsOwnForm(ex.x, t))) return "";
+  return tries.slice().reverse().find(t => isNearMiss(t, ex.form.acc)) || "";
+}
+// What a wrong answer that is a real form of the verb is: another person
+// of the asked tense ("ich"), else the asked person in another tense
+// ("Präteritum"). English, for the games' miss feedback, or "".
+function vxFormOwner(val, ex) {
+  const tries = vxGradeTries(val, vxIsCommand(ex));
+  if (!tries.some(t => vxIsOwnForm(ex.x, t))) return "";
+  const hit = (k, p) => { let f = null; try { f = vxForm(ex.x, k, p, { modal: ex.modal }); } catch (e) { f = null; } return f && f.acc && tries.some(t => f.acc.some(a => normalize(a) === normalize(t))); };
+  for (const p of VX_PERSONS.concat(VX_FR ? ["elle", "elles"] : ["Sie"])) if (p !== ex.p && hit(ex.kind, p)) {
+    const pron = VX_FR ? p : vxPronText({ ...ex, p, form: vxForm(ex.x, ex.kind, p, { modal: ex.modal }) }).replace(/[()]/g, "");
+    return `the ${pron} form`;
+  }
+  for (const k of VX_OTHER_KINDS) { const t = VX_KIND_TENSE[k]; if (t && t !== ex.tense && hit(k, ex.p)) return `the ${VX_TENSE_LABEL[t] || ""}`; }
+  return `another form of ${ex.x.inf}`;
+}
+// Every form of a verb, any person, any tense (umlauts ignored).
+const _vxOwnForms = new Map();
+function vxIsOwnForm(x, typed) {
+  if (!x || !x.inf) return false;
+  let set = _vxOwnForms.get(x.inf);
+  if (!set) {
+    set = new Set();
+    for (const k of Object.keys(VX_KIND_TENSE)) for (const p of VX_PERSONS.concat(VX_FR ? ["elle", "elles"] : ["Sie"]))
+      for (const modal of k === "pvmod" ? Object.keys(VX_PV_MODALS) : [""]) {
+        let f = null;
+        try { f = vxForm(x, k, p, { modal }); } catch (e) { f = null; }
+        if (f && f.acc) f.acc.forEach(a => set.add(normalize(a)));
+      }
+    _vxOwnForms.set(x.inf, set);
+  }
+  return set.has(normalize(typed));
 }
 // A right form with a few words of context added (er ist zu Fuß gegangen,
 // the "(on foot)" of the meaning in German): still right — every word of

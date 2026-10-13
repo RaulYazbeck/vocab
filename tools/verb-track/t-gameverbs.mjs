@@ -49,6 +49,13 @@ const r = await page.evaluate(async (APP) => {
     const w1 = words[1]; // fahren du → fährst
     ok(near("du färhst", w1) === "färhst" && near("färhst", w1) === "färhst", `typo with the pronoun typed = Almost, diffed without it ("${near("du färhst", w1)}")`);
     ok(!near("er wäsch", w0), "a slip in the ending is wrong, not Almost (as everywhere)");
+    // Another person's form is a wrong conjugation: a miss, never Almost — in Today too.
+    ok(!near("wasche", w0) && !near("er wasche", w0) && vxGrade("wasche", w0.vx) === false, "wasche (ich) for wäscht: a miss, not Almost");
+    ok(vxFormOwner("wasche", w0.vx) === "the ich form" && vxFormOwner("er wasche", w0.vx) === "the ich form", `…and named: "${vxFormOwner("wasche", w0.vx)}"`);
+    ok(vxFormOwner("wusch", w0.vx) === "the Präteritum", `wusch: "${vxFormOwner("wusch", w0.vx)}"`);
+    ok(vxFormOwner("falsch", w0.vx) === "" && vxFormOwner("du färhst", w1.vx) === "", "a non-form names nothing");
+    const sieW = words[4]; // kommen pt sie → kamen
+    ok(!near("kam", sieW) && vxFormOwner("kam", sieW) === "the ich form", `kam for kamen: "${vxFormOwner("kam", sieW)}"`);
     ok(!typedCorrect("wasche wäschst wäscht", w0), "every person at once is not right");
     ok(!near("falsch", w0) && !near("", w0), "a wrong word / blank is not Almost");
     ok(typedCorrect("Er wäscht", w0) && typedCorrect("  wäscht ", w0) && typedCorrect("er waescht", w0), "case, spaces and ae for ä are fine");
@@ -62,6 +69,9 @@ const r = await page.evaluate(async (APP) => {
     ok(new Set(kinds.map(gamePrompt)).size === 3, `the three passives differ: ${kinds.map(gamePrompt).join(" | ")}`);
     const el = vxWord(mk("aimer", "pc", "je"));
     ok(/— j'___/.test(gamePrompt(el)) && typedCorrect("j'ai aimé", el) && typedCorrect("ai aimé", el), `elision: "${gamePrompt(el)}"`);
+    const fin = vxWord(mk("finir", "pr", "nous"));
+    ok(!typedNear("finis", fin) && vxGrade("finissez", fin.vx) === false && !typedNear("finissez", fin), "another person (finis / finissez for finissons): a miss, not Almost");
+    ok(vxFormOwner("finissez", fin.vx) === "the vous form", `…named: "${vxFormOwner("finissez", fin.vx)}"`);
     const sj = vxWord(mk("finir", "sj", "nous"));
     ok(/que nous ___/.test(gamePrompt(sj)) && typedCorrect("que nous finissions", sj) && typedCorrect("finissions", sj), `subjonctif: "${gamePrompt(sj)}"`);
   }
@@ -83,6 +93,21 @@ const r = await page.evaluate(async (APP) => {
     input.value = c[3]; document.getElementById("tr-go").click();
     ok(input.classList.contains("correct"), `Type Rush: "${c[3]}" counted right`);
   } else ok(false, "Type Rush: current word found");
+  // A wrong person in Type Rush: a miss that says which form it was.
+  if (cur && APP !== "fr") {
+    await new Promise(r => setTimeout(r, 400));
+    if (activeGame && activeGame.ctx.waiting) activeGame.ctx.continueNow();
+    for (let t = 0; t < 20 && !document.getElementById("tr-prompt"); t++) await new Promise(r => setTimeout(r, 100));
+    const p2 = document.getElementById("tr-prompt"), w2 = p2 && words.find(w => p2.textContent.startsWith(w.vx.x.inf + " (") && p2.textContent.includes("— " + vxPronText(w.vx) + " "));
+    const other = w2 && VX_PERSONS.map(p => vxForm(w2.vx.x, w2.vx.kind, p)).find(f => f && !f.acc.some(a => w2.vx.form.acc.some(b => vxEq(a, b))));
+    if (other) {
+      const input = document.getElementById("tr-input");
+      input.value = other.ans; document.getElementById("tr-go").click();
+      await new Promise(r => setTimeout(r, 100));
+      const teach = (document.getElementById("g-teach") || {}).textContent || "";
+      ok(input.classList.contains("wrong") && !input.classList.contains("near") && / form/.test(teach), `Type Rush: "${other.ans}" for "${p2.textContent}" — a miss: ${teach.replace(/\s+/g, " ").trim().slice(0, 90)}`);
+    } else ok(false, "Type Rush: second word found");
+  }
   if (typeof quitAllGames === "function") quitAllGames();
   return out;
 }, APP);

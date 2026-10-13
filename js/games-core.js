@@ -110,14 +110,13 @@ function answersOverlap(a, b) {
   return !!((a && a.vx && typedCorrect(gameForm(b), a)) || (b && b.vx && typedCorrect(gameForm(a), b)));
 }
 // Almost right (a typo): a retry, not a miss. A verb item's answer may
-// have its pronoun typed in front (er wäsch). Returns what was typed,
+// have its pronoun typed in front (du färhst). Returns what was typed,
 // without that pronoun (for the "Almost" diff), or "".
 function typedNear(input, word) {
   const answers = [word[WORD_KEY], gameForm(word)];
-  if (word && word.vx && typeof vxGradeTries === "function") {
-    const tries = vxGradeTries(input, vxIsCommand(word.vx)), acc = word.vx.form.acc.concat(answers);
-    return tries.slice().reverse().find(t => isNearMiss(t, acc)) || "";
-  }
+  // (A verb item: another real form of the verb — wasche for wäscht — is
+  // a wrong conjugation, never "Almost": vxNearTry.)
+  if (word && word.vx && typeof vxNearTry === "function") return vxNearTry(input, word.vx);
   return isNearMiss(input, answers) ? String(input) : "";
 }
 const _normCache = new Map();

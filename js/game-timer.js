@@ -131,7 +131,9 @@ registerGame({
         fbEl.innerHTML = `<span class="bb-bad">${val.trim() ? `<s>${escapeHtml(val.trim())}</s> → ` : ""}<strong>${colorArticleHtml(target(cur))}</strong></span>`;
         playMiss(); haptic("miss");
         ctx.say(`It was ${target(cur)}`);
-        ctx.teach(wordLessonHtml(cur), "bad");
+        // A real form of the verb, wrong person or tense: say which.
+        const owner = cur.vx && val.trim() && typeof vxFormOwner === "function" ? vxFormOwner(val, cur.vx) : "";
+        ctx.teach(wordLessonHtml(cur, null, owner ? `<div class="g-teach-sub">✗ <s>${escapeHtml(val.trim())}</s> is ${escapeHtml(owner)}</div>` : ""), "bad");
         ctx.setScore(score); ctx.setCombo(combo);
         ctx.waitContinue(ctx.sudden ? () => end(false, "💀 Sudden death — one miss ends the round") : next, ctx.sudden ? "See results" : "Continue");
       }
