@@ -55,7 +55,7 @@ const r = await page.evaluate(async (APP) => {
     ok(vxFormOwner("wusch", w0.vx) === "the Präteritum", `wusch: "${vxFormOwner("wusch", w0.vx)}"`);
     ok(vxFormOwner("falsch", w0.vx) === "" && vxFormOwner("du färhst", w1.vx) === "", "a non-form names nothing");
     const sieW = words[4]; // kommen pt sie → kamen
-    ok(!near("kam", sieW) && vxFormOwner("kam", sieW) === "the ich form", `kam for kamen: "${vxFormOwner("kam", sieW)}"`);
+    ok(!near("kam", sieW) && vxFormOwner("kam", sieW.vx) === "the ich form", `kam for kamen: "${vxFormOwner("kam", sieW.vx)}"`);
     ok(!typedCorrect("wasche wäschst wäscht", w0), "every person at once is not right");
     ok(!near("falsch", w0) && !near("", w0), "a wrong word / blank is not Almost");
     ok(typedCorrect("Er wäscht", w0) && typedCorrect("  wäscht ", w0) && typedCorrect("er waescht", w0), "case, spaces and ae for ä are fine");
