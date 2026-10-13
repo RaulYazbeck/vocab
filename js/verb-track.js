@@ -1041,8 +1041,15 @@ function vxPronText(ex) {
   return ex.p === "sie" ? "sie (they)" : ex.p === "er" && vxItVerb(ex.x) ? "es" : (PERSON_LABEL[ex.p] || ex.p).split("/")[0];
 }
 // The tense as a game names it: the Passiv says which one, and its modal.
+// A strong verb's own Konjunktiv II (käme) is asked as such: würde +
+// infinitive is right German but not this item's answer. French: the
+// three passives (est loué · a été loué · sera loué).
 function vxGameTense(ex) {
-  if (VX_FR) return VX_TENSE_LABEL[ex.tense] || "";
+  if (VX_FR) {
+    const sub = { pvpr: "pr", pvpc: "pc", pvfu: "fu" }[ex.kind];
+    return sub ? `${VX_TENSE_LABEL[ex.tense] || ""} · ${VX_TENSE_LABEL[sub] || ""}` : VX_TENSE_LABEL[ex.tense] || "";
+  }
+  if (ex.kind === "k2s") return "Konjunktiv II · own form, not würde";
   if (ex.kind === "pvpr") return "Passiv Präsens";
   if (ex.kind === "pvpt") return "Passiv Präteritum";
   if (ex.kind === "pvmod") return `Passiv with ${ex.modal}`;

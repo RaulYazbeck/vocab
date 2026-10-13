@@ -44,7 +44,7 @@ registerGame({
     for (let b = 0; b < boards; b++) {
       const forms = new Set(), prompts = new Set(), set = [];
       const fits = w => !forms.has(normKey(gameForm(w))) && !prompts.has(normKey(gamePrompt(w)))
-        && !set.some(x => sharesPromptAlt(x, w));
+        && !set.some(x => sharesPromptAlt(x, w) || answersOverlap(x, w));
       // One part of speech per board where the pool allows (all nouns,
       // all verbs…): no pairing by shape — "to …" can't only go with a verb.
       const seed = candidates.find(w => !used.has(wordKey(w)));

@@ -76,10 +76,11 @@ registerGame({
       if (!cur || ctx.busy || ctx.paused || ctx.finished) return;
       const val = input.value;
       if (!skip && !val.trim()) { shakeEl(input); return; }
-      const res = skip ? false : (typedCorrect(val, cur) ? true : isNearMiss(val, [cur[WORD_KEY], target(cur)]) ? "near" : false);
+      const nearVal = skip || typedCorrect(val, cur) ? "" : typedNear(val, cur);
+      const res = skip ? false : typedCorrect(val, cur) ? true : nearVal ? "near" : false;
       if (res === "near") {
         input.classList.add("near");
-        fbEl.innerHTML = `<span class="g-near">≈ Almost — ${diffHtml(val, target(cur))}</span>`;
+        fbEl.innerHTML = `<span class="g-near">≈ Almost — ${diffHtml(nearVal, target(cur))}</span>`;
         gTimeout(() => { input.classList.remove("near"); input.select(); }, 700);
         return;
       }

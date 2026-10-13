@@ -95,11 +95,30 @@ function sharesPromptAlt(a, b) { const s = new Set(promptAlts(a)); return prompt
 // Typed recall (Boss Battle): the stored answer or its clean display
 // form — "die Katze" must count for "die Katze, -n", "sie" for
 // "sie (plural 3rd person)".
-// A verb item (Today's verb track) is graded as Today grades it: the
-// pronoun may be typed in front (er wäscht), a missing umlaut is fine.
+// A verb item (Today's verb track) is graded only as Today grades it:
+// the pronoun may be typed in front (er wäscht), a missing umlaut is
+// fine — but not the word anywhere in what was typed, as for vocab
+// (er wäscht nicht, wasche wäschst wäscht).
 function typedCorrect(input, word) {
-  if (word && word.vx && typeof vxGrade === "function" && vxGrade(input, word.vx) === true) return true;
+  if (word && word.vx && typeof vxGrade === "function") return vxGrade(input, word.vx) === true;
   return isCorrect(input, word[WORD_KEY]) || isCorrect(input, gameForm(word));
+}
+// Two words one answer fits — a verb item's form that is right for
+// another's prompt too (käme for "kommen (Konjunktiv II) — er": würde
+// kommen and käme are both right). Never a distractor or a match pair.
+function answersOverlap(a, b) {
+  return !!((a && a.vx && typedCorrect(gameForm(b), a)) || (b && b.vx && typedCorrect(gameForm(a), b)));
+}
+// Almost right (a typo): a retry, not a miss. A verb item's answer may
+// have its pronoun typed in front (er wäsch). Returns what was typed,
+// without that pronoun (for the "Almost" diff), or "".
+function typedNear(input, word) {
+  const answers = [word[WORD_KEY], gameForm(word)];
+  if (word && word.vx && typeof vxGradeTries === "function") {
+    const tries = vxGradeTries(input, vxIsCommand(word.vx)), acc = word.vx.form.acc.concat(answers);
+    return tries.slice().reverse().find(t => isNearMiss(t, acc)) || "";
+  }
+  return isNearMiss(input, answers) ? String(input) : "";
 }
 const _normCache = new Map();
 function normKey(s) {
@@ -248,6 +267,7 @@ function pickDistractors(word, pool, n, formFn = gameForm, filterFn = null, opts
       const f = normKey(formFn(w)), p = normKey(gamePrompt(w));
       if (!f || bad.has(f) || badP.has(p)) continue;
       if (sharesPromptAlt(w, word) || out.some(o => sharesPromptAlt(o, w))) continue;
+      if (answersOverlap(w, word) || out.some(o => answersOverlap(o, w))) continue;
       bad.add(f); badP.add(p); out.push(w);
     }
   };

@@ -30,6 +30,41 @@ const r = await page.evaluate(async (APP) => {
     const div = document.createElement("div"); div.innerHTML = wordLessonHtml(w);
     ok(div.textContent.includes(w.vx.form.ans.split(" ")[0]) && div.textContent.includes(inf), `lesson: ${div.textContent.replace(/\s+/g, " ").trim()}`);
   });
+  // Edge cases.
+  const near = (v, w) => typedNear(v, w);
+  if (APP !== "fr") {
+    const k2w = vxWord(mk("kommen", "k2w", "er")), k2s = vxWord(mk("kommen", "k2s", "du")), k2sEr = vxWord(mk("kommen", "k2s", "er"));
+    ok(gamePrompt(k2s) !== gamePrompt(vxWord(mk("kommen", "k2w", "du"))) && /own form/.test(gamePrompt(k2s)), `own Konjunktiv II says so: "${gamePrompt(k2s)}"`);
+    ok(!typedCorrect("würdest kommen", k2s) && typedCorrect("kämest", k2s) && typedCorrect("käme", k2w) && typedCorrect("würde kommen", k2w), "käme / würde: right where asked");
+    ok(answersOverlap(k2w, k2sEr) && !answersOverlap(words[0], words[1]), "käme and würde kommen (er) overlap; waschen er / fahren du don't");
+    // käme never offered as a wrong option for "würde kommen" (and back).
+    let clash = 0;
+    for (let i = 0; i < 40; i++) {
+      const pool2 = [k2w, k2sEr, ...words].map(w => ({ ...w, anki: false }));
+      const ds = pickDistractors(k2w, pool2, 3, gameForm, null, { hard: true }), ds2 = pickDistractors(k2sEr, pool2, 3, gameForm, null, { hard: true });
+      if (ds.some(d => d.vx && d.vx.kind === "k2s") || ds2.some(d => d.vx && d.vx.kind === "k2w")) clash++;
+    }
+    ok(!clash, "a right answer is never a distractor (käme / würde kommen)");
+    const w0 = words[0];
+    const w1 = words[1]; // fahren du → fährst
+    ok(near("du färhst", w1) === "färhst" && near("färhst", w1) === "färhst", `typo with the pronoun typed = Almost, diffed without it ("${near("du färhst", w1)}")`);
+    ok(!near("er wäsch", w0), "a slip in the ending is wrong, not Almost (as everywhere)");
+    ok(!typedCorrect("wasche wäschst wäscht", w0), "every person at once is not right");
+    ok(!near("falsch", w0) && !near("", w0), "a wrong word / blank is not Almost");
+    ok(typedCorrect("Er wäscht", w0) && typedCorrect("  wäscht ", w0) && typedCorrect("er waescht", w0), "case, spaces and ae for ä are fine");
+    ok(!typedCorrect("er wäscht nicht", w0) && !typedCorrect("sie wäscht er", w0), "nicht / a second pronoun is not right");
+    const es = vxWord(mk("regnen", "pr", "er"));
+    ok(/— es ___/.test(gamePrompt(es)) && typedCorrect("es regnet", es) && typedCorrect("regnet", es), `it-verb: "${gamePrompt(es)}"`);
+    const sie = vxWord(mk("aufstehen", "im", "Sie"));
+    ok(/\(Sie\) ___!/.test(gamePrompt(sie)) && typedCorrect("stehen Sie auf", sie) && typedCorrect("stehen Sie auf!", sie), `Sie command: "${gamePrompt(sie)}"`);
+  } else {
+    const kinds = ["pvpr", "pvpc", "pvfu"].map(k => vxWord(mk("vendre", k, "il")));
+    ok(new Set(kinds.map(gamePrompt)).size === 3, `the three passives differ: ${kinds.map(gamePrompt).join(" | ")}`);
+    const el = vxWord(mk("aimer", "pc", "je"));
+    ok(/— j'___/.test(gamePrompt(el)) && typedCorrect("j'ai aimé", el) && typedCorrect("ai aimé", el), `elision: "${gamePrompt(el)}"`);
+    const sj = vxWord(mk("finir", "sj", "nous"));
+    ok(/que nous ___/.test(gamePrompt(sj)) && typedCorrect("que nous finissions", sj) && typedCorrect("finissions", sj), `subjonctif: "${gamePrompt(sj)}"`);
+  }
   // Type Rush with these words: the prompt on screen has the person.
   const pool = words.concat(words).map(w => ({ ...w, anki: false }));
   try { localStorage.setItem("gv_game_intro_typerush", "1"); } catch (e) {}

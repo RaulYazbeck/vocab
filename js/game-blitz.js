@@ -50,7 +50,7 @@ registerGame({
       const hideText = spoken && reverse;
       ctx.stage.innerHTML = `
         <div class="g-question g-enter">
-          <div class="g-q-label">${reverse ? (hideText ? "Listen — what does it mean?" : "What does it mean?") : "Translate"}${ctx.tag(w)}</div>
+          <div class="g-q-label">${w.vx ? (reverse ? (hideText ? "Listen — which verb and person?" : "Which verb and person?") : "Which form?") : reverse ? (hideText ? "Listen — what does it mean?" : "What does it mean?") : "Translate"}${ctx.tag(w)}</div>
           <div class="g-q-word ${reverse ? "target" : ""}">${hideText ? `<button class="l-play blitz-say" id="bz-say" aria-label="Say it again">🔊</button>` : escapeHtml(shown)}</div>
         </div>
         ${mcOptionsHtml(opts, opts.length > 4 ? "six" : "")}`;
