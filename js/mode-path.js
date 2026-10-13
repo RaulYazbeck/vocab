@@ -26,8 +26,8 @@ function startPathSession(lenKey, opts = {}) {
   showGameScreen();
   if (!q.items.length) {
     // Nothing due and today's new words met: "practise anyway" gets a
-    // refresh session on your least recently seen words (stages only
-    // move for due words, so this is pure extra practice).
+    // refresh session on your least recently seen words (a word only
+    // moves up if it's due or near enough to its review — see isEarlyOk).
     if (opts.practice && !opts.focus) { startPathSession(lenKey, { focus: "stale", practice: true }); return; }
     renderPathCaughtUp(); return;
   }
@@ -81,7 +81,7 @@ function renderPathShell() {
 function pathFocusLabel() {
   const s = pathSession;
   if (!s) return "";
-  if (s.practice) return "🧺 Extra practice — nothing is due, so this is just for fun";
+  if (s.practice) return "🧺 Extra practice — nothing is due, but words close to their next review can still move up";
   if (!s.focus) return "";
   const p = s.focusParam;
   const extra = s.focus === "deck" || s.focus === "new" ? (getDeck(p) ? " · " + escapeHtml(getDeck(p).name) : "")
@@ -641,7 +641,9 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     // Said aloud: a Show tapped too fast to have recalled anything is a look.
     const kind = it.usedHint || (it.said && it.fast && !it.micOk) ? "recognition" : "recall";
     sessionConsecutive++;
-    if (it.practice) { ws.lastAnsweredAt = Date.now(); ws.correct++; ws.streak++; ws.displayStreak++; S.totalCorrect++; }
+    // Extra practice follows the normal rules (a word near its review can
+    // step up early); a repair-round word already back on track moves nothing.
+    if (it.practice && it.repair) { ws.lastAnsweredAt = Date.now(); ws.correct++; ws.streak++; ws.displayStreak++; S.totalCorrect++; }
     else res = applyCorrect(ws, { quiet: true, kind, w, ms: Date.now() - s.shownAt });
     if (it.plural) { delete ws.fx; if (it.watch) pluralRight(ws); } // its plural typed right: repaired
     // Fixed = back on schedule (a hint-aided answer leaves it to fix later).
