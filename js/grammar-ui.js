@@ -1117,7 +1117,8 @@ function renderPathSheet(it) {
   const s = pathSession;
   pathShowTyped(false);
   pathSetActions("");
-  if (!it.counted) { it.counted = true; vxRollDay(); S.verb.ns++; saveState(); }
+  // Passed on the grammar screen since the session began: already counted.
+  if (!it.counted) { it.counted = true; if (!vxSheetPassed(it.sheet)) { vxRollDay(); S.verb.ns++; saveState(); } }
   gsOpen(document.getElementById("p-card"), it.sheet, { mode: "path", onDone: () => { gsClose(); pathNext(); } });
   if (typeof logEvent === "function") logEvent("vx_open", { id: it.sheet, where: "path" });
   void s;

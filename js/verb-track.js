@@ -314,7 +314,8 @@ function vxPendingSheets() {
   return out;
 }
 // The sheets your next Today session brings: today's allowance
-// (VX_SHEETS_PER_DAY) not yet used. The Today banner and the sheet quest
+// (VX_SHEETS_PER_DAY) not yet used — sheets passed on the grammar screen
+// use it up too (vxSheetResult). The Today banner and the sheet quest
 // show only these — once today's sheets are done, the rest wait for
 // tomorrow and nothing announces them.
 function vxSheetsToday() {
@@ -327,6 +328,9 @@ function vxSheetResult(id, score, all, where) {
   migrateVerb();
   const V = S.verb, pct = Math.round(score * 100);
   const passed = all && score >= VX_PASS_RE - 1e-9;
+  // A first pass outside Today (the grammar screen) uses up one of the
+  // day's sheets too; a sheet in Today counted when it opened.
+  if (passed && where !== "path" && !vxSheetPassed(id)) { vxRollDay(); V.ns++; }
   if (passed) V.sh[id] = Math.max(V.sh[id] || 0, Math.max(1, pct));
   V.sr[id] = 1;
   if (typeof logEvent === "function") logEvent("vx_sheet", { id, pct, ok: passed, where: where || "" });
