@@ -23,6 +23,8 @@ In the real app (Chromium via playwright-core from `../audio/tests`; run
     node t-drill.mjs        # the tense drill: opens with the sheets passed, your verbs taking turns, outside the
                             # plan, ledger forms, a step up only as Today would and never past 🌿 Familiar,
                             # a miss checked at the end of tomorrow's Today, both logs, the screens  (APP=fr)
+    node t-drillsweep.mjs   # the drill in every tense (300 exercises each: sound, graded right, drawn) and its
+                            # corners: umlaut choice, wrong tense, hint, Enter twice, Say-it, ✕ at once  (APP=fr)
     node t-flows.mjs        # switch, preview, gating, mirrors, game credit, reports, switching back
     node t-quiz.mjs         # sheet quizzes (size, every point, 100%, re-ask) and mastery quizzes
     node t-review.mjs       # a miss → the sheet → back to the quiz, nothing lost (every kind, menu + Today)
