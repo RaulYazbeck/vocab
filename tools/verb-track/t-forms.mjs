@@ -71,7 +71,7 @@ const out = await page.evaluate(() => {
     const needSep = F.sep && ["pr", "pt", "im", "sc", "prsep", "imsep", "imfull", "ptsep"].includes(kind);
     if (needSep && !words.includes(F.sep)) add("prefix missing from answer", `${tag} → ${ans}`);
     const refl = F.refl ? (REFL[p] || "sich") : "";
-    if (refl && !["p2only", "pvpr", "pvpt", "pvmod"].includes(kind) && !words.includes(refl) && !(kind === "p2" && words.includes("sich"))) add("pronoun missing from answer", `${tag} → ${ans}`);
+    if (refl && !["p2only", "pvpr", "pvpt", "pvpf", "pvmod"].includes(kind) && !words.includes(refl) && !(kind === "p2" && words.includes("sich"))) add("pronoun missing from answer", `${tag} → ${ans}`);
     if (/^im/.test(kind) && p === "Sie" && !words.includes("Sie")) add("Sie missing from command", `${tag} → ${ans}`);
     // the finite verb alone must not pass when the answer has more
     if (words.length > 1 && (needSep || refl || (/^im/.test(kind) && p === "Sie")) && vxGrade(words[0], ex) === true) add("finite verb alone accepted", `${tag} → "${words[0]}" for ${ans}`);

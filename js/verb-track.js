@@ -437,7 +437,7 @@ function vxTenseOkFor(inf, t) {
 // One form for an exercise. kind: an engine tense (pr pt pf pq fu im)
 // or one of the track's own: prsep (the prefix typed too), prrefl (with
 // the pronoun), k2w (würde + inf), k2o (own Konjunktiv II), pvpr / pvpt
-// (Passiv), pvmod (modal + Partizip II + werden), k2p (hätte / wäre +
+// (Passiv), pvpf (ist + Partizip II + worden), pvmod (modal + Partizip II + werden), k2p (hätte / wäre +
 // Partizip II), sc (du + er), p2 (er + Perfekt).
 //   → { ans: shown answer, acc: [accepted…], tail, n: words to type }
 const VX_PV_MODALS = { können: { er: "kann", sie: "können" }, müssen: { er: "muss", sie: "müssen" }, sollen: { er: "soll", sie: "sollen" }, dürfen: { er: "darf", sie: "dürfen" } };
@@ -518,6 +518,11 @@ function vxFormBase(x, kind, p, opt = {}) {
       const w = (kind === "pvpr" ? { er: "wird", sie: "werden" } : { er: "wurde", sie: "wurden" })[p];
       return w ? out(`${w} ${F.p2}`) : null;
     }
+    case "pvpf": {
+      if (!F.p2 || F.aux !== "haben" || F.refl) return null;
+      const w = { er: "ist", sie: "sind" }[p];
+      return w ? out(`${w} ${F.p2} worden`) : null;
+    }
     case "pvmod": {
       const m = VX_PV_MODALS[opt.modal || "müssen"];
       if (!F.p2 || F.aux !== "haben" || F.refl || !m || !m[p]) return null;
@@ -563,7 +568,7 @@ function vxFormBase(x, kind, p, opt = {}) {
 }
 // The tense a kind of form belongs to (for colours, coverage and logs).
 const VX_KIND_TENSE = VX_FR ? VXF.kindTense : { pr: "pr", prsep: "pr", prrefl: "pr", sc: "pr", pt: "pt", pf: "pf", p2: "pf", pq: "pq", fu: "fu", im: "im", imsep: "im",
-  k2w: "k2", k2o: "k2", k2s: "k2", k2p: "k2p", pvpr: "pv", pvpt: "pv", pvmod: "pv" };
+  k2w: "k2", k2o: "k2", k2s: "k2", k2p: "k2p", pvpr: "pv", pvpt: "pv", pvpf: "pv", pvmod: "pv" };
 const VX_TENSE_LABEL = VX_FR ? VXF.tenseLabel : { pr: "Präsens", pt: "Präteritum", pf: "Perfekt", pq: "Plusquamperfekt", fu: "Futur I", im: "Imperativ", k2: "Konjunktiv II",
   k2p: "Konjunktiv II · past", pv: "Passiv" };
 const VX_TENSE_UNIT = VX_FR ? VXF.tenseUnit : { pr: "pr", pf: "pf", im: "im", pt: "pt2", fu: "fu", k2: "k2a", pq: "pq", pv: "pv", k2p: "k2p" };
@@ -620,6 +625,8 @@ const VX_RULES = VX_FR ? VXF.rules : [
   { id: "pv-pr", unit: "pv", sheet: "pv1", kind: "pvpr", title: "Passiv Präsens", chip: "wird + Partizip II",
     verbs: x => VX_PV_VERBS.has(x.inf), persons: () => ["er", "sie"], order: () => 0 },
   { id: "pv-pt", unit: "pv", sheet: "pv2", kind: "pvpt", title: "Passiv Präteritum", chip: "wurde + Partizip II",
+    verbs: x => VX_PV_VERBS.has(x.inf), persons: () => ["er", "sie"], order: () => 0 },
+  { id: "pv-pf", unit: "pv", sheet: "pv3", kind: "pvpf", title: "Passiv Perfekt", chip: "ist + Partizip II + worden",
     verbs: x => VX_PV_VERBS.has(x.inf), persons: () => ["er", "sie"], order: () => 0 },
   { id: "pv-mod", unit: "pv", sheet: "pv3", kind: "pvmod", title: "Passiv with a modal", chip: "muss + Partizip II + werden",
     verbs: x => VX_PV_VERBS.has(x.inf), persons: () => ["er", "sie"], order: () => 0 },
@@ -679,10 +686,10 @@ const VX_EXTRA_COVER = VX_FR ? {
   b1_konjunktiv2_12: ["dürfen", "k2", "ich"], b1_konjunktiv2_13: ["mögen", "k2", "ich"],
   b1_konjunktiv2_14: ["kommen", "k2", "ich", "k2-wuerde"], b1_konjunktiv2_15: ["helfen", "k2", "du", "k2-wuerde"], b1_konjunktiv2_16: ["kaufen", "k2"], b1_konjunktiv2_17: ["reisen", "k2", "wir"], b1_konjunktiv2_18: ["fragen", "k2", "sie"],
   b1_konjunktiv2_19: ["gehen", "k2"], b1_konjunktiv2_20: ["kommen", "k2"], b1_konjunktiv2_21: ["geben", "k2"], b1_konjunktiv2_22: ["wissen", "k2", "ich"], b1_konjunktiv2_23: ["brauchen", "k2", "ich"],
-  b1_konjunktiv2_24: ["machen", "k2p", "ich"], b1_konjunktiv2_25: ["kommen", "k2p"],
+  b1_konjunktiv2_24: ["machen", "k2p", "ich"], b1_konjunktiv2_25: ["kommen", "k2p"], b1_konjunktiv2_26: ["wissen", "k2p", "ich"],
   b1_passiv_0: ["reparieren", "pv", "er", "pv-pr"], b1_passiv_1: ["fragen", "pv", "er", "pv-pr"], b1_passiv_2: ["einladen", "pv", "er", "pv-pr"], b1_passiv_3: ["abholen", "pv", "sie", "pv-pr"],
   b1_passiv_4: ["bauen", "pv", "sie", "pv-pr"], b1_passiv_5: ["reparieren", "pv", "er", "pv-pt"], b1_passiv_6: ["fragen", "pv", "er", "pv-pt"], b1_passiv_7: ["öffnen", "pv", "er", "pv-pt"],
-  b1_passiv_8: ["schicken", "pv", "sie", "pv-pt"], b1_passiv_11: ["reparieren", "pv", "er", "pv-mod"], b1_passiv_12: ["bezahlen", "pv", "er", "pv-mod"], b1_passiv_13: ["überprüfen", "pv", "er", "pv-mod"],
+  b1_passiv_8: ["schicken", "pv", "sie", "pv-pt"], b1_passiv_9: ["reparieren", "pv", "er", "pv-pf"], b1_passiv_10: ["einladen", "pv", "ich", "pv-pf"], b1_passiv_11: ["reparieren", "pv", "er", "pv-mod"], b1_passiv_12: ["bezahlen", "pv", "er", "pv-mod"], b1_passiv_13: ["überprüfen", "pv", "er", "pv-mod"],
 };
 let _vxRetire = null;
 // What covers a German form of a verb: its own item, or the rule that builds it.
@@ -1066,7 +1073,7 @@ function vxCellSheet(c) {
 function vxPronText(ex) {
   if (VX_FR) return ex.kind === "ip" ? `(${ex.p})` : VXF.pron(ex.kind, ex.p, ex.form.ans) || "";
   if (ex.kind === "im" || ex.kind === "imsep" || ex.kind === "imfull") return `(${ex.p})`;
-  if (ex.kind === "pvpr" || ex.kind === "pvpt" || ex.kind === "pvmod") return ex.p === "sie" ? "sie (they)" : "es";
+  if (ex.kind === "pvpr" || ex.kind === "pvpt" || ex.kind === "pvpf" || ex.kind === "pvmod") return ex.p === "sie" ? "sie (they)" : "es";
   return ex.p === "sie" ? "sie (they)" : ex.p === "er" && vxItVerb(ex.x) ? "es" : (PERSON_LABEL[ex.p] || ex.p).split("/")[0];
 }
 // The tense as a game names it: the Passiv says which one, and its modal.
@@ -1081,6 +1088,7 @@ function vxGameTense(ex) {
   if (ex.kind === "k2s") return "Konjunktiv II · own form, not würde";
   if (ex.kind === "pvpr") return "Passiv Präsens";
   if (ex.kind === "pvpt") return "Passiv Präteritum";
+  if (ex.kind === "pvpf") return "Passiv Perfekt";
   if (ex.kind === "pvmod") return `Passiv with ${ex.modal}`;
   return VX_TENSE_LABEL[ex.tense] || "";
 }

@@ -164,6 +164,7 @@ function gqWrong(x, t, p, form, modal) {
     case "k2o": out.push(gqDeUml(ans), cell("pr", p), ...others(PERSONS)); break;
     case "pvpr": out.push(`${words[0]} ${F.inf}`, `${p === "sie" ? "sind" : "ist"} ${F.p2}`); break;
     case "pvpt": out.push(`${p === "sie" ? "würden" : "würde"} ${F.p2}`, `${words[0]} ${F.inf}`); break;
+    case "pvpf": out.push(`${words[0]} ${F.p2} geworden`, `${p === "sie" ? "haben" : "hat"} ${F.p2} worden`, `${words[0]} ${F.p2} werden`); break;
     case "pvmod": out.push(`${words[0]} ${F.p2} worden`, `${words[0]} ${F.inf} werden`, `${words[0]} werden ${F.p2}`); break;
     default: out.push(...others(PERSONS));
   }
