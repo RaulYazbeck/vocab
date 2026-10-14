@@ -1,9 +1,9 @@
-// The French app's verb track, in the real app: the switch, the preview,
+// The French app's verb track, in the real app: switching on, the preview,
 // units and gating, every sheet's quiz through the screens, a miss and
 // the way back, mastery, Today's sheet and verb cards, game credit,
 // retired cards, the reports, the Spanish screens, switching back.
 import { openApp } from "./browser.mjs";
-const { browser, page, errors } = await openApp({ app: "fr" });
+const { browser, page, errors } = await openApp({ app: "fr", vxOff: true });
 let pass = 0, fail = 0;
 const ok = (c, m, x = "") => { if (c) pass++; else { fail++; console.log("  ✗", m, x); } };
 const ev = f => page.evaluate(f);
@@ -11,7 +11,7 @@ const r = await ev(() => {
   const out = {};
   const host = () => document.getElementById("main-screen");
   out.avail = vxAvailable(); out.fr = VX_FR;
-  // 1 · before the switch: the old behaviour, the offer
+  // 1 · before the switch (only the tests load without it): the old behaviour, no offer
   out.before = { thread: vlLevelTenses(), pace: pathPace() };
   out.todayOffer = vxTodayHtml();
   out.menu = settingsMenuHtml().includes("Grammar");
@@ -21,24 +21,20 @@ const r = await ev(() => {
   const p = vxPreview();
   out.previewPure = JSON.stringify(S) === snap;
   out.preview = { items: p.after.items, cells: p.after.cells, retired: p.retired, units: p.units.filter(u => u.st).map(u => u.id + u.st).join(" ") };
-  renderVerbSwitch();
   return out;
 });
 ok(r.avail && r.fr, "the verb track is available in the French app");
-ok(/Nuevo sistema de verbos/.test(r.todayOffer), "Today offers the switch, in Spanish", r.todayOffer);
+ok(!r.todayOffer, "Today never offers a switch", r.todayOffer);
 ok(r.menu, "☰ has Grammar");
 ok(/Gramática/.test(r.grammarOff) && /12 tiempos/.test(r.grammarOff), "the Grammar screen is in Spanish, 12 tenses", r.grammarOff);
 ok(r.previewPure, "the preview leaves the state untouched");
 ok(r.preview.items > 200 && r.preview.cells > 1000, "the preview counts items and cells", JSON.stringify(r.preview));
 ok(Object.keys(r.preview.retired).length >= 5, "conjugation decks retire their unmet cards", JSON.stringify(r.preview.retired));
-await page.waitForSelector(".vx-switch", { timeout: 5000 }).catch(() => {});
-const sw = await ev(() => document.getElementById("main-screen").innerText);
-ok(/Qué cambia para ti/.test(sw) && /Activar el nuevo sistema/.test(sw) && !/What changes/.test(sw), "the switch screen is in Spanish", sw.slice(0, 200));
 
 const r2 = await ev(() => {
   const out = {};
   const host = () => document.getElementById("main-screen");
-  vxSwitchGo();
+  vxSwitchOn(); renderGrammar();
   out.units = VX_UNITS.map(u => u.id + vxUnitState(u.id)).join(" ");
   out.thread = vlLevelTenses();
   out.pending = vxPendingSheets();

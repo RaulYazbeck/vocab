@@ -11,7 +11,7 @@
 //   node t-adopt.mjs            (REAL_STATE=… for a real profile; APP=fr)
 import { openApp } from "./browser.mjs";
 const APP = process.env.APP || "de";
-const { browser, page, errors } = await openApp({ width: 390, height: 844, app: APP });
+const { browser, page, errors } = await openApp({ width: 390, height: 844, app: APP, vxOff: true });
 page.setDefaultTimeout(0);
 import fs from "node:fs";
 const RAW = process.env.REAL_STATE ? fs.readFileSync(process.env.REAL_STATE, "utf8") : "";
@@ -32,7 +32,7 @@ const r = await page.evaluate((RAW) => {
   // switched on the old way, without adoption).
   const _adopt = vxAdopt; window.vxAdopt = () => 0;
   if (RAW) { const raw = JSON.parse(RAW); S.words = raw.words; S.verb = raw.verb; migrateVerb(); }
-  else if (!vxOn()) vxSwitchOn();
+  if (!vxOn()) vxSwitchOn();
   vxCatalogReset();
   const legacy = [];
   ALL_GROUPS.forEach(g => g.decks.forEach(d => { if (VX_LEGACY_DECKS.has(d.id)) d.words.forEach((w, i) => legacy.push(d.id + "_" + i)); }));

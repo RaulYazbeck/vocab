@@ -1,5 +1,5 @@
 // ── THE VERB TRACK (German) ───────────────────
-// How verbs are learnt once the new system is switched on (S.verb.on).
+// How verbs are learnt (S.verb.on: the day the track started for you).
 // Three layers, all on the same 0–7 stages as words (srs.js):
 //
 //   1. TENSES in a fixed order (VX_UNITS). A tense opens when the
@@ -37,7 +37,11 @@
 // record, ws.rt), so totals, levels and achievements stay whole and
 // fill up as you learn the verbs the new way.
 //
-// Nothing here runs before the switch. The French app runs the same
+// The track is on for everyone: a profile that hasn't got it yet is
+// switched on at its next load (migrateVerb), with every card it had
+// adopted. There is no way back to the old verb cards except Classic
+// mode's Library, where any deck can still be drilled by hand. The
+// French app runs the same
 // system: verb-track-fr.js (loaded first) is VXF — its tenses, rules,
 // forms and grading, in Spanish — and every place below where the two
 // languages differ asks it (VX_FR).
@@ -87,13 +91,17 @@ function vxOn() { return vxAvailable() && !!(S.verb && S.verb.on); }
 //   su    { sheet: 1 } — today's sheets that used up one of the day's two
 //   sq    { sheet: n } — today's answers of each sheet counted in the plan
 //   seed  what the switch did (for the report)
+//   dm    { item: day } — tense-drill misses, checked in Today from that day
 function migrateVerb() {
   if (!S.verb || typeof S.verb !== "object") S.verb = {};
   const V = S.verb;
   if (typeof V.on !== "string") V.on = "";
-  ["tu", "sh", "sr", "cov", "rot", "ma", "qm", "su", "sq"].forEach(k => { if (!V[k] || typeof V[k] !== "object") V[k] = {}; });
+  ["tu", "sh", "sr", "cov", "rot", "ma", "qm", "su", "sq", "dm"].forEach(k => { if (!V[k] || typeof V[k] !== "object") V[k] = {}; });
   if (typeof V.day !== "string") V.day = "";
   ["ni", "nc", "ns"].forEach(k => { if (!(V[k] >= 0)) V[k] = 0; });
+  // On for everyone. (VX_TEST_OFF: the tests that measure the old way
+  // and the switch itself load a profile without it.)
+  if (!V.on && vxAvailable() && !(typeof window !== "undefined" && window.VX_TEST_OFF)) vxTurnOn(false);
   if (vxOn()) {
     vxRollDay(); vxUnitsTick(true);
     // Seeding learned to read more of your cards: run it again once.
@@ -1523,6 +1531,14 @@ function vxSessionPlan(room) {
   });
   const cells = vxOpenCells(Math.min(q.cellsLeft, Math.max(0, room - items.length)));
   cells.forEach(c => { const ex = vxCellExercise(c); if (ex) items.push(ex); });
+  // Missed in a tense drill: checked at the end of the session, from the
+  // next day on (outside the room — a few more reviews, by your choice).
+  const have = new Set(items.map(e => e.item).filter(Boolean));
+  vxDrillChecks().forEach(it => {
+    if (have.has(it.id)) return;
+    const ex = vxMakeExercise(it, avoid);
+    if (ex) { items.push({ ...ex, end: true }); have.add(it.id); avoid = ex.x.inf; }
+  });
   return { sheets, items, learns };
 }
 
@@ -1549,6 +1565,8 @@ function vxRecordAnswer(ex, ok, opts = {}) {
     learnNoteVerb(ex.x.F, noteT, ex.p, ok === true, opts.given || "", ex.form.ans);
   else if (ok === false && typeof _learnDay === "function") _learnDay("mk", vxMistakeType(opts.given, ex));
   if (typeof logEvent === "function") logEvent("vx_ans", { k: ex.item ? ex.item.split(":")[0] : "cell", t: ex.tense, ok: ok === true });
+  // A tense-drill miss waiting for Today: this was its check.
+  if (ex.item && V.dm && V.dm[ex.item]) delete V.dm[ex.item];
   vxMirror();
   return res;
 }
@@ -1650,6 +1668,8 @@ function vxPt1Sentence(r) {
 }
 
 // ── THE SWITCH ────────────────────────────────
+// It happens by itself (migrateVerb). The preview and the way back are
+// kept for the tests: what switching on does, and that it loses nothing.
 // What switching on would do, worked out on the live state without
 // changing it: { before: {pace, unmet}, after: {pace, unmet, items,
 // cells}, retired: {deck: n}, seeds, units, eta }.
@@ -1761,6 +1781,9 @@ function vxSwitchUnits(pos) {
 function vxSwitchOn() {
   migrateVerb();
   if (S.verb.on) return;
+  vxTurnOn(true);
+}
+function vxTurnOn(save) {
   const today = studyToday();
   S.verb.on = today; S.verb.onAt = Date.now();
   vxCatalogReset();
@@ -1780,10 +1803,10 @@ function vxSwitchOn() {
     if (lvl > (S.ach[a.id] || 0)) S.ach[a.id] = lvl;
   });
   invalidatePathScan();
-  logEvent("vx_switch", { on: true, ...seed, pos: S.verb.seed.pos });
-  saveState();
+  if (typeof logEvent === "function") logEvent("vx_switch", { on: true, ...seed, pos: S.verb.seed.pos });
+  if (save) saveState();
 }
-// Back to the old way: the verb items and shadows go, your cards stay.
+// Back to the old way (tests only): the verb items and shadows go, your cards stay.
 function vxSwitchOff() {
   if (!S.verb || !S.verb.on) return;
   Object.keys(S.words).forEach(k => {
@@ -1835,7 +1858,7 @@ function vxVerbRow(x) {
 function vxReportLines() {
   if (!vxAvailable()) return [];
   migrateVerb();
-  if (!vxOn()) return [`Verbs: new verb system not switched on yet`];
+  if (!vxOn()) return [`Verbs: verb track not on`];
   const L = vxLedger(), tiers = {};
   let n = 0;
   vxCatalog().forEach(it => { const ws = S.words[vxKey(it.id)]; const t = tierOfStage(ws ? ws.st || 0 : 0).id; tiers[t] = (tiers[t] || 0) + 1; n++; });
@@ -1917,6 +1940,149 @@ function vxAchCatchUp() {
     let v = 0; try { v = a.value(); } catch (e) {}
     S.ach[a.id] = a.tiers.filter(t => v >= t).length;
   });
+}
+
+// ── THE TENSE DRILL (optional, outside the daily plan) ─
+// Under a tense's mastery quiz once every sheet of it is passed: as many
+// forms as you like, the verbs you've met taking turns (a verb joins the
+// track past its first day, as everywhere else). It never counts in
+// Today's numbers or the quests. What an answer leaves behind:
+//   • right (no hint): that verb's ledger form is done — the ledger fills
+//     ahead of Today, which then has less to drill;
+//   • right on a rule or a verb's own item that Today would review now
+//     (due, or early enough — srsReview's rules): it steps up, but never
+//     past 🌿 Familiar (VX_DRILL_CAP); Known and above only come from
+//     Today. Above the cap, or not due: nothing changes, Today is the same;
+//   • wrong: the item behind it (for a ledger form, the rule or item that
+//     builds it) is checked at the end of the next day's Today (S.verb.dm),
+//     where a miss costs what it costs in Today;
+//   • both logs: the usage log ("grammar:drill" answers, vx_drill) and
+//     the learning log (the verb's history, the mistake type).
+const VX_DRILL_CAP = 4;
+const VX_DRILL_ROUNDS = [10, 30, 0]; // 0: until you stop
+function vxDrillOpen(unit) { return vxOn() && vxUnitSheetsPassed(unit); }
+// The unit a ledger form is taught in: its sheet's (Präteritum I's verbs
+// in Präteritum I), else its tense's.
+function vxCellUnit(c) {
+  const sid = vxCellSheet(c), sh = sid && vxSheet(sid);
+  return sh ? sh.unit : VX_TENSE_UNIT[c.t];
+}
+// What the drill of a unit can ask: per verb (met, ready), its choices —
+// the unit's items of that verb, the rules that apply to it, its ledger
+// forms of the unit's tenses. → [{ x, choices: [{ item | rule | cell }] }]
+function vxDrillPool(unit) {
+  if (!vxDrillOpen(unit)) return [];
+  const items = new Map(), cells = new Map();
+  vxCatalog().forEach(it => { if (it.x && it.unit === unit) { if (!items.has(it.x)) items.set(it.x, []); items.get(it.x).push(it); } });
+  vxRequiredCells().forEach(c => { if (vxCellUnit(c) === unit) { if (!cells.has(c.x)) cells.set(c.x, []); cells.get(c.x).push(c); } });
+  const rules = VX_RULES.filter(r => r.unit === unit);
+  const out = [];
+  vxVerbs().forEach(x => {
+    if (!vxVerbReady(x)) return;
+    const ch = [];
+    (items.get(x) || []).forEach(it => ch.push({ item: it }));
+    rules.forEach(r => { if (r.verbs(x) && vxRulePersons(r, x).some(p => vxForm(x, r.kind, p, { modal: "müssen" }))) ch.push({ rule: r }); });
+    (cells.get(x) || []).forEach(c => ch.push({ cell: c }));
+    if (ch.length) out.push({ x, choices: ch });
+  });
+  return out;
+}
+// A drill: { unit, pool, order (verbs, shuffled, taking turns), i, last }.
+function vxDrillStart(unit) {
+  const pool = vxDrillPool(unit);
+  const order = pool.slice();
+  for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+  return { unit, pool, order, i: 0, last: "" };
+}
+// How much a choice is worth asking: a ledger form still open, then an
+// item that can still climb, then the rest.
+function vxDrillWeight(c) {
+  if (c.cell) return vxCovHas(c.cell.x.inf, c.cell.t) ? 1 : 4;
+  const ws = S.words[vxKey(c.item ? c.item.id : "r:" + c.rule.id)];
+  const st = ws ? ws.st || 0 : 0;
+  return st && st < VX_DRILL_CAP ? 3 : c.rule ? 1.5 : 1;
+}
+function vxDrillExercise(c) {
+  if (c.cell) return vxCellExercise(c.cell);
+  if (c.item) return vxMakeExercise(c.item);
+  // A rule with this verb (not vxMakeExercise: that would move Today's
+  // turn through the rule's verbs).
+  const r = c.rule, x = c.x;
+  const ps = vxRulePersons(r, x).filter(p => vxForm(x, r.kind, p, { modal: "müssen" }));
+  if (!ps.length) return null;
+  const p = vxPickPerson(ps, x);
+  const modal = r.kind === "pvmod" ? Object.keys(VX_PV_MODALS)[Math.floor(Math.random() * 4)] : "";
+  const form = vxForm(x, r.kind, p, { modal });
+  return form ? { kind: r.kind, x, p, form, tense: VX_KIND_TENSE[r.kind], rule: r.id, item: "r:" + r.id, modal, sheet: r.sheet } : null;
+}
+// The next exercise: the next verb's turn, one of its choices.
+function vxDrillNext(d) {
+  if (!d || !d.order.length) return null;
+  for (let tries = 0; tries < 12; tries++) {
+    const v = d.order[d.i % d.order.length];
+    d.i++;
+    if (d.i % d.order.length === 0 && d.order.length > 2) {
+      // A new turn round: another order, never the last verb first.
+      const last = d.order[d.order.length - 1];
+      for (let i = d.order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [d.order[i], d.order[j]] = [d.order[j], d.order[i]]; }
+      if (d.order[0] === last) d.order.push(d.order.shift());
+    }
+    const ch = v.choices.map(c => ({ ...c, x: v.x }));
+    const w = ch.map(vxDrillWeight), tot = w.reduce((a, b) => a + b, 0);
+    let r = Math.random() * tot, pick = ch[ch.length - 1];
+    for (let i = 0; i < ch.length; i++) { r -= w[i]; if (r <= 0) { pick = ch[i]; break; } }
+    const ex = vxDrillExercise(pick);
+    if (!ex) continue;
+    const key = ex.x.inf + "|" + ex.kind + "|" + ex.p + "|" + ex.form.ans;
+    if (key === d.last && tries < 11) continue;
+    d.last = key;
+    return { ...ex, drill: true };
+  }
+  return null;
+}
+// Missed in a drill, waiting for Today: the items whose day has come.
+function vxDrillChecks(today = studyToday()) {
+  const dm = S.verb && S.verb.dm;
+  if (!dm || !vxOn()) return [];
+  const byId = new Map(vxCatalog().map(it => [it.id, it]));
+  return Object.keys(dm).filter(id => dm[id] <= today).map(id => byId.get(id))
+    .filter(it => { const ws = it && S.words[vxKey(it.id)]; return ws && ws.st && vxUnitOpen(it.unit); });
+}
+// One drill answer. ok: true / false ("near": a slip — nothing moves).
+// opts: { given, hint, said, ms, review } — review: a second look at a
+// mistake after the round (logged, nothing else).
+// → { cell: ledger form done, up: { from, to } | null, check: item id checked in Today tomorrow | null }
+function vxDrillAnswer(ex, ok, opts = {}) {
+  migrateVerb();
+  const out = { cell: false, up: null, check: null };
+  const right = ok === true;
+  if (typeof logEvent === "function") {
+    logEvent("answer", { m: "grammar:drill", ok: right, near: ok === "near", typed: !opts.said, hint: !!opts.hint, ms: opts.ms || 0 });
+    logEvent("vx_drill", { u: VX_TENSE_UNIT[ex.tense] || "", t: ex.tense, ok: right, rev: opts.review ? 1 : 0 });
+  }
+  if (opts.review || ok === "near") return out;
+  if (typeof learnNoteVerb === "function" && (VX_FR ? VXF.logKinds : ["pr", "pt", "pf", "pq", "fu", "im"]).includes(ex.kind === "sc" ? "pr" : ex.kind))
+    learnNoteVerb(ex.x.F, ex.kind === "sc" ? "pr" : ex.kind, ex.p, right, opts.given || "", ex.form.ans);
+  else if (!right && typeof _learnDay === "function") _learnDay("mk", vxMistakeType(opts.given, ex));
+  const id = ex.item || (ex.cell ? vxCellRuleItem(ex) : null);
+  const ws = id ? S.words[vxKey(id)] : null;
+  if (right) {
+    if (!opts.hint) out.cell = vxCovSet(ex.x.inf, ex.tense);
+    // Only the item the card asks (a ledger form doesn't review its rule,
+    // as in Today), only as Today would, and never past the cap.
+    if (ex.item && ws && ws.st && !opts.hint && ws.st < VX_DRILL_CAP && !ws.rp && !ws.fl && !ws.lrn) {
+      ws.lastAnsweredAt = Date.now(); ws.correct = (ws.correct || 0) + 1;
+      const r = srsReview(ws, true, "recall", Date.now(), { ms: opts.ms });
+      if (r.promoted) out.up = { from: r.from, to: r.to };
+    }
+  } else if (ws && ws.st) {
+    ws.wrong = (ws.wrong || 0) + 1;
+    const day = addDays(studyToday(), 1), was = S.verb.dm[id];
+    S.verb.dm[id] = was && was < day ? was : day;
+    out.check = id;
+  }
+  vxMirror();
+  return out;
 }
 
 if (typeof module !== "undefined") module.exports = { vxForm, vxGrade, VX_RULES, VX_UNITS, VX_FR };

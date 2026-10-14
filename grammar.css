@@ -205,8 +205,6 @@
 .gr-how summary { cursor:pointer; color:var(--text); font-weight:700; padding:6px 0; }
 .gr-how p { margin-top:8px; }
 .gr-how b { color:var(--text); }
-.gr-foot { margin-top:16px; text-align:center; }
-.gr-foot .g-link-btn { color:var(--text-3); font-size:13px; }
 .gr-vlegend { display:grid; grid-template-columns:1fr 30px 76px 70px; gap:8px; font-size:10.5px; color:var(--text-3); padding:0 8px 6px; text-align:center; }
 .gr-vlegend span:first-child { text-align:right; }
 .gr-verbs { display:flex; flex-direction:column; gap:4px; }
@@ -222,30 +220,6 @@
 .gr-vcells i.na { border-style:dotted; opacity:0.3; }
 .gr-vitems { display:flex; gap:3px; flex-wrap:wrap; font-size:13px; }
 .gr-vitems b { font-weight:400; }
-
-/* ── The switch ──────────────── */
-.vx-switch-card { width:100%; display:flex; align-items:center; gap:12px; padding:13px 15px; margin-bottom:16px; border-radius:var(--r); cursor:pointer;
-  border:1.5px solid rgba(245,166,35,0.55); background:linear-gradient(135deg, rgba(245,166,35,0.18), rgba(245,166,35,0.05)); color:var(--text); text-align:left; }
-.vx-sc-i { font-size:28px; }
-.vx-sc-t { flex:1; display:flex; flex-direction:column; gap:2px; }
-.vx-sc-t b { font-size:15.5px; }
-.vx-sc-t small { font-size:12.5px; color:var(--text-2); }
-.vx-calc { text-align:center; color:var(--text-2); padding:40px 0; }
-.vx-h { margin-bottom:12px; }
-.vx-cmp { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:14px; }
-.vx-cmp > div { display:flex; flex-direction:column; gap:3px; padding:10px; border-radius:var(--r-sm); background:rgba(255,255,255,0.05); border:1px solid var(--border); }
-.vx-cmp small { font-size:11px; color:var(--text-3); font-weight:700; letter-spacing:0.3px; }
-.vx-cmp b { font-size:16px; font-weight:900; line-height:1.25; }
-.vx-cmp .ok { font-size:12px; color:var(--success); font-weight:700; }
-.vx-cmp .warn { font-size:12px; color:#FF9A3C; font-weight:700; }
-.vx-list { list-style:none; display:flex; flex-direction:column; gap:10px; padding:0; margin-bottom:16px; }
-.vx-list li { padding:11px 13px; border-radius:var(--r-sm); background:rgba(255,255,255,0.04); border:1px solid var(--border); font-size:14px; line-height:1.55; color:var(--text-2); }
-.vx-list li b { color:var(--text); }
-.vx-list details { margin-top:6px; }
-.vx-list summary { cursor:pointer; color:var(--accent-hi); font-size:13px; }
-.vx-ret { display:flex; justify-content:space-between; font-size:13px; padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.05); }
-.vx-act { display:flex; flex-direction:column; gap:9px; }
-.vx-act > * { width:100%; max-width:none; min-height:52px; }
 
 /* ── Today card line ─────────── */
 .tc-vx { display:block; width:100%; text-align:left; font-size:13px; line-height:1.4; color:var(--accent-hi); background:var(--accent-dim);
@@ -330,7 +304,6 @@
   .vx-answer { font-size:22px; }
   .vx-row { font-size:12.5px; }
   .gr-sum b { font-size:19px; }
-  .vx-cmp { grid-template-columns:1fr; }
   .gr-vlegend, .gr-verb { grid-template-columns:1fr 26px 70px 56px; gap:6px; }
 }
 @media (min-width:760px) {
@@ -388,3 +361,18 @@
 }
 @media (prefers-reduced-motion: reduce) { .vx-uml-opts .g-opt { animation:none !important; } }
 .vx-uml-hint { min-height:18px; margin-top:6px; font-size:13px; color:var(--warning, var(--text-2)); }
+
+/* ── The tense drill (verb-drill.js) ── */
+.gr-drill { margin-top:8px; }
+.vd-h { margin:4px 0 14px; }
+.g-options.vd-sizes { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:16px; }
+.vd-size { justify-content:center; text-align:center; min-height:64px; }
+.vd-size .g-opt-text { display:flex; flex-direction:column; align-items:center; gap:2px; font-size:13px; color:var(--text-2); }
+.vd-size .g-opt-text b { font-size:22px; font-weight:900; color:var(--text); }
+.vd-what { list-style:none; display:flex; flex-direction:column; gap:8px; padding:0; margin:0; }
+.vd-what li { padding:10px 12px; border-radius:var(--r-sm); background:rgba(255,255,255,0.04); border:1px solid var(--border); font-size:13.5px; line-height:1.5; color:var(--text-2); }
+.vd-lines { display:flex; flex-direction:column; gap:4px; font-size:14px; color:var(--text-2); }
+.vd-miss { cursor:default; }
+.vd-miss .vx-answer { font-size:18px; text-align:left; margin:0; }
+.vd-act { display:flex; flex-direction:column; gap:9px; margin-top:14px; }
+.vd-act > * { width:100%; max-width:none; min-height:50px; }

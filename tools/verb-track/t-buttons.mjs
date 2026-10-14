@@ -53,17 +53,11 @@ for (const [W, H] of SIZES) {
   const next = async () => { await wait(900); await page.click("#gs-qnext"); await wait(150); };
   const finishQuiz = async () => { for (let k = 0; k < 30; k++) { const q = await Q(); if (!q) break; await answer(true); await next(); } };
 
-  // ── 1 · the switch, from Today ──
-  const off = await ev(() => !vxOn());
-  if (off) {
-    await click(".tc-vx", "Today's ‘New verb system’ button");
-    await page.waitForSelector(".vx-act");
-    await noOverflow("the switch screen");
-    await shot("01-switch");
-    await click(".vx-act .g-big-btn", "Switch button");
-    await page.waitForSelector(".gr-units");
-  } else await ev(() => renderGrammar());
-  ok(await ev(() => vxOn()), `${tag}: switched on`);
+  // ── 1 · on by itself: nothing to press ──
+  ok(await ev(() => vxOn()), `${tag}: on at load`);
+  ok(await ev(() => !document.querySelector(".tc-vx:not(.lesson)") && typeof renderVerbSwitch === "undefined"), `${tag}: no switch to press anywhere`);
+  await ev(() => renderGrammar());
+  ok(await ev(() => !/Switch back|old verb cards/.test(document.getElementById("main-screen").innerText)), `${tag}: no way back on the Grammar screen`);
   await noOverflow("Grammar");
   await shot("02-grammar");
   // ── 2 · every tense opens and comes back ──

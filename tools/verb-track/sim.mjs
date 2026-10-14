@@ -17,7 +17,7 @@ const ACC = { typed: +arg("--typed", 0.87), cloze: +arg("--cloze", NaN), vx: +ar
 const modes = process.argv.includes("--off") ? [false] : process.argv.includes("--on") ? [true] : [true, false];
 const results = {};
 for (const on of modes) {
-  const { browser, page, errors } = await openApp({ width: 900, height: 900, app: APP });
+  const { browser, page, errors } = await openApp({ width: 900, height: 900, app: APP, vxOff: !on });
   page.setDefaultTimeout(0);
   const r = await page.evaluate(async ([on, DAYS, SKIP, SEED, ACC]) => {
     // ── fake clock ──

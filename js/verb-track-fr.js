@@ -698,7 +698,7 @@ const VXF_ES = {
   // the Grammar screens
   "📐 Grammar · Verbs": "📐 Gramática · Verbos", "/ {0} tenses open": "/ {0} tiempos abiertos", "/ {0} sheets": "/ {0} fichas", "/ {0} verbs complete": "/ {0} verbos completos",
   "📖 Your next lesson — also comes in Today": "📖 Tu próxima lección — también llega en Today", "📖 Your next lesson — in Today tomorrow, or read it now": "📖 Tu próxima lección — llega mañana en Today, o léela ahora", "The tenses, in the order you learn them": "Los tiempos, en el orden en que los aprendes",
-  "ℹ️ How the verb track works": "ℹ️ Cómo funciona el sistema de verbos", "Switch back to the old verb cards": "Volver a las tarjetas de verbos de antes",
+  "ℹ️ How the verb track works": "ℹ️ Cómo funciona el sistema de verbos",
   "{0}/{1} read": "{0}/{1} leídas", "🏆 Mastered": "🏆 Dominado", "✅ Solid": "✅ Sólido", "🔁 Practising": "🔁 Practicando", "📖 Lesson {0}/{1}": "📖 Lección {0}/{1}",
   "after {0}": "después de {0}", "soon": "pronto", "📐 Grammar": "📐 Gramática", "← Tenses": "← Tiempos",
   "🔒 This tense opens {0}{1}. You can read its sheets now; passing every quiz opens it early.": "🔒 Este tiempo se abre {0}{1}. Ya puedes leer sus fichas; aprobar todos sus quizzes lo abre antes.",
@@ -718,17 +718,22 @@ const VXF_ES = {
   "📒 {0} verbs": "📒 Verbos {0}", "← Grammar": "← Gramática", "meaning": "significado", "own items": "tarjetas propias",
   "Dots fill when you produce that tense right (in Today, in Conjugation Slots, or on a card). A verb is complete with its meaning 🌳 Known, its own items 🌳 Known and all three dots.":
     "Los puntos se llenan cuando produces bien ese tiempo (en Today, en un juego o en una tarjeta). Un verbo está completo con su significado 🌳 Known, sus tarjetas propias 🌳 Known y los tres puntos.",
-  // the switch
-  "The new verb system is ready": "El nuevo sistema de verbos está listo", "See exactly what changes for you — nothing changes until you switch.": "Mira exactamente qué cambia para ti — nada cambia hasta que lo actives.",
-  "🧩 New verb system": "🧩 Nuevo sistema de verbos", "Working it out on your own progress…": "Calculándolo con tu propio progreso…", "Couldn't work out the preview: ": "No se pudo calcular la vista previa: ",
-  "What changes for you": "Qué cambia para ti", "New words a day": "Palabras nuevas al día", "Finish date": "Fecha final", "✓ still on time": "✓ sigues a tiempo",
-  "Verb work a day": "Verbos al día", "{0} items · {1} drills": "{0} tarjetas · {1} ejercicios",
-  "Switch to the new system ✓": "Activar el nuevo sistema ✓", "Not now": "Ahora no", "You can switch back from 📐 Grammar at any time — your cards stay as they are.": "Puedes volver atrás desde 📐 Gramática cuando quieras — tus tarjetas se quedan como están.",
-  "New verb system on": "Nuevo sistema de verbos activado", "Your first lesson comes in Today": "Tu primera lección llega en Today",
-  "Switch back to the old verb cards?": "¿Volver a las tarjetas de verbos de antes?",
-  "Your verb items and the ledger's progress are removed; every card you've met stays as it is. The retired cards come back as new words.": "Se quitan tus tarjetas de verbos y el progreso del registro; cada tarjeta que ya viste se queda como está. Las tarjetas retiradas vuelven como palabras nuevas.",
-  "Switch back": "Volver atrás", "Keep the new system": "Quedarme con el nuevo sistema",
-  "🧩 <b>New verb system ready</b> — see what changes ›": "🧩 <b>Nuevo sistema de verbos listo</b> — mira qué cambia ›",
+  // the tense drill (verb-drill.js)
+  "🎯 Missed in a drill — a check": "🎯 Fallaste en la práctica — un repaso", "1 of your verbs, every person": "1 de tus verbos, todas las personas",
+  "{0} of your verbs, taking turns": "{0} de tus verbos, por turnos", "None of your verbs fits this tense yet": "Ninguno de tus verbos sirve todavía para este tiempo",
+  "Drill": "Práctica", "forms": "formas", "until you stop": "hasta que pares", "📐 Grammar · 🎯 Drill": "📐 Gramática · 🎯 Práctica",
+  "Only verbs you've met, taking turns — every form typed, as in Today.": "Solo verbos que ya conoces, por turnos — cada forma escrita, como en Today.",
+  "Outside your daily plan: nothing here counts in Today's numbers or the quests.": "Fuera de tu plan diario: nada de aquí cuenta en los números de Today ni en las misiones.",
+  "A form right fills your verb ledger ahead of Today. A rule or verb item Today would check now can move up — never past 🌿 Familiar; the rest comes from Today.":
+    "Una forma bien llena tu registro de verbos antes que Today. Una regla o tarjeta de verbo que Today revisaría ahora puede subir — nunca más allá de 🌿 Familiar; lo demás viene de Today.",
+  "A miss comes back at the end of tomorrow's Today, as a check.": "Un error vuelve al final del Today de mañana, como repaso.",
+  "Stop": "Parar", "↻ Your mistakes, once more — nothing moves": "↻ Tus errores, otra vez — nada se mueve",
+  "🗓️ Checked again at the end of tomorrow's Today": "🗓️ Se repasa al final del Today de mañana",
+  "📒 {0} forms done in your ledger": "📒 {0} formas hechas en tu registro", "↑ {0} moved up (🌿 Familiar at most)": "↑ {0} subieron (🌿 Familiar como máximo)",
+  "🗓️ {0} to check at the end of tomorrow's Today": "🗓️ {0} por repasar al final del Today de mañana", "↻ Mistakes once more: {0}/{1} right": "↻ Errores otra vez: {0}/{1} bien",
+  "{0}/{1} right": "{0}/{1} bien", " · outside your daily plan": " · fuera de tu plan diario", "Your mistakes": "Tus errores",
+  "↻ Review my mistakes ({0})": "↻ Repasar mis errores ({0})", "🎯 Another round": "🎯 Otra ronda",
+  // the Today card
   "📖 <b>{0}</b> lesson {1}/{2} · next sheet in your session": "📖 <b>{0}</b> lección {1}/{2} · la siguiente ficha llega en tu sesión",
   // Today's verb cards
   "Say": "Di", "Type": "Escribe",
@@ -748,17 +753,10 @@ const VXF_ES = {
   "It joins your reviews and the verb games": "Entra en tus repasos y en los juegos de verbos", "Every rule of it 🌳 Known": "Todas sus reglas 🌳 Known",
   "{0} unlocked": "{0} desbloqueado", "{0} solid": "{0} sólido", "Verbs": "Verbos",
 };
-// The "how it works" box and the switch screen's list, in Spanish.
+// The "how it works" box, in Spanish.
 const VXF_HOW = `<p><b>Los tiempos se abren en orden</b> — cada uno después de los tiempos de los que se construye, y cuando tu Path llega hasta ahí (así tu fecha final marca el día). Un tiempo nuevo empieza con sus fichas en Today, una o dos al día; aprueba cada quiz y el tiempo entra en tus repasos y en los juegos de verbos.</p>
   <p><b>Reglas, no listas.</b> Cada regla es una tarjeta en tus repasos, y se pregunta cada vez con otro verbo que ya conoces — primero los de A1, los regulares antes que las excepciones. Los verbos que ninguna regla construye (ils font, il est venu, j'irai, que je fasse) tienen su propia tarjeta.</p>
   <p><b>El registro</b> revisa cada verbo: su significado Known, sus formas irregulares Known, y su Présent, Passé composé y Futur producidos bien al menos una vez — con el infinitivo, el presente y el participio se construye todo lo demás.</p>`;
-function vxfSwitchList(p, prac, lessons, retN, ret, name) {
-  const b = s => `<b>${escapeHtml(s)}</b>`;
-  return `<li><b>Los tiempos en orden.</b> Abiertos ya: ${prac.map(b).join(", ") || "—"}. ${lessons.length ? `Tus próximas lecciones: ${lessons.map(b).join(", luego ")} — sus fichas llegan a tus sesiones de Today, hasta dos al día (una abre la sesión, la otra llega a la mitad), desde tu próxima sesión.` : ""} Los juegos de verbos dejan de usar tiempos que todavía no has visto.</li>
-    <li><b>${p.after.items.toLocaleString()} tarjetas de verbos</b> en todo el camino (reglas + los verbos que ninguna regla construye), empezando por lo que ya mostraste: ${p.seeds.rules} reglas y ${p.seeds.items} tarjetas de verbos empiezan donde están tus tarjetas, ${p.seeds.cells} formas ya están en tu registro.</li>
-    <li><b>${retN} tarjetas de conjugación retiradas</b> — las que todavía no has visto. Ya no se presentan; cada una refleja la tarjeta que la cubre, así tus totales y logros siguen completos. ${ret.length ? `<details><summary>Qué mazos</summary>${ret.map(([d, n]) => `<div class="vx-ret">${escapeHtml(name(d))} <b>${n}</b></div>`).join("")}</details>` : ""}</li>
-    <li><b>No pierdes nada de lo aprendido.</b> Cada tarjeta que ya viste conserva su etapa y sus repasos. Tu nivel, XP y racha no se mueven. La meta de hoy se queda igual; los nuevos números diarios empiezan con el plan de mañana.</li>`;
-}
 
 // ── TOGETHER ──────────────────────────────────
 const VXF = {
@@ -771,7 +769,7 @@ const VXF = {
   itemOrder: vxfItemOrder, cellPersons: vxfCellPersons, cellOrder: vxfCellOrder, cellSheet: vxfCellSheet, cellRuleItem: vxfCellRuleItem,
   itemsForForm: vxfItemsForForm, switchOpen: vxfSwitchOpen, eq: vxfEq, gradeTries: vxfGradeTries, mistake: vxfMistakeType, classify: vxfClassify,
   pron: vxfPron, join: vxfJoin, say: vxfSay, ruleHtml: vxfRuleHtml, rowHtml: vxfRowHtml, rowCells: vxfRowCells, gqSets: VXF_GQ_SETS, gqWrong: vxfGqWrong, auxOptions: vxfAuxOptions,
-  es: VXF_ES, how: VXF_HOW, switchList: vxfSwitchList,
+  es: VXF_ES, how: VXF_HOW,
 };
 
 if (typeof module !== "undefined") module.exports = { VXF };
