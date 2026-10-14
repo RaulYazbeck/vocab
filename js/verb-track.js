@@ -1197,66 +1197,56 @@ function vxOwnForms(x) {
 function vxIsOwnForm(x, typed) { return !!x && !!x.inf && vxOwnForms(x).norm.has(normalize(typed)); }
 
 // ── THE UMLAUT CHOICE (untimed) ───────────────
-// Spelt right but for its umlauts (fahrt for fährt, fährt for fahrt, faehrt
-// for fahrt), on a verb whose umlaut changes the form (fahrt / fährt, hatte
-// / hätte, konnte / könnte): untimed, that is asked — 1 or 2, the right
-// spelling or the one typed — instead of forgiven. Picking right is right.
-// Verbs that keep their umlaut in every form (hören, üben), and timed
-// games, still forgive it. German only.
+// Umlauts are typed as plain vowels (no umlaut keys): hatte stands for
+// hatte or hätte. When what was typed, read that way, fits two real forms
+// of the verb — the right one and another that differs only by its
+// umlauts (hatte / hätte, fahrt / fährt, kamen / kämen) — untimed, it is
+// asked: 1 or 2. Even when the plain one is the right one: typing it
+// didn't say which. Picking right is right. When only one form fits
+// (fahrst → fährst, horst → hörst) there is nothing to ask: right, the
+// spelling shown. Typed with its umlaut (ä, or ae spelling a real form):
+// graded as typed. Timed games never ask. German only.
 const vxUmlKey = s => String(s || "").toLowerCase().normalize("NFC").replace(/ä/g, "a").replace(/ö/g, "o").replace(/ü/g, "u").replace(/\s+/g, " ").trim();
 const vxUmlSpelt = s => String(s || "").toLowerCase().normalize("NFC").replace(/ae/g, "ä").replace(/oe/g, "ö").replace(/ue/g, "ü");
-// The words of a verb's forms by their umlaut-free spelling: its own
-// (fährt, fahrt) and the auxiliaries' (hatte, hätte, wurde, würde).
-const _vxUmlWords = new Map();
-function vxUmlWords(x) {
-  let o = _vxUmlWords.get(x.inf);
-  if (!o) {
-    o = { main: new Map(), aux: new Map(), alt: false };
-    for (const f of vxOwnForms(x).exact) for (const w of f.split(" ")) {
-      const m = VX_EXTRA_BAN.test(normalize(w)) ? o.aux : o.main, k = vxUmlKey(w);
-      if (!m.has(k)) m.set(k, new Set());
-      m.get(k).add(w);
+// A verb's real forms (any person, any tense), also without a separable
+// particle a game shows (fährt for fährt ab), by their plain spelling.
+const _vxUmlForms = new Map();
+function vxUmlForms(x) {
+  let m = _vxUmlForms.get(x.inf);
+  if (!m) {
+    m = new Map();
+    const add = f => { const k = vxUmlKey(f); if (!m.has(k)) m.set(k, new Set()); m.get(k).add(f.replace(/\s+/g, " ").trim()); };
+    const pre = x.inf.replace(/^sich /, "").toLowerCase();
+    for (const f of vxOwnForms(x).exact) {
+      add(f);
+      const w = f.split(" "), last = w[w.length - 1];
+      if (w.length > 1 && last.length < pre.length && pre.startsWith(last)) add(w.slice(0, -1).join(" "));
     }
-    // Its stem alternates when two of its own words differ only by an umlaut.
-    for (const set of o.main.values()) if (set.size > 1) { o.alt = true; break; }
-    _vxUmlWords.set(x.inf, o);
+    _vxUmlForms.set(x.inf, m);
   }
-  return o;
+  return m;
 }
-function vxUmlautAlternates(x) { return !VX_FR && !!x && !!x.inf && vxUmlWords(x).alt; }
-// Does a word typed with its umlaut off matter? The verb's own word: when
-// its stem alternates (fahren yes; erhöhen, hören no), at the part that
-// changes — never its separable particle (an, über). An auxiliary or modal: hatte / hätte, wurde /
-// würde, konnte / könnte, musst / müsst, durfte / dürfte, mochte /
-// möchte, warst / wärst — always (another tense or person).
-const VX_UML_AUX = /^(hatt|wurd|konn|muss|durf|moch|war)/;
-// last: the form's last word of several — only there can the particle be.
-function vxUmlWordMatters(x, answerWord, typedWord, last = false) {
-  if (VX_EXTRA_BAN.test(normalize(answerWord))) return VX_UML_AUX.test(vxUmlKey(answerWord));
-  const inf = x.inf.replace(/^sich /, "").toLowerCase();
-  if (last && answerWord.length < inf.length && inf.startsWith(answerWord)) return false; // the particle (fährt ab, setzt über)
-  if (!vxUmlWords(x).alt) return false;
-  // An umlaut the infinitive has in the same place never changes (the ü
-  // of überfahren); one it doesn't, or one added, is the alternation.
-  for (let i = 0; i < answerWord.length; i++)
-    if (answerWord[i] !== typedWord[i] && !(/[äöü]/.test(answerWord[i]) && inf[i] === answerWord[i])) return true;
+// Has the verb two real forms that differ only by an umlaut?
+function vxUmlautAlternates(x) {
+  if (VX_FR || !x || !x.inf) return false;
+  for (const set of vxUmlForms(x).values()) if (set.size > 1) return true;
   return false;
 }
-// → { right, other } (the two spellings to choose from) or null.
+// → { right, others: [the other real forms it could be] , other } or null.
 function vxUmlautChoice(val, acc, x, cmd = false) {
   if (VX_FR || !x || !x.inf || !acc || !acc.length) return null;
   const tries = vxGradeTries(val, cmd).slice().reverse(); // the pronoun-less try first
-  if (!tries.length || tries.some(t => acc.some(a => vxEq(a, t)))) return null; // right as typed (ae for ä too)
-  for (const t of tries) for (const a of acc) {
-    const typed = [t, vxUmlSpelt(t)].find(v => vxUmlKey(v) === vxUmlKey(a));
-    if (!typed) continue;
-    const tw = vxUmlKey(typed) === vxUmlKey(a) ? String(typed).toLowerCase().normalize("NFC").replace(/\s+/g, " ").trim().split(" ") : [];
-    const aw = String(a).toLowerCase().normalize("NFC").split(" ");
-    if (tw.length !== aw.length || !aw.some((w, i) => w !== tw[i] && vxUmlWordMatters(x, w, tw[i], aw.length > 1 && i === aw.length - 1))) continue;
-    // Show the other spelling as the verb's own form when it is one (faehrt → fährt).
-    const own = [...vxOwnForms(x).exact].find(f => vxEq(f, typed)) || String(t).trim();
-    if (vxEq(a, own) || vxUmlKey(own) !== vxUmlKey(a)) continue;
-    return { right: a, other: own };
+  if (!tries.length || tries.some(t => /[äöü]/i.test(t))) return null; // typed with its umlaut: as typed
+  const forms = vxUmlForms(x), lc = s => String(s).toLowerCase().normalize("NFC").replace(/\s+/g, " ").trim();
+  for (const t of tries) {
+    // ae / oe / ue spelling a real form (faehrt): typed with its umlaut.
+    const spelt = vxUmlSpelt(t);
+    if (spelt !== lc(t) && [...(forms.get(vxUmlKey(spelt)) || [])].concat(acc.map(lc)).some(f => lc(f) === lc(spelt))) return null;
+    const k = vxUmlKey(t), a = acc.find(a => vxUmlKey(a) === k);
+    if (!a) continue;
+    const others = [...(forms.get(k) || [])].filter(f => lc(f) !== lc(a) && !acc.some(b => lc(b) === lc(f)));
+    if (!others.length) return null; // only one form fits: nothing to ask
+    return { right: a, others, other: others[0] };
   }
   return null;
 }

@@ -985,15 +985,16 @@ function pathVerbTenseRetry(other, val) {
   void val;
 }
 // ── THE UMLAUT CHOICE (1 / 2) ─────────────────
-// Drawn into host. 1 / 2 or a tap picks; Enter and Space never pick or
+// Drawn into host. 1 / 2 (1–3 when three forms fit) or a tap picks; Enter and Space never pick or
 // skip (you may still be pressing Enter after typing) — they point at
 // 1 / 2. Keys are taken before anything else (capture), and given back
 // once picked or once host has left the page. onPick(right, picked).
 function vxUmlautAsk(host, ch, onPick) {
   if (!host) return false;
-  const opts = Math.random() < 0.5 ? [{ t: ch.right, ok: true }, { t: ch.other, ok: false }] : [{ t: ch.other, ok: false }, { t: ch.right, ok: true }];
+  const opts = [{ t: ch.right, ok: true }, ...(ch.others || [ch.other]).map(t => ({ t, ok: false }))];
+  for (let i = opts.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [opts[i], opts[j]] = [opts[j], opts[i]]; }
   host.innerHTML = `<div class="vx-uml-ask">
-    <div class="vx-uml-q">Which spelling? <span>the umlaut changes the form</span></div>
+    <div class="vx-uml-q">Which one? <span>with or without umlaut — both are real forms</span></div>
     <div class="g-options vx-uml-opts">${opts.map((o, i) => `<button class="g-opt" data-u="${i}"><span class="g-key">${i + 1}</span><span class="g-opt-text">${escapeHtml(o.t)}</span></button>`).join("")}</div>
     <div class="vx-uml-hint" aria-live="polite"></div></div>`;
   const box = host.querySelector(".vx-uml-ask");
@@ -1008,10 +1009,11 @@ function vxUmlautAsk(host, ch, onPick) {
   const key = e => {
     // Gone or hidden (the session left, another screen): let go of the keys.
     if (done || !box.isConnected || !box.offsetParent) { off(); return; }
-    if (e.key === "1" || e.key === "2") { e.preventDefault(); e.stopImmediatePropagation(); pick(+e.key - 1); }
+    const d = parseInt(e.key, 10);
+    if (d >= 1 && d <= opts.length) { e.preventDefault(); e.stopImmediatePropagation(); pick(d - 1); }
     else if (e.key === "Enter" || e.key === " ") {
       e.preventDefault(); e.stopImmediatePropagation();
-      box.querySelector(".vx-uml-hint").textContent = "Pick 1 or 2";
+      box.querySelector(".vx-uml-hint").textContent = opts.length > 2 ? `Pick 1–${opts.length}` : "Pick 1 or 2";
       if (typeof shakeEl === "function") shakeEl(box.querySelector(".vx-uml-opts"));
     }
   };

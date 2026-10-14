@@ -31,7 +31,7 @@ const r = await page.evaluate(async () => {
   let c0 = s.stats.correct, w0 = s.stats.wrong || 0;
   typeEnter("fahrt");
   ok(ask() && !s.answered && !!ask().offsetParent, "Today: fahrt for er fährt → the choice (visible)");
-  ok(ask() && /fährt/.test(ask().textContent) && /fahrt/.test(ask().textContent), `…between fährt and fahrt: "${ask() && ask().querySelector(".vx-uml-opts").textContent.replace(/\s+/g, " ").trim()}"`);
+  ok(ask() && /fährt/.test(ask().textContent) && /fahrt/.test(ask().textContent) && ask().querySelectorAll(".g-opt").length === 2, `…between fährt and fahrt: "${ask() && ask().querySelector(".vx-uml-opts").textContent.replace(/\s+/g, " ").trim()}"`);
   for (let k = 0; k < 5; k++) key("Enter", document.getElementById("p-input"));
   key("Enter", document.body); key(" ", document.body);
   ok(ask() && !s.answered && s.cur.w.vx === ex, "…Enter ×6 and Space: still asking, nothing graded or skipped");
@@ -42,14 +42,22 @@ const r = await page.evaluate(async () => {
   const cardBefore = s.cur;
   key("Enter", document.body);
   ok(s.cur !== cardBefore, "…then Enter goes on as always");
-  // 2. wrong pick = a miss
+  // 2. the plain form IS the right one (ihr fahrt) — still asked: typing it didn't say which
   ex = show("fahren", "pr", "ihr");
-  typeEnter("fährt");
-  ok(ask(), "Today: fährt for ihr fahrt (umlaut added) → the choice");
+  typeEnter("fahrt");
+  ok(ask(), "Today: fahrt for ihr fahrt (right as typed, but fährt exists) → the choice");
   key(String(optFor("fährt") + 1), document.body);
   ok(s.answered && (s.stats.wrong || 0) === w0 + 1, "…pick fährt: a miss");
   key("Enter", document.body);
-  // 3. pronoun, ae spelling, a verb that keeps its umlaut, tap to pick
+  show("haben", "pt", "ich"); typeEnter("hatte");
+  ok(ask() && /hätte/.test(ask().textContent), "Today: hatte for ich hatte (hätte exists) → the choice");
+  key(String(optFor("hatte") + 1), document.body);
+  ok(s.answered && document.getElementById("p-input").classList.contains("correct"), "…pick hatte: right");
+  key("Enter", document.body);
+  show("kommen", "pt", "wir"); typeEnter("kamen");
+  ok(ask() && /kämen/.test(ask().textContent), "Today: kamen for wir kamen (kämen exists) → the choice");
+  key(String(optFor("kamen") + 1), document.body); key("Enter", document.body);
+  // 3. pronoun, tap to pick, ae spelling, only one form fits
   show("fahren", "pr", "er"); typeEnter("er fahrt");
   ok(ask(), "Today: er fahrt → the choice");
   ask().querySelectorAll(".g-opt")[optFor("fährt")].click();
@@ -58,25 +66,26 @@ const r = await page.evaluate(async () => {
   show("fahren", "pr", "er"); typeEnter("faehrt");
   ok(!ask() && s.answered && document.getElementById("p-input").classList.contains("correct"), "Today: faehrt (ae spelling) → right, no question");
   key("Enter", document.body);
+  show("fahren", "pr", "du"); typeEnter("fahrst");
+  ok(!ask() && s.answered && document.getElementById("p-input").classList.contains("correct"), "Today: fahrst for du fährst (only fährst exists) → right, no question");
+  key("Enter", document.body);
+  show("fahren", "pr", "ich"); typeEnter("fahre");
+  ok(!ask() && s.answered && document.getElementById("p-input").classList.contains("correct"), "Today: fahre for ich fahre (no fähre) → right, no question");
+  key("Enter", document.body);
   show("erhöhen", "pr", "er"); typeEnter("erhoht");
-  ok(!ask() && s.answered && document.getElementById("p-input").classList.contains("correct"), "Today: erhoht for erhöht (keeps its umlaut) → forgiven, no question");
+  ok(!ask() && s.answered && document.getElementById("p-input").classList.contains("correct"), "Today: erhoht for erhöht (only one form) → right, no question");
   key("Enter", document.body);
   show("haben", "k2o", "ich"); typeEnter("hatte");
   ok(ask() && /hätte/.test(ask().textContent), "Today: hatte for ich hätte (Konjunktiv II) → the choice, not the other-tense retry");
   key(String(optFor("hätte") + 1), document.body);
   ok(s.answered && document.getElementById("p-input").classList.contains("correct"), "…pick hätte: right");
   key("Enter", document.body);
-  show("fahren", "pr", "du"); typeEnter("fahrst");
-  ok(ask() && /fährst/.test(ask().textContent), "Today: fahrst for du fährst (not a real form) → the choice too");
-  key(String(optFor("fährst") + 1), document.body); key("Enter", document.body);
-  // A form that is the start of its infinitive (fahre ⊂ fahren) is no particle: asked too.
-  show("fahren", "pr", "ich"); typeEnter("fähre");
-  ok(ask() && /fahre/.test(ask().textContent), "Today: fähre for ich fahre → the choice (not taken for a particle)");
-  key(String(optFor("fahre") + 1), document.body); key("Enter", document.body);
-  show("abfahren", "pr", "er"); typeEnter("fährt äb");
-  ok(!ask(), "Today: fährt äb (umlaut on the particle) → no question");
-  if (!s.answered) { const i = document.getElementById("p-input"); i.value = "fährt ab"; key("Enter", i); }
-  key("Enter", document.body);
+  show("kaufen", "pq", "ich"); typeEnter("hatte gekauft");
+  ok(ask() && /hätte gekauft/.test(ask().textContent), "Today: hatte gekauft (Plusquamperfekt; hätte gekauft exists) → the choice");
+  key(String(optFor("hatte gekauft") + 1), document.body); key("Enter", document.body);
+  show("abfahren", "pr", "er"); typeEnter("fahrt ab");
+  ok(ask() && /fährt ab/.test(ask().textContent), "Today: fahrt ab for er fährt ab → the choice");
+  key(String(optFor("fährt ab") + 1), document.body); key("Enter", document.body);
   // Escape while asking: leaves without a stuck key grab
   show("laufen", "pr", "er"); typeEnter("lauft");
   ok(ask(), "Today: lauft → the choice");
@@ -91,29 +100,32 @@ const r = await page.evaluate(async () => {
 
   // ── Sheet quiz (stem change) ── (no wait after Today's misses: a person would have read them)
   window.mistakeHeld = () => false;
-  renderGrammarSheet("pr4");
-  for (let i = 0; i < 40 && _gs.step < _gs.steps.length; i++) gsGo(1);
   let found = false; const seenQ = [];
-  for (let n = 0; n < 40 && _gs.quiz && !_gs.quiz.done && !found; n++) {
-    const q = _gs.quiz, cur = q.list[q.i], Q = cur.q;
-    seenQ.push(Q.k + ":" + (Q.a && Q.k === "type" ? Q.a[0] : ""));
-    if (Q.k === "type") {
-      const x = gsQuizVerb(Q), a = Q.a[0], bare = a.replace(/ä/g, "a").replace(/ö/g, "o").replace(/ü/g, "u");
-      const inp = document.getElementById("gs-input");
-      if (x && bare !== a && vxUmlautChoice(bare, Q.a, x, vxIsCommand(Q))) {
-        found = true;
-        inp.value = bare; key("Enter", inp);
-        ok(ask() && !q.answered && !!ask().offsetParent, `Sheet quiz: ${bare} for ${a} → the choice (visible)`);
-        key("Enter", inp); key("Enter", document.body);
-        ok(ask() && !q.answered, "…Enter: still asking");
-        key(String(optFor(a) + 1), document.body);
-        ok(q.answered && cur.ok === true, "…pick the right one: right");
-        break;
-      }
-      inp.value = a; gsQuizCheck();
-    } else if (Q.k === "order") { cur.picked = Q.a.map((_, j) => j); gsQuizCheck(); }
-    else gsQuizPick(Q.a);
-    gsQuizNext();
+  for (const sid of ["pr4", "pt11", "pt12", "k22", "k23", "k25", "pr4", "pt11", "k22"]) {
+    if (found) break;
+    renderGrammarSheet(sid);
+    for (let i = 0; i < 40 && _gs.step < _gs.steps.length; i++) gsGo(1);
+    for (let n = 0; n < 40 && _gs.quiz && !_gs.quiz.done && !found; n++) {
+      const q = _gs.quiz, cur = q.list[q.i], Q = cur.q;
+      seenQ.push(Q.k === "type" ? Q.a[0] : Q.k);
+      if (Q.k === "type") {
+        const x = gsQuizVerb(Q), a = Q.a[0], bare = a.replace(/ä/g, "a").replace(/ö/g, "o").replace(/ü/g, "u");
+        const inp = document.getElementById("gs-input");
+        if (x && vxUmlautChoice(bare, Q.a, x, vxIsCommand(Q))) {
+          found = true;
+          inp.value = bare; key("Enter", inp);
+          ok(ask() && !q.answered && !!ask().offsetParent, `Sheet quiz (${sid}): ${bare} for ${a} → the choice (visible)`);
+          key("Enter", inp); key("Enter", document.body);
+          ok(ask() && !q.answered, "…Enter: still asking");
+          key(String(optFor(a) + 1), document.body);
+          ok(q.answered && cur.ok === true, "…pick the right one: right");
+          break;
+        }
+        inp.value = a; gsQuizCheck();
+      } else if (Q.k === "order") { cur.picked = Q.a.map((_, j) => j); gsQuizCheck(); }
+      else gsQuizPick(Q.a);
+      gsQuizNext();
+    }
   }
   ok(found, `Sheet quiz: a stem-change question was asked (${seenQ.join(" ")})`);
   // the sheet's Almost knows real forms now
