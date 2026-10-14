@@ -54,6 +54,10 @@ const r = await page.evaluate(async (APP) => {
     ok(vxFormOwner("wasche", w0.vx) === "the ich form" && vxFormOwner("er wasche", w0.vx) === "the ich form", `…and named: "${vxFormOwner("wasche", w0.vx)}"`);
     ok(vxFormOwner("wusch", w0.vx) === "the Präteritum", `wusch: "${vxFormOwner("wusch", w0.vx)}"`);
     ok(vxFormOwner("falsch", w0.vx) === "" && vxFormOwner("du färhst", w1.vx) === "", "a non-form names nothing");
+    // Listen / Scramble typing (gradeTyped) grade a verb item the same way.
+    ok(gradeTyped("er wäscht", ["wäscht"], w0) === true && gradeTyped("er wäscht nicht", ["wäscht"], w0) === false && gradeTyped("wasche", ["wäscht"], w0) === false
+      && gradeTyped("du färhst", ["fährst"], w1) === "near", "Listen / Scramble typing: same grading (pronoun ok, nicht / other person wrong, typo Almost)");
+    ok(gradeTyped("der Hund ist da", ["der Hund"]) === true, "vocab typing unchanged (the word anywhere)");
     const sieW = words[4]; // kommen pt sie → kamen
     ok(!near("kam", sieW) && vxFormOwner("kam", sieW.vx) === "the ich form", `kam for kamen: "${vxFormOwner("kam", sieW.vx)}"`);
     ok(!typedCorrect("wasche wäschst wäscht", w0), "every person at once is not right");

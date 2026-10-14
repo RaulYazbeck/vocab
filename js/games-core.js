@@ -785,11 +785,18 @@ function gTypedBind(ctx, onSubmit) {
   return input;
 }
 // Grade a typed game answer against one or more accepted strings.
-function gradeTyped(val, answers) {
+// word: a verb item whose whole form is asked is graded as Today grades
+// it (typedCorrect / typedNear), not by the word anywhere in the answer.
+function gradeTyped(val, answers, word = null) {
   // What was typed, for the learning log if this turns out to be a miss.
   const g = activeGame && activeGame.ctx;
   if (g) { g.lastGiven = val; g.lastExpected = answers; }
   if (!String(val || "").trim()) return false;
+  if (word && word.vx && answers.some(a => normKey(a) === normKey(gameForm(word)))) {
+    if (typedCorrect(val, word)) return true;
+    if (typedNear(val, word)) { if (g) g.lastGiven = null; return "near"; }
+    return false;
+  }
   if (answers.some(a => a && (isCorrect(val, a) || normalize(val) === normalize(a)))) return true;
   if (isNearMiss(val, answers)) { if (g) g.lastGiven = null; return "near"; } // a retry, not a miss: don't let it stick to the next question
   return false;

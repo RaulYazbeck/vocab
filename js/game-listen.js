@@ -127,7 +127,7 @@ registerGame({
     const answerTyped = v => {
       if (!q || !q.typed || ctx.busy || ctx.finished) return;
       ctx.busy = true;
-      const res = gradeTyped(v, [gameForm(q.w), q.w[WORD_KEY]]);
+      const res = gradeTyped(v, [gameForm(q.w), q.w[WORD_KEY]], q.w);
       const input = document.getElementById("g-typed");
       const rev = document.getElementById("l-reveal");
       if (rev) rev.innerHTML = res === true ? escapeHtml(gameForm(q.w)) : diffHtml(v, gameForm(q.w));

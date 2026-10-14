@@ -202,7 +202,7 @@ registerGame({
     const answerTyped = v => {
       if (ctx.busy || !cur.typed) return;
       const input = document.getElementById("g-typed");
-      const res = gradeTyped(v, [cur.t.word]);
+      const res = gradeTyped(v, [cur.t.word], cur.w);
       if (res === true) { typedOk++; ctx.hit(cur.w, "recall"); if (input) input.classList.add("correct"); win(document.getElementById("sc-slots"), 25); return; }
       ctx.busy = true;
       if (res === "near") {
