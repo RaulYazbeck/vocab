@@ -18,7 +18,10 @@ function chrome() {
 // state: a file with a real saved state (the "gv5_de" value of a backup)
 // to load instead of the test profile. Also REAL_STATE in the environment.
 // app: "de" or "fr" (the French app gets profile-fr.js).
-export async function openApp({ width = 390, height = 844, profile = true, extra = null, state = process.env.REAL_STATE || "", app = "de" } = {}) {
+// umlautAuto (default): the untimed umlaut choice (hatte / hätte, 1 or 2)
+// picks the right form by itself — a test that types the right answer
+// means it. t-umlaut / t-tense pass false to drive the real choice.
+export async function openApp({ width = 390, height = 844, profile = true, extra = null, state = process.env.REAL_STATE || "", app = "de", umlautAuto = true } = {}) {
   const browser = await chromium.launch({ executablePath: chrome(), args: ["--no-sandbox"] });
   const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 2 });
   const page = await ctx.newPage();
@@ -50,5 +53,6 @@ export async function openApp({ width = 390, height = 844, profile = true, extra
     await page.waitForFunction(() => typeof S !== "undefined" && S.words && Object.keys(S.words).length > 500);
   }
   await page.waitForTimeout(400);
+  if (umlautAuto) await page.evaluate(() => { if (typeof vxUmlautAsk === "function") window.vxUmlautAsk = (host, ch, onPick) => { onPick(true, ch.right); return true; }; });
   return { browser, page, errors };
 }

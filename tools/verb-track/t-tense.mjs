@@ -10,7 +10,7 @@
 //   node t-tense.mjs     (APP=fr for the French app)
 import { openApp } from "./browser.mjs";
 const APP = process.env.APP || "de";
-const { browser, page, errors } = await openApp({ width: 390, height: 844, app: APP });
+const { browser, page, errors } = await openApp({ width: 390, height: 844, app: APP, umlautAuto: false });
 const r = await page.evaluate((APP) => {
   window.saveState = () => {}; window.speak = () => {}; window.showCelebrateToast = () => {}; window.confettiBurst = () => {};
   if (!vxOn()) vxSwitchOn();

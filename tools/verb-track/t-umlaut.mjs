@@ -8,7 +8,7 @@
 //   • timed games: forgiven, no question.
 //   node t-umlaut.mjs
 import { openApp } from "./browser.mjs";
-const { browser, page, errors } = await openApp({ width: 390, height: 844 });
+const { browser, page, errors } = await openApp({ width: 390, height: 844, umlautAuto: false });
 const r = await page.evaluate(async () => {
   window.saveState = () => {}; window.speak = () => {}; window.showCelebrateToast = () => {}; window.confettiBurst = () => {};
   const realHeld = window.mistakeHeld;
