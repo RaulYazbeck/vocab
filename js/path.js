@@ -627,7 +627,7 @@ function buildPathQueue(lenKey, opts = {}) {
   const focus = opts.focus || "";
   let clusters = [], reviews = [];
   pathRollDay();
-  let spots = [];
+  let spots = [], vxEnd = [];
   if (focus === "new") {
     // Explorer: a bonus cluster from one deck (on top of today's pace).
     const deck = opts.param && getDeck(opts.param);
@@ -654,6 +654,8 @@ function buildPathQueue(lenKey, opts = {}) {
     const vxp = typeof vxOn === "function" && vxOn() ? vxSessionPlan(Math.round(budget * VX_SESSION_SHARE)) : null;
     const reviewBudget = Math.max(0, budget - nNew0 * 3 - (vxp ? vxp.items.length : 0));
     reviews = [...fix, ...due].slice(0, reviewBudget).map(x => pathItemFor(pathWord(x.d.id, x.i), x.ws, rng));
+    // (Tense-drill misses wait for the end of the session: vxEnd.)
+    if (vxp) { vxEnd = vxp.items.filter(ex => ex.end); vxp.items = vxp.items.filter(ex => !ex.end); }
     if (vxp && vxp.items.length) {
       // Spread through the session; a new item's intro card comes three
       // items before its first typed check.
@@ -751,6 +753,8 @@ function buildPathQueue(lenKey, opts = {}) {
     if (short > 0) focusWords("stale").filter(x => !have.has(x.d.id + "_" + x.i)).slice(0, short)
       .forEach(x => out.push({ ...focusItem(x, "stale"), practice: true }));
   }
+  // Verb items missed in a tense drill: checked at the very end.
+  vxEnd.forEach(ex => out.push({ t: "typed", w: vxWord(ex), drillCheck: true }));
   // Every word goes learn → multiple choice → typed: a 🌱 word (stage ≤ 1:
   // a fix, a word of the day, a practice pick…) never meets typing first
   // in a session. A warm-up choice goes a few items before it — no stage

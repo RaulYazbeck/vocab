@@ -18,6 +18,13 @@ Content (no browser):
 In the real app (Chromium via playwright-core from `../audio/tests`; run
 `npm install` there once, and serve the repo root: `python3 -m http.server 8765`):
 
+    node t-alwayson.mjs     # on for everyone: a profile without it gets it at load (the same state the switch
+                            # made), no switch anywhere, a reload changes nothing; moved cards keep their record  (APP=fr)
+    node t-drill.mjs        # the tense drill: opens with the sheets passed, your verbs taking turns, outside the
+                            # plan, ledger forms, a step up only as Today would and never past 🌿 Familiar,
+                            # a miss checked at the end of tomorrow's Today, both logs, the screens  (APP=fr)
+    node t-drillsweep.mjs   # the drill in every tense (300 exercises each: sound, graded right, drawn) and its
+                            # corners: umlaut choice, wrong tense, hint, Enter twice, Say-it, ✕ at once  (APP=fr)
     node t-flows.mjs        # switch, preview, gating, mirrors, game credit, reports, switching back
     node t-quiz.mjs         # sheet quizzes (size, every point, 100%, re-ask) and mastery quizzes
     node t-review.mjs       # a miss → the sheet → back to the quiz, nothing lost (every kind, menu + Today)
@@ -25,7 +32,7 @@ In the real app (Chromium via playwright-core from `../audio/tests`; run
     node t-forms.mjs        # every form × person: whole verb asked, graded right, nothing shown in the prompt
     node t-screens.mjs      # every screen and card drawn, phone + desktop: no errors, no broken text
     node t-buttons.mjs      # every button pressed for real (taps, keys, edge cases), phone + desktop
-    node t-french.mjs       # the French app: switch, preview, gating, every sheet through the
+    node t-french.mjs       # the French app: switching on, preview, gating, every sheet through the
                             # screens, a miss and the way back, mastery, Today's verb cards,
                             # game credit, reports, the Spanish screens, switching back
     APP=fr node t-forms.mjs / APP=fr node t-screens.mjs   # the same audits in the French app
@@ -57,6 +64,10 @@ In the real app (Chromium via playwright-core from `../audio/tests`; run
     node sim.mjs --app fr --on   # the same journey in the French app
     node sim.mjs --on --typed 0.85 --cloze 0.80 --vx 0.60 --vxgrow 0.30 --skip 0.08
                             # a learner's own accuracy and skipped days (read them off the usage log)
+
+The track switches itself on at load. The tests that measure the old way or
+the switch itself (t-flows, t-switch, t-adopt, t-french, sim.mjs off) load
+without it: `openApp({ vxOff: true })` sets `window.VX_TEST_OFF`.
 
 `profile.js` is the test profile: shaped like the real one on 2026-10-10
 (A1 done, 13 A2 words met, finish date 2027-08-15).

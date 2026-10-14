@@ -91,7 +91,7 @@ G.VX_RULES.forEach(r => ok(ids.has(r.sheet), `rule ${r.id} sheet ${r.sheet}`));
 G.vxCatalog().filter(it => it.x).forEach(it => ok(ids.has(it.sheet), `item ${it.id} sheet ${it.sheet}`));
 // Every Spanish string the screens ask for exists.
 import fs from "node:fs";
-const src = ["../../js/grammar-ui.js", "../../js/verb-track.js", "../../js/grammar-quiz.js"].map(f => fs.readFileSync(new URL(f, import.meta.url), "utf8")).join("\n");
+const src = ["../../js/grammar-ui.js", "../../js/verb-track.js", "../../js/grammar-quiz.js", "../../js/verb-drill.js"].map(f => fs.readFileSync(new URL(f, import.meta.url), "utf8")).join("\n");
 const keys = [...src.matchAll(/vxT\("((?:[^"\\]|\\.)*)"/g)].map(m => JSON.parse(`"${m[1]}"`));
 [...new Set(keys)].forEach(k => ok(Object.prototype.hasOwnProperty.call(G.VXF_ES, k), `Spanish for "${k}"`));
 // Grading: pronouns, elision, accents.

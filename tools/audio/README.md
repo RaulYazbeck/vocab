@@ -230,7 +230,9 @@ command: `synth.py` simply carries on where it stopped when run again.
   English "um", "zu" as "su"): give the override a sound hint in IPA,
   `{"je … desto": {"say": "je ..., desto ...", "sounds": {"je": "je", "desto": "dɛsto"}}}`.
   Google follows it (Chirp 3 HD "custom pronunciations"). It checks the IPA and
-  refuses symbols it doesn't take, e.g. the length mark "ː": write "je", not "jeː".
+  refuses what it doesn't take ("je", not "jeː"; "fɛrdinə" and "fɛɐdinə" for
+  "verdiene" were refused, the full "fɛʁˈdiːnə", stress and length marked, was
+  taken): if one is refused, try the full transcription.
   Changing a hint re-makes the clip like any other override change.
 - **To hear chosen clips:** list them in a JSON file
   (`{"de": {"Abbreviations": ["z.B.", "d.h."]}}`) and run

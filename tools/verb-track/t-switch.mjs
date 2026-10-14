@@ -1,5 +1,5 @@
 import { openApp } from "./browser.mjs";
-const { browser, page, errors } = await openApp();
+const { browser, page, errors } = await openApp({ vxOff: true });
 const out = await page.evaluate(() => {
   const t0 = performance.now();
   const p = vxPreview();

@@ -1,6 +1,6 @@
 // Flows around the verb track, in the real app.
 import { openApp } from "./browser.mjs";
-const { browser, page, errors } = await openApp();
+const { browser, page, errors } = await openApp({ vxOff: true });
 let pass = 0, fail = 0; const ok = (c, m, x = "") => { if (c) pass++; else { fail++; console.log("  ✗", m, x); } };
 const r = await page.evaluate(() => {
   const out = {};
@@ -59,7 +59,7 @@ const r = await page.evaluate(() => {
   return out;
 });
 ok(r.before.thread.length >= 2 && (process.env.REAL_STATE || r.before.thread.includes("k2")), "before the switch the games use the level's tenses", r.before.thread);
-ok(r.todayOffer, "Today offers the switch");
+ok(!r.todayOffer, "Today never offers a switch");
 ok(r.previewPure, "the preview leaves the state untouched");
 ok(JSON.stringify(r.after.thread) === JSON.stringify(["pf", "pr"]) && !r.after.conj.includes("k2") && !r.after.conj.includes("im"), "after: only taught tenses in Thread and Slots", JSON.stringify(r.after));
 ok(r.level >= 19, "level unchanged", r.level);

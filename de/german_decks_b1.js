@@ -160,6 +160,7 @@ const DECKS_B1 = {
         { en:"to address someone formally (as Sie)", de:"siezen", hint:"verb regular · siezte · hat gesiezt", examples:[{de:"Obwohl sie sich schon lange kennen, siezen sie sich.",en:"Although they have known each other a long time, they address each other formally."}] },
         { en:"to separate (split two things apart)", de:"trennen", hint:"verb regular · trennte · hat getrennt", examples:[{de:"Bitte trennen Sie den Müll: Papier, Glas und Plastik.",en:"Please separate the rubbish: paper, glass and plastic."}] },
         { en:"to live apart (be separated)", de:"getrennt leben", hint:"phrase — lebte getrennt · hat getrennt gelebt", examples:[{de:"Ich lebe getrennt von meiner Frau.",en:"I live apart from my wife."}] },
+        { en:"to be born (a fixed Passiv phrase)", de:"geboren werden", hint:"wurde geboren · ist geboren worden", examples:[{de:"Wann und wo sind Sie geboren?",en:"When and where were you born?"}] },
       ]
     },
 
@@ -366,6 +367,7 @@ const DECKS_B1 = {
 
         // Building materials
         { en:"the corridor (the -idor word)", de:"der Korridor", pl:"die Korridore", hint:"masculine noun — synonym of der Flur", examples:[{de:"Die Zimmer gehen alle vom Korridor ab.",en:"The rooms all lead off the corridor."}] },
+        { en:"the door is locked (Zustandspassiv)", de:"die Tür ist abgeschlossen", hint:"sein + Partizip II — the resulting state", examples:[{de:"Die Tür ist schon abgeschlossen.",en:"The door is already locked."}] },
       ]
     },
 
@@ -549,6 +551,7 @@ const DECKS_B1 = {
 
         // Verbs that belong to this topic
         { en:"to exchange (take goods back to a shop)", de:"umtauschen", hint:"verb separable · tauschte um · hat umgetauscht", examples:[{de:"Ich möchte diese Bluse umtauschen. Sie passt mir nicht.",en:"I would like to exchange this blouse. It does not fit me."}] },
+        { en:"the shop is open (Zustandspassiv)", de:"das Geschäft ist geöffnet", hint:"sein + Partizip II — describes the state, not the act", examples:[{de:"Das Geschäft ist bis 20 Uhr geöffnet.",en:"The shop is open until 8 p.m."}] },
       ]
     },
 
@@ -2010,6 +2013,8 @@ const DECKS_B1 = {
         { en:"upwards", de:"aufwärts", hint:"adverb", examples:[{de:"Der Weg geht immer aufwärts.",en:"The path goes steadily upwards."}] },
         { en:"downwards", de:"abwärts", hint:"adverb", examples:[{de:"Von dort führt der Weg abwärts ins Tal.",en:"From there the path leads downwards into the valley."}] },
         { en:"there (pointing at a spot)", de:"da", hint:"adverb — pairs with drüben, vorne, hinten", examples:[{de:"Da drüben ist ein Getränkeautomat.",en:"Over there is a drinks machine."}] },
+        { en:"by the neighbour (agent in the Passiv)", de:"von dem Nachbarn", hint:"von + Dativ names the person who did it", examples:[{de:"Der Hund wurde von dem Nachbarn gefunden.",en:"The dog was found by the neighbour."}] },
+        { en:"by the storm (cause in the Passiv)", de:"durch den Sturm", hint:"durch + Akkusativ names the cause, not a person", examples:[{de:"Das Dach wurde durch den Sturm beschädigt.",en:"The roof was damaged by the storm."}] },
       ]
     },
     // ── 30. ABBREVIATIONS & ANGLICISMS ─────────────────────────────
@@ -2409,9 +2414,6 @@ const DECKS_B1 = {
         { en:"she had arrived (Plusquamperfekt, sein-verb)", de:"sie war angekommen", hint:"war + Partizip II", examples:[{de:"Sie war schon vor uns angekommen.",en:"She had arrived before us."}] },
         { en:"we had stayed (Plusquamperfekt, sein-verb)", de:"wir waren geblieben", hint:"war + Partizip II", examples:[{de:"Wir waren länger geblieben als geplant.",en:"We had stayed longer than planned."}] },
         { en:"they had got up (Plusquamperfekt, sein-verb)", de:"sie waren aufgestanden", hint:"war + Partizip II", examples:[{de:"Sie waren sehr früh aufgestanden.",en:"They had got up very early."}] },
-        { en:"after I had eaten (nachdem clause)", de:"nachdem ich gegessen hatte", hint:"nachdem sends the verb to the end", examples:[{de:"Nachdem ich gegessen hatte, ging ich spazieren.",en:"After I had eaten, I went for a walk."}] },
-        { en:"after we had arrived (nachdem clause)", de:"nachdem wir angekommen waren", hint:"nachdem + Plusquamperfekt, main clause in Präteritum", examples:[{de:"Nachdem wir angekommen waren, riefen wir sofort an.",en:"After we had arrived, we called immediately."}] },
-        { en:"after she had finished the course (nachdem clause)", de:"nachdem sie den Kurs beendet hatte", hint:"nachdem + Plusquamperfekt", examples:[{de:"Nachdem sie den Kurs beendet hatte, fand sie eine Stelle.",en:"After she had finished the course, she found a job."}] },
       ]
     },
 
@@ -2448,7 +2450,6 @@ const DECKS_B1 = {
         { en:"I would have done (Konjunktiv II, past)", de:"ich hätte gemacht", hint:"K II past = hätte/wäre + Partizip II", examples:[{de:"Ich hätte das anders gemacht.",en:"I would have done that differently."}] },
         { en:"he would have come (Konjunktiv II, past, sein-verb)", de:"er wäre gekommen", hint:"K II past with a sein-verb", examples:[{de:"Er wäre gern gekommen, aber er war krank.",en:"He would have liked to come, but he was ill."}] },
         { en:"if I had known (Konjunktiv II, past)", de:"wenn ich das gewusst hätte", hint:"wenn-clause: verb pair goes to the end", examples:[{de:"Wenn ich das gewusst hätte, wäre ich nicht gekommen.",en:"If I had known that, I would not have come."}] },
-        { en:"as if (introduces a Konjunktiv II comparison)", de:"als ob", hint:"introduces an unreal comparison · Konjunktiv II, verb at the end", examples:[{de:"Er tut so, als ob wir nie darüber gesprochen hätten.",en:"He acts as if we had never talked about it."}] },
       ]
     },
 
@@ -2471,11 +2472,6 @@ const DECKS_B1 = {
         { en:"it has to be repaired (Passiv with a modal)", de:"es muss repariert werden", hint:"modal + Partizip II + werden", examples:[{de:"Die Heizung muss dringend repariert werden.",en:"The heating urgently has to be repaired."}] },
         { en:"it can be paid (Passiv with a modal)", de:"es kann bezahlt werden", hint:"modal + Partizip II + werden", examples:[{de:"Die Rechnung kann auch bar bezahlt werden.",en:"The bill can also be paid in cash."}] },
         { en:"it should be checked (Passiv with a modal)", de:"es sollte überprüft werden", hint:"modal + Partizip II + werden", examples:[{de:"Der Vertrag sollte genau überprüft werden.",en:"The contract should be checked carefully."}] },
-        { en:"the shop is open (Zustandspassiv)", de:"das Geschäft ist geöffnet", hint:"sein + Partizip II — describes the state, not the act", examples:[{de:"Das Geschäft ist bis 20 Uhr geöffnet.",en:"The shop is open until 8 p.m."}] },
-        { en:"the door is locked (Zustandspassiv)", de:"die Tür ist abgeschlossen", hint:"sein + Partizip II — the resulting state", examples:[{de:"Die Tür ist schon abgeschlossen.",en:"The door is already locked."}] },
-        { en:"by the neighbour (agent in the Passiv)", de:"von dem Nachbarn", hint:"von + Dativ names the person who did it", examples:[{de:"Der Hund wurde von dem Nachbarn gefunden.",en:"The dog was found by the neighbour."}] },
-        { en:"by the storm (cause in the Passiv)", de:"durch den Sturm", hint:"durch + Akkusativ names the cause, not a person", examples:[{de:"Das Dach wurde durch den Sturm beschädigt.",en:"The roof was damaged by the storm."}] },
-        { en:"to be born (a fixed Passiv phrase)", de:"geboren werden", hint:"wurde geboren · ist geboren worden", examples:[{de:"Wann und wo sind Sie geboren?",en:"When and where were you born?"}] },
       ]
     },
 
@@ -2530,6 +2526,10 @@ const DECKS_B1 = {
         { en:"both … and", de:"sowohl … als auch", hint:"two-part connector", examples:[{de:"Sowohl mein Bruder als auch meine Schwester studieren.",en:"Both my brother and my sister are at university."}] },
         { en:"the more … the more", de:"je … desto", hint:"je + comparative sends the verb to the end", examples:[{de:"Je mehr ich übe, desto besser werde ich.",en:"The more I practise, the better I get."}] },
         { en:"whether (indirect yes/no question)", de:"ob", hint:"verb to the end", examples:[{de:"Ich weiß nicht, ob er kommt.",en:"I do not know whether he is coming."}] },
+        { en:"after I had eaten (nachdem clause)", de:"nachdem ich gegessen hatte", hint:"nachdem sends the verb to the end", examples:[{de:"Nachdem ich gegessen hatte, ging ich spazieren.",en:"After I had eaten, I went for a walk."}] },
+        { en:"after we had arrived (nachdem clause)", de:"nachdem wir angekommen waren", hint:"nachdem + Plusquamperfekt, main clause in Präteritum", examples:[{de:"Nachdem wir angekommen waren, riefen wir sofort an.",en:"After we had arrived, we called immediately."}] },
+        { en:"after she had finished the course (nachdem clause)", de:"nachdem sie den Kurs beendet hatte", hint:"nachdem + Plusquamperfekt", examples:[{de:"Nachdem sie den Kurs beendet hatte, fand sie eine Stelle.",en:"After she had finished the course, she found a job."}] },
+        { en:"as if (introduces a Konjunktiv II comparison)", de:"als ob", hint:"introduces an unreal comparison · Konjunktiv II, verb at the end", examples:[{de:"Er tut so, als ob wir nie darüber gesprochen hätten.",en:"He acts as if we had never talked about it."}] },
       ]
     },
 

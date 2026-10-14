@@ -709,7 +709,7 @@ function settingsMenuHtml() {
     <div class="menu-list">
       ${menuRowHtml("🎮", "Games", "", "menuGo('games')")}
       ${menuRowHtml("🗺️", "Journey", `${scan.known.toLocaleString()} / ${scan.total.toLocaleString()} known`, "menuGo('journey')")}
-      ${typeof vxAvailable === "function" && vxAvailable() ? menuRowHtml("📐", "Grammar", vxOn() ? `${VX_UNITS.filter(u => vxUnitOpen(u.id)).length} / ${VX_UNITS.length} tenses` : `<span class="accent">new</span>`, "menuGo('grammar')") : ""}
+      ${typeof vxAvailable === "function" && vxAvailable() ? menuRowHtml("📐", "Grammar", vxOn() ? `${VX_UNITS.filter(u => vxUnitOpen(u.id)).length} / ${VX_UNITS.length} tenses` : "", "menuGo('grammar')") : ""}
       ${menuRowHtml("⚔️", "Bosses", `${beaten} / ${decks} beaten`, "menuGo('bosses')")}
       ${menuRowHtml("🎨", "Collection", chests ? `<span class="accent">🎁 ${chests} to open</span>` : "", "menuGo('collection')")}
       ${menuRowHtml("📊", "Stats", "", "menuGo('stats')")}
@@ -760,7 +760,7 @@ function settingsPlanHtml() {
     ${setChoiceHtml("🎯", "Daily goal", `Right answers a day — your 4 quests add up to it, and ${Math.round(KEEP_GOAL_SHARE * 100)}% of it keeps your 🔥 streak.`,
       GOAL_OPTIONS.map(n => ({ label: n, on: goal === n, onclick: `setDailyGoal(${n})` })),
       plan ? `Auto · ${plan.goal} today — set by your finish date` : "")}
-    ${typeof vxAvailable === "function" && vxAvailable() ? setNavHtml("📐", "Verbs & tenses", vxOn() ? "The verb track: tenses in order, sheets, the ledger" : "The new verb system — see what it changes", "closeSettings();showScreen('grammar')") : ""}
+    ${typeof vxAvailable === "function" && vxAvailable() ? setNavHtml("📐", "Verbs & tenses", "The verb track: tenses in order, sheets, the ledger", "closeSettings();showScreen('grammar')") : ""}
     <div class="set-group-title">Can't be undone</div>
     ${sk ? setNavHtml("⏭️", `Skip ${escapeHtml(sk.name)}`, `Already know ${escapeHtml(sk.name)}? Its ${sk.lift} word${sk.lift === 1 ? "" : "s"} below ⭐ Strong become Strong and you move straight on to ${escapeHtml(sk.next || "the next level")}.`, "confirmSkipLevel()")
       : setNavHtml("⏭️", "Skip a level", "Nothing left to skip — every level is ⭐ Strong or better.", "")}`;

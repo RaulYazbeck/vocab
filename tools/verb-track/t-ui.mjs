@@ -10,10 +10,7 @@ for (const [w, h] of sizes) {
   const shot = async name => { await page.waitForTimeout(350); await page.screenshot({ path: `${OUT}/${tag}-${name}.png`, fullPage: false }); };
   const full = async name => { await page.waitForTimeout(350); await page.screenshot({ path: `${OUT}/${tag}-${name}.png`, fullPage: true }); };
   await shot("01-today");
-  await page.evaluate(() => renderVerbSwitch());
-  await page.waitForSelector(".vx-act");
-  await full("02-switch");
-  await page.click(".vx-act .g-big-btn");
+  await page.evaluate(() => renderGrammar());
   await page.waitForSelector(".gr-units");
   await full("03-grammar");
   await page.evaluate(() => renderGrammarUnit("pf"));

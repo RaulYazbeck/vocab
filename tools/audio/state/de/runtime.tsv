@@ -512,6 +512,7 @@ w	_v:abholen	ihr holt ab
 w	_v:abholen	ihr holtet ab
 w	_v:abholen	ihr werdet abholen
 w	_v:abholen	ihr würdet abholen
+w	_v:abholen	ist abgeholt worden
 w	_v:abholen	kann abgeholt werden
 w	_v:abholen	können abgeholt werden
 w	_v:abholen	muss abgeholt werden
@@ -522,6 +523,7 @@ w	_v:abholen	sie holen ab
 w	_v:abholen	sie holten ab
 w	_v:abholen	sie werden abholen
 w	_v:abholen	sie würden abholen
+w	_v:abholen	sind abgeholt worden
 w	_v:abholen	soll abgeholt werden
 w	_v:abholen	sollen abgeholt werden
 w	_v:abholen	werde abholen
@@ -582,6 +584,7 @@ w	_v:abschließen	ihr schließt ab
 w	_v:abschließen	ihr schlosst ab
 w	_v:abschließen	ihr werdet abschließen
 w	_v:abschließen	ihr würdet abschließen
+w	_v:abschließen	ist abgeschlossen worden
 w	_v:abschließen	kann abgeschlossen werden
 w	_v:abschließen	können abgeschlossen werden
 w	_v:abschließen	muss abgeschlossen werden
@@ -601,6 +604,7 @@ w	_v:abschließen	sie schließen ab
 w	_v:abschließen	sie schlossen ab
 w	_v:abschließen	sie werden abschließen
 w	_v:abschließen	sie würden abschließen
+w	_v:abschließen	sind abgeschlossen worden
 w	_v:abschließen	soll abgeschlossen werden
 w	_v:abschließen	sollen abgeschlossen werden
 w	_v:abschließen	werde abschließen
@@ -998,6 +1002,7 @@ w	_v:anmachen	ihr macht an
 w	_v:anmachen	ihr machtet an
 w	_v:anmachen	ihr werdet anmachen
 w	_v:anmachen	ihr würdet anmachen
+w	_v:anmachen	ist angemacht worden
 w	_v:anmachen	kann angemacht werden
 w	_v:anmachen	können angemacht werden
 w	_v:anmachen	mach an
@@ -1018,6 +1023,7 @@ w	_v:anmachen	sie machen an
 w	_v:anmachen	sie machten an
 w	_v:anmachen	sie werden anmachen
 w	_v:anmachen	sie würden anmachen
+w	_v:anmachen	sind angemacht worden
 w	_v:anmachen	soll angemacht werden
 w	_v:anmachen	sollen angemacht werden
 w	_v:anmachen	werde anmachen
@@ -1078,6 +1084,7 @@ w	_v:anrufen	ihr rieft an
 w	_v:anrufen	ihr ruft an
 w	_v:anrufen	ihr werdet anrufen
 w	_v:anrufen	ihr würdet anrufen
+w	_v:anrufen	ist angerufen worden
 w	_v:anrufen	kann angerufen werden
 w	_v:anrufen	können angerufen werden
 w	_v:anrufen	muss angerufen werden
@@ -1098,6 +1105,7 @@ w	_v:anrufen	sie riefen an
 w	_v:anrufen	sie rufen an
 w	_v:anrufen	sie werden anrufen
 w	_v:anrufen	sie würden anrufen
+w	_v:anrufen	sind angerufen worden
 w	_v:anrufen	soll angerufen werden
 w	_v:anrufen	sollen angerufen werden
 w	_v:anrufen	werde anrufen
@@ -1689,6 +1697,7 @@ w	_v:aufräumen	ihr räumt auf
 w	_v:aufräumen	ihr räumtet auf
 w	_v:aufräumen	ihr werdet aufräumen
 w	_v:aufräumen	ihr würdet aufräumen
+w	_v:aufräumen	ist aufgeräumt worden
 w	_v:aufräumen	kann aufgeräumt werden
 w	_v:aufräumen	können aufgeräumt werden
 w	_v:aufräumen	muss aufgeräumt werden
@@ -1709,6 +1718,7 @@ w	_v:aufräumen	sie räumen auf
 w	_v:aufräumen	sie räumten auf
 w	_v:aufräumen	sie werden aufräumen
 w	_v:aufräumen	sie würden aufräumen
+w	_v:aufräumen	sind aufgeräumt worden
 w	_v:aufräumen	soll aufgeräumt werden
 w	_v:aufräumen	sollen aufgeräumt werden
 w	_v:aufräumen	werde aufräumen
@@ -1845,6 +1855,7 @@ w	_v:ausfüllen	ihr habt ausgefüllt
 w	_v:ausfüllen	ihr hattet ausgefüllt
 w	_v:ausfüllen	ihr werdet ausfüllen
 w	_v:ausfüllen	ihr würdet ausfüllen
+w	_v:ausfüllen	ist ausgefüllt worden
 w	_v:ausfüllen	kann ausgefüllt werden
 w	_v:ausfüllen	können ausgefüllt werden
 w	_v:ausfüllen	muss ausgefüllt werden
@@ -1855,6 +1866,7 @@ w	_v:ausfüllen	sie haben ausgefüllt
 w	_v:ausfüllen	sie hatten ausgefüllt
 w	_v:ausfüllen	sie werden ausfüllen
 w	_v:ausfüllen	sie würden ausfüllen
+w	_v:ausfüllen	sind ausgefüllt worden
 w	_v:ausfüllen	soll ausgefüllt werden
 w	_v:ausfüllen	sollen ausgefüllt werden
 w	_v:ausfüllen	werde ausfüllen
@@ -2052,6 +2064,7 @@ w	_v:ausmachen	ihr macht aus
 w	_v:ausmachen	ihr machtet aus
 w	_v:ausmachen	ihr werdet ausmachen
 w	_v:ausmachen	ihr würdet ausmachen
+w	_v:ausmachen	ist ausgemacht worden
 w	_v:ausmachen	kann ausgemacht werden
 w	_v:ausmachen	können ausgemacht werden
 w	_v:ausmachen	mach aus
@@ -2072,6 +2085,7 @@ w	_v:ausmachen	sie machen aus
 w	_v:ausmachen	sie machten aus
 w	_v:ausmachen	sie werden ausmachen
 w	_v:ausmachen	sie würden ausmachen
+w	_v:ausmachen	sind ausgemacht worden
 w	_v:ausmachen	soll ausgemacht werden
 w	_v:ausmachen	sollen ausgemacht werden
 w	_v:ausmachen	werde ausmachen
@@ -2550,6 +2564,7 @@ w	_v:backen	ihr habt gebacken
 w	_v:backen	ihr hattet gebacken
 w	_v:backen	ihr werdet backen
 w	_v:backen	ihr würdet backen
+w	_v:backen	ist gebacken worden
 w	_v:backen	kann gebacken werden
 w	_v:backen	können gebacken werden
 w	_v:backen	muss gebacken werden
@@ -2560,6 +2575,7 @@ w	_v:backen	sie haben gebacken
 w	_v:backen	sie hatten gebacken
 w	_v:backen	sie werden backen
 w	_v:backen	sie würden backen
+w	_v:backen	sind gebacken worden
 w	_v:backen	soll gebacken werden
 w	_v:backen	sollen gebacken werden
 w	_v:backen	werde backen
@@ -2760,6 +2776,7 @@ w	_v:bauen	ihr habt gebaut
 w	_v:bauen	ihr hattet gebaut
 w	_v:bauen	ihr werdet bauen
 w	_v:bauen	ihr würdet bauen
+w	_v:bauen	ist gebaut worden
 w	_v:bauen	kann gebaut werden
 w	_v:bauen	können gebaut werden
 w	_v:bauen	muss gebaut werden
@@ -2770,6 +2787,7 @@ w	_v:bauen	sie haben gebaut
 w	_v:bauen	sie hatten gebaut
 w	_v:bauen	sie werden bauen
 w	_v:bauen	sie würden bauen
+w	_v:bauen	sind gebaut worden
 w	_v:bauen	soll gebaut werden
 w	_v:bauen	sollen gebaut werden
 w	_v:bauen	werde bauen
@@ -2837,6 +2855,7 @@ w	_v:beantworten	ihr habt beantwortet
 w	_v:beantworten	ihr hattet beantwortet
 w	_v:beantworten	ihr werdet beantworten
 w	_v:beantworten	ihr würdet beantworten
+w	_v:beantworten	ist beantwortet worden
 w	_v:beantworten	kann beantwortet werden
 w	_v:beantworten	können beantwortet werden
 w	_v:beantworten	muss beantwortet werden
@@ -2847,6 +2866,7 @@ w	_v:beantworten	sie haben beantwortet
 w	_v:beantworten	sie hatten beantwortet
 w	_v:beantworten	sie werden beantworten
 w	_v:beantworten	sie würden beantworten
+w	_v:beantworten	sind beantwortet worden
 w	_v:beantworten	soll beantwortet werden
 w	_v:beantworten	sollen beantwortet werden
 w	_v:beantworten	werde beantworten
@@ -3239,6 +3259,7 @@ w	_v:behandeln	ihr habt behandelt
 w	_v:behandeln	ihr hattet behandelt
 w	_v:behandeln	ihr werdet behandeln
 w	_v:behandeln	ihr würdet behandeln
+w	_v:behandeln	ist behandelt worden
 w	_v:behandeln	kann behandelt werden
 w	_v:behandeln	können behandelt werden
 w	_v:behandeln	muss behandelt werden
@@ -3249,6 +3270,7 @@ w	_v:behandeln	sie haben behandelt
 w	_v:behandeln	sie hatten behandelt
 w	_v:behandeln	sie werden behandeln
 w	_v:behandeln	sie würden behandeln
+w	_v:behandeln	sind behandelt worden
 w	_v:behandeln	soll behandelt werden
 w	_v:behandeln	sollen behandelt werden
 w	_v:behandeln	werde behandeln
@@ -3379,6 +3401,7 @@ w	_v:benutzen	ihr habt benutzt
 w	_v:benutzen	ihr hattet benutzt
 w	_v:benutzen	ihr werdet benutzen
 w	_v:benutzen	ihr würdet benutzen
+w	_v:benutzen	ist benutzt worden
 w	_v:benutzen	kann benutzt werden
 w	_v:benutzen	können benutzt werden
 w	_v:benutzen	muss benutzt werden
@@ -3389,6 +3412,7 @@ w	_v:benutzen	sie haben benutzt
 w	_v:benutzen	sie hatten benutzt
 w	_v:benutzen	sie werden benutzen
 w	_v:benutzen	sie würden benutzen
+w	_v:benutzen	sind benutzt worden
 w	_v:benutzen	soll benutzt werden
 w	_v:benutzen	sollen benutzt werden
 w	_v:benutzen	werde benutzen
@@ -3849,6 +3873,7 @@ w	_v:bestellen	ihr habt bestellt
 w	_v:bestellen	ihr hattet bestellt
 w	_v:bestellen	ihr werdet bestellen
 w	_v:bestellen	ihr würdet bestellen
+w	_v:bestellen	ist bestellt worden
 w	_v:bestellen	kann bestellt werden
 w	_v:bestellen	können bestellt werden
 w	_v:bestellen	muss bestellt werden
@@ -3859,6 +3884,7 @@ w	_v:bestellen	sie haben bestellt
 w	_v:bestellen	sie hatten bestellt
 w	_v:bestellen	sie werden bestellen
 w	_v:bestellen	sie würden bestellen
+w	_v:bestellen	sind bestellt worden
 w	_v:bestellen	soll bestellt werden
 w	_v:bestellen	sollen bestellt werden
 w	_v:bestellen	werde bestellen
@@ -3928,6 +3954,7 @@ w	_v:bestätigen	ihr habt bestätigt
 w	_v:bestätigen	ihr hattet bestätigt
 w	_v:bestätigen	ihr werdet bestätigen
 w	_v:bestätigen	ihr würdet bestätigen
+w	_v:bestätigen	ist bestätigt worden
 w	_v:bestätigen	kann bestätigt werden
 w	_v:bestätigen	können bestätigt werden
 w	_v:bestätigen	muss bestätigt werden
@@ -3938,6 +3965,7 @@ w	_v:bestätigen	sie haben bestätigt
 w	_v:bestätigen	sie hatten bestätigt
 w	_v:bestätigen	sie werden bestätigen
 w	_v:bestätigen	sie würden bestätigen
+w	_v:bestätigen	sind bestätigt worden
 w	_v:bestätigen	soll bestätigt werden
 w	_v:bestätigen	sollen bestätigt werden
 w	_v:bestätigen	werde bestätigen
@@ -4007,6 +4035,7 @@ w	_v:besuchen	ihr habt besucht
 w	_v:besuchen	ihr hattet besucht
 w	_v:besuchen	ihr werdet besuchen
 w	_v:besuchen	ihr würdet besuchen
+w	_v:besuchen	ist besucht worden
 w	_v:besuchen	kann besucht werden
 w	_v:besuchen	können besucht werden
 w	_v:besuchen	muss besucht werden
@@ -4017,6 +4046,7 @@ w	_v:besuchen	sie haben besucht
 w	_v:besuchen	sie hatten besucht
 w	_v:besuchen	sie werden besuchen
 w	_v:besuchen	sie würden besuchen
+w	_v:besuchen	sind besucht worden
 w	_v:besuchen	soll besucht werden
 w	_v:besuchen	sollen besucht werden
 w	_v:besuchen	werde besuchen
@@ -4086,6 +4116,7 @@ w	_v:bezahlen	ihr habt bezahlt
 w	_v:bezahlen	ihr hattet bezahlt
 w	_v:bezahlen	ihr werdet bezahlen
 w	_v:bezahlen	ihr würdet bezahlen
+w	_v:bezahlen	ist bezahlt worden
 w	_v:bezahlen	kann bezahlt werden
 w	_v:bezahlen	können bezahlt werden
 w	_v:bezahlen	muss bezahlt werden
@@ -4096,6 +4127,7 @@ w	_v:bezahlen	sie haben bezahlt
 w	_v:bezahlen	sie hatten bezahlt
 w	_v:bezahlen	sie werden bezahlen
 w	_v:bezahlen	sie würden bezahlen
+w	_v:bezahlen	sind bezahlt worden
 w	_v:bezahlen	soll bezahlt werden
 w	_v:bezahlen	sollen bezahlt werden
 w	_v:bezahlen	werde bezahlen
@@ -4497,6 +4529,7 @@ w	_v:bringen	ihr habt gebracht
 w	_v:bringen	ihr hattet gebracht
 w	_v:bringen	ihr werdet bringen
 w	_v:bringen	ihr würdet bringen
+w	_v:bringen	ist gebracht worden
 w	_v:bringen	kann gebracht werden
 w	_v:bringen	können gebracht werden
 w	_v:bringen	muss gebracht werden
@@ -4507,6 +4540,7 @@ w	_v:bringen	sie haben gebracht
 w	_v:bringen	sie hatten gebracht
 w	_v:bringen	sie werden bringen
 w	_v:bringen	sie würden bringen
+w	_v:bringen	sind gebracht worden
 w	_v:bringen	soll gebracht werden
 w	_v:bringen	sollen gebracht werden
 w	_v:bringen	werde bringen
@@ -4575,6 +4609,7 @@ w	_v:buchen	ihr habt gebucht
 w	_v:buchen	ihr hattet gebucht
 w	_v:buchen	ihr werdet buchen
 w	_v:buchen	ihr würdet buchen
+w	_v:buchen	ist gebucht worden
 w	_v:buchen	kann gebucht werden
 w	_v:buchen	können gebucht werden
 w	_v:buchen	muss gebucht werden
@@ -4585,6 +4620,7 @@ w	_v:buchen	sie haben gebucht
 w	_v:buchen	sie hatten gebucht
 w	_v:buchen	sie werden buchen
 w	_v:buchen	sie würden buchen
+w	_v:buchen	sind gebucht worden
 w	_v:buchen	soll gebucht werden
 w	_v:buchen	sollen gebucht werden
 w	_v:buchen	werde buchen
@@ -5001,6 +5037,7 @@ w	_v:drucken	ihr habt gedruckt
 w	_v:drucken	ihr hattet gedruckt
 w	_v:drucken	ihr werdet drucken
 w	_v:drucken	ihr würdet drucken
+w	_v:drucken	ist gedruckt worden
 w	_v:drucken	kann gedruckt werden
 w	_v:drucken	können gedruckt werden
 w	_v:drucken	muss gedruckt werden
@@ -5011,6 +5048,7 @@ w	_v:drucken	sie haben gedruckt
 w	_v:drucken	sie hatten gedruckt
 w	_v:drucken	sie werden drucken
 w	_v:drucken	sie würden drucken
+w	_v:drucken	sind gedruckt worden
 w	_v:drucken	soll gedruckt werden
 w	_v:drucken	sollen gedruckt werden
 w	_v:drucken	werde drucken
@@ -5309,6 +5347,7 @@ w	_v:einladen	ihr hattet eingeladen
 w	_v:einladen	ihr ludet ein
 w	_v:einladen	ihr werdet einladen
 w	_v:einladen	ihr würdet einladen
+w	_v:einladen	ist eingeladen worden
 w	_v:einladen	kann eingeladen werden
 w	_v:einladen	können eingeladen werden
 w	_v:einladen	laden Sie ein
@@ -5323,6 +5362,7 @@ w	_v:einladen	sie hatten eingeladen
 w	_v:einladen	sie luden ein
 w	_v:einladen	sie werden einladen
 w	_v:einladen	sie würden einladen
+w	_v:einladen	sind eingeladen worden
 w	_v:einladen	soll eingeladen werden
 w	_v:einladen	sollen eingeladen werden
 w	_v:einladen	werde einladen
@@ -5651,6 +5691,7 @@ w	_v:empfehlen	ihr habt empfohlen
 w	_v:empfehlen	ihr hattet empfohlen
 w	_v:empfehlen	ihr werdet empfehlen
 w	_v:empfehlen	ihr würdet empfehlen
+w	_v:empfehlen	ist empfohlen worden
 w	_v:empfehlen	kann empfohlen werden
 w	_v:empfehlen	können empfohlen werden
 w	_v:empfehlen	muss empfohlen werden
@@ -5660,6 +5701,7 @@ w	_v:empfehlen	sie haben empfohlen
 w	_v:empfehlen	sie hatten empfohlen
 w	_v:empfehlen	sie werden empfehlen
 w	_v:empfehlen	sie würden empfehlen
+w	_v:empfehlen	sind empfohlen worden
 w	_v:empfehlen	soll empfohlen werden
 w	_v:empfehlen	sollen empfohlen werden
 w	_v:empfehlen	werde empfehlen
@@ -5860,6 +5902,7 @@ w	_v:erklären	ihr habt erklärt
 w	_v:erklären	ihr hattet erklärt
 w	_v:erklären	ihr werdet erklären
 w	_v:erklären	ihr würdet erklären
+w	_v:erklären	ist erklärt worden
 w	_v:erklären	kann erklärt werden
 w	_v:erklären	können erklärt werden
 w	_v:erklären	muss erklärt werden
@@ -5870,6 +5913,7 @@ w	_v:erklären	sie haben erklärt
 w	_v:erklären	sie hatten erklärt
 w	_v:erklären	sie werden erklären
 w	_v:erklären	sie würden erklären
+w	_v:erklären	sind erklärt worden
 w	_v:erklären	soll erklärt werden
 w	_v:erklären	sollen erklärt werden
 w	_v:erklären	werde erklären
@@ -6258,6 +6302,7 @@ w	_v:essen	ihr hattet gegessen
 w	_v:essen	ihr werdet essen
 w	_v:essen	ihr würdet essen
 w	_v:essen	iss
+w	_v:essen	ist gegessen worden
 w	_v:essen	kann gegessen werden
 w	_v:essen	können gegessen werden
 w	_v:essen	muss gegessen werden
@@ -6267,6 +6312,7 @@ w	_v:essen	sie haben gegessen
 w	_v:essen	sie hatten gegessen
 w	_v:essen	sie werden essen
 w	_v:essen	sie würden essen
+w	_v:essen	sind gegessen worden
 w	_v:essen	soll gegessen werden
 w	_v:essen	sollen gegessen werden
 w	_v:essen	werde essen
@@ -6513,6 +6559,7 @@ w	_v:feiern	ihr habt gefeiert
 w	_v:feiern	ihr hattet gefeiert
 w	_v:feiern	ihr werdet feiern
 w	_v:feiern	ihr würdet feiern
+w	_v:feiern	ist gefeiert worden
 w	_v:feiern	kann gefeiert werden
 w	_v:feiern	können gefeiert werden
 w	_v:feiern	muss gefeiert werden
@@ -6522,6 +6569,7 @@ w	_v:feiern	sie feierten
 w	_v:feiern	sie haben gefeiert
 w	_v:feiern	sie hatten gefeiert
 w	_v:feiern	sie würden feiern
+w	_v:feiern	sind gefeiert worden
 w	_v:feiern	soll gefeiert werden
 w	_v:feiern	sollen gefeiert werden
 w	_v:feiern	werde feiern
@@ -6661,6 +6709,7 @@ w	_v:finden	ihr habt gefunden
 w	_v:finden	ihr hattet gefunden
 w	_v:finden	ihr werdet finden
 w	_v:finden	ihr würdet finden
+w	_v:finden	ist gefunden worden
 w	_v:finden	kann gefunden werden
 w	_v:finden	können gefunden werden
 w	_v:finden	muss gefunden werden
@@ -6671,6 +6720,7 @@ w	_v:finden	sie haben gefunden
 w	_v:finden	sie hatten gefunden
 w	_v:finden	sie werden finden
 w	_v:finden	sie würden finden
+w	_v:finden	sind gefunden worden
 w	_v:finden	soll gefunden werden
 w	_v:finden	sollen gefunden werden
 w	_v:finden	werde finden
@@ -6866,6 +6916,7 @@ w	_v:fragen	ihr habt gefragt
 w	_v:fragen	ihr hattet gefragt
 w	_v:fragen	ihr werdet fragen
 w	_v:fragen	ihr würdet fragen
+w	_v:fragen	ist gefragt worden
 w	_v:fragen	kann gefragt werden
 w	_v:fragen	können gefragt werden
 w	_v:fragen	muss gefragt werden
@@ -6875,6 +6926,7 @@ w	_v:fragen	sie fragten
 w	_v:fragen	sie haben gefragt
 w	_v:fragen	sie hatten gefragt
 w	_v:fragen	sie werden fragen
+w	_v:fragen	sind gefragt worden
 w	_v:fragen	soll gefragt werden
 w	_v:fragen	sollen gefragt werden
 w	_v:fragen	werde fragen
@@ -7201,6 +7253,7 @@ w	_v:gewinnen	ihr habt gewonnen
 w	_v:gewinnen	ihr hattet gewonnen
 w	_v:gewinnen	ihr werdet gewinnen
 w	_v:gewinnen	ihr würdet gewinnen
+w	_v:gewinnen	ist gewonnen worden
 w	_v:gewinnen	kann gewonnen werden
 w	_v:gewinnen	können gewonnen werden
 w	_v:gewinnen	muss gewonnen werden
@@ -7211,6 +7264,7 @@ w	_v:gewinnen	sie haben gewonnen
 w	_v:gewinnen	sie hatten gewonnen
 w	_v:gewinnen	sie werden gewinnen
 w	_v:gewinnen	sie würden gewinnen
+w	_v:gewinnen	sind gewonnen worden
 w	_v:gewinnen	soll gewonnen werden
 w	_v:gewinnen	sollen gewonnen werden
 w	_v:gewinnen	werde gewinnen
@@ -8154,6 +8208,7 @@ w	_v:hören	ihr hört
 w	_v:hören	ihr hörtet
 w	_v:hören	ihr werdet hören
 w	_v:hören	ihr würdet hören
+w	_v:hören	ist gehört worden
 w	_v:hören	kann gehört werden
 w	_v:hören	können gehört werden
 w	_v:hören	muss gehört werden
@@ -8164,6 +8219,7 @@ w	_v:hören	sie hören
 w	_v:hören	sie hörten
 w	_v:hören	sie werden hören
 w	_v:hören	sie würden hören
+w	_v:hören	sind gehört worden
 w	_v:hören	soll gehört werden
 w	_v:hören	sollen gehört werden
 w	_v:hören	werde hören
@@ -8289,6 +8345,7 @@ w	_v:kaufen	ihr kauft
 w	_v:kaufen	ihr kauftet
 w	_v:kaufen	ihr werdet kaufen
 w	_v:kaufen	ihr würdet kaufen
+w	_v:kaufen	ist gekauft worden
 w	_v:kaufen	kann gekauft werden
 w	_v:kaufen	kauf
 w	_v:kaufen	kaufen Sie
@@ -8307,6 +8364,7 @@ w	_v:kaufen	sie kaufen
 w	_v:kaufen	sie kauften
 w	_v:kaufen	sie werden kaufen
 w	_v:kaufen	sie würden kaufen
+w	_v:kaufen	sind gekauft worden
 w	_v:kaufen	soll gekauft werden
 w	_v:kaufen	sollen gekauft werden
 w	_v:kaufen	werde kaufen
@@ -8519,6 +8577,7 @@ w	_v:kochen	ihr kocht
 w	_v:kochen	ihr kochtet
 w	_v:kochen	ihr werdet kochen
 w	_v:kochen	ihr würdet kochen
+w	_v:kochen	ist gekocht worden
 w	_v:kochen	kann gekocht werden
 w	_v:kochen	koch
 w	_v:kochen	koche
@@ -8537,6 +8596,7 @@ w	_v:kochen	sie kochen
 w	_v:kochen	sie kochten
 w	_v:kochen	sie werden kochen
 w	_v:kochen	sie würden kochen
+w	_v:kochen	sind gekocht worden
 w	_v:kochen	soll gekocht werden
 w	_v:kochen	sollen gekocht werden
 w	_v:kochen	werde kochen
@@ -8662,6 +8722,7 @@ w	_v:kontrollieren	ihr kontrolliert
 w	_v:kontrollieren	ihr kontrolliertet
 w	_v:kontrollieren	ihr werdet kontrollieren
 w	_v:kontrollieren	ihr würdet kontrollieren
+w	_v:kontrollieren	ist kontrolliert worden
 w	_v:kontrollieren	kann kontrolliert werden
 w	_v:kontrollieren	kontrollier
 w	_v:kontrollieren	kontrolliere
@@ -8680,6 +8741,7 @@ w	_v:kontrollieren	sie kontrollieren
 w	_v:kontrollieren	sie kontrollierten
 w	_v:kontrollieren	sie werden kontrollieren
 w	_v:kontrollieren	sie würden kontrollieren
+w	_v:kontrollieren	sind kontrolliert worden
 w	_v:kontrollieren	soll kontrolliert werden
 w	_v:kontrollieren	sollen kontrolliert werden
 w	_v:kontrollieren	werde kontrollieren
@@ -9433,6 +9495,7 @@ w	_v:lesen	ihr hattet gelesen
 w	_v:lesen	ihr last
 w	_v:lesen	ihr werdet lesen
 w	_v:lesen	ihr würdet lesen
+w	_v:lesen	ist gelesen worden
 w	_v:lesen	kann gelesen werden
 w	_v:lesen	können gelesen werden
 w	_v:lesen	lasen
@@ -9447,6 +9510,7 @@ w	_v:lesen	sie hatten gelesen
 w	_v:lesen	sie lasen
 w	_v:lesen	sie werden lesen
 w	_v:lesen	sie würden lesen
+w	_v:lesen	sind gelesen worden
 w	_v:lesen	soll gelesen werden
 w	_v:lesen	sollen gelesen werden
 w	_v:lesen	werde lesen
@@ -9506,6 +9570,7 @@ w	_v:lieben	ihr liebt
 w	_v:lieben	ihr liebtet
 w	_v:lieben	ihr werdet lieben
 w	_v:lieben	ihr würdet lieben
+w	_v:lieben	ist geliebt worden
 w	_v:lieben	kann geliebt werden
 w	_v:lieben	können geliebt werden
 w	_v:lieben	lieben Sie
@@ -9523,6 +9588,7 @@ w	_v:lieben	sie lieben
 w	_v:lieben	sie liebten
 w	_v:lieben	sie werden lieben
 w	_v:lieben	sie würden lieben
+w	_v:lieben	sind geliebt worden
 w	_v:lieben	soll geliebt werden
 w	_v:lieben	sollen geliebt werden
 w	_v:lieben	werde lieben
@@ -9583,6 +9649,7 @@ w	_v:liefern	ihr liefert
 w	_v:liefern	ihr liefertet
 w	_v:liefern	ihr werdet liefern
 w	_v:liefern	ihr würdet liefern
+w	_v:liefern	ist geliefert worden
 w	_v:liefern	kann geliefert werden
 w	_v:liefern	können geliefert werden
 w	_v:liefern	liefere
@@ -9601,6 +9668,7 @@ w	_v:liefern	sie liefern
 w	_v:liefern	sie lieferten
 w	_v:liefern	sie werden liefern
 w	_v:liefern	sie würden liefern
+w	_v:liefern	sind geliefert worden
 w	_v:liefern	soll geliefert werden
 w	_v:liefern	sollen geliefert werden
 w	_v:liefern	werde liefern
@@ -9788,6 +9856,7 @@ w	_v:machen	ihr hattet gemacht
 w	_v:machen	ihr macht
 w	_v:machen	ihr werdet machen
 w	_v:machen	ihr würdet machen
+w	_v:machen	ist gemacht worden
 w	_v:machen	kann gemacht werden
 w	_v:machen	können gemacht werden
 w	_v:machen	machen Sie
@@ -9800,6 +9869,7 @@ w	_v:machen	sie machen
 w	_v:machen	sie machten
 w	_v:machen	sie werden machen
 w	_v:machen	sie würden machen
+w	_v:machen	sind gemacht worden
 w	_v:machen	soll gemacht werden
 w	_v:machen	sollen gemacht werden
 w	_v:machen	werde machen
@@ -9859,6 +9929,7 @@ w	_v:malen	ihr malt
 w	_v:malen	ihr maltet
 w	_v:malen	ihr werdet malen
 w	_v:malen	ihr würdet malen
+w	_v:malen	ist gemalt worden
 w	_v:malen	kann gemalt werden
 w	_v:malen	können gemalt werden
 w	_v:malen	mal
@@ -9878,6 +9949,7 @@ w	_v:malen	sie malen
 w	_v:malen	sie malten
 w	_v:malen	sie werden malen
 w	_v:malen	sie würden malen
+w	_v:malen	sind gemalt worden
 w	_v:malen	soll gemalt werden
 w	_v:malen	sollen gemalt werden
 w	_v:malen	werde malen
@@ -10137,6 +10209,7 @@ w	_v:mieten	ihr mietet
 w	_v:mieten	ihr mietetet
 w	_v:mieten	ihr werdet mieten
 w	_v:mieten	ihr würdet mieten
+w	_v:mieten	ist gemietet worden
 w	_v:mieten	kann gemietet werden
 w	_v:mieten	können gemietet werden
 w	_v:mieten	miete
@@ -10155,6 +10228,7 @@ w	_v:mieten	sie mieten
 w	_v:mieten	sie mieteten
 w	_v:mieten	sie werden mieten
 w	_v:mieten	sie würden mieten
+w	_v:mieten	sind gemietet worden
 w	_v:mieten	soll gemietet werden
 w	_v:mieten	sollen gemietet werden
 w	_v:mieten	werde mieten
@@ -10560,6 +10634,7 @@ w	_v:nehmen	ihr hattet genommen
 w	_v:nehmen	ihr nahmt
 w	_v:nehmen	ihr werdet nehmen
 w	_v:nehmen	ihr würdet nehmen
+w	_v:nehmen	ist genommen worden
 w	_v:nehmen	kann genommen werden
 w	_v:nehmen	können genommen werden
 w	_v:nehmen	muss genommen werden
@@ -10578,6 +10653,7 @@ w	_v:nehmen	sie hatten genommen
 w	_v:nehmen	sie nahmen
 w	_v:nehmen	sie werden nehmen
 w	_v:nehmen	sie würden nehmen
+w	_v:nehmen	sind genommen worden
 w	_v:nehmen	soll genommen werden
 w	_v:nehmen	sollen genommen werden
 w	_v:nehmen	werde nehmen
@@ -10637,6 +10713,7 @@ w	_v:nennen	ihr nanntet
 w	_v:nennen	ihr nennt
 w	_v:nennen	ihr werdet nennen
 w	_v:nennen	ihr würdet nennen
+w	_v:nennen	ist genannt worden
 w	_v:nennen	kann genannt werden
 w	_v:nennen	können genannt werden
 w	_v:nennen	muss genannt werden
@@ -10656,6 +10733,7 @@ w	_v:nennen	sie nannten
 w	_v:nennen	sie nennen
 w	_v:nennen	sie werden nennen
 w	_v:nennen	sie würden nennen
+w	_v:nennen	sind genannt worden
 w	_v:nennen	soll genannt werden
 w	_v:nennen	sollen genannt werden
 w	_v:nennen	werde nennen
@@ -10782,6 +10860,7 @@ w	_v:operieren	ihr operiert
 w	_v:operieren	ihr operiertet
 w	_v:operieren	ihr werdet operieren
 w	_v:operieren	ihr würdet operieren
+w	_v:operieren	ist operiert worden
 w	_v:operieren	kann operiert werden
 w	_v:operieren	können operiert werden
 w	_v:operieren	muss operiert werden
@@ -10801,6 +10880,7 @@ w	_v:operieren	sie operieren
 w	_v:operieren	sie operierten
 w	_v:operieren	sie werden operieren
 w	_v:operieren	sie würden operieren
+w	_v:operieren	sind operiert worden
 w	_v:operieren	soll operiert werden
 w	_v:operieren	sollen operiert werden
 w	_v:operieren	werde operieren
@@ -10861,6 +10941,7 @@ w	_v:organisieren	ihr organisiert
 w	_v:organisieren	ihr organisiertet
 w	_v:organisieren	ihr werdet organisieren
 w	_v:organisieren	ihr würdet organisieren
+w	_v:organisieren	ist organisiert worden
 w	_v:organisieren	kann organisiert werden
 w	_v:organisieren	können organisiert werden
 w	_v:organisieren	muss organisiert werden
@@ -10879,6 +10960,7 @@ w	_v:organisieren	sie organisieren
 w	_v:organisieren	sie organisierten
 w	_v:organisieren	sie werden organisieren
 w	_v:organisieren	sie würden organisieren
+w	_v:organisieren	sind organisiert worden
 w	_v:organisieren	soll organisiert werden
 w	_v:organisieren	sollen organisiert werden
 w	_v:organisieren	werde organisieren
@@ -10939,6 +11021,7 @@ w	_v:packen	ihr packt
 w	_v:packen	ihr packtet
 w	_v:packen	ihr werdet packen
 w	_v:packen	ihr würdet packen
+w	_v:packen	ist gepackt worden
 w	_v:packen	kann gepackt werden
 w	_v:packen	können gepackt werden
 w	_v:packen	muss gepackt werden
@@ -10958,6 +11041,7 @@ w	_v:packen	sie packen
 w	_v:packen	sie packten
 w	_v:packen	sie werden packen
 w	_v:packen	sie würden packen
+w	_v:packen	sind gepackt worden
 w	_v:packen	soll gepackt werden
 w	_v:packen	sollen gepackt werden
 w	_v:packen	werde packen
@@ -11235,6 +11319,7 @@ w	_v:planen	ihr plant
 w	_v:planen	ihr plantet
 w	_v:planen	ihr werdet planen
 w	_v:planen	ihr würdet planen
+w	_v:planen	ist geplant worden
 w	_v:planen	kann geplant werden
 w	_v:planen	können geplant werden
 w	_v:planen	muss geplant werden
@@ -11253,6 +11338,7 @@ w	_v:planen	sie planen
 w	_v:planen	sie planten
 w	_v:planen	sie werden planen
 w	_v:planen	sie würden planen
+w	_v:planen	sind geplant worden
 w	_v:planen	soll geplant werden
 w	_v:planen	sollen geplant werden
 w	_v:planen	werde planen
@@ -11379,6 +11465,7 @@ w	_v:prüfen	ihr prüft
 w	_v:prüfen	ihr prüftet
 w	_v:prüfen	ihr werdet prüfen
 w	_v:prüfen	ihr würdet prüfen
+w	_v:prüfen	ist geprüft worden
 w	_v:prüfen	kann geprüft werden
 w	_v:prüfen	können geprüft werden
 w	_v:prüfen	muss geprüft werden
@@ -11398,6 +11485,7 @@ w	_v:prüfen	sie prüfen
 w	_v:prüfen	sie prüften
 w	_v:prüfen	sie werden prüfen
 w	_v:prüfen	sie würden prüfen
+w	_v:prüfen	sind geprüft worden
 w	_v:prüfen	soll geprüft werden
 w	_v:prüfen	sollen geprüft werden
 w	_v:prüfen	werde prüfen
@@ -11458,6 +11546,7 @@ w	_v:putzen	ihr putzt
 w	_v:putzen	ihr putztet
 w	_v:putzen	ihr werdet putzen
 w	_v:putzen	ihr würdet putzen
+w	_v:putzen	ist geputzt worden
 w	_v:putzen	kann geputzt werden
 w	_v:putzen	können geputzt werden
 w	_v:putzen	muss geputzt werden
@@ -11476,6 +11565,7 @@ w	_v:putzen	sie putzen
 w	_v:putzen	sie putzten
 w	_v:putzen	sie werden putzen
 w	_v:putzen	sie würden putzen
+w	_v:putzen	sind geputzt worden
 w	_v:putzen	soll geputzt werden
 w	_v:putzen	sollen geputzt werden
 w	_v:putzen	werde putzen
@@ -11908,6 +11998,7 @@ w	_v:renovieren	ihr renoviert
 w	_v:renovieren	ihr renoviertet
 w	_v:renovieren	ihr werdet renovieren
 w	_v:renovieren	ihr würdet renovieren
+w	_v:renovieren	ist renoviert worden
 w	_v:renovieren	kann renoviert werden
 w	_v:renovieren	können renoviert werden
 w	_v:renovieren	muss renoviert werden
@@ -11926,6 +12017,7 @@ w	_v:renovieren	sie renovieren
 w	_v:renovieren	sie renovierten
 w	_v:renovieren	sie werden renovieren
 w	_v:renovieren	sie würden renovieren
+w	_v:renovieren	sind renoviert worden
 w	_v:renovieren	soll renoviert werden
 w	_v:renovieren	sollen renoviert werden
 w	_v:renovieren	werde renovieren
@@ -11986,6 +12078,7 @@ w	_v:reparieren	ihr repariert
 w	_v:reparieren	ihr repariertet
 w	_v:reparieren	ihr werdet reparieren
 w	_v:reparieren	ihr würdet reparieren
+w	_v:reparieren	ist repariert worden
 w	_v:reparieren	kann repariert werden
 w	_v:reparieren	können repariert werden
 w	_v:reparieren	muss repariert werden
@@ -12004,6 +12097,7 @@ w	_v:reparieren	sie reparieren
 w	_v:reparieren	sie reparierten
 w	_v:reparieren	sie werden reparieren
 w	_v:reparieren	sie würden reparieren
+w	_v:reparieren	sind repariert worden
 w	_v:reparieren	soll repariert werden
 w	_v:reparieren	sollen repariert werden
 w	_v:reparieren	werde reparieren
@@ -12325,6 +12419,7 @@ w	_v:sammeln	ihr sammelt
 w	_v:sammeln	ihr sammeltet
 w	_v:sammeln	ihr werdet sammeln
 w	_v:sammeln	ihr würdet sammeln
+w	_v:sammeln	ist gesammelt worden
 w	_v:sammeln	kann gesammelt werden
 w	_v:sammeln	können gesammelt werden
 w	_v:sammeln	muss gesammelt werden
@@ -12342,6 +12437,7 @@ w	_v:sammeln	sie sammeln
 w	_v:sammeln	sie sammelten
 w	_v:sammeln	sie werden sammeln
 w	_v:sammeln	sie würden sammeln
+w	_v:sammeln	sind gesammelt worden
 w	_v:sammeln	soll gesammelt werden
 w	_v:sammeln	sollen gesammelt werden
 w	_v:sammeln	werde sammeln
@@ -12599,6 +12695,7 @@ w	_v:schicken	ihr schickt
 w	_v:schicken	ihr schicktet
 w	_v:schicken	ihr werdet schicken
 w	_v:schicken	ihr würdet schicken
+w	_v:schicken	ist geschickt worden
 w	_v:schicken	kann geschickt werden
 w	_v:schicken	können geschickt werden
 w	_v:schicken	muss geschickt werden
@@ -12618,6 +12715,7 @@ w	_v:schicken	sie schicken
 w	_v:schicken	sie schickten
 w	_v:schicken	sie werden schicken
 w	_v:schicken	sie würden schicken
+w	_v:schicken	sind geschickt worden
 w	_v:schicken	soll geschickt werden
 w	_v:schicken	sollen geschickt werden
 w	_v:schicken	werde schicken
@@ -12800,6 +12898,7 @@ w	_v:schließen	ihr schließt
 w	_v:schließen	ihr schlosst
 w	_v:schließen	ihr werdet schließen
 w	_v:schließen	ihr würdet schließen
+w	_v:schließen	ist geschlossen worden
 w	_v:schließen	kann geschlossen werden
 w	_v:schließen	können geschlossen werden
 w	_v:schließen	muss geschlossen werden
@@ -12816,6 +12915,7 @@ w	_v:schließen	sie schließen
 w	_v:schließen	sie schlossen
 w	_v:schließen	sie werden schließen
 w	_v:schließen	sie würden schließen
+w	_v:schließen	sind geschlossen worden
 w	_v:schließen	soll geschlossen werden
 w	_v:schließen	sollen geschlossen werden
 w	_v:schließen	werde schließen
@@ -12974,6 +13074,7 @@ w	_v:schreiben	ihr schreibt
 w	_v:schreiben	ihr schriebt
 w	_v:schreiben	ihr werdet schreiben
 w	_v:schreiben	ihr würdet schreiben
+w	_v:schreiben	ist geschrieben worden
 w	_v:schreiben	kann geschrieben werden
 w	_v:schreiben	können geschrieben werden
 w	_v:schreiben	muss geschrieben werden
@@ -12990,6 +13091,7 @@ w	_v:schreiben	sie schreiben
 w	_v:schreiben	sie schrieben
 w	_v:schreiben	sie werden schreiben
 w	_v:schreiben	sie würden schreiben
+w	_v:schreiben	sind geschrieben worden
 w	_v:schreiben	soll geschrieben werden
 w	_v:schreiben	sollen geschrieben werden
 w	_v:schreiben	werde schreiben
@@ -13174,6 +13276,7 @@ w	_v:sehen	ihr hattet gesehen
 w	_v:sehen	ihr saht
 w	_v:sehen	ihr werdet sehen
 w	_v:sehen	ihr würdet sehen
+w	_v:sehen	ist gesehen worden
 w	_v:sehen	kann gesehen werden
 w	_v:sehen	können gesehen werden
 w	_v:sehen	muss gesehen werden
@@ -13188,6 +13291,7 @@ w	_v:sehen	sie sahen
 w	_v:sehen	sie werden sehen
 w	_v:sehen	sie würden sehen
 w	_v:sehen	sieh
+w	_v:sehen	sind gesehen worden
 w	_v:sehen	soll gesehen werden
 w	_v:sehen	sollen gesehen werden
 w	_v:sehen	sähe
@@ -15584,6 +15688,7 @@ w	_v:speichern	ihr speichert
 w	_v:speichern	ihr speichertet
 w	_v:speichern	ihr werdet speichern
 w	_v:speichern	ihr würdet speichern
+w	_v:speichern	ist gespeichert worden
 w	_v:speichern	kann gespeichert werden
 w	_v:speichern	können gespeichert werden
 w	_v:speichern	muss gespeichert werden
@@ -15594,6 +15699,7 @@ w	_v:speichern	sie speichern
 w	_v:speichern	sie speicherten
 w	_v:speichern	sie werden speichern
 w	_v:speichern	sie würden speichern
+w	_v:speichern	sind gespeichert worden
 w	_v:speichern	soll gespeichert werden
 w	_v:speichern	sollen gespeichert werden
 w	_v:speichern	speichere
@@ -15975,6 +16081,7 @@ w	_v:stellen	ihr stellt
 w	_v:stellen	ihr stelltet
 w	_v:stellen	ihr werdet stellen
 w	_v:stellen	ihr würdet stellen
+w	_v:stellen	ist gestellt worden
 w	_v:stellen	kann gestellt werden
 w	_v:stellen	können gestellt werden
 w	_v:stellen	muss gestellt werden
@@ -15985,6 +16092,7 @@ w	_v:stellen	sie stellen
 w	_v:stellen	sie stellten
 w	_v:stellen	sie werden stellen
 w	_v:stellen	sie würden stellen
+w	_v:stellen	sind gestellt worden
 w	_v:stellen	soll gestellt werden
 w	_v:stellen	sollen gestellt werden
 w	_v:stellen	stell
@@ -16317,6 +16425,7 @@ w	_v:suchen	ihr sucht
 w	_v:suchen	ihr suchtet
 w	_v:suchen	ihr werdet suchen
 w	_v:suchen	ihr würdet suchen
+w	_v:suchen	ist gesucht worden
 w	_v:suchen	kann gesucht werden
 w	_v:suchen	können gesucht werden
 w	_v:suchen	muss gesucht werden
@@ -16327,6 +16436,7 @@ w	_v:suchen	sie suchen
 w	_v:suchen	sie suchten
 w	_v:suchen	sie werden suchen
 w	_v:suchen	sie würden suchen
+w	_v:suchen	sind gesucht worden
 w	_v:suchen	soll gesucht werden
 w	_v:suchen	sollen gesucht werden
 w	_v:suchen	such
@@ -16774,10 +16884,12 @@ w	_v:tragen	hätte getragen
 w	_v:tragen	hätten getragen
 w	_v:tragen	hättest getragen
 w	_v:tragen	hättet getragen
+w	_v:tragen	ist getragen worden
 w	_v:tragen	kann getragen werden
 w	_v:tragen	können getragen werden
 w	_v:tragen	muss getragen werden
 w	_v:tragen	müssen getragen werden
+w	_v:tragen	sind getragen worden
 w	_v:tragen	soll getragen werden
 w	_v:tragen	sollen getragen werden
 w	_v:tragen	trag
@@ -17025,6 +17137,7 @@ w	_v:trinken	ihr trankt
 w	_v:trinken	ihr trinkt
 w	_v:trinken	ihr werdet trinken
 w	_v:trinken	ihr würdet trinken
+w	_v:trinken	ist getrunken worden
 w	_v:trinken	kann getrunken werden
 w	_v:trinken	können getrunken werden
 w	_v:trinken	muss getrunken werden
@@ -17035,6 +17148,7 @@ w	_v:trinken	sie tranken
 w	_v:trinken	sie trinken
 w	_v:trinken	sie werden trinken
 w	_v:trinken	sie würden trinken
+w	_v:trinken	sind getrunken worden
 w	_v:trinken	soll getrunken werden
 w	_v:trinken	sollen getrunken werden
 w	_v:trinken	tranken
@@ -17438,6 +17552,7 @@ w	_v:unterschreiben	ihr unterschreibt
 w	_v:unterschreiben	ihr unterschriebt
 w	_v:unterschreiben	ihr werdet unterschreiben
 w	_v:unterschreiben	ihr würdet unterschreiben
+w	_v:unterschreiben	ist unterschrieben worden
 w	_v:unterschreiben	kann unterschrieben werden
 w	_v:unterschreiben	können unterschrieben werden
 w	_v:unterschreiben	muss unterschrieben werden
@@ -17448,6 +17563,7 @@ w	_v:unterschreiben	sie unterschreiben
 w	_v:unterschreiben	sie unterschrieben
 w	_v:unterschreiben	sie werden unterschreiben
 w	_v:unterschreiben	sie würden unterschreiben
+w	_v:unterschreiben	sind unterschrieben worden
 w	_v:unterschreiben	soll unterschrieben werden
 w	_v:unterschreiben	sollen unterschrieben werden
 w	_v:unterschreiben	unterschreib
@@ -17515,6 +17631,7 @@ w	_v:untersuchen	ihr untersucht
 w	_v:untersuchen	ihr untersuchtet
 w	_v:untersuchen	ihr werdet untersuchen
 w	_v:untersuchen	ihr würdet untersuchen
+w	_v:untersuchen	ist untersucht worden
 w	_v:untersuchen	kann untersucht werden
 w	_v:untersuchen	können untersucht werden
 w	_v:untersuchen	muss untersucht werden
@@ -17525,6 +17642,7 @@ w	_v:untersuchen	sie untersuchen
 w	_v:untersuchen	sie untersuchten
 w	_v:untersuchen	sie werden untersuchen
 w	_v:untersuchen	sie würden untersuchen
+w	_v:untersuchen	sind untersucht worden
 w	_v:untersuchen	soll untersucht werden
 w	_v:untersuchen	sollen untersucht werden
 w	_v:untersuchen	untersuch
@@ -17904,6 +18022,7 @@ w	_v:verkaufen	ihr verkauft
 w	_v:verkaufen	ihr verkauftet
 w	_v:verkaufen	ihr werdet verkaufen
 w	_v:verkaufen	ihr würdet verkaufen
+w	_v:verkaufen	ist verkauft worden
 w	_v:verkaufen	kann verkauft werden
 w	_v:verkaufen	können verkauft werden
 w	_v:verkaufen	muss verkauft werden
@@ -17914,6 +18033,7 @@ w	_v:verkaufen	sie verkaufen
 w	_v:verkaufen	sie verkauften
 w	_v:verkaufen	sie werden verkaufen
 w	_v:verkaufen	sie würden verkaufen
+w	_v:verkaufen	sind verkauft worden
 w	_v:verkaufen	soll verkauft werden
 w	_v:verkaufen	sollen verkauft werden
 w	_v:verkaufen	verkauf
@@ -17980,6 +18100,7 @@ w	_v:verlieren	ihr verliert
 w	_v:verlieren	ihr verlort
 w	_v:verlieren	ihr werdet verlieren
 w	_v:verlieren	ihr würdet verlieren
+w	_v:verlieren	ist verloren worden
 w	_v:verlieren	kann verloren werden
 w	_v:verlieren	können verloren werden
 w	_v:verlieren	muss verloren werden
@@ -17990,6 +18111,7 @@ w	_v:verlieren	sie verlieren
 w	_v:verlieren	sie verloren
 w	_v:verlieren	sie werden verlieren
 w	_v:verlieren	sie würden verlieren
+w	_v:verlieren	sind verloren worden
 w	_v:verlieren	soll verloren werden
 w	_v:verlieren	sollen verloren werden
 w	_v:verlieren	verlier
@@ -18250,6 +18372,7 @@ w	_v:verschieben	ihr verschiebt
 w	_v:verschieben	ihr verschobt
 w	_v:verschieben	ihr werdet verschieben
 w	_v:verschieben	ihr würdet verschieben
+w	_v:verschieben	ist verschoben worden
 w	_v:verschieben	kann verschoben werden
 w	_v:verschieben	können verschoben werden
 w	_v:verschieben	muss verschoben werden
@@ -18260,6 +18383,7 @@ w	_v:verschieben	sie verschieben
 w	_v:verschieben	sie verschoben
 w	_v:verschieben	sie werden verschieben
 w	_v:verschieben	sie würden verschieben
+w	_v:verschieben	sind verschoben worden
 w	_v:verschieben	soll verschoben werden
 w	_v:verschieben	sollen verschoben werden
 w	_v:verschieben	verschieb
@@ -18464,6 +18588,7 @@ w	_v:vorbereiten	ihr habt vorbereitet
 w	_v:vorbereiten	ihr hattet vorbereitet
 w	_v:vorbereiten	ihr werdet vorbereiten
 w	_v:vorbereiten	ihr würdet vorbereiten
+w	_v:vorbereiten	ist vorbereitet worden
 w	_v:vorbereiten	kann vorbereitet werden
 w	_v:vorbereiten	können vorbereitet werden
 w	_v:vorbereiten	muss vorbereitet werden
@@ -18474,6 +18599,7 @@ w	_v:vorbereiten	sie haben vorbereitet
 w	_v:vorbereiten	sie hatten vorbereitet
 w	_v:vorbereiten	sie werden vorbereiten
 w	_v:vorbereiten	sie würden vorbereiten
+w	_v:vorbereiten	sind vorbereitet worden
 w	_v:vorbereiten	soll vorbereitet werden
 w	_v:vorbereiten	sollen vorbereitet werden
 w	_v:vorbereiten	werde vorbereiten
@@ -18632,6 +18758,7 @@ w	_v:waschen	ihr hattet gewaschen
 w	_v:waschen	ihr werdet waschen
 w	_v:waschen	ihr wuscht
 w	_v:waschen	ihr würdet waschen
+w	_v:waschen	ist gewaschen worden
 w	_v:waschen	kann gewaschen werden
 w	_v:waschen	können gewaschen werden
 w	_v:waschen	muss gewaschen werden
@@ -18641,6 +18768,7 @@ w	_v:waschen	sie hatten gewaschen
 w	_v:waschen	sie werden waschen
 w	_v:waschen	sie wuschen
 w	_v:waschen	sie würden waschen
+w	_v:waschen	sind gewaschen worden
 w	_v:waschen	soll gewaschen werden
 w	_v:waschen	sollen gewaschen werden
 w	_v:waschen	wasch
@@ -18771,6 +18899,7 @@ w	_v:wecken	ihr weckt
 w	_v:wecken	ihr wecktet
 w	_v:wecken	ihr werdet wecken
 w	_v:wecken	ihr würdet wecken
+w	_v:wecken	ist geweckt worden
 w	_v:wecken	kann geweckt werden
 w	_v:wecken	können geweckt werden
 w	_v:wecken	muss geweckt werden
@@ -18781,6 +18910,7 @@ w	_v:wecken	sie wecken
 w	_v:wecken	sie weckten
 w	_v:wecken	sie werden wecken
 w	_v:wecken	sie würden wecken
+w	_v:wecken	sind geweckt worden
 w	_v:wecken	soll geweckt werden
 w	_v:wecken	sollen geweckt werden
 w	_v:wecken	weck
@@ -19245,6 +19375,7 @@ w	_v:wählen	ihr werdet wählen
 w	_v:wählen	ihr wählt
 w	_v:wählen	ihr wähltet
 w	_v:wählen	ihr würdet wählen
+w	_v:wählen	ist gewählt worden
 w	_v:wählen	kann gewählt werden
 w	_v:wählen	können gewählt werden
 w	_v:wählen	muss gewählt werden
@@ -19255,6 +19386,7 @@ w	_v:wählen	sie werden wählen
 w	_v:wählen	sie wählen
 w	_v:wählen	sie wählten
 w	_v:wählen	sie würden wählen
+w	_v:wählen	sind gewählt worden
 w	_v:wählen	soll gewählt werden
 w	_v:wählen	sollen gewählt werden
 w	_v:wählen	werde wählen
@@ -19390,6 +19522,7 @@ w	_v:zahlen	ihr werdet zahlen
 w	_v:zahlen	ihr würdet zahlen
 w	_v:zahlen	ihr zahlt
 w	_v:zahlen	ihr zahltet
+w	_v:zahlen	ist gezahlt worden
 w	_v:zahlen	kann gezahlt werden
 w	_v:zahlen	können gezahlt werden
 w	_v:zahlen	muss gezahlt werden
@@ -19400,6 +19533,7 @@ w	_v:zahlen	sie werden zahlen
 w	_v:zahlen	sie würden zahlen
 w	_v:zahlen	sie zahlen
 w	_v:zahlen	sie zahlten
+w	_v:zahlen	sind gezahlt worden
 w	_v:zahlen	soll gezahlt werden
 w	_v:zahlen	sollen gezahlt werden
 w	_v:zahlen	werde zahlen
@@ -19535,6 +19669,7 @@ w	_v:zeigen	ihr werdet zeigen
 w	_v:zeigen	ihr würdet zeigen
 w	_v:zeigen	ihr zeigt
 w	_v:zeigen	ihr zeigtet
+w	_v:zeigen	ist gezeigt worden
 w	_v:zeigen	kann gezeigt werden
 w	_v:zeigen	können gezeigt werden
 w	_v:zeigen	muss gezeigt werden
@@ -19545,6 +19680,7 @@ w	_v:zeigen	sie werden zeigen
 w	_v:zeigen	sie würden zeigen
 w	_v:zeigen	sie zeigen
 w	_v:zeigen	sie zeigten
+w	_v:zeigen	sind gezeigt worden
 w	_v:zeigen	soll gezeigt werden
 w	_v:zeigen	sollen gezeigt werden
 w	_v:zeigen	werde zeigen
@@ -19815,6 +19951,7 @@ w	_v:öffnen	ihr werdet öffnen
 w	_v:öffnen	ihr würdet öffnen
 w	_v:öffnen	ihr öffnet
 w	_v:öffnen	ihr öffnetet
+w	_v:öffnen	ist geöffnet worden
 w	_v:öffnen	kann geöffnet werden
 w	_v:öffnen	können geöffnet werden
 w	_v:öffnen	muss geöffnet werden
@@ -19825,6 +19962,7 @@ w	_v:öffnen	sie werden öffnen
 w	_v:öffnen	sie würden öffnen
 w	_v:öffnen	sie öffnen
 w	_v:öffnen	sie öffneten
+w	_v:öffnen	sind geöffnet worden
 w	_v:öffnen	soll geöffnet werden
 w	_v:öffnen	sollen geöffnet werden
 w	_v:öffnen	werde öffnen
@@ -20025,6 +20163,7 @@ w	_v:übersetzen	ihr werdet übersetzen
 w	_v:übersetzen	ihr würdet übersetzen
 w	_v:übersetzen	ihr übersetzt
 w	_v:übersetzen	ihr übersetztet
+w	_v:übersetzen	ist übersetzt worden
 w	_v:übersetzen	kann übersetzt werden
 w	_v:übersetzen	können übersetzt werden
 w	_v:übersetzen	muss übersetzt werden
@@ -20035,6 +20174,7 @@ w	_v:übersetzen	sie werden übersetzen
 w	_v:übersetzen	sie würden übersetzen
 w	_v:übersetzen	sie übersetzen
 w	_v:übersetzen	sie übersetzten
+w	_v:übersetzen	sind übersetzt worden
 w	_v:übersetzen	soll übersetzt werden
 w	_v:übersetzen	sollen übersetzt werden
 w	_v:übersetzen	werde übersetzen
@@ -21747,6 +21887,9 @@ w	b1_nebensaetze	Bevor
 w	b1_nebensaetze	Entweder
 w	b1_nebensaetze	Falls
 w	b1_nebensaetze	Nachdem
+w	b1_nebensaetze	Nachdem ich gegessen hatte
+w	b1_nebensaetze	Nachdem sie den Kurs beendet hatte
+w	b1_nebensaetze	Nachdem wir angekommen waren
 w	b1_nebensaetze	Obwohl
 w	b1_nebensaetze	Seitdem
 w	b1_nebensaetze	Sobald
@@ -21818,9 +21961,6 @@ w	b1_people	Zweitsprache
 w	b1_people	begleite
 w	b1_people	lebe getrennt
 w	b1_plusquamperfekt	Du hattest
-w	b1_plusquamperfekt	Nachdem ich gegessen hatte
-w	b1_plusquamperfekt	Nachdem sie den Kurs beendet hatte
-w	b1_plusquamperfekt	Nachdem wir angekommen waren
 w	b1_politics	Die Organisation
 w	b1_politics	Diskussion
 w	b1_politics	Frieden

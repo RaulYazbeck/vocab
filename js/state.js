@@ -105,6 +105,7 @@ function migrate() {
   S.loginDates = [...new Set(S.loginDates)].sort();
   S.badges = [...new Set(S.badges)];
   if (!S.wordEdits)             S.wordEdits = {};
+  migrateCardMoves();
   if (!GOAL_OPTIONS.includes(S.dailyGoal)) {
     // Adopt the pre-sync localStorage goal once, then live in S (synced).
     const legacy = parseInt(localStorage.getItem('gv_daily_goal'), 10);
@@ -131,6 +132,31 @@ function migrate() {
   if (typeof applyWordEdits === "function") applyWordEdits();
   // Auto-pause new Anki words after a long absence (3+ missed days).
   if (typeof checkAnkiAutoPause === "function") checkAnkiAutoPause();
+}
+
+// Cards that moved to another deck in the deck files. Progress is kept
+// by "deckId_idx", so a moved card's record (and its text edit) follows
+// it to its new key. A copy of the old key that comes back through sync
+// is folded in the same way: the record studied last wins.
+const CARD_MOVES = typeof WORD_KEY !== "undefined" && WORD_KEY === "de" ? {
+  // Not verb forms — words and phrases, now in the decks they belong to.
+  b1_plusquamperfekt_11: "b1_nebensaetze_20", b1_plusquamperfekt_12: "b1_nebensaetze_21", b1_plusquamperfekt_13: "b1_nebensaetze_22",
+  b1_konjunktiv2_27: "b1_nebensaetze_23", b1_passiv_14: "b1_shopping_38", b1_passiv_15: "b1_housing_50",
+  b1_passiv_16: "b1_function_90", b1_passiv_17: "b1_function_91", b1_passiv_18: "b1_people_57",
+} : {};
+function migrateCardMoves() {
+  Object.entries(CARD_MOVES).forEach(([from, to]) => {
+    const old = S.words[from];
+    if (old) {
+      const cur = S.words[to];
+      if (!cur || (old.lastAnsweredAt || 0) > (cur.lastAnsweredAt || 0)) S.words[to] = old;
+      delete S.words[from];
+    }
+    if (S.wordEdits[from]) {
+      if (!S.wordEdits[to]) S.wordEdits[to] = S.wordEdits[from];
+      delete S.wordEdits[from];
+    }
+  });
 }
 
 // Ways of using the app, all off by default and synced:

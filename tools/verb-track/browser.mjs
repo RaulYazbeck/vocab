@@ -21,10 +21,13 @@ function chrome() {
 // umlautAuto (default): the untimed umlaut choice (hatte / hätte, 1 or 2)
 // picks the right form by itself — a test that types the right answer
 // means it. t-umlaut / t-tense pass false to drive the real choice.
-export async function openApp({ width = 390, height = 844, profile = true, extra = null, state = process.env.REAL_STATE || "", app = "de", umlautAuto = true } = {}) {
+// vxOff: load without the verb track (it switches itself on at load
+// otherwise) — for the tests that measure the old way and the switch.
+export async function openApp({ width = 390, height = 844, profile = true, extra = null, state = process.env.REAL_STATE || "", app = "de", umlautAuto = true, vxOff = false } = {}) {
   const browser = await chromium.launch({ executablePath: chrome(), args: ["--no-sandbox"] });
   const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 2 });
   const page = await ctx.newPage();
+  if (vxOff) await page.addInitScript(() => { window.VX_TEST_OFF = true; });
   const errors = [];
   page.on("pageerror", e => errors.push(String(e.stack || e)));
   page.on("console", m => { if (m.type() === "error" && !/firebase|gstatic|Failed to load resource|net::ERR/i.test(m.text())) errors.push(m.text()); });

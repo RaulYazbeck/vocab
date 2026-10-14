@@ -913,6 +913,7 @@ const GS_SHEETS = [
     quiz: [
       {"at": "r1", "k": "pick", "q": "I have been invited.", "o": ["Ich bin eingeladen worden.", "Ich bin eingeladen geworden."], "a": 0, "why": "Passive Perfekt: worden."},
       {"at": "r1", "k": "type", "q": "Das Auto ist repariert ___.", "a": ["worden"], "why": "Perfekt passive: ist + Partizip II + worden."},
+      {"at": "r1", "g": "form", "t": "pvpf", "p": ["er", "sie"], "v": "pv", "fb": ["reparieren", "bauen", "öffnen", "verkaufen", "schreiben"], "lbl": " — Perfekt passive", "why": "ist / sind + Partizip II + worden."},
       {"at": "r2", "k": "type", "q": "Es ___ ___ ___ (müssen · reparieren) — has to be repaired", "a": ["muss repariert werden"], "chk": ["reparieren", "pvmod", "er", "müssen"], "why": "muss + repariert + werden."},
       {"at": "r2", "k": "type", "q": "Das ___ ___ ___ (können · bezahlen) — can be paid", "a": ["kann bezahlt werden"], "chk": ["bezahlen", "pvmod", "er", "können"], "why": "kann + bezahlt + werden."},
       {"at": "r2", "g": "form", "t": "pvmod", "p": ["er", "sie"], "v": "pv", "fb": ["reparieren", "bauen", "öffnen", "verkaufen", "schreiben"], "lbl": " — passive", "why": "modal + Partizip II + werden."},

@@ -577,7 +577,6 @@ function renderGrammar() {
   const units = VX_UNITS.map(u => gsUnitRowHtml(u, scan)).join("");
   document.getElementById("main-screen").innerHTML = `<div class="screen grammar">
     <div class="screen-top"><div class="screen-label">${vxT("📐 Grammar · Verbs")}</div>${backBtnHtml()}</div>
-    ${on ? "" : vxSwitchCardHtml()}
     <div class="gr-sum">
       <div><b>${on ? open : "—"}</b><span>${vxT("/ {0} tenses open", VX_UNITS.length)}</span></div>
       <div><b>${passed}</b><span>${vxT("/ {0} sheets", GS_SHEETS.length)}</span></div>
@@ -594,7 +593,6 @@ function renderGrammar() {
       <p><b>Rules, not lists.</b> Each rule is one item in your reviews, asked every time with another verb you've met — A1 verbs first, the regular ones before the exceptions. Verbs you can't build by rule (ging, ist gegangen, fährt, nimm!) get their own item.</p>
       <p><b>The ledger</b> checks every verb: its meaning Known, its irregular forms Known, and its Präsens, Präteritum and Perfekt produced right at least once — the three every other tense is built from.</p>`}
     </details>
-    ${on ? `<div class="gr-foot"><button class="g-link-btn" onclick="vxConfirmOff()">${vxT("Switch back to the old verb cards")}</button></div>` : ""}
   </div>`;
   if (typeof logScreen === "function") logScreen("grammar");
 }
@@ -638,6 +636,7 @@ function renderGrammarUnit(id) {
     <div class="gr-sheets">${ids.map((sid, i) => { const sh = vxSheet(sid), p = vxSheetPassed(sid), due = st === 1 && !p;
       return `<button class="gr-sheet ${p ? "done" : ""}" onclick="renderGrammarSheet('${sid}')"><span class="gr-sn">${p ? "✓" : i + 1}</span><span class="gr-stt">${escapeHtml(sh.title)}</span>${p ? `<span class="gr-sc">${S.verb.sh[sid]}%</span>` : due ? `<span class="gr-due">${vxT("in Today")}</span>` : ""}<span class="set-chev">›</span></button>`; }).join("")}</div>
     ${gsMasteryCardHtml(id)}
+    ${typeof gsDrillCardHtml === "function" ? gsDrillCardHtml(id) : ""}
     ${rules.length ? `<div class="gr-h">${vxT("In your reviews")}</div><div class="gr-unote">${vxT("Each rule is one review card in Today: one form to type, a different verb each time.")}</div>
       <div class="gr-rules">${rules.map(r => `<div class="gr-rule"><b>${escapeHtml(r.title)}</b><span>${escapeHtml(r.chip)}</span>${gsRuleStatusHtml(S.words[vxKey("r:" + r.id)], st)}</div>`).join("")}</div>` : ""}
     ${items.length > rules.length ? `<div class="gr-items">${vxT("+ {0} verbs with their own item · {1} started · {2} 🌳 Known", items.length - rules.length, met, known)}</div>` : ""}
@@ -715,63 +714,12 @@ function renderGrammarVerbs(level) {
   scrollPageTop();
 }
 
-// ── THE SWITCH ────────────────────────────────
-function vxSwitchCardHtml() {
-  return `<button class="vx-switch-card" onclick="renderVerbSwitch()">
-    <span class="vx-sc-i">🧩</span><span class="vx-sc-t"><b>${vxT("The new verb system is ready")}</b><small>${vxT("See exactly what changes for you — nothing changes until you switch.")}</small></span><span class="set-chev">›</span></button>`;
-}
-function renderVerbSwitch() {
-  showGameScreen();
-  const el = document.getElementById("main-screen");
-  el.innerHTML = `<div class="screen grammar"><div class="screen-top"><div class="screen-label">${vxT("🧩 New verb system")}</div>${backBtnHtml()}</div><div class="vx-calc">${vxT("Working it out on your own progress…")}</div></div>`;
-  setTimeout(() => {
-    let p;
-    try { p = vxPreview(); } catch (e) { console.error(e); el.querySelector(".vx-calc").textContent = vxT("Couldn't work out the preview: ") + e.message; return; }
-    const ret = Object.entries(p.retired), retN = ret.reduce((a, [, n]) => a + n, 0);
-    const name = d => (getDeck(d) || { name: d }).name;
-    const lessons = p.units.filter(u => u.st === 1).map(u => VX_UNIT[u.id].name);
-    const prac = p.units.filter(u => u.st >= 2).map(u => VX_UNIT[u.id].name);
-    const st = p.after.status;
-    el.innerHTML = `<div class="screen grammar vx-switch">
-      <div class="screen-top"><div class="screen-label">${vxT("🧩 New verb system")}</div>${backBtnHtml()}</div>
-      <h2 class="vx-h">${vxT("What changes for you")}</h2>
-      <div class="vx-cmp">
-        <div><small>${vxT("New words a day")}</small><b>${p.before.pace} → ${p.after.pace}</b></div>
-        <div><small>${vxT("Finish date")}</small><b>${pathDeadlineOn() ? fmtShortDate(S.path.deadline) : "—"}</b><span class="${st.ok ? "ok" : "warn"}">${pathDeadlineOn() ? (st.ok ? vxT("✓ still on time") : "≈ " + fmtShortDate(st.eta)) : ""}</span></div>
-        <div><small>${vxT("Verb work a day")}</small><b>${vxT("{0} items · {1} drills", p.after.q.items, p.after.q.cells)}</b></div>
-      </div>
-      <ul class="vx-list">
-        ${VX_FR ? VXF.switchList(p, prac, lessons, retN, ret, name) : `<li><b>Tenses in order.</b> Open now: ${prac.map(n => `<b>${escapeHtml(n)}</b>`).join(", ") || "—"}. ${lessons.length ? `Your next lessons: ${lessons.map(n => `<b>${escapeHtml(n)}</b>`).join(", then ")} — their sheets come into your Today sessions, up to two a day (one opens the session, the next comes midway), starting with your next session.` : ""} The verb games stop using tenses you haven't been taught.</li>
-        <li><b>${p.after.items.toLocaleString()} verb items</b> over the whole journey (rules + verbs you can't build by rule), starting from what you've shown: ${p.seeds.rules} rules and ${p.seeds.items} verb items start where your cards are, ${p.seeds.cells} forms are already in your ledger.</li>
-        <li><b>${retN} old form cards retired</b> — ones you haven't met yet. They are never introduced again; each mirrors the item that covers it, so your totals and achievements stay whole. ${ret.length ? `<details><summary>Which decks</summary>${ret.map(([d, n]) => `<div class="vx-ret">${escapeHtml(name(d))} <b>${n}</b></div>`).join("")}</details>` : ""}</li>
-        <li><b>Nothing you've learned is lost.</b> Every card you've met keeps its stage and its reviews. Your level, XP and streak don't move. Today's plan target stays as it is; the new daily numbers start with tomorrow morning's plan.</li>`}
-      </ul>
-      <div class="vx-act">
-        <button class="g-big-btn" onclick="vxSwitchGo()">${vxT("Switch to the new system ✓")}</button>
-        <button class="g-sec-btn" onclick="vxSwitchLater()">${vxT("Not now")}</button>
-      </div>
-      <p class="p-sub">${vxT("You can switch back from 📐 Grammar at any time — your cards stay as they are.")}</p>
-    </div>`;
-    if (typeof logEvent === "function") logEvent("vx_preview", { pace: [p.before.pace, p.after.pace], ret: retN, items: p.after.items, cells: p.after.cells });
-  }, 30);
-}
-function vxSwitchGo() {
-  vxSwitchOn();
-  showCelebrateToast("🧩", vxT("New verb system on"), vxT("Your first lesson comes in Today"));
-  renderGrammar();
-}
-function vxSwitchLater() { S.verb.offered = studyToday(); saveState(); if (typeof logEvent === "function") logEvent("vx_later", {}); backToMenu(); }
-function vxConfirmOff() {
-  appConfirm({ title: vxT("Switch back to the old verb cards?"), body: vxT("Your verb items and the ledger's progress are removed; every card you've met stays as it is. The retired cards come back as new words."), ok: vxT("Switch back"), cancel: vxT("Keep the new system"), danger: true })
-    .then(yes => { if (yes) { vxSwitchOff(); renderGrammar(); } });
-}
-
 // ── THE TODAY CARD ────────────────────────────
-// One line: the switch offer, or today's lesson.
+// One line: today's lesson.
 function vxTodayHtml() {
   if (typeof vxAvailable !== "function" || !vxAvailable()) return "";
   migrateVerb();
-  if (!vxOn()) return S.verb.offered === studyToday() ? "" : `<button class="tc-vx" onclick="renderVerbSwitch()">${vxT("🧩 <b>New verb system ready</b> — see what changes ›")}</button>`;
+  if (!vxOn()) return "";
   const pend = vxSheetsToday();
   if (!pend.length) return "";
   const sh = vxSheet(pend[0]), u = VX_UNIT[sh.unit];
@@ -903,6 +851,7 @@ function renderPathVerb(it) {
   const kicker = it.repair ? `<div class="p-kicker repair">${vxT("🩹 Repair round — one more try")}</div>`
     : ws && ws.rp ? `<div class="p-kicker repair">${vxT("🩹 Repair — get it right to keep its badge")}</div>`
     : ws && ws.fl ? `<div class="p-kicker flag">${vxT("⚠️ Quick check")}</div>`
+    : it.drillCheck ? `<div class="p-kicker flag">${vxT("🎯 Missed in a drill — a check")}</div>`
     : it.reask ? `<div class="p-kicker">${vxT("↻ Once more")}</div>` : "";
   document.getElementById("p-card").innerHTML = `<div class="p-meta"><span class="p-deck">${escapeHtml(vxItemLabel(ex))}</span>${badge}</div>${kicker}${vxPromptHtml(ex)}<div id="p-hint"></div>`;
   if (speakOn()) {
@@ -1112,13 +1061,7 @@ function pathGradeVerb(val, ok, said = false) {
     : evs.includes("dropped") ? `<span class="p-chip warn">${vxT("↓ back to {0}", tierOfStage(res.to).name)}</span>`
     : ex.cell && ok === true && !hint ? `<span class="p-chip ok">📒 ${escapeHtml(ex.x.inf)} · ${escapeHtml(VX_TENSE_LABEL[ex.tense])} ✓</span>`
     : hint && ok === true ? `<span class="p-chip">${vxT("💡 with hint — no step up")}</span>` : "";
-  const engineT = VX_FR ? null : { pr: 1, pt: 1, pf: 1, pq: 1, fu: 1, im: 1 }[ex.kind] ? ex.kind : ex.kind === "p2" ? "pf" : ex.kind === "sc" ? "pr" : ex.kind === "k2w" || ex.kind === "k2o" ? "k2" : null;
-  // A separable verb: the prefix rule too, whatever else the form shows.
-  const sepWhy = (engineT === "pr" || engineT === "pt" || engineT === "im") && ex.x.F.sep && !/Separable/.test(verbRuleHtml(ex.x.F, engineT, ex.p))
-    ? ` <br>📏 Separable: <strong>${escapeHtml(ex.x.F.sep)}-</strong> goes to the end.` : "";
-  const why = VX_FR ? VXF.ruleHtml(ex.x, ex.kind, ex.p) || (ex.rule ? `📏 ${escapeHtml(VX_RULE[ex.rule].chip)}` : "")
-    : engineT ? verbRuleHtml(ex.x.F, engineT, ex.p) + sepWhy : ex.rule ? `📏 ${escapeHtml(VX_RULE[ex.rule].chip)}` : "";
-  const row = vxRowTableHtml(VX_FR ? VXF.rowCells(ex.x, ex.kind, ex.p) : engineT && engineT !== "im" ? vxRowCellsDe(ex.x.F, engineT, ex.p) : []);
+  const { why, row } = vxWhyRow(ex);
   const umlNote = ok === true && val && vxUmlautOnly(val, ex.form.acc, vxIsCommand(ex));
   const extraNote = ok === true && val && !umlNote && vxExtraOnly(val, ex);
   const head = ok === true ? `<div class="vx-res ok">${vxT("✓ Correct!")}${umlNote ? ` <span class="vx-uml">${vxT("— spelt {0}", `<b>${escapeHtml(ex.form.ans)}</b>`)}</span>` : ""}${extraNote ? ` <span class="vx-uml">${vxT("— only the verb was needed")}</span>` : ""}</div>`
@@ -1138,6 +1081,17 @@ function pathGradeVerb(val, ok, said = false) {
   if (ok !== true) holdAfterMistake("p-go");
   if (!said) speak(vxSayText(ex));
   if (input) input.focus({ preventScroll: true });
+}
+// After an answer: the rule behind the form, and its whole row.
+function vxWhyRow(ex) {
+  const engineT = VX_FR ? null : { pr: 1, pt: 1, pf: 1, pq: 1, fu: 1, im: 1 }[ex.kind] ? ex.kind : ex.kind === "p2" ? "pf" : ex.kind === "sc" ? "pr" : ex.kind === "k2w" || ex.kind === "k2o" ? "k2" : null;
+  // A separable verb: the prefix rule too, whatever else the form shows.
+  const sepWhy = (engineT === "pr" || engineT === "pt" || engineT === "im") && ex.x.F.sep && !/Separable/.test(verbRuleHtml(ex.x.F, engineT, ex.p))
+    ? ` <br>📏 Separable: <strong>${escapeHtml(ex.x.F.sep)}-</strong> goes to the end.` : "";
+  const why = VX_FR ? VXF.ruleHtml(ex.x, ex.kind, ex.p) || (ex.rule ? `📏 ${escapeHtml(VX_RULE[ex.rule].chip)}` : "")
+    : engineT ? verbRuleHtml(ex.x.F, engineT, ex.p) + sepWhy : ex.rule ? `📏 ${escapeHtml(VX_RULE[ex.rule].chip)}` : "";
+  const row = vxRowTableHtml(VX_FR ? VXF.rowCells(ex.x, ex.kind, ex.p) : engineT && engineT !== "im" ? vxRowCellsDe(ex.x.F, engineT, ex.p) : []);
+  return { why, row };
 }
 // The private "my typo" override for a verb card (see pathSecretOk):
 // everything a wrong or near answer touches, to roll it back.
