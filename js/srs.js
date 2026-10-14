@@ -93,11 +93,13 @@ function finalStretchDays() {
   const left = pathDaysLeft();
   return left >= 0 && left <= FINAL_STRETCH ? left : null;
 }
-// Early review: for intervals of 4+ days, half the interval elapsed.
+// Early review: for intervals of 4+ days, half the interval elapsed —
+// and never more than a week early (a 30-day gap from day 23 on).
+const EARLY_MAX_MS = 7 * 864e5;
 function isEarlyOk(ws, now) {
   if (!ws.dueAt || !ws.sAt) return false;
   const span = ws.dueAt - ws.sAt;
-  return span >= 3.5 * 864e5 && now - ws.sAt >= span * 0.5;
+  return span >= 3.5 * 864e5 && now - ws.sAt >= span * 0.5 && ws.dueAt - now <= EARLY_MAX_MS;
 }
 // Pips for display: "●●●○○○○" (7 steps).
 function pipsHtml(ws, cls = "") {

@@ -26,8 +26,8 @@ function startPathSession(lenKey, opts = {}) {
   showGameScreen();
   if (!q.items.length) {
     // Nothing due and today's new words met: "practise anyway" gets a
-    // refresh session on your least recently seen words (stages only
-    // move for due words, so this is pure extra practice).
+    // refresh session on your least recently seen words (a word only
+    // moves up if it's due or near enough to its review — see isEarlyOk).
     if (opts.practice && !opts.focus) { startPathSession(lenKey, { focus: "stale", practice: true }); return; }
     renderPathCaughtUp(); return;
   }
@@ -81,7 +81,7 @@ function renderPathShell() {
 function pathFocusLabel() {
   const s = pathSession;
   if (!s) return "";
-  if (s.practice) return "🧺 Extra practice — nothing is due, so this is just for fun";
+  if (s.practice) return "🧺 Extra practice — nothing is due, but words close to their next review can still move up";
   if (!s.focus) return "";
   const p = s.focusParam;
   const extra = s.focus === "deck" || s.focus === "new" ? (getDeck(p) ? " · " + escapeHtml(getDeck(p).name) : "")
@@ -149,13 +149,22 @@ function pathProgress() {
   // grows. Mistakes wait for the repair round at the end, which has its
   // own count (🩹 x/N).
   const rep = !!s.repairPhase;
+  // A 📖 sheet counts its quiz's questions (first tries; a missed one
+  // asked again at the end doesn't add) on top of that length.
   const q = x => x.t !== "bonus" && x.t !== "learn" && x.t !== "sheet" && !x.warm && !!x.repair === rep;
-  const total = s.items.filter(q).length;
-  const done = s.items.slice(0, s.i).filter(q).length;
+  const sheetQ = x => rep || x.t !== "sheet" ? 0 : x.qn || (x.qn = typeof gqSheetSize === "function" && typeof vxSheet === "function" && vxSheet(x.sheet) ? gqSheetSize(vxSheet(x.sheet)) : 0);
+  const cur = s.items[s.i], quiz = cur && cur.t === "sheet" && typeof _gs !== "undefined" && _gs && _gs.mode === "path" ? _gs.quiz : null;
+  const total = s.items.filter(q).length + s.items.reduce((n, x) => n + sheetQ(x), 0);
+  const before = s.items.slice(0, s.i).filter(q).length + s.items.slice(0, s.i).reduce((n, x) => n + sheetQ(x), 0);
+  // Within a sheet the count never goes back ("Read it again" starts a
+  // new quiz) and stays inside it (its re-asks too).
+  const inSheet = cur && cur.t === "sheet" ? (cur.qAt = Math.min(sheetQ(cur), Math.max(cur.qAt || 0, quiz ? quiz.list.slice(0, quiz.i).filter(x => x.first).length : 0))) : 0;
+  const done = before + inSheet;
+  const at = cur && cur.t === "sheet" ? Math.min(done + 1, before + sheetQ(cur)) : done + 1;
   const f = document.getElementById("p-prog");
   if (f) { f.style.width = Math.round(done / Math.max(1, total) * 100) + "%"; f.classList.toggle("repair", rep); }
   const c = document.getElementById("p-count");
-  if (c) c.textContent = `${rep ? "🩹 " : ""}${Math.min(done + 1, total)}/${total}`;
+  if (c) c.textContent = `${rep ? "🩹 " : ""}${Math.min(at, total)}/${total}`;
 }
 function pathSetActions(html) { const a = document.getElementById("p-actions"); if (a) a.innerHTML = html; }
 function pathShowTyped(show, placeholder = "type the answer…", accents = true) {
@@ -641,7 +650,9 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     // Said aloud: a Show tapped too fast to have recalled anything is a look.
     const kind = it.usedHint || (it.said && it.fast && !it.micOk) ? "recognition" : "recall";
     sessionConsecutive++;
-    if (it.practice) { ws.lastAnsweredAt = Date.now(); ws.correct++; ws.streak++; ws.displayStreak++; S.totalCorrect++; }
+    // Extra practice follows the normal rules (a word near its review can
+    // step up early); a repair-round word already back on track moves nothing.
+    if (it.practice && it.repair) { ws.lastAnsweredAt = Date.now(); ws.correct++; ws.streak++; ws.displayStreak++; S.totalCorrect++; }
     else res = applyCorrect(ws, { quiet: true, kind, w, ms: Date.now() - s.shownAt });
     if (it.plural) { delete ws.fx; if (it.watch) pluralRight(ws); } // its plural typed right: repaired
     // Fixed = back on schedule (a hint-aided answer leaves it to fix later).
@@ -705,7 +716,8 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     : evs.includes("maintained") ? `<span class="p-chip gold">💎 Check-in passed</span>`
     : evs.includes("spotcheck") ? `<span class="p-chip gold">💎 Still solid</span>`
     : evs.includes("confirmed") ? `<span class="p-chip ok">✓ Scheduled — see you ${stageIntervalDays(ws, stageOf(ws)) === 1 ? "tomorrow" : "in " + stageIntervalDays(ws, stageOf(ws)) + " days"}</span>`
-    : it.practice && ok === true ? `<span class="p-chip ok">🩹 Fixed — already on schedule</span>`
+    : it.practice && ok === true ? (it.repair ? `<span class="p-chip ok">🩹 Fixed — already on schedule</span>`
+      : `<span class="p-chip ok">✓ Still remembered — schedule unchanged</span>`)
     : it.usedHint && ok === true ? `<span class="p-chip">💡 with hint — no step up</span>`
     : it.said && it.fast && ok === true ? `<span class="p-chip">⚡ Shown straight away — counts as a look, no step up</span>` : "";
   const collectChip = genderCollected ? ` <span class="p-chip gold">🎨 Added to your Gender collection</span>` : "";

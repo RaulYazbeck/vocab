@@ -266,7 +266,13 @@ function gsQuizStart() {
   const g = _gs;
   const qs = g.mastery ? gqMasteryQuiz(g.mastery) : gqSheetQuiz(g.sh);
   const list = qs.map((q, i) => ({ q, i, order: gsOrderOf(q), first: true, picked: [] }));
-  g.quiz = { list, i: 0, firstRight: 0, n: list.length, answered: false, done: false, missed: [] };
+  // Its answers count in the day's plan and quests: in Today, and on the
+  // grammar screen while the sheet isn't passed yet (decided here: the
+  // last right answer passes it) — up to the sheet's questions once a
+  // day (vxSheetPlanTake). A retake of a passed sheet and the mastery
+  // quiz are practice outside the plan.
+  const plan = g.mode === "path" || (g.mode === "menu" && !g.mastery && !vxSheetPassed(g.sh.id));
+  g.quiz = { list, i: 0, firstRight: 0, n: list.length, answered: false, done: false, missed: [], plan };
 }
 // Blocks / options in a shuffled order (blocks never already in order).
 function gsOrderOf(q) {
@@ -384,10 +390,10 @@ function gsQuizAnswered(ok, given) {
   gsQuizShowAnswered();
   if (ok) { if (typeof playSuccess === "function") playSuccess(); if (typeof haptic === "function") haptic("select"); }
   else { if (typeof playFailure === "function") playFailure(); if (typeof haptic === "function") haptic("miss"); if (typeof holdAfterMistake === "function") holdAfterMistake("gs-qnext"); }
-  // The answer counts like any other in Today (the day's plan, quests).
+  // The answer counts like any other (the day's plan, quests) — see gsQuizStart.
   if (typeof logEvent === "function") logEvent("answer", { m: g.mastery ? "grammar:mastery" : g.mode === "path" ? "path:quiz" : "grammar:quiz", ok, typed: Q.k === "type", sid: Q.sid, at: Q.at, first: cur.first });
   if (typeof vxQuizAnswer === "function") vxQuizAnswer(Q, ok, given, cur.first);
-  if (g.mode === "path" && typeof questEvent === "function") questEvent("answer", { mode: "path", ok, typed: Q.k === "type" });
+  if (q.plan && vxSheetPlanTake(g.sh.id, q.n, ok) && typeof questEvent === "function") questEvent("answer", { mode: g.mode === "path" ? "path" : "grammar", ok, typed: Q.k === "type" });
   if (g.mode === "path" && pathSession) { pathSession.stats.answered++; if (ok) { pathSession.stats.correct++; addExp(3); } else pathSession.stats.wrong++; }
   if (!ok && typeof _learnDay === "function") _learnDay("mk", Q.k === "order" ? "order" : Q.k === "type" ? "verbform" : "recognition");
   const btn = document.getElementById("gs-qnext");
@@ -427,6 +433,7 @@ function gsQuizNext() {
   q.answered = false;
   q.i++;
   if (q.i >= q.list.length) q.done = true;
+  if (_gs.mode === "path" && typeof pathProgress === "function" && pathSession) pathProgress();
   const step = document.getElementById("gs-step");
   if (step) { step.innerHTML = gsQuizHtml(); step.className = "gs-step fwd"; }
   gsQuizBind();
@@ -1114,7 +1121,8 @@ function renderPathSheet(it) {
   const s = pathSession;
   pathShowTyped(false);
   pathSetActions("");
-  if (!it.counted) { it.counted = true; vxRollDay(); S.verb.ns++; saveState(); }
+  // Passed on the grammar screen since the session began: already counted.
+  if (!it.counted) { it.counted = true; if (!vxSheetPassed(it.sheet)) { vxSheetUse(it.sheet); saveState(); } }
   gsOpen(document.getElementById("p-card"), it.sheet, { mode: "path", onDone: () => { gsClose(); pathNext(); } });
   if (typeof logEvent === "function") logEvent("vx_open", { id: it.sheet, where: "path" });
   void s;
