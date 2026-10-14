@@ -103,6 +103,33 @@ function typedCorrect(input, word) {
   if (word && word.vx && typeof vxGrade === "function") return vxGrade(input, word.vx) === true;
   return isCorrect(input, word[WORD_KEY]) || isCorrect(input, gameForm(word));
 }
+// Untimed games ask an umlaut off on a verb where it changes the form
+// (fahrt / fährt): 1 or 2, as in Today. Timed games forgive it.
+function gameUmlautChoice(ctx, val, acc, x, cmd = false) {
+  if (!ctx || ctx.def.timed || !x || typeof vxUmlautChoice !== "function") return null;
+  return vxUmlautChoice(val, acc, x, cmd);
+}
+// A verb item's choice (its own answers and verb).
+function gameUmlautChoiceFor(ctx, val, word) {
+  return word && word.vx ? gameUmlautChoice(ctx, val, word.vx.form.acc, word.vx.x, vxIsCommand(word.vx)) : null;
+}
+// Draws the choice in the teach area; the game waits (busy) until it's
+// picked. done(right, picked).
+function gameUmlautAsk(ctx, ch, input, done) {
+  ctx.busy = true;
+  if (input) input.disabled = true;
+  ctx.teach(`<div id="g-uml"></div>`); // the lesson card: shown, and the clock (if any) stands
+  vxUmlautAsk(document.getElementById("g-uml"), ch, (ok, picked) => {
+    if (ctx.finished || ctx.dead) return;
+    gTimeout(() => {
+      if (ctx.finished || ctx.dead) return;
+      ctx.teach("");
+      if (input) { input.disabled = false; input.value = picked; }
+      ctx.busy = false;
+      done(ok, picked);
+    }, 350); // the pick is seen (green / red) before the game goes on
+  });
+}
 // Two words one answer fits — a verb item's form that is right for
 // another's prompt too (käme for "kommen (Konjunktiv II) — er": würde
 // kommen and käme are both right). Never a distractor or a match pair.

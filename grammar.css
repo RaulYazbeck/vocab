@@ -366,3 +366,10 @@
 .vx-ctx { color:var(--text-2); font-weight:500; }
 .vx-uml { font-weight:500; color:var(--text-2); font-size:0.9em; }
 .vx-gap.wide { min-width:120px; }
+
+/* The umlaut choice (1 / 2) — untimed, when only an umlaut was off */
+.vx-uml-ask { margin:12px 0 4px; text-align:center; }
+.vx-uml-q { font-weight:700; margin-bottom:8px; }
+.vx-uml-q span { display:block; font-weight:400; font-size:12px; color:var(--text-3); margin-top:2px; }
+.vx-uml-opts .g-opt-text { font-size:18px; }
+.vx-uml-hint { min-height:18px; margin-top:6px; font-size:13px; color:var(--warning, var(--text-2)); }

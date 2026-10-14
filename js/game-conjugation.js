@@ -331,7 +331,18 @@ registerGame({
     const answersOf = c => c.kind === "card" ? [c.it.ans] : verbCellAnswers(c.cell);
     // Typing the pronoun too ("ich habe gespielt", "spielen Sie!") is
     // fine: it's stripped before grading if the bare form doesn't match.
+    // A generated German form is graded as Today grades a verb (another
+    // person's form is a miss, never Almost) and, this game being
+    // untimed, an umlaut off on a verb where it changes the form is asked.
+    const conjEx = c => {
+      if (c.kind !== "gen" || IS_FRENCH_APP || typeof vxVerb !== "function") return null;
+      const x = vxVerb(c.v.inf), acc = answersOf(c);
+      return x && acc.length ? { kind: c.tense, x, p: c.person, tense: c.tense, form: { acc, ans: acc[0] } } : null;
+    };
+    const conjChoice = (val, c) => { const ex = conjEx(c); return ex ? gameUmlautChoice(ctx, val, ex.form.acc, ex.x, vxIsCommand(ex)) : null; };
     const gradeConj = (val, c) => {
+      const ex = conjEx(c);
+      if (ex) return vxGrade(val, ex);
       const answers = answersOf(c);
       const res = gradeTyped(val, answers);
       if (res === true) return res;
@@ -369,17 +380,20 @@ registerGame({
     };
     _conjSayGrade = v => { if (sayMode && revealed && !ctx.busy && !ctx.finished) submit(v !== true, v === true); };
     // said: true = ✓ Got it (right without typing).
-    const submit = (skip, said = false) => {
+    // forced: { val, res } — the answer once the umlaut choice is picked.
+    const submit = (skip, said = false, forced = null) => {
       if (ctx.waiting) { ctx.continueNow(); return; }
       if (!cur || ctx.busy || ctx.finished || ctx.paused) return;
       if (sayMode && !revealed && !skip) { reveal(); return; }
-      const val = input.value;
+      const val = forced ? forced.val : input.value;
       if (!sayMode && !skip && !val.trim()) { shakeEl(input); return; }
+      const ch = !forced && !skip && !sayMode ? conjChoice(val, cur) : null;
+      if (ch) { gameUmlautAsk(ctx, ch, input, (ok, picked) => submit(false, false, { val: picked, res: ok })); return; }
       if (sayMode) {
         document.getElementById("cj-say").innerHTML = "";
         if (said && sayKind(shownAtMs, revealAtMs, helped) === "recognition") helped = true;
       }
-      const res = skip ? false : sayMode ? said : gradeConj(val, cur);
+      const res = forced ? forced.res : skip ? false : sayMode ? said : gradeConj(val, cur);
       if (res === "near") {
         input.classList.add("near");
         fb.innerHTML = `<span class="g-near">≈ Almost — ${diffHtml(val, answersOf(cur)[0])}</span>`;

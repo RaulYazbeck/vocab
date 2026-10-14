@@ -345,11 +345,19 @@ function gsQuizPick(oi) {
 // in Today; so is an umlaut left out, and a few words of context around
 // the right form (only for a question about one verb: its other forms
 // never count as context). The feedback shows the spelling / says so.
+// The verb a typed question is about: its own field, else the one named
+// in brackets in the question (du ___ (fahren)).
+function gsQuizVerb(Q) {
+  const named = Q.inf || (Q.chk && Q.chk[0]);
+  if (named) return vxVerb(named);
+  const m = String(Q.q || "").match(/\(((?:sich )?[a-zäöüß]+)\)/i);
+  return m ? vxVerb(m[1]) : null;
+}
 function gsQuizGrade(val, Q) {
   const tries = vxGradeTries(val, vxIsCommand(Q));
   const uml = vxUmlautOnly(val, Q.a, vxIsCommand(Q));
   if (uml || tries.some(t => Q.a.some(a => vxEq(a, t)))) return { ok: true, uml, extra: false };
-  const x = vxVerb(Q.inf || (Q.chk && Q.chk[0]) || "");
+  const x = gsQuizVerb(Q);
   const extra = !!x && vxExtraOk(tries, Q.a, x);
   return { ok: extra, uml: false, extra };
 }
@@ -360,9 +368,29 @@ function gsQuizCheck() {
   if (Q.k === "type") {
     const inp = document.getElementById("gs-input"), val = inp ? inp.value : "";
     if (!val.trim()) { if (inp) shakeEl(inp); return; }
+    if (cur.umlAsking) return;
+    const x = gsQuizVerb(Q);
+    // Only an umlaut off, on a verb where it changes the form: 1 or 2.
+    const ch = x ? vxUmlautChoice(val, Q.a, x, vxIsCommand(Q)) : null;
+    if (ch) {
+      cur.umlAsking = true;
+      inp.disabled = true;
+      vxUmlautAsk(document.getElementById("gs-qfb"), ch, (ok, picked) => {
+        cur.umlAsking = false;
+        if (!_gs || _gs.quiz !== q || q.list[q.i] !== cur || q.answered) return;
+        cur.uml = false; cur.extra = false;
+        inp.value = picked;
+        inp.classList.add(ok ? "correct" : "wrong");
+        gsQuizAnswered(ok, picked);
+      });
+      return;
+    }
     const { ok, uml, extra } = gsQuizGrade(val, Q);
     cur.uml = uml; cur.extra = extra;
-    if (!ok && isNearMiss(val, Q.a) && !cur.near) {
+    // Another real form of the verb (wasche for wäscht) is a wrong
+    // conjugation, never "Almost" — as in Today.
+    const near = x ? vxNearTryAcc(val, Q.a, x, vxIsCommand(Q)) : isNearMiss(val, Q.a);
+    if (!ok && near && !cur.near) {
       cur.near = true;
       inp.classList.add("near");
       document.getElementById("gs-qfb").innerHTML = `<div class="p-near">${vxT("≈ Almost — {0} — try again", vxT("check the spelling"))}</div>`;
@@ -908,7 +936,11 @@ function pathCheckVerb() {
   const input = document.getElementById("p-input");
   const val = input ? input.value : "";
   if (!val.trim()) { shakeEl(input); if (input) input.focus({ preventScroll: true }); return; }
-  const ex = s.cur.w.vx, g = vxGrade(val, ex);
+  const ex = s.cur.w.vx;
+  // Only an umlaut off, on a verb where it changes the form: 1 or 2.
+  const ch = vxUmlautChoice(val, ex.form.acc, ex.x, vxIsCommand(ex));
+  if (ch) { pathVerbUmlautAsk(ch, val); return; }
+  const g = vxGrade(val, ex);
   // The right verb and person in another tense (er kommt for the
   // Perfekt): never graded — the tense is pointed out, try again, as often
   // as it takes (a stray second Enter never turns it into a miss). The
@@ -917,6 +949,21 @@ function pathCheckVerb() {
     : vxUmlautOnly(val, ex.form.acc, vxIsCommand(ex)) ? vxOtherTense(val, ex, true) : null;
   if (other) { pathVerbTenseRetry(other, val); return; }
   pathGradeVerb(val, g);
+}
+function pathVerbUmlautAsk(ch, val) {
+  const s = pathSession, it = s.cur;
+  if (it.umlAsking) return;
+  it.umlAsking = true;
+  const input = document.getElementById("p-input");
+  if (input) input.disabled = true;
+  pathSetActions("");
+  vxUmlautAsk(document.getElementById("p-fb"), ch, (ok, picked) => {
+    it.umlAsking = false;
+    if (pathSession !== s || s.cur !== it) return;
+    if (input) { input.disabled = false; input.value = picked; }
+    pathGradeVerb(ok ? ch.right : picked, ok);
+  });
+  void val;
 }
 function pathVerbTenseRetry(other, val) {
   const s = pathSession, it = s.cur, ex = it.w.vx;
@@ -936,6 +983,42 @@ function pathVerbTenseRetry(other, val) {
   if (input) { input.classList.add("retry"); input.select(); input.focus({ preventScroll: true }); input.addEventListener("input", () => input.classList.remove("retry"), { once: true }); }
   haptic("select");
   void val;
+}
+// ── THE UMLAUT CHOICE (1 / 2) ─────────────────
+// Drawn into host. 1 / 2 or a tap picks; Enter and Space never pick or
+// skip (you may still be pressing Enter after typing) — they point at
+// 1 / 2. Keys are taken before anything else (capture), and given back
+// once picked or once host has left the page. onPick(right, picked).
+function vxUmlautAsk(host, ch, onPick) {
+  if (!host) return false;
+  const opts = Math.random() < 0.5 ? [{ t: ch.right, ok: true }, { t: ch.other, ok: false }] : [{ t: ch.other, ok: false }, { t: ch.right, ok: true }];
+  host.innerHTML = `<div class="vx-uml-ask">
+    <div class="vx-uml-q">Which spelling? <span>the umlaut changes the form</span></div>
+    <div class="g-options vx-uml-opts">${opts.map((o, i) => `<button class="g-opt" data-u="${i}"><span class="g-key">${i + 1}</span><span class="g-opt-text">${escapeHtml(o.t)}</span></button>`).join("")}</div>
+    <div class="vx-uml-hint" aria-live="polite"></div></div>`;
+  const box = host.querySelector(".vx-uml-ask");
+  let done = false;
+  const off = () => window.removeEventListener("keydown", key, true);
+  const pick = i => {
+    if (done) return;
+    done = true; off();
+    box.querySelectorAll(".g-opt").forEach((b, j) => { b.disabled = true; if (opts[j].ok) b.classList.add("right"); else if (j === i) b.classList.add("wrong"); });
+    onPick(opts[i].ok, opts[i].t);
+  };
+  const key = e => {
+    // Gone or hidden (the session left, another screen): let go of the keys.
+    if (done || !box.isConnected || !box.offsetParent) { off(); return; }
+    if (e.key === "1" || e.key === "2") { e.preventDefault(); e.stopImmediatePropagation(); pick(+e.key - 1); }
+    else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault(); e.stopImmediatePropagation();
+      box.querySelector(".vx-uml-hint").textContent = "Pick 1 or 2";
+      if (typeof shakeEl === "function") shakeEl(box.querySelector(".vx-uml-opts"));
+    }
+  };
+  window.addEventListener("keydown", key, true);
+  box.querySelectorAll(".g-opt").forEach((b, i) => { b.onclick = () => pick(i); });
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  return true;
 }
 // Say-it mode: Show, hear it, ✗ / ✓.
 function pathVerbReveal() {

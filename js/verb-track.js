@@ -1153,10 +1153,11 @@ function vxGrade(val, ex) {
 // of the verb is not a typo but a wrong conjugation (wasche for wäscht:
 // the ich form; kam for kamen): a miss. Returns what was typed, without
 // its pronoun (for the diff), or "".
-function vxNearTry(val, ex) {
-  const tries = vxGradeTries(val, vxIsCommand(ex));
-  if (!tries.length || tries.some(t => vxIsOwnForm(ex.x, t))) return "";
-  return tries.slice().reverse().find(t => isNearMiss(t, ex.form.acc)) || "";
+function vxNearTry(val, ex) { return vxNearTryAcc(val, ex.form.acc, ex.x, vxIsCommand(ex)); }
+function vxNearTryAcc(val, acc, x, cmd = false) {
+  const tries = vxGradeTries(val, cmd);
+  if (!tries.length || (x && tries.some(t => vxIsOwnForm(x, t)))) return "";
+  return tries.slice().reverse().find(t => isNearMiss(t, acc)) || "";
 }
 // What a wrong answer that is a real form of the verb is: another person
 // of the asked tense ("ich"), else the asked person in another tense
@@ -1174,20 +1175,89 @@ function vxFormOwner(val, ex) {
 }
 // Every form of a verb, any person, any tense (umlauts ignored).
 const _vxOwnForms = new Map();
-function vxIsOwnForm(x, typed) {
-  if (!x || !x.inf) return false;
-  let set = _vxOwnForms.get(x.inf);
-  if (!set) {
-    set = new Set();
+function vxOwnForms(x) {
+  let o = _vxOwnForms.get(x.inf);
+  if (!o) {
+    o = { norm: new Set(), exact: new Set() };
     for (const k of Object.keys(VX_KIND_TENSE)) for (const p of VX_PERSONS.concat(VX_FR ? ["elle", "elles"] : ["Sie"]))
       for (const modal of k === "pvmod" ? Object.keys(VX_PV_MODALS) : [""]) {
         let f = null;
         try { f = vxForm(x, k, p, { modal }); } catch (e) { f = null; }
-        if (f && f.acc) f.acc.forEach(a => set.add(normalize(a)));
+        if (f && f.acc) f.acc.forEach(a => {
+          o.norm.add(normalize(a)); o.exact.add(String(a).toLowerCase().normalize("NFC"));
+          // Without its separable prefix too (fährt for fährt ab): a game may show the prefix.
+          const w = String(a).split(" "), pre = x.inf.replace(/^sich /, "");
+          if (w.length > 1 && pre.startsWith(w[w.length - 1].toLowerCase()) && w[w.length - 1].length < pre.length) o.norm.add(normalize(w.slice(0, -1).join(" ")));
+        });
       }
-    _vxOwnForms.set(x.inf, set);
+    _vxOwnForms.set(x.inf, o);
   }
-  return set.has(normalize(typed));
+  return o;
+}
+function vxIsOwnForm(x, typed) { return !!x && !!x.inf && vxOwnForms(x).norm.has(normalize(typed)); }
+
+// ── THE UMLAUT CHOICE (untimed) ───────────────
+// Spelt right but for its umlauts (fahrt for fährt, fährt for fahrt, faehrt
+// for fahrt), on a verb whose umlaut changes the form (fahrt / fährt, hatte
+// / hätte, konnte / könnte): untimed, that is asked — 1 or 2, the right
+// spelling or the one typed — instead of forgiven. Picking right is right.
+// Verbs that keep their umlaut in every form (hören, üben), and timed
+// games, still forgive it. German only.
+const vxUmlKey = s => String(s || "").toLowerCase().normalize("NFC").replace(/ä/g, "a").replace(/ö/g, "o").replace(/ü/g, "u").replace(/\s+/g, " ").trim();
+const vxUmlSpelt = s => String(s || "").toLowerCase().normalize("NFC").replace(/ae/g, "ä").replace(/oe/g, "ö").replace(/ue/g, "ü");
+// The words of a verb's forms by their umlaut-free spelling: its own
+// (fährt, fahrt) and the auxiliaries' (hatte, hätte, wurde, würde).
+const _vxUmlWords = new Map();
+function vxUmlWords(x) {
+  let o = _vxUmlWords.get(x.inf);
+  if (!o) {
+    o = { main: new Map(), aux: new Map(), alt: false };
+    for (const f of vxOwnForms(x).exact) for (const w of f.split(" ")) {
+      const m = VX_EXTRA_BAN.test(normalize(w)) ? o.aux : o.main, k = vxUmlKey(w);
+      if (!m.has(k)) m.set(k, new Set());
+      m.get(k).add(w);
+    }
+    // Its stem alternates when two of its own words differ only by an umlaut.
+    for (const set of o.main.values()) if (set.size > 1) { o.alt = true; break; }
+    _vxUmlWords.set(x.inf, o);
+  }
+  return o;
+}
+function vxUmlautAlternates(x) { return !VX_FR && !!x && !!x.inf && vxUmlWords(x).alt; }
+// Does a word typed with its umlaut off matter? The verb's own word: when
+// its stem alternates (fahren yes; erhöhen, hören no), at the part that
+// changes — never its separable particle (an, über). An auxiliary or modal: hatte / hätte, wurde /
+// würde, konnte / könnte, musst / müsst, durfte / dürfte, mochte /
+// möchte, warst / wärst — always (another tense or person).
+const VX_UML_AUX = /^(hatt|wurd|konn|muss|durf|moch|war)/;
+function vxUmlWordMatters(x, answerWord, typedWord) {
+  if (VX_EXTRA_BAN.test(normalize(answerWord))) return VX_UML_AUX.test(vxUmlKey(answerWord));
+  const inf = x.inf.replace(/^sich /, "").toLowerCase();
+  if (answerWord.length < inf.length && inf.startsWith(answerWord)) return false; // the particle (an, über)
+  if (!vxUmlWords(x).alt) return false;
+  // An umlaut the infinitive has in the same place never changes (the ü
+  // of überfahren); one it doesn't, or one added, is the alternation.
+  for (let i = 0; i < answerWord.length; i++)
+    if (answerWord[i] !== typedWord[i] && !(/[äöü]/.test(answerWord[i]) && inf[i] === answerWord[i])) return true;
+  return false;
+}
+// → { right, other } (the two spellings to choose from) or null.
+function vxUmlautChoice(val, acc, x, cmd = false) {
+  if (VX_FR || !x || !x.inf || !acc || !acc.length) return null;
+  const tries = vxGradeTries(val, cmd).slice().reverse(); // the pronoun-less try first
+  if (!tries.length || tries.some(t => acc.some(a => vxEq(a, t)))) return null; // right as typed (ae for ä too)
+  for (const t of tries) for (const a of acc) {
+    const typed = [t, vxUmlSpelt(t)].find(v => vxUmlKey(v) === vxUmlKey(a));
+    if (!typed) continue;
+    const tw = vxUmlKey(typed) === vxUmlKey(a) ? String(typed).toLowerCase().normalize("NFC").replace(/\s+/g, " ").trim().split(" ") : [];
+    const aw = String(a).toLowerCase().normalize("NFC").split(" ");
+    if (tw.length !== aw.length || !aw.some((w, i) => w !== tw[i] && vxUmlWordMatters(x, w, tw[i]))) continue;
+    // Show the other spelling as the verb's own form when it is one (faehrt → fährt).
+    const own = [...vxOwnForms(x).exact].find(f => vxEq(f, typed)) || String(t).trim();
+    if (vxEq(a, own) || vxUmlKey(own) !== vxUmlKey(a)) continue;
+    return { right: a, other: own };
+  }
+  return null;
 }
 // A right form with a few words of context added (er ist zu Fuß gegangen,
 // the "(on foot)" of the meaning in German): still right — every word of
