@@ -94,7 +94,11 @@ const r = await page.evaluate((APP) => {
     ex = show("haben", "pt", "ich"); st0 = { ...s.stats };
     type("ich hätte"); ok(!s.answered, "ich hätte for the Präteritum: the Konjunktiv II is named");
     type("ich hätte"); ok(!s.answered && s.stats.correct === st0.correct, "ich hätte twice: still the Konjunktiv II, never a forgiven umlaut");
-    type("ich hatte"); ok(s.answered && s.stats.correct === st0.correct + 1, "then ich hatte: right");
+    // Typed plain, hatte could be hätte too: the umlaut choice asks; hatte is right.
+    type("ich hatte"); ok(!s.answered && !!document.querySelector(".vx-uml-ask"), "then ich hatte: the umlaut choice (hatte / hätte)");
+    const hb = [...document.querySelectorAll(".vx-uml-ask .g-opt")].find(b => b.querySelector(".g-opt-text").textContent === "hatte");
+    if (hb) hb.click();
+    ok(s.answered && s.stats.correct === st0.correct + 1, "…pick hatte: right");
     ex = show("fahren", "pr", "du"); st0 = { ...s.stats };
     type("du fahrst"); ok(s.answered && s.stats.correct === st0.correct + 1, "du fahrst: still a forgiven umlaut");
   }
