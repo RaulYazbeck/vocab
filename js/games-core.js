@@ -95,8 +95,56 @@ function sharesPromptAlt(a, b) { const s = new Set(promptAlts(a)); return prompt
 // Typed recall (Boss Battle): the stored answer or its clean display
 // form — "die Katze" must count for "die Katze, -n", "sie" for
 // "sie (plural 3rd person)".
+// A verb item (Today's verb track) is graded only as Today grades it:
+// the pronoun may be typed in front (er wäscht), a missing umlaut is
+// fine — but not the word anywhere in what was typed, as for vocab
+// (er wäscht nicht, wasche wäschst wäscht).
 function typedCorrect(input, word) {
+  if (word && word.vx && typeof vxGrade === "function") return vxGrade(input, word.vx) === true;
   return isCorrect(input, word[WORD_KEY]) || isCorrect(input, gameForm(word));
+}
+// Untimed games ask an umlaut off on a verb where it changes the form
+// (fahrt / fährt): 1 or 2, as in Today. Timed games forgive it.
+function gameUmlautChoice(ctx, val, acc, x, cmd = false) {
+  if (!ctx || ctx.def.timed || !x || typeof vxUmlautChoice !== "function") return null;
+  return vxUmlautChoice(val, acc, x, cmd);
+}
+// A verb item's choice (its own answers and verb).
+function gameUmlautChoiceFor(ctx, val, word) {
+  return word && word.vx ? gameUmlautChoice(ctx, val, word.vx.form.acc, word.vx.x, vxIsCommand(word.vx)) : null;
+}
+// Draws the choice in the teach area; the game waits (busy) until it's
+// picked. done(right, picked).
+function gameUmlautAsk(ctx, ch, input, done) {
+  ctx.busy = true;
+  if (input) input.disabled = true;
+  ctx.teach(`<div id="g-uml"></div>`); // the lesson card: shown, and the clock (if any) stands
+  vxUmlautAsk(document.getElementById("g-uml"), ch, (ok, picked) => {
+    if (ctx.finished || ctx.dead) return;
+    gTimeout(() => {
+      if (ctx.finished || ctx.dead) return;
+      ctx.teach("");
+      if (input) { input.disabled = false; input.value = picked; }
+      ctx.busy = false;
+      done(ok, picked);
+    }, 350); // the pick is seen (green / red) before the game goes on
+  });
+}
+// Two words one answer fits — a verb item's form that is right for
+// another's prompt too (käme for "kommen (Konjunktiv II) — er": würde
+// kommen and käme are both right). Never a distractor or a match pair.
+function answersOverlap(a, b) {
+  return !!((a && a.vx && typedCorrect(gameForm(b), a)) || (b && b.vx && typedCorrect(gameForm(a), b)));
+}
+// Almost right (a typo): a retry, not a miss. A verb item's answer may
+// have its pronoun typed in front (du färhst). Returns what was typed,
+// without that pronoun (for the "Almost" diff), or "".
+function typedNear(input, word) {
+  const answers = [word[WORD_KEY], gameForm(word)];
+  // (A verb item: another real form of the verb — wasche for wäscht — is
+  // a wrong conjugation, never "Almost": vxNearTry.)
+  if (word && word.vx && typeof vxNearTry === "function") return vxNearTry(input, word.vx);
+  return isNearMiss(input, answers) ? String(input) : "";
 }
 const _normCache = new Map();
 function normKey(s) {
@@ -245,6 +293,7 @@ function pickDistractors(word, pool, n, formFn = gameForm, filterFn = null, opts
       const f = normKey(formFn(w)), p = normKey(gamePrompt(w));
       if (!f || bad.has(f) || badP.has(p)) continue;
       if (sharesPromptAlt(w, word) || out.some(o => sharesPromptAlt(o, w))) continue;
+      if (answersOverlap(w, word) || out.some(o => answersOverlap(o, w))) continue;
       bad.add(f); badP.add(p); out.push(w);
     }
   };
@@ -322,6 +371,12 @@ function wordLessonHtml(w, picked = null, extra = "") {
   else if (picked && picked.trap) pick = `<div class="g-teach-sub">✗ <s>${escapeHtml(picked.text)}</s> — wrong article: it's ${colorArticleHtml(gameForm(w))}</div>`;
   else if (picked && picked.none) pick = `<div class="g-teach-sub">✗ It was there: ${colorArticleHtml(gameForm(w))}</div>`;
   else if (picked && picked.word && !sameWord(picked.word, w)) pick = `<div class="g-teach-sub">✗ You picked ${colorArticleHtml(gameForm(picked.word))} = ${escapeHtml(gamePrompt(picked.word))}</div>`;
+  // A verb item: the whole form with its person (er wäscht), then the
+  // verb, its tense and what it means.
+  if (w.vx && typeof vxFormHtml === "function") {
+    const v = w.vx, gloss = typeof vxMeaning === "function" ? vxMeaning(v.x) : "";
+    return `<div class="g-teach-main">${vxFormHtml(v)}</div><div class="g-teach-sub">${escapeHtml(v.x.inf)} · ${escapeHtml(vxGameTense(v))}${gloss ? ` · ${escapeHtml(gloss)}` : ""}</div>${pick}${extra}`;
+  }
   return `<div class="g-teach-main">${colorArticleHtml(gameForm(w))} = ${escapeHtml(gamePrompt(w))}${pl}</div>${pick}${extra}
     ${ex && ex[WORD_KEY] ? `<div class="g-teach-ex">${escapeHtml(ex[WORD_KEY])}${ex.en ? `<span>${escapeHtml(ex.en)}</span>` : ""}</div>` : ""}`;
 }
@@ -757,11 +812,18 @@ function gTypedBind(ctx, onSubmit) {
   return input;
 }
 // Grade a typed game answer against one or more accepted strings.
-function gradeTyped(val, answers) {
+// word: a verb item whose whole form is asked is graded as Today grades
+// it (typedCorrect / typedNear), not by the word anywhere in the answer.
+function gradeTyped(val, answers, word = null) {
   // What was typed, for the learning log if this turns out to be a miss.
   const g = activeGame && activeGame.ctx;
   if (g) { g.lastGiven = val; g.lastExpected = answers; }
   if (!String(val || "").trim()) return false;
+  if (word && word.vx && answers.some(a => normKey(a) === normKey(gameForm(word)))) {
+    if (typedCorrect(val, word)) return true;
+    if (typedNear(val, word)) { if (g) g.lastGiven = null; return "near"; }
+    return false;
+  }
   if (answers.some(a => a && (isCorrect(val, a) || normalize(val) === normalize(a)))) return true;
   if (isNearMiss(val, answers)) { if (g) g.lastGiven = null; return "near"; } // a retry, not a miss: don't let it stick to the next question
   return false;

@@ -1060,10 +1060,44 @@ function vxCellSheet(c) {
   if (c.t === "pq") return "pq1";
   return "";
 }
+// Who the form is for, as the question shows it: "er", "sie (they)",
+// "es" for an it-verb (es regnet), "(du)" for a command, "j'" / "que
+// nous" in French. Passiv asks es / sie (they).
+function vxPronText(ex) {
+  if (VX_FR) return ex.kind === "ip" ? `(${ex.p})` : VXF.pron(ex.kind, ex.p, ex.form.ans) || "";
+  if (ex.kind === "im" || ex.kind === "imsep" || ex.kind === "imfull") return `(${ex.p})`;
+  if (ex.kind === "pvpr" || ex.kind === "pvpt" || ex.kind === "pvmod") return ex.p === "sie" ? "sie (they)" : "es";
+  return ex.p === "sie" ? "sie (they)" : ex.p === "er" && vxItVerb(ex.x) ? "es" : (PERSON_LABEL[ex.p] || ex.p).split("/")[0];
+}
+// The tense as a game names it: the Passiv says which one, and its modal.
+// A strong verb's own Konjunktiv II (käme) is asked as such: würde +
+// infinitive is right German but not this item's answer. French: the
+// three passives (est loué · a été loué · sera loué).
+function vxGameTense(ex) {
+  if (VX_FR) {
+    const sub = { pvpr: "pr", pvpc: "pc", pvfu: "fu" }[ex.kind];
+    return sub ? `${VX_TENSE_LABEL[ex.tense] || ""} · ${VX_TENSE_LABEL[sub] || ""}` : VX_TENSE_LABEL[ex.tense] || "";
+  }
+  if (ex.kind === "k2s") return "Konjunktiv II · own form, not würde";
+  if (ex.kind === "pvpr") return "Passiv Präsens";
+  if (ex.kind === "pvpt") return "Passiv Präteritum";
+  if (ex.kind === "pvmod") return `Passiv with ${ex.modal}`;
+  return VX_TENSE_LABEL[ex.tense] || "";
+}
+// A verb item as one line of text for the games (their prompt): the
+// verb, the tense, and the person with a gap — "waschen (Präsens) — er
+// ___", "gehen (Imperativ) — (du) ___!". Without the person a form can't
+// be guessed (wasche? wäschst? wäscht?).
+function vxCueText(ex) {
+  const pron = vxPronText(ex), ctx = ex.form.ctx ? " " + ex.form.ctx : "";
+  const cmd = VX_FR ? ex.kind === "ip" : /^im/.test(ex.kind);
+  const gap = !pron ? "___" : /'$/.test(pron) ? pron + "___" : pron + " ___";
+  return `${ex.x.inf} (${vxGameTense(ex)}) — ${gap}${ctx}${cmd ? (VX_FR ? " !" : "!") : ""}`;
+}
 // The word-like object a Today item carries (wordKey(w) = "vx_…").
 function vxWord(ex) {
   const id = ex.item || ("cell:" + ex.cell);
-  return { deckId: VX_DECK, idx: id, deckName: vxT("Verbs"), de: ex.form.ans, fr: ex.form.ans, en: `${ex.x.inf} — ${VX_TENSE_LABEL[ex.tense] || ""}`, hint: "verb", vx: ex };
+  return { deckId: VX_DECK, idx: id, deckName: vxT("Verbs"), de: ex.form.ans, fr: ex.form.ans, en: vxCueText(ex), hint: "verb", vx: ex };
 }
 
 // ── GRADING ───────────────────────────────────
@@ -1112,8 +1146,109 @@ function vxGrade(val, ex) {
   for (const t of tries) if (acc.some(a => vxEq(a, t))) return true;
   if (tries.some(t => vxUmlautSlip(acc, t))) return true;
   if (vxExtraOk(tries, acc, ex.x)) return true;
-  if (isNearMiss(tries[0], acc)) return "near";
+  if (vxNearTry(val, ex)) return "near";
   return false;
+}
+// A typo (one letter off) is "Almost" — one more try. Another real form
+// of the verb is not a typo but a wrong conjugation (wasche for wäscht:
+// the ich form; kam for kamen): a miss. Returns what was typed, without
+// its pronoun (for the diff), or "".
+function vxNearTry(val, ex) { return vxNearTryAcc(val, ex.form.acc, ex.x, vxIsCommand(ex)); }
+function vxNearTryAcc(val, acc, x, cmd = false) {
+  const tries = vxGradeTries(val, cmd);
+  if (!tries.length || (x && tries.some(t => vxIsOwnForm(x, t)))) return "";
+  return tries.slice().reverse().find(t => isNearMiss(t, acc)) || "";
+}
+// What a wrong answer that is a real form of the verb is: another person
+// of the asked tense ("ich"), else the asked person in another tense
+// ("Präteritum"). English, for the games' miss feedback, or "".
+function vxFormOwner(val, ex) {
+  const tries = vxGradeTries(val, vxIsCommand(ex));
+  if (!tries.some(t => vxIsOwnForm(ex.x, t))) return "";
+  const hit = (k, p) => { let f = null; try { f = vxForm(ex.x, k, p, { modal: ex.modal }); } catch (e) { f = null; } return f && f.acc && tries.some(t => f.acc.some(a => normalize(a) === normalize(t))); };
+  for (const p of VX_PERSONS.concat(VX_FR ? ["elle", "elles"] : ["Sie"])) if (p !== ex.p && hit(ex.kind, p)) {
+    const pron = VX_FR ? p : vxPronText({ ...ex, p, form: vxForm(ex.x, ex.kind, p, { modal: ex.modal }) }).replace(/[()]/g, "");
+    return `the ${pron} form`;
+  }
+  for (const k of VX_OTHER_KINDS) { const t = VX_KIND_TENSE[k]; if (t && t !== ex.tense && hit(k, ex.p)) return `the ${VX_TENSE_LABEL[t] || ""}`; }
+  return `another form of ${ex.x.inf}`;
+}
+// Every form of a verb, any person, any tense (umlauts ignored).
+const _vxOwnForms = new Map();
+function vxOwnForms(x) {
+  let o = _vxOwnForms.get(x.inf);
+  if (!o) {
+    o = { norm: new Set(), exact: new Set() };
+    for (const k of Object.keys(VX_KIND_TENSE)) for (const p of VX_PERSONS.concat(VX_FR ? ["elle", "elles"] : ["Sie"]))
+      for (const modal of k === "pvmod" ? Object.keys(VX_PV_MODALS) : [""]) {
+        let f = null;
+        try { f = vxForm(x, k, p, { modal }); } catch (e) { f = null; }
+        if (f && f.acc) f.acc.forEach(a => {
+          o.norm.add(normalize(a)); o.exact.add(String(a).toLowerCase().normalize("NFC"));
+          // Without its separable prefix too (fährt for fährt ab): a game may show the prefix.
+          const w = String(a).split(" "), pre = x.inf.replace(/^sich /, "");
+          if (w.length > 1 && pre.startsWith(w[w.length - 1].toLowerCase()) && w[w.length - 1].length < pre.length) o.norm.add(normalize(w.slice(0, -1).join(" ")));
+        });
+      }
+    _vxOwnForms.set(x.inf, o);
+  }
+  return o;
+}
+function vxIsOwnForm(x, typed) { return !!x && !!x.inf && vxOwnForms(x).norm.has(normalize(typed)); }
+
+// ── THE UMLAUT CHOICE (untimed) ───────────────
+// Umlauts are typed as plain vowels (no umlaut keys): hatte stands for
+// hatte or hätte. When what was typed, read that way, fits two real forms
+// of the verb — the right one and another that differs only by its
+// umlauts (hatte / hätte, fahrt / fährt, kamen / kämen) — untimed, it is
+// asked: 1 or 2. Even when the plain one is the right one: typing it
+// didn't say which. Picking right is right. When only one form fits
+// (fahrst → fährst, horst → hörst) there is nothing to ask: right, the
+// spelling shown. Typed with its umlaut (ä, or ae spelling a real form):
+// graded as typed. Timed games never ask. German only.
+const vxUmlKey = s => String(s || "").toLowerCase().normalize("NFC").replace(/ä/g, "a").replace(/ö/g, "o").replace(/ü/g, "u").replace(/\s+/g, " ").trim();
+const vxUmlSpelt = s => String(s || "").toLowerCase().normalize("NFC").replace(/ae/g, "ä").replace(/oe/g, "ö").replace(/ue/g, "ü");
+// A verb's real forms (any person, any tense), also without a separable
+// particle a game shows (fährt for fährt ab), by their plain spelling.
+const _vxUmlForms = new Map();
+function vxUmlForms(x) {
+  let m = _vxUmlForms.get(x.inf);
+  if (!m) {
+    m = new Map();
+    const add = f => { const k = vxUmlKey(f); if (!m.has(k)) m.set(k, new Set()); m.get(k).add(f.replace(/\s+/g, " ").trim()); };
+    const pre = x.inf.replace(/^sich /, "").toLowerCase();
+    for (const f of vxOwnForms(x).exact) {
+      add(f);
+      const w = f.split(" "), last = w[w.length - 1];
+      if (w.length > 1 && last.length < pre.length && pre.startsWith(last)) add(w.slice(0, -1).join(" "));
+    }
+    _vxUmlForms.set(x.inf, m);
+  }
+  return m;
+}
+// Has the verb two real forms that differ only by an umlaut?
+function vxUmlautAlternates(x) {
+  if (VX_FR || !x || !x.inf) return false;
+  for (const set of vxUmlForms(x).values()) if (set.size > 1) return true;
+  return false;
+}
+// → { right, others: [the other real forms it could be] , other } or null.
+function vxUmlautChoice(val, acc, x, cmd = false) {
+  if (VX_FR || !x || !x.inf || !acc || !acc.length) return null;
+  const tries = vxGradeTries(val, cmd).slice().reverse(); // the pronoun-less try first
+  if (!tries.length || tries.some(t => /[äöü]/i.test(t))) return null; // typed with its umlaut: as typed
+  const forms = vxUmlForms(x), lc = s => String(s).toLowerCase().normalize("NFC").replace(/\s+/g, " ").trim();
+  for (const t of tries) {
+    // ae / oe / ue spelling a real form (faehrt): typed with its umlaut.
+    const spelt = vxUmlSpelt(t);
+    if (spelt !== lc(t) && [...(forms.get(vxUmlKey(spelt)) || [])].concat(acc.map(lc)).some(f => lc(f) === lc(spelt))) return null;
+    const k = vxUmlKey(t), a = acc.find(a => vxUmlKey(a) === k);
+    if (!a) continue;
+    const others = [...(forms.get(k) || [])].filter(f => lc(f) !== lc(a) && !acc.some(b => lc(b) === lc(f)));
+    if (!others.length) return null; // only one form fits: nothing to ask
+    return { right: a, others, other: others[0] };
+  }
+  return null;
 }
 // A right form with a few words of context added (er ist zu Fuß gegangen,
 // the "(on foot)" of the meaning in German): still right — every word of

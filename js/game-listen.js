@@ -124,11 +124,14 @@ registerGame({
       if (opt.correct) { ctx.hit(q.w); good(q.w, btn, 10); } else bad(q.w, btn, opt);
       ctx.setScore(score); ctx.setCombo(combo);
     };
-    const answerTyped = v => {
+    // forced: the umlaut choice's result (a verb item: fahrt / fährt).
+    const answerTyped = (v, forced) => {
       if (!q || !q.typed || ctx.busy || ctx.finished) return;
-      ctx.busy = true;
-      const res = gradeTyped(v, [gameForm(q.w), q.w[WORD_KEY]]);
       const input = document.getElementById("g-typed");
+      const ch = forced === undefined ? gameUmlautChoiceFor(ctx, v, q.w) : null;
+      if (ch) { gameUmlautAsk(ctx, ch, input, (ok, picked) => answerTyped(picked, ok)); return; }
+      ctx.busy = true;
+      const res = forced !== undefined ? forced : gradeTyped(v, [gameForm(q.w), q.w[WORD_KEY]], q.w);
       const rev = document.getElementById("l-reveal");
       if (rev) rev.innerHTML = res === true ? escapeHtml(gameForm(q.w)) : diffHtml(v, gameForm(q.w));
       if (res === true) { typedOk++; ctx.hit(q.w, "recall"); if (input) input.classList.add("correct"); good(q.w, input, 15); }

@@ -415,12 +415,12 @@ registerGame({
         return;
       }
       const ok = sayMode ? said : !skip && (typedCorrect(val, w) || bossSynonyms(w).some(x => typedCorrect(val, x)));
-      const near = !sayMode && !ok && !skip && isNearMiss(val, [w[WORD_KEY], gameForm(w)]);
+      const near = !sayMode && !ok && !skip && typedNear(val, w);
       if (sayMode) document.getElementById("bb-say").innerHTML = "";
       ctx.busy = true;
       if (near) {
         input.classList.add("near");
-        fb.innerHTML = `<span class="g-near">≈ Almost! ${diffHtml(val, gameForm(w))}</span>`;
+        fb.innerHTML = `<span class="g-near">≈ Almost! ${diffHtml(near, gameForm(w))}</span>`;
         ctx.say("Almost — check the spelling and try again");
         gTimeout(() => { ctx.busy = false; input.classList.remove("near"); input.select(); }, 900);
         return;

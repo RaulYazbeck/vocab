@@ -199,10 +199,14 @@ registerGame({
         render();
       }, 550);
     };
-    const answerTyped = v => {
+    // forced: the umlaut choice's result (a verb item: fahrt / fährt).
+    const answerTyped = (v, forced) => {
       if (ctx.busy || !cur.typed) return;
       const input = document.getElementById("g-typed");
-      const res = gradeTyped(v, [cur.t.word]);
+      const whole = normKey(cur.t.word) === normKey(gameForm(cur.w));
+      const ch = forced === undefined && whole ? gameUmlautChoiceFor(ctx, v, cur.w) : null;
+      if (ch) { gameUmlautAsk(ctx, ch, input, (ok, picked) => answerTyped(picked, ok)); return; }
+      const res = forced !== undefined ? forced : gradeTyped(v, [cur.t.word], cur.w);
       if (res === true) { typedOk++; ctx.hit(cur.w, "recall"); if (input) input.classList.add("correct"); win(document.getElementById("sc-slots"), 25); return; }
       ctx.busy = true;
       if (res === "near") {

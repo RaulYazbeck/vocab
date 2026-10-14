@@ -366,3 +366,25 @@
 .vx-ctx { color:var(--text-2); font-weight:500; }
 .vx-uml { font-weight:500; color:var(--text-2); font-size:0.9em; }
 .vx-gap.wide { min-width:120px; }
+
+/* The umlaut choice (1 / 2) — untimed, when only an umlaut was off */
+.vx-uml-ask { margin:12px 0 4px; text-align:center; }
+.vx-uml-q { font-weight:700; margin-bottom:8px; }
+.vx-uml-q span { display:block; font-weight:400; font-size:12px; color:var(--text-3); margin-top:2px; }
+.vx-uml-opts .g-opt-text { font-size:18px; }
+/* Not blended in: a faint amber edge and halo (the app's accent), which
+   breathes twice when the choice appears, then stays still. */
+.vx-uml-opts .g-opt:not(.right):not(.wrong) {
+  border-color:rgba(245,166,35,0.45); background:linear-gradient(var(--accent-dim), var(--accent-dim)), var(--glass, rgba(255,255,255,0.04));
+  box-shadow:0 0 0 1px rgba(245,166,35,0.10), 0 0 14px rgba(245,166,35,0.14);
+  animation:vxUmlIn 1.1s var(--ease, ease) 2 both;
+}
+.vx-uml-opts .g-opt:not(.right):not(.wrong) .g-key { color:var(--accent); }
+.vx-uml-opts .g-opt:hover:not(:disabled) { border-color:var(--accent); }
+@keyframes vxUmlIn {
+  0%   { box-shadow:0 0 0 1px rgba(245,166,35,0.10), 0 0 6px rgba(245,166,35,0.06); }
+  50%  { box-shadow:0 0 0 1px rgba(245,166,35,0.30), 0 0 22px rgba(245,166,35,0.26); }
+  100% { box-shadow:0 0 0 1px rgba(245,166,35,0.10), 0 0 14px rgba(245,166,35,0.14); }
+}
+@media (prefers-reduced-motion: reduce) { .vx-uml-opts .g-opt { animation:none !important; } }
+.vx-uml-hint { min-height:18px; margin-top:6px; font-size:13px; color:var(--warning, var(--text-2)); }

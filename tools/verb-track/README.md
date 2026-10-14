@@ -37,6 +37,12 @@ In the real app (Chromium via playwright-core from `../audio/tests`; run
                             # with each sheet's questions, never back, never a new total  (APP=fr)
     node t-tense.mjs        # the tense as the card's title; a right form of another tense is named and
                             # gets one more try (right then = right); ich hätte for ich hatte  (APP=fr)
+    node t-gameverbs.mjs    # verb items in the games (bonus rounds): the prompt names verb, tense and person,
+                            # typed forms graded like Today (pronoun, umlaut), the lesson shows the whole form  (APP=fr)
+    node t-gamesweep.mjs    # every Today bonus game with verb items in its pool, played by random taps and typed
+                            # answers, phone + desktop: no errors, nothing cut off, no verb without its person  (APP=fr)
+    node t-umlaut.mjs       # the umlaut choice (untimed): fahrt / fährt → 1 or 2 in Today, sheet quizzes and untimed
+                            # games; Enter spam never picks or skips; a right pick is right; timed games forgive
     node t-plural.mjs       # a plural missed in Plural Hunt is repaired as its plural (der Tisch → die ___)
     node t-adopt.mjs        # every old verb card taken over, nothing lost: no card lower, counts / levels /
                             # achievements never down, items take the cards' stage, never asked the old way,
