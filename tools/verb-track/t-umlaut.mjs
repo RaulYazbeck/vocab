@@ -86,6 +86,23 @@ const r = await page.evaluate(async () => {
   show("abfahren", "pr", "er"); typeEnter("fahrt ab");
   ok(ask() && /fährt ab/.test(ask().textContent), "Today: fahrt ab for er fährt ab → the choice");
   key(String(optFor("fährt ab") + 1), document.body); key("Enter", document.body);
+  // The card redrawn while asking (the mic toggled…): the box is gone — typing again asks again, never stuck.
+  show("fahren", "pr", "er"); typeEnter("fahrt");
+  document.getElementById("p-fb").innerHTML = "";
+  const pi = document.getElementById("p-input"); pi.disabled = false;
+  typeEnter("fahrt");
+  ok(ask() && !s.answered, "Today: the choice drawn away (a redraw) → typing again asks again (not stuck)");
+  key(String(optFor("fährt") + 1), document.body);
+  ok(s.answered, "…and the pick counts");
+  key("Enter", document.body);
+  // A dialog on top while asking: its keys are its own (Enter isn't swallowed).
+  show("fahren", "pr", "er"); typeEnter("fahrt");
+  const ov = document.createElement("div"); ov.className = "modal-overlay"; document.body.appendChild(ov);
+  let got = false; const lis = () => { got = true; }; document.addEventListener("keydown", lis);
+  key("Enter", document.body);
+  document.removeEventListener("keydown", lis); ov.remove();
+  ok(got && ask() && !s.answered, "Today: a dialog over the choice gets its Enter; the choice waits");
+  key(String(optFor("fährt") + 1), document.body); key("Enter", document.body);
   // Escape while asking: leaves without a stuck key grab
   show("laufen", "pr", "er"); typeEnter("lauft");
   ok(ask(), "Today: lauft → the choice");

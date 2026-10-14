@@ -368,15 +368,13 @@ function gsQuizCheck() {
   if (Q.k === "type") {
     const inp = document.getElementById("gs-input"), val = inp ? inp.value : "";
     if (!val.trim()) { if (inp) shakeEl(inp); return; }
-    if (cur.umlAsking) return;
+    if (vxUmlautAsking(document.getElementById("gs-qfb"))) return;
     const x = gsQuizVerb(Q);
     // Only an umlaut off, on a verb where it changes the form: 1 or 2.
     const ch = x ? vxUmlautChoice(val, Q.a, x, vxIsCommand(Q)) : null;
     if (ch) {
-      cur.umlAsking = true;
       inp.disabled = true;
       vxUmlautAsk(document.getElementById("gs-qfb"), ch, (ok, picked) => {
-        cur.umlAsking = false;
         if (!_gs || _gs.quiz !== q || q.list[q.i] !== cur || q.answered) return;
         cur.uml = false; cur.extra = false;
         inp.value = picked;
@@ -952,13 +950,11 @@ function pathCheckVerb() {
 }
 function pathVerbUmlautAsk(ch, val) {
   const s = pathSession, it = s.cur;
-  if (it.umlAsking) return;
-  it.umlAsking = true;
+  if (vxUmlautAsking(document.getElementById("p-fb"))) return;
   const input = document.getElementById("p-input");
   if (input) input.disabled = true;
   pathSetActions("");
   vxUmlautAsk(document.getElementById("p-fb"), ch, (ok, picked) => {
-    it.umlAsking = false;
     if (pathSession !== s || s.cur !== it) return;
     if (input) { input.disabled = false; input.value = picked; }
     pathGradeVerb(ok ? ch.right : picked, ok);
@@ -989,6 +985,9 @@ function pathVerbTenseRetry(other, val) {
 // skip (you may still be pressing Enter after typing) — they point at
 // 1 / 2. Keys are taken before anything else (capture), and given back
 // once picked or once host has left the page. onPick(right, picked).
+// Is a choice showing now (in root)? (Not a flag: a redraw — the mic
+// toggled, the card drawn again — removes the box, and then it asks anew.)
+function vxUmlautAsking(root) { const b = (root || document).querySelector(".vx-uml-ask"); return !!(b && b.offsetParent && !b.querySelector(".g-opt:disabled")); }
 function vxUmlautAsk(host, ch, onPick) {
   if (!host) return false;
   const opts = [{ t: ch.right, ok: true }, ...(ch.others || [ch.other]).map(t => ({ t, ok: false }))];
@@ -1009,6 +1008,8 @@ function vxUmlautAsk(host, ch, onPick) {
   const key = e => {
     // Gone or hidden (the session left, another screen): let go of the keys.
     if (done || !box.isConnected || !box.offsetParent) { off(); return; }
+    // A dialog on top (Leave the session?…) or another text box owns the keys.
+    if (document.querySelector(".modal-overlay") || (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) && !e.target.disabled)) return;
     const d = parseInt(e.key, 10);
     if (d >= 1 && d <= opts.length) { e.preventDefault(); e.stopImmediatePropagation(); pick(d - 1); }
     else if (e.key === "Enter" || e.key === " ") {
