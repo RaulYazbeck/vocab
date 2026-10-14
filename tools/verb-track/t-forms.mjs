@@ -51,6 +51,8 @@ const out = await page.evaluate(() => {
   if (VX_FR) return vxFormsAuditFr();
   const strip = h => { const d = document.createElement("div"); d.innerHTML = h; return d.innerText.replace(/…/g, " ").replace(/!/g, " ").replace(/\s+/g, " ").trim(); };
   const issues = {}, add = (k, s) => { (issues[k] = issues[k] || []).push(s); };
+  const SAME_IN_ENGLISH = new Set(["bring", "camp", "check", "fall", "fax", "google", "grill", "pack", "park", "plan",
+    "sing", "sink", "stand", "stink", "surf", "warn"]);
   let n = 0;
   const kinds = new Set(VX_RULES.map(r => r.kind).concat(["pr", "pt", "pf", "pq", "fu", "im", "sc", "p2", "k2s"]));
   for (const x of vxVerbs()) for (const kind of kinds) for (const p of ["ich", "du", "er", "wir", "ihr", "sie", "Sie"]) {
@@ -80,9 +82,13 @@ const out = await page.evaluate(() => {
     // the prompt gives nothing of the answer away (beyond the person / context)
     const prompt = strip(vxPromptHtml(ex)).split(x.inf)[0].replace(/^.*?(Präsens|Präteritum|Perfekt|Plusquamperfekt|Futur I|Imperativ|Konjunktiv II · past|Konjunktiv II|Passiv)\s*/, "");
     const pw = prompt.toLowerCase().split(/[\s()]+/).filter(Boolean);
-    const leak = words.filter(w => w.length > 1 && pw.includes(w.toLowerCase()) && !(w === "Sie" && kind !== "pvpr") && !["mit", "anna"].includes(w.toLowerCase()) && w.toLowerCase() !== p.toLowerCase());
+    // English meanings spelled like a German form (to bring → bring!) are
+    // coincidences, not hints: listed one by one, so a new one still shows.
+    const leak = words.filter(w => w.length > 1 && pw.includes(w.toLowerCase()) && !(w === "Sie" && kind !== "pvpr") && !["mit", "anna"].includes(w.toLowerCase()) && w.toLowerCase() !== p.toLowerCase()
+      && !SAME_IN_ENGLISH.has(w.toLowerCase()));
     if (leak.length && !(/^im/.test(kind) && leak.every(w => w === "Sie"))) add("prompt shows part of the answer", `${tag}: prompt "${prompt}" ← ${leak.join(",")}`);
-    if (/^im/.test(kind) && p === "Sie" && /\bSie\b.*\bSie\b/.test(prompt)) add("prompt shows Sie", `${tag}: ${prompt}`);
+    // A meaning that names Sie itself (siezen: "… (as Sie)") hints nothing the (Sie) doesn't.
+    if (/^im/.test(kind) && p === "Sie" && /\bSie\b.*\bSie\b/.test(prompt.replace(vxMeaning(x), ""))) add("prompt shows Sie", `${tag}: ${prompt}`);
   }
   return { n, issues: Object.fromEntries(Object.entries(issues).map(([k, v]) => [k, { count: v.length, first: v.slice(0, 8) }])) };
 });
