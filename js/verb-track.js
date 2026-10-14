@@ -1230,10 +1230,11 @@ function vxUmlautAlternates(x) { return !VX_FR && !!x && !!x.inf && vxUmlWords(x
 // würde, konnte / könnte, musst / müsst, durfte / dürfte, mochte /
 // möchte, warst / wärst — always (another tense or person).
 const VX_UML_AUX = /^(hatt|wurd|konn|muss|durf|moch|war)/;
-function vxUmlWordMatters(x, answerWord, typedWord) {
+// last: the form's last word of several — only there can the particle be.
+function vxUmlWordMatters(x, answerWord, typedWord, last = false) {
   if (VX_EXTRA_BAN.test(normalize(answerWord))) return VX_UML_AUX.test(vxUmlKey(answerWord));
   const inf = x.inf.replace(/^sich /, "").toLowerCase();
-  if (answerWord.length < inf.length && inf.startsWith(answerWord)) return false; // the particle (an, über)
+  if (last && answerWord.length < inf.length && inf.startsWith(answerWord)) return false; // the particle (fährt ab, setzt über)
   if (!vxUmlWords(x).alt) return false;
   // An umlaut the infinitive has in the same place never changes (the ü
   // of überfahren); one it doesn't, or one added, is the alternation.
@@ -1251,7 +1252,7 @@ function vxUmlautChoice(val, acc, x, cmd = false) {
     if (!typed) continue;
     const tw = vxUmlKey(typed) === vxUmlKey(a) ? String(typed).toLowerCase().normalize("NFC").replace(/\s+/g, " ").trim().split(" ") : [];
     const aw = String(a).toLowerCase().normalize("NFC").split(" ");
-    if (tw.length !== aw.length || !aw.some((w, i) => w !== tw[i] && vxUmlWordMatters(x, w, tw[i]))) continue;
+    if (tw.length !== aw.length || !aw.some((w, i) => w !== tw[i] && vxUmlWordMatters(x, w, tw[i], aw.length > 1 && i === aw.length - 1))) continue;
     // Show the other spelling as the verb's own form when it is one (faehrt → fährt).
     const own = [...vxOwnForms(x).exact].find(f => vxEq(f, typed)) || String(t).trim();
     if (vxEq(a, own) || vxUmlKey(own) !== vxUmlKey(a)) continue;

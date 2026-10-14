@@ -69,6 +69,14 @@ const r = await page.evaluate(async () => {
   show("fahren", "pr", "du"); typeEnter("fahrst");
   ok(ask() && /fährst/.test(ask().textContent), "Today: fahrst for du fährst (not a real form) → the choice too");
   key(String(optFor("fährst") + 1), document.body); key("Enter", document.body);
+  // A form that is the start of its infinitive (fahre ⊂ fahren) is no particle: asked too.
+  show("fahren", "pr", "ich"); typeEnter("fähre");
+  ok(ask() && /fahre/.test(ask().textContent), "Today: fähre for ich fahre → the choice (not taken for a particle)");
+  key(String(optFor("fahre") + 1), document.body); key("Enter", document.body);
+  show("abfahren", "pr", "er"); typeEnter("fährt äb");
+  ok(!ask(), "Today: fährt äb (umlaut on the particle) → no question");
+  if (!s.answered) { const i = document.getElementById("p-input"); i.value = "fährt ab"; key("Enter", i); }
+  key("Enter", document.body);
   // Escape while asking: leaves without a stuck key grab
   show("laufen", "pr", "er"); typeEnter("lauft");
   ok(ask(), "Today: lauft → the choice");
