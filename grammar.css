@@ -366,6 +366,7 @@
 .gr-drill { margin-top:8px; }
 .vd-h { margin:4px 0 14px; }
 .g-options.vd-sizes { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:16px; }
+.g-options.vd-sizes > .g-opt:last-child { grid-column:auto; }
 .vd-size { justify-content:center; text-align:center; min-height:64px; }
 .vd-size .g-opt-text { display:flex; flex-direction:column; align-items:center; gap:2px; font-size:13px; color:var(--text-2); }
 .vd-size .g-opt-text b { font-size:22px; font-weight:900; color:var(--text); }
