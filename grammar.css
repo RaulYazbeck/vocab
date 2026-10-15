@@ -345,6 +345,7 @@
 .vx-uml-q { font-weight:700; margin-bottom:8px; }
 .vx-uml-q span { display:block; font-weight:400; font-size:12px; color:var(--text-3); margin-top:2px; }
 .vx-uml-opts .g-opt-text { font-size:18px; }
+.vx-uml-opts .g-opt.long .g-opt-text { font-size:15px; }
 /* Not blended in: a faint amber edge and halo (the app's accent), which
    breathes twice when the choice appears, then stays still. */
 .vx-uml-opts .g-opt:not(.right):not(.wrong) {

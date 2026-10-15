@@ -116,6 +116,7 @@ function gameUmlautChoiceFor(ctx, val, word) {
 // Draws the choice in the teach area; the game waits (busy) until it's
 // picked. done(right, picked).
 function gameUmlautAsk(ctx, ch, input, done) {
+  if (ch.wrong) { done(false, ch.typed); return; } // drücke for drucke: a miss, nothing to ask
   ctx.busy = true;
   if (input) input.disabled = true;
   ctx.teach(`<div id="g-uml"></div>`); // the lesson card: shown, and the clock (if any) stands
