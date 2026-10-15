@@ -296,7 +296,7 @@ qt({ id: "a_plan", slot: "A", fam: "plan", icon: "📅", w: 0, fixed: true, ok: 
   prog: m => m.ok, go: "path" });
 qt({ id: "a_typed", slot: "A", fam: "typed", icon: "⌨️", w: 3, target: c => sz(c, 0.45, 10, 90),
   title: q => speakOn() ? `Recall ${q.target} words out loud (any mode)` : `Type ${q.target} correct answers (any mode)`, prog: m => m.typed, go: "path" });
-qt({ id: "a_clear", slot: "A", fam: "clear", icon: "🧹", w: 2,
+qt({ id: "a_clear", finite: true, slot: "A", fam: "clear", icon: "🧹", w: 2,
   ok: c => c.scan.due >= 8 && c.scan.due <= Math.max(12, c.G * 0.6), target: c => c.scan.due,
   title: q => `Clear every review due today (${q.target})`,
   prog: (m, q) => Math.max(0, q.target - pathScan().due), go: "path" });
@@ -342,15 +342,15 @@ qt({ id: "a_verbs", slot: "A", fam: "pos", icon: "🏃", w: 1, ok: c => c.pos.ve
   title: q => `${q.target} verbs ${sayOr("typed", "recalled")} right`, sub: () => typeof vxOn === "function" && vxOn() ? "verb words and verb forms both count" : "",
   prog: m => m.pos.verb, go: () => typeof vxOn === "function" && vxOn() ? "path" : "focus:pos:verb" });
 // The verb track: its forms in Today, its repairs, the ledger.
-qt({ id: "a_vxfix", slot: "A", fam: "fix", icon: "🩹", w: 2, ok: c => !!c.vx && c.vx.fix >= 2, target: c => c.vx ? Math.min(6, c.vx.fix) : 2,
+qt({ id: "a_vxfix", finite: true, slot: "A", fam: "fix", icon: "🩹", w: 2, ok: c => !!c.vx && c.vx.fix >= 2, target: c => c.vx ? Math.min(6, c.vx.fix) : 2,
   title: q => `Repair ${q.target} verb form${q.target > 1 ? "s" : ""} you slipped on`, sub: () => "they open your next Today session", prog: m => m.vxFixed, go: "path" });
-qt({ id: "a_vxsure", slot: "A", fam: "verbs", icon: "🎯", w: 1.2, ok: c => !!c.vx && c.vx.due + c.vx.items + c.vx.cells >= 8, target: c => c.vx ? Math.min(15, Math.max(5, Math.round((c.vx.due + c.vx.items + c.vx.cells) * 0.6))) : 5,
+qt({ id: "a_vxsure", finite: true, slot: "A", fam: "verbs", icon: "🎯", w: 1.2, ok: c => !!c.vx && c.vx.due + c.vx.items + c.vx.cells >= 8, target: c => c.vx ? Math.min(15, Math.max(5, Math.round((c.vx.due + c.vx.items + c.vx.cells) * 0.6))) : 5,
   title: q => `${q.target} verb forms right at the first try`, sub: () => "the right tense straight away — no second chance, no hint", prog: m => m.vxTenseSure, go: "path" });
 qt({ id: "a_nouns", slot: "A", fam: "pos", icon: "🏷️", w: 1, ok: c => c.pos.noun >= 15, target: c => sz(c, 0.15, 8, 30),
   title: q => `${q.target} nouns ${sayOr("typed", "said")} with the right article`, prog: m => m.art, go: "focus:pos:noun" });
 qt({ id: "a_adj", slot: "A", fam: "pos", icon: "🎨", w: 1, ok: c => c.pos.adj >= 15, target: c => sz(c, 0.13, 8, 25),
   title: q => `${q.target} adjectives ${sayOr("typed", "recalled")} right`, prog: m => m.pos.adj, go: "focus:pos:adj" });
-qt({ id: "a_fix", slot: "A", fam: "fix", icon: "🔧", w: 1.2, target: c => c.G >= 50 ? 8 : 4,
+qt({ id: "a_fix", finite: true, slot: "A", fam: "fix", icon: "🔧", w: 1.2, target: c => c.G >= 50 ? 8 : 4,
   title: q => `Fix ${q.target} mistakes: get right words you missed earlier today`, prog: m => m.fixedSameDay, go: "path" });
 qt({ id: "a_fast", slot: "A", fam: "fast", icon: "⚡", w: 1.2, target: c => sz(c, 0.15, 8, 25),
   title: q => speakOn() ? `Quick recall: ${q.target} words in under 5 seconds` : `Quick fingers: ${q.target} typed answers in under 5 seconds`, prog: m => m.fast, go: "path" });
@@ -373,24 +373,24 @@ qt({ id: "a_longhaul", slot: "A", fam: "sitting", icon: "🧗", w: 1, ok: c => c
   title: q => `Long haul: ${q.target} answers in one sitting`, prog: m => m.sittingMax, go: "path:long" });
 
 // B · GROWTH — moving words forward
-qt({ id: "b_meet", slot: "B", fam: "meet", icon: "🌱", w: 3, ok: c => c.quota.left >= 3, target: c => c.quota.left,
+qt({ id: "b_meet", finite: true, slot: "B", fam: "meet", icon: "🌱", w: 3, ok: c => c.quota.left >= 3, target: c => c.quota.left,
   title: q => `Meet your ${q.target} new words`, prog: m => m.met, go: "path" });
 // The verb track (verb-track.js): a lesson waiting — its sheet in Today.
-qt({ id: "b_sheet", slot: "B", fam: "grammar", icon: "📖", w: 4,
+qt({ id: "b_sheet", finite: true, slot: "B", fam: "grammar", icon: "📖", w: 4,
   ok: () => typeof vxOn === "function" && vxOn() && vxSheetsToday().length > 0, target: () => 1,
   title: () => `Pass today's grammar sheet`, sub: () => { const p = typeof vxSheetsToday === "function" ? vxSheetsToday() : []; const sh = p.length && vxSheet(p[0]); return sh ? `${VX_UNIT[sh.unit].name} · ${sh.title}` : ""; },
   prog: m => m.vxSheets || 0, go: "path" });
-qt({ id: "b_vxforms", slot: "B", fam: "verbs", icon: "🧩", w: 3, ok: c => !!c.vx && c.vx.due + c.vx.items + c.vx.cells >= 6, target: c => c.vx ? Math.min(30, Math.max(6, c.vx.due + c.vx.items * 2 + c.vx.cells)) : 6,
+qt({ id: "b_vxforms", finite: true, slot: "B", fam: "verbs", icon: "🧩", w: 3, ok: c => !!c.vx && c.vx.fix + c.vx.due + c.vx.items + c.vx.cells >= 6, target: c => c.vx ? Math.min(30, Math.max(6, c.vx.fix + c.vx.due + c.vx.items + c.vx.cells)) : 6,
   title: q => `${q.target} verb forms right in Today`, sub: () => "reviews, new verb items and ledger forms", prog: m => m.vxOk, go: "path" });
-qt({ id: "b_ledger", slot: "B", fam: "verbs", icon: "📒", w: 2, ok: c => !!c.vx && c.vx.cells >= 4, target: c => c.vx ? c.vx.cells : 4,
+qt({ id: "b_ledger", finite: true, slot: "B", fam: "verbs", icon: "📒", w: 2, ok: c => !!c.vx && c.vx.cells >= 4, target: c => c.vx ? c.vx.cells : 4,
   title: q => `Fill ${q.target} new form${q.target > 1 ? "s" : ""} in your verb ledger`, sub: () => "a verb in a tense you hadn't produced yet", prog: m => m.vxCells, go: "path" });
-qt({ id: "b_up", slot: "B", fam: "up", icon: "📈", w: 3, ok: c => c.scan.due >= 8, target: c => Math.min(c.scan.due, sz(c, 0.13, 5, 25)),
+qt({ id: "b_up", finite: true, slot: "B", fam: "up", icon: "📈", w: 3, ok: c => c.scan.due >= 8, target: c => Math.min(c.scan.due, sz(c, 0.13, 5, 25)),
   title: q => `Move ${q.target} words up a stage`, prog: m => m.up, go: "path" });
-qt({ id: "b_heal", slot: "B", fam: "repair", icon: "🩹", w: 3, ok: c => c.scan.repair >= 1, target: c => c.scan.repair,
+qt({ id: "b_heal", finite: true, slot: "B", fam: "repair", icon: "🩹", w: 3, ok: c => c.scan.repair >= 1, target: c => c.scan.repair,
   title: q => `Heal every 🩹 word (${q.target})`, prog: m => m.repaired, go: "path" });
-qt({ id: "b_known", slot: "B", fam: "known", icon: "🌳", w: 2, ok: c => c.st4due >= 3, target: c => Math.min(c.st4due, 8),
+qt({ id: "b_known", finite: true, slot: "B", fam: "known", icon: "🌳", w: 2, ok: c => c.st4due >= 3, target: c => Math.min(c.st4due, 8),
   title: q => `Push ${q.target} words to 🌳 Known`, prog: m => m.known, go: "path" });
-qt({ id: "b_strong", slot: "B", fam: "known", icon: "⭐", w: 1.5, ok: c => c.st5due >= 3, target: c => Math.min(c.st5due, 6),
+qt({ id: "b_strong", finite: true, slot: "B", fam: "known", icon: "⭐", w: 1.5, ok: c => c.st5due >= 3, target: c => Math.min(c.st5due, 6),
   title: q => `Push ${q.target} words to ⭐ Strong`, prog: m => m.strong, go: "path" });
 qt({ id: "b_spot", slot: "B", fam: "spot", icon: "🔍", w: 1.2, ok: c => c.scan.locked >= 5, target: () => 3,
   title: q => `Spot-check ${q.target} 💎 words`, prog: m => m.spot, go: "focus:spot" });
@@ -414,7 +414,7 @@ qt({ id: "b_crown", slot: "B", fam: "crown", icon: "👑", w: 1.5,
   params: (c, rng) => ({ deck: pickFrom(c.metDecks.filter(d => d.met === d.total && d.known < d.total && d.known / d.total >= 0.5), rng).id }),
   target: (c, q) => Math.min(10, Math.max(3, c.dueByDeck[q.p.deck] || 3)),
   title: q => `Crown hunt: ${q.target} words of ${deckName(q.p.deck)} up a stage`, prog: (m, q) => m.upDeck[q.p.deck] || 0, go: q => `focus:deck:${q.p.deck}` });
-qt({ id: "b_flags", slot: "B", fam: "repair", icon: "⚠️", w: 1.5, ok: c => c.scan.flagged >= 2, target: c => c.scan.flagged,
+qt({ id: "b_flags", finite: true, slot: "B", fam: "repair", icon: "⚠️", w: 1.5, ok: c => c.scan.flagged >= 2, target: c => c.scan.flagged,
   title: q => `Clear all ⚠️ flags (${q.target})`, prog: m => m.unflagged, go: "path" });
 qt({ id: "b_level", slot: "B", fam: "up", icon: "🪜", w: 1.2, ok: c => c.frontierIdx >= 0 && c.scan.due >= 10,
   params: c => ({ g: c.scan.groups[Math.max(0, c.frontierIdx)].id }), target: c => sz(c, 0.1, 5, 15),
@@ -586,7 +586,7 @@ qt({ id: "d_fivedecks", slot: "D", fam: "deck", icon: "🖐️", w: 1.2, ok: c =
   title: () => `Five decks: correct answers from 5 different decks`, prog: m => Object.keys(m.decks).length, go: "path" });
 qt({ id: "d_earlygrowth", slot: "D", fam: "time", icon: "🌤️", w: 1, ok: c => c.hour < 10 && c.quota.left >= 3, target: c => c.quota.left,
   title: q => `Early growth: meet today's ${q.target} new words before noon`, prog: m => m.metBeforeNoon, go: "path" });
-qt({ id: "d_spree", slot: "D", fam: "up", icon: "🎉", w: 1.2, ok: c => c.scan.due >= 10, target: () => 5,
+qt({ id: "d_spree", finite: true, slot: "D", fam: "up", icon: "🎉", w: 1.2, ok: c => c.scan.due >= 10, target: () => 5,
   title: q => `Level-up spree: ${q.target} words up a stage in one session`, prog: m => Math.max(0, ...m.sessions.map(s => s.up || 0)), go: "path" });
 qt({ id: "d_bigrun", slot: "D", fam: "run", icon: "🌊", w: 1, ok: c => c.G >= 100, target: () => 25,
   title: q => `Big streak: ${q.target} correct in a row`, prog: m => m.bestRun, go: "path" });
@@ -780,35 +780,46 @@ function questProgOf(q) {
   return Math.max(0, Math.min(q.target, p));
 }
 function questAllDone() { return S.quests.list.length === 4 && S.quests.list.every(q => q.done); }
-// Finishing Today finishes the quests Today feeds. Targets are sized in
-// the morning from estimates (verb forms, accuracy runs…), and once the
-// Today card says "All caught up" nothing is left to earn the rest with —
-// a quest that only Today can feed would be stuck for good. So when a
-// session leaves nothing due, nothing new and no sheet waiting, those
-// quests are settled as done. Games, deck/level focus quests and
-// session-shaped quests (Long session, two sessions) are not Today's.
+// Finishing Today finishes the quests only Today can feed. Their targets
+// are sized in the morning from what Today holds, but a miss, a hint or a
+// repair uses up an item without counting for the quest, so the day can
+// end a few short with nothing left to ask. Once the Today card says
+// "All caught up", a `finite` quest's target is brought down to what was
+// earned — it is finished, never stuck. Games, deck/level/focus quests
+// (extra practice can feed them) and time/session quests are untouched.
 function questTodayExhausted() {
   const t = pathTodaySummary();
   const vx = typeof vxTodayCounts === "function" ? vxTodayCounts() : { due: 0, fresh: 0 };
   const sheets = typeof vxOn === "function" && vxOn() && typeof vxSheetsToday === "function" ? vxSheetsToday().length : 0;
   return !(t.due + vx.due) && !(t.newLeft + vx.fresh) && !sheets;
 }
-function questFedByToday(q) {
-  const t = byId(q.tpl);
-  if (!t || q.tpl === "d_mystery" || t.fam === "sessions" || t.fam === "sitting") return false;
-  let go = t.go; try { if (typeof go === "function") go = go(q); } catch (e) { go = ""; }
-  return go === "path";
-}
-function questSettleToday() {
+function questFitFinite() {
   const Q = S.quests;
   if (!Q || !Q.list || !Q.list.length || !(Q.m.ok > 0)) return;
-  const open = Q.list.map((q, i) => [q, i]).concat(Q.weekend ? [[Q.weekend, "W"]] : [])
-    .filter(([q]) => !q.done && questFedByToday(q));
+  const open = Q.list.concat(Q.weekend ? [Q.weekend] : []).filter(q => { const t = byId(q.tpl); return !q.done && t && t.finite && q.prog < q.target; });
   if (!open.length || !questTodayExhausted()) return;
-  open.forEach(([q, i]) => { q.prog = q.target; q.done = true; q.doneAt = Date.now(); });
-  logEvent("quest_settle", { ids: open.map(([q]) => q.tpl) });
-  open.forEach(([q, i]) => questPay(q, i));
-  if (!Q.dayDone && questAllDone()) questDayComplete();
+  open.forEach(q => { q.target = q.prog; });
+  logEvent("quest_fit", { ids: open.map(q => q.tpl) });
+  questRecompute();
+}
+// Still-open quests that extra practice can fill (a deck, a kind of word,
+// sentences…): the end of a Today session points at them.
+function questFocusOpen() {
+  const Q = S.quests;
+  if (!Q || !Q.list) return [];
+  return Q.list.map((q, i) => [q, i]).filter(([q]) => {
+    if (q.done || q.tpl === "d_mystery") return false;
+    const t = byId(q.tpl); if (!t) return false;
+    let go = t.go; try { if (typeof go === "function") go = go(q); } catch (e) { return false; }
+    return typeof go === "string" && go.startsWith("focus:") && !go.startsWith("focus:new");
+  });
+}
+function questFocusCtaHtml() {
+  const open = questFocusOpen().slice(0, 2);
+  if (!open.length) return "";
+  return `<div class="g-missed p-moves"><div class="examples-title">Still open — a short round finishes ${open.length > 1 ? "them" : "it"}</div>${open.map(([q, i]) => `
+    <div class="p-move"><span class="p-move-w">${questIcon(q)} ${escapeHtml(questTitle(q, true))}<small>${q.prog} / ${q.target}</small></span>
+    <button class="g-sec-btn" onclick="questGo(${i})">▶ Go</button></div>`).join("")}</div>`;
 }
 // Recompute every quest; pay out newly finished ones.
 function questRecompute(silent = false) {
@@ -929,7 +940,7 @@ function questEvent(type, d = {}) {
       if (d.wotdHit) { const id = m.sessions.length; if (!m.wotd.includes(id)) m.wotd.push(id); }
       questMaybeFlash();
       questMaybeLucky();
-      if (!d.abandoned) { questRecompute(); questSettleToday(); }
+      if (!d.abandoned) { questRecompute(); questFitFinite(); }
       break;
     }
     case "game_end": questOnGame(m, d); break;

@@ -1158,6 +1158,7 @@ function renderPathSummary(abandoned) {
           ${s.golden ? `<span class="p-chip gold">🌟 ${s.golden} golden</span>` : ""}
         </div>
         ${typeof questMiniHtml === "function" ? questMiniHtml() : ""}
+        ${typeof questFocusCtaHtml === "function" ? questFocusCtaHtml() : ""}
         ${upRows ? `<div class="g-missed p-moves"><div class="examples-title">Moved forward</div>${upRows}</div>` : ""}
         ${missedListHtml(missed, !openLeft && s.repairN ? `Missed today (${missed.length}) — all repaired ✓`
           : openLeft && openLeft < missed.length ? `Missed today (${missed.length}) — ${openLeft} still to fix` : "")}
