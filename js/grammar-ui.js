@@ -372,6 +372,8 @@ function gsQuizCheck() {
     const x = gsQuizVerb(Q);
     // Only an umlaut off, on a verb where it changes the form: 1 or 2.
     const ch = x ? vxUmlautChoice(val, Q.a, x, vxIsCommand(Q)) : null;
+    // An umlaut typed that makes it another real form (drücke for drucke): a miss.
+    if (ch && ch.wrong) { cur.uml = false; cur.extra = false; inp.disabled = true; inp.classList.add("wrong"); gsQuizAnswered(false, val); return; }
     if (ch) {
       inp.disabled = true;
       vxUmlautAsk(document.getElementById("gs-qfb"), ch, (ok, picked) => {
@@ -886,7 +888,7 @@ function pathCheckVerb() {
   const ex = s.cur.w.vx;
   // Only an umlaut off, on a verb where it changes the form: 1 or 2.
   const ch = vxUmlautChoice(val, ex.form.acc, ex.x, vxIsCommand(ex));
-  if (ch) { pathVerbUmlautAsk(ch, val); return; }
+  if (ch && !ch.wrong) { pathVerbUmlautAsk(ch, val); return; }
   const g = vxGrade(val, ex);
   // The right verb and person in another tense (er kommt for the
   // Perfekt): never graded — the tense is pointed out, try again, as often
@@ -895,7 +897,9 @@ function pathCheckVerb() {
   const other = g !== true ? vxOtherTense(val, ex)
     : vxUmlautOnly(val, ex.form.acc, vxIsCommand(ex)) ? vxOtherTense(val, ex, true) : null;
   if (other) { pathVerbTenseRetry(other, val); return; }
-  pathGradeVerb(val, g);
+  // An umlaut typed that makes it another real form (drücke for drucke):
+  // a miss, not a forgiven umlaut.
+  pathGradeVerb(val, ch && ch.wrong ? false : g);
 }
 function pathVerbUmlautAsk(ch, val) {
   const s = pathSession, it = s.cur;
@@ -942,8 +946,8 @@ function vxUmlautAsk(host, ch, onPick) {
   const opts = [{ t: ch.right, ok: true }, ...(ch.others || [ch.other]).map(t => ({ t, ok: false }))];
   for (let i = opts.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [opts[i], opts[j]] = [opts[j], opts[i]]; }
   host.innerHTML = `<div class="vx-uml-ask">
-    <div class="vx-uml-q">Which one? <span>with or without umlaut — both are real forms</span></div>
-    <div class="g-options vx-uml-opts">${opts.map((o, i) => `<button class="g-opt" data-u="${i}"><span class="g-key">${i + 1}</span><span class="g-opt-text">${escapeHtml(o.t)}</span></button>`).join("")}</div>
+    <div class="vx-uml-q">Which one? <span>with or without umlaut — ${opts.length > 2 ? "all" : "both"} are real forms</span></div>
+    <div class="g-options vx-uml-opts">${opts.map((o, i) => `<button class="g-opt${o.t.length > 12 ? " long" : ""}" data-u="${i}"><span class="g-key">${i + 1}</span><span class="g-opt-text">${escapeHtml(o.t)}</span></button>`).join("")}</div>
     <div class="vx-uml-hint" aria-live="polite"></div></div>`;
   const box = host.querySelector(".vx-uml-ask");
   let done = false;
