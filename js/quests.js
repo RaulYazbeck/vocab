@@ -586,7 +586,7 @@ qt({ id: "d_fivedecks", slot: "D", fam: "deck", icon: "🖐️", w: 1.2, ok: c =
   title: () => `Five decks: correct answers from 5 different decks`, prog: m => Object.keys(m.decks).length, go: "path" });
 qt({ id: "d_earlygrowth", slot: "D", fam: "time", icon: "🌤️", w: 1, ok: c => c.hour < 10 && c.quota.left >= 3, target: c => c.quota.left,
   title: q => `Early growth: meet today's ${q.target} new words before noon`, prog: m => m.metBeforeNoon, go: "path" });
-qt({ id: "d_spree", finite: true, slot: "D", fam: "up", icon: "🎉", w: 1.2, ok: c => c.scan.due >= 10, target: () => 5,
+qt({ id: "d_spree", slot: "D", fam: "up", icon: "🎉", w: 1.2, ok: c => c.scan.due >= 10, target: () => 5,
   title: q => `Level-up spree: ${q.target} words up a stage in one session`, prog: m => Math.max(0, ...m.sessions.map(s => s.up || 0)), go: "path" });
 qt({ id: "d_bigrun", slot: "D", fam: "run", icon: "🌊", w: 1, ok: c => c.G >= 100, target: () => 25,
   title: q => `Big streak: ${q.target} correct in a row`, prog: m => m.bestRun, go: "path" });
@@ -770,6 +770,7 @@ function questProgOf(q) {
   const t = byId(q.tpl);
   if (!t) return 0;
   const m = S.quests.m;
+  if (q.fit !== undefined) return q.target;
   if (q.tpl === "d_mystery" && q.hidden) return questProgOf(q.hidden) >= q.hidden.target ? 1 : 0;
   let p = 0;
   try { p = t.prog(m, q) || 0; } catch (e) { p = 0; }
@@ -784,8 +785,8 @@ function questAllDone() { return S.quests.list.length === 4 && S.quests.list.eve
 // are sized in the morning from what Today holds, but a miss, a hint or a
 // repair uses up an item without counting for the quest, so the day can
 // end a few short with nothing left to ask. Once the Today card says
-// "All caught up", a `finite` quest's target is brought down to what was
-// earned — it is finished, never stuck. Games, deck/level/focus quests
+// "All caught up", an open `finite` quest is finished with what was
+// earned — never stuck. Games, deck/level/focus quests
 // (extra practice can feed them) and time/session quests are untouched.
 function questTodayExhausted() {
   const t = pathTodaySummary();
@@ -798,8 +799,11 @@ function questFitFinite() {
   if (!Q || !Q.list || !Q.list.length || !(Q.m.ok > 0)) return;
   const open = Q.list.concat(Q.weekend ? [Q.weekend] : []).filter(q => { const t = byId(q.tpl); return !q.done && t && t.finite && q.prog < q.target; });
   if (!open.length || !questTodayExhausted()) return;
-  open.forEach(q => { q.target = q.prog; });
-  logEvent("quest_fit", { ids: open.map(q => q.tpl) });
+  // Pinned: progress is read from the day's counters, which can sit at or
+  // under what was earned (a hint, a due count that came back), and a
+  // target of what was earned could be 0.
+  open.forEach(q => { q.fit = q.prog; });
+  logEvent("quest_fit", { ids: open.map(q => q.tpl), got: open.map(q => q.prog) });
   questRecompute();
 }
 // Still-open quests that extra practice can fill (a deck, a kind of word,
