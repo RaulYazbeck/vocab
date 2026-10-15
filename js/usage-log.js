@@ -30,6 +30,7 @@ let _usageBuf = null, _usageSaveT = null;
 const USAGE_IDLE_MS = 90000;
 let _usageLastInput = 0, _usageActMs = 0;
 const _usageActAt = {};
+function _usageNoteInput() { _usageLastInput = Date.now(); }
 
 function migrateUsage() {
   if (!S.usage || typeof S.usage !== "object") S.usage = {};
@@ -143,7 +144,15 @@ function _usageAggregate(type, d, now) {
       break;
     }
     case "hint": day.hintTap = (day.hintTap || 0) + 1; break;
-    case "session_start": _inc(day.ses, d.kind || "?", 0); break;
+    case "session_start":
+      _inc(day.ses, d.kind || "?", 0);
+      // pm: what the Path queues held — items by exercise, Known+ items, and how many of those had a sentence for a cloze
+      if (d.mix) {
+        const pm = _uf(day, "pm", () => ({ t: {}, k: 0, kz: 0 }));
+        Object.entries(d.mix.t || {}).forEach(([k, n]) => pm.t[k] = (pm.t[k] || 0) + n);
+        pm.k += d.mix.k || 0; pm.kz += d.mix.kz || 0;
+      }
+      break;
     // The verb track (verb-track.js): vx = { sh: sheets passed, sf: quizzes
     // not passed, in: verb items started, cell: ledger forms done, u: tenses
     // opened, on: switched on/off, ma / mp: mastery quizzes taken / passed,
@@ -273,7 +282,7 @@ let _usageBeat = null;
 function startUsageClock() {
   clearInterval(_usageBeat);
   ["pointerdown", "keydown", "touchstart", "wheel"].forEach(ev =>
-    document.addEventListener(ev, () => { _usageLastInput = Date.now(); }, { passive: true, capture: true }));
+    document.addEventListener(ev, _usageNoteInput, { passive: true, capture: true })); // same function: added once
   _usageBeat = setInterval(() => {
     if (document.visibilityState !== "visible") return;
     const d = usageDay();
@@ -379,8 +388,10 @@ function buildUsageReport(nDays = 0) {
     return `${t.icon}${t.name} ${n} (${pct(ok, n)}): ` + ex.map(([k, x]) => `${k} ${x[0]}/${pct(x[1], x[0])}`).join(", ");
   });
   if (btl.length) lines.push(`Path answers by the word's tier before the answer (answers, ok%: exercise answers/ok%; recorded since ${days.find(([, v]) => v.bt)[0]}): ` + btl.join(" | "));
+  lines.push(...usageRebuiltLines(days));
   // Last 7 active days against the 7 before them.
-  if (activeDays.length >= 14) {
+  const doneDays = activeDays.filter(([d]) => d !== today); // today is still partial
+  if (doneDays.length >= 14) {
     const stat = rows => {
       const f = (fn) => rows.reduce((a, [, v]) => a + (fn(v) || 0), 0);
       const n = f(v => Object.values(v.ans || {}).reduce((a, x) => a + (x[0] || 0), 0)), ok = f(v => Object.values(v.ans || {}).reduce((a, x) => a + (x[1] || 0), 0));
@@ -388,8 +399,8 @@ function buildUsageReport(nDays = 0) {
       return { n: Math.round(n / rows.length), ok: pct(ok, n), lat: secs(f(v => v.lat[0]), f(v => v.lat[1])), min: Math.round(f(v => v.min) / rows.length),
         act: am.length ? Math.round(am.reduce((a, [, v]) => a + v.act, 0) / am.length) : null };
     };
-    const a = stat(activeDays.slice(-7)), b = stat(activeDays.slice(-14, -7));
-    lines.push(`Trend, last 7 active days vs the 7 before: answers/day ${a.n} vs ${b.n} · answers right ${a.ok} vs ${b.ok} · typing latency ${a.lat} vs ${b.lat} · minutes on screen/day ${a.min} vs ${b.min}` + (a.act != null && b.act != null ? ` (active ${a.act} vs ${b.act})` : ""));
+    const a = stat(doneDays.slice(-7)), b = stat(doneDays.slice(-14, -7));
+    lines.push(`Trend, last 7 finished active days vs the 7 before (today left out): answers/day ${a.n} vs ${b.n} · answers right ${a.ok} vs ${b.ok} · typing latency ${a.lat} vs ${b.lat} · minutes on screen/day ${a.min} vs ${b.min}` + (a.act != null && b.act != null ? ` (active ${a.act} vs ${b.act})` : ""));
   }
   lines.push(`Quests: done ${sum(v => v.q[0])} · rerolled ${sum(v => v.q[1])} · swapped 🔇 ${sum(v => v.q[2])} · full days ${sum(v => v.q[3])}`);
   const qs = Object.entries(qStats).sort((a, b) => b[1][0] - a[1][0]);
@@ -417,6 +428,67 @@ function buildUsageReport(nDays = 0) {
   lines.push(...usagePlanLines(activeDays));
   const json = JSON.stringify({ app: STORAGE_KEY, generated: new Date().toISOString(), days: Object.fromEntries(days), quests: qStats, tiers });
   return lines.join("\n") + "\n\n--- JSON ---\n" + json;
+}
+// Pieces that can be rebuilt from the progress itself, so they cover
+// days the daily counts didn't: the Path queues as planned (from when
+// they were recorded), the cloze supply right now, misses per day from
+// the per-word histories, lifetime accuracy by tier.
+function usageRebuiltLines(days) {
+  const out = [], pct = (a, b) => b ? Math.round(a / b * 100) + "%" : "—";
+  try {
+    const pm = { t: {}, k: 0, kz: 0 }; let since = "";
+    days.forEach(([d, v]) => {
+      if (!v.pm) return;
+      since = since || d;
+      Object.entries(v.pm.t || {}).forEach(([k, n]) => pm.t[k] = (pm.t[k] || 0) + n);
+      pm.k += v.pm.k || 0; pm.kz += v.pm.kz || 0;
+    });
+    if (since) out.push(`Path queues as planned (items by exercise, since ${since}): ` + Object.entries(pm.t).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(" · ") +
+      ` · of ${pm.k} Known+ items, ${pm.kz} had a sentence a cloze could use (${pct(pm.kz, pm.k)})`);
+  } catch (e) {}
+  try {
+    if (typeof vocabGroups === "function" && typeof clozeTarget === "function" && typeof pathWord === "function") {
+      let k = 0, kz = 0, r = 0, rz = 0;
+      vocabGroups().forEach(g => g.decks.forEach(d => d.words.forEach((_, i) => {
+        const ws = S.words[d.id + "_" + i];
+        if (!ws) return;
+        const was = ws.rt ? (ws.rtWas || {}).st || 0 : ws.st || 0;
+        if (was < STAGE_KNOWN) return;
+        const cz = !!clozeTarget(pathWord(d.id, i));
+        if (ws.rt) { r++; if (cz) rz++; } else { k++; if (cz) kz++; }
+      })));
+      out.push(`Cloze supply now: ${k} Known+ words in the word reviews, ${kz} with a sentence a cloze could use (${pct(kz, k)}); ` +
+        `${r} cards that were Known+ when the verb track took them over (${rz} had such a sentence — they no longer feed cloze)`);
+    }
+  } catch (e) {}
+  try {
+    // Misses per day: every word keeps its last LEARN_HIST misses, so recent days are
+    // complete and older ones only hold what each word still remembers.
+    const per = {}, add = (date, type) => { const o = per[date] || (per[date] = {}); o[type] = (o[type] || 0) + 1; };
+    Object.values(S.words || {}).forEach(ws => (ws && ws.mh || []).forEach(h => h && h[0] && add(String(h[0]), h[2] || "?")));
+    Object.values((S.learn && S.learn.verbs) || {}).forEach(v => (v.mh || []).forEach(h => h && h[0] && add(String(h[0]), h[5] || "?")));
+    const ds = Object.keys(per).sort().slice(-21);
+    if (ds.length) out.push(`Misses per day, rebuilt from the per-word histories (last ${LEARN_HIST} per word, so older days can fall short; types ranked, gender always shown): ` +
+      ds.map(d => {
+        const o = per[d], n = Object.values(o).reduce((a, x) => a + x, 0);
+        const top = Object.entries(o).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, x]) => `${k} ${x}`);
+        if (o.gender && !top.some(x => x.startsWith("gender "))) top.push(`gender ${o.gender}`);
+        return `${d.slice(5)} ${n} (${top.join(", ")})`;
+      }).join(" | "));
+  } catch (e) {}
+  try {
+    const t = {};
+    Object.values(S.words || {}).forEach(ws => {
+      if (!ws || ws.rt) return;
+      const n = (ws.correct || 0) + (ws.wrong || 0);
+      if (!n || typeof tierOfStage !== "function") return;
+      const id = tierOfStage(ws.st || 0).id, o = t[id] || (t[id] = [0, 0]);
+      o[0] += ws.correct || 0; o[1] += n;
+    });
+    const parts = TIERS.filter(x => t[x.id]).map(x => `${x.icon}${x.name} ${pct(t[x.id][0], t[x.id][1])} of ${t[x.id][1]}`);
+    if (parts.length) out.push(`Lifetime right answers by the word's tier now (words reach higher tiers by answering right, so this flatters them): ` + parts.join(" · "));
+  } catch (e) {}
+  return out;
 }
 // Chests: earned and opened by source, rarity mix against the base
 // odds, what decided the rarity, items, where they were opened. Opened

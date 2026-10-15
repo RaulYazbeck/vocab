@@ -40,11 +40,25 @@ function startPathSession(lenKey, opts = {}) {
     ok5: 0, upCount: 0, wotdHit: false, golden: 0,
   };
   pathMarkActive();
-  logEvent("session_start", { kind: "path", len: lenKey, n: q.items.length, nw: q.newWords, focus: q.focus || "" });
+  logEvent("session_start", { kind: "path", len: lenKey, n: q.items.length, nw: q.newWords, focus: q.focus || "", mix: pathQueueMix(q.items) });
   logScreen("path");
   renderPathShell();
   bindPathKeys();
   pathNext();
+}
+
+// What a queue holds, for the usage log: items by exercise, its Known+
+// items, and how many of those have a sentence a cloze could use.
+function pathQueueMix(items) {
+  try {
+    const t = {}; let k = 0, kz = 0;
+    items.forEach(it => {
+      t[it.t] = (t[it.t] || 0) + 1;
+      const ws = it.w && S.words[wordKey(it.w)];
+      if (ws && ws.st >= STAGE_KNOWN && !ws.rt && !pathIsDrill(it.w)) { k++; if (clozeTarget(it.w)) kz++; }
+    });
+    return { t, k, kz };
+  } catch (e) { return undefined; }
 }
 
 // ── SHELL ─────────────────────────────────────
