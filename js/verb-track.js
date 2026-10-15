@@ -1923,7 +1923,7 @@ function vxReportLines() {
   const passed = Object.keys(S.verb.sh || {}).filter(id => S.verb.sh[id] > 0).length;
   const q = vxQuotas();
   return [
-    `Verbs (on since ${S.verb.on}): tenses ` + VX_UNITS.map(u => `${u.id} ${VX_STATE[vxUnitState(u.id)]}`).join(" · "),
+    `Verbs (on since ${S.verb.on}): tenses ` + VX_UNITS.map(u => { const eta = vxUnitState(u.id) === 0 ? vxUnitEta(u) : null; return `${u.id} ${VX_STATE[vxUnitState(u.id)]}${eta ? ` (~${eta})` : ""}`; }).join(" · "),
     `Verb sheets passed ${passed}/${sheets} · verb items ${n}: ` + TIERS.map(t => `${t.icon}${tiers[t.id] || 0}`).join(" ") +
       ` · ledger ${L.all.done}/${L.all.verbs} verbs complete (` + L.levels.map(l => `${l.id.toUpperCase()} ${l.done}/${l.verbs}`).join(", ") + `) · cells ${L.all.cellsDone}/${L.all.cells}` +
       ` · per day: ${q.items} new items, ${q.cells} drills`,
