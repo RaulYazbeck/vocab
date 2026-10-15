@@ -192,7 +192,7 @@ function vxVerbReady(x) { return vxLemma(x).st >= VX_LEMMA_MIN; }
 // that share one (to know: wissen / kennen) stay apart: "to know (a
 // fact)". A verb card shows only this, never the verb. French: its word
 // card's Spanish. The verbs the decks only conjugate get one here.
-const VX_MEANING_EXTRA = { tragen: "to carry / to wear", streiten: "to fight / to dispute (no sich)", unterhalten: "to entertain / to keep (no sich)", "sich verhalten": "to behave" };
+const VX_MEANING_EXTRA = { tragen: "to carry / to wear", streiten: "to fight / to dispute (no sich)", unterhalten: "to entertain / to keep (no sich)", "sich verhalten": "to behave oneself" };
 function vxMeaning(x) {
   if (VX_FR) {
     // (a verb with no word card of its own: its Spanish gloss — its
@@ -201,6 +201,17 @@ function vxMeaning(x) {
     return String((card && card.en) || x.v.es || "").trim();
   }
   return String(x.v.en || VX_MEANING_EXTRA[x.inf] || (typeof vlGloss === "function" ? vlGloss(x.v) : "")).trim();
+}
+// What a reflexive verb's meaning already says: "oneself", or, in the
+// Spanish of the French app, a reflexive infinitive (lavarse, arreglárselas).
+const VX_REFL_SAID = VX_FR ? /\wse(la|las|lo|los)?(?![\p{L}])/iu : /\b(oneself|yourself|himself|herself|myself|each other)\b/i;
+// The meaning as the question shows it. A reflexive verb says so, so the
+// pronoun is a thing to produce, never a thing to guess: "to hurry · sich"
+// (nothing added where the meaning already says it: "to hurt oneself").
+// Only that it is reflexive: which pronoun (mich, dich, uns…) stays yours.
+function vxMeaningCue(x) {
+  const m = vxMeaning(x);
+  return x.F.refl && m && !VX_REFL_SAID.test(m) ? `${m} · ${VX_FR ? "se" : "sich"}` : m;
 }
 // Which verb a deck card is about — its word card (hängen) or one of its
 // form cards (gehangen) — so Today never asks it right next to a verb

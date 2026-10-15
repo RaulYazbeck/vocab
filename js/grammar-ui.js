@@ -781,8 +781,9 @@ function vxPromptHtml(ex) {
   else if (VX_FR) line = `${vxPronHtml(vxPronText(ex))}${gap}${ctx}`;
   else line = `<span class="vx-pron">${escapeHtml(vxPronText(ex))}</span> ${gap}${ctx}`;
   const mod = ex.kind === "pvmod" ? ` · with <b>${escapeHtml(ex.modal)}</b>` : "";
-  // Only what it means: the verb itself (its infinitive) is yours to find.
-  const gloss = vxMeaning(ex.x);
+  // Only what it means (and that it is reflexive): the verb itself (its
+  // infinitive) is yours to find.
+  const gloss = vxMeaningCue(ex.x);
   return `<div class="vx-q" style="${vxUnitStyle(u)}">
     <div class="vx-tt-row" id="vx-tt">${vxTenseTitleHtml(t)}</div>
     <div class="vx-line">${line}</div>
