@@ -278,7 +278,7 @@ function pathAnswerChoice(i) {
   if (rev) rev.textContent = gameForm(w);
   const ws = getWS(w.deckId, w.idx);
   const from = stageOf(ws);
-  pathLogAnswer(it, ok, { typed: false });
+  pathLogAnswer(it, ok, { typed: false, st: from });
   if (!ok && typeof learnNoteMiss === "function")
     learnNoteMiss(w, i < 0 ? { src: "path:" + it.t, type: "blank" }
       : { src: "path:" + it.t, type: it.t === "listen" ? "listening" : "recognition", given: it.opts[i] && it.opts[i].text });
@@ -635,7 +635,7 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     qm: Q && Q.m ? JSON.stringify(Q.m) : null, qw: Q && Q.week ? JSON.stringify(Q.week) : null,
     wasMissed: s.missed.some(x => sameWord(x, w)) }; };
   const spoken = !!it.spoken;
-  pathLogAnswer(it, ok === true, { typed: true, near: ok === "near", hint: !!it.usedHint, voice: spoken, say: !!it.said, fast: !!it.fast });
+  pathLogAnswer(it, ok === true, { st: from, typed: true, near: ok === "near", hint: !!it.usedHint, voice: spoken, say: !!it.said, fast: !!it.fast });
   if (typeof learnNoteMiss === "function" && !it.said && !spoken) {
     if (ok === true) { if (!fromReverse && it.t !== "reverse" && it.t !== "cloze" && !it.plural) learnNoteSoft(w, val); }
     else if (it.t === "reverse") learnNoteMiss(w, { src: "path:reverse", type: String(val).trim() ? "meaning" : "blank", given: val });

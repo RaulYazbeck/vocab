@@ -21,6 +21,15 @@ const USAGE_LOG_KEY = "gv_log_" + STORAGE_KEY;
 const USAGE_LOG_MAX = 5000;
 const USAGE_DAYS = 90;
 let _usageBuf = null, _usageSaveT = null;
+// Active time: the app can sit open on screen while you are elsewhere, so
+// besides the minutes it is visible we count the ones with a touch, key
+// or answer in the previous USAGE_IDLE_MS. _usageActMs is the running
+// total; a session or game remembers it at its start and logs the
+// difference at its end (act), so a session started and left for later
+// shows its real length.
+const USAGE_IDLE_MS = 90000;
+let _usageLastInput = 0, _usageActMs = 0;
+const _usageActAt = {};
 
 function migrateUsage() {
   if (!S.usage || typeof S.usage !== "object") S.usage = {};
@@ -85,6 +94,13 @@ function _inc(obj, k, i, n = 1) {
 function logEvent(type, data = {}) {
   try {
     const now = Date.now();
+    if (type === "answer") _usageLastInput = now;
+    const actKey = type === "session_start" || type === "session_end" ? "s:" + (data.kind || "?")
+      : type === "game_start" || type === "game_end" ? "g:" + (data.id || "?") : "";
+    if (actKey) {
+      if (type.endsWith("_start")) _usageActAt[actKey] = _usageActMs;
+      else { if (data.act == null && _usageActAt[actKey] != null) data.act = _usageActMs - _usageActAt[actKey]; delete _usageActAt[actKey]; }
+    }
     const log = _usageLog();
     log.push({ t: now, e: type, ...data });
     if (log.length > USAGE_LOG_MAX) log.splice(0, log.length - USAGE_LOG_MAX);
@@ -117,6 +133,13 @@ function _usageAggregate(type, d, now) {
       const h = new Date(now).getHours();
       day.hr[h]++;
       if (d.ok === true) _uf(day, "hrOk", () => new Array(24).fill(0))[h]++;
+      // bt[tier before the answer][exercise] = [answers, right] (path exercises)
+      if (d.st != null && m.startsWith("path:") && typeof tierOfStage === "function") {
+        const bt = _uf(day, "bt", () => ({})), tk = tierOfStage(d.st).id, ex = m.slice(5);
+        const o = bt[tk] || (bt[tk] = {});
+        if (!o[ex]) o[ex] = [0, 0];
+        o[ex][0]++; if (d.ok === true) o[ex][1]++;
+      }
       break;
     }
     case "hint": day.hintTap = (day.hintTap || 0) + 1; break;
@@ -143,6 +166,8 @@ function _usageAggregate(type, d, now) {
       if (!sx[k]) sx[k] = [0, 0, 0, 0, 0, 0];
       const o = d.abandoned ? 3 : 0;
       sx[k][o]++; sx[k][o + 1] += Math.round(d.ms || 0); sx[k][o + 2] += d.n || 0;
+      // [6] / [7]: active ms and count of finished sessions that logged it
+      if (!d.abandoned && d.act != null) { sx[k][6] = (sx[k][6] || 0) + Math.round(d.act); sx[k][7] = (sx[k][7] || 0) + 1; }
       if (d.met) startDay.met = (startDay.met || 0) + d.met;
       if (d.up) startDay.up = (startDay.up || 0) + d.up;
       if (d.down) startDay.down = (startDay.down || 0) + d.down;
@@ -158,7 +183,11 @@ function _usageAggregate(type, d, now) {
       if (!gx[id]) gx[id] = [0, 0, 0, 0, 0];
       const gms = Math.min(Math.round(d.ms || 0), 600000); // a game left open counts 10 min at most
       if (d.quit) { gx[id][3] += gms; if (d.pre) gx[id][4]++; }
-      else { gx[id][0] += d.ok || 0; gx[id][1] += d.bad || 0; gx[id][2] += gms; }
+      else {
+        gx[id][0] += d.ok || 0; gx[id][1] += d.bad || 0; gx[id][2] += gms;
+        // [5] / [6]: active ms and count of finished games that logged it
+        if (d.act != null) { gx[id][5] = (gx[id][5] || 0) + Math.min(Math.round(d.act), gms); gx[id][6] = (gx[id][6] || 0) + 1; }
+      }
       break;
     }
     case "quest_gen": {
@@ -243,8 +272,13 @@ function usageNoteTts() { try { const d = usageDay(); d.tts = (d.tts || 0) + 1; 
 let _usageBeat = null;
 function startUsageClock() {
   clearInterval(_usageBeat);
+  ["pointerdown", "keydown", "touchstart", "wheel"].forEach(ev =>
+    document.addEventListener(ev, () => { _usageLastInput = Date.now(); }, { passive: true, capture: true }));
   _usageBeat = setInterval(() => {
-    if (document.visibilityState === "visible") usageDay().min = Math.round((usageDay().min + 0.5) * 10) / 10;
+    if (document.visibilityState !== "visible") return;
+    const d = usageDay();
+    d.min = Math.round((d.min + 0.5) * 10) / 10;
+    if (Date.now() - _usageLastInput <= USAGE_IDLE_MS) { d.act = Math.round(((d.act || 0) + 0.5) * 10) / 10; _usageActMs += 30000; }
   }, 30000);
   document.addEventListener("visibilitychange", () => {
     logEvent(document.visibilityState === "visible" ? "app_show" : "app_hide", { scr: currentScreenName() });
@@ -277,8 +311,8 @@ function buildUsageReport(nDays = 0) {
   });
   const modes = {}, games = {}, gx = {}, sessions = {}, sx = {}, latm = {}, scr = {}, ev = {};
   days.forEach(([, v]) => {
-    addInto(modes, v.ans, 2); addInto(games, v.gp, 3); addInto(gx, v.gx, 5);
-    addInto(sessions, v.ses, 3); addInto(sx, v.sx, 6); addInto(latm, v.latm, 2);
+    addInto(modes, v.ans, 2); addInto(games, v.gp, 3); addInto(gx, v.gx, 7);
+    addInto(sessions, v.ses, 3); addInto(sx, v.sx, 8); addInto(latm, v.latm, 2);
     Object.entries(v.scr || {}).forEach(([k, n]) => scr[k] = (scr[k] || 0) + n);
     Object.entries(v.ev || {}).forEach(([k, n]) => ev[k] = (ev[k] || 0) + n);
   });
@@ -316,22 +350,47 @@ function buildUsageReport(nDays = 0) {
   const peak = hours.map((n, h) => [h, n]).sort((a, b) => b[1] - a[1]).slice(0, 3).filter(x => x[1]).map(x => x[0] + "h");
   const lines = [];
   lines.push(`VOCAB APP USAGE REPORT — ${APP_CONFIG.title} — ${today} (${nDays > 0 ? `last ${nDays} days` : `all history since ${from}`})`);
-  lines.push(`Active days: ${active}/${nDays > 0 ? nDays : span} · minutes: ${Math.round(minutes)} (avg ${active ? Math.round(minutes / active) : 0}/active day) · app opens: ${sum(v => v.open)} · returns to the app: ${sum(v => v.show)}`);
+  const actDays = activeDays.filter(([, v]) => v.act != null);
+  const actMin = actDays.reduce((a, [, v]) => a + v.act, 0), actScreen = actDays.reduce((a, [, v]) => a + v.min, 0);
+  lines.push(`Active days: ${active}/${nDays > 0 ? nDays : span} · minutes on screen: ${Math.round(minutes)} (avg ${active ? Math.round(minutes / active) : 0}/active day)` +
+    (actDays.length ? ` · of those, minutes with a touch/key/answer in the last ${USAGE_IDLE_MS / 1000}s: ${Math.round(actMin)} of ${Math.round(actScreen)} on the ${actDays.length} day${actDays.length > 1 ? "s" : ""} measured = ${pct(actMin, actScreen)} (the rest: app left open)` : "") + ` · app opens: ${sum(v => v.open)} · returns to the app: ${sum(v => v.show)}`);
   lines.push(`Answers: ${totalAns} · typing latency avg ${latN ? (latS / latN / 1000).toFixed(1) + "s" : "—"} · spoken: ${sum(v => v.voice)} · near-misses: ${sum(v => v.near)} · hints: ${sum(v => v.hint)} · phone-voice fallbacks: ${sum(v => v.tts)}`);
   lines.push(`By mode (answers, ok, avg time): ` + Object.entries(modes).sort((a, b) => b[1][0] - a[1][0]).map(([m, a]) => `${m} ${a[0]} (${pct(a[1], a[0])} ok${latm[m] ? ", " + secs(latm[m][0], latm[m][1]) : ""})`).join(" · "));
   lines.push(`Sessions (started/finished/abandoned): ` + Object.entries(sessions).map(([k, a]) => `${k} ${a[0]}/${a[1]}/${a[2]}`).join(" · "));
   const sxl = Object.entries(sx).filter(([, a]) => a[0] || a[3]);
-  if (sxl.length) lines.push(`Session detail (finished: avg length, answers · abandoned: avg length, answers before leaving): ` +
-    sxl.map(([k, a]) => `${k} ${mins(a[1], a[0])}, ${a[0] ? Math.round(a[2] / a[0]) : "—"} · ${mins(a[4], a[3])}, ${a[3] ? Math.round(a[5] / a[3]) : "—"}`).join(" | "));
+  if (sxl.length) lines.push(`Session detail (finished: avg length from start to end${sxl.some(([, a]) => a[7]) ? " (avg active time, from the sessions that logged it)" : ""}, answers · abandoned: avg length, answers before leaving): ` +
+    sxl.map(([k, a]) => `${k} ${mins(a[1], a[0])}${a[7] ? ` (active ${mins(a[6], a[7])})` : ""}, ${a[0] ? Math.round(a[2] / a[0]) : "—"} · ${mins(a[4], a[3])}, ${a[3] ? Math.round(a[5] / a[3]) : "—"}`).join(" | "));
   lines.push(`Games (started/finished/quit): ` + (Object.entries(games).map(([g, a]) => `${g} ${a[0]}/${a[1]}/${a[2]}`).join(" · ") || "none"));
   const gxl = Object.entries(gx).filter(([, a]) => a.some(x => x));
-  if (gxl.length) lines.push(`Game detail (ok% · avg finished · avg time before quitting · quit before playing): ` +
+  if (gxl.length) lines.push(`Game detail (ok% · avg finished${gxl.some(([, a]) => a[6]) ? " (avg active, from the games that logged it)" : ""} · avg time before quitting · quit before playing; a game left open counts 10 min at most): ` +
     gxl.map(([g, a]) => { const fin = (games[g] || [])[1] || 0, q = (games[g] || [])[2] || 0;
-      return `${g} ${pct(a[0], a[0] + a[1])} · ${secs(a[2], fin)} · ${secs(a[3], q)} · ${a[4]}`; }).join(" | "));
+      return `${g} ${pct(a[0], a[0] + a[1])} · ${secs(a[2], fin)}${a[6] ? ` (active ${secs(a[5], a[6])})` : ""} · ${secs(a[3], q)} · ${a[4]}`; }).join(" | "));
   const mk = {}, sf = {};
   days.forEach(([, v]) => { Object.entries(v.mk || {}).forEach(([k, n]) => mk[k] = (mk[k] || 0) + n); Object.entries(v.sf || {}).forEach(([k, n]) => sf[k] = (sf[k] || 0) + n); });
   if (Object.keys(mk).length) lines.push(`Mistakes by type: ` + Object.entries(mk).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(" · "));
   if (Object.keys(sf).length) lines.push(`Writing slips on accepted answers: ` + Object.entries(sf).map(([k, n]) => `${k} ${n}`).join(" · "));
+  // Path answers by the word's tier BEFORE the answer × exercise, so each
+  // tier's real accuracy (and which exercises feed it) can be checked.
+  const bt = {};
+  days.forEach(([, v]) => Object.entries(v.bt || {}).forEach(([tk, o]) => addInto(bt[tk] || (bt[tk] = {}), o, 2)));
+  const btl = TIERS.filter(t => bt[t.id]).map(t => {
+    const ex = Object.entries(bt[t.id]).sort((a, b) => b[1][0] - a[1][0]);
+    const n = ex.reduce((a, [, x]) => a + x[0], 0), ok = ex.reduce((a, [, x]) => a + x[1], 0);
+    return `${t.icon}${t.name} ${n} (${pct(ok, n)}): ` + ex.map(([k, x]) => `${k} ${x[0]}/${pct(x[1], x[0])}`).join(", ");
+  });
+  if (btl.length) lines.push(`Path answers by the word's tier before the answer (answers, ok%: exercise answers/ok%; recorded since ${days.find(([, v]) => v.bt)[0]}): ` + btl.join(" | "));
+  // Last 7 active days against the 7 before them.
+  if (activeDays.length >= 14) {
+    const stat = rows => {
+      const f = (fn) => rows.reduce((a, [, v]) => a + (fn(v) || 0), 0);
+      const n = f(v => Object.values(v.ans || {}).reduce((a, x) => a + (x[0] || 0), 0)), ok = f(v => Object.values(v.ans || {}).reduce((a, x) => a + (x[1] || 0), 0));
+      const am = rows.filter(([, v]) => v.act != null);
+      return { n: Math.round(n / rows.length), ok: pct(ok, n), lat: secs(f(v => v.lat[0]), f(v => v.lat[1])), min: Math.round(f(v => v.min) / rows.length),
+        act: am.length ? Math.round(am.reduce((a, [, v]) => a + v.act, 0) / am.length) : null };
+    };
+    const a = stat(activeDays.slice(-7)), b = stat(activeDays.slice(-14, -7));
+    lines.push(`Trend, last 7 active days vs the 7 before: answers/day ${a.n} vs ${b.n} · answers right ${a.ok} vs ${b.ok} · typing latency ${a.lat} vs ${b.lat} · minutes on screen/day ${a.min} vs ${b.min}` + (a.act != null && b.act != null ? ` (active ${a.act} vs ${b.act})` : ""));
+  }
   lines.push(`Quests: done ${sum(v => v.q[0])} · rerolled ${sum(v => v.q[1])} · swapped 🔇 ${sum(v => v.q[2])} · full days ${sum(v => v.q[3])}`);
   const qs = Object.entries(qStats).sort((a, b) => b[1][0] - a[1][0]);
   if (qs.length) lines.push(`Quest templates (offered/done/rerolled+swapped): ` + qs.map(([k, a]) => `${k} ${a[0]}/${a[1]}/${a[2]}`).join(" · "));
@@ -346,14 +405,14 @@ function buildUsageReport(nDays = 0) {
   lines.push(`Daily goal ${getDailyGoal()} · new/day ${S.path.deadline ? `auto ${pathPace()} (finish by ${S.path.deadline})` : S.path.newPerDay} · level ${currentLevel()} · streak ${getDailyStreak()}d`);
   if (typeof vxReportLines === "function") lines.push(...vxReportLines());
   // One line per active day: the trend at a glance.
-  lines.push(``, `Per day (date · min · answers · typed ok · typed latency · path sessions started/finished/abandoned · games started/quit · new words met · words up/down${typeof vxOn === "function" && vxOn() ? " · verbs: 📖 sheets passed/failed, ↩ misses looked up in the sheet, 🏆 mastery passed/taken, 🎯 drill right/answers, 🧩 items started, 📒 ledger forms" : ""}):`);
+  lines.push(``, `Per day (date · minutes on screen/active · answers · typed ok · typed latency · path sessions started/finished/abandoned · games started/quit · new words met · words up/down${typeof vxOn === "function" && vxOn() ? " · verbs: 📖 sheets passed/failed, ↩ misses looked up in the sheet, 🏆 mastery passed/taken, 🎯 drill right/answers, 🧩 items started, 📒 ledger forms" : ""}):`);
   activeDays.forEach(([d, v]) => {
     const t = (v.ans || {})["path:typed"] || [0, 0];
     const p = (v.ses || {}).path || [0, 0, 0];
     const g = Object.values(v.gp || {}).reduce((a, x) => [a[0] + (x[0] || 0), a[1] + (x[2] || 0)], [0, 0]);
     const n = Object.values(v.ans || {}).reduce((a, x) => a + (x[0] || 0), 0);
     const vx = v.vx ? ` · 📖${v.vx.sh || 0}/${v.vx.sf || 0}${v.vx.rv ? ` ↩${v.vx.rv}` : ""}${v.vx.ma ? ` 🏆${v.vx.mp || 0}/${v.vx.ma}` : ""}${v.vx.dr ? ` 🎯${v.vx.dr[1]}/${v.vx.dr[0]}${v.vx.drv ? `+${v.vx.drv}` : ""}` : ""} 🧩${v.vx.in || 0} 📒${v.vx.cell || 0}${v.vx.u ? " [" + v.vx.u.join(", ") + "]" : ""}${v.vx.on !== undefined ? (v.vx.on ? " [switched on]" : " [switched off]") : ""}` : "";
-    lines.push(`${d} · ${Math.round(v.min)} · ${n} · ${pct(t[1], t[0])} · ${secs(v.lat[0], v.lat[1])} · ${p[0]}/${p[1]}/${p[2]} · ${g[0]}/${g[1]} · ${v.met ?? "—"} · ${v.up ?? "—"}/${v.down ?? "—"}${vx}`);
+    lines.push(`${d} · ${Math.round(v.min)}${v.act != null ? "/" + Math.round(v.act) : ""} · ${n} · ${pct(t[1], t[0])} · ${secs(v.lat[0], v.lat[1])} · ${p[0]}/${p[1]}/${p[2]} · ${g[0]}/${g[1]} · ${v.met ?? "—"} · ${v.up ?? "—"}/${v.down ?? "—"}${vx}`);
   });
   lines.push(...usagePlanLines(activeDays));
   const json = JSON.stringify({ app: STORAGE_KEY, generated: new Date().toISOString(), days: Object.fromEntries(days), quests: qStats, tiers });
