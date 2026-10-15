@@ -1215,10 +1215,10 @@ function vxIsOwnForm(x, typed) { return !!x && !!x.inf && vxOwnForms(x).norm.has
 // ── THE UMLAUT CHOICE (untimed) ───────────────
 // Umlauts are typed as plain vowels (no umlaut keys): hatte stands for
 // hatte or hätte. When what was typed, read that way, fits two real forms
-// of the verb — the right one and another that differs only by its
-// umlauts (hatte / hätte, fahrt / fährt, kamen / kämen) — untimed, it is
-// asked: 1 or 2. Even when the plain one is the right one: typing it
-// didn't say which. Picking right is right. When only one form fits
+// — the right one and another that differs only by its umlauts, of this
+// verb or another (hatte / hätte, fahrt / fährt, kamen / kämen, drucke /
+// drücke) — untimed, it is asked: 1 or 2. Even when the plain one is the
+// right one: typing it didn't say which. Picking right is right. When only one form fits
 // (fahrst → fährst, horst → hörst) there is nothing to ask: right, the
 // spelling shown. Typed with its umlaut (ä, or ae spelling a real form):
 // graded as typed. Timed games never ask. German only.
@@ -1242,18 +1242,44 @@ function vxUmlForms(x) {
   }
   return m;
 }
+// Every verb's forms by their plain spelling — another verb's form counts
+// too: drucke (drucken, to print) / drücke (drücken, to press), zahlt /
+// zählt, fordert / fördert. Built in the background after start (about a
+// second), or at once when needed sooner.
+let _vxUmlIdx = null, _vxUmlIdxAt = 0, _vxUmlIdxList = null;
+function vxUmlIndexStep(n) {
+  if (!_vxUmlIdxList) { _vxUmlIdxList = vxVerbs(); _vxUmlIdx = new Map(); _vxUmlIdxAt = 0; }
+  const end = Math.min(_vxUmlIdxList.length, _vxUmlIdxAt + n);
+  for (; _vxUmlIdxAt < end; _vxUmlIdxAt++) for (const [k, set] of vxUmlForms(_vxUmlIdxList[_vxUmlIdxAt])) {
+    let all = _vxUmlIdx.get(k);
+    if (!all) _vxUmlIdx.set(k, all = new Set());
+    set.forEach(f => all.add(f));
+  }
+  return _vxUmlIdxAt >= _vxUmlIdxList.length;
+}
+function vxUmlIndex() { if (!_vxUmlIdxList || _vxUmlIdxAt < _vxUmlIdxList.length) vxUmlIndexStep(Infinity); return _vxUmlIdx; }
+function vxUmlIndexWarm() {
+  if (VX_FR || typeof window === "undefined") return;
+  const later = window.requestIdleCallback ? f => window.requestIdleCallback(f, { timeout: 2000 }) : f => setTimeout(f, 50);
+  const go = () => { try { if (!vxUmlIndexStep(12)) later(go); } catch (e) { /* built at once when needed */ } };
+  setTimeout(() => later(go), 2500);
+}
+if (typeof window !== "undefined" && typeof document !== "undefined") window.addEventListener("load", vxUmlIndexWarm);
 // Has the verb two real forms that differ only by an umlaut?
 function vxUmlautAlternates(x) {
   if (VX_FR || !x || !x.inf) return false;
   for (const set of vxUmlForms(x).values()) if (set.size > 1) return true;
   return false;
 }
-// → { right, others: [the other real forms it could be] , other } or null.
+// → { right, others: [the other real forms it could be — of this verb or
+// another], other } or null.
 function vxUmlautChoice(val, acc, x, cmd = false) {
   if (VX_FR || !x || !x.inf || !acc || !acc.length) return null;
   const tries = vxGradeTries(val, cmd).slice().reverse(); // the pronoun-less try first
   if (!tries.length || tries.some(t => /[äöü]/i.test(t))) return null; // typed with its umlaut: as typed
-  const forms = vxUmlForms(x), lc = s => String(s).toLowerCase().normalize("NFC").replace(/\s+/g, " ").trim();
+  // Its own forms and every other verb's (drucke / drücke are two verbs).
+  const own = vxUmlForms(x), all = vxUmlIndex(), lc = s => String(s).toLowerCase().normalize("NFC").replace(/\s+/g, " ").trim();
+  const forms = { get: k => new Set([...(own.get(k) || []), ...(all.get(k) || [])]) };
   for (const t of tries) {
     // ae / oe / ue spelling a real form (faehrt): typed with its umlaut.
     const spelt = vxUmlSpelt(t);

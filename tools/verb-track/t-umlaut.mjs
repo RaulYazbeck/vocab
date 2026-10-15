@@ -86,6 +86,17 @@ const r = await page.evaluate(async () => {
   show("abfahren", "pr", "er"); typeEnter("fahrt ab");
   ok(ask() && /fährt ab/.test(ask().textContent), "Today: fahrt ab for er fährt ab → the choice");
   key(String(optFor("fährt ab") + 1), document.body); key("Enter", document.body);
+  // Another verb's form counts too: drucke (drucken, to print) / drücke (drücken, to press).
+  show("drucken", "pr", "ich"); typeEnter("ich drucke");
+  ok(ask() && /drücke/.test(ask().textContent), "Today: ich drucke for drucken (drücke is drücken's) → the choice");
+  key(String(optFor("drucke") + 1), document.body);
+  ok(s.answered && document.getElementById("p-input").classList.contains("correct"), "…pick drucke: right");
+  key("Enter", document.body);
+  show("drücken", "pr", "ich"); typeEnter("ich drucke");
+  ok(ask() && /drucke/.test(ask().textContent), "Today: ich drucke for drücken (drucke is drucken's) → the choice");
+  key(String(optFor("drücke") + 1), document.body);
+  ok(s.answered && document.getElementById("p-input").classList.contains("correct"), "…pick drücke: right");
+  key("Enter", document.body);
   // The card redrawn while asking (the mic toggled…): the box is gone — typing again asks again, never stuck.
   show("fahren", "pr", "er"); typeEnter("fahrt");
   document.getElementById("p-fb").innerHTML = "";
