@@ -156,8 +156,9 @@ function _usageAggregate(type, d, now) {
       // gx[id] = [right, wrong, ms finished, ms quit, quit before playing]
       const gx = _uf(startDay, "gx", () => ({}));
       if (!gx[id]) gx[id] = [0, 0, 0, 0, 0];
-      if (d.quit) { gx[id][3] += Math.round(d.ms || 0); if (d.pre) gx[id][4]++; }
-      else { gx[id][0] += d.ok || 0; gx[id][1] += d.bad || 0; gx[id][2] += Math.round(d.ms || 0); }
+      const gms = Math.min(Math.round(d.ms || 0), 600000); // a game left open counts 10 min at most
+      if (d.quit) { gx[id][3] += gms; if (d.pre) gx[id][4]++; }
+      else { gx[id][0] += d.ok || 0; gx[id][1] += d.bad || 0; gx[id][2] += gms; }
       break;
     }
     case "quest_gen": {
@@ -283,9 +284,13 @@ function buildUsageReport(nDays = 0) {
   });
   const hours = new Array(24).fill(0), hoursOk = new Array(24).fill(0);
   const hoursOkN = new Array(24).fill(0);
-  days.forEach(([, v]) => {
+  // hrOk was added mid-day: the first day that has it is partial (hours
+  // before the update count answers but no right ones), so it is left out
+  // of the by-hour accuracy — unless it is also the first day logged.
+  const hrOkFirst = days.findIndex(([, v]) => v.hrOk);
+  days.forEach(([, v], di) => {
     (v.hr || []).forEach((x, i) => hours[i] += x || 0);
-    if (v.hrOk) v.hrOk.forEach((x, i) => { hoursOk[i] += x || 0; hoursOkN[i] += (v.hr || [])[i] || 0; });
+    if (v.hrOk && !(di === hrOkFirst && hrOkFirst > 0)) v.hrOk.forEach((x, i) => { hoursOk[i] += x || 0; hoursOkN[i] += (v.hr || [])[i] || 0; });
   });
   const latN = sum(v => v.lat[1]), latS = sum(v => v.lat[0]);
   const totalAns = Object.values(modes).reduce((a, m) => a + m[0], 0);
@@ -391,9 +396,9 @@ function usageChestLines(days, nActive) {
   const pct = (a, b) => b ? Math.round(a / b * 100) + "%" : "—";
   const out = [];
   out.push(`Chests: opened ${tot[0]} (${nActive ? (tot[0] / nActive).toFixed(1) : "—"}/active day) · waiting now ${pend}` +
-    (Object.keys(earned).length ? ` · earned ${Object.values(earned).reduce((a, n) => a + n, 0)} since tracked` : "") + (lost ? ` · lost to the 20 cap ${lost}` : "") +
+    (Object.keys(earned).length ? ` · earned ${Object.values(earned).reduce((a, n) => a + n, 0)} (counted only since tracking began; opened also covers the days before)` : "") + (lost ? ` · lost to the 20 cap ${lost}` : "") +
     (waitN ? ` · avg wait before opening ${Math.round(waitS / waitN)} min` : "") + (xp ? ` · chest XP ${xp}` : ""));
-  if (tot[0]) out.push(`Chest rarity (common/rare/epic/legendary): ${tot.slice(1).join("/")} = ${tot.slice(1).map(n => pct(n, tot[0])).join("/")} · base odds 62.5/28/8/1.5%` +
+  if (tot[0]) out.push(`Chest rarity (common/rare/epic/legendary): ${tot.slice(1).join("/")} = ${tot.slice(1).map(n => pct(n, tot[0])).join("/")} · per-roll odds before pity and minimum rarities 62.5/28/8/1.5%` +
     (Object.keys(why).length ? ` · decided by ` + Object.entries(why).map(([k, n]) => `${k} ${n}`).join(" · ") : ""));
   if (Object.keys(opened).length) out.push(`Chests by source (opened: c/r/e/l${Object.keys(earned).length ? " · earned" : ""}): ` +
     Object.entries(opened).sort((a, b) => b[1][0] - a[1][0]).map(([k, a]) => `${k} ${a[0]}: ${a.slice(1).join("/")}${earned[k] != null ? ` · ${earned[k]}` : ""}`).join(" | ") +
