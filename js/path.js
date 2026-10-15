@@ -749,7 +749,10 @@ function buildPathQueue(lenKey, opts = {}) {
   // just stay on schedule).
   if (!focus) {
     const have = new Set(out.filter(x => x.w).map(x => x.w.deckId + "_" + x.w.idx));
-    const short = budget - counted();
+    let short = budget - counted();
+    // Verb quests Today's quotas left short: verb forms come first.
+    const vxNeed = short > 0 && typeof questPracticeNeed === "function" && typeof vxPracticeItems === "function" ? questPracticeNeed() : 0;
+    if (vxNeed > 0) vxPracticeItems(Math.min(vxNeed, short)).forEach(ex => { out.push({ t: "typed", w: vxWord(ex), practice: !!ex.practice }); short--; });
     if (short > 0) focusWords("stale").filter(x => !have.has(x.d.id + "_" + x.i)).slice(0, short)
       .forEach(x => out.push({ ...focusItem(x, "stale"), practice: true }));
   }

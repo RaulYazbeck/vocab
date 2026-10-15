@@ -73,7 +73,7 @@ const r = await page.evaluate(() => {
   questOnAnswer(m, { mode: "path", ok: true, typed: true, w: vxWord(ex), it: "verb", fix: true, retried: false });
   questOnAnswer(m, { mode: "path", ok: true, typed: true, w: vxWord(ex), it: "verb", retried: true });
   questOnAnswer(m, { mode: "path", ok: true, typed: true, w: vxWord(ex), it: "verb", hint: true });
-  ok(m.vxOk === 2 && m.vxCells === 2 && m.vxFixed === 1 && m.vxTenseSure === 1, "verb answers counted (a hint doesn't, a second try isn't 'first try')", JSON.stringify([m.vxOk, m.vxCells, m.vxFixed, m.vxTenseSure]));
+  ok(m.vxOk === 3 && m.vxCells === 2 && m.vxFixed === 1 && m.vxTenseSure === 1, "verb answers counted (a hinted form is still a form, but not a ledger / repair / first-try one; a second try isn't 'first try')", JSON.stringify([m.vxOk, m.vxCells, m.vxFixed, m.vxTenseSure]));
   // a quest on a taken-over deck is swapped
   const legacy = ALL_GROUPS.flatMap(g => g.decks).find(d => vxDeckRetired(d.id));
   ok(!!legacy, "a deck the track took over entirely" + (legacy ? `: ${legacy.id}` : ""));

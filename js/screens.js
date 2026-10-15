@@ -907,7 +907,6 @@ function renderHome() {
   if (!home) return;
   if (document.getElementById("main-screen").style.display === "block") return;
   questEnsureToday();
-  questFitFinite();
   if (grandmaOn()) { renderGrandmaHome(home); return; }
   const t = pathTodaySummary();
   const Q = S.quests;
