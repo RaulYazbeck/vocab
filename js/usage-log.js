@@ -468,7 +468,7 @@ function usageRebuiltLines(days) {
     Object.values(S.words || {}).forEach(ws => (ws && ws.mh || []).forEach(h => h && h[0] && add(String(h[0]), h[2] || "?")));
     Object.values((S.learn && S.learn.verbs) || {}).forEach(v => (v.mh || []).forEach(h => h && h[0] && add(String(h[0]), h[5] || "?")));
     const ds = Object.keys(per).sort().slice(-21);
-    if (ds.length) out.push(`Misses per day, rebuilt from the per-word histories (last ${LEARN_HIST} per word, so older days can fall short; types ranked, gender always shown): ` +
+    if (ds.length) out.push(`Misses per day, rebuilt from the per-word histories (the learning log began ${(S.learn && S.learn.since) || "?"}; each word keeps its last ${LEARN_HIST}, so busy words can fall short; types ranked, gender always shown): ` +
       ds.map(d => {
         const o = per[d], n = Object.values(o).reduce((a, x) => a + x, 0);
         const top = Object.entries(o).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, x]) => `${k} ${x}`);
