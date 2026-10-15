@@ -780,6 +780,36 @@ function questProgOf(q) {
   return Math.max(0, Math.min(q.target, p));
 }
 function questAllDone() { return S.quests.list.length === 4 && S.quests.list.every(q => q.done); }
+// Finishing Today finishes the quests Today feeds. Targets are sized in
+// the morning from estimates (verb forms, accuracy runs…), and once the
+// Today card says "All caught up" nothing is left to earn the rest with —
+// a quest that only Today can feed would be stuck for good. So when a
+// session leaves nothing due, nothing new and no sheet waiting, those
+// quests are settled as done. Games, deck/level focus quests and
+// session-shaped quests (Long session, two sessions) are not Today's.
+function questTodayExhausted() {
+  const t = pathTodaySummary();
+  const vx = typeof vxTodayCounts === "function" ? vxTodayCounts() : { due: 0, fresh: 0 };
+  const sheets = typeof vxOn === "function" && vxOn() && typeof vxSheetsToday === "function" ? vxSheetsToday().length : 0;
+  return !(t.due + vx.due) && !(t.newLeft + vx.fresh) && !sheets;
+}
+function questFedByToday(q) {
+  const t = byId(q.tpl);
+  if (!t || q.tpl === "d_mystery" || t.fam === "sessions" || t.fam === "sitting") return false;
+  let go = t.go; try { if (typeof go === "function") go = go(q); } catch (e) { go = ""; }
+  return go === "path";
+}
+function questSettleToday() {
+  const Q = S.quests;
+  if (!Q || !Q.list || !Q.list.length || !(Q.m.ok > 0)) return;
+  const open = Q.list.map((q, i) => [q, i]).concat(Q.weekend ? [[Q.weekend, "W"]] : [])
+    .filter(([q]) => !q.done && questFedByToday(q));
+  if (!open.length || !questTodayExhausted()) return;
+  open.forEach(([q, i]) => { q.prog = q.target; q.done = true; q.doneAt = Date.now(); });
+  logEvent("quest_settle", { ids: open.map(([q]) => q.tpl) });
+  open.forEach(([q, i]) => questPay(q, i));
+  if (!Q.dayDone && questAllDone()) questDayComplete();
+}
 // Recompute every quest; pay out newly finished ones.
 function questRecompute(silent = false) {
   const Q = S.quests;
@@ -899,6 +929,7 @@ function questEvent(type, d = {}) {
       if (d.wotdHit) { const id = m.sessions.length; if (!m.wotd.includes(id)) m.wotd.push(id); }
       questMaybeFlash();
       questMaybeLucky();
+      if (!d.abandoned) { questRecompute(); questSettleToday(); }
       break;
     }
     case "game_end": questOnGame(m, d); break;
