@@ -38,7 +38,10 @@ await page.evaluate(() => {
       // the prompt gives nothing of the answer away, one blank, no word count
       const html = vxPromptHtml(ex);
       if ((html.match(/vx-gap/g) || []).length !== 1) add("more than one blank", tag);
-      const prompt = strip(html).split(x.inf)[0].split(VX_TENSE_LABEL[ex.tense] || "\u0000").pop();
+      // a reflexive verb's meaning says it is reflexive (Spanish -se, or "· se"): the cue, not a hint
+      const cued = strip(html);
+      if (x.F.refl && !/ · se$|\wse(la|las|lo|los)?(?![\p{L}])/iu.test(cued)) add("reflexive verb: prompt does not say so", `${tag}: ${cued}`);
+      const prompt = cued.replace(" · se", "").split(x.inf)[0].split(VX_TENSE_LABEL[ex.tense] || "\u0000").pop();
       const pw = prompt.toLowerCase().split(/[\s()]+/).filter(Boolean);
       const leak = words.filter(w => w.length > 2 && pw.includes(w.toLowerCase()) && w.toLowerCase() !== p && !/^(nous|vous)$/.test(w));
       if (leak.length) add("prompt shows part of the answer", `${tag}: "${prompt}" ← ${leak.join(",")}`);
@@ -80,7 +83,12 @@ const out = await page.evaluate(() => {
     const want = ans.toLowerCase().replace(/\s+/g, " ");
     if (!shown.replace(/\s/g, "").includes(want.replace(/\s/g, ""))) add("shown answer differs", `${tag}: shows "${shown}" for "${ans}"`);
     // the prompt gives nothing of the answer away (beyond the person / context)
-    const prompt = strip(vxPromptHtml(ex)).split(x.inf)[0].replace(/^.*?(Präsens|Präteritum|Perfekt|Plusquamperfekt|Futur I|Imperativ|Konjunktiv II · past|Konjunktiv II|Passiv)\s*/, "");
+    // A reflexive verb's meaning says it is reflexive (to hurry · sich): that
+    // is the cue, not a hint at the pronoun, so it is taken out before the leak check.
+    const cued = strip(vxPromptHtml(ex));
+    if (F.refl && !/ · sich\b|\boneself\b|\byourself\b|\bhimself\b|\bherself\b|\bmyself\b|\beach other\b/.test(cued)) add("reflexive verb: prompt does not say so", `${tag}: ${cued}`);
+    if (F.refl && /\b(mich|dich|uns|euch)\b/.test(cued)) add("prompt shows the pronoun", `${tag}: ${cued}`);
+    const prompt = cued.replace(" · sich", "").split(x.inf)[0].replace(/^.*?(Präsens|Präteritum|Perfekt|Plusquamperfekt|Futur I|Imperativ|Konjunktiv II · past|Konjunktiv II|Passiv)\s*/, "");
     const pw = prompt.toLowerCase().split(/[\s()]+/).filter(Boolean);
     // English meanings spelled like a German form (to bring → bring!) are
     // coincidences, not hints: listed one by one, so a new one still shows.

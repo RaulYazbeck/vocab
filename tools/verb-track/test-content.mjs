@@ -170,5 +170,27 @@ if (typeof G.isNearMiss !== "function") vm.runInContext("var isNearMiss = () => 
 });
 // Every rule's sheet exists and each rule finds verbs.
 G.VX_RULES.forEach(r => ok(ids.has(r.sheet), `rule ${r.id} sheet ${r.sheet}`));
+// A reflexive verb's meaning says it is reflexive ("to hurry · sich"), once:
+// nothing added where it already says "oneself", nothing on other verbs, and
+// never the pronoun itself (mich, dich, uns… are the answer).
+{
+  const refl = G.vxVerbs().filter(x => x.F.refl), plain = G.vxVerbs().filter(x => !x.F.refl);
+  ok(refl.length >= 40, "reflexive verbs found", refl.length);
+  refl.forEach(x => {
+    const base = G.vxMeaning(x), cue = G.vxMeaningCue(x);
+    ok(/ · sich$/.test(cue) || /\b(oneself|yourself|himself|herself|myself|each other)\b/.test(base), `${x.inf}: meaning says reflexive`, cue);
+    ok(cue.startsWith(base), `${x.inf}: the meaning is kept whole`, cue);
+    ok((cue.match(/sich/g) || []).length <= 1, `${x.inf}: cue not doubled`, cue);
+    ok(!/\b(mich|dich|uns|euch)\b/.test(cue), `${x.inf}: cue does not show the pronoun`, cue);
+    ok(G.vxMeaningCue(x) === cue, `${x.inf}: cue is stable`);
+  });
+  plain.forEach(x => ok(G.vxMeaningCue(x) === G.vxMeaning(x), `${x.inf}: no cue on a verb that is not reflexive`));
+  const by = inf => G.vxVerbs().find(x => x.inf === inf);
+  ok(G.vxMeaningCue(by("sich anmelden")) === "to register · sich", "anmelden: to register · sich", G.vxMeaningCue(by("sich anmelden")));
+  ok(G.vxMeaningCue(by("sich beeilen")) === "to hurry · sich", "beeilen: to hurry · sich");
+  ok(G.vxMeaningCue(by("sich vorstellen")) === "to introduce oneself", "vorstellen: oneself already says it");
+  ok(G.vxMeaningCue(by("sich verhalten")) === "to behave oneself", "verhalten: to behave oneself");
+  ok(G.vxMeaningCue(by("streiten")) === G.vxMeaning(by("streiten")), "streiten (no sich): no cue");
+}
 console.log(`content: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
