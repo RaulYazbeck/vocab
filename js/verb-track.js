@@ -1223,7 +1223,19 @@ function vxIsOwnForm(x, typed) { return !!x && !!x.inf && vxOwnForms(x).norm.has
 // spelling shown. Typed with its umlaut (ä, or ae spelling a real form):
 // graded as typed. Timed games never ask. German only.
 const vxUmlKey = s => String(s || "").toLowerCase().normalize("NFC").replace(/ä/g, "a").replace(/ö/g, "o").replace(/ü/g, "u").replace(/\s+/g, " ").trim();
-const vxUmlSpelt = s => String(s || "").toLowerCase().normalize("NFC").replace(/ae/g, "ä").replace(/oe/g, "ö").replace(/ue/g, "ü");
+// Every reading of ae / oe / ue as an umlaut or not (haette gedauert:
+// hätte, but not gedaürt) — at most 64.
+function vxUmlSpellings(s) {
+  const t = String(s || "").toLowerCase().normalize("NFC"), at = [];
+  t.replace(/ae|oe|ue/g, (m, i) => { at.push(i); return m; });
+  const out = [];
+  for (let mask = 1; mask < 1 << Math.min(at.length, 6); mask++) {
+    let r = "", from = 0;
+    at.forEach((i, j) => { if (mask & (1 << j)) { r += t.slice(from, i) + ({ ae: "ä", oe: "ö", ue: "ü" })[t.slice(i, i + 2)]; from = i + 2; } });
+    out.push(r + t.slice(from));
+  }
+  return out;
+}
 // A verb's real forms (any person, any tense), also without a separable
 // particle a game shows (fährt for fährt ab), by their plain spelling.
 const _vxUmlForms = new Map();
@@ -1272,21 +1284,29 @@ function vxUmlautAlternates(x) {
   return false;
 }
 // → { right, others: [the other real forms it could be — of this verb or
-// another], other } or null.
+// another], other } — ask; { wrong: true, right, typed } — an umlaut typed
+// that makes it another real form (drücke for drucke): a miss, not a
+// forgiven umlaut; or null — no question (graded as usual).
 function vxUmlautChoice(val, acc, x, cmd = false) {
   if (VX_FR || !x || !x.inf || !acc || !acc.length) return null;
   const tries = vxGradeTries(val, cmd).slice().reverse(); // the pronoun-less try first
-  if (!tries.length || tries.some(t => /[äöü]/i.test(t))) return null; // typed with its umlaut: as typed
+  if (!tries.length) return null;
   // Its own forms and every other verb's (drucke / drücke are two verbs).
   const own = vxUmlForms(x), all = vxUmlIndex(), lc = s => String(s).toLowerCase().normalize("NFC").replace(/\s+/g, " ").trim();
   const forms = { get: k => new Set([...(own.get(k) || []), ...(all.get(k) || [])]) };
+  const real = f => forms.get(vxUmlKey(f)).has(f) || acc.some(a => lc(a) === f);
   for (const t of tries) {
-    // ae / oe / ue spelling a real form (faehrt): typed with its umlaut.
-    const spelt = vxUmlSpelt(t);
-    if (spelt !== lc(t) && [...(forms.get(vxUmlKey(spelt)) || [])].concat(acc.map(lc)).some(f => lc(f) === lc(spelt))) return null;
+    // Typed with its umlaut (ä, or ae / oe / ue spelling a real form: faehrt).
+    const typed = /[äöü]/i.test(t) ? lc(t) : vxUmlSpellings(t).map(lc).find(real) || null;
+    if (typed !== null) {
+      if (acc.some(a => lc(a) === typed)) return null; // right as typed
+      const a = acc.find(a => vxUmlKey(a) === vxUmlKey(typed));
+      if (!a) continue; // (drücken without its Sie: the next try has it)
+      return forms.get(vxUmlKey(typed)).has(typed) ? { wrong: true, right: a, typed } : null;
+    }
     const k = vxUmlKey(t), a = acc.find(a => vxUmlKey(a) === k);
     if (!a) continue;
-    const others = [...(forms.get(k) || [])].filter(f => lc(f) !== lc(a) && !acc.some(b => lc(b) === lc(f)));
+    const others = [...forms.get(k)].filter(f => lc(f) !== lc(a) && !acc.some(b => lc(b) === lc(f)));
     if (!others.length) return null; // only one form fits: nothing to ask
     return { right: a, others, other: others[0] };
   }

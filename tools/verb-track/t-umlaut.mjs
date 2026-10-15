@@ -97,6 +97,33 @@ const r = await page.evaluate(async () => {
   key(String(optFor("drücke") + 1), document.body);
   ok(s.answered && document.getElementById("p-input").classList.contains("correct"), "…pick drücke: right");
   key("Enter", document.body);
+  // Typed WITH an umlaut that makes it another real form: a miss, no question (not a forgiven umlaut).
+  show("drucken", "pr", "ich"); typeEnter("drücke");
+  ok(!ask() && s.answered && document.getElementById("p-input").classList.contains("wrong"), "Today: drücke for drucken (another verb's form, umlaut typed) → a miss");
+  key("Enter", document.body);
+  show("drucken", "pr", "ich"); typeEnter("druecke");
+  ok(!ask() && s.answered && document.getElementById("p-input").classList.contains("wrong"), "Today: druecke (ae spelling) for drucken → a miss");
+  key("Enter", document.body);
+  show("fahren", "pr", "ihr"); typeEnter("fährt");
+  ok(!ask() && s.answered && document.getElementById("p-input").classList.contains("wrong"), "Today: fährt for ihr fahrt (another person, umlaut typed) → a miss");
+  key("Enter", document.body);
+  show("drucken", "im", "Sie"); typeEnter("drücken Sie");
+  ok(!ask() && s.answered && document.getElementById("p-input").classList.contains("wrong"), "Today: drücken Sie for drucken Sie → a miss");
+  key("Enter", document.body);
+  show("drucken", "im", "Sie"); typeEnter("drucken Sie");
+  ok(ask() && ask().querySelectorAll(".g-opt").length === 2, "Today: drucken Sie (plain) → the choice");
+  key(String(optFor("drucken Sie") + 1), document.body); key("Enter", document.body);
+  show("haben", "pt", "ich"); typeEnter("ich hätte");
+  ok(!ask() && !s.answered, "Today: ich hätte for ich hatte (same verb, other tense) → still the gentle tense retry");
+  { const i = document.getElementById("p-input"); i.value = "hatte"; key("Enter", i); if (ask()) key(String(optFor("hatte") + 1), document.body); key("Enter", document.body); }
+  // Four real forms fit: hatte gedruckt → 1–4.
+  show("drucken", "pq", "ich"); typeEnter("hatte gedruckt");
+  ok(ask() && ask().querySelectorAll(".g-opt").length === 4, `Today: hatte gedruckt → four real forms: ${ask() && ask().querySelector(".vx-uml-opts").textContent.replace(/\s+/g, " ")}`);
+  key("Enter", document.body);
+  ok(/Pick 1–4/.test(ask().textContent), "…Enter says Pick 1–4");
+  key(String(optFor("hatte gedruckt") + 1), document.body);
+  ok(s.answered && document.getElementById("p-input").classList.contains("correct"), "…key 1–4 picks; hatte gedruckt is right");
+  key("Enter", document.body);
   // The card redrawn while asking (the mic toggled…): the box is gone — typing again asks again, never stuck.
   show("fahren", "pr", "er"); typeEnter("fahrt");
   document.getElementById("p-fb").innerHTML = "";
@@ -155,12 +182,21 @@ const r = await page.evaluate(async () => {
       gsQuizNext();
     }
   }
+  // Sheet: a plain answer that is right but has a twin asks; one typed with the twin's umlaut is a miss.
+  {
+    const Q = { k: "type", q: "ich ___ (drucken)", a: ["drucke"], sid: "pr1", at: "r1" };
+    const x = gsQuizVerb(Q);
+    ok(x && x.inf === "drucken", "Sheet: the verb read from the brackets (drucken)");
+    ok(!!vxUmlautChoice("drucke", Q.a, x) && vxUmlautChoice("drücke", Q.a, x).wrong === true, "Sheet: drucke asks, drücke is a miss");
+  }
   ok(found, `Sheet quiz: a stem-change question was asked (${seenQ.join(" ")})`);
   // the sheet's Almost knows real forms now
   ok(vxNearTryAcc("wasche", ["wäscht"], vxVerb("waschen")) === "", "Sheet quiz: wasche for wäscht is not Almost");
 
   // ── Untimed game (Conjugation) vs timed ──
   ok(gameUmlautChoice({ def: { timed: true } }, "fahrt", ["fährt"], vxVerb("fahren")) === null, "timed games: no question (forgiven)");
+  { let res = null; gameUmlautAsk({ def: { timed: false }, teach() {} }, vxUmlautChoice("drücke", ["drucke"], vxVerb("drucken")), null, (ok, picked) => { res = [ok, picked]; });
+    ok(res && res[0] === false && res[1] === "drücke", "untimed games: drücke for drucke (umlaut typed, another verb) → a miss, no question"); }
   ok(!!gameUmlautChoice({ def: { timed: false } }, "fahrt", ["fährt"], vxVerb("fahren")), "untimed games: the question");
   backToMenu();
   // Conjugation: answer with the umlaut left out whenever its form has one.
