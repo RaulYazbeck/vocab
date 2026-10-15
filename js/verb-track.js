@@ -1599,6 +1599,30 @@ function vxSessionPlan(room) {
   return { sheets, items, learns };
 }
 
+// Extra practice on verbs: up to n exercises for a quest that Today's
+// quotas left a few short — ledger forms still open (past the day's
+// quota) first, then items you already know, weakest first. Reviews are
+// "practice": no step up or down. Never the same verb twice in a row.
+function vxPracticeItems(n) {
+  if (!vxOn() || n <= 0) return [];
+  const pool = [];
+  vxOpenCells(n * 2).forEach(c => { const ex = vxCellExercise(c); if (ex) pool.push(ex); });
+  const cells = pool.length;
+  if (cells < n) {
+    const rank = it => { const ws = S.words[vxKey(it.id)]; return [ws.st, ws.lastAnsweredAt || 0]; };
+    vxCatalog().filter(it => { const ws = S.words[vxKey(it.id)]; return ws && ws.st && !ws.rp && !ws.fl && !ws.lrn; })
+      .sort((a, b) => { const x = rank(a), y = rank(b); return x[0] - y[0] || x[1] - y[1]; })
+      .slice(0, n * 2).forEach(it => { const ex = vxMakeExercise(it, ""); if (ex) pool.push({ ...ex, practice: true }); });
+  }
+  // Spread the verbs: no two of the same verb side by side when avoidable.
+  const out = [];
+  while (pool.length && out.length < n) {
+    const i = pool.findIndex(e => !out.length || e.x.inf !== out[out.length - 1].x.inf);
+    out.push(pool.splice(i < 0 ? 0 : i, 1)[0]);
+  }
+  return out;
+}
+
 // ── ANSWERS ───────────────────────────────────
 // Bookkeeping for one answered verb exercise in Today. ok: true / false.
 // Returns the srsReview result (null for a coverage drill).
