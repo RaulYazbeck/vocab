@@ -1598,7 +1598,7 @@ const DECKS_B1 = {
         { en:"to serve (be of use, + Dativ)", de:"dienen", hint:"diente · hat gedient", examples:[{de:"Solche Kontakte dienen der Verbesserung der internationalen Beziehungen.",en:"Such contacts serve to improve international relations."}] },
         { en:"to thunder", de:"donnern", hint:"donnerte · hat gedonnert", examples:[{de:"Hörst du es donnern? Das Gewitter kommt näher.",en:"Can you hear it thundering? The storm is getting closer."}] },
         { en:"to turn (rotate)", de:"drehen", hint:"drehte · hat gedreht", examples:[{de:"Drehen Sie zum Einschalten den Schalter nach rechts.",en:"To switch on, turn the switch to the right."}] },
-        { en:"to hurry (be urgent — es eilt)", de:"eilen", hint:"eilte · hat/ist geeilt", examples:[{de:"Es eilt sehr. Bitte machen Sie schnell.",en:"It is very urgent. Please be quick."}] },
+        { en:"to hurry (be urgent)", de:"eilen", hint:"eilte · hat/ist geeilt", examples:[{de:"Es eilt sehr. Bitte machen Sie schnell.",en:"It is very urgent. Please be quick."}] },
         { en:"to grasp / to catch (a criminal)", de:"fassen", hint:"fasste · hat gefasst", examples:[{de:"Sie haben den Dieb gefasst.",en:"They have caught the thief."}] },
         { en:"to laze about", de:"faulenzen", hint:"faulenzte · hat gefaulenzt", examples:[{de:"Am Wochenende können wir faulenzen.",en:"At the weekend we can laze about."}] },
         { en:"to finance", de:"finanzieren", hint:"finanzierte · hat finanziert", examples:[{de:"Ich weiß nicht, wie ich das Auto finanzieren soll.",en:"I do not know how I am going to finance the car."}] },

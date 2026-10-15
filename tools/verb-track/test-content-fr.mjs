@@ -175,5 +175,25 @@ for (const met of [false, true]) {
   });
 }
 console.log(`  (${drawn} drawn questions checked)`);
+// A reflexive verb's meaning says it is reflexive: the Spanish already does
+// (lavarse, arreglárselas); where it does not, "· se" is added, once.
+{
+  vm.runInContext(`function getDeck(id){ for (const g of ALL_GROUPS) for (const d of g.decks) if (d.id === id) return d; return null; }`, G);
+  const refl = G.vxVerbs().filter(x => x.F.refl), plain = G.vxVerbs().filter(x => !x.F.refl);
+  ok(refl.length >= 60, "reflexive verbs found", refl.length);
+  const SAYS = /\wse(la|las|lo|los)?(?![\p{L}])/iu;
+  refl.forEach(x => {
+    const base = G.vxMeaning(x), cue = G.vxMeaningCue(x);
+    ok(!base || / · se$/.test(cue) || SAYS.test(cue), `${x.inf}: meaning says reflexive`, cue);
+    ok(cue.startsWith(base), `${x.inf}: the meaning is kept whole`, cue);
+    ok((cue.match(/ · se$/g) || []).length <= 1 && !/ · se · se/.test(cue), `${x.inf}: cue not doubled`, cue);
+    ok(SAYS.test(base) === (cue === base), `${x.inf}: added only where the Spanish does not say it`, cue);
+  });
+  plain.forEach(x => ok(G.vxMeaningCue(x) === G.vxMeaning(x), `${x.inf}: no cue on a verb that is not reflexive`));
+  const by = inf => G.vxVerbs().find(x => x.inf === inf);
+  ok(G.vxMeaningCue(by("se lever")) === "levantarse", "se lever: levantarse says it");
+  ok(G.vxMeaningCue(by("se promener")) === "pasear · se", "se promener: pasear · se", G.vxMeaningCue(by("se promener")));
+  ok(G.vxMeaningCue(by("se débrouiller")) === "arreglárselas", "se débrouiller: arreglárselas says it", G.vxMeaningCue(by("se débrouiller")));
+}
 console.log(`content-fr: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
