@@ -143,7 +143,8 @@ function bindPathKeys() {
       e.preventDefault();
       if (it.t === "learn") pathNext();
       else if (it.t === "bonus") { if (it.minion) pathMinion(true); else pathBonus(true); }
-      else if (pathSession.pendingReverse !== null) pathReverseResolve(false);
+      // "Same meaning?" is your call — Enter never answers it for you.
+      else if (pathSession.pendingReverse !== null) shakeEl(document.getElementById("p-fb"));
       else if (pathSession.answered) pathGo();
       else if (["typed", "spot", "cloze", "reverse"].includes(it.t)) pathCheckTyped();
       return;
@@ -505,10 +506,29 @@ function pathTypedOk(val, w) { return isCorrect(val, w[WORD_KEY]) || isCorrect(v
 function reverseAlternatives(w) {
   return String(w.en || "").split(/\s+\/\s+|\//).map(a => normalize(a.replace(/\(.*?\)/g, " ").replace(/\b(to|the|a|an)\s+/gi, " ")).trim()).filter(Boolean);
 }
+// Possible base forms of an English word, so an inflected version of the
+// stored answer counts: going → go, making → make, running → run,
+// studies → study, watches → watch.
+function englishBases(t) {
+  const out = new Set([t]);
+  const add = b => { if (b.length >= 2) out.add(b); };
+  const undouble = b => (/([^aeiouls])\1$/.test(b) ? b.slice(0, -1) : b);
+  if (t.endsWith("ing")) { const b = t.slice(0, -3); add(b); add(b + "e"); add(undouble(b)); }
+  else if (t.endsWith("ied")) add(t.slice(0, -3) + "y");
+  else if (t.endsWith("ed")) { const b = t.slice(0, -2); add(b); add(b + "e"); add(undouble(b)); }
+  else if (t.endsWith("ies")) add(t.slice(0, -3) + "y");
+  else if (t.endsWith("es")) { add(t.slice(0, -2)); add(t.slice(0, -1)); }
+  else if (t.endsWith("s") && !t.endsWith("ss")) add(t.slice(0, -1));
+  return out;
+}
+function sameEnglishForms(a, v) {
+  const x = a.split(/\s+/), y = v.split(/\s+/);
+  return x.length === y.length && x.every((t, i) => { const b = englishBases(y[i]); return [...englishBases(t)].some(f => b.has(f)); });
+}
 function reverseOk(val, w) {
   const v = normalize(String(val).replace(/\(.*?\)/g, " ").replace(/\b(to|the|a|an)\s+/gi, " ")).trim();
   if (!v) return false;
-  return reverseAlternatives(w).some(a => a === v || (a.length >= 5 && levenshtein(a, v) <= 1) || (v.length >= 4 && a.split(/[,;]\s*/).includes(v)));
+  return reverseAlternatives(w).some(a => a === v || (a.length >= 5 && levenshtein(a, v) <= 1) || (v.length >= 4 && a.split(/[,;]\s*/).includes(v)) || sameEnglishForms(a, v));
 }
 function pathCheckTyped() {
   const s = pathSession;
@@ -553,7 +573,7 @@ function pathReverseMismatch(val) {
   if (input) input.classList.add("wrong");
   document.getElementById("p-fb").innerHTML = `
     <div class="p-bad">Expected: <strong>${escapeHtml(gamePrompt(w))}</strong></div>
-    <div class="p-sub">You wrote “${escapeHtml(val.trim())}”. Same meaning?</div>`;
+    <div class="p-sub">You wrote “${escapeHtml(val.trim())}”. Same meaning? Choose below.</div>`;
   pathSetActions(`
     <button class="g-sec-btn" onclick="pathReverseResolve(true)">✓ I was right</button>
     <button class="g-big-btn p-main" id="p-go" onclick="pathReverseResolve(false)">✗ I was wrong</button>`);
