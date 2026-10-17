@@ -9,7 +9,7 @@
 //   kind  lesson (default) · contrast · recap · verb · scenario
 cxDefine({
   stages: [
-    { id: 0, name: "Stage 0 · A1 sweep", sub: "test out what you know, learn the rest" },
+    { id: 0, name: "Stage 0 · A1 grammar", sub: "a short test first: skip what you already know" },
     { id: 1, name: "Stage 1 · A2 core", sub: "word order, cases, prepositions, clauses" },
     { id: 2, name: "Stage 2 · B1", sub: "relative clauses, Konjunktiv, passive, particles" },
     { id: 3, name: "Stage 3 · Conversation", sub: "six everyday scenarios" },
@@ -28,7 +28,7 @@ cxDefine({
     c30: "Conversation", c31: "More conversation", appA: "Appendix A · Principal parts", appB: "Appendix B · Prepositions and cases", appC: "Appendix C · Declensions",
   },
   sections: [
-    // ── Stage 0 — A1 sweep ──
+    // ── Stage 0 — A1 grammar (each lesson opens with a test-out) ──
     { id: "s0.sounds", stage: 0, level: "A1", prio: "S", title: "Sounds and spelling", book: [["c1", "Pronunciation"]] },
     { id: "s0.gender", stage: 0, level: "A1", prio: "M", title: "Gender: der/die/das and the clues", book: [["c1", "Gender"]] },
     { id: "s0.art", stage: 0, level: "A1", prio: "M", title: "Articles: der-words and ein-words", book: [["c2", "Definite articles"], ["c2", "Indefinite articles"], ["c2", "Der-words"], ["c2", "Ein-words"], ["c2", "Ein/eine with questions"]] },
