@@ -2,6 +2,10 @@
 // Three reels spin — a person, a verb and (German) a tense — and you
 // type the form. A line under the reels says how many words the answer
 // takes (never which auxiliary); typing the pronoun too is accepted.
+// German Präsens / Präteritum / Imperativ ask the WHOLE verb as the
+// verb track does — separable prefix, reflexive pronoun and a Sie
+// command's Sie included (schalten Sie ein, beeile dich) — and show
+// no part of it.
 //
 // Two sources of spins:
 //   • DECK CARDS from the conjugation decks ("sein — ich ___"): as
@@ -170,7 +174,7 @@ registerGame({
   ],
   twists: ["golden", "turbo", "sudden"],
   howTo: () => [(speakOn() ? "Say" : "Type") + " the verb form for the person and tense shown" + (speakOn() ? ", then tap Show." : "."),
-    ...(IS_FRENCH_APP ? [] : ["Type only the verb part — the pronoun is optional. The line under the reels says how many words."]),
+    ...(IS_FRENCH_APP ? [] : ["Type the whole verb: a separable prefix, a reflexive pronoun and a Sie command's Sie are part of the answer (schalten Sie ein). The pronoun on the reel is optional. The line under the reels says how many words."]),
     "Only verbs you've met, in the tenses of your level. In the Games hub, a clock per spin from 🥈 Silver."],
   requirement(pool) {
     // Only with 4 verbs you've met (or 4 deck cards) — never a machine
@@ -297,7 +301,7 @@ registerGame({
         verbTxt = useMeaning ? `“${v.en.replace(/\s*\(.*?\)\s*/g, " ").trim()}”` : v.inf;
         pronTxt = tense === "im" ? (person === "Sie" ? "Sie (formal)" : person + " — command") : PERSON_LABEL[person];
         tenseTxt = TENSE_BY_ID[tense].name;
-        tail = cell.tail ? `___ ${escapeHtml(cell.tail)}` : "";
+        tail = cell.tail && !genForm(cur) ? `___ ${escapeHtml(cell.tail)}` : "";
         if (!useMeaning) meaning = escapeHtml(v.en || "");
       }
       document.getElementById("cj-tail").innerHTML = tail;
@@ -328,7 +332,29 @@ registerGame({
       };
       tick();
     };
-    const answersOf = c => c.kind === "card" ? [c.it.ans] : verbCellAnswers(c.cell);
+    // The whole-verb answer of a generated German Präsens / Präteritum /
+    // Imperativ (the verb track's own form), else null: the cell's.
+    const genForm = c => {
+      if (c._form === undefined) {
+        let f = null;
+        if (c.kind === "gen" && !IS_FRENCH_APP && ["pr", "pt", "im"].includes(c.tense) && typeof vxVerb === "function" && typeof vxForm === "function") {
+          try { const x = vxVerb(c.v.inf); f = x ? vxForm(x, c.tense, c.person) : null; } catch (e) { f = null; }
+          if (f && !(f.acc && f.acc.length)) f = null;
+        }
+        c._form = f;
+      }
+      return c._form;
+    };
+    const answersOf = c => c.kind === "card" ? [c.it.ans] : (genForm(c) || { acc: verbCellAnswers(c.cell) }).acc;
+    // What the whole answer is made of, for the hints.
+    const NUM_WORDS = { 2: "two", 3: "three", 4: "four" };
+    const wholeParts = c => {
+      const parts = [];
+      if (c.v.F.sep) parts.push("the prefix");
+      if (c.v.F.refl) parts.push("the reflexive pronoun");
+      if (c.tense === "im" && c.person === "Sie") parts.push("Sie");
+      return parts;
+    };
     // Typing the pronoun too ("ich habe gespielt", "spielen Sie!") is
     // fine: it's stripped before grading if the bare form doesn't match.
     // A generated German form is graded as Today grades a verb (another
@@ -340,9 +366,33 @@ registerGame({
       return x && acc.length ? { kind: c.tense, x, p: c.person, tense: c.tense, form: { acc, ans: acc[0] } } : null;
     };
     const conjChoice = (val, c) => { const ex = conjEx(c); return ex ? gameUmlautChoice(ctx, val, ex.form.acc, ex.x, vxIsCommand(ex)) : null; };
+    // A whole verb typed with words missing (the Sie, the prefix, the
+    // reflexive pronoun) → "part"; a du / ihr command typed with its
+    // pronoun → "pron". Neither is a miss: one more try, nothing shown.
+    const conjWholeSlip = (val, ex) => {
+      const words = s => normalize(String(s || "")).split(" ").filter(Boolean);
+      const same = (a, t) => vxEq(a, t) || normalize(a) === normalize(t);
+      const cmd = vxIsCommand(ex), tries = vxGradeTries(val, cmd), acc = ex.form.acc;
+      const part = tries.some(t => {
+        const tw = words(t);
+        return tw.length && acc.some(a => {
+          const aw = words(a);
+          if (tw.length >= aw.length || !same(aw[0], tw[0])) return false;
+          let j = 0;
+          for (const w of aw) if (j < tw.length && same(w, tw[j])) j++;
+          return j === tw.length;
+        });
+      });
+      if (part) return "part";
+      if (cmd === true && ex.p !== "Sie" && tries.some(t => { const tw = words(t); return tw[0] === ex.p && acc.some(a => same(a, tw.slice(1).join(" "))); })) return "pron";
+      return false;
+    };
     const gradeConj = (val, c) => {
       const ex = conjEx(c);
-      if (ex) return vxGrade(val, ex);
+      if (ex) {
+        const g = vxGrade(val, ex);
+        return g || (genForm(c) ? conjWholeSlip(val, ex) : false);
+      }
       const answers = answersOf(c);
       const res = gradeTyped(val, answers);
       if (res === true) return res;
@@ -359,6 +409,13 @@ registerGame({
         return { html: `${verbWord} <strong>${nw === 1 ? "one word" : nw + " words"}</strong>`, placeholder: "the verb form…" };
       }
       if (IS_FRENCH_APP) return { html: "", placeholder: "the verb form…" };
+      const whole = genForm(c);
+      if (whole) {
+        const n = whole.ans.trim().split(/\s+/).length, parts = wholeParts(c);
+        const note = parts.length ? `<div class="cj-format-note">the whole ${c.tense === "im" ? "command" : "verb"} — ${parts.join(" and ")} included</div>` : "";
+        const words = n === 1 ? "one word" : `${NUM_WORDS[n] || n} words`;
+        return { html: `${verbWord} <strong>${words}</strong>${note}`, placeholder: words + "…" };
+      }
       const t = c.tense, own = t === "k2" && c.v.F.k2special;
       const two = ["pf", "pq", "fu"].includes(t) || (t === "k2" && !own);
       // Reflexive compounds are three words (habe mich gefreut); the
@@ -367,7 +424,8 @@ registerGame({
         : two && c.v.F.refl ? `<div class="cj-format-note">+ mich / dich / sich… if you like</div>` : "";
       return { html: `${verbWord} <strong>${two ? "two words" : "one word"}</strong>${note}`, placeholder: two ? "two words…" : "one word…" };
     };
-    const shownOf = c => c.kind === "card" ? `${conjJoin(escapeHtml(c.it.pron), `<strong>${escapeHtml(c.it.ans)}</strong>`)}${c.it.tail ? " " + escapeHtml(c.it.tail) : ""}`
+    const shownOf = c => c.kind === "gen" && genForm(c) ? `${c.tense === "im" ? "" : escapeHtml(PERSON_LABEL[c.person].split("/")[0]) + " "}<strong>${escapeHtml(genForm(c).ans)}</strong>${c.tense === "im" ? "!" : ""}`
+      : c.kind === "card" ? `${conjJoin(escapeHtml(c.it.pron), `<strong>${escapeHtml(c.it.ans)}</strong>`)}${c.it.tail ? " " + escapeHtml(c.it.tail) : ""}`
       : `${c.tense === "im" ? "" : escapeHtml(PERSON_LABEL[c.person].split("/")[0]) + " "}<strong>${escapeHtml(c.cell.ans)}</strong>${c.cell.tail ? " " + escapeHtml(c.cell.tail.replace(/^… /, "")) : ""}`;
     const reveal = () => {
       if (!sayMode || revealed || !cur || ctx.busy || ctx.finished || ctx.paused || ctx.waiting) return;
@@ -394,9 +452,12 @@ registerGame({
         if (said && sayKind(shownAtMs, revealAtMs, helped) === "recognition") helped = true;
       }
       const res = forced ? forced.res : skip ? false : sayMode ? said : gradeConj(val, cur);
-      if (res === "near") {
+      if (res === "near" || res === "part" || res === "pron") {
         input.classList.add("near");
-        fb.innerHTML = `<span class="g-near">≈ Almost — ${diffHtml(val, answersOf(cur)[0])}</span>`;
+        const n = answersOf(cur)[0].trim().split(/\s+/).length, parts = cur.kind === "gen" ? wholeParts(cur) : [];
+        fb.innerHTML = `<span class="g-near">${res === "part" ? `≈ Almost — type ${n === 2 ? "both" : "all " + (NUM_WORDS[n] || n)} words${parts.length ? ": don't leave out " + parts.join(" and ") : ""}`
+          : res === "pron" ? `≈ Almost — a ${cur.person}-command takes no “${cur.person}”`
+          : `≈ Almost — ${diffHtml(val, answersOf(cur)[0])}`}</span>`;
         gTimeout(() => { input.classList.remove("near"); input.select(); }, 700);
         return;
       }
@@ -415,7 +476,8 @@ registerGame({
         const pts = ctx.award(gen ? null : cur.w, (helped ? 8 : 15) + Math.min(combo - 1, 5) * 2);
         score += pts;
         input.classList.add("correct");
-        fb.innerHTML = `<span class="bb-ok">✓ ${shownOf(cur)}</span>`;
+        const lowerSie = gen && cur.tense === "im" && cur.person === "Sie" && /\ssie\b/.test(" " + String(val).trim().replace(/!+$/, ""));
+        fb.innerHTML = `<span class="bb-ok">✓ ${shownOf(cur)}</span>${lowerSie ? `<div class="cj-format-note">write Sie with a capital S — it's the polite “you”</div>` : ""}`;
         floatScore(input, "+" + pts, !gen && ctx.isGolden(cur.w) ? "gold" : "");
         if (combo >= 3) playCombo(combo); else playSuccess();
         haptic("select");
