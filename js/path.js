@@ -379,17 +379,17 @@ function pathEnsurePlan(scan) {
     // Go back to this morning's reviews and pace.
     const first = morningPlanEvent();
     if (first) { prev.reviews = first.reviews; prev.pace = first.pace; }
-    prev.target = prev.goal = planTarget(prev.reviews, prev.pace, typeof vxPlanTarget === "function" ? vxPlanTarget(prev.vx) : 0);
+    prev.target = prev.goal = planTarget(prev.reviews, prev.pace, (typeof vxPlanTarget === "function" ? vxPlanTarget(prev.vx) : 0) + (typeof cxPlanTarget === "function" ? cxPlanTarget(prev.cx) : 0));
     prev.v = 5;
     planSyncQuest(prev);
     return prev;
   }
   scan = scan || pathScan(true);
   const pace = pathPace(scan, today);
-  let reviews, leave, vx = null;
+  let reviews, leave, vx = null, cx = null;
   if (prev) {
     // Finish date changed today: same morning reviews, new pace.
-    reviews = prev.reviews; leave = prev.leave; vx = prev.vx || null;
+    reviews = prev.reviews; leave = prev.leave; vx = prev.vx || null; cx = prev.cx || null;
   } else {
     // A backlog from missed days is spread out: about a week's worth a
     // day, but never more than +20% on a normal day (after several days
@@ -405,9 +405,11 @@ function pathEnsurePlan(scan) {
     // items and coverage drills add their own right answers.
     vx = typeof vxPlanNumbers === "function" ? vxPlanNumbers(scan) : null;
     if (vx) reviews += vx.due;
+    // The course's grammar block (course-de.js): its questions add theirs.
+    cx = typeof cxPlanNumbers === "function" ? cxPlanNumbers(scan) : null;
   }
-  const target = planTarget(reviews, pace, typeof vxPlanTarget === "function" ? vxPlanTarget(vx) : 0);
-  P.plan = { v: 5, day: today, deadline: P.deadline, pace, reviews, leave, target, goal: target, ...(vx ? { vx } : {}) };
+  const target = planTarget(reviews, pace, (typeof vxPlanTarget === "function" ? vxPlanTarget(vx) : 0) + (typeof cxPlanTarget === "function" ? cxPlanTarget(cx) : 0));
+  P.plan = { v: 5, day: today, deadline: P.deadline, pace, reviews, leave, target, goal: target, ...(vx ? { vx } : {}), ...(cx ? { cx } : {}) };
   // Made before this device synced (sync.js): see pathAfterSync.
   if (typeof cloudLoadedOnce !== "undefined" && !cloudLoadedOnce) P.plan.pre = 1;
   planSyncQuest(P.plan);
@@ -705,13 +707,27 @@ function buildPathQueue(lenKey, opts = {}) {
       rest.forEach((sh, i) => reviews.splice(Math.floor(reviews.length * (i + 1) / (rest.length + 1)), 0, sh));
       reviews.unshift(first);
     }
+    // The course (course-de.js): today's grammar block. The warm-up,
+    // test-out, sheet and drill come a third of the way in (after some
+    // words — PLAN.md §8), the rule reviews and the writing prompt two
+    // thirds in. Each is one card that asks its own questions.
+    const cxp = typeof cxOn === "function" && cxOn() ? cxTodayParts(scan) : [];
+    if (cxp.length) {
+      const cards = cxp.map(p => ({ t: "cx", ...p, qn: cxPartSize(p) })).filter(c => c.qn > 0);
+      const a = cards.filter(c => ["warm", "testout", "sheet", "drill"].includes(c.part)), b = cards.filter(c => !a.includes(c));
+      const lead = reviews.length && reviews[0].t === "sheet" ? 1 : 0;
+      const at1 = Math.min(reviews.length, Math.max(lead, Math.floor(reviews.length / 3)));
+      reviews.splice(at1, 0, ...a);
+      const rest = reviews.length - at1 - a.length;
+      reviews.splice(at1 + a.length + Math.floor(rest / 2), 0, ...b);
+    }
   }
   const nNew = clusters.reduce((s, c) => s + c.length, 0);
 
   const out = [];
   const delayed = [];
   let ri = 0, ci = 0;
-  const counted = () => out.filter(x => x.t !== "learn" && x.t !== "bonus" && x.t !== "sheet").length;
+  const counted = () => out.filter(x => x.t !== "learn" && x.t !== "bonus" && x.t !== "sheet" && x.t !== "cx").length;
   const clusterEvery = clusters.length ? Math.max(4, Math.floor(reviews.length / (clusters.length + 1))) : Infinity;
   let nextClusterAt = Math.min(2, reviews.length);
   const spotAt = Math.floor(budget * 0.6);
@@ -788,7 +804,7 @@ function buildPathQueue(lenKey, opts = {}) {
     if (budget >= 30 && typeof minionDeckPick === "function" && S.games && S.games.minionDay !== todayISO()
         && Math.random() < MINION_CHANCE && out.filter(x => x.t !== "learn").length >= 10) minion = minionDeckPick();
     const mid = minion ? slots.reduce((a, b) => Math.abs(b - 0.55) < Math.abs(a - 0.55) ? b : a) : -1;
-    const isQ = x => x.t !== "learn" && x.t !== "bonus" && x.t !== "sheet" && !x.warm;
+    const isQ = x => x.t !== "learn" && x.t !== "bonus" && x.t !== "sheet" && x.t !== "cx" && !x.warm;
     const total = out.filter(isQ).length;
     const marks = slots.map(f => ({ at: Math.max(1, Math.round(total * f)), item: f === mid ? { t: "bonus", minion } : { t: "bonus" } }));
     let n = 0;
@@ -812,7 +828,7 @@ function buildPathQueue(lenKey, opts = {}) {
 // already shown fixed), and an item never moves past another of the
 // same word, so learn → choice → typed keeps its order.
 function pathAbout(it) {
-  if (!it || !it.w) return it && it.t === "sheet" ? "sheet:" + it.sheet : null;
+  if (!it || !it.w) return it && it.t === "sheet" ? "sheet:" + it.sheet : it && it.t === "cx" ? "cx:" + it.part + ":" + (it.sec || "") : null;
   const v = typeof vxVerbOfWord === "function" ? vxVerbOfWord(it.w) : null;
   return v ? "verb:" + v : it.w.deckId + "_" + it.w.idx;
 }

@@ -225,7 +225,7 @@ function syncMergeWords(lw, cw, preferLocal, cutFor, bw) {
 // top-level field, and each key of these objects on its own. The rest has
 // its own rules above.
 const SYNC_SPLIT = ["games", "path", "prefs", "quests"];
-const SYNC_NO_3WAY = new Set(["words", "usageArchive", "learn", "usage", "verb", "savedAt", "resets", "resetAllAt"]);
+const SYNC_NO_3WAY = new Set(["words", "usageArchive", "learn", "usage", "verb", "course", "savedAt", "resets", "resetAllAt"]);
 // Quest fields that belong to the day (see syncLocalDay).
 const SYNC_QUEST_DAY_KEYS = ["day", "list", "m", "dayDone", "flash", "weekend", "dbl", "missedYesterday", "prevOk", "history"];
 function syncPiecesOf(state) {
@@ -430,6 +430,22 @@ function mergeStates(local, cloud, opts = {}) {
       ["su", "sq"].forEach(k => { V[k] = syncIsObj(src[k]) ? syncClone(src[k]) : {}; });
     }
     out.verb = V;
+  }
+  // The course (course-de.js, German only): each section as far as either
+  // side got it (state, quiz and test-out scores), drill-set counts and
+  // quiz misses — the higher; when it started — the earlier; minutes and
+  // rotations — the side whose settings win; today's parts — the later
+  // day's, both sides' on the same day.
+  if (syncIsObj(local.course) || syncIsObj(cloud.course)) {
+    const lc = syncIsObj(local.course) ? local.course : {}, cc = syncIsObj(cloud.course) ? cloud.course : {};
+    const K = syncClone(localWins ? lc : cc);
+    ["sec", "ds", "qm"].forEach(k => { K[k] = syncDeepMax(syncIsObj(lc[k]) ? lc[k] : {}, syncIsObj(cc[k]) ? cc[k] : {}); });
+    const since = [lc.since, cc.since].filter(Boolean).sort()[0];
+    if (since) K.since = since;
+    const ld = String(lc.day || ""), cd = String(cc.day || "");
+    if (ld === cd) ["dd", "dq"].forEach(k => { K[k] = syncDeepMax(syncIsObj(lc[k]) ? lc[k] : {}, syncIsObj(cc[k]) ? cc[k] : {}); });
+    else { const src = ld > cd ? lc : cc; K.day = src.day || ""; ["dd", "dq"].forEach(k => { K[k] = syncIsObj(src[k]) ? syncClone(src[k]) : {}; }); }
+    out.course = K;
   }
   out.savedAt = Math.max(syncNum(local.savedAt), syncNum(cloud.savedAt));
   return out;

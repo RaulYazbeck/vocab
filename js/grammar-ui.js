@@ -32,7 +32,15 @@ function gsMd(s) {
     .replace(/~~(.+?)~~/g, "<s>$1</s>")
     .replace(/(^|[\s(])\*([^*\s][^*]*?)\*(?=[\s).,;:!?]|$)/g, "$1<i>$2</i>");
 }
-function gsUnitOf(sheet) { return VX_UNIT[sheet.unit] || { hue: 38, sign: "•", name: "" }; }
+function gsUnitOf(sheet) {
+  if (sheet.cx && typeof cxSection === "function") { const sec = cxSection(sheet.sec); return { hue: 38, sign: "📖", name: sec ? sec.title : "" }; }
+  return VX_UNIT[sheet.unit] || { hue: 38, sign: "•", name: "" };
+}
+// A sheet of the verb track, or of the course (course-de.js): the same
+// viewer and quiz for both.
+function gsSheetOf(id) { return vxSheet(id) || (typeof cxSheet === "function" ? cxSheet(id) : null); }
+function gsStyleOf(sh) { return sh.cx && typeof cxSecStyle === "function" ? cxSecStyle(sh.sec) : vxUnitStyle(sh.unit); }
+function gsSheetDone(sh) { return sh.cx ? cxSheetPassed(sh.id) : vxSheetPassed(sh.id); }
 function gsStructHtml(sh) {
   // A "+" only between two real pieces — never next to "…", an arrow or "!".
   const loose = (t, k) => k === "mid" || /^[,.…!→(]/.test(t) || /^[!…]$/.test(t);
@@ -107,10 +115,10 @@ function gsSteps(sh, hl = null) {
 //   opts.onDone(result) — after the quiz: { passed, score, all }
 let _gs = null;
 function gsOpen(host, id, opts = {}) {
-  const sh = vxSheet(id);
+  const sh = gsSheetOf(id);
   if (!sh || !host) return;
   _gs = { host, sh, steps: gsSteps(sh), step: 0, mode: opts.mode || "menu", onDone: opts.onDone || null, quiz: null };
-  if (typeof migrateVerb === "function") { migrateVerb(); S.verb.sr[id] = 1; }
+  if (typeof migrateVerb === "function" && !sh.cx) { migrateVerb(); S.verb.sr[id] = 1; }
   gsRender();
 }
 // A tense's mastery quiz in the same viewer: no reading steps, the quiz
@@ -133,8 +141,9 @@ function gsRender(dir = "") {
   const reading = g.step < g.steps.length;
   const total = g.steps.length + (g.mode === "peek" ? 0 : 1);
   const dots = Array.from({ length: total }, (_, i) => `<i class="${i === g.step ? "on" : i < g.step ? "done" : ""}${i === g.steps.length ? " q" : ""}"></i>`).join("");
-  const n = vxSheetIds(sh.unit).indexOf(sh.id) + 1, of = vxSheetIds(sh.unit).length;
-  const head = `<div class="gs-head" style="${vxUnitStyle(sh.unit)}">
+  const sibs = sh.cx ? cxSection(sh.sec).sheets : vxSheetIds(sh.unit);
+  const n = sibs.indexOf(sh.id) + 1, of = sibs.length;
+  const head = `<div class="gs-head" style="${gsStyleOf(sh)}">
       <span class="gs-unit"><span class="gs-sign">${u.sign}</span>${escapeHtml(u.name)} · ${g.mastery ? vxT("🏆 optional") : `${n}/${of}`}</span>
       <h2 class="gs-title">${escapeHtml(sh.title)}</h2>
       ${g.mastery ? "" : `<div class="gs-dots" aria-hidden="true">${dots}</div>`}
@@ -147,7 +156,7 @@ function gsRender(dir = "") {
       ${g.mode === "peek" && last ? `<button class="g-big-btn gs-next" onclick="gsPeekClose()">${vxT("Back to the exercise")}</button>`
         : `<button class="g-big-btn gs-next" id="gs-next" onclick="gsGo(1)">${last ? vxT("Quiz ▶") : vxT("Next ›")}</button>`}
     </div>` : "";
-  g.host.innerHTML = `<div class="gs-viewer" style="${vxUnitStyle(sh.unit)}" id="gs-viewer">${head}${body}${nav}</div>`;
+  g.host.innerHTML = `<div class="gs-viewer" style="${gsStyleOf(sh)}" id="gs-viewer">${head}${body}${nav}</div>`;
   if (!reading) gsQuizBind();
   gsBindSwipe();
   const nx = document.getElementById("gs-next");
@@ -158,7 +167,7 @@ function gsRender(dir = "") {
 function gsQuizReview() {
   const g = _gs, q = g && g.quiz;
   if (!q || !q.answered) return;
-  const Q = q.list[q.i].q, sh = vxSheet(Q.sid);
+  const Q = q.list[q.i].q, sh = gsSheetOf(Q.sid);
   if (!sh) return;
   const hl = gqPointStep(Q.at), steps = gsSteps(sh, hl);
   g.review = { sh, steps, step: Math.max(0, steps.findIndex(st => st.id === hl.id)) };
@@ -168,7 +177,7 @@ function gsQuizReview() {
 function gsRenderReview(dir = "") {
   const g = _gs, r = g.review, sh = r.sh, u = gsUnitOf(sh);
   const step = r.steps[r.step];
-  g.host.innerHTML = `<div class="gs-viewer" style="${vxUnitStyle(sh.unit)}" id="gs-viewer">
+  g.host.innerHTML = `<div class="gs-viewer" style="${gsStyleOf(sh)}" id="gs-viewer">
     <div class="gs-head"><span class="gs-unit"><span class="gs-sign">${u.sign}</span>${escapeHtml(u.name)} · ${vxT("back to the sheet")}</span>
       <h2 class="gs-title">${escapeHtml(sh.title)}</h2></div>
     <div class="gs-step ${dir}" id="gs-step"><div class="gs-step-label">${escapeHtml(step.label)}</div>${step.html}</div>
@@ -271,7 +280,7 @@ function gsQuizStart() {
   // last right answer passes it) — up to the sheet's questions once a
   // day (vxSheetPlanTake). A retake of a passed sheet and the mastery
   // quiz are practice outside the plan.
-  const plan = g.mode === "path" || (g.mode === "menu" && !g.mastery && !vxSheetPassed(g.sh.id));
+  const plan = g.mode === "path" || (g.mode === "menu" && !g.mastery && !gsSheetDone(g.sh));
   g.quiz = { list, i: 0, firstRight: 0, n: list.length, answered: false, done: false, missed: [], plan };
 }
 // Blocks / options in a shuffled order (blocks never already in order).
@@ -287,7 +296,7 @@ function gsQuizHtml() {
   if (!q) return "";
   if (q.done) return gsQuizResultHtml();
   const cur = q.list[q.i], Q = cur.q;
-  const from = _gs.mastery && Q.sid ? ` · ${escapeHtml((vxSheet(Q.sid) || {}).title || "")}` : "";
+  const from = _gs.mastery && Q.sid ? ` · ${escapeHtml((gsSheetOf(Q.sid) || {}).title || "")}` : "";
   const pos = `<div class="gs-qpos">${cur.first ? vxT("Question {0} of {1}", q.i + 1, q.n) : vxT("Once more — the one you missed")}${from}</div>`;
   let body = "";
   if (Q.k === "type") {
@@ -368,6 +377,16 @@ function gsQuizCheck() {
   if (Q.k === "type") {
     const inp = document.getElementById("gs-input"), val = inp ? inp.value : "";
     if (!val.trim()) { if (inp) shakeEl(inp); return; }
+    // A course question (course-de.js): its own checker — tolerant of
+    // capitals, ß/ss and a missing umlaut, strict on the grammar.
+    if (Q.cx && typeof cxCheck === "function") {
+      const res = cxCheck(Q, val, cxSection(_gs.sh.sec));
+      if (!res.ok && res.near && !cur.near) { cur.near = true; inp.classList.add("near"); document.getElementById("gs-qfb").innerHTML = `<div class="p-near">≈ Almost — check the spelling — try again</div>`; setTimeout(() => { inp.classList.remove("near"); inp.select(); }, 600); return; }
+      cur.uml = res.ok && res.soft.length > 0; cur.extra = false;
+      inp.disabled = true; inp.classList.add(res.ok ? "correct" : "wrong");
+      gsQuizAnswered(res.ok, val);
+      return;
+    }
     if (vxUmlautAsking(document.getElementById("gs-qfb"))) return;
     const x = gsQuizVerb(Q);
     // Only an umlaut off, on a verb where it changes the form: 1 or 2.
@@ -420,10 +439,11 @@ function gsQuizAnswered(ok, given) {
   else { if (typeof playFailure === "function") playFailure(); if (typeof haptic === "function") haptic("miss"); if (typeof holdAfterMistake === "function") holdAfterMistake("gs-qnext"); }
   // The answer counts like any other (the day's plan, quests) — see gsQuizStart.
   if (typeof logEvent === "function") logEvent("answer", { m: g.mastery ? "grammar:mastery" : g.mode === "path" ? "path:quiz" : "grammar:quiz", ok, typed: Q.k === "type", sid: Q.sid, at: Q.at, first: cur.first });
-  if (typeof vxQuizAnswer === "function") vxQuizAnswer(Q, ok, given, cur.first);
-  if (q.plan && vxSheetPlanTake(g.sh.id, q.n, ok) && typeof questEvent === "function") questEvent("answer", { mode: g.mode === "path" ? "path" : "grammar", ok, typed: Q.k === "type" });
+  if (g.sh.cx) { if (typeof cxQuizAnswer === "function") cxQuizAnswer(Q, ok, cur.first); }
+  else if (typeof vxQuizAnswer === "function") vxQuizAnswer(Q, ok, given, cur.first);
+  if (q.plan && (g.sh.cx ? cxPlanTake("sheet:" + g.sh.id, q.n, ok) : vxSheetPlanTake(g.sh.id, q.n, ok)) && typeof questEvent === "function") questEvent("answer", { mode: g.mode === "path" ? "path" : "grammar", ok, typed: Q.k === "type" });
   if (g.mode === "path" && pathSession) { pathSession.stats.answered++; if (ok) { pathSession.stats.correct++; addExp(3); } else pathSession.stats.wrong++; }
-  if (!ok && typeof _learnDay === "function") _learnDay("mk", Q.k === "order" ? "order" : Q.k === "type" ? "verbform" : "recognition");
+  if (!ok && typeof _learnDay === "function") _learnDay("mk", g.sh.cx ? "grammar" : Q.k === "order" ? "order" : Q.k === "type" ? "verbform" : "recognition");
   const btn = document.getElementById("gs-qnext");
   if (btn && g.mode !== "path") setTimeout(() => { try { btn.focus({ preventScroll: true }); } catch (e) {} }, 30);
 }
@@ -435,7 +455,7 @@ function gsQuizShowAnswered() {
   const cur = q.list[q.i], Q = cur.q, ok = cur.ok;
   const right = Q.k === "type" ? Q.a[0] : Q.k === "order" ? Q.a.join(" ") : Q.o[Q.a];
   const why = `<div class="gs-qwhy">${gsMd(Q.why)}${Q.whyHtml ? `<div class="gs-qrule">${Q.whyHtml}</div>` : ""}</div>`;
-  const sh = vxSheet(Q.sid);
+  const sh = gsSheetOf(Q.sid);
   const where = sh ? `${gqPointName(Q.at)}${g.mastery ? ` ${VX_FR ? "de" : "of"} “${escapeHtml(sh.title)}”` : ""}` : "";
   const fb = document.getElementById("gs-qfb");
   if (fb) fb.innerHTML = ok ? `<div class="p-ok">${vxT("✓ Right")}${cur.uml ? ` <span class="vx-uml">${vxT("— spelt {0}", `<b>${escapeHtml(right)}</b>`)}</span>` : ""}${cur.extra ? ` <span class="vx-uml">${vxT("— only the verb was needed")}</span>` : ""}</div>${why}`
@@ -475,7 +495,7 @@ function gsQuizSettle() {
   const score = q.n ? q.firstRight / q.n : 0;
   q.result = { score, all: q.firstRight === q.n, passed: false };
   if (g.mastery) q.result.passed = vxMasteryResult(g.mastery, q.firstRight, q.n);
-  else if (g.mode !== "peek") q.result.passed = vxSheetResult(g.sh.id, score, q.result.all, g.mode);
+  else if (g.mode !== "peek") q.result.passed = g.sh.cx ? cxSheetResult(g.sh.id, score, q.result.all, g.mode) : vxSheetResult(g.sh.id, score, q.result.all, g.mode);
   const step = document.getElementById("gs-step");
   if (step) step.innerHTML = gsQuizHtml();
   if (q.result.passed && typeof confettiBurst === "function") confettiBurst(30);
@@ -483,12 +503,12 @@ function gsQuizSettle() {
 // What you missed, each with the way back into its sheet.
 function gsMissedHtml(q) {
   if (!q.missed.length) return "";
-  return `<div class="gs-missed"><b>${vxT("To look at again")}</b>${q.missed.map((m, j) => { const sh = vxSheet(m.q.sid);
+  return `<div class="gs-missed"><b>${vxT("To look at again")}</b>${q.missed.map((m, j) => { const sh = gsSheetOf(m.q.sid);
     return `<button class="gs-miss" onclick="gsOpenPoint('${m.q.sid}','${m.q.at}')"><span>${gsMd(m.q.q)}</span><small>${escapeHtml(gqPointName(m.q.at))}${_gs.mastery && sh ? ` · ${escapeHtml(sh.title)}` : ""} ›</small></button>`; }).join("")}</div>`;
 }
 // From the result screen: that point of the sheet, then back here.
 function gsOpenPoint(sid, at) {
-  const g = _gs, sh = vxSheet(sid);
+  const g = _gs, sh = gsSheetOf(sid);
   if (!g || !sh) return;
   const hl = gqPointStep(at), steps = gsSteps(sh, hl);
   g.review = { sh, steps, step: Math.max(0, steps.findIndex(st => st.id === hl.id)), fromResult: true };
@@ -511,6 +531,7 @@ function gsQuizResultHtml() {
   const g = _gs, q = g.quiz, r = q.result || { score: 0, passed: false };
   if (g.mastery) return gsMasteryResultHtml();
   const pct = Math.round(r.score * 100);
+  if (g.sh.cx) return gsCxResultHtml(r, pct);
   const unitDone = r.passed && vxUnitOpen(g.sh.unit) && vxUnitSheetsPassed(g.sh.unit);
   const next = gsNextSheetOf(g.sh);
   return `<div class="gs-result ${r.passed ? "ok" : "bad"}">
@@ -527,6 +548,21 @@ function gsQuizResultHtml() {
         : `<button class="g-big-btn" onclick="renderGrammarUnit('${g.sh.unit}')">${vxT("Done ✓")}</button>`}
     </div></div>`;
 }
+// A course sheet's result: its drill comes next.
+function gsCxResultHtml(r, pct) {
+  const g = _gs, q = g.quiz, sec = g.sh.sec;
+  return `<div class="gs-result ${r.passed ? "ok" : "bad"}">
+    <div class="gs-result-icon">${r.passed ? "✅" : "📖"}</div>
+    <div class="gs-result-title">${r.passed ? "Sheet passed" : "Not yet"}</div>
+    <div class="gs-result-sub">${q.firstRight}/${q.n} right first time (${pct}%)${r.passed ? "" : " · passing takes every question right the first time"}</div>
+    ${r.passed ? `<div class="gs-result-note">Its rules join your reviews. ${g.mode === "path" ? "Its drill comes next." : "Now drill it — or it comes in Today."}</div>` : gsMissedHtml(q)}
+    ${!r.passed && g.mode === "path" ? `<div class="gs-result-note">The sheet comes back in a later session, with new questions.</div>` : ""}
+    <div class="gs-result-act">
+      ${r.passed ? "" : `<button class="g-sec-btn" onclick="gsRestart()">Read it again</button>${g.mode === "path" ? "" : `<button class="g-sec-btn" onclick="gsQuizRetake()">Retake</button>`}`}
+      ${g.mode === "path" ? `<button class="g-big-btn" id="gs-done" onclick="gsQuizFinish()">${r.passed ? "Continue ▶" : "Later ▶"}</button>`
+        : r.passed ? `<button class="g-big-btn" onclick="renderCourseDrill('${sec}')">Drill it ▶</button>` : `<button class="g-big-btn" onclick="renderCourseSection('${sec}')">Done ✓</button>`}
+    </div></div>`;
+}
 function gsNextSheetOf(sh) { const ids = vxSheetIds(sh.unit); const i = ids.indexOf(sh.id); return i >= 0 && ids[i + 1] ? vxSheet(ids[i + 1]) : null; }
 function gsRestart() { if (!_gs) return; _gs.quiz = null; _gs.step = 0; gsRender("back"); }
 function gsQuizFinish() {
@@ -538,7 +574,7 @@ function gsQuizFinish() {
 
 // ── A SHEET OVER AN EXERCISE (read only) ──────
 function gsPeek(id) {
-  if (!vxSheet(id)) return;
+  if (!gsSheetOf(id)) return;
   const prev = _gs;
   const m = document.createElement("div");
   m.className = "modal-overlay"; m.id = "gs-peek";

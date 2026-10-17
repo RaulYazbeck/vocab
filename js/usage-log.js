@@ -415,6 +415,7 @@ function buildUsageReport(nDays = 0) {
   lines.push(`Words by tier now: ` + TIERS.map(t => `${t.icon}${t.name} ${tiers[t.id]}`).join(" · "));
   lines.push(`Daily goal ${getDailyGoal()} · new/day ${S.path.deadline ? `auto ${pathPace()} (finish by ${S.path.deadline})` : S.path.newPerDay} · level ${currentLevel()} · streak ${getDailyStreak()}d`);
   if (typeof vxReportLines === "function") lines.push(...vxReportLines());
+  if (typeof cxReportLines === "function") lines.push(...cxReportLines());
   // One line per active day: the trend at a glance.
   lines.push(``, `Per day (date · minutes on screen/active · answers · typed ok · typed latency · path sessions started/finished/abandoned · games started/quit · new words met · words up/down${typeof vxOn === "function" && vxOn() ? " · verbs: 📖 sheets passed/failed, ↩ misses looked up in the sheet, 🏆 mastery passed/taken, 🎯 drill right/answers, 🧩 items started, 📒 ledger forms" : ""}):`);
   activeDays.forEach(([d, v]) => {

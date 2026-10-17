@@ -709,7 +709,8 @@ function settingsMenuHtml() {
     <div class="menu-list">
       ${menuRowHtml("🎮", "Games", "", "menuGo('games')")}
       ${menuRowHtml("🗺️", "Journey", `${scan.known.toLocaleString()} / ${scan.total.toLocaleString()} known`, "menuGo('journey')")}
-      ${typeof vxAvailable === "function" && vxAvailable() ? menuRowHtml("📐", "Grammar", vxOn() ? `${VX_UNITS.filter(u => vxUnitOpen(u.id)).length} / ${VX_UNITS.length} tenses` : "", "menuGo('grammar')") : ""}
+      ${typeof cxOn === "function" && cxOn() ? menuRowHtml("📖", "Course", `Grammar · ${CX.sections.filter(s => cxSecStatus(s).k === "done").length} / ${CX.sections.length} sections`, "menuGo('course')") + menuRowHtml("🧩", "Drills", (() => { const d = cxDueRules(); return d.fix.length + d.due.length ? `${d.fix.length + d.due.length} rules due` : ""; })(), "menuGo('drills')")
+        : typeof vxAvailable === "function" && vxAvailable() ? menuRowHtml("📐", "Grammar", vxOn() ? `${VX_UNITS.filter(u => vxUnitOpen(u.id)).length} / ${VX_UNITS.length} tenses` : "", "menuGo('grammar')") : ""}
       ${menuRowHtml("⚔️", "Bosses", `${beaten} / ${decks} beaten`, "menuGo('bosses')")}
       ${menuRowHtml("🎨", "Collection", chests ? `<span class="accent">🎁 ${chests} to open</span>` : "", "menuGo('collection')")}
       ${menuRowHtml("📊", "Stats", "", "menuGo('stats')")}
@@ -761,6 +762,7 @@ function settingsPlanHtml() {
       GOAL_OPTIONS.map(n => ({ label: n, on: goal === n, onclick: `setDailyGoal(${n})` })),
       plan ? `Auto · ${plan.goal} today — set by your finish date` : "")}
     ${typeof vxAvailable === "function" && vxAvailable() ? setNavHtml("📐", "Verbs & tenses", "The verb track: tenses in order, sheets, the ledger", "closeSettings();showScreen('grammar')") : ""}
+    ${typeof cxSettingsHtml === "function" ? cxSettingsHtml() : ""}
     <div class="set-group-title">Can't be undone</div>
     ${sk ? setNavHtml("⏭️", `Skip ${escapeHtml(sk.name)}`, `Already know ${escapeHtml(sk.name)}? Its ${sk.lift} word${sk.lift === 1 ? "" : "s"} below ⭐ Strong become Strong and you move straight on to ${escapeHtml(sk.next || "the next level")}.`, "confirmSkipLevel()")
       : setNavHtml("⏭️", "Skip a level", "Nothing left to skip — every level is ⭐ Strong or better.", "")}`;
@@ -923,6 +925,9 @@ function renderHome() {
   // are in these numbers too (verb-track.js).
   const vx = typeof vxTodayCounts === "function" ? vxTodayCounts() : { due: 0, fix: 0, fresh: 0 };
   t.due += vx.due; t.fix += vx.fix; t.newLeft += vx.fresh;
+  // …and so are the course's grammar rules and its lesson (course-de.js).
+  const cx = typeof cxTodayCounts === "function" ? cxTodayCounts() : { due: 0, fix: 0, parts: 0 };
+  t.due += cx.due; t.fix += cx.fix;
   const extra = t.frontier && !t.newLeft && t.reason !== "autopaused";
   const stats = [];
   if (t.fix) stats.push(`<span class="tc-stat warn" title="Words and verbs you slipped on — Start fixes them first">🩹 ${t.fix} to fix</span>`);
@@ -930,7 +935,7 @@ function renderHome() {
   stats.push(!t.frontier ? `<span class="tc-stat">🏔️ all met</span>`
     : extra ? `<button class="tc-stat tc-stat-btn" onclick="pathLearnExtra();startPathSession('quick')" title="Today's new words are done — learn ${PATH.EXTRA_NEW} more">🌱 +${PATH.EXTRA_NEW} new</button>`
     : `<span class="tc-stat" ${t.reason === "slowed" ? `title="Fewer new words today while you catch up on ${t.overdue} reviews${pathDeadlineOn() ? " — finish today's plan to lift it" : ""}"` : ""}>🌱 ${t.newLeft} new${t.reason === "slowed" ? ` <span class="tc-slow" aria-label="slowed down while you catch up">🐢</span>` : ""}</span>`);
-  const nothing = !t.due && !t.newLeft;
+  const nothing = !t.due && !t.newLeft && !cx.parts;
   home.innerHTML = `
     <div class="today-card" id="today-card">
       <div class="tc-head">
@@ -940,6 +945,7 @@ function renderHome() {
       </div>
       ${note}
       ${typeof vxTodayHtml === "function" ? vxTodayHtml() : ""}
+      ${typeof cxTodayHtml === "function" ? cxTodayHtml() : ""}
       <div class="tc-len" role="radiogroup" aria-label="Session length">
         ${Object.entries(PATH.SESSION_LENGTHS).map(([k, n]) => `<button class="tc-len-btn ${k === len ? "on" : ""}" role="radio" aria-checked="${k === len}" onclick="setSessionLen('${k}')">${k[0].toUpperCase() + k.slice(1)} <small>${n}</small></button>`).join("")}
       </div>
@@ -957,12 +963,14 @@ function renderGrandmaHome(home) {
   const t = pathTodaySummary();
   const vx = typeof vxTodayCounts === "function" ? vxTodayCounts() : { due: 0, fix: 0, fresh: 0 };
   t.due += vx.due; t.fix += vx.fix; t.newLeft += vx.fresh;
+  const cx = typeof cxTodayCounts === "function" ? cxTodayCounts() : { due: 0, fix: 0, parts: 0 };
+  t.due += cx.due; t.fix += cx.fix;
   const Q = S.quests;
   const len = S.path.sessionLen || "regular";
   const sg = sagaProgress();
   const scan = t.scan;
   const pct = scan.total ? Math.round(scan.known / scan.total * 100) : 0;
-  const nothing = !t.due && !t.newLeft;
+  const nothing = !t.due && !t.newLeft && !cx.parts;
   const banner = t.reason === "autopaused"
     ? `<div class="tc-note">⏸ New words paused after a few days away — they come back by themselves. <button class="tc-link" onclick="pathResume();renderHome()">Resume now</button></div>` : "";
   home.innerHTML = `

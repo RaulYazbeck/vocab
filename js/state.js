@@ -126,6 +126,7 @@ function migrate() {
   migratePath();
   if (typeof migrateQuests === "function") migrateQuests();
   if (typeof migrateVerb === "function") migrateVerb(); // the verb track (both apps)
+  if (typeof migrateCourse === "function") migrateCourse(); // the course (German only)
   if (typeof migrateUsage === "function") migrateUsage();
   // Re-apply user word-text overrides after every state load — migrate()
   // runs both at startup and after a cloud sync replaces S.

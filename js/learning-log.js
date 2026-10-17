@@ -27,6 +27,7 @@ const MISTAKE_LABEL = {
   agree: "verb: participle agreement (-e / -s)",
   confused: "mixed up with another word", meaning: "didn't know the word", blank: "no answer / don't know",
   listening: "misheard (listening)", recognition: "picked the wrong meaning", context: "wrong word for the sentence",
+  grammar: "grammar course: broke a rule (see the course section)",
 };
 const SOFT_LABEL = { umlaut: "typed without ä/ö/ü/ß (accepted)", capital: "noun typed in lower case (accepted)" };
 const LEARN_ARTICLES_DE = ["der", "die", "das", "den", "dem", "des", "ein", "eine", "einen", "einem", "einer", "eines"];
@@ -388,6 +389,7 @@ function buildLearningReport() {
   }
 
   if (typeof vxLearnLines === "function") L(...vxLearnLines());
+  if (typeof cxLearnLines === "function") L(...cxLearnLines());
 
   // Cases & plurals
   const cs = (S.games && S.games.cases) || {};

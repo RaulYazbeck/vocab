@@ -395,6 +395,15 @@ content:** the nicht vs kein section (sheet + drills mirroring 5.x and 28.2–28
 **Test:** the pilot appears in Today and in 📖 Course; a miss shows its rule;
 old progress and verb sheets are intact; the French app is unchanged.
 
+**Built (17 Oct 2026):** `js/course-de.js`, `js/course-ui.js`, `js/course/plan.js`
+(the whole skeleton, 73 sections), `js/course/s0-negation.js` (the pilot: 1 sheet,
+4 rules, 12 drill sets — 5•4–5•10, 28•2–28•4 mirrored, 5•1 generated, two
+production sets); the validator and tests in `tools/course` (README there says
+how a later session adds a section). The blueprint parser now also finds a
+heading right after an exercise (chapter 28's *Negation* and *Word order*).
+Not yet: easing new words in heavy grammar weeks (the planner trims the
+grammar block's review and writing first and brings two sheets on easy days).
+
 ### Session 2 — Stage 0, the A1 sweep
 
 **Upload:** chapters 1, 2, 3, 4, 6, 7.
@@ -483,3 +492,6 @@ screen · coverage report at 100 % (every blueprint exercise *mirrored*,
 - No dictation, no listening features, no Swiss notes.
 - Production drill required in every section; 8–10 hand-written items per mirrored exercise.
 - 9 build sessions, tested in between; Session 1 builds the system and pilots nicht vs kein.
+- Rules are review items `cx_<rule>` in `S.words` (same stages); a rule is learned at stage 2.
+- A Today session carries the grammar block as cards: warm-up, test-out, sheet and drill a third of the way in, reviews and writing two thirds in.
+- The word-order checker accepts the verb-second reordering of a time phrase and a pronoun subject by rule; other orders are listed per item; `fixed` sets accept only theirs.

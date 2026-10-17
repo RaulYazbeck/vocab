@@ -116,6 +116,8 @@ function bindPathKeys() {
     if (e.key === "Escape") { e.preventDefault(); pathQuit(); return; }
     // A 📖 lesson: the sheet viewer has its own keys (grammar-ui.js).
     if (it.t === "sheet") { if (typeof gsKey === "function") gsKey(e); return; }
+    // A 📖 course card: its sheet viewer or its drill runner (course-ui.js).
+    if (it.t === "cx") { if (it.part === "sheet") { if (typeof gsKey === "function") gsKey(e); } else if (typeof cxKey === "function") cxKey(e); return; }
     if (it.t === "repairOffer") {
       // Guarded: the Enter that pressed the last Next must not also start it.
       // A focused button (Later / Repair now) handles its own Enter.
@@ -166,16 +168,18 @@ function pathProgress() {
   const rep = !!s.repairPhase;
   // A 📖 sheet counts its quiz's questions (first tries; a missed one
   // asked again at the end doesn't add) on top of that length.
-  const q = x => x.t !== "bonus" && x.t !== "learn" && x.t !== "sheet" && !x.warm && !!x.repair === rep;
-  const sheetQ = x => rep || x.t !== "sheet" ? 0 : x.qn || (x.qn = typeof gqSheetSize === "function" && typeof vxSheet === "function" && vxSheet(x.sheet) ? gqSheetSize(vxSheet(x.sheet)) : 0);
+  // A 📖 course card (course-ui.js) counts the questions it asks the same way.
+  const q = x => x.t !== "bonus" && x.t !== "learn" && x.t !== "sheet" && x.t !== "cx" && !x.warm && !!x.repair === rep;
+  const sheetQ = x => rep ? 0 : x.t === "cx" ? x.qn || 0 : x.t !== "sheet" ? 0 : x.qn || (x.qn = typeof gqSheetSize === "function" && typeof vxSheet === "function" && vxSheet(x.sheet) ? gqSheetSize(vxSheet(x.sheet)) : 0);
   const cur = s.items[s.i], quiz = cur && cur.t === "sheet" && typeof _gs !== "undefined" && _gs && _gs.mode === "path" ? _gs.quiz : null;
   const total = s.items.filter(q).length + s.items.reduce((n, x) => n + sheetQ(x), 0);
   const before = s.items.slice(0, s.i).filter(q).length + s.items.slice(0, s.i).reduce((n, x) => n + sheetQ(x), 0);
   // Within a sheet the count never goes back ("Read it again" starts a
   // new quiz) and stays inside it (its re-asks too).
-  const inSheet = cur && cur.t === "sheet" ? (cur.qAt = Math.min(sheetQ(cur), Math.max(cur.qAt || 0, quiz ? quiz.list.slice(0, quiz.i).filter(x => x.first).length : 0))) : 0;
+  const inSheet = cur && cur.t === "sheet" ? (cur.qAt = Math.min(sheetQ(cur), Math.max(cur.qAt || 0, quiz ? quiz.list.slice(0, quiz.i).filter(x => x.first).length : 0)))
+    : cur && cur.t === "cx" && !rep ? (cur.qAt = Math.min(sheetQ(cur), Math.max(cur.qAt || 0, typeof cxPartAt === "function" ? cxPartAt(cur) : 0))) : 0;
   const done = before + inSheet;
-  const at = cur && cur.t === "sheet" ? Math.min(done + 1, before + sheetQ(cur)) : done + 1;
+  const at = cur && (cur.t === "sheet" || cur.t === "cx") && !rep ? Math.min(done + 1, before + sheetQ(cur)) : done + 1;
   const f = document.getElementById("p-prog");
   if (f) { f.style.width = Math.round(done / Math.max(1, total) * 100) + "%"; f.classList.toggle("repair", rep); }
   const c = document.getElementById("p-count");
@@ -219,6 +223,7 @@ function pathNext() {
   if (card) { card.classList.remove("p-swap"); void card.offsetWidth; card.classList.add("p-swap"); card.classList.toggle("golden", !!it.golden); }
   switch (it.t) {
     case "sheet": return renderPathSheet(it);
+    case "cx": return renderPathCx(it);
     case "learn": return it.w && it.w.vx ? renderPathVerbLearn(it) : renderPathLearn(it);
     case "choice": case "listen": return renderPathChoice(it);
     case "bonus": return renderPathBonusOffer(it);
