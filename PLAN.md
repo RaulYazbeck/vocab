@@ -401,13 +401,27 @@ Each session: a **new chat**, upload the files listed, paste the **shared
 prompt** + that session's line, build, test, push. After each session the
 learner tests in the app and brings the issues to the next one.
 
+**No exercise is dropped between sessions.** Every lesson in
+`js/course/plan.js` names the session that builds it (`ses`), and
+`node tools/course/session.mjs N` derives what Session N uploads: the
+chapters of its lessons, plus every chapter holding an exercise planned for
+them. An exercise a session can't build yet (it belongs to another lesson)
+is marked `planned` with that lesson; the validator fails if that lesson's
+session is already done, or doesn't upload the exercise's chapter. Each
+session ends by raising `DONE` in `session.mjs`, which makes the validator
+demand that every exercise of the lessons built so far is covered (mirrored,
+generated, or skipped with a reason).
+
 ### Shared prompt (paste first, every session)
 
 > Read `PLAN.md` and `tools/book/blueprint.json` first; they hold the agreed
 > plan. This is **Session N of 9** (PLAN.md §12). I've uploaded this session's
 > book chapters: extract them with `pdftotext`, never commit book text, and
 > write our own sheets and drill items that mirror the blueprint's exercise
-> structure. Every section ends with at least one production drill. My
+> structure. Every section ends with at least one production drill. Every
+> exercise of the uploaded chapters gets a status; one left "planned" names
+> a lesson of a later session that uploads its chapter (no exercise dropped).
+> Raise `DONE` in `tools/course/session.mjs` to N before the checks. My
 > existing progress must stay intact. Follow CLAUDE.md, run the checks and
 > tests, then tell me exactly what was pushed and give me a short test checklist.
 > Issues from my last test: *(list, or "none")*

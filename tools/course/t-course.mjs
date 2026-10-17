@@ -315,6 +315,14 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
     gb.click(); ok(/parts, in the order/i.test(document.getElementById("main-screen").innerText), "back: the Course");
     renderCourseSection("s0.verbs"); document.querySelector(".gr-sheet").click();
     ok(/Lesson/.test(document.querySelector(".screen-top .back-btn").textContent), "a verb sheet opened from a lesson goes back to the lesson");
+    renderCourseSection("s0.verbs"); document.querySelector(".gr-mastery").click();
+    ok(/Lesson/.test(document.querySelector(".screen-top .back-btn").textContent), "its tense in the verb track: back goes to the lesson");
+    document.querySelector(".gr-sheet").click(); ok(!/Lesson/.test(document.querySelector(".screen-top .back-btn").textContent), "a sheet opened from the tense goes back to the tense");
+    renderCoursePart(0);
+    ok(document.querySelectorAll(".cx-sec.coming").length > 0 && !document.querySelector("button.cx-sec.coming") && /🏁/.test(document.getElementById("main-screen").innerText), "a part: lessons not built yet are quiet rows (nothing to open), the checkpoint flagged");
+    { const keep = { ...S.verb.sh }; S.verb.sh.pr6 = 90; renderCourse();
+      const a2 = [...document.querySelectorAll(".gr-unit")][1].innerText; S.verb.sh = keep;
+      ok(/1\/\d+ done/.test(a2) && !/🔒/.test(a2), `a part with a lesson done in the verb track says so, not locked (${a2.replace(/\n/g, " ")})`); }
     showScreen("grammar"); ok(!/Course/.test(document.querySelector(".screen-top .back-btn").textContent), "📐 opened on its own: back as before");
     renderCourseChapter("c5");
   });
