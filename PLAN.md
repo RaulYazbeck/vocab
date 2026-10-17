@@ -401,6 +401,11 @@ Each session: a **new chat**, upload the files listed, paste the **shared
 prompt** + that session's line, build, test, push. After each session the
 learner tests in the app and brings the issues to the next one.
 
+**No chapter is guessed.** A session starts by checking the uploaded
+chapters against `node tools/course/session.mjs N`. If one is missing (for
+example chapter 5 in Session 2), Claude names the missing chapters and waits
+for them; it never writes a lesson or drill from a chapter it wasn't given.
+
 **No exercise is dropped between sessions.** Every lesson in
 `js/course/plan.js` names the session that builds it (`ses`), and
 `node tools/course/session.mjs N` derives what Session N uploads: the
@@ -416,7 +421,10 @@ generated, or skipped with a reason).
 
 > Read `PLAN.md` and `tools/book/blueprint.json` first; they hold the agreed
 > plan. This is **Session N of 9** (PLAN.md §12). I've uploaded this session's
-> book chapters: extract them with `pdftotext`, never commit book text, and
+> book chapters. **Before anything else**, run `node tools/course/session.mjs N`
+> and compare its list with what I uploaded: if a chapter is missing, stop and
+> tell me which ones — never build from a chapter you don't have, and never
+> invent its exercises. Then extract them with `pdftotext`, never commit book text, and
 > write our own sheets and drill items that mirror the blueprint's exercise
 > structure. Every section ends with at least one production drill. Every
 > exercise of the uploaded chapters gets a status; one left "planned" names
