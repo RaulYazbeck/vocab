@@ -68,7 +68,7 @@ cxPack({
         { t: "swap", from: "^kein\\w*$", to: "nicht", rule: "neg.kein", msg: "**kein** only stands for ein (or no article). With der/die/das, mein…, a name or the verb: **nicht**." },
         { t: "ending", stem: "kein", rule: "neg.kein-end", msg: "Right word, wrong ending: **{right}** — kein takes the ending ein would have." },
         { t: "missing", tok: "sondern", rule: "neg.sondern", msg: "Correcting one thing: nicht X, **sondern** Y." },
-        { t: "pos", tok: "nicht", rule: "neg.nicht-pos", msg: "The right words — but **nicht** goes {where}." },
+        { t: "pos", tok: "nicht", rule: "neg.nicht-pos", msg: "**nicht** goes {where}." },
         { t: "missing", tok: "^(nicht|kein\\w*)$", rule: "neg.kein", msg: "It needs its negative: **nicht** or **kein**." },
       ],
       drills: [
@@ -216,7 +216,7 @@ cxPack({
           { k: "translate", q: "I didn't sleep well.", a: ["Ich habe nicht gut geschlafen."], r: ["neg.nicht-pos"] },
         ] },
         // ── Production: write your own ──
-        { id: "dw.neg", t: "write", end: true, title: "Write your own", how: "Write it, then compare with the model and tick the checklist.", items: [
+        { id: "dw.neg", t: "write", end: true, title: "Write your own", how: "In your own words — saved for Claude to correct.", items: [
           { q: "Three things you don't have at home — use kein.", model: ["Ich habe keinen Fernseher, kein Auto und keine Katze."], check: ["kein / keine / keinen fits each noun", "no ein next to kein", "the verb is second"], r: ["neg.kein", "neg.kein-end"] },
           { q: "Tell a friend two things you're NOT doing this weekend — with nicht.", model: ["Am Samstag arbeite ich nicht. Ich fahre nicht nach Zürich, ich bleibe zu Hause."], check: ["nicht at the end, or before the place", "the verb is second"], r: ["neg.nicht-pos"] },
           { q: "Someone thinks you live in Bern. Correct them (nicht …, sondern …).", model: ["Ich wohne nicht in Bern, sondern in Zürich."], check: ["nicht right before in Bern", "a comma before sondern"], r: ["neg.sondern"] },

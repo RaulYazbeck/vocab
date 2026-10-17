@@ -474,3 +474,8 @@
 .cx-links { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); }
 @media (min-width:560px) { .cx-links.four { grid-template-columns:repeat(4, minmax(0, 1fr)); } }
 .cx-plan small { display:block; margin-top:3px; }
+/* a miss: the answer with the fix marked, why in one line, the rule a tap away */
+.cx-bad .p-diff { display:inline; margin:0; }
+.cx-why { font-size:14px; color:var(--text-2); margin-top:6px; line-height:1.45; }
+.cx-see { display:inline-block; margin-top:4px; font-size:13px; }
+.cx-rlist { margin:0 0 6px; padding-left:20px; font-size:14.5px; line-height:1.7; color:var(--text); }

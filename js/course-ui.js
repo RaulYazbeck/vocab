@@ -59,14 +59,16 @@ function cxRender() {
   const r = _cx;
   if (!r) return;
   const o = r.opts;
+  // (the part's name only on its result: during the questions the pill
+  // and the instruction say enough)
   const head = `<div class="gs-head"><span class="gs-unit"><span class="gs-sign">📖</span>${escapeHtml(o.title || "Course")} · ${escapeHtml(CX_PART_LABEL[o.kind] || "")}</span>
-    ${o.sub ? `<h2 class="gs-title">${escapeHtml(o.sub)}</h2>` : ""}</div>`;
+    ${o.sub && r.done ? `<h2 class="gs-title">${escapeHtml(o.sub)}</h2>` : ""}</div>`;
   if (r.list[r.i] && !r.list[r.i].shownAt) r.list[r.i].shownAt = Date.now();
   if (r.done) { r.host.innerHTML = `<div class="gs-viewer cx-run" style="${o.sec ? cxSecStyle(o.sec) : cxStyle(0)}" id="cx-run">${head}${cxResultHtml()}</div>`; cxBindResult(); return; }
   const cur = r.list[r.i], set = cxSet(cur.set), item = cur.item, k = cxItemKind(set, item);
   // (the book's exercise number only outside Today — in a session it's noise)
-  const src = [o.sub === set.title ? "" : set.title, o.mode !== "path" && set.ex ? "Übung " + set.ex : ""].filter(Boolean).join(" · ");
-  const pos = `<div class="gs-qpos">${cur.first ? `Question ${r.i + 1 - r.list.slice(0, r.i).filter(e => !e.first).length} of ${r.n}` : "Once more — the one you missed"}${src ? ` · <span class="cx-src">${escapeHtml(src)}</span>` : ""}</div>`;
+  const src = o.mode !== "path" && set.ex ? "Übung " + set.ex : "";
+  const pos = `<div class="gs-qpos">${cur.first ? `${r.i + 1 - r.list.slice(0, r.i).filter(e => !e.first).length} / ${r.n}` : "Once more"}${src ? ` · <span class="cx-src">${escapeHtml(src)}</span>` : ""}</div>`;
   const how = `<div class="cx-how">${gsMd(set.how || "")}</div>`;
   let body = "";
   const input = (ph = "type it…") => `<input type="text" class="german-input gs-input" id="cx-input" placeholder="${ph}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="go"/>${typeof accentBarHtml === "function" ? accentBarHtml("cx-input") : ""}`;
@@ -75,7 +77,7 @@ function cxRender() {
     if (!cur.order) cur.order = k === "pick" && !item.o ? opts.map((_, i) => i) : shuffle(opts.map((_, i) => i));
     body = `<div class="gs-qtext">${cxQHtml(item)}</div><div class="gs-opts">${cur.order.map((oi, j) => `<button class="g-opt gs-opt" data-o="${oi}"><span class="g-key">${j + 1}</span><span class="g-opt-text">${escapeHtml(opts[oi])}</span></button>`).join("")}</div>`;
   } else if (k === "write" || k === "open") {
-    body = `<div class="gs-qtext">${gsMd(item.q)}</div><textarea class="german-input cx-text" id="cx-text" rows="3" placeholder="Write it here…" autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="false"></textarea>`;
+    body = `<div class="gs-qtext">${gsMd(item.q)}</div><textarea class="german-input cx-text" id="cx-text" rows="3" placeholder="Schreib hier…" autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="false" lang="de"></textarea>`;
   } else if (k === "order") {
     // Lines of a conversation to put in order: tap them one by one.
     if (!cur.bank) { cur.bank = item.a.map((w, i) => ({ w, i })); for (let t = 0; t < 8; t++) { shuffle(cur.bank); if (cur.bank.some((b, i) => b.i !== i)) break; } }
@@ -96,7 +98,7 @@ function cxRender() {
     body = `<div class="gs-qtext">${cxQHtml(item)}</div>${input(k === "type" ? "type it…" : "the whole sentence…")}`;
   }
   const check = k !== "pick" && k !== "respond";
-  const actLabel = k === "write" || k === "open" ? "Show the model" : "Check";
+  const actLabel = k === "write" || k === "open" ? "Save" : "Check";
   r.host.innerHTML = `<div class="gs-viewer cx-run" style="${cxSecStyle(set.sec)}" id="cx-run">${head}
     <div class="gs-step fwd" id="cx-step"><div class="gs-quiz">${pos}${how}${body}<div class="gs-qfb" id="cx-fb" aria-live="polite"></div>
       <div class="gs-qact" id="cx-act">${check ? `<button class="g-big-btn" id="cx-check" onclick="cxCheckCur()">${actLabel}</button>` : ""}${cur.mode === "tiles" ? `<button class="tc-link cx-typeit" onclick="cxTypeInstead()">⌨️ type it instead</button>` : ""}</div></div></div></div>`;
@@ -139,7 +141,7 @@ function cxCheckCur() {
   const r = _cx;
   if (!r || r.answered || r.done) return;
   const cur = r.list[r.i], set = cxSet(cur.set), item = cur.item, k = cxItemKind(set, item), sec = cxSection(set.sec);
-  if (k === "write" || k === "open") return cxShowModel();
+  if (k === "write" || k === "open") return cxWriteSave();
   if (k === "order") {
     if (cur.picked.length < item.a.length) { shakeEl(document.getElementById("cx-built")); return; }
     const okO = cur.picked.every((bi, j) => cur.bank[bi].i === j);
@@ -171,21 +173,15 @@ function cxCheckCur() {
   cxAnswered(res.ok, val, res, cur.mode !== "tiles");
 }
 // Write / open: the model and its checklist; you say how it went.
-function cxShowModel() {
-  const r = _cx, cur = r.list[r.i], item = cur.item;
-  const ta = document.getElementById("cx-text");
-  const val = ta ? ta.value : "";
-  if (ta) ta.disabled = true;
-  cur.given = val;
-  document.getElementById("cx-fb").innerHTML = `<div class="cx-model"><b>A model answer</b>${(item.model || []).map(m => `<div class="gs-ex-de">${gsMd(m)}</div>`).join("")}</div>
-    <div class="cx-check"><b>Check yours</b>${(item.check || []).map((c, i) => `<label class="cx-tick"><input type="checkbox" id="cx-tick-${i}"> ${gsMd(c)}</label>`).join("")}</div>`;
-  document.getElementById("cx-act").innerHTML = `<div class="cx-self"><button class="g-sec-btn" id="cx-self-no" onclick="cxSelf(false)">✗ Not yet</button><button class="g-big-btn" id="cx-self-ok" onclick="cxSelf(true)">✓ Mine works</button></div>`;
-}
-function cxSelf(ok) {
-  const r = _cx;
-  if (!r || r.answered) return;
-  const cur = r.list[r.i];
-  cxAnswered(ok, cur.given || "", { ok, soft: [], right: (cur.item.model || [])[0] || "", rule: (cur.item.r || [])[0] }, true, true);
+// Your own sentences: saved as written for Claude to correct (✍️ Writing,
+// the learning log) — never graded here, so they don't move a rule.
+function cxWriteSave() {
+  const r = _cx, cur = r.list[r.i], set = cxSet(cur.set), item = cur.item;
+  const ta = document.getElementById("cx-text"), val = ta ? ta.value.trim() : "";
+  if (cxWordCount(val) < 3) { if (ta) shakeEl(ta); return; }
+  ta.disabled = true;
+  if (cur.first) cxJournalSave("drill:" + set.id + "#" + cur.i, val, item.q);
+  cxAnswered(true, val, { ok: true, soft: [], right: (item.model || [])[0] || "", rule: (item.r || [])[0] }, true, true);
 }
 function cxAnswered(ok, given, res, typed, self = false) {
   const r = _cx, o = r.opts, cur = r.list[r.i];
@@ -219,17 +215,16 @@ function cxShowAnswered() {
   const fb = document.getElementById("cx-fb");
   const self = k === "write" || k === "open";
   const also = (item.a || []).filter(a => a !== res.right);
-  // The rule, and why: what this answer got wrong — or, when nothing
-  // more precise is known, the rule as the sheet says it.
-  const ruleBox = rule ? `<div class="cx-rule"><b>📏 ${escapeHtml(rule.title)}</b>${res.msg ? `<div class="cx-diag">${gsMd(res.msg)}</div>` : `<div class="cx-rtext">${gsMd(rule.text)}</div>`}
-      <button class="gs-qsee" onclick="gsPeek('${rule.sheet}')">📖 See it in the sheet — ${escapeHtml(gqPointName(rule.at))}</button></div>` : "";
+  // A miss: your answer with the fix marked (it holds the right answer),
+  // why in one line, and the rule's name — a tap opens its sheet.
+  const why = rule ? `<div class="cx-why">${gsMd(res.msg || rule.text)}</div><button class="tc-link cx-see" onclick="gsPeek('${rule.sheet}')">📏 ${escapeHtml(rule.title)} ›</button>` : "";
   let html;
-  if (self) html = ok ? `<div class="p-ok">✓ Noted — well done</div>` : `<div class="p-bad">✗ Noted — it goes back to its rule</div>${ruleBox}`;
+  if (self) html = `<div class="p-ok">✓ Saved for Claude to correct</div>${(item.model || []).length ? `<div class="cx-also">A model: <i>${escapeHtml(item.model[0])}</i></div>` : ""}`;
   else if (ok) html = `<div class="p-ok">✓ Right${res.soft && res.soft.length ? ` <span class="vx-uml">— ${res.soft.map(s => CX_SOFT[s]).join(", ")}: <b>${escapeHtml(res.right)}</b></span>` : ""}</div>${also.length ? `<div class="cx-also">Also right: ${also.map(a => `<i>${escapeHtml(a)}</i>`).join(" · ")}</div>` : ""}${cxMoveHtml(cur)}`;
-  else html = `<div class="p-bad">✗ Answer: <strong>${escapeHtml(res.right || (item.a || [])[0] || "")}</strong></div>
-      ${cur.given && k !== "pick" ? `<div class="p-diff">${diffHtml(cur.given, res.right || "")}</div>` : ""}
-      ${item.note ? `<div class="cx-note">${gsMd(item.note)}</div>` : ""}${ruleBox}
-      ${cur.first ? `<div class="gs-qback">This one comes back once at the end.</div>` : ""}`;
+  else html = (cur.given && k !== "pick" && k !== "respond" && k !== "order" && String(res.right || "").trim().split(/\s+/).length > 2
+      ? `<div class="p-bad cx-bad">✗ <span class="p-diff">${diffHtml(cur.given, res.right || "")}</span></div>`
+      : `<div class="p-bad">✗ Answer: <strong>${escapeHtml(res.right || (item.a || [])[0] || "")}</strong></div>`)
+    + `${item.note ? `<div class="cx-note">${gsMd(item.note)}</div>` : ""}${why}`;
   if (fb) fb.innerHTML = html;
   const act = document.getElementById("cx-act");
   if (act) act.innerHTML = `<button class="g-big-btn" id="cx-next" onclick="cxNext()">${r.i + 1 >= r.list.length ? "See result" : "Next ›"}</button>`;
@@ -405,7 +400,7 @@ function cxJournalRender() {
   const draft = cxJDraft(p.id);
   j.host.innerHTML = `<div class="gs-viewer cx-run cx-journal" style="${cxStyle(0)}" id="cx-journal">${head}
     <div class="gs-quiz">
-      <div class="gs-qpos">At least ${min} words · saved for Claude to correct · no score</div>
+      <div class="gs-qpos">${min}+ words · for Claude to correct</div>
       <div class="gs-qtext cx-en">${escapeHtml(p.t)}</div>
       ${(p.help || []).length ? `<div class="cx-cue">${p.help.map(h => `<span class="gs-chip">${escapeHtml(h)}</span>`).join("")}</div>` : ""}
       <textarea class="german-input cx-text cx-jtext" id="cx-jtext" rows="6" placeholder="Schreib hier…" autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="false" lang="de">${escapeHtml(draft)}</textarea>
@@ -464,13 +459,13 @@ function renderJournal() {
   const next = cxJournalPick(0);
   document.getElementById("main-screen").innerHTML = `<div class="screen grammar course">
     <div class="screen-top"><div class="screen-label">✍️ My writing</div>${backBtnHtml()}</div>
-    <div class="gr-unote">Write freely about everyday situations. Nothing is graded here, and every text is kept with its date. The ones to correct are in your <b>learning log</b> too${open ? ` — <b>${open}</b> waiting now` : ""}: paste either into Claude, then tick them here.</div>
+    <div class="gr-unote">Every text is kept with its date${open ? ` · <b>${open}</b> to correct` : ""}. Copy them (they're in your learning log too) for Claude, then tick the corrected ones.</div>
     <div class="cx-links">
       ${next ? `<button class="cx-chip" onclick="cxJournalOpen(document.getElementById('main-screen'),{mode:'menu'})">✍️ Write one now</button>` : ""}
       ${list.length ? `<button class="cx-chip" onclick="cxJournalCopy()">📋 Copy my texts</button>` : ""}
     </div>
     ${list.length ? `<div class="cx-jlist">${list.map(e => { const p = cxJournalPrompt(e.p);
-      return `<details class="cx-jentry ${e.c ? "done" : ""}"><summary><span class="cx-jd">${escapeHtml(fmtShortDate(e.d))}</span><span class="cx-jt">${escapeHtml(p ? p.de : e.p)}<small>${e.w} words · ${e.c ? "corrected ✓" : "to correct"}</small></span></summary>
+      return `<details class="cx-jentry ${e.c ? "done" : ""}"><summary><span class="cx-jd">${escapeHtml(fmtShortDate(e.d))}</span><span class="cx-jt">${escapeHtml(cxJournalTitle(e))}<small>${e.w} words · ${e.c ? "corrected ✓" : "to correct"}</small></span></summary>
         <div class="cx-jbody">${escapeHtml(e.t)}</div>
         <button class="g-sec-btn" onclick="cxJournalMark('${e.id}', ${e.c ? "false" : "true"});renderJournal()">${e.c ? "↺ Not corrected yet" : "✓ Corrected with Claude"}</button></details>`; }).join("")}</div>`
       : `<div class="gr-unote">Nothing yet — your first text comes in Today, or write one now.</div>`}
@@ -575,8 +570,8 @@ function cxRuleRowHtml(r) {
 // The book sections it draws on, by chapter: "ch 5: Negation, Nicht · ch 28: Negation".
 function cxBookLine(s) {
   const by = {};
-  (s.book || []).forEach(([ch, h]) => { (by[ch] = by[ch] || []).push(h || "opening"); });
-  return Object.entries(by).map(([ch, hs]) => `${ch.replace(/^c/, "ch ").replace(/^app/, "appendix ")}: ${hs.join(", ")}`).join(" · ");
+  (s.book || []).forEach(([ch]) => { by[ch] = 1; });
+  return Object.keys(by).map(ch => ch.replace(/^c/, "ch ").replace(/^app/, "appendix ")).join(" · ");
 }
 function renderCourseSection(id) {
   const s = cxSection(id);
@@ -593,14 +588,16 @@ function renderCourseSection(id) {
         return `<button class="gr-sheet ${p ? "done" : ""}" onclick="renderGrammarSheet('${v}')"><span class="gr-sn">${p ? "✓" : i + 1}</span><span class="gr-stt">${escapeHtml(sh ? sh.title : v)}</span><span class="set-chev">›</span></button>`; }).join("")}</div>`;
   } else if (s.checkpoint) {
     const ready = cxCheckpointReady(s);
-    body = `<div class="gr-unote">🏁 ${s.checkpoint.n} questions from every rule of this stage, mixed. ${Math.round(s.checkpoint.pass * 100)}% right first time moves you on; below, your weakest rules come first in the next days and it comes back.</div>
+    body = `<div class="gr-unote">🏁 ${s.checkpoint.n} mixed questions from this stage. ${Math.round(s.checkpoint.pass * 100)}% moves you on; if not, it comes back the next day.</div>
       ${ready ? `<button class="gr-next" onclick="renderCourseDrill('${id}', null, 'checkpoint')" style="${cxStyle(s.stage)}"><span class="gr-next-k">🏁 Take it now — or it comes in Today</span><span class="gr-next-t">${s.checkpoint.n} questions</span></button>` : `<div class="set-note">Opens once every other section of the stage is done.</div>`}`;
   } else if (!cxLearnable(s)) {
     body = `<div class="set-note">⏳ Coming with a later build session — already counted in the grammar plan.</div>`;
   } else {
     body = `<div class="gr-sheets">${s.sheets.map((sid, i) => { const sh = cxSheet(sid), p = cxSheetPassed(sid);
         return `<button class="gr-sheet ${p ? "done" : ""}" onclick="renderCourseSheet('${sid}')"><span class="gr-sn">${p ? "✓" : "📖"}</span><span class="gr-stt">The sheet<small>${p ? `passed · ${(st.ok && st.ok[sid]) || st.sh || 100}%` : "read it, then its 3-question quiz"}${st.to !== undefined ? ` · test-out ${st.to}%` : ""}</small></span><span class="set-chev">›</span></button>`; }).join("")}</div>
-      <div class="gr-h">Rules — in your reviews</div><div class="gr-rules">${s.rules.map(cxRuleRowHtml).join("")}</div>`;
+      ${s.rules.some(r => (cxRuleWS(r) || {}).st)
+        ? `<div class="gr-h">Rules — in your reviews</div><div class="gr-rules">${s.rules.map(cxRuleRowHtml).join("")}</div>`
+        : `<div class="gr-h">Rules — reviewed after the lesson</div><ul class="cx-rlist">${s.rules.map(r => `<li>${escapeHtml(cxRule(r).title)}</li>`).join("")}</ul>`}`;
   }
   const sets = s.sets.map(cxSet).filter(Boolean);
   const drills = sets.length ? `<div class="gr-h">🧩 Drills</div>

@@ -128,7 +128,7 @@ Object.values(CX.sets).forEach(set => {
     ok((it.r || []).every(r => !CX.rules[r] || CX.rules[r].sec === set.sec), `${t}: its rules are its section's`);
     const key = it.q || (it.w || []).join("/");
     ok(!!key && !qs.has(key), `${t}: a question, once`); qs.add(key);
-    if (k === "write" || k === "open") { ok((it.model || []).length && (it.check || []).length, `${t}: model and checklist`); return; }
+    if (k === "write" || k === "open") { ok((it.model || []).length > 0, `${t}: a model answer`); return; }
     ok(Array.isArray(it.a) && it.a.length > 0, `${t}: answers`);
     it.a.forEach(a => {
       const r = C.cxCheck(it, a, C.cxSection(set.sec));

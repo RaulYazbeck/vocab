@@ -60,8 +60,8 @@ let P = C.cxPlanner();
 ok(P.left > 90 && P.left < 120, `sheets ahead: ${P.left} (PLAN.md: ≈ 95–100 + the verb sheets not reached)`);
 ok(P.cl >= 60 && P.cl < P.left, `the course's own: ${P.cl} (the verb track paces the rest)`);
 ok(P.target === "2027-07-06" && P.status === "green", `15 Aug 2027 → all sheets passed by ${P.target}: ${P.status}`);
-C.S.path.deadline = "2027-01-31"; P = C.cxPlanner();
-ok(P.status === "red", `finish date 31 Jan 2027: ${P.status} (${P.need.toFixed(2)} a day)`);
+C.S.path.deadline = "2027-01-15"; P = C.cxPlanner();
+ok(P.status === "red", `finish date 15 Jan 2027: ${P.status} (${P.need.toFixed(2)} a day)`);
 C.S.path.deadline = "2027-02-15"; P = C.cxPlanner();
 ok(P.status === "amber", `finish date 15 Feb 2027: ${P.status} (${P.need.toFixed(2)} a day)`);
 C.S.path.deadline = ""; ok(C.cxPlanner().status === "none", "no finish date: no status");
@@ -183,7 +183,8 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   const g = C.cxGap(), next = C.cxNextLessonDay();
   ok(next === C.addDays("2026-10-16", g), `came every day: the next sheet ${g} days after the last (${next})`);
   C.S.course.seen = all.filter(d => d <= "2026-10-16");
-  ok(C.cxNextLessonDay() > next, "skipped days don't count: it comes later in the calendar");
+  const g3 = C.cxGap();
+  ok(g3 > 1 && C.cxNextLessonDay() === C.addDays("2026-10-18", g3 - 1), `a day skipped doesn't count: today is study day 1 of ${g3} (${C.cxNextLessonDay()})`);
 }
 
 // ── room for what's coming: a section of 2 sheets, a stage checkpoint ──

@@ -93,7 +93,7 @@ const SETUP = () => {
     startPathSession("regular", { noBonus: true });
     const s = pathSession, cnt = () => +(document.getElementById("p-count").textContent.split("/")[1]);
     const total0 = cnt();
-    toCx("testout"); while (!_cx.done) { const c = _cx.list[_cx.i], set = cxSet(c.set), k = cxItemKind(set, c.item); if (k === "pick") cxPick((c.item.o || set.o).indexOf(c.item.a[0])); else { if (c.mode === "tiles") cxTypeInstead(); if (document.getElementById("cx-input")) { document.getElementById("cx-input").value = "falsch"; } else { cxCheckCur(); cxSelf(false); } cxCheckCur(); cxCheckCur(); } window.mistakeHeld = () => false; cxNext(); }
+    toCx("testout"); while (!_cx.done) { const c = _cx.list[_cx.i], set = cxSet(c.set), k = cxItemKind(set, c.item); if (k === "pick") cxPick((c.item.o || set.o).indexOf(c.item.a[0])); else { if (c.mode === "tiles") cxTypeInstead(); if (document.getElementById("cx-input")) { document.getElementById("cx-input").value = "falsch"; } else { document.getElementById("cx-text").value = "Ich habe kein Auto."; } cxCheckCur(); cxCheckCur(); } window.mistakeHeld = () => false; cxNext(); }
     cxFinish();
     // (the sheet card is next) — meanwhile the other device's sync arrives:
     S.course.sec["s0.neg"] = { st: 2, sh: 100, ok: { "cx.neg1": 100 }, to: S.course.sec["s0.neg"].to };

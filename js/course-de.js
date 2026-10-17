@@ -366,7 +366,7 @@ function cxDiagnose(item, T, A, sec, orig = null) {
       return { rule, msg: fill(d.msg, o) };
     }
   }
-  if (cxBagEq(T, A)) return { rule: (item.r || [])[0], msg: "The right words — in another order." };
+  if (cxBagEq(T, A)) return { rule: (item.r || [])[0], msg: "The right words, another order." };
   return null;
 }
 
@@ -548,9 +548,11 @@ function cxSheetsLeft(prio = null) {
 // recomputes every day, so a break or a burst ahead evens itself out.
 // (The verb track's sheets keep their own pace.)
 const CX_GAP_MAX = 7;         // never a week without something new
-function cxCourseSheetsLeft() {
+// could: also the post-B1 sections ("only if time allows": not paced to
+// the date — they come after, one a week).
+function cxCourseSheetsLeft(could = false) {
   let n = 0;
-  CX.sections.forEach(s => { if (!(s.verb && s.verb.length) && !cxSecDone(s.id)) n += s.n || 1; });
+  CX.sections.forEach(s => { if (!(s.verb && s.verb.length) && (could || s.prio !== "C") && !cxSecDone(s.id)) n += s.n || 1; });
   return n;
 }
 // My rhythm: the share of days I opened the app over the last 4 weeks
@@ -571,7 +573,8 @@ function cxGap(today = studyToday()) {
   const deadline = typeof pathDeadlineOn === "function" && pathDeadlineOn() ? S.path.deadline : "";
   if (!deadline) return 1;
   const days = daysBetween(today, addDays(deadline, -CX_LAG)), left = cxCourseSheetsLeft();
-  if (!left || days <= 0) return 1;
+  if (!left) return cxCourseSheetsLeft(true) ? CX_GAP_MAX : 1; // only post-B1 left: one a week
+  if (days <= 0) return 1;
   return Math.max(1, Math.min(CX_GAP_MAX, Math.floor(days * cxAttend(today) / left)));
 }
 // A section already under way carries on whatever the gap: a sheet to
@@ -900,8 +903,10 @@ function cxRecordAnswer(e, ok, res, opts = {}) {
       const ws = cxRuleWS(r);
       if (!ws || !ws.st) return;
       const from = ws.st;
-      const rr = opts.practice ? null : applyCorrect(ws, { quiet: true, kind: opts.kind || "recall" });
-      if (opts.practice) { ws.lastAnsweredAt = Date.now(); ws.correct++; }
+      // (practice, or your own writing — not checked here: no step up)
+      const free = opts.practice || opts.self;
+      const rr = free ? null : applyCorrect(ws, { quiet: true, kind: opts.kind || "recall" });
+      if (free) { ws.lastAnsweredAt = Date.now(); ws.correct++; }
       if (r === e.rule || !out.rule) { out.rule = r; out.from = from; out.to = ws.st; out.events = rr ? rr.events : []; }
     });
   } else {
@@ -1016,11 +1021,13 @@ function cxJournalPick(skip = 0) {
   });
   return sorted[skip % sorted.length].p;
 }
-function cxJournalSave(promptId, text) {
+// q: the task, for a text that isn't one of the journal's prompts (a
+// drill's "write your own").
+function cxJournalSave(promptId, text, q = "") {
   const t = String(text || "").trim().slice(0, CX_JOURNAL_LEN), w = cxWordCount(t);
   if (!w) return null;
   const W = cxWritingStore(), d = studyToday(), y = d.slice(0, 4);
-  const e = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), d, p: promptId, t, w };
+  const e = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), d, p: promptId, t, w, ...(q ? { q: String(q).replace(/\*\*/g, "").slice(0, 200) } : {}) };
   (W[y] || (W[y] = [])).push(e);
   if (typeof logEvent === "function") logEvent("cx_write", { w, p: promptId });
   saveState();
@@ -1034,6 +1041,13 @@ function cxJournalMark(id, on = true) {
   saveState();
 }
 function cxJournalPrompt(id) { return CX.journal.find(p => p.id === id) || null; }
+// A text's short name: its prompt's title, or its drill's section.
+function cxJournalTitle(e) {
+  const p = cxJournalPrompt(e.p);
+  if (p) return p.de;
+  const set = /^drill:/.test(e.p) && cxSet(e.p.slice(6).split("#")[0]), sec = set && cxSection(set.sec);
+  return sec ? sec.title : e.p;
+}
 
 // ── LOGS ──────────────────────────────────────
 // For the learning log (a tutor reads it, so in English).
@@ -1071,20 +1085,20 @@ function cxJournalLines() {
   const all = cxJournalList();
   if (!all.length) return [];
   const open = all.filter(e => !e.c), done = all.filter(e => e.c);
-  const head = e => { const p = cxJournalPrompt(e.p); return `[${e.d}] ${p ? `${p.de} — ${p.t}` : e.p} (${e.w} words${p ? `, level ${p.lv}` : ""})`; };
+  const head = e => { const p = cxJournalPrompt(e.p); return `[${e.d}] ${p ? `${p.de} — ${p.t}` : e.q || e.p} (${e.w} words${p ? `, level ${p.lv}` : ""})`; };
   const out = [``, `## MY WRITING (${all.length} text${all.length === 1 ? "" : "s"} since ${all[0].d}; ${open.length} to correct)`];
   if (open.length) {
     out.push(`Please correct each text below: my mistakes explained, a corrected version, one tip.`);
     open.forEach(e => out.push(``, head(e), e.t));
   }
-  if (done.length) out.push(``, `Already corrected (date · topic · words · corrected on): ` + done.map(e => { const p = cxJournalPrompt(e.p); return `${e.d} ${p ? p.de : e.p} ${e.w}w ✓${e.c}`; }).join(" · "));
+  if (done.length) out.push(``, `Already corrected (date · topic · words · corrected on): ` + done.map(e => { const p = cxJournalPrompt(e.p); return `${e.d} ${p ? p.de : cxJournalTitle(e)} ${e.w}w ✓${e.c}`; }).join(" · "));
   out.push(``, `(I tick a text once it's corrected, in 📖 Course › ✍️ Writing. Every text stays saved there.)`);
   return out;
 }
 // ✍️ Writing › Copy: every text in full, with its date — for a tutor.
 function cxJournalCopyText() {
   const all = cxJournalList();
-  const line = e => { const p = cxJournalPrompt(e.p); return `[${e.d}] ${p ? `${p.de} — ${p.t}` : e.p} (${e.w} words${p ? `, level ${p.lv}` : ""}${e.c ? `, corrected ${e.c}` : ""})\n${e.t}`; };
+  const line = e => { const p = cxJournalPrompt(e.p); return `[${e.d}] ${p ? `${p.de} — ${p.t}` : e.q || e.p} (${e.w} words${p ? `, level ${p.lv}` : ""}${e.c ? `, corrected ${e.c}` : ""})\n${e.t}`; };
   const open = all.filter(e => !e.c), done = all.filter(e => e.c);
   return [`# My German writing — ${all.length} text${all.length === 1 ? "" : "s"}, ${open.length} to correct`,
     open.length ? `\n## To correct (oldest first) — for each: my mistakes explained, a corrected version, one tip\n\n` + open.map(line).join("\n\n") : "",

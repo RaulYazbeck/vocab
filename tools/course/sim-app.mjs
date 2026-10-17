@@ -75,7 +75,7 @@ const r = await page.evaluate(async ([DAYS, ACC, SEED, SKIP]) => {
     const r = _cx, cur = r.list[r.i], set = cxSet(cur.set), item = cur.item, k = cxItemKind(set, item);
     if (cur.first) stats.cxAnswers++; // (a miss comes back once at the end: logged once)
     if (k === "pick" || k === "respond") { const opts = item.o || set.o, want = ok ? item.a[0] : opts.find(o => o !== item.a[0]); return cxPick(opts.indexOf(want)); }
-    if (k === "write" || k === "open") { cxCheckCur(); return cxSelf(ok); }
+    if (k === "write" || k === "open") { document.getElementById("cx-text").value = "Ich habe keinen Fernseher und kein Auto."; stats.texts++; stats.words += 7; return cxCheckCur(); }
     if (k === "order") { cur.picked = cur.bank.map((b, bi) => [b.i, bi]).sort((x, y) => x[0] - y[0]).map(x => x[1]); if (!ok) cur.picked.reverse(); return cxCheckCur(); }
     if (cur.mode === "tiles") cxTypeInstead();
     const inp = document.getElementById("cx-input");
@@ -158,7 +158,7 @@ const r = await page.evaluate(async ([DAYS, ACC, SEED, SKIP]) => {
     const freshSecs = new Set(parts0.filter(p => ["testout", "sheet", "checkpoint"].includes(p.part) && !cxSecState(p.sec)).map(p => p.sec));
     if (freshSecs.size > (P.status === "red" ? 2 : 1)) fail(`${today}: ${freshSecs.size} new sections (${P.status})`);
     stats.newSecs += freshSecs.size;
-    const texts0 = cxJournalList().length, cx0 = stats.cxAnswers;
+    const texts0 = cxJournalList().filter(e => !/^drill:/.test(e.p)).length, cx0 = stats.cxAnswers;
     // Every 4th day everything right: the plan must be met by Today alone.
     const allRight = day % 4 === 3;
     perfect = allRight;
@@ -169,8 +169,8 @@ const r = await page.evaluate(async ([DAYS, ACC, SEED, SKIP]) => {
     }
     const left = cxTodayParts();
     if (left.length) fail(`${today}: course parts left at the end of the day: ${left.map(p => p.part).join(", ")}`);
-    const texts = cxJournalList().length - texts0;
-    if (texts > 1) fail(`${today}: ${texts} texts in one day`);
+    const texts = cxJournalList().filter(e => !/^drill:/.test(e.p)).length - texts0;
+    if (texts > 1) fail(`${today}: ${texts} writing prompts in one day`);
     const met = (S.quests.m.ok || 0) >= target;
     if (met) stats.metDays++;
     if (allRight) {

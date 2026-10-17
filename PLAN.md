@@ -537,4 +537,7 @@ screen · coverage report at 100 % (every blueprint exercise *mirrored*,
 - A Today session carries the grammar block as cards: warm-up, test-out, sheet and drill a third of the way in, reviews and writing two thirds in.
 - Writing is free and ungraded in the app: a prompt with a word minimum, saved for a tutor (Claude) to correct from the learning log; the drill sets' write/open items stay as model + checklist. Texts are never deleted.
 - The finish date is the only pace setting: grammar sheets are spread evenly to it (no "minutes a day" choice).
+- A drill's "write your own" is saved for Claude like the journal (one model line to compare; no checklist, no self-grading, no rule moves).
+- Post-B1 ("Could") sections aren't paced to the date: they come after the rest, one a week.
+- Screens stay as light as the rest of the app: a miss is the answer with the fix marked, one line of why, the rule's name as a link to its sheet.
 - The word-order checker accepts the verb-second reordering of a time phrase and a pronoun subject by rule; other orders are listed per item; `fixed` sets accept only theirs.

@@ -135,13 +135,17 @@ function run(o) {
     }
   }
   // ── the end ──
-  const lastDone = Object.keys(doneOn).length === sections.length ? Math.max(...Object.values(doneOn)) : null;
+  // The sections paced to the date (post-B1 — "only if time allows" — come after, one a week).
+  const core = sections.filter(s => s.prio !== "C"), bonus = sections.filter(s => s.prio === "C");
+  const lastDone = core.every(s => doneOn[s.id] !== undefined) ? Math.max(...core.map(s => doneOn[s.id])) : null;
   const finish = lastDone === null ? null : C.addDays(START, lastDone);
-  const firstIn = late || 0, room = C.daysBetween(C.addDays(START, firstIn), target), need = C.cxCourseSheetsLeft() + Object.keys(doneOn).reduce((n, id) => n + (C.cxSection(id).n || 1), 0);
+  const firstIn = late || 0, room = C.daysBetween(C.addDays(START, firstIn), target), need = core.reduce((n, s) => n + (s.n || 1), 0);
   const feasible = room >= need; // one sheet a day would get there
-  if (!finish) fail(`not every section done in ${days} days (${Object.keys(doneOn).length}/${sections.length})`);
+  if (!finish) fail(`not every section done in ${days} days (${core.filter(s => doneOn[s.id] !== undefined).length}/${core.length})`);
   else if (feasible && finish > C.addDays(target, 3)) fail(`finished ${finish}, after the target ${target}`);
-  const rules = Object.keys(C.CX.rules).map(r => C.cxRuleWS(r)).filter(Boolean);
+  M.bonus = bonus.filter(s => doneOn[s.id] !== undefined).length + "/" + bonus.length;
+  const coreRules = new Set(core.flatMap(s => s.rules));
+  const rules = Object.keys(C.CX.rules).filter(r => coreRules.has(r)).map(r => C.cxRuleWS(r)).filter(Boolean);
   const known = rules.filter(ws => ws.st >= 5).length;
   // by the finish date (the run ends there): every rule Known, but a slip or two in the last days
   if (feasible && known < rules.length * 0.98) fail(`${rules.length - known} rules not 🌳 Known by the finish date`);
@@ -183,7 +187,7 @@ if (argv.includes("--matrix")) {
   for (const [name, o] of SCEN) for (const seed of [1, 2, 3]) {
     const r = run({ ...o, seed });
     const M = r.M;
-    console.log(`${(r.bad.length ? "✗ " : "✓ ") + name}`.padEnd(27) + `${seed}     ${r.finish || "—"}  (${r.target})${r.feasible ? " " : "*"}  ${r.gapAvg.toFixed(1).padStart(4)} days  ${String(M.maxQ).padStart(6)}     ${(M.q / Math.max(1, M.inApp)).toFixed(1).padStart(5)}  ${String(M.writes).padStart(5)}    ${r.known}/${r.rules}  ${r.longest}d sheet · ${r.wGap}d writing`);
+    console.log(`${(r.bad.length ? "✗ " : "✓ ") + name}`.padEnd(27) + `${seed}     ${r.finish || "—"}  (${r.target})${r.feasible ? " " : "*"}  ${r.gapAvg.toFixed(1).padStart(4)} days  ${String(M.maxQ).padStart(6)}     ${(M.q / Math.max(1, M.inApp)).toFixed(1).padStart(5)}  ${String(M.writes).padStart(5)}    ${r.known}/${r.rules}  ${r.longest}d sheet · ${r.wGap}d writing · post-B1 ${M.bonus}`);
     r.bad.forEach(b => console.log("     ✗ " + b));
     if (r.bad.length) failed++;
   }
@@ -197,7 +201,7 @@ const r = run({ days: num("days", 0), acc: num("acc", 0.8), testout: num("testou
 const C = r.C;
 console.log(`course at full size: ${r.sections} lesson sections, ${C.CX.sections.filter(s => s.checkpoint).length} checkpoints, ${r.rules} rules, ${Object.keys(C.CX.sets).length} drill sets`);
 console.table(r.rows);
-console.log(`sections done: ${r.finish ? "all, the last on " + r.finish : "not all"}; target ${r.target}${r.feasible ? "" : " (out of reach from this start)"}`);
+console.log(`sections done: ${r.finish ? "all, the last on " + r.finish : "not all"}; target ${r.target}${r.feasible ? "" : " (out of reach from this start)"} · post-B1 (if time allows) ${r.M.bonus}`);
 console.log(`checkpoints: ${r.cps.join(" · ") || "none taken"}`);
 console.log(`a new sheet every ${r.gapAvg.toFixed(1)} days on average · longest stretch without one ${r.longest} days · two new sections on ${r.M.two} days · contrast days ${r.M.contrast} (${r.M.contrastLesson} with a section)`);
 console.log(`grammar questions a day: ${(r.M.q / Math.max(1, r.M.inApp)).toFixed(1)} on average, ${r.M.maxQ} at most · writing ${r.M.writes} texts (longest gap ${r.wGap} days) · rule reviews due at most ${r.M.maxDue} · rules Known ${r.known}/${r.rules}`);
