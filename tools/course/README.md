@@ -45,6 +45,12 @@ German app only (`de/index.html` loads them; the French app never does).
                                       # Today with the course (test-out → sheet → drill, the count),
                                       # a test-out passed, every format and screen on phone + desktop,
                                       # the book map, the French app untouched
+    node t-edge.mjs                   # edge cases: the real keyboard, ✕ mid-drill, HTML typed in, a damaged
+                                      # state, Grandma / Speak mode, another device, the day rolling over, a peek
+    node sim.mjs [--acc 0.6 --testout 0 --days 300]
+                                      # the whole journey on the real scheduler (fake clock), every lesson
+                                      # section filled with synthetic packs: sections done by when, grammar
+                                      # questions a day, the rule review load, rules Known, speed at full size
 
 The older browser scripts (`tools/verb-track`, `tools/quests`) count Today's cards
 without the course: `openApp()` loads it off unless `COURSE=1` or `{ course: true }`.

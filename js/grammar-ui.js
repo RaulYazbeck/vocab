@@ -33,7 +33,7 @@ function gsMd(s) {
     .replace(/(^|[\s(])\*([^*\s][^*]*?)\*(?=[\s).,;:!?]|$)/g, "$1<i>$2</i>");
 }
 function gsUnitOf(sheet) {
-  if (sheet.cx && typeof cxSection === "function") { const sec = cxSection(sheet.sec); return { hue: 38, sign: "📖", name: sec ? sec.title : "" }; }
+  if (sheet.cx && typeof cxSection === "function") { const sec = cxSection(sheet.sec), st = sec && cxStage(sec.stage); return { hue: 38, sign: "📖", name: sec ? sec.title : "", stage: st ? "Course · " + st.name.split(" · ")[0] : "Course" }; }
   return VX_UNIT[sheet.unit] || { hue: 38, sign: "•", name: "" };
 }
 // A sheet of the verb track, or of the course (course-de.js): the same
@@ -144,7 +144,7 @@ function gsRender(dir = "") {
   const sibs = sh.cx ? cxSection(sh.sec).sheets : vxSheetIds(sh.unit);
   const n = sibs.indexOf(sh.id) + 1, of = sibs.length;
   const head = `<div class="gs-head" style="${gsStyleOf(sh)}">
-      <span class="gs-unit"><span class="gs-sign">${u.sign}</span>${escapeHtml(u.name)} · ${g.mastery ? vxT("🏆 optional") : `${n}/${of}`}</span>
+      <span class="gs-unit"><span class="gs-sign">${u.sign}</span>${sh.cx ? escapeHtml(u.stage || "Course") + (of > 1 ? ` · ${n}/${of}` : "") : `${escapeHtml(u.name)} · ${g.mastery ? vxT("🏆 optional") : `${n}/${of}`}`}</span>
       <h2 class="gs-title">${escapeHtml(sh.title)}</h2>
       ${g.mastery ? "" : `<div class="gs-dots" aria-hidden="true">${dots}</div>`}
     </div>`;

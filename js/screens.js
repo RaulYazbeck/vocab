@@ -709,7 +709,7 @@ function settingsMenuHtml() {
     <div class="menu-list">
       ${menuRowHtml("🎮", "Games", "", "menuGo('games')")}
       ${menuRowHtml("🗺️", "Journey", `${scan.known.toLocaleString()} / ${scan.total.toLocaleString()} known`, "menuGo('journey')")}
-      ${typeof cxOn === "function" && cxOn() ? menuRowHtml("📖", "Course", `Grammar · ${CX.sections.filter(s => cxSecStatus(s).k === "done").length} / ${CX.sections.length} sections`, "menuGo('course')") + menuRowHtml("🧩", "Drills", (() => { const d = cxDueRules(); return d.fix.length + d.due.length ? `${d.fix.length + d.due.length} rules due` : ""; })(), "menuGo('drills')")
+      ${typeof cxOn === "function" && cxOn() ? menuRowHtml("📖", "Course", (() => { const d = cxDueRules(), n = d.fix.length + d.due.length; return n ? `Grammar · <span class="accent">${n} rule${n > 1 ? "s" : ""} due</span>` : `Grammar · ${CX.sections.filter(s => cxSecStatus(s).k === "done").length} / ${CX.sections.length} sections`; })(), "menuGo('course')")
         : typeof vxAvailable === "function" && vxAvailable() ? menuRowHtml("📐", "Grammar", vxOn() ? `${VX_UNITS.filter(u => vxUnitOpen(u.id)).length} / ${VX_UNITS.length} tenses` : "", "menuGo('grammar')") : ""}
       ${menuRowHtml("⚔️", "Bosses", `${beaten} / ${decks} beaten`, "menuGo('bosses')")}
       ${menuRowHtml("🎨", "Collection", chests ? `<span class="accent">🎁 ${chests} to open</span>` : "", "menuGo('collection')")}

@@ -145,6 +145,10 @@ const HELP = () => {
     const rep = buildUsageReport(), ll = buildLearningReport();
     ok(/Course: 1 section\(s\) done \(nicht or kein\?\)/.test(rep), "the usage report has the course line");
     ok(/## GRAMMAR COURSE/.test(ll) && /Rules in my reviews: .*kein/.test(ll) && /grammar course: broke a rule/.test(ll), "the learning log has the course, its rules and the grammar mistakes");
+    // ── the Today line never says "0 rules" ──
+    backToMenu(); renderHome();
+    const line = (document.querySelector(".cx-today") || {}).innerText || "";
+    ok(!/\b0 rules?\b/.test(line), `the Today line says what's left, never "0 rules" ("${line}")`);
     // ── what a second session today brings: nothing new ──
     const parts2 = cxTodayParts().map(p => p.part);
     ok(!parts2.includes("sheet") && !parts2.includes("drill") && !parts2.includes("testout"), `a second session today: no new section (${parts2})`);
@@ -298,7 +302,7 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
   await page.waitForFunction(() => /Übung 28\.2/.test(document.getElementById("main-screen").innerText), null, { timeout: 8000 }).catch(() => {});
   await page.evaluate(() => { const t = document.getElementById("main-screen").innerText; ok(/Negation[\s\S]*Übung 28\.2[\s\S]*mirrored/.test(t), "chapter 28: Negation's exercises mirrored"); });
   await noOverflow("chapter");
-  await page.evaluate(() => { openSettings("menu"); ok(/Course/.test(document.getElementById("settings-panel").innerText) && /Drills/.test(document.getElementById("settings-panel").innerText), "☰ has 📖 Course and 🧩 Drills"); closeSettings();
+  await page.evaluate(() => { openSettings("menu"); ok(/Course/.test(document.getElementById("settings-panel").innerText) && !/Drills/.test(document.getElementById("settings-panel").innerText), "☰ has 📖 Course (Drills live inside it — one row, not two)"); closeSettings();
     openSettingsPage("plan"); ok(/Grammar course/.test(document.getElementById("settings-panel").innerText) && /Minutes a day/.test(document.getElementById("settings-panel").innerText), "⚙️ Study plan shows the grammar plan and the minutes"); closeSettings(); });
   const r = await page.evaluate(() => ({ log: __log, fails: __fails }));
   say(r, `screens · ${tag}`);

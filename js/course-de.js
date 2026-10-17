@@ -35,7 +35,9 @@
 const CX_DECK = "cx";
 const CX_LAG = 40;            // days: every sheet passed ≈ early July for 15 Aug (PLAN.md §9)
 const CX_DRILL_N = [10, 14];  // the day's drill: items (min, max)
-const CX_REVIEW_MAX = 12;     // due rule reviews in one day's block
+const CX_REVIEW = [6, 30];    // rule reviews a day (min, max): never starved, never a flood
+const CX_WARM_MAX = 8;        // yesterday's slips in the warm-up (the rest join the review)
+const CX_Q_MIN = 0.5;         // minutes a review question takes
 const CX_TESTOUT = { n: 8, miss: 1 }; // a test-out: questions, misses allowed
 const CX_LEARNED = 2;         // a rule is learned from this stage on
 const CX_MIN = { warm: 5, testout: 5, sheet: 10, drill: 15, review: 10, write: 5 }; // minutes (PLAN.md §8)
@@ -505,7 +507,8 @@ function cxPlanner(today = studyToday()) {
 // today's plan, the grammar block fitted around it — the review and the
 // writing prompt give way first; the sheet and its drill never do.
 const CX_WORD_MIN = { review: 0.3, fresh: 1.2 };
-function cxBudget(scan) {
+// lesson: today brings a sheet and its drill (their minutes come first).
+function cxBudget(scan, lesson = true) {
   const mins = (S.course && S.course.mins) || 60;
   let words = 0;
   try {
@@ -517,8 +520,8 @@ function cxBudget(scan) {
     words = reviews * CX_WORD_MIN.review + fresh * CX_WORD_MIN.fresh;
   } catch (e) {}
   const left = Math.max(0, mins - words);
-  const core = CX_MIN.sheet + CX_MIN.drill;
-  return { mins, words: Math.round(words), left: Math.round(left), review: Math.max(3, Math.min(CX_REVIEW_MAX, Math.round((left - core - CX_MIN.warm) / 0.8))),
+  const core = lesson ? CX_MIN.sheet + CX_MIN.drill : 0;
+  return { mins, words: Math.round(words), left: Math.round(left), review: Math.max(CX_REVIEW[0], Math.min(CX_REVIEW[1], Math.round((left - core - CX_MIN.warm) / CX_Q_MIN))),
     write: left - core - CX_MIN.review >= CX_MIN.write, easy: words < mins * 0.4 };
 }
 
@@ -536,11 +539,10 @@ function cxTodayParts(scan) {
   migrateCourse();
   const C = S.course, dd = C.dd, parts = [];
   const { fix, due } = cxDueRules();
-  const B = cxBudget(scan);
-  if (fix.length && !dd.warm) parts.push({ part: "warm", rules: fix.slice(0, 6) });
+  if (fix.length && !dd.warm) parts.push({ part: "warm", rules: fix.slice(0, CX_WARM_MAX) });
   const contrast = cxContrastDay();
   // One new section a day; two on an easy day when the planner is behind.
-  const nSec = !contrast && cxPlanner().status !== "green" && B.easy ? 2 : 1;
+  const nSec = !contrast && cxPlanner().status !== "green" && cxBudget(scan).easy ? 2 : 1;
   if (!contrast) {
     const started = Object.keys(dd).filter(k => k.startsWith("new:")).map(k => k.slice(4));
     let slots = nSec;
@@ -558,7 +560,11 @@ function cxTodayParts(scan) {
       parts.push({ part: "drill", sec: sec.id });
     }
   }
-  const rev = due.filter(r => !fix.includes(r)).slice(0, B.review);
+  // The reviews fit around the day: all the room a day without a new
+  // sheet leaves, at least CX_REVIEW[0] even on a heavy one.
+  const B = cxBudget(scan, parts.some(p => p.part === "sheet" || p.part === "drill"));
+  const rev = [...(dd.warm ? fix : fix.slice(CX_WARM_MAX)), ...due].slice(0, B.review);
+  // A contrast day: the due reviews and a few mixed items on top.
   if (contrast && !dd.contrast) parts.push({ part: "review", rules: rev, contrast: true });
   else if (rev.length && !dd.review) parts.push({ part: "review", rules: rev });
   if (B.write && !dd.write && cxWritePick(true)) parts.push({ part: "write" });
@@ -570,7 +576,7 @@ function cxPartSize(p) {
   if (p.part === "testout") { const s = cxSection(p.sec); return Math.min((s && s.testout && s.testout.n) || CX_TESTOUT.n, cxTestoutPlan(p.sec).length); }
   if (p.part === "sheet") { const sh = cxSheet(p.sheet); return sh && typeof gqSheetSize === "function" ? gqSheetSize(sh) : 3; }
   if (p.part === "drill") return CX_DRILL_N[1];
-  if (p.part === "review") return p.contrast ? Math.max(6, p.rules.length) : p.rules.length;
+  if (p.part === "review") return p.rules.length + (p.contrast ? CX_CONTRAST_MIX : 0);
   if (p.part === "write") return 1;
   return 0;
 }
@@ -594,6 +600,22 @@ function cxPartLive(p) {
   if (p.part === "review") return !S.course.dd[p.contrast ? "contrast" : "review"];
   if (p.part === "write") return !S.course.dd.write;
   return true;
+}
+// What a part asks, in order (course-ui.js runs it; sim.mjs answers it).
+const CX_CONTRAST_MIX = 6;    // mixed items a contrast day adds
+function cxPartList(p) {
+  if (p.part === "testout") return cxTestoutPlan(p.sec);
+  if (p.part === "drill") return cxDrillPlan(p.sec);
+  const reviews = () => { const avoid = new Set(); return (p.rules || []).map(r => { const e = cxReviewFor(r, avoid); if (e) avoid.add(e.set + "#" + e.i); return e; }).filter(Boolean); };
+  if (p.part === "warm" || (p.part === "review" && !p.contrast)) return reviews();
+  if (p.part === "review" && p.contrast) {
+    // Contrast: the day's reviews, then items from every section done, mixed.
+    const mix = [];
+    CX.sections.filter(s => s.built && s.sheets.length && cxSecDone(s.id)).forEach(s => mix.push(...cxDrillPlan(s.id, 4).filter(e => !["write", "open"].includes(cxItemKind(cxSet(e.set), e.item)))));
+    return [...reviews(), ...shuffle(mix).slice(0, CX_CONTRAST_MIX)];
+  }
+  if (p.part === "write") { const w = cxWritePick(); return w ? [w] : []; }
+  return [];
 }
 function cxPartDone(p) {
   const C = S.course;
@@ -620,7 +642,9 @@ function cxTodayCounts() {
 function cxPlanNumbers(scan) {
   if (!cxOn()) return null;
   const parts = cxTodayParts(scan);
-  const q = parts.reduce((n, p) => n + cxPartSize(p), 0);
+  // A test-out may make its sheet and drill unnecessary: they count half.
+  const to = new Set(parts.filter(p => p.part === "testout").map(p => p.sec));
+  const q = Math.round(parts.reduce((n, p) => n + cxPartSize(p) * (to.has(p.sec) && p.part !== "testout" ? 0.5 : 1), 0));
   return { parts: parts.map(p => p.part), q };
 }
 function cxPlanTarget(cx) { return cx ? Math.round((cx.q || 0) * 0.85) : 0; }

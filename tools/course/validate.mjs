@@ -198,7 +198,7 @@ if (neg && neg.built) {
     ["d5.4", 0, "Ich habe nicht ein Fahrrad.", "neg.kein"],
     ["d5.4", 0, "Ich habe nicht Fahrrad.", "neg.kein"],
     ["d5.5", 2, "Das ist kein mein Schlüssel.", "neg.kein"],
-    ["d5.4", 5, "Ich brauche kein Schirm.", "neg.kein-end"],
+    ["d5.4", 5, "Ich brauche kein Stuhl.", "neg.kein-end"],
     ["d5.5", 6, "Ich kenne nicht die Frau.", "neg.nicht-pos"],
     ["d5.5", 0, "Der Zug ist pünktlich nicht.", "neg.nicht-pos"],
     ["d5.9", 0, "Ich komme nicht am Montag, aber am Freitag.", "neg.sondern"],
@@ -209,7 +209,7 @@ if (neg && neg.built) {
   ok(r1.ok && r1.soft.includes("umlaut"), "no capitals, no umlaut: right, a soft slip");
   const r2 = diag("d5.5", 4, "Das Weter wird nicht besser.");
   ok(!r2.ok && r2.near, "one letter off in an ordinary word: almost");
-  const r3 = diag("d5.4", 5, "Ich brauche keinem Schirm.");
+  const r3 = diag("d5.4", 5, "Ich brauche keinem Stuhl.");
   ok(!r3.ok && !r3.near, "one letter off in kein…: a mistake, not almost");
   ok(diag("d5.4", 0, "").empty, "empty: nothing graded");
   const r4 = C.cxCheck(item("d5.4", 4), "Sie hat keine kinder.", neg);

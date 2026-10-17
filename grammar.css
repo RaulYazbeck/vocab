@@ -436,3 +436,22 @@
 .cx-ex.planned { border-color:rgba(245,166,35,0.3); }
 .cx-lines { flex-direction:column; align-items:stretch; }
 .cx-lines .gs-tok { text-align:left; }
+.cx-self { display:flex; gap:10px; width:100%; }
+.cx-self > * { flex:1; }
+.cx-typeit { margin:2px auto 0; font-size:13px; }
+/* the Course screen, compact: quiet rows for what's coming */
+.cx-plan { flex-direction:row; display:block; padding:9px 12px; font-size:13px; }
+.cx-chip { flex:1 1 0; min-width:0; padding:9px 6px; border-radius:var(--r-sm); border:1px solid var(--border); background:rgba(255,255,255,0.04);
+  color:var(--text); font:inherit; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap; }
+.cx-chip:hover { background:rgba(255,255,255,0.08); }
+.cx-links { margin:12px 0 14px; }
+.cx-stage .gr-sheets { gap:5px; }
+.cx-sec { min-height:44px; padding:9px 12px; font-size:14.5px; }
+.cx-sec.coming { min-height:0; padding:6px 12px; border-color:transparent; background:transparent; cursor:default; font-weight:600; }
+.cx-sec.coming .gr-sn { width:22px; height:22px; background:transparent; color:var(--text-3); }
+.cx-sec.coming .gr-stt { color:var(--text-3); }
+.cx-sec.now { border-color:hsl(var(--th) 70% 60% / 0.45); }
+.cx-sec.later .gr-sn { background:rgba(255,255,255,0.06); }
+.cx-sets > summary { cursor:pointer; color:var(--text-2); font-size:13.5px; font-weight:700; padding:6px 0 8px; }
+.cx-set { min-height:44px; padding:9px 12px; font-size:14px; }
+.gr-rule .cx-learned { color:var(--success); font-size:12px; }

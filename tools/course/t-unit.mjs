@@ -85,7 +85,7 @@ ok(J(C.cxTodayParts().map(p => p.part)) === J(["warm", "drill"]), "then: its rul
 const e = { set: "d5.4", i: 5, item: C.CX.sets["d5.4"].items[5] }; // kein + kein-end
 let mv = C.cxRecordAnswer(e, true, { ok: true });
 ok(["neg.kein", "neg.kein-end"].every(r => !C.S.words["cx_" + r].lrn), "a right answer confirms each rule it tests", J(mv));
-const res = C.cxCheck(e.item, "Ich brauche kein Schirm.", C.cxSection("s0.neg"));
+const res = C.cxCheck(e.item, "Ich brauche kein Stuhl.", C.cxSection("s0.neg"));
 mv = C.cxRecordAnswer(e, false, res);
 ok(mv.rule === "neg.kein-end" && C.S.words["cx_neg.kein-end"].lrn && !C.S.words["cx_neg.kein"].lrn, "a wrong one goes only to the rule it broke (the ending)", J(mv));
 C.cxDrillDone("s0.neg", 12, 14);
@@ -116,11 +116,13 @@ C.S.words["cx_neg.kein"].st = 2; ok(C.cxRuleLearned("neg.kein"), "stage 2: learn
 // a heavy day for words: the course gives way in its review and writing
 fresh();
 C.__due = 160; let B = C.cxBudget();
-ok(B.review === 3 && !B.write, `160 word reviews: grammar reviews trimmed to ${B.review}, no writing prompt`, J(B));
+ok(B.review === 6 && !B.write, `160 word reviews: grammar reviews down to the minimum ${B.review}, no writing prompt`, J(B));
 C.__due = 20; B = C.cxBudget();
-ok(B.review === 12 && B.write, `20 word reviews: ${B.review} grammar reviews and the writing prompt`, J(B));
+ok(B.review === 24 && B.write, `20 word reviews: ${B.review} grammar reviews and the writing prompt`, J(B));
+B = C.cxBudget(null, false);
+ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review}, the most a day)`, J(B));
 C.S.course.mins = 30; C.__due = 20; B = C.cxBudget();
-ok(B.review === 3 && !B.write, "30 minutes a day: the sheet and drill first, little else", J(B));
+ok(B.review === 6 && !B.write, "30 minutes a day: the sheet and drill first, the fewest reviews", J(B));
 
 // contrast day: every 5th day, once two sections are done
 fresh();

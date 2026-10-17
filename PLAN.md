@@ -403,6 +403,10 @@ how a later session adds a section). The blueprint parser now also finds a
 heading right after an exercise (chapter 28's *Negation* and *Word order*).
 Not yet: easing new words in heavy grammar weeks (the planner trims the
 grammar block's review and writing first and brings two sheets on easy days).
+Verified the same day: a simulated year at full size (55 lesson sections,
+220 rules, 6,490 items) — every rule reaches 🌳 Known, ~12–15 grammar
+questions a day, 39–41 on the busiest; rule reviews get 6–30 a day (all the
+room a day without a new sheet leaves). Content kept to A1 words met.
 
 ### Session 2 — Stage 0, the A1 sweep
 

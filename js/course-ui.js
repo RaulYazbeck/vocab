@@ -63,7 +63,9 @@ function cxRender() {
     ${o.sub ? `<h2 class="gs-title">${escapeHtml(o.sub)}</h2>` : ""}</div>`;
   if (r.done) { r.host.innerHTML = `<div class="gs-viewer cx-run" style="${o.sec ? cxSecStyle(o.sec) : cxStyle(0)}" id="cx-run">${head}${cxResultHtml()}</div>`; cxBindResult(); return; }
   const cur = r.list[r.i], set = cxSet(cur.set), item = cur.item, k = cxItemKind(set, item);
-  const pos = `<div class="gs-qpos">${cur.first ? `Question ${r.i + 1 - r.list.slice(0, r.i).filter(e => !e.first).length} of ${r.n}` : "Once more — the one you missed"} ${o.sub === set.title ? (set.ex ? ` · <span class="cx-src">Übung ${escapeHtml(set.ex)}</span>` : "") : ` · <span class="cx-src">${escapeHtml(set.title)}${set.ex ? ` · Übung ${escapeHtml(set.ex)}` : ""}</span>`}</div>`;
+  // (the book's exercise number only outside Today — in a session it's noise)
+  const src = [o.sub === set.title ? "" : set.title, o.mode !== "path" && set.ex ? "Übung " + set.ex : ""].filter(Boolean).join(" · ");
+  const pos = `<div class="gs-qpos">${cur.first ? `Question ${r.i + 1 - r.list.slice(0, r.i).filter(e => !e.first).length} of ${r.n}` : "Once more — the one you missed"}${src ? ` · <span class="cx-src">${escapeHtml(src)}</span>` : ""}</div>`;
   const how = `<div class="cx-how">${gsMd(set.how || "")}</div>`;
   let body = "";
   const input = (ph = "type it…") => `<input type="text" class="german-input gs-input" id="cx-input" placeholder="${ph}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="go"/>${typeof accentBarHtml === "function" ? accentBarHtml("cx-input") : ""}`;
@@ -96,7 +98,7 @@ function cxRender() {
   const actLabel = k === "write" || k === "open" ? "Show the model" : "Check";
   r.host.innerHTML = `<div class="gs-viewer cx-run" style="${cxSecStyle(set.sec)}" id="cx-run">${head}
     <div class="gs-step fwd" id="cx-step"><div class="gs-quiz">${pos}${how}${body}<div class="gs-qfb" id="cx-fb" aria-live="polite"></div>
-      <div class="gs-qact" id="cx-act">${check ? `<button class="g-big-btn" id="cx-check" onclick="cxCheckCur()">${actLabel}</button>` : ""}${cur.mode === "tiles" ? `<button class="g-sec-btn cx-typeit" onclick="cxTypeInstead()">⌨️ Type it instead</button>` : ""}</div></div></div></div>`;
+      <div class="gs-qact" id="cx-act">${check ? `<button class="g-big-btn" id="cx-check" onclick="cxCheckCur()">${actLabel}</button>` : ""}${cur.mode === "tiles" ? `<button class="tc-link cx-typeit" onclick="cxTypeInstead()">⌨️ type it instead</button>` : ""}</div></div></div></div>`;
   cxBind();
 }
 function cxBind() {
@@ -176,7 +178,7 @@ function cxShowModel() {
   cur.given = val;
   document.getElementById("cx-fb").innerHTML = `<div class="cx-model"><b>A model answer</b>${(item.model || []).map(m => `<div class="gs-ex-de">${gsMd(m)}</div>`).join("")}</div>
     <div class="cx-check"><b>Check yours</b>${(item.check || []).map((c, i) => `<label class="cx-tick"><input type="checkbox" id="cx-tick-${i}"> ${gsMd(c)}</label>`).join("")}</div>`;
-  document.getElementById("cx-act").innerHTML = `<button class="g-sec-btn" id="cx-self-no" onclick="cxSelf(false)">✗ Not yet</button><button class="g-big-btn" id="cx-self-ok" onclick="cxSelf(true)">✓ Mine works</button>`;
+  document.getElementById("cx-act").innerHTML = `<div class="cx-self"><button class="g-sec-btn" id="cx-self-no" onclick="cxSelf(false)">✗ Not yet</button><button class="g-big-btn" id="cx-self-ok" onclick="cxSelf(true)">✓ Mine works</button></div>`;
 }
 function cxSelf(ok) {
   const r = _cx;
@@ -216,7 +218,9 @@ function cxShowAnswered() {
   const fb = document.getElementById("cx-fb");
   const self = k === "write" || k === "open";
   const also = (item.a || []).filter(a => a !== res.right);
-  const ruleBox = rule ? `<div class="cx-rule"><b>📏 ${escapeHtml(rule.title)}</b>${res.msg ? `<div class="cx-diag">${gsMd(res.msg)}</div>` : ""}<div class="cx-rtext">${gsMd(rule.text)}</div>
+  // The rule, and why: what this answer got wrong — or, when nothing
+  // more precise is known, the rule as the sheet says it.
+  const ruleBox = rule ? `<div class="cx-rule"><b>📏 ${escapeHtml(rule.title)}</b>${res.msg ? `<div class="cx-diag">${gsMd(res.msg)}</div>` : `<div class="cx-rtext">${gsMd(rule.text)}</div>`}
       <button class="gs-qsee" onclick="gsPeek('${rule.sheet}')">📖 See it in the sheet — ${escapeHtml(gqPointName(rule.at))}</button></div>` : "";
   let html;
   if (self) html = ok ? `<div class="p-ok">✓ Noted — well done</div>` : `<div class="p-bad">✗ Noted — it goes back to its rule</div>${ruleBox}`;
@@ -318,23 +322,7 @@ document.addEventListener("keydown", e => {
 });
 
 // ── WHAT EACH PART ASKS ───────────────────────
-function cxPartList(p) {
-  if (p.part === "testout") return cxTestoutPlan(p.sec);
-  if (p.part === "drill") return cxDrillPlan(p.sec);
-  if (p.part === "warm" || (p.part === "review" && !p.contrast)) {
-    const avoid = new Set();
-    return (p.rules || []).map(r => { const e = cxReviewFor(r, avoid); if (e) avoid.add(e.set + "#" + e.i); return e; }).filter(Boolean);
-  }
-  if (p.part === "review" && p.contrast) {
-    // A contrast day: items from every section done, mixed.
-    const done = CX.sections.filter(s => s.built && s.sheets.length && cxSecDone(s.id));
-    const out = [];
-    done.forEach(s => out.push(...cxDrillPlan(s.id, 4).filter(e => !["write", "open"].includes(cxItemKind(cxSet(e.set), e.item)))));
-    return shuffle(out).slice(0, Math.max(6, (p.rules || []).length));
-  }
-  if (p.part === "write") { const w = cxWritePick(); return w ? [w] : []; }
-  return [];
-}
+// (cxPartList: course-de.js)
 function cxPartTitle(p) {
   const sec = p.sec && cxSection(p.sec);
   if (sec) return { title: sec.title, sub: p.part === "testout" ? "Do you know it already?" : "Today's drill" };
@@ -370,34 +358,36 @@ function cxTodayHtml() {
   const c = cxTodayCounts();
   if (!c.parts) return "";
   const sec = c.lesson && cxSection(c.lesson.sec);
-  const what = sec ? `📖 <b>${escapeHtml(sec.title)}</b> · ${c.lesson.part === "testout" ? "test-out, then the sheet if needed" : c.lesson.part === "sheet" ? "sheet + drill" : "drill"} in your session`
-    : `📏 ${c.due} grammar rule${c.due === 1 ? "" : "s"} to review in your session`;
+  const what = sec ? `📖 Grammar: <b>${escapeHtml(sec.title)}</b> — in your session`
+    : c.due ? `📏 Grammar: <b>${c.due} rule${c.due === 1 ? "" : "s"}</b> to review — in your session`
+    : `✍️ Grammar: <b>a short writing prompt</b> — in your session`;
   return `<button class="tc-vx lesson cx-today" style="${sec ? cxSecStyle(sec.id) : cxStyle(0)}" onclick="showScreen('course')">${what}</button>`;
 }
 
 // ── ☰ › 📖 COURSE ─────────────────────────────
-const CX_ST_CHIP = { done: "✅ Done", tested: "🎓 Tested out", now: "📖 Now", sheet: "📖 Sheet passed", coming: "⏳ Coming", later: "🔒 Later" };
+const CX_ST_CHIP = { done: "Done", tested: "Tested out 🎓", sheet: "Sheet passed — its drill next", coming: "Coming" };
 function cxSecStatus(s) {
   if (s.verb && s.verb.length) {
     const n = s.verb.filter(id => vxSheetPassed(id)).length;
-    return n === s.verb.length ? { k: "done", txt: "✅ Done · verb track" } : { k: n ? "now" : "later", txt: `📐 ${n}/${s.verb.length} verb sheets` };
+    return n === s.verb.length ? { k: "done", txt: "Done · verb track" } : { k: "later", txt: `Verb track · ${n}/${s.verb.length} sheets` };
   }
   if (!s.built || !s.sheets.length) return { k: "coming", txt: CX_ST_CHIP.coming };
   const st = cxSecState(s.id) || {};
   if (st.st >= 3) return { k: "done", txt: st.to >= 0 && !(st.sh > 0) ? CX_ST_CHIP.tested : CX_ST_CHIP.done };
   if (st.st === 2) return { k: "now", txt: CX_ST_CHIP.sheet };
-  return { k: "now", txt: cxNextSections(1)[0] === s ? "📖 Next — in Today" : "📖 Ready" };
+  return { k: "now", txt: cxNextSections(1)[0] === s ? "Next — comes in Today" : "Ready" };
 }
+// One line: on track or not, and by when.
 function cxPlannerHtml() {
-  const P = cxPlanner(), B = cxBudget();
+  const P = cxPlanner();
   const dot = { green: "🟢", amber: "🟠", red: "🔴", none: "⚪" }[P.status];
-  const line = P.status === "none" ? `Set a finish date (⚙️ Study plan) and the course plans its sheets to it.`
-    : P.status === "green" ? `On track: ${P.left} sheets ahead — one a day has them all passed by <b>${fmtShortDate(P.target)}</b>, ${CX_LAG} days before your finish date.`
-    : P.status === "amber" ? `Tight: ${P.left} sheets ahead, ${P.days} days to <b>${fmtShortDate(P.target)}</b> — two sheets on easy days keep it.`
-    : `Behind: ${P.left} sheets ahead and ${Math.max(0, P.days)} days to <b>${fmtShortDate(P.target)}</b>. Levers: two sheets on easy days, drop the post-B1 extras, sample drills, more minutes.`;
-  return `<div class="cx-plan ${P.status}"><div>${dot} <b>Grammar plan</b> · ${line}</div>
-    <small>${P.built} of ${P.total} sections built so far — the rest arrive with the build sessions · today: ~${B.words} min of words, ${B.left} min left of your ${B.mins} for grammar</small></div>`;
+  const line = P.status === "none" ? "Set a finish date (⚙️ Study plan) and the course plans its sheets to it"
+    : P.status === "green" ? `On track · ${P.left} sheets ahead · all passed by <b>${fmtShortDate(P.target)}</b>`
+    : P.status === "amber" ? `Tight · ${P.left} sheets ahead · two on easy days to pass them by <b>${fmtShortDate(P.target)}</b>`
+    : `Behind · ${P.left} sheets ahead, ${Math.max(0, P.days)} days to <b>${fmtShortDate(P.target)}</b> — two sheets on easy days, or more minutes`;
+  return `<div class="cx-plan ${P.status}">${dot} ${line}</div>`;
 }
+const CX_SEC_ICON = { done: "✓", now: "📖", later: "📐", coming: "·" };
 function renderCourse() {
   if (typeof cxOn !== "function" || !cxOn()) { if (typeof renderGrammar === "function") renderGrammar(); return; }
   showGameScreen();
@@ -406,44 +396,51 @@ function renderCourse() {
   migrateCourse();
   const next = cxNextSections(1)[0];
   const { fix, due } = cxDueRules();
-  const started = Object.keys(CX.rules).filter(r => (cxRuleWS(r) || {}).st);
-  const learned = started.filter(cxRuleLearned).length;
+  const learned = Object.keys(CX.rules).filter(cxRuleLearned).length;
+  const openStage = next ? next.stage : 0;
+  // A row per section: what's built stands out, what's coming stays quiet.
   const stages = CX.stages.map(st => {
     const secs = CX.sections.filter(s => s.stage === st.id);
     const done = secs.filter(s => cxSecStatus(s).k === "done").length;
-    return `<details class="cx-stage" style="${cxStyle(st.id)}" ${secs.some(s => cxSecStatus(s).k === "now") || st.id === 0 ? "open" : ""}>
+    return `<details class="cx-stage" style="${cxStyle(st.id)}" ${st.id === openStage ? "open" : ""}>
       <summary><span class="gr-sign">${st.id === 4 ? "✦" : st.id}</span><span class="gr-name">${escapeHtml(st.name)}<small>${escapeHtml(st.sub)}</small></span><span class="gr-st">${done}/${secs.length}</span></summary>
-      <div class="gr-sheets">${secs.map(s => { const ss = cxSecStatus(s);
-        return `<button class="gr-sheet cx-sec ${ss.k}" onclick="renderCourseSection('${s.id}')"><span class="gr-sn">${ss.k === "done" ? "✓" : escapeHtml(s.level)}</span><span class="gr-stt">${escapeHtml(s.title)}${s.prio === "C" ? " <small>(could)</small>" : ""}</span><span class="gr-due">${ss.txt}</span><span class="set-chev">›</span></button>`; }).join("")}</div>
+      <div class="gr-sheets">${secs.map(s => { const ss = cxSecStatus(s), coming = ss.k === "coming";
+        return `<button class="gr-sheet cx-sec ${ss.k}" onclick="renderCourseSection('${s.id}')"><span class="gr-sn">${CX_SEC_ICON[ss.k]}</span><span class="gr-stt">${escapeHtml(s.title)}${coming ? "" : `<small>${ss.txt}</small>`}</span>${coming ? "" : `<span class="set-chev">›</span>`}</button>`; }).join("")}</div>
     </details>`;
   }).join("");
   document.getElementById("main-screen").innerHTML = `<div class="screen grammar course">
     <div class="screen-top"><div class="screen-label">📖 Course</div>${backBtnHtml()}</div>
+    ${next ? `<button class="gr-next" onclick="renderCourseSection('${next.id}')" style="${cxStyle(next.stage)}"><span class="gr-next-k">📖 Next — it comes in Today</span><span class="gr-next-t">${escapeHtml(next.title)}</span></button>` : ""}
     ${cxPlannerHtml()}
     <div class="gr-sum">
       <div><b>${CX.sections.filter(s => cxSecStatus(s).k === "done").length}</b><span>/ ${CX.sections.length} sections</span></div>
-      <div><b>${learned}</b><span>/ ${Object.keys(CX.rules).length} rules learned</span></div>
-      <div><b>${fix.length + due.length}</b><span>rules to review</span></div>
+      <div><b>${learned}</b><span>rules learned</span></div>
+      <div><b>${fix.length + due.length}</b><span>rules due</span></div>
     </div>
-    ${next ? `<button class="gr-next" onclick="renderCourseSection('${next.id}')" style="${cxStyle(next.stage)}"><span class="gr-next-k">📖 Your next section — it comes in Today</span><span class="gr-next-t">${escapeHtml(next.title)}</span></button>` : ""}
     <div class="cx-links">
-      <button class="g-sec-btn" onclick="renderDrills()">🧩 Drills</button>
-      <button class="g-sec-btn" onclick="renderCourseBook()">📚 Book map</button>
-      <button class="g-sec-btn" onclick="renderGrammar()">📐 Verbs & tenses</button>
+      <button class="cx-chip" onclick="renderDrills()">🧩 Drills</button>
+      <button class="cx-chip" onclick="renderCourseBook()">📚 Book map</button>
+      <button class="cx-chip" onclick="renderGrammar()">📐 Verbs</button>
     </div>
-    <div class="gr-h">The course, in the order you learn it</div>
     ${stages}
     <details class="gr-how"><summary>ℹ️ How the course works</summary>
       <p><b>One section a day</b>, inside Today: a short test-out for the A1 basics (pass it and the section is done), else the sheet and its 3-question quiz, then the section's drill — 10 to 14 items climbing from picking to building and writing sentences.</p>
       <p><b>Rules, not lists.</b> Each rule of a sheet is a review card on the same stages as your words. A miss names the rule, shows why, and sends it back to review; a rule is learned once it's right twice on separate days, and keeps coming back less and less.</p>
-      <p><b>The book is the backbone</b>: every exercise of the grammar book is mirrored by a drill set of our own sentences, generated, or skipped on purpose — the 📚 book map shows where each one stands.</p>
+      <p><b>The book is the backbone</b>: every exercise of the grammar book is mirrored by a drill set of our own sentences, generated, or skipped on purpose — the 📚 book map shows where each one stands. Sections marked · arrive with the next build sessions; they already count in the plan.</p>
     </details>
   </div>`;
   if (typeof logScreen === "function") logScreen("course");
 }
+// A rule: its title and where it stands (its words are on the sheet).
 function cxRuleRowHtml(r) {
   const rule = cxRule(r), ws = cxRuleWS(r);
-  return `<div class="gr-rule"><b>${escapeHtml(rule.title)}</b><span>${gsMd(rule.text)}</span>${typeof gsRuleStatusHtml === "function" ? gsRuleStatusHtml(ws, ws ? 2 : 0) : ""}${cxRuleLearned(r) ? `<small class="cx-learned">✓ learned</small>` : ""}</div>`;
+  return `<div class="gr-rule"><b>${escapeHtml(rule.title)}</b>${cxRuleLearned(r) ? `<span class="cx-learned">✓ learned — right on two days</span>` : `<span></span>`}${typeof gsRuleStatusHtml === "function" ? gsRuleStatusHtml(ws, 0) : ""}</div>`;
+}
+// The book sections it draws on, by chapter: "ch 5: Negation, Nicht · ch 28: Negation".
+function cxBookLine(s) {
+  const by = {};
+  (s.book || []).forEach(([ch, h]) => { (by[ch] = by[ch] || []).push(h || "opening"); });
+  return Object.entries(by).map(([ch, hs]) => `${ch.replace(/^c/, "ch ").replace(/^app/, "appendix ")}: ${hs.join(", ")}`).join(" · ");
 }
 function renderCourseSection(id) {
   const s = cxSection(id);
@@ -452,29 +449,29 @@ function renderCourseSection(id) {
   cxClose();
   migrateCourse();
   const ss = cxSecStatus(s), st = cxSecState(id) || {};
-  const book = (s.book || []).map(([ch, h]) => `${ch.replace(/^c/, "ch ").replace(/^app/, "appendix ")}${h ? " · " + h : ""}`).join(" — ");
+  const book = cxBookLine(s);
   let body = "";
   if (s.verb && s.verb.length) {
-    body = `<div class="gr-unote">This section is taught by the verb track — its sheets come into Today with their tense.</div>
+    body = `<div class="gr-unote">Taught by the verb track — its sheets come into Today with their tense.</div>
       <div class="gr-sheets">${s.verb.map((v, i) => { const sh = vxSheet(v), p = vxSheetPassed(v);
         return `<button class="gr-sheet ${p ? "done" : ""}" onclick="renderGrammarSheet('${v}')"><span class="gr-sn">${p ? "✓" : i + 1}</span><span class="gr-stt">${escapeHtml(sh ? sh.title : v)}</span><span class="set-chev">›</span></button>`; }).join("")}</div>`;
   } else if (!s.built || !s.sheets.length) {
-    body = `<div class="set-note">⏳ Coming — this section is built in a later build session. It's already counted in the grammar plan.</div>`;
+    body = `<div class="set-note">⏳ Coming with a later build session — already counted in the grammar plan.</div>`;
   } else {
-    body = `<div class="gr-h">The sheet</div><div class="gr-sheets">${s.sheets.map((sid, i) => { const sh = cxSheet(sid), p = cxSheetPassed(sid);
-        return `<button class="gr-sheet ${p ? "done" : ""}" onclick="renderCourseSheet('${sid}')"><span class="gr-sn">${p ? "✓" : i + 1}</span><span class="gr-stt">${escapeHtml(sh.title)}</span>${p ? `<span class="gr-sc">${(st.ok && st.ok[sid]) || st.sh || 100}%</span>` : `<span class="gr-due">read · quiz</span>`}<span class="set-chev">›</span></button>`; }).join("")}</div>
-      ${st.to !== undefined ? `<div class="gr-unote">🎓 Test-out: ${st.to}%${st.st >= 3 && !(st.sh > 0) ? " — passed" : ""}</div>` : ""}
+    body = `<div class="gr-sheets">${s.sheets.map((sid, i) => { const sh = cxSheet(sid), p = cxSheetPassed(sid);
+        return `<button class="gr-sheet ${p ? "done" : ""}" onclick="renderCourseSheet('${sid}')"><span class="gr-sn">${p ? "✓" : "📖"}</span><span class="gr-stt">The sheet<small>${p ? `passed · ${(st.ok && st.ok[sid]) || st.sh || 100}%` : "read it, then its 3-question quiz"}${st.to !== undefined ? ` · test-out ${st.to}%` : ""}</small></span><span class="set-chev">›</span></button>`; }).join("")}</div>
       <div class="gr-h">Rules — in your reviews</div><div class="gr-rules">${s.rules.map(cxRuleRowHtml).join("")}</div>`;
   }
   const sets = s.sets.map(cxSet).filter(Boolean);
   const drills = sets.length ? `<div class="gr-h">🧩 Drills</div>
-    ${s.sheets.length ? `<button class="gr-next" onclick="renderCourseDrill('${id}')" style="${cxStyle(s.stage)}"><span class="gr-next-k">🎯 Mixed drill — a few from every set</span><span class="gr-next-t">12 items, climbing to production</span></button>` : ""}
+    ${s.sheets.length ? `<button class="gr-next" onclick="renderCourseDrill('${id}')" style="${cxStyle(s.stage)}"><span class="gr-next-k">🎯 Mixed — a few from every set</span><span class="gr-next-t">12 items, climbing to production</span></button>` : ""}
+    <details class="cx-sets" ${s.sheets.length ? "" : "open"}><summary>${sets.length} drill set${sets.length > 1 ? "s" : ""} — pick one</summary>
     <div class="gr-sheets">${sets.map(d => { const ds = S.course.ds[d.id] || [0, 0];
-      return `<button class="gr-sheet" onclick="renderCourseDrill('${id}','${d.id}')"><span class="gr-sn">${d.gen ? "⚙" : CX_PRODUCTION.has(d.t) ? "✍" : "•"}</span><span class="gr-stt">${escapeHtml(d.title)}<small>${d.ex ? `Übung ${escapeHtml(d.ex)} · ` : ""}${d.gen ? "generated" : (d.items || []).length + " items"}${ds[1] ? ` · ${Math.round(ds[0] / ds[1] * 100)}% of ${ds[1]}` : ""}</small></span><span class="set-chev">›</span></button>`; }).join("")}</div>` : "";
+      return `<button class="gr-sheet cx-set" onclick="renderCourseDrill('${id}','${d.id}')"><span class="gr-sn">${d.gen ? "⚙" : CX_PRODUCTION.has(d.t) ? "✍" : "•"}</span><span class="gr-stt">${escapeHtml(d.title)}<small>${d.ex ? `Übung ${escapeHtml(d.ex)} · ` : ""}${d.gen ? "generated" : (d.items || []).length + " items"}${ds[1] ? ` · ${Math.round(ds[0] / ds[1] * 100)}% of ${ds[1]}` : ""}</small></span><span class="set-chev">›</span></button>`; }).join("")}</div></details>` : "";
   document.getElementById("main-screen").innerHTML = `<div class="screen grammar course" style="${cxStyle(s.stage)}">
     <div class="screen-top"><div class="screen-label">📖 Course</div><button class="back-btn" onclick="renderCourse()">← Course</button></div>
-    <div class="gr-uhead"><span class="gr-sign big">${escapeHtml(s.level)}</span><div><h2>${escapeHtml(s.title)}</h2><p>${escapeHtml((cxStage(s.stage) || {}).name || "")} · ${ss.txt}${s.prio === "C" ? " · post-B1" : ""}</p></div></div>
-    ${book ? `<div class="gr-unote">📚 Book: ${escapeHtml(book)}</div>` : ""}
+    <div class="gr-uhead"><span class="gr-sign big">${escapeHtml(s.level)}</span><div><h2>${escapeHtml(s.title)}</h2><p>${ss.txt}${s.prio === "C" ? " · post-B1" : ""}</p></div></div>
+    ${book ? `<div class="gr-unote">📚 ${escapeHtml(book)}</div>` : ""}
     ${body}${drills}
   </div>`;
   scrollPageTop();
@@ -594,7 +591,7 @@ function cxSettingsHtml() {
   if (typeof cxOn !== "function" || !cxOn()) return "";
   migrateCourse();
   const P = cxPlanner(), dot = { green: "🟢", amber: "🟠", red: "🔴", none: "⚪" }[P.status];
-  return `${setChoiceHtml("⏱️", "Minutes a day in the app", "The grammar block fits around your words: on a heavy day its reviews and the writing prompt give way first — the sheet and its drill never do.",
+  return `${setChoiceHtml("⏱️", "Minutes a day in the app", "Grammar fits around your words: on a heavy day its reviews give way first, never the day's sheet.",
       [30, 45, 60, 90].map(n => ({ label: n, on: S.course.mins === n, onclick: `cxSetMins(${n})` })), "")}
     ${setNavHtml("📖", "Grammar course", `${dot} ${P.status === "none" ? "no finish date" : P.status === "green" ? "on track" : P.status === "amber" ? "tight" : "behind"} · ${P.left} sheets ahead${P.target ? ` · all passed by ${fmtShortDate(P.target)}` : ""}`, "closeSettings();showScreen('course')")}`;
 }
