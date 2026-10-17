@@ -1,0 +1,3112 @@
+{
+ "c1": {
+  "sections": [
+   "Pronunciation",
+   "Gender"
+  ],
+  "exercises": [
+   {
+    "id": "1.1",
+    "section": "Pronunciation",
+    "type": "fill",
+    "items": 0
+   },
+   {
+    "id": "1.2",
+    "section": "Gender",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "1.3",
+    "section": "Gender",
+    "type": "fill",
+    "items": 20
+   }
+  ]
+ },
+ "c2": {
+  "sections": [
+   "Definite articles",
+   "Indefinite articles",
+   "Der-words",
+   "Ein-words",
+   "Ein/eine with questions"
+  ],
+  "exercises": [
+   {
+    "id": "2.1",
+    "section": "Definite articles",
+    "type": "fill",
+    "items": 25
+   },
+   {
+    "id": "2.2",
+    "section": "Definite articles",
+    "type": "transform",
+    "items": 25
+   },
+   {
+    "id": "2.3",
+    "section": "Indefinite articles",
+    "type": "transform",
+    "items": 15
+   },
+   {
+    "id": "2.4",
+    "section": "Indefinite articles",
+    "type": "transform",
+    "items": 25
+   },
+   {
+    "id": "2.5",
+    "section": "Indefinite articles",
+    "type": "transform",
+    "items": 15
+   },
+   {
+    "id": "2.6",
+    "section": "Indefinite articles",
+    "type": "question",
+    "items": 15
+   },
+   {
+    "id": "2.7",
+    "section": "Indefinite articles",
+    "type": "fill",
+    "items": 30
+   },
+   {
+    "id": "2.8",
+    "section": "Der-words",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "2.9",
+    "section": "Ein-words",
+    "type": "transform",
+    "items": 15
+   },
+   {
+    "id": "2.10",
+    "section": "Ein/eine with questions",
+    "type": "answer",
+    "items": 5
+   }
+  ]
+ },
+ "c3": {
+  "sections": [
+   "Pronouns in the nominative case"
+  ],
+  "exercises": [
+   {
+    "id": "3.1",
+    "section": "",
+    "type": "fill",
+    "items": 25
+   },
+   {
+    "id": "3.2",
+    "section": "",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "3.3",
+    "section": "",
+    "type": "fill",
+    "items": 20
+   },
+   {
+    "id": "3.4",
+    "section": "",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "3.5",
+    "section": "",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "3.6",
+    "section": "",
+    "type": "fill",
+    "items": 12
+   },
+   {
+    "id": "3.7",
+    "section": "",
+    "type": "question",
+    "items": 15
+   },
+   {
+    "id": "3.8",
+    "section": "Pronouns in the nominative case",
+    "type": "transform",
+    "items": 10
+   }
+  ]
+ },
+ "c4": {
+  "sections": [
+   "Titles, locations, and interrogatives",
+   "Titles"
+  ],
+  "exercises": [
+   {
+    "id": "4.1",
+    "section": "Titles",
+    "type": "write-own",
+    "items": 10
+   },
+   {
+    "id": "4.2",
+    "section": "Titles",
+    "type": "other",
+    "items": 10
+   },
+   {
+    "id": "4.3",
+    "section": "Titles",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "4.4",
+    "section": "Titles",
+    "type": "write-own",
+    "items": 9
+   },
+   {
+    "id": "4.5",
+    "section": "Titles",
+    "type": "answer",
+    "items": 10
+   },
+   {
+    "id": "4.6",
+    "section": "Titles",
+    "type": "answer",
+    "items": 10
+   },
+   {
+    "id": "4.7",
+    "section": "Titles",
+    "type": "answer",
+    "items": 5
+   }
+  ]
+ },
+ "c5": {
+  "sections": [
+   "Negation",
+   "Nicht",
+   "Kein",
+   "Gar",
+   "Nie and nichts"
+  ],
+  "exercises": [
+   {
+    "id": "5.1",
+    "section": "",
+    "type": "fill",
+    "items": 2
+   },
+   {
+    "id": "5.2",
+    "section": "",
+    "type": "question",
+    "items": 20
+   },
+   {
+    "id": "5.3",
+    "section": "",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "5.4",
+    "section": "",
+    "type": "negate",
+    "items": 15
+   },
+   {
+    "id": "5.5",
+    "section": "",
+    "type": "negate",
+    "items": 15
+   },
+   {
+    "id": "5.6",
+    "section": "",
+    "type": "negate",
+    "items": 20
+   },
+   {
+    "id": "5.7",
+    "section": "",
+    "type": "answer",
+    "items": 15
+   },
+   {
+    "id": "5.8",
+    "section": "Nicht",
+    "type": "transform",
+    "items": 25
+   },
+   {
+    "id": "5.9",
+    "section": "Nicht",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "5.10",
+    "section": "Kein",
+    "type": "negate",
+    "items": 25
+   },
+   {
+    "id": "5.11",
+    "section": "Nie and nichts",
+    "type": "fill",
+    "items": 10
+   }
+  ]
+ },
+ "c6": {
+  "sections": [
+   "The present tense",
+   "Numbers",
+   "Ordinals",
+   "Personal Pronouns",
+   "Verb Position",
+   "Verb Position with Question Words",
+   "Verb Position in General Questions",
+   "Formation of the Present Tense",
+   "The Infinitive",
+   "Present Tense Forms",
+   "fragen",
+   "kaufen",
+   "machen",
+   "Verb Stems Ending in -t, -d, or -n",
+   "Verb Stems Ending in -el or -er",
+   "The Present Tense of haben, sein, and werden"
+  ],
+  "exercises": [
+   {
+    "id": "6.1",
+    "section": "The present tense",
+    "type": "fill",
+    "items": 5
+   },
+   {
+    "id": "6.2",
+    "section": "The present tense",
+    "type": "fill",
+    "items": 3
+   },
+   {
+    "id": "6.3",
+    "section": "The present tense",
+    "type": "fill",
+    "items": 4
+   },
+   {
+    "id": "6.4",
+    "section": "The present tense",
+    "type": "fill",
+    "items": 25
+   },
+   {
+    "id": "6.5",
+    "section": "Numbers",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "6.6",
+    "section": "Ordinals",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "6.7",
+    "section": "Verb Position",
+    "type": "transform",
+    "items": 5
+   },
+   {
+    "id": "6.8",
+    "section": "Verb Position with Question Words",
+    "type": "question",
+    "items": 5
+   },
+   {
+    "id": "6.9",
+    "section": "Verb Position in General Questions",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "6.10",
+    "section": "Verb Position in General Questions",
+    "type": "translate",
+    "items": 10
+   },
+   {
+    "id": "6.11",
+    "section": "Verb Position in General Questions",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "6.12",
+    "section": "Present Tense Forms",
+    "type": "fill",
+    "items": 20
+   },
+   {
+    "id": "6.13",
+    "section": "machen",
+    "type": "translate",
+    "items": 20
+   },
+   {
+    "id": "6.14",
+    "section": "machen",
+    "type": "fill",
+    "items": 25
+   },
+   {
+    "id": "6.15",
+    "section": "machen",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "6.16",
+    "section": "machen",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "6.17",
+    "section": "machen",
+    "type": "fill",
+    "items": 12
+   },
+   {
+    "id": "6.18",
+    "section": "Verb Stems Ending in -t, -d, or -n",
+    "type": "fill",
+    "items": 17
+   },
+   {
+    "id": "6.19",
+    "section": "Verb Stems Ending in -el or -er",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "6.20",
+    "section": "Verb Stems Ending in -el or -er",
+    "type": "question",
+    "items": 20
+   },
+   {
+    "id": "6.21",
+    "section": "Verb Stems Ending in -el or -er",
+    "type": "fill",
+    "items": 30
+   },
+   {
+    "id": "6.22",
+    "section": "The Present Tense of haben, sein, and werden",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "6.23",
+    "section": "The Present Tense of haben, sein, and werden",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "6.24",
+    "section": "The Present Tense of haben, sein, and werden",
+    "type": "fill",
+    "items": 8
+   },
+   {
+    "id": "6.25",
+    "section": "The Present Tense of haben, sein, and werden",
+    "type": "answer",
+    "items": 10
+   },
+   {
+    "id": "6.26",
+    "section": "The Present Tense of haben, sein, and werden",
+    "type": "fill",
+    "items": 24
+   }
+  ]
+ },
+ "c7": {
+  "sections": [
+   "Accusative case",
+   "Accusative case form of personal pronouns",
+   "Accusative prepositions",
+   "Pronouns in the accusative case",
+   "Pronouns",
+   "Man"
+  ],
+  "exercises": [
+   {
+    "id": "7.1",
+    "section": "",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "7.2",
+    "section": "",
+    "type": "fill",
+    "items": 25
+   },
+   {
+    "id": "7.3",
+    "section": "",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "7.4",
+    "section": "",
+    "type": "transform",
+    "items": 5
+   },
+   {
+    "id": "7.5",
+    "section": "",
+    "type": "write-own",
+    "items": 15
+   },
+   {
+    "id": "7.6",
+    "section": "",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "7.7",
+    "section": "Accusative case",
+    "type": "other",
+    "items": 10
+   },
+   {
+    "id": "7.8",
+    "section": "Accusative case",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "7.9",
+    "section": "Accusative case form of personal pronouns",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "7.10",
+    "section": "Accusative prepositions",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "7.11",
+    "section": "Pronouns in the accusative case",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "7.12",
+    "section": "Pronouns in the accusative case",
+    "type": "write-own",
+    "items": 7
+   },
+   {
+    "id": "7.13",
+    "section": "Pronouns in the accusative case",
+    "type": "question",
+    "items": 10
+   },
+   {
+    "id": "7.14",
+    "section": "Pronouns in the accusative case",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "7.15",
+    "section": "Pronouns",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "7.16",
+    "section": "Man",
+    "type": "fill",
+    "items": 7
+   }
+  ]
+ },
+ "c8": {
+  "sections": [
+   "Irregular verbs in the present tense",
+   "The addition of an umlaut",
+   "Vowel change e to i",
+   "Vowel change e to ie"
+  ],
+  "exercises": [
+   {
+    "id": "8.1",
+    "section": "The addition of an umlaut",
+    "type": "fill",
+    "items": 25
+   },
+   {
+    "id": "8.2",
+    "section": "The addition of an umlaut",
+    "type": "fill",
+    "items": 4
+   },
+   {
+    "id": "8.3",
+    "section": "Vowel change e to i",
+    "type": "fill",
+    "items": 25
+   },
+   {
+    "id": "8.4",
+    "section": "Vowel change e to i",
+    "type": "fill",
+    "items": 4
+   },
+   {
+    "id": "8.5",
+    "section": "Vowel change e to ie",
+    "type": "fill",
+    "items": 2
+   },
+   {
+    "id": "8.6",
+    "section": "Vowel change e to ie",
+    "type": "fill",
+    "items": 30
+   },
+   {
+    "id": "8.7",
+    "section": "Vowel change e to ie",
+    "type": "question",
+    "items": 15
+   },
+   {
+    "id": "8.8",
+    "section": "Vowel change e to ie",
+    "type": "compose",
+    "items": 5
+   },
+   {
+    "id": "8.9",
+    "section": "Vowel change e to ie",
+    "type": "compose",
+    "items": 5
+   },
+   {
+    "id": "8.10",
+    "section": "Vowel change e to ie",
+    "type": "fill",
+    "items": 23
+   },
+   {
+    "id": "8.11",
+    "section": "Vowel change e to ie",
+    "type": "compose",
+    "items": 10
+   },
+   {
+    "id": "8.12",
+    "section": "Vowel change e to ie",
+    "type": "compose",
+    "items": 10
+   },
+   {
+    "id": "8.13",
+    "section": "Vowel change e to ie",
+    "type": "other",
+    "items": 15
+   },
+   {
+    "id": "8.14",
+    "section": "Vowel change e to ie",
+    "type": "answer",
+    "items": 10
+   },
+   {
+    "id": "8.15",
+    "section": "Vowel change e to ie",
+    "type": "read",
+    "items": 0
+   }
+  ]
+ },
+ "c9": {
+  "sections": [
+   "Addressing groups",
+   "Imperatives with wir",
+   "Imperatives"
+  ],
+  "exercises": [
+   {
+    "id": "9.1",
+    "section": "",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "9.2",
+    "section": "",
+    "type": "write-own",
+    "items": 10
+   },
+   {
+    "id": "9.3",
+    "section": "Addressing groups",
+    "type": "transform",
+    "items": 5
+   },
+   {
+    "id": "9.4",
+    "section": "Imperatives with wir",
+    "type": "fill",
+    "items": 7
+   },
+   {
+    "id": "9.5",
+    "section": "Imperatives with wir",
+    "type": "fill",
+    "items": 7
+   },
+   {
+    "id": "9.6",
+    "section": "Imperatives",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "9.7",
+    "section": "Imperatives",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "9.8",
+    "section": "Imperatives",
+    "type": "fill",
+    "items": 10
+   }
+  ]
+ },
+ "c10": {
+  "sections": [
+   "Usage of the present perfect tense",
+   "Formation of the present perfect tense",
+   "Present perfect tense of weak verbs",
+   "haben or sein as the Auxiliary Verb in Perfect",
+   "sein with a Change of Position",
+   "sein with a Change of Condition",
+   "sein with Verbs of Rest",
+   "haben with Some Verbs of Motion",
+   "Present perfect tense of mixed verbs",
+   "Present perfect tense with separable prefixes",
+   "Present perfect tense with inseparable prefixes",
+   "Present perfect tense with verbs ending in -ieren",
+   "Present perfect tense of modal auxiliaries and of",
+   "Subordinate clauses and the present perfect tense"
+  ],
+  "exercises": [
+   {
+    "id": "10.1",
+    "section": "Present perfect tense of weak verbs",
+    "type": "read",
+    "items": 7
+   },
+   {
+    "id": "10.2",
+    "section": "Present perfect tense of weak verbs",
+    "type": "read",
+    "items": 10
+   },
+   {
+    "id": "10.3",
+    "section": "Present perfect tense of weak verbs",
+    "type": "transform",
+    "items": 20
+   },
+   {
+    "id": "10.4",
+    "section": "sein with a Change of Position",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "10.5",
+    "section": "sein with a Change of Condition",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "10.6",
+    "section": "sein with Verbs of Rest",
+    "type": "fill",
+    "items": 5
+   },
+   {
+    "id": "10.7",
+    "section": "haben with Some Verbs of Motion",
+    "type": "fill",
+    "items": 30
+   },
+   {
+    "id": "10.8",
+    "section": "haben with Some Verbs of Motion",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "10.9",
+    "section": "haben with Some Verbs of Motion",
+    "type": "fill",
+    "items": 25
+   },
+   {
+    "id": "10.10",
+    "section": "haben with Some Verbs of Motion",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "10.11",
+    "section": "haben with Some Verbs of Motion",
+    "type": "transform",
+    "items": 15
+   },
+   {
+    "id": "10.12",
+    "section": "haben with Some Verbs of Motion",
+    "type": "transform",
+    "items": 12
+   },
+   {
+    "id": "10.13",
+    "section": "Present perfect tense of mixed verbs",
+    "type": "fill",
+    "items": 9
+   },
+   {
+    "id": "10.14",
+    "section": "Present perfect tense of mixed verbs",
+    "type": "transform",
+    "items": 15
+   },
+   {
+    "id": "10.15",
+    "section": "Present perfect tense with separable prefixes",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "10.16",
+    "section": "Present perfect tense with separable prefixes",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "10.17",
+    "section": "Present perfect tense with inseparable prefixes",
+    "type": "transform",
+    "items": 20
+   },
+   {
+    "id": "10.18",
+    "section": "Present perfect tense with inseparable prefixes",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "10.19",
+    "section": "Present perfect tense with inseparable prefixes",
+    "type": "answer",
+    "items": 20
+   },
+   {
+    "id": "10.20",
+    "section": "Present perfect tense with verbs ending in -ieren",
+    "type": "transform",
+    "items": 20
+   }
+  ]
+ },
+ "c11": {
+  "sections": [
+   "Past perfect tense",
+   "The past perfect tense",
+   "Future tense",
+   "Modal auxiliaries in the future tense",
+   "The future tense",
+   "Adverbs of time",
+   "Position and form of modals"
+  ],
+  "exercises": [
+   {
+    "id": "11.1",
+    "section": "Past perfect tense",
+    "type": "fill",
+    "items": 25
+   },
+   {
+    "id": "11.2",
+    "section": "The past perfect tense",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "11.3",
+    "section": "The past perfect tense",
+    "type": "fill",
+    "items": 5
+   },
+   {
+    "id": "11.4",
+    "section": "The past perfect tense",
+    "type": "fill",
+    "items": 5
+   },
+   {
+    "id": "11.5",
+    "section": "The past perfect tense",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "11.6",
+    "section": "Future tense",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "11.7",
+    "section": "Modal auxiliaries in the future tense",
+    "type": "transform",
+    "items": 15
+   },
+   {
+    "id": "11.8",
+    "section": "Adverbs of time",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "11.9",
+    "section": "Adverbs of time",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "11.10",
+    "section": "Position and form of modals",
+    "type": "transform",
+    "items": 5
+   },
+   {
+    "id": "11.11",
+    "section": "Position and form of modals",
+    "type": "transform",
+    "items": 15
+   },
+   {
+    "id": "11.12",
+    "section": "Position and form of modals",
+    "type": "compose",
+    "items": 10
+   },
+   {
+    "id": "11.13",
+    "section": "Position and form of modals",
+    "type": "compose",
+    "items": 15
+   }
+  ]
+ },
+ "c12": {
+  "sections": [
+   "Prefixes",
+   "Inseparable prefixes",
+   "Separable prefixes",
+   "Verbs that combine with both separable and",
+   "Prefixes that are inseparable and separable",
+   "Imperative verbs",
+   "Formal commands",
+   "Familiar commands",
+   "Singular",
+   "Plural",
+   "Exhortations (mild commands, inclusive",
+   "The command forms of sein and werden"
+  ],
+  "exercises": [
+   {
+    "id": "12.1",
+    "section": "Prefixes",
+    "type": "fill",
+    "items": 25
+   },
+   {
+    "id": "12.2",
+    "section": "Prefixes",
+    "type": "fill",
+    "items": 35
+   },
+   {
+    "id": "12.3",
+    "section": "Prefixes",
+    "type": "fill",
+    "items": 20
+   },
+   {
+    "id": "12.4",
+    "section": "Prefixes",
+    "type": "fill",
+    "items": 35
+   },
+   {
+    "id": "12.5",
+    "section": "Prefixes",
+    "type": "fill",
+    "items": 14
+   },
+   {
+    "id": "12.6",
+    "section": "Inseparable prefixes",
+    "type": "fill",
+    "items": 20
+   },
+   {
+    "id": "12.7",
+    "section": "Separable prefixes",
+    "type": "fill",
+    "items": 20
+   },
+   {
+    "id": "12.8",
+    "section": "Separable prefixes",
+    "type": "compose",
+    "items": 15
+   },
+   {
+    "id": "12.9",
+    "section": "Verbs that combine with both separable and",
+    "type": "fill",
+    "items": 3
+   },
+   {
+    "id": "12.10",
+    "section": "Verbs that combine with both separable and",
+    "type": "compose",
+    "items": 15
+   },
+   {
+    "id": "12.11",
+    "section": "Prefixes that are inseparable and separable",
+    "type": "fill",
+    "items": 4
+   },
+   {
+    "id": "12.12",
+    "section": "Formal commands",
+    "type": "other",
+    "items": 10
+   },
+   {
+    "id": "12.13",
+    "section": "Singular",
+    "type": "other",
+    "items": 15
+   },
+   {
+    "id": "12.14",
+    "section": "Plural",
+    "type": "other",
+    "items": 15
+   },
+   {
+    "id": "12.15",
+    "section": "Exhortations (mild commands, inclusive",
+    "type": "other",
+    "items": 10
+   },
+   {
+    "id": "12.16",
+    "section": "The command forms of sein and werden",
+    "type": "other",
+    "items": 10
+   },
+   {
+    "id": "12.17",
+    "section": "The command forms of sein and werden",
+    "type": "other",
+    "items": 10
+   },
+   {
+    "id": "12.18",
+    "section": "The command forms of sein and werden",
+    "type": "other",
+    "items": 17
+   }
+  ]
+ },
+ "c13": {
+  "sections": [
+   "Accusative prepositions",
+   "Multiple usages",
+   "Bis",
+   "Durch",
+   "Für",
+   "Gegen",
+   "Ohne",
+   "Um",
+   "Wider",
+   "Der-words",
+   "Ein-words"
+  ],
+  "exercises": [
+   {
+    "id": "13.1",
+    "section": "",
+    "type": "fill",
+    "items": 20
+   },
+   {
+    "id": "13.2",
+    "section": "",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "13.3",
+    "section": "",
+    "type": "fill",
+    "items": 25
+   },
+   {
+    "id": "13.4",
+    "section": "",
+    "type": "write-own",
+    "items": 15
+   },
+   {
+    "id": "13.5",
+    "section": "",
+    "type": "answer",
+    "items": 3
+   },
+   {
+    "id": "13.6",
+    "section": "",
+    "type": "answer",
+    "items": 20
+   },
+   {
+    "id": "13.7",
+    "section": "",
+    "type": "fill",
+    "items": 5
+   },
+   {
+    "id": "13.8",
+    "section": "",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "13.9",
+    "section": "Accusative prepositions",
+    "type": "fill",
+    "items": 5
+   },
+   {
+    "id": "13.10",
+    "section": "Accusative prepositions",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "13.11",
+    "section": "Ein-words",
+    "type": "write-own",
+    "items": 15
+   }
+  ]
+ },
+ "c14": {
+  "sections": [
+   "Regular verbs in the past tense and",
+   "Regular past tense",
+   "The past tense",
+   "Usage of the past tense",
+   "Weak verbs",
+   "Word order"
+  ],
+  "exercises": [
+   {
+    "id": "14.1",
+    "section": "Regular past tense",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "14.2",
+    "section": "Regular past tense",
+    "type": "fill",
+    "items": 3
+   },
+   {
+    "id": "14.3",
+    "section": "Regular past tense",
+    "type": "fill",
+    "items": 2
+   },
+   {
+    "id": "14.4",
+    "section": "Regular past tense",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "14.5",
+    "section": "Weak verbs",
+    "type": "transform",
+    "items": 15
+   },
+   {
+    "id": "14.6",
+    "section": "Weak verbs",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "14.7",
+    "section": "Word order",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "14.8",
+    "section": "Word order",
+    "type": "combine",
+    "items": 10
+   },
+   {
+    "id": "14.9",
+    "section": "Word order",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "14.10",
+    "section": "Word order",
+    "type": "fill",
+    "items": 10
+   }
+  ]
+ },
+ "c15": {
+  "sections": [
+   "Indirect objects and the dative case",
+   "Dative case",
+   "Indirect objects",
+   "Nouns used as indirect objects",
+   "Pronouns used as indirect objects",
+   "Dative prepositions",
+   "Dative verbs"
+  ],
+  "exercises": [
+   {
+    "id": "15.1",
+    "section": "Indirect objects and the dative case",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "15.2",
+    "section": "Indirect objects and the dative case",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "15.3",
+    "section": "Indirect objects and the dative case",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "15.4",
+    "section": "Indirect objects and the dative case",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "15.5",
+    "section": "Indirect objects and the dative case",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "15.6",
+    "section": "Indirect objects and the dative case",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "15.7",
+    "section": "Indirect objects and the dative case",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "15.8",
+    "section": "Nouns used as indirect objects",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "15.9",
+    "section": "Nouns used as indirect objects",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "15.10",
+    "section": "Pronouns used as indirect objects",
+    "type": "fill",
+    "items": 5
+   },
+   {
+    "id": "15.11",
+    "section": "Pronouns used as indirect objects",
+    "type": "transform",
+    "items": 5
+   },
+   {
+    "id": "15.12",
+    "section": "Pronouns used as indirect objects",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "15.13",
+    "section": "Dative prepositions",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "15.14",
+    "section": "Dative prepositions",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "15.15",
+    "section": "Dative prepositions",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "15.16",
+    "section": "Dative prepositions",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "15.17",
+    "section": "Dative verbs",
+    "type": "fill",
+    "items": 15
+   }
+  ]
+ },
+ "c16": {
+  "sections": [
+   "Strong verbs",
+   "e to a",
+   "a to u",
+   "gehen",
+   "trinken",
+   "tun",
+   "essen",
+   "Mixed verbs",
+   "haben, sein, and werden",
+   "Irregular past tense",
+   "The verbs haben, sein, and werden"
+  ],
+  "exercises": [
+   {
+    "id": "16.1",
+    "section": "",
+    "type": "fill",
+    "items": 25
+   },
+   {
+    "id": "16.2",
+    "section": "",
+    "type": "fill",
+    "items": 3
+   },
+   {
+    "id": "16.3",
+    "section": "",
+    "type": "fill",
+    "items": 2
+   },
+   {
+    "id": "16.4",
+    "section": "",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "16.5",
+    "section": "",
+    "type": "fill",
+    "items": 2
+   },
+   {
+    "id": "16.6",
+    "section": "",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "16.7",
+    "section": "",
+    "type": "transform",
+    "items": 15
+   },
+   {
+    "id": "16.8",
+    "section": "a to u",
+    "type": "other",
+    "items": 25
+   },
+   {
+    "id": "16.9",
+    "section": "a to u",
+    "type": "fill",
+    "items": 20
+   },
+   {
+    "id": "16.10",
+    "section": "essen",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "16.11",
+    "section": "essen",
+    "type": "transform",
+    "items": 24
+   },
+   {
+    "id": "16.12",
+    "section": "Mixed verbs",
+    "type": "transform",
+    "items": 14
+   },
+   {
+    "id": "16.13",
+    "section": "Mixed verbs",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "16.14",
+    "section": "haben, sein, and werden",
+    "type": "fill",
+    "items": 7
+   },
+   {
+    "id": "16.15",
+    "section": "haben, sein, and werden",
+    "type": "fill",
+    "items": 7
+   },
+   {
+    "id": "16.16",
+    "section": "haben, sein, and werden",
+    "type": "fill",
+    "items": 7
+   },
+   {
+    "id": "16.17",
+    "section": "haben, sein, and werden",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "16.18",
+    "section": "Irregular past tense",
+    "type": "fill",
+    "items": 2
+   },
+   {
+    "id": "16.19",
+    "section": "The verbs haben, sein, and werden",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "16.20",
+    "section": "The verbs haben, sein, and werden",
+    "type": "transform",
+    "items": 30
+   }
+  ]
+ },
+ "c17": {
+  "sections": [
+   "Modal auxiliaries",
+   "Conjugation of the modal auxiliaries",
+   "Modals used with infinitives",
+   "Modal position in a subordinate clause",
+   "Omission of the infinitive",
+   "Modal auxiliaries and double infinitives"
+  ],
+  "exercises": [
+   {
+    "id": "17.1",
+    "section": "",
+    "type": "fill",
+    "items": 20
+   },
+   {
+    "id": "17.2",
+    "section": "",
+    "type": "fill",
+    "items": 16
+   },
+   {
+    "id": "17.3",
+    "section": "",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "17.4",
+    "section": "",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "17.5",
+    "section": "",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "17.6",
+    "section": "",
+    "type": "write-own",
+    "items": 5
+   },
+   {
+    "id": "17.7",
+    "section": "",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "17.8",
+    "section": "Modals used with infinitives",
+    "type": "compose",
+    "items": 15
+   },
+   {
+    "id": "17.9",
+    "section": "Modals used with infinitives",
+    "type": "answer",
+    "items": 8
+   },
+   {
+    "id": "17.10",
+    "section": "Modals used with infinitives",
+    "type": "fill",
+    "items": 7
+   },
+   {
+    "id": "17.11",
+    "section": "Modals used with infinitives",
+    "type": "fill",
+    "items": 7
+   },
+   {
+    "id": "17.12",
+    "section": "Modals used with infinitives",
+    "type": "fill",
+    "items": 6
+   },
+   {
+    "id": "17.13",
+    "section": "Modal position in a subordinate clause",
+    "type": "other",
+    "items": 10
+   },
+   {
+    "id": "17.14",
+    "section": "Omission of the infinitive",
+    "type": "translate",
+    "items": 10
+   },
+   {
+    "id": "17.15",
+    "section": "Omission of the infinitive",
+    "type": "compose",
+    "items": 30
+   },
+   {
+    "id": "17.16",
+    "section": "Modal auxiliaries and double infinitives",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "17.17",
+    "section": "Modal auxiliaries and double infinitives",
+    "type": "fill",
+    "items": 6
+   }
+  ]
+ },
+ "c18": {
+  "sections": [
+   "Conjugation of wissen",
+   "Meanings of wissen and kennen"
+  ],
+  "exercises": [
+   {
+    "id": "18.1",
+    "section": "Conjugation of wissen",
+    "type": "fill",
+    "items": 8
+   },
+   {
+    "id": "18.2",
+    "section": "Meanings of wissen and kennen",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "18.3",
+    "section": "Meanings of wissen and kennen",
+    "type": "translate",
+    "items": 10
+   },
+   {
+    "id": "18.4",
+    "section": "Meanings of wissen and kennen",
+    "type": "transform",
+    "items": 10
+   }
+  ]
+ },
+ "c19": {
+  "sections": [
+   "Dative-accusative prepositions",
+   "Dative case",
+   "Accusative case",
+   "Pronouns and prepositional adverbs"
+  ],
+  "exercises": [
+   {
+    "id": "19.1",
+    "section": "",
+    "type": "fill",
+    "items": 25
+   },
+   {
+    "id": "19.2",
+    "section": "",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "19.3",
+    "section": "Dative case",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "19.4",
+    "section": "Dative case",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "19.5",
+    "section": "Dative case",
+    "type": "transform",
+    "items": 15
+   },
+   {
+    "id": "19.6",
+    "section": "Accusative case",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "19.7",
+    "section": "Accusative case",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "19.8",
+    "section": "Pronouns and prepositional adverbs",
+    "type": "question",
+    "items": 10
+   },
+   {
+    "id": "19.9",
+    "section": "Pronouns and prepositional adverbs",
+    "type": "fill",
+    "items": 15
+   }
+  ]
+ },
+ "c20": {
+  "sections": [
+   "Genitive case, the comparative, and",
+   "Genitive case",
+   "Possession",
+   "Adjectives",
+   "Comparative and superlative"
+  ],
+  "exercises": [
+   {
+    "id": "20.1",
+    "section": "Genitive case",
+    "type": "fill",
+    "items": 25
+   },
+   {
+    "id": "20.2",
+    "section": "Genitive case",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "20.3",
+    "section": "Genitive case",
+    "type": "fill",
+    "items": 25
+   },
+   {
+    "id": "20.4",
+    "section": "Possession",
+    "type": "compose",
+    "items": 10
+   },
+   {
+    "id": "20.5",
+    "section": "Adjectives",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "20.6",
+    "section": "Adjectives",
+    "type": "compose",
+    "items": 15
+   },
+   {
+    "id": "20.7",
+    "section": "Adjectives",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "20.8",
+    "section": "Comparative and superlative",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "20.9",
+    "section": "Comparative and superlative",
+    "type": "write-own",
+    "items": 10
+   }
+  ]
+ },
+ "c21": {
+  "sections": [],
+  "exercises": [
+   {
+    "id": "21.1",
+    "section": "",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "21.2",
+    "section": "",
+    "type": "compose",
+    "items": 10
+   },
+   {
+    "id": "21.3",
+    "section": "",
+    "type": "compose",
+    "items": 10
+   },
+   {
+    "id": "21.4",
+    "section": "",
+    "type": "compose",
+    "items": 10
+   },
+   {
+    "id": "21.5",
+    "section": "",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "21.6",
+    "section": "",
+    "type": "transform",
+    "items": 10
+   }
+  ]
+ },
+ "c22": {
+  "sections": [
+   "Definite article form of relative pronouns",
+   "Relative pronouns that replace nouns in the",
+   "Using welcher as a relative pronoun",
+   "Der/die/das",
+   "Nominative masculine singular",
+   "Welcher",
+   "Was",
+   "Two types of relative pronouns",
+   "Wer and der"
+  ],
+  "exercises": [
+   {
+    "id": "22.1",
+    "section": "",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "22.2",
+    "section": "",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "22.3",
+    "section": "",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "22.4",
+    "section": "",
+    "type": "other",
+    "items": 10
+   },
+   {
+    "id": "22.5",
+    "section": "",
+    "type": "other",
+    "items": 10
+   },
+   {
+    "id": "22.6",
+    "section": "Definite article form of relative pronouns",
+    "type": "combine",
+    "items": 10
+   },
+   {
+    "id": "22.7",
+    "section": "Relative pronouns that replace nouns in the",
+    "type": "fill",
+    "items": 5
+   },
+   {
+    "id": "22.8",
+    "section": "Relative pronouns that replace nouns in the",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "22.9",
+    "section": "Using welcher as a relative pronoun",
+    "type": "fill",
+    "items": 5
+   },
+   {
+    "id": "22.10",
+    "section": "Using welcher as a relative pronoun",
+    "type": "write-own",
+    "items": 19
+   },
+   {
+    "id": "22.11",
+    "section": "Nominative masculine singular",
+    "type": "fill",
+    "items": 4
+   },
+   {
+    "id": "22.12",
+    "section": "Welcher",
+    "type": "transform",
+    "items": 5
+   },
+   {
+    "id": "22.13",
+    "section": "Was",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "22.14",
+    "section": "Was",
+    "type": "write-own",
+    "items": 5
+   },
+   {
+    "id": "22.15",
+    "section": "Two types of relative pronouns",
+    "type": "combine",
+    "items": 10
+   },
+   {
+    "id": "22.16",
+    "section": "Two types of relative pronouns",
+    "type": "fill",
+    "items": 5
+   },
+   {
+    "id": "22.17",
+    "section": "Wer and der",
+    "type": "fill",
+    "items": 7
+   },
+   {
+    "id": "22.18",
+    "section": "Wer and der",
+    "type": "fill",
+    "items": 9
+   },
+   {
+    "id": "22.19",
+    "section": "Wer and der",
+    "type": "fill",
+    "items": 8
+   },
+   {
+    "id": "22.20",
+    "section": "Wer and der",
+    "type": "write-own",
+    "items": 5
+   }
+  ]
+ },
+ "c23": {
+  "sections": [
+   "Modifiers",
+   "Adverbs",
+   "Reflexive pronouns",
+   "Conjunctions"
+  ],
+  "exercises": [
+   {
+    "id": "23.1",
+    "section": "Modifiers",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "23.2",
+    "section": "Modifiers",
+    "type": "fill",
+    "items": 3
+   },
+   {
+    "id": "23.3",
+    "section": "Adverbs",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "23.4",
+    "section": "Reflexive pronouns",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "23.5",
+    "section": "Reflexive pronouns",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "23.6",
+    "section": "Reflexive pronouns",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "23.7",
+    "section": "Reflexive pronouns",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "23.8",
+    "section": "Reflexive pronouns",
+    "type": "transform",
+    "items": 3
+   },
+   {
+    "id": "23.9",
+    "section": "Reflexive pronouns",
+    "type": "write-own",
+    "items": 10
+   },
+   {
+    "id": "23.10",
+    "section": "Reflexive pronouns",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "23.11",
+    "section": "Conjunctions",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "23.12",
+    "section": "Conjunctions",
+    "type": "write-own",
+    "items": 10
+   },
+   {
+    "id": "23.13",
+    "section": "Conjunctions",
+    "type": "write-own",
+    "items": 10
+   }
+  ]
+ },
+ "c24": {
+  "sections": [
+   "Infinitive clauses",
+   "Formation of infinitive clauses",
+   "Verbs that introduce infinitive clauses",
+   "Infinitive clauses as nouns",
+   "Prepositions commonly used with infinitive",
+   "Anstatt zu",
+   "Ohne zu",
+   "Um zu"
+  ],
+  "exercises": [
+   {
+    "id": "24.1",
+    "section": "",
+    "type": "transform",
+    "items": 15
+   },
+   {
+    "id": "24.2",
+    "section": "",
+    "type": "transform",
+    "items": 5
+   },
+   {
+    "id": "24.3",
+    "section": "",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "24.4",
+    "section": "",
+    "type": "fill",
+    "items": 20
+   },
+   {
+    "id": "24.5",
+    "section": "Infinitive clauses",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "24.6",
+    "section": "Infinitive clauses",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "24.7",
+    "section": "Infinitive clauses",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "24.8",
+    "section": "Infinitive clauses",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "24.9",
+    "section": "Infinitive clauses",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "24.10",
+    "section": "Formation of infinitive clauses",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "24.11",
+    "section": "Formation of infinitive clauses",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "24.12",
+    "section": "Verbs that introduce infinitive clauses",
+    "type": "combine",
+    "items": 10
+   },
+   {
+    "id": "24.13",
+    "section": "Infinitive clauses as nouns",
+    "type": "fill",
+    "items": 5
+   },
+   {
+    "id": "24.14",
+    "section": "Um zu",
+    "type": "write-own",
+    "items": 25
+   }
+  ]
+ },
+ "c25": {
+  "sections": [
+   "The passive voice",
+   "Active voice versus passive voice",
+   "von or durch",
+   "Impersonal passive constructions",
+   "sein and the Passive Voice",
+   "Substitutes for the passive voice",
+   "man",
+   "sein...zu + Infinitive",
+   "sich lassen + Infinitive",
+   "Passive voice",
+   "Formation of the passive voice",
+   "The preposition durch",
+   "Expressing an indirect object with the dative case"
+  ],
+  "exercises": [
+   {
+    "id": "25.1",
+    "section": "",
+    "type": "transform",
+    "items": 8
+   },
+   {
+    "id": "25.2",
+    "section": "",
+    "type": "write-own",
+    "items": 5
+   },
+   {
+    "id": "25.3",
+    "section": "",
+    "type": "write-own",
+    "items": 10
+   },
+   {
+    "id": "25.4",
+    "section": "",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "25.5",
+    "section": "",
+    "type": "transform",
+    "items": 5
+   },
+   {
+    "id": "25.6",
+    "section": "Active voice versus passive voice",
+    "type": "transform",
+    "items": 5
+   },
+   {
+    "id": "25.7",
+    "section": "von or durch",
+    "type": "answer",
+    "items": 5
+   },
+   {
+    "id": "25.8",
+    "section": "von or durch",
+    "type": "answer",
+    "items": 5
+   },
+   {
+    "id": "25.9",
+    "section": "Impersonal passive constructions",
+    "type": "fill",
+    "items": 5
+   },
+   {
+    "id": "25.10",
+    "section": "Impersonal passive constructions",
+    "type": "transform",
+    "items": 5
+   },
+   {
+    "id": "25.11",
+    "section": "sein and the Passive Voice",
+    "type": "compose",
+    "items": 10
+   },
+   {
+    "id": "25.12",
+    "section": "sein and the Passive Voice",
+    "type": "translate",
+    "items": 8
+   },
+   {
+    "id": "25.13",
+    "section": "man",
+    "type": "transform",
+    "items": 8
+   },
+   {
+    "id": "25.14",
+    "section": "man",
+    "type": "transform",
+    "items": 5
+   },
+   {
+    "id": "25.15",
+    "section": "sein...zu + Infinitive",
+    "type": "answer",
+    "items": 5
+   },
+   {
+    "id": "25.16",
+    "section": "sich lassen + Infinitive",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "25.17",
+    "section": "sich lassen + Infinitive",
+    "type": "transform",
+    "items": 12
+   },
+   {
+    "id": "25.18",
+    "section": "sich lassen + Infinitive",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "25.19",
+    "section": "sich lassen + Infinitive",
+    "type": "other",
+    "items": 20
+   },
+   {
+    "id": "25.20",
+    "section": "Formation of the passive voice",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "25.21",
+    "section": "Formation of the passive voice",
+    "type": "transform",
+    "items": 20
+   },
+   {
+    "id": "25.22",
+    "section": "The preposition durch",
+    "type": "fill",
+    "items": 5
+   },
+   {
+    "id": "25.23",
+    "section": "The preposition durch",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "25.24",
+    "section": "Expressing an indirect object with the dative case",
+    "type": "write-own",
+    "items": 10
+   },
+   {
+    "id": "25.25",
+    "section": "Expressing an indirect object with the dative case",
+    "type": "fill",
+    "items": 15
+   }
+  ]
+ },
+ "c26": {
+  "sections": [
+   "Forming the subjunctive",
+   "Subjunctive I",
+   "Mood: Indicative and Subjunctive",
+   "Use and Formation of the Subjunctive I",
+   "Present-Time Subjunctive I",
+   "Past-Time Subjunctive I",
+   "Indirect Questions",
+   "sollen in Commands",
+   "Expressing a Wish",
+   "The Present-Time Subjunctive II",
+   "Modal Verbs in the Subjunctive II",
+   "The Past-Time Subjunctive II",
+   "Modal Verbs in the Past-Time Subjunctive II",
+   "The würde Construction",
+   "Conditional Sentences",
+   "Conditions of Fact",
+   "Present",
+   "Speculation About the Past",
+   "Starting with the Conclusion",
+   "Omitting wenn"
+  ],
+  "exercises": [
+   {
+    "id": "26.1",
+    "section": "Forming the subjunctive",
+    "type": "fill",
+    "items": 3
+   },
+   {
+    "id": "26.2",
+    "section": "Forming the subjunctive",
+    "type": "fill",
+    "items": 3
+   },
+   {
+    "id": "26.3",
+    "section": "Forming the subjunctive",
+    "type": "fill",
+    "items": 2
+   },
+   {
+    "id": "26.4",
+    "section": "Forming the subjunctive",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "26.5",
+    "section": "Forming the subjunctive",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "26.6",
+    "section": "Forming the subjunctive",
+    "type": "transform",
+    "items": 5
+   },
+   {
+    "id": "26.7",
+    "section": "Forming the subjunctive",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "26.8",
+    "section": "Forming the subjunctive",
+    "type": "combine",
+    "items": 10
+   },
+   {
+    "id": "26.9",
+    "section": "Present-Time Subjunctive I",
+    "type": "other",
+    "items": 10
+   },
+   {
+    "id": "26.10",
+    "section": "Past-Time Subjunctive I",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "26.11",
+    "section": "Indirect Questions",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "26.12",
+    "section": "sollen in Commands",
+    "type": "fill",
+    "items": 5
+   },
+   {
+    "id": "26.13",
+    "section": "Expressing a Wish",
+    "type": "other",
+    "items": 5
+   },
+   {
+    "id": "26.14",
+    "section": "Expressing a Wish",
+    "type": "fill",
+    "items": 15
+   },
+   {
+    "id": "26.15",
+    "section": "The Present-Time Subjunctive II",
+    "type": "other",
+    "items": 8
+   },
+   {
+    "id": "26.16",
+    "section": "The Present-Time Subjunctive II",
+    "type": "transform",
+    "items": 20
+   },
+   {
+    "id": "26.17",
+    "section": "Modal Verbs in the Subjunctive II",
+    "type": "compose",
+    "items": 5
+   },
+   {
+    "id": "26.18",
+    "section": "Modal Verbs in the Subjunctive II",
+    "type": "compose",
+    "items": 5
+   },
+   {
+    "id": "26.19",
+    "section": "Modal Verbs in the Subjunctive II",
+    "type": "compose",
+    "items": 5
+   },
+   {
+    "id": "26.20",
+    "section": "The Past-Time Subjunctive II",
+    "type": "transform",
+    "items": 15
+   },
+   {
+    "id": "26.21",
+    "section": "Modal Verbs in the Past-Time Subjunctive II",
+    "type": "transform",
+    "items": 12
+   },
+   {
+    "id": "26.22",
+    "section": "The würde Construction",
+    "type": "fill",
+    "items": 7
+   },
+   {
+    "id": "26.23",
+    "section": "The würde Construction",
+    "type": "fill",
+    "items": 20
+   },
+   {
+    "id": "26.24",
+    "section": "The würde Construction",
+    "type": "other",
+    "items": 10
+   },
+   {
+    "id": "26.25",
+    "section": "Present",
+    "type": "combine",
+    "items": 5
+   },
+   {
+    "id": "26.26",
+    "section": "Present",
+    "type": "compose",
+    "items": 10
+   },
+   {
+    "id": "26.27",
+    "section": "Present",
+    "type": "other",
+    "items": 5
+   },
+   {
+    "id": "26.28",
+    "section": "Omitting wenn",
+    "type": "other",
+    "items": 10
+   },
+   {
+    "id": "26.29",
+    "section": "Omitting wenn",
+    "type": "fill",
+    "items": 5
+   },
+   {
+    "id": "26.30",
+    "section": "Omitting wenn",
+    "type": "fill",
+    "items": 5
+   }
+  ]
+ },
+ "c27": {
+  "sections": [
+   "Subjunctive I",
+   "Subjunctive II",
+   "Subjunctive II with wenn-clauses",
+   "The subjunctive mood",
+   "Subjunctive conjugations",
+   "Indirect discourse",
+   "or",
+   "Als ob, als wenn",
+   "Wenn"
+  ],
+  "exercises": [
+   {
+    "id": "27.1",
+    "section": "Subjunctive I",
+    "type": "fill",
+    "items": 20
+   },
+   {
+    "id": "27.2",
+    "section": "Subjunctive I",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "27.3",
+    "section": "Subjunctive II",
+    "type": "fill",
+    "items": 5
+   },
+   {
+    "id": "27.4",
+    "section": "Subjunctive II",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "27.5",
+    "section": "Subjunctive II",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "27.6",
+    "section": "Subjunctive II with wenn-clauses",
+    "type": "write-own",
+    "items": 5
+   },
+   {
+    "id": "27.7",
+    "section": "Subjunctive II with wenn-clauses",
+    "type": "combine",
+    "items": 10
+   },
+   {
+    "id": "27.8",
+    "section": "Subjunctive II with wenn-clauses",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "27.9",
+    "section": "or",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "27.10",
+    "section": "or",
+    "type": "write-own",
+    "items": 4
+   },
+   {
+    "id": "27.11",
+    "section": "Als ob, als wenn",
+    "type": "fill",
+    "items": 5
+   },
+   {
+    "id": "27.12",
+    "section": "Wenn",
+    "type": "fill",
+    "items": 5
+   },
+   {
+    "id": "27.13",
+    "section": "Wenn",
+    "type": "fill",
+    "items": 8
+   },
+   {
+    "id": "27.14",
+    "section": "Wenn",
+    "type": "fill",
+    "items": 8
+   },
+   {
+    "id": "27.15",
+    "section": "Wenn",
+    "type": "write-own",
+    "items": 10
+   }
+  ]
+ },
+ "c28": {
+  "sections": [
+   "Declarative sentences and word order",
+   "Niemand, nichts, and niemals",
+   "Interrogative sentences",
+   "Interrogative words",
+   "Wer",
+   "Was",
+   "Prepositional adverbs"
+  ],
+  "exercises": [
+   {
+    "id": "28.1",
+    "section": "Declarative sentences and word order",
+    "type": "fill",
+    "items": 4
+   },
+   {
+    "id": "28.2",
+    "section": "Declarative sentences and word order",
+    "type": "negate",
+    "items": 7
+   },
+   {
+    "id": "28.3",
+    "section": "Declarative sentences and word order",
+    "type": "negate",
+    "items": 7
+   },
+   {
+    "id": "28.4",
+    "section": "Declarative sentences and word order",
+    "type": "negate",
+    "items": 7
+   },
+   {
+    "id": "28.5",
+    "section": "Niemand, nichts, and niemals",
+    "type": "negate",
+    "items": 7
+   },
+   {
+    "id": "28.6",
+    "section": "Niemand, nichts, and niemals",
+    "type": "fill",
+    "items": 7
+   },
+   {
+    "id": "28.7",
+    "section": "Niemand, nichts, and niemals",
+    "type": "transform",
+    "items": 5
+   },
+   {
+    "id": "28.8",
+    "section": "Niemand, nichts, and niemals",
+    "type": "write-own",
+    "items": 4
+   },
+   {
+    "id": "28.9",
+    "section": "Niemand, nichts, and niemals",
+    "type": "compose",
+    "items": 3
+   },
+   {
+    "id": "28.10",
+    "section": "Niemand, nichts, and niemals",
+    "type": "write-own",
+    "items": 3
+   },
+   {
+    "id": "28.11",
+    "section": "Interrogative sentences",
+    "type": "question",
+    "items": 7
+   },
+   {
+    "id": "28.12",
+    "section": "Interrogative sentences",
+    "type": "translate",
+    "items": 4
+   },
+   {
+    "id": "28.13",
+    "section": "Wer",
+    "type": "fill",
+    "items": 7
+   },
+   {
+    "id": "28.14",
+    "section": "Was",
+    "type": "question",
+    "items": 4
+   },
+   {
+    "id": "28.15",
+    "section": "Prepositional adverbs",
+    "type": "question",
+    "items": 7
+   },
+   {
+    "id": "28.16",
+    "section": "Prepositional adverbs",
+    "type": "question",
+    "items": 5
+   },
+   {
+    "id": "28.17",
+    "section": "Prepositional adverbs",
+    "type": "question",
+    "items": 3
+   },
+   {
+    "id": "28.18",
+    "section": "Prepositional adverbs",
+    "type": "compose",
+    "items": 7
+   },
+   {
+    "id": "28.19",
+    "section": "Prepositional adverbs",
+    "type": "write-own",
+    "items": 5
+   },
+   {
+    "id": "28.20",
+    "section": "Prepositional adverbs",
+    "type": "compose",
+    "items": 5
+   },
+   {
+    "id": "28.21",
+    "section": "Prepositional adverbs",
+    "type": "write-own",
+    "items": 5
+   }
+  ]
+ },
+ "c29": {
+  "sections": [
+   "Coordinating conjunctions",
+   "Subordinating conjunctions",
+   "Using subordinating conjunctions",
+   "When as a conjunction",
+   "Interrogatives",
+   "Extended modifiers",
+   "Attributive adjectives",
+   "Present participles",
+   "Past participles",
+   "Short responses",
+   "Words for emphasis",
+   "Also",
+   "Doch",
+   "Gar",
+   "Kaum",
+   "Mal",
+   "Wie",
+   "Zwar",
+   "Pat phrases"
+  ],
+  "exercises": [
+   {
+    "id": "29.1",
+    "section": "Coordinating conjunctions",
+    "type": "combine",
+    "items": 8
+   },
+   {
+    "id": "29.2",
+    "section": "Coordinating conjunctions",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "29.3",
+    "section": "Coordinating conjunctions",
+    "type": "compose",
+    "items": 5
+   },
+   {
+    "id": "29.4",
+    "section": "Coordinating conjunctions",
+    "type": "write-own",
+    "items": 4
+   },
+   {
+    "id": "29.5",
+    "section": "When as a conjunction",
+    "type": "fill",
+    "items": 7
+   },
+   {
+    "id": "29.6",
+    "section": "When as a conjunction",
+    "type": "write-own",
+    "items": 7
+   },
+   {
+    "id": "29.7",
+    "section": "When as a conjunction",
+    "type": "fill",
+    "items": 14
+   },
+   {
+    "id": "29.8",
+    "section": "When as a conjunction",
+    "type": "write-own",
+    "items": 14
+   },
+   {
+    "id": "29.9",
+    "section": "Interrogatives",
+    "type": "transform",
+    "items": 14
+   },
+   {
+    "id": "29.10",
+    "section": "Interrogatives",
+    "type": "compose",
+    "items": 7
+   },
+   {
+    "id": "29.11",
+    "section": "Present participles",
+    "type": "translate",
+    "items": 7
+   },
+   {
+    "id": "29.12",
+    "section": "Present participles",
+    "type": "translate",
+    "items": 7
+   },
+   {
+    "id": "29.13",
+    "section": "Past participles",
+    "type": "translate",
+    "items": 7
+   },
+   {
+    "id": "29.14",
+    "section": "Past participles",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "29.15",
+    "section": "Past participles",
+    "type": "fill",
+    "items": 8
+   },
+   {
+    "id": "29.16",
+    "section": "Past participles",
+    "type": "combine",
+    "items": 7
+   },
+   {
+    "id": "29.17",
+    "section": "Past participles",
+    "type": "write-own",
+    "items": 5
+   },
+   {
+    "id": "29.18",
+    "section": "Zwar",
+    "type": "fill",
+    "items": 7
+   },
+   {
+    "id": "29.19",
+    "section": "Zwar",
+    "type": "write-own",
+    "items": 7
+   },
+   {
+    "id": "29.20",
+    "section": "Pat phrases",
+    "type": "answer",
+    "items": 7
+   },
+   {
+    "id": "29.21",
+    "section": "Pat phrases",
+    "type": "write-own",
+    "items": 7
+   }
+  ]
+ },
+ "c30": {
+  "sections": [
+   "Greetings and introductions",
+   "Conversation: In der Hauptstraße (On Main",
+   "Commands"
+  ],
+  "exercises": [
+   {
+    "id": "30.1",
+    "section": "Conversation: In der Hauptstraße (On Main",
+    "type": "write-own",
+    "items": 0
+   },
+   {
+    "id": "30.2",
+    "section": "Conversation: In der Hauptstraße (On Main",
+    "type": "answer",
+    "items": 3
+   },
+   {
+    "id": "30.3",
+    "section": "Conversation: In der Hauptstraße (On Main",
+    "type": "answer",
+    "items": 4
+   },
+   {
+    "id": "30.4",
+    "section": "Conversation: In der Hauptstraße (On Main",
+    "type": "write-own",
+    "items": 0
+   },
+   {
+    "id": "30.5",
+    "section": "Conversation: In der Hauptstraße (On Main",
+    "type": "answer",
+    "items": 10
+   },
+   {
+    "id": "30.6",
+    "section": "Conversation: In der Hauptstraße (On Main",
+    "type": "other",
+    "items": 25
+   },
+   {
+    "id": "30.7",
+    "section": "Conversation: In der Hauptstraße (On Main",
+    "type": "write-own",
+    "items": 0
+   },
+   {
+    "id": "30.8",
+    "section": "Conversation: In der Hauptstraße (On Main",
+    "type": "answer",
+    "items": 11
+   },
+   {
+    "id": "30.9",
+    "section": "Conversation: In der Hauptstraße (On Main",
+    "type": "order",
+    "items": 7
+   },
+   {
+    "id": "30.10",
+    "section": "Conversation: In der Hauptstraße (On Main",
+    "type": "compose",
+    "items": 10
+   },
+   {
+    "id": "30.11",
+    "section": "Conversation: In der Hauptstraße (On Main",
+    "type": "other",
+    "items": 10
+   },
+   {
+    "id": "30.12",
+    "section": "Commands",
+    "type": "fill",
+    "items": 10
+   },
+   {
+    "id": "30.13",
+    "section": "Commands",
+    "type": "order",
+    "items": 5
+   },
+   {
+    "id": "30.14",
+    "section": "Commands",
+    "type": "fill",
+    "items": 0
+   }
+  ]
+ },
+ "c31": {
+  "sections": [
+   "Conversation: An der Bushaltestelle (At the bus",
+   "Schulen",
+   "Im Klassenzimmer",
+   "Studieren and lernen",
+   "Shopping",
+   "Einkaufen",
+   "Subjunctive review",
+   "Euro und Cent",
+   "Im Kaufhaus",
+   "Travel",
+   "Comparatives and superlatives"
+  ],
+  "exercises": [
+   {
+    "id": "31.1",
+    "section": "Conversation: An der Bushaltestelle (At the bus",
+    "type": "answer",
+    "items": 5
+   },
+   {
+    "id": "31.2",
+    "section": "Schulen",
+    "type": "answer",
+    "items": 10
+   },
+   {
+    "id": "31.3",
+    "section": "Schulen",
+    "type": "transform",
+    "items": 15
+   },
+   {
+    "id": "31.4",
+    "section": "Im Klassenzimmer",
+    "type": "order",
+    "items": 15
+   },
+   {
+    "id": "31.5",
+    "section": "Studieren and lernen",
+    "type": "fill",
+    "items": 25
+   },
+   {
+    "id": "31.6",
+    "section": "Shopping",
+    "type": "answer",
+    "items": 6
+   },
+   {
+    "id": "31.7",
+    "section": "Einkaufen",
+    "type": "answer",
+    "items": 5
+   },
+   {
+    "id": "31.8",
+    "section": "Einkaufen",
+    "type": "fill",
+    "items": 50
+   },
+   {
+    "id": "31.9",
+    "section": "Subjunctive review",
+    "type": "answer",
+    "items": 6
+   },
+   {
+    "id": "31.10",
+    "section": "Euro und Cent",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "31.11",
+    "section": "Euro und Cent",
+    "type": "transform",
+    "items": 10
+   },
+   {
+    "id": "31.12",
+    "section": "Euro und Cent",
+    "type": "write-own",
+    "items": 0
+   },
+   {
+    "id": "31.13",
+    "section": "Travel",
+    "type": "answer",
+    "items": 6
+   },
+   {
+    "id": "31.14",
+    "section": "Comparatives and superlatives",
+    "type": "fill",
+    "items": 10
+   }
+  ]
+ },
+ "appA": {
+  "sections": [],
+  "exercises": []
+ },
+ "appB": {
+  "sections": [
+   "Dative",
+   "Accusative",
+   "Dative/Accusative",
+   "Genitive"
+  ],
+  "exercises": []
+ },
+ "appC": {
+  "sections": [
+   "Declension with der-words",
+   "Declension with ein-words",
+   "Masculine nouns requiring an -(e)n ending",
+   "Neuter noun Herz requiring an -en ending",
+   "Adjectives and participles used as nouns"
+  ],
+  "exercises": []
+ }
+}
