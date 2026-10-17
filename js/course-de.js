@@ -312,7 +312,7 @@ function cxCheck(item, typed, sec) {
   // almost — one more try.
   const miss = cxMinus(A, T), extra = cxMinus(T, A);
   if (miss.length === 1 && extra.length === 1 && miss[0].length >= 4 && !CX_GRAMMAR_TOK.test(miss[0]) && cxLev(miss[0], extra[0]) === 1) res.near = true;
-  const d = cxDiagnose(item, T, A, sec);
+  const d = cxDiagnose(item, T, A, sec, String(best).normalize("NFC").replace(/[.,!?;:„“"«»‚‘’()…–—]/g, " ").split(/\s+/).filter(Boolean));
   if (d) { res.rule = d.rule; res.msg = d.msg; }
   if (!res.rule) res.rule = (item.r || [])[0] || null;
   return res;
@@ -327,13 +327,15 @@ function cxCheck(item, typed, sec) {
 // Messages fill {right} (the word that goes there), {typed} and {where}
 // (where tok goes: "before «in die Stadt»" / "at the end").
 const cxRx = x => x instanceof RegExp ? x : new RegExp("^" + String(x) + "$");
-function cxWhere(A, tok) {
+// orig: the answer's own words, as written (A is lowercased for matching).
+function cxWhere(A, tok, orig = null) {
   const i = A.findIndex(t => cxRx(tok).test(t));
   if (i < 0) return "";
   if (i === A.length - 1) return "at the very end";
-  return `right before «${A.slice(i + 1, i + 3).join(" ")}${A.length > i + 3 ? " …" : ""}»`;
+  const W = orig && orig.length === A.length ? orig : A;
+  return `right before «${W.slice(i + 1, i + 3).join(" ")}${A.length > i + 3 ? " …" : ""}»`;
 }
-function cxDiagnose(item, T, A, sec) {
+function cxDiagnose(item, T, A, sec, orig = null) {
   const list = [...(item.diag || []), ...((sec && sec.diag) || [])];
   const fill = (m, o) => String(m || "").replace(/\{(\w+)\}/g, (s, k) => o[k] !== undefined ? o[k] : s);
   for (const d of list) {
@@ -351,7 +353,7 @@ function cxDiagnose(item, T, A, sec) {
       for (let i = 0; i + 1 < T.length; i++) if (a.test(T[i]) && b.test(T[i + 1])) { o = { typed: T[i] + " " + T[i + 1] }; break; }
     } else if (d.t === "pos") {
       const re = cxRx(d.tok);
-      if (cxBagEq(T, A) && T.some(x => re.test(x)) && T.findIndex(x => re.test(x)) !== A.findIndex(x => re.test(x))) o = { where: cxWhere(A, d.tok) };
+      if (cxBagEq(T, A) && T.some(x => re.test(x)) && T.findIndex(x => re.test(x)) !== A.findIndex(x => re.test(x))) o = { where: cxWhere(A, d.tok, orig) };
     } else if (d.t === "missing") {
       const re = cxRx(d.tok);
       if (A.some(x => re.test(x)) && !T.some(x => re.test(x))) o = {};

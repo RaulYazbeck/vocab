@@ -228,6 +228,7 @@ if (neg && neg.built) {
   const r3 = diag("d5.4", 5, "Ich brauche keinem Stuhl.");
   ok(!r3.ok && !r3.near, "one letter off in kein…: a mistake, not almost");
   ok(diag("d5.4", 0, "").empty, "empty: nothing graded");
+  ok(/«am Montag/.test(C.cxCheck(item("d5.9", 0), "Ich komme am Montag nicht, sondern am Freitag.", neg).msg || ""), "where nicht goes: the answer's own words, capitals kept («am Montag»)");
   const r4 = C.cxCheck(item("d5.4", 4), "Sie hat keine kinder.", neg);
   ok(r4.ok && r4.soft.includes("caps"), "a noun written small: right, said");
 }
