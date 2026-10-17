@@ -594,7 +594,9 @@ function cxNextLessonDay(today = studyToday()) {
   if (!C || !C.last || cxUnderway() || Object.keys(C.dd || {}).some(k => k.startsWith("new:"))) return today;
   // (today counts: the app is open)
   const n = (C.seen || []).filter(d => d > C.last && d < today).length + (today > C.last ? 1 : 0), g = cxGap(today);
-  return n >= g ? today : addDays(today, g - n);
+  // Back after a long time away (twice the gap in the calendar): now.
+  if (n >= g || daysBetween(C.last, today) >= 2 * g) return today;
+  return addDays(today, g - n);
 }
 function cxPlanner(today = studyToday()) {
   // left: every sheet of the map still to pass (the verb track's too);
@@ -709,10 +711,12 @@ function cxTodayParts(scan) {
   // A contrast day: the due reviews and a few mixed items on top.
   if (contrast && !dd.contrast) parts.push({ part: "review", rules: rev, contrast: true });
   else if (rev.length && !dd.review) parts.push({ part: "review", rules: rev });
-  // Writing: on the days between new sheets, on a contrast day, and on
-  // any day with room for it.
+  // Writing: on the days between new sheets, on a contrast day, on any
+  // day with room for it — and never more than 4 days apart.
   const lessonToday = parts.some(p => p.part === "testout" || p.part === "sheet" || p.part === "drill" || p.part === "checkpoint");
-  if ((B.write || contrast || !lessonToday) && !dd.write && cxJournalPick()) parts.push({ part: "write" });
+  const lastW = cxJournalList().filter(e => !/^drill:/.test(e.p)).map(e => e.d).pop();
+  const writeDue = !lastW || daysBetween(lastW, studyToday()) >= CX_WRITE_EVERY;
+  if ((B.write || contrast || !lessonToday || writeDue) && !dd.write && cxJournalPick()) parts.push({ part: "write" });
   return parts;
 }
 // Questions each part asks (the session's count; fixed when it's built).
@@ -972,6 +976,7 @@ function cxSectionsOfChapter(ch) { return CX.sections.filter(s => (s.book || [])
 // graded here — "always done"), for a tutor to correct from the learning
 // log. My level follows the course: the level of the next section.
 const CX_JOURNAL_MIN = { A1: 30, A2: 60, B1: 90 };
+const CX_WRITE_EVERY = 4;     // days: a writing prompt at least this often
 const CX_JOURNAL_LEN = 2000;  // characters kept of one text
 // Every text is kept, never dropped: S.writing = { year: [entry] }, one
 // cloud doc a year (sync.js). (The first build kept them in S.learn.wr:

@@ -72,7 +72,7 @@ function run(o) {
   const target = C.addDays(deadline, -C.CX_LAG);
   const bad = [], rows = [], doneOn = {}, cps = [];
   const fail = m => { if (bad.length < 12) bad.push(m); };
-  const M = { q: 0, maxQ: 0, inApp: 0, contrast: 0, contrastLesson: 0, two: 0, writes: 0, lateDays: 0, maxDue: 0, dueHigh: 0, sheetDays: [], writeDays: [], maxMs: 0 };
+  const M = { stageDone: {}, stageStart: {}, q: 0, maxQ: 0, inApp: 0, contrast: 0, contrastLesson: 0, two: 0, writes: 0, lateDays: 0, maxDue: 0, dueHigh: 0, sheetDays: [], writeDays: [], maxMs: 0 };
   const okFor = e => { const ws = e.rule && C.cxRuleWS(e.rule); return rnd() < Math.min(0.97, acc + (ws ? (ws.st || 0) * 0.02 : 0)); };
   for (let d = 0; d < days; d++) {
     C.__now = Date.parse(START + "T09:00:00") + d * DAY;
@@ -127,6 +127,8 @@ function run(o) {
     const dueN = C.cxDueRules().due.length;
     M.maxDue = Math.max(M.maxDue, dueN); if (dueN > 60) M.dueHigh++;
     sections.forEach(s => { if (doneOn[s.id] === undefined && C.cxSecDone(s.id)) doneOn[s.id] = d; });
+    C.CX.stages.forEach(st => { const secs = sections.filter(s => s.stage === st.id); if (M.stageDone[st.id] === undefined && secs.length && secs.every(s => doneOn[s.id] !== undefined)) M.stageDone[st.id] = today; });
+    C.CX.stages.forEach(st => { if (M.stageStart[st.id] === undefined && sections.some(s => s.stage === st.id && (C.cxSecState(s.id) || C.S.course.dd["new:" + s.id]))) M.stageStart[st.id] = today; });
     if (o.table && (d % 30 === 0 || d === days - 1)) {
       const rules = Object.keys(C.CX.rules).map(r => C.cxRuleWS(r)).filter(ws => ws && ws.st);
       const Q = C.cxPlanner();
@@ -180,6 +182,7 @@ const SCEN = [
   ["finish 15 Jul 2027", { deadline: "2027-07-15" }],
   ["finish 15 Dec 2027", { deadline: "2027-12-15" }],
   ["heavy word days", { due: [150, 260] }],
+  ["you: A1 known (85 % test-outs)", { testout: 0.85, acc: 0.8 }],
 ];
 if (argv.includes("--matrix")) {
   const t0 = Date.now(); let failed = 0;
@@ -203,6 +206,7 @@ console.log(`course at full size: ${r.sections} lesson sections, ${C.CX.sections
 console.table(r.rows);
 console.log(`sections done: ${r.finish ? "all, the last on " + r.finish : "not all"}; target ${r.target}${r.feasible ? "" : " (out of reach from this start)"} · post-B1 (if time allows) ${r.M.bonus}`);
 console.log(`checkpoints: ${r.cps.join(" · ") || "none taken"}`);
+console.log("stages: " + C.CX.stages.map(st => `${st.name}: ${r.M.stageStart[st.id] || "—"} → ${r.M.stageDone[st.id] || "—"}`).join("\n        "));
 console.log(`a new sheet every ${r.gapAvg.toFixed(1)} days on average · longest stretch without one ${r.longest} days · two new sections on ${r.M.two} days · contrast days ${r.M.contrast} (${r.M.contrastLesson} with a section)`);
 console.log(`grammar questions a day: ${(r.M.q / Math.max(1, r.M.inApp)).toFixed(1)} on average, ${r.M.maxQ} at most · writing ${r.M.writes} texts (longest gap ${r.wGap} days) · rule reviews due at most ${r.M.maxDue} · rules Known ${r.known}/${r.rules}`);
 console.log(`slowest day of model work: ${r.M.maxMs.toFixed(1)} ms`);

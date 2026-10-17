@@ -26,6 +26,8 @@ const say = (r, tag) => { console.log(`== ${tag}`); r.log.forEach(l => console.l
 // Helpers inside the page: answer the runner's current question right or wrong.
 const HELP = () => {
   window.mistakeHeld = () => false;
+  // A text written yesterday: today's writing isn't due (the course cards are counted exactly below).
+  if (typeof cxJournalSave === "function") { const d = addDays(studyToday(), -1); S.writing = { [d.slice(0, 4)]: [{ id: "t0", d, p: "w.me", t: "Ich heiße Test und wohne in Bern.", w: 7 }] }; }
   window.__log = [], window.__fails = [];
   window.ok = (c, m) => { (c ? __log : __fails).push((c ? "✓ " : "✗ ") + m); };
   window.cxAnswerCur = right => {

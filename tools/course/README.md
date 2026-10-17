@@ -48,7 +48,8 @@ German app only (`de/index.html` loads them; the French app never does).
 
 ## Checks
 
-    node validate.mjs                 # the format, rules ↔ sheets, coverage, the checker on every
+    node validate.mjs                 # the format, rules ↔ sheets, coverage (every exercise has a status,
+                                      # every line of the book's contents a lesson), the checker on every
                                       # answer, tiles, diagnosis, engine forms, one name per global
     BOOK=<dir> node validate.mjs      # + none of our sentences is a sentence of the book
                                       #   (<dir>: pdftotext -layout of the chapters — never in the repo)

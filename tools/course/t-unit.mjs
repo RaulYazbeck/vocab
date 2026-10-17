@@ -73,18 +73,18 @@ ok(C.cxPlanner().left === before - 10 && C.cxSecDone("s0.verbs"), "the passed ve
 
 // the day
 fresh();
-ok(J(C.cxTodayParts().map(p => p.part)) === J(["testout", "sheet", "drill"]), "a first day: test-out, sheet, drill", J(C.cxTodayParts()));
+ok(J(C.cxTodayParts().filter(p => p.part !== "write").map(p => p.part)) === J(["testout", "sheet", "drill"]), "a first day: test-out, sheet, drill", J(C.cxTodayParts()));
 C.cxPartBegin({ part: "testout", sec: "s0.neg" });
 C.cxTestoutResult("s0.neg", 5, 8);
 ok(C.S.course.sec["s0.neg"].st === 1 && C.S.course.sec["s0.neg"].to === 63, "a test-out 5/8: missed, the sheet is due", J(C.S.course.sec));
-ok(J(C.cxTodayParts().map(p => p.part)) === J(["sheet", "drill"]), "then: sheet, drill");
+ok(J(C.cxTodayParts().filter(p => p.part !== "write").map(p => p.part)) === J(["sheet", "drill"]), "then: sheet, drill");
 C.cxSheetResult("cx.neg1", 2 / 3, false, "path");
 C.cxSheetResult("cx.neg1", 2 / 3, false, "path");
 ok(!C.cxTodayParts().some(p => p.part === "sheet"), "a sheet missed twice today waits for tomorrow");
 C.S.course.dd = { "new:s0.neg": 1 };
 C.cxSheetResult("cx.neg1", 1, true, "path");
 ok(C.S.course.sec["s0.neg"].st === 2 && C.cxSection("s0.neg").rules.every(r => C.S.words["cx_" + r].st === 1), "sheet passed: rules introduced");
-ok(J(C.cxTodayParts().map(p => p.part)) === J(["warm", "drill"]), "then: its rules waiting to be confirmed, the drill", J(C.cxTodayParts().map(p => p.part)));
+ok(J(C.cxTodayParts().filter(p => p.part !== "write").map(p => p.part)) === J(["warm", "drill"]), "then: its rules waiting to be confirmed, the drill", J(C.cxTodayParts().map(p => p.part)));
 // answers
 const e = { set: "d5.4", i: 5, item: C.CX.sets["d5.4"].items[5] }; // kein + kein-end
 let mv = C.cxRecordAnswer(e, true, { ok: true });
@@ -143,7 +143,7 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   ok(C.S.course.last === "2026-10-18" && C.cxTodayParts().some(p => p.part === "drill"), "passed: the last sheet's day noted, the drill still today");
   C.cxDrillDone("s0.neg", 10, 12); C.cxPartDone({ part: "drill", sec: "s0.neg" });
   C.__today = "2026-10-19"; C.S.course.day = "2026-10-18";
-  ok(C.cxNextLessonDay() === C.addDays("2026-10-18", g) && !C.cxTodayParts().some(p => p.part === "sheet" || p.part === "testout"), `the next day: no new sheet (the next on ${C.cxNextLessonDay()})`);
+  ok(g >= 2 && C.cxNextLessonDay() === C.addDays("2026-10-18", C.cxGap()) && !C.cxTodayParts().some(p => p.part === "sheet" || p.part === "testout"), `the next day: no new sheet (the next on ${C.cxNextLessonDay()})`);
   ok(C.cxTodayParts().some(p => p.part === "write"), "a day between sheets: a writing prompt");
   // a sheet failed: it comes back the next day, whatever the gap
   fresh(); C.cxSheetResult("cx.neg1", 2 / 3, true, "path"); C.S.course.last = "2026-10-18";
@@ -213,7 +213,7 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   // s1.zu: two sheets — only the section's own rules matter here
   C2.S.course.sec = Object.fromEntries(C2.CX.sections.filter(s => C2.CX.sections.indexOf(s) < C2.CX.sections.indexOf(C2.CX.byId["s1.zu"]) && s.id !== "s1.zu").map(s => [s.id, { st: 3 }]));
   ok(C2.cxNextSections(1)[0].id === "s1.zu", "the several-sheet section is next");
-  ok(J(C2.cxTodayParts().map(p => p.part + ":" + (p.sheet || ""))) === J(["sheet:cx.t.zu1", "drill:"]), "day 1: its first sheet, then a drill", J(C2.cxTodayParts()));
+  ok(J(C2.cxTodayParts().filter(p => p.part !== "write").map(p => p.part + ":" + (p.sheet || ""))) === J(["sheet:cx.t.zu1", "drill:"]), "day 1: its first sheet, then a drill", J(C2.cxTodayParts()));
   C2.cxSheetResult("cx.t.zu1", 1, true, "path");
   ok(["zu.a1", "zu.a2"].every(r => C2.S.words["cx_" + r]) && !C2.S.words["cx_zu.b1"], "sheet 1 passed: its own rules go into review, not sheet 2's");
   let list = C2.cxPartList({ part: "drill", sec: "s1.zu" });
@@ -324,6 +324,12 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   fresh(); C.S.learn = {};
   C.__due = 1;
   ok(C.cxTodayParts().some(p => p.part === "write"), "a light day: a writing part in Today");
+  fresh(); C.S.learn = {}; C.__due = 400; C.S.course.last = "2026-10-01";
+  C.S.writing = { "2026": [{ id: "w1", d: "2026-10-15", p: "w.me", t: "x", w: 1 }] };
+  const heavy = () => C.cxTodayParts().some(p => p.part === "write");
+  ok(!heavy(), "a heavy lesson day, a text 3 days ago: no writing today");
+  C.S.writing["2026"][0].d = "2026-10-14";
+  ok(heavy(), "4 days since the last text: writing comes anyway");
   C.S.course.dd.write = 1;
   ok(!C.cxTodayParts().some(p => p.part === "write"), "written today: no second one");
   C.__due = 60;

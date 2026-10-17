@@ -233,6 +233,19 @@ if (neg && neg.built) {
   ok(r4.ok && r4.soft.includes("caps"), "a noun written small: right, said");
 }
 
+// ── the book's table of contents: every line has its lesson ──
+// (each heading of the blueprint — and a chapter's opening part, when it
+// has exercises — is named by a section: taught there, in the verb track
+// the section links to, or as part of that lesson)
+{
+  let n = 0;
+  Object.entries(blueprint).forEach(([ch, c]) => {
+    const heads = [...c.sections, ...(c.exercises.some(e => e.section === "") ? [""] : [])];
+    heads.forEach(h => { n++; ok(CX.sections.some(s => (s.book || []).some(b => b[0] === ch && b[1] === h)), `book ${ch} "${h || "(opening)"}": a lesson teaches it`); });
+  });
+  ok(n > 240, `every line of the book's contents checked (${n})`);
+}
+
 // ── the writing journal's prompts ──
 {
   const J = CX.journal || [];
