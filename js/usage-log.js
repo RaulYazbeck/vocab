@@ -166,6 +166,14 @@ function _usageAggregate(type, d, now) {
     case "vx_unit": { const v = _uf(day, "vx", () => ({})); (v.u = v.u || []).push(d.u + ":" + d.st); break; }
     case "vx_drill": { const v = _uf(day, "vx", () => ({})); if (d.rev) v.drv = (v.drv || 0) + 1; else { const a = v.dr || (v.dr = [0, 0]); a[0]++; if (d.ok) a[1]++; } break; }
     case "vx_switch": { const v = _uf(day, "vx", () => ({})); v.on = d.on ? 1 : 0; break; }
+    // The course (course-de.js): cx = { sh / sf: sheets passed / not,
+    // to: test-outs [taken, passed], dr: drills finished, cp: checkpoints
+    // [taken, passed], wr: texts written, ww: their words }.
+    case "cx_sheet": { const v = _uf(day, "cx", () => ({})); if (d.ok) v.sh = (v.sh || 0) + 1; else v.sf = (v.sf || 0) + 1; break; }
+    case "cx_testout": { const v = _uf(day, "cx", () => ({})), a = v.to || (v.to = [0, 0]); a[0]++; if (d.ok) a[1]++; break; }
+    case "cx_drill": { const v = _uf(day, "cx", () => ({})); v.dr = (v.dr || 0) + 1; break; }
+    case "cx_checkpoint": { const v = _uf(day, "cx", () => ({})), a = v.cp || (v.cp = [0, 0]); a[0]++; if (d.ok) a[1]++; break; }
+    case "cx_write": { const v = _uf(day, "cx", () => ({})); v.wr = (v.wr || 0) + 1; v.ww = (v.ww || 0) + (d.w || 0); break; }
     case "session_end": {
       const k = d.kind || "?";
       _inc(startDay.ses, k, d.abandoned ? 2 : 1);
@@ -417,14 +425,17 @@ function buildUsageReport(nDays = 0) {
   if (typeof vxReportLines === "function") lines.push(...vxReportLines());
   if (typeof cxReportLines === "function") lines.push(...cxReportLines());
   // One line per active day: the trend at a glance.
-  lines.push(``, `Per day (date · minutes on screen/active · answers · typed ok · typed latency · path sessions started/finished/abandoned · games started/quit · new words met · words up/down${typeof vxOn === "function" && vxOn() ? " · verbs: 📖 sheets passed/failed, ↩ misses looked up in the sheet, 🏆 mastery passed/taken, 🎯 drill right/answers, 🧩 items started, 📒 ledger forms" : ""}):`);
+  const cxOnNow = typeof cxOn === "function" && cxOn();
+  lines.push(``, `Per day (date · minutes on screen/active · answers · typed ok · typed latency · path sessions started/finished/abandoned · games started/quit · new words met · words up/down${typeof vxOn === "function" && vxOn() ? " · verbs: 📖 sheets passed/failed, ↩ misses looked up in the sheet, 🏆 mastery passed/taken, 🎯 drill right/answers, 🧩 items started, 📒 ledger forms" : ""}${cxOnNow ? " · grammar course: answers right/all, 📖 sheets passed/failed, 🎓 test-outs passed/taken, 🎯 drills, 🏁 checkpoints passed/taken, ✍️ texts (words)" : ""}):`);
   activeDays.forEach(([d, v]) => {
     const t = (v.ans || {})["path:typed"] || [0, 0];
     const p = (v.ses || {}).path || [0, 0, 0];
     const g = Object.values(v.gp || {}).reduce((a, x) => [a[0] + (x[0] || 0), a[1] + (x[2] || 0)], [0, 0]);
     const n = Object.values(v.ans || {}).reduce((a, x) => a + (x[0] || 0), 0);
     const vx = v.vx ? ` · 📖${v.vx.sh || 0}/${v.vx.sf || 0}${v.vx.rv ? ` ↩${v.vx.rv}` : ""}${v.vx.ma ? ` 🏆${v.vx.mp || 0}/${v.vx.ma}` : ""}${v.vx.dr ? ` 🎯${v.vx.dr[1]}/${v.vx.dr[0]}${v.vx.drv ? `+${v.vx.drv}` : ""}` : ""} 🧩${v.vx.in || 0} 📒${v.vx.cell || 0}${v.vx.u ? " [" + v.vx.u.join(", ") + "]" : ""}${v.vx.on !== undefined ? (v.vx.on ? " [switched on]" : " [switched off]") : ""}` : "";
-    lines.push(`${d} · ${Math.round(v.min)}${v.act != null ? "/" + Math.round(v.act) : ""} · ${n} · ${pct(t[1], t[0])} · ${secs(v.lat[0], v.lat[1])} · ${p[0]}/${p[1]}/${p[2]} · ${g[0]}/${g[1]} · ${v.met ?? "—"} · ${v.up ?? "—"}/${v.down ?? "—"}${vx}`);
+    const ca = Object.entries(v.ans || {}).filter(([k]) => k.startsWith("course:")).reduce((a, [, x]) => [a[0] + (x[0] || 0), a[1] + (x[1] || 0)], [0, 0]), c = v.cx;
+    const cx = ca[0] || c ? ` · ✎${ca[1]}/${ca[0]}${c && (c.sh || c.sf) ? ` 📖${c.sh || 0}/${c.sf || 0}` : ""}${c && c.to ? ` 🎓${c.to[1]}/${c.to[0]}` : ""}${c && c.dr ? ` 🎯${c.dr}` : ""}${c && c.cp ? ` 🏁${c.cp[1]}/${c.cp[0]}` : ""}${c && c.wr ? ` ✍️${c.wr} (${c.ww || 0}w)` : ""}` : "";
+    lines.push(`${d} · ${Math.round(v.min)}${v.act != null ? "/" + Math.round(v.act) : ""} · ${n} · ${pct(t[1], t[0])} · ${secs(v.lat[0], v.lat[1])} · ${p[0]}/${p[1]}/${p[2]} · ${g[0]}/${g[1]} · ${v.met ?? "—"} · ${v.up ?? "—"}/${v.down ?? "—"}${vx}${cx}`);
   });
   lines.push(...usagePlanLines(activeDays));
   const json = JSON.stringify({ app: STORAGE_KEY, generated: new Date().toISOString(), days: Object.fromEntries(days), quests: qStats, tiers });

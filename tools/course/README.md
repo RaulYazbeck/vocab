@@ -6,6 +6,7 @@ the 📖 Course / 🧩 Drills / 📚 book map screens) and its data in `js/cours
 
     js/course/plan.js          the skeleton: stages, chapters, every section in order
     js/course/s0-negation.js   a content pack: the pilot section "nicht or kein?"
+    js/course/writing.js       the writing journal's prompts (cxJournal)
 
 German app only (`de/index.html` loads them; the French app never does).
 
@@ -29,6 +30,18 @@ German app only (`de/index.html` loads them; the French app never does).
    - `diag`: detectors that name the rule a wrong answer broke (swap · ending · seq ·
      pos · missing · extra).
    - `testout: { n, miss }` for Stage 0 sections.
+   - Several sheets (`n: 2` or `3` in plan.js): list them in order, each with its own `rid`.
+     Each sheet's rules go into review when it's passed, that day's drill keeps to them,
+     and the section is done after the last sheet and its drill (one sheet a day).
+   - A stage's recap section: `checkpoint: { n: 20, pass: 0.8 }` (a sheet is optional). It
+     opens once every other section of the stage is done, asks the stage's rules mixed,
+     and comes back the next day when missed — after 3 tries the stage moves on anyway.
+   - Scenario units (Stage 3): a sheet holding the dialogue (`lines`), key phrases as
+     rules, drill sets of kinds `order` (the conversation), `respond` and `type`, and a
+     `write` set — no new code needed.
+   - Writing prompts tied to the section (optional): `cxJournal([{ id: "w.<name>", lv, de,
+     t, help, sec: "<section id>" }])` — they open once the section is done. Free writing,
+     never graded: saved to `S.learn.wr` and listed in the learning log for correction.
 2. Add its `<script>` tag to `de/index.html`, after `js/course/plan.js` and before
    `js/course-ui.js`.
 3. Run the checks below.
@@ -47,10 +60,11 @@ German app only (`de/index.html` loads them; the French app never does).
                                       # the book map, the French app untouched
     node t-edge.mjs                   # edge cases: the real keyboard, ✕ mid-drill, HTML typed in, a damaged
                                       # state, Grandma / Speak mode, another device, the day rolling over, a peek
-    node sim.mjs [--acc 0.6 --testout 0 --days 300]
+    node sim.mjs [--acc 0.6 --testout 0 --days 300 --skip 0.3 --break 60:21 --late 150]
                                       # the whole journey on the real scheduler (fake clock), every lesson
                                       # section filled with synthetic packs: sections done by when, grammar
-                                      # questions a day, the rule review load, rules Known, speed at full size
+                                      # questions a day, the rule review load, rules Known, speed at full size;
+                                      # skipped days, a break, a late start: the planner's pace and levers
 
 The older browser scripts (`tools/verb-track`, `tools/quests`) count Today's cards
 without the course: `openApp()` loads it off unless `COURSE=1` or `{ course: true }`.

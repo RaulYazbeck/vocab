@@ -302,6 +302,39 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
   await page.waitForFunction(() => /Übung 28\.2/.test(document.getElementById("main-screen").innerText), null, { timeout: 8000 }).catch(() => {});
   await page.evaluate(() => { const t = document.getElementById("main-screen").innerText; ok(/Negation[\s\S]*Übung 28\.2[\s\S]*mirrored/.test(t), "chapter 28: Negation's exercises mirrored"); });
   await noOverflow("chapter");
+  // ✍️ the writing journal: a live count, saved as it is, in the learning log, ticked when corrected
+  await page.evaluate(() => { renderJournal(); ok(/Nothing yet/.test(document.getElementById("main-screen").innerText), "✍️ My writing: empty at first"); });
+  await noOverflow("Writing (empty)");
+  await page.evaluate(() => cxJournalOpen(document.getElementById("main-screen"), { mode: "menu" }));
+  await noOverflow("Writing prompt");
+  await page.click("#cx-jtext");
+  await page.keyboard.type("Ich heiße <b>Raul</b> und wohne in Zürich.");
+  await page.evaluate(() => {
+    ok(document.getElementById("cx-jsave").disabled && /^9 \/ 30 words$/.test(document.getElementById("cx-wc").textContent), `under the minimum: Save waits (${document.getElementById("cx-wc").textContent})`);
+    // leave and come back: the draft is still there
+    const pid = _cj.p.id; renderJournal(); cxJournalOpen(document.getElementById("main-screen"), { mode: "menu", prompt: pid });
+    ok(/wohne in Zürich/.test(document.getElementById("cx-jtext").value), "left and back: the draft is kept");
+  });
+  await page.click("#cx-jtext"); await page.keyboard.press("End");
+  await page.keyboard.type(" Meine Wohnung hat drei Zimmer, aber wir haben keinen Balkon. Ich arbeite nicht am Montag, sondern am Dienstag. Am Abend koche ich gern mit meiner Frau.");
+  await page.evaluate(() => ok(!document.getElementById("cx-jsave").disabled && /words ✓/.test(document.getElementById("cx-wc").textContent), `enough words: Save is on (${document.getElementById("cx-wc").textContent})`));
+  await page.click("#cx-jsave");
+  await page.evaluate(() => {
+    const t = document.getElementById("main-screen").innerText;
+    ok(/Good job — 3\d words/.test(t) && /learning log/.test(t), "saved: good job, it's in the learning log");
+    const L = buildLearningReport();
+    ok(/## MY WRITING — please correct/.test(L) && /Ich heiße <b>Raul<\/b>/.test(L) && /"writing":\[\[/.test(L), "the learning log carries the text (and its JSON)");
+    ok(/✍️1 \(3\d+w\)/.test(buildUsageReport()), "the usage report counts the text and its words");
+    cxJournalDone();
+    const m = document.getElementById("main-screen");
+    ok(/to correct/.test(m.innerText) && !m.querySelector(".cx-jbody b"), "listed, to correct — the HTML typed shows as text");
+  });
+  await noOverflow("Writing (a text)");
+  await page.evaluate(() => {
+    document.querySelector(".cx-jentry").open = true;
+    document.querySelector(".cx-jentry .g-sec-btn").click();
+    ok(/corrected ✓/.test(document.getElementById("main-screen").innerText) && !/MY WRITING/.test(buildLearningReport()), "ticked as corrected: it leaves the learning log");
+  });
   await page.evaluate(() => { openSettings("menu"); ok(/Course/.test(document.getElementById("settings-panel").innerText) && !/Drills/.test(document.getElementById("settings-panel").innerText), "☰ has 📖 Course (Drills live inside it — one row, not two)"); closeSettings();
     openSettingsPage("plan"); ok(/Grammar course/.test(document.getElementById("settings-panel").innerText) && /Minutes a day/.test(document.getElementById("settings-panel").innerText), "⚙️ Study plan shows the grammar plan and the minutes"); closeSettings(); });
   const r = await page.evaluate(() => ({ log: __log, fails: __fails }));

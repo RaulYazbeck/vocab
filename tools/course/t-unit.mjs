@@ -30,6 +30,8 @@ const J = JSON.stringify;
   ok(m.words["cx_neg.kein"] && m.words["cx_neg.kein"].st === 2, "rule items merge like words (the side that has it)");
   m = ctx.mergeStates({ ...web, course: { ...web.course, day: "2026-10-19", dd: { review: 1 } } }, phone, { localWins: false });
   ok(m.course.dd.review === 1 && m.course.dd.warm === 1, "same day: both sides' parts", J(m.course.dd));
+  m = ctx.mergeStates({ ...web, course: { ...web.course, idle: ["2026-10-01", "2026-10-03"] } }, { ...phone, course: { ...phone.course, idle: ["2026-10-02", "2026-10-03"] } }, {});
+  ok(J(m.course.idle) === J(["2026-10-01", "2026-10-02", "2026-10-03"]), "days with nothing new: both sides'", J(m.course.idle));
   m = ctx.mergeStates({ savedAt: 1, words: {} }, phone, {});
   ok(m.course && m.course.sec["s0.neg"].to === 50, "a side without the course keeps the other's");
 }
@@ -132,6 +134,158 @@ C.CX.byId["s0.gender"].built = true; C.CX.byId["s0.gender"].sheets = ["x"]; C.S.
 ok(C.cxContrastDay("2026-10-18") && !C.cxContrastDay("2026-10-19"), "two done: day 5 is a contrast day");
 ok(C.cxTodayParts().some(p => p.part === "review" && p.contrast) || true, "a contrast day brings a mixed review");
 C.CX.byId["s0.gender"].built = false; C.CX.byId["s0.gender"].sheets = [];
+
+// ── room for what's coming: a section of 2 sheets, a stage checkpoint ──
+{
+  const C2 = loadCourse({ extra: `
+    (function () {
+      const pilot = CX.byId["s0.neg"];
+      const mk = (id, rid) => ({ id, title: id, qn: 3, struct: [["a", "who"], ["b", "verb"]], why: "x", rid, rules: rid.map(r => r), ex: [["a", "a"], ["b", "b"], ["c", "c"]], trap: "t",
+        quiz: [{ at: "r1", k: "pick", q: "x", o: ["a", "b"], a: 0, why: "w" }] });
+      const rid = ["zu.a1", "zu.a2", "zu.b1", "zu.b2"];
+      const sets = pilot.sets.map(id => CX.sets[id]).filter(s => !s.gen).map((s, i) => ({ ...s, id: "d.t.zu." + i, ex: undefined,
+        items: s.items.map((it, j) => ({ ...it, r: [rid[(i + j) % 4]] })) }));
+      cxPack({ id: "t-zu", sections: { "s1.zu": { rules: Object.fromEntries(rid.map(r => [r, r])), sheets: [mk("cx.t.zu1", rid.slice(0, 2)), mk("cx.t.zu2", rid.slice(2))], drills: sets } } });
+      cxPack({ id: "t-recap", sections: { "s0.recap": { checkpoint: { n: 12 } } } });
+    })();` });
+  const fresh2 = () => {
+    C2.S = { words: {}, verb: { sh: {} }, path: { deadline: "2027-08-15", newPerDay: 10 } };
+    C2.pathDeadlineOn = () => true; C2.pathScan = () => ({ due: 60 }); C2.vxSheetPassed = id => !!(C2.S.verb.sh[id] > 0);
+    C2.getWS = (d, i) => C2.S.words[d + "_" + i] || (C2.S.words[d + "_" + i] = { correct: 0, wrong: 0 });
+    C2.introduceWord = ws => { if (ws.st) return false; ws.st = 1; ws.lrn = 1; ws.dueAt = Date.now(); return true; };
+    C2.scheduleStage = ws => { ws.dueAt = Date.now() + 864e5; };
+    C2.applyCorrect = ws => { ws.correct++; ws.lrn = 0; return { events: [] }; }; C2.applyWrong = ws => { ws.wrong++; ws.lrn = 1; return { events: [] }; };
+    C2.migrateCourse();
+  };
+  fresh2();
+  // s1.zu: two sheets — only the section's own rules matter here
+  C2.S.course.sec = Object.fromEntries(C2.CX.sections.filter(s => C2.CX.sections.indexOf(s) < C2.CX.sections.indexOf(C2.CX.byId["s1.zu"]) && s.id !== "s1.zu").map(s => [s.id, { st: 3 }]));
+  ok(C2.cxNextSections(1)[0].id === "s1.zu", "the several-sheet section is next");
+  ok(J(C2.cxTodayParts().map(p => p.part + ":" + (p.sheet || ""))) === J(["sheet:cx.t.zu1", "drill:"]), "day 1: its first sheet, then a drill", J(C2.cxTodayParts()));
+  C2.cxSheetResult("cx.t.zu1", 1, true, "path");
+  ok(["zu.a1", "zu.a2"].every(r => C2.S.words["cx_" + r]) && !C2.S.words["cx_zu.b1"], "sheet 1 passed: its own rules go into review, not sheet 2's");
+  let list = C2.cxPartList({ part: "drill", sec: "s1.zu" });
+  ok(list.length >= 6 && list.every(e => e.item.r.every(r => ["zu.a1", "zu.a2"].includes(r))), `day 1's drill keeps to sheet 1's rules (${list.length} items)`);
+  C2.cxDrillDone("s1.zu", 10, 12); C2.cxPartDone({ part: "drill", sec: "s1.zu" });
+  ok(!C2.cxSecDone("s1.zu"), "not done after day 1");
+  C2.S.course.day = "2000-01-01";
+  ok(J(C2.cxTodayParts().filter(p => p.sec === "s1.zu").map(p => p.part + ":" + (p.sheet || ""))) === J(["sheet:cx.t.zu2", "drill:"]), "day 2: the second sheet, then the drill");
+  C2.cxSheetResult("cx.t.zu2", 1, true, "path");
+  list = C2.cxPartList({ part: "drill", sec: "s1.zu" });
+  ok(list.some(e => e.item.r.some(r => ["zu.b1", "zu.b2"].includes(r))), "day 2's drill: the whole section");
+  C2.cxDrillDone("s1.zu", 12, 14);
+  ok(C2.cxSecDone("s1.zu"), "both sheets and the drill: the section is done");
+  // s0.recap: the stage's checkpoint
+  fresh2();
+  ok(!C2.cxCheckpointReady(C2.CX.byId["s0.recap"]) && !C2.cxTodayParts().some(p => p.part === "checkpoint"), "the checkpoint waits while stage 0 has sections to do (coming ones too)");
+  C2.CX.sections.filter(s => s.stage === 0 && s.id !== "s0.recap").forEach(s => { C2.S.course.sec[s.id] = { st: 3 }; });
+  ["pr1", "pr2", "pr3", "pr4", "pr5", "pr7", "im1", "im2", "im3", "pf1"].forEach(id => { C2.S.verb.sh[id] = 100; });
+  C2.cxIntroduceRules("s0.neg", 3);
+  ok(C2.cxCheckpointReady(C2.CX.byId["s0.recap"]) && C2.cxTodayParts().some(p => p.part === "checkpoint" && p.sec === "s0.recap"), "stage 0 done: the checkpoint comes in Today");
+  const plan = C2.cxCheckpointPlan("s0.recap");
+  ok(plan.length === 12 && new Set(plan.map(e => e.rule)).size === 4, `12 questions over the stage's 4 rules (${plan.length})`);
+  ok(!C2.cxCheckpointResult("s0.recap", 8, 12) && !C2.cxSecDone("s0.recap"), "67%: not passed, it comes back");
+  ok(!C2.cxCheckpointResult("s0.recap", 9, 12) && !C2.cxSecDone("s0.recap"), "75%: not passed");
+  ok(!C2.cxCheckpointResult("s0.recap", 9, 12) && C2.cxSecDone("s0.recap") && C2.S.course.sec["s0.recap"].on === 1, "third try: the stage moves on anyway (the date matters more)");
+  fresh2(); C2.cxIntroduceRules("s0.neg", 3);
+  ok(C2.cxCheckpointResult("s0.recap", 10, 12) && C2.cxSecDone("s0.recap"), "83%: passed");
+}
+
+// ── my rhythm: the pace of the last 4 weeks, the days with nothing new, the levers ──
+{
+  fresh();
+  ok(C.cxPace() === null && !C.cxPlanner().mine, "no history yet: the usual pace (4 days in 5)");
+  C.S.course.since = "2026-10-04"; C.S.course.sec["s0.neg"] = { st: 3, at: "2026-10-10" };
+  const p = C.cxPace();
+  ok(Math.abs(p - 1 / 15) < 1e-9, `one sheet in 15 days: ${p && p.toFixed(3)} a day`);
+  ok(!C.cxPlanner().mine, "nothing waiting to learn (all built sections done): my pace isn't judged");
+  const next = C.cxNextSections; C.cxNextSections = () => [C.CX.byId["s0.neg"]];
+  const P = C.cxPlanner(); C.cxNextSections = next;
+  ok(P.mine && P.late && P.eta > P.target, `with sections waiting, at that pace I'd finish late (${P.eta}) — the planner says so`);
+  C.S.course.idle = Array.from({ length: 9 }, (_, i) => C.addDays("2026-10-05", i));
+  ok(C.cxPace() === null, "9 of the 15 days had nothing new to learn: too little to judge my pace");
+  C.S.course.idle = ["2026-10-05", "2026-10-06"];
+  ok(Math.abs(C.cxPace() - 1 / 13) < 1e-9, "days with nothing new don't count against me");
+  // the day rolls over with nothing built left: it's an idle day
+  fresh(); C.S.course.since = "2026-10-10"; C.S.course.sec["s0.neg"] = { st: 3, at: "2026-10-10" };
+  ["pr1", "pr2", "pr3", "pr4", "pr5", "pr7", "im1", "im2", "im3", "pf1"].forEach(id => { C.S.verb.sh[id] = 100; });
+  if (!C.cxNextSections(1).length) { C.S.course.day = "2026-10-15"; C.S.course.idle = ["2026-10-15"]; C.__today = "2026-10-18"; C.cxRollDay();
+    ok(J(C.S.course.idle) === J(["2026-10-15", "2026-10-16", "2026-10-17", "2026-10-18"]), "nothing built then or now: the days between are idle too", J(C.S.course.idle)); }
+  else ok(true, "(a section is built beyond the pilot: idle check skipped)");
+  // tight: a contrast day still brings a section; behind: a second one every other day
+  fresh(); C.S.course.since = "2026-10-14";
+  C.S.course.sec["s0.neg"] = { st: 3, at: "2026-10-14" };
+  ["pr1", "pr2", "pr3", "pr4", "pr5", "pr7", "im1", "im2", "im3", "pf1"].forEach(id => { C.S.verb.sh[id] = 100; });
+  C.S.path.deadline = "2027-08-15";
+  const lessonOn = () => C.cxTodayParts().some(p => ["sheet", "testout", "drill", "checkpoint"].includes(p.part));
+  if (C.cxContrastDay() && C.cxNextSections(1).length) {
+    ok(C.cxPlanner().status === "green" && !lessonOn(), "on track: a contrast day brings no new section");
+    C.S.path.deadline = "2027-04-15"; const st = C.cxPlanner().status;
+    ok((st === "amber" || st === "red") && lessonOn(), `tight (${st}): the contrast day brings one too`);
+  } else ok(true, "(no section waiting after the pilot: contrast lever not checked here)");
+  ok(true);
+}
+
+// ── the course in the learning log ──
+{
+  fresh();
+  C.tierOfStage = C.tierOfStage || (st => ({ icon: "•" + st }));
+  C._clip = C._clip || (s => String(s).slice(0, 60)); C.LEARN_HIST = C.LEARN_HIST || 6;
+  C.cxIntroduceRules("s0.neg", 1);
+  const set = C.CX.sets["d5.4"], item = set.items[0];
+  const res = C.cxCheck(item, "Ich habe nicht Zeit", C.cxSection("s0.neg"));
+  C.cxRecordAnswer({ set: "d5.4", item, rule: item.r[0] }, false, res, { typed: true, given: "Ich habe nicht Zeit", where: "drill" });
+  const r = res.rule || item.r[0], ws = C.cxRuleWS(r);
+  ok(ws.mh && ws.mh.length === 1 && ws.mh[0][3] === "Ich habe nicht Zeit" && ws.mh[0][4], "a typed miss keeps what I wrote and the right answer", J(ws.mh));
+  C.cxRecordAnswer({ set: "d5.4", item, rule: item.r[0] }, false, res, { typed: false, where: "drill" });
+  ok(ws.mh.length === 1, "a picked miss doesn't (nothing written)");
+  const lines = C.cxLearnLines().join("\n");
+  ok(/Course sentences I got wrong/.test(lines) && lines.includes("Ich habe nicht Zeit"), "the learning log lists it for the tutor");
+  const j = C.cxLearnJson();
+  ok(j && j.rules[r] && j.rules[r][3].length === 1 && j.sec, "and its JSON carries the rules and sections", J(j && j.rules[r]));
+  const rep = C.cxReportLines();
+  ok(rep.length === 2 && /rule\(s\) due/.test(rep[1]) && /min a day/.test(rep[1]), "the usage report: sections, rules by tier, today and the planner", J(rep));
+}
+
+// ── the writing journal ──
+{
+  fresh(); C.S.learn = {};
+  C.saveState = C.saveState || (() => {});
+  ok(C.cxLevel() === "A1", "Stage 0 next: A1 prompts");
+  const p1 = C.cxJournalPick(0);
+  ok(p1 && p1.lv === "A1" && !p1.sec, `the first prompt: A1, not tied to an unfinished section (${p1 && p1.id})`);
+  ok(C.cxJournalPick(1).id !== p1.id, "another topic: a different prompt");
+  ok(!C.CX.journal.filter(p => p.sec === "s0.neg").some(p => p.id === C.cxJournalPick(0).id), "nicht/kein prompts wait for their section");
+  C.S.course.sec["s0.neg"] = { st: 3, at: "2026-10-18" };
+  ok(C.cxJournalPick(0).sec === "s0.neg", `the section done: its prompt comes first (${C.cxJournalPick(0).id})`);
+  ok(C.cxJournalSave("w.flat", "   ") === null, "nothing written: nothing saved");
+  const e = C.cxJournalSave(C.cxJournalPick(0).id, "Meine Wohnung hat drei Zimmer. Wir haben keinen Balkon.");
+  ok(e && e.w === 9 && C.S.learn.wr.length === 1 && e.d === "2026-10-18", "saved with its day and word count", J(e));
+  ok(C.cxJournalPick(0).id !== e.p, "written today: the next pick is another prompt");
+  let L = C.cxLearnLines().join("\n");
+  ok(/## MY WRITING — please correct \(1 text/.test(L) && L.includes("Wir haben keinen Balkon."), "the learning log asks for its correction, the text in full");
+  ok(C.cxLearnJson().writing.length === 1, "and the JSON carries it");
+  C.cxJournalMark(e.id);
+  ok(C.S.learn.wr[0].c === "2026-10-18" && !/MY WRITING/.test(C.cxLearnLines().join("\n")), "corrected: it leaves the log");
+  C.cxJournalMark(e.id, false); ok(!C.S.learn.wr[0].c, "and back");
+  for (let i = 0; i < 130; i++) C.cxJournalSave("w.me", "Ich heiße Test " + i);
+  ok(C.S.learn.wr.length === 120, `capped at 120 (${C.S.learn.wr.length})`);
+  // Today: the writing part when there's room
+  fresh(); C.S.learn = {};
+  C.__due = 1;
+  ok(C.cxTodayParts().some(p => p.part === "write"), "a light day: a writing part in Today");
+  C.S.course.dd.write = 1;
+  ok(!C.cxTodayParts().some(p => p.part === "write"), "written today: no second one");
+  C.__due = 60;
+}
+{
+  const src = fs.readFileSync(new URL("../../js/sync-merge.js", import.meta.url), "utf8");
+  const ctx = {}; vm.createContext(ctx); vm.runInContext(src + "\n;this.mergeStates = mergeStates;", ctx);
+  const a = { savedAt: 1, words: {}, learn: { verbs: {}, wr: [{ id: "a", d: "2026-10-18", p: "w.me", t: "x", w: 1 }, { id: "b", d: "2026-10-19", p: "w.day", t: "y", w: 1 }] } };
+  const b = { savedAt: 2, words: {}, learn: { verbs: {}, wr: [{ id: "b", d: "2026-10-19", p: "w.day", t: "y", w: 1, c: "2026-10-20" }, { id: "c", d: "2026-10-20", p: "w.food", t: "z", w: 1 }] } };
+  const m = ctx.mergeStates(a, b, { localWins: true });
+  ok(J(m.learn.wr.map(e => e.id)) === J(["a", "b", "c"]) && m.learn.wr[1].c === "2026-10-20", "writing journal: both devices' texts, corrected stays corrected", J(m.learn.wr));
+}
 
 console.log(`course unit: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

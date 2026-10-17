@@ -403,6 +403,18 @@ function mergeStates(local, cloud, opts = {}) {
     });
     L.verbs = verbs;
     if (ll.since || cl.since) L.since = [ll.since, cl.since].filter(Boolean).sort()[0];
+    // The writing journal (course-de.js): every text of both sides, by id;
+    // corrected on either side stays corrected. The last 120.
+    if (Array.isArray(ll.wr) || Array.isArray(cl.wr)) {
+      const by = {};
+      [...(Array.isArray(ll.wr) ? ll.wr : []), ...(Array.isArray(cl.wr) ? cl.wr : [])].forEach(e => {
+        if (!syncIsObj(e) || !e.id) return;
+        const a = by[e.id];
+        by[e.id] = a ? { ...a, ...e, c: [a.c, e.c].filter(Boolean).sort().pop() } : syncClone(e);
+        if (!by[e.id].c) delete by[e.id].c;
+      });
+      L.wr = Object.values(by).sort((a, b) => String(a.d).localeCompare(String(b.d)) || String(a.id).localeCompare(String(b.id))).slice(-120);
+    }
     out.learn = L;
   }
   // The verb track (verb-track.js): tense states, quiz scores and opened
@@ -442,6 +454,8 @@ function mergeStates(local, cloud, opts = {}) {
     ["sec", "ds", "qm"].forEach(k => { K[k] = syncDeepMax(syncIsObj(lc[k]) ? lc[k] : {}, syncIsObj(cc[k]) ? cc[k] : {}); });
     const since = [lc.since, cc.since].filter(Boolean).sort()[0];
     if (since) K.since = since;
+    // The days the course had nothing new: both sides' (the last 28).
+    if (Array.isArray(lc.idle) || Array.isArray(cc.idle)) K.idle = [...new Set([...(Array.isArray(lc.idle) ? lc.idle : []), ...(Array.isArray(cc.idle) ? cc.idle : [])])].filter(d => typeof d === "string").sort().slice(-28);
     const ld = String(lc.day || ""), cd = String(cc.day || "");
     if (ld === cd) ["dd", "dq"].forEach(k => { K[k] = syncDeepMax(syncIsObj(lc[k]) ? lc[k] : {}, syncIsObj(cc[k]) ? cc[k] : {}); });
     else { const src = ld > cd ? lc : cc; K.day = src.day || ""; ["dd", "dq"].forEach(k => { K[k] = syncIsObj(src[k]) ? syncClone(src[k]) : {}; }); }

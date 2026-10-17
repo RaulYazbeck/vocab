@@ -54,13 +54,14 @@ function cxQHtml(item) {
   if (item.hl) { const m = gsMd(item.hl); h = h.replace(m, `<mark class="cx-hl">${m}</mark>`); }
   return h;
 }
-const CX_PART_LABEL = { testout: "Test-out", drill: "Drill", review: "Review", warm: "Warm-up · yesterday's slips", write: "Writing", practice: "Practice", contrast: "Contrast day · mixed" };
+const CX_PART_LABEL = { testout: "Test-out", checkpoint: "Checkpoint", drill: "Drill", review: "Review", warm: "Warm-up · yesterday's slips", write: "Writing", practice: "Practice", contrast: "Contrast day · mixed" };
 function cxRender() {
   const r = _cx;
   if (!r) return;
   const o = r.opts;
   const head = `<div class="gs-head"><span class="gs-unit"><span class="gs-sign">📖</span>${escapeHtml(o.title || "Course")} · ${escapeHtml(CX_PART_LABEL[o.kind] || "")}</span>
     ${o.sub ? `<h2 class="gs-title">${escapeHtml(o.sub)}</h2>` : ""}</div>`;
+  if (r.list[r.i] && !r.list[r.i].shownAt) r.list[r.i].shownAt = Date.now();
   if (r.done) { r.host.innerHTML = `<div class="gs-viewer cx-run" style="${o.sec ? cxSecStyle(o.sec) : cxStyle(0)}" id="cx-run">${head}${cxResultHtml()}</div>`; cxBindResult(); return; }
   const cur = r.list[r.i], set = cxSet(cur.set), item = cur.item, k = cxItemKind(set, item);
   // (the book's exercise number only outside Today — in a session it's noise)
@@ -196,7 +197,7 @@ function cxAnswered(ok, given, res, typed, self = false) {
     // Your own writing never counts against a rule unless you say so —
     // and then it's a miss like any other (PLAN.md §7).
     const kk = cxItemKind(cxSet(cur.set), cur.item);
-    const mv = cxRecordAnswer(cur, ok, res, { typed, given, where: o.kind, self, kind: kk === "pick" || kk === "respond" ? "recognition" : "recall" });
+    const mv = cxRecordAnswer(cur, ok, res, { typed, given, where: o.kind, self, kind: kk === "pick" || kk === "respond" ? "recognition" : "recall", ms: cur.shownAt ? Date.now() - cur.shownAt : 0 });
     if (mv && mv.rule) { r.moves.push(mv); cur.mv = mv; }
     if (typeof questEvent === "function" && (!o.partKey || cxPlanTake(o.partKey, r.n, ok)))
       questEvent("answer", { mode: o.mode === "path" ? "path" : "grammar", ok: !!ok, typed: !!typed });
@@ -261,6 +262,7 @@ function cxSettle() {
   r.settled = true;
   r.result = { right: r.firstRight, n: r.n };
   if (o.kind === "testout") r.result.passed = cxTestoutResult(o.sec, r.firstRight, r.n);
+  if (o.kind === "checkpoint") r.result.passed = cxCheckpointResult(o.sec, r.firstRight, r.n);
   if (o.kind === "drill") cxDrillDone(o.sec, r.firstRight, r.n);
   if (typeof logEvent === "function") logEvent("cx_part", { k: o.kind, sec: o.sec || "", right: r.firstRight, n: r.n, where: o.mode });
   if (r.result.passed && typeof confettiBurst === "function") confettiBurst(30);
@@ -276,8 +278,20 @@ function cxResultHtml() {
     title = res.passed ? "Tested out!" : "Not yet — the sheet first";
     note = res.passed ? `“${escapeHtml(sec.title)}” is done: its rules join your reviews, lightly. The sheet and drills stay open in 📖 Course.`
       : `${res.right}/${res.n} right. ${o.mode === "path" ? "The sheet comes next, then its drill." : "Read the sheet, pass its quiz, then drill it."}`;
-  } else if (o.kind === "drill") note = cxSecDone(o.sec) ? "The section is done for today. Its rules come back in your reviews until each holds — right twice, on separate days."
-    : "Good practice. The sheet comes back tomorrow — pass its quiz and the section is done.";
+  } else if (o.kind === "checkpoint") {
+    const sec = cxSection(o.sec), need = Math.round(((sec.checkpoint || {}).pass || 0.8) * 100);
+    icon = res.passed ? "🏁" : "📖";
+    const on = !res.passed && cxSecDone(o.sec);
+    title = res.passed ? `${escapeHtml((cxStage(sec.stage) || {}).name || "Stage")} — passed!` : on ? `${pct}% — moving on anyway` : `${pct}% — ${need}% moves on`;
+    note = res.passed ? "On to the next stage. Its rules keep coming back in your reviews."
+      : on ? "Third try: the next stage starts, so your finish date holds. The rules you missed come first in your reviews until they hold."
+      : "The rules you missed come first in your next sessions; the checkpoint comes back tomorrow.";
+  } else if (o.kind === "drill") {
+    const sec = cxSection(o.sec), some = sec && sec.sheets.some(cxSheetPassed) && !sec.sheets.every(cxSheetPassed);
+    note = cxSecDone(o.sec) ? "The section is done for today. Its rules come back in your reviews until each holds — right twice, on separate days."
+      : some ? "Done for today. Tomorrow: this section's next sheet."
+      : "Good practice. The sheet comes back tomorrow — pass its quiz and the section is done.";
+  }
   else if (o.kind === "review" || o.kind === "warm") {
     const up = r.moves.filter(m => (m.events || []).includes("up")).length, miss = r.list.filter(e => e.first && e.ok === false).length;
     note = `${up ? `${up} rule${up > 1 ? "s" : ""} up a step. ` : ""}${miss ? `${miss} slip${miss > 1 ? "s" : ""} — back to their rule, they return soon.` : ""}`;
@@ -325,9 +339,9 @@ document.addEventListener("keydown", e => {
 // (cxPartList: course-de.js)
 function cxPartTitle(p) {
   const sec = p.sec && cxSection(p.sec);
-  if (sec) return { title: sec.title, sub: p.part === "testout" ? "Do you know it already?" : "Today's drill" };
+  if (sec) return { title: sec.title, sub: p.part === "testout" ? "Do you know it already?" : p.part === "checkpoint" ? "Everything of this stage, mixed" : "Today's drill" };
   if (p.part === "warm") return { title: "Grammar", sub: "Yesterday's slips" };
-  if (p.part === "write") return { title: "Grammar", sub: "Write it yourself" };
+  if (p.part === "write") return { title: "Writing", sub: (cxJournalPick(0) || { de: "Write it yourself" }).de };
   return { title: "Grammar", sub: p.contrast ? "Mixed: tell them apart" : "Rules due today" };
 }
 
@@ -344,12 +358,113 @@ function renderPathCx(it) {
     if (typeof logEvent === "function") logEvent("cx_open", { id: it.sheet, where: "path" });
     return;
   }
+  if (it.part === "write") { cxJournalOpen(host, { mode: "path", onDone: () => { cxPartDone(it); pathNext(); } }); return; }
   const list = cxPartList(it).slice(0, it.qn || 99);
   if (!list.length) { cxPartDone(it); it.qn = 0; pathProgress(); pathNext(); return; }
   if (list.length < it.qn) { it.qn = list.length; pathProgress(); }
   const t = cxPartTitle(it);
   cxRun(host, list, { mode: "path", kind: it.part === "review" && it.contrast ? "contrast" : it.part, sec: it.sec, title: t.title, sub: t.sub, it,
     partKey: it.part + ":" + (it.sec || ""), onDone: () => { cxPartDone(it); cxClose(); pathNext(); } });
+}
+
+// ── THE WRITING JOURNAL ───────────────────────
+// A situation, at least N words, a live count; saved as it is — "good
+// job", done — and it waits in the learning log for Claude to correct.
+// The draft survives a ✕ (this device only).
+let _cj = null;
+const CX_JDRAFT = "cx-jdraft";
+function cxJDraft(p, t) {
+  try {
+    if (t === undefined) { const d = JSON.parse(localStorage.getItem(CX_JDRAFT) || "null"); return d && d.p === p ? String(d.t || "") : ""; }
+    if (t) localStorage.setItem(CX_JDRAFT, JSON.stringify({ p, t })); else localStorage.removeItem(CX_JDRAFT);
+  } catch (e) {}
+  return "";
+}
+// opts: { mode: "path" | "menu", onDone, prompt? (an id) }
+function cxJournalOpen(host, opts = {}) {
+  cxClose();
+  const p = (opts.prompt && cxJournalPrompt(opts.prompt)) || cxJournalPick(0);
+  if (!host || !p) { if (opts.onDone) opts.onDone(); return; }
+  _cj = { host, opts, p, skip: 0, saved: null };
+  cxJournalRender();
+}
+function cxJournalRender() {
+  const j = _cj;
+  if (!j) return;
+  const p = j.p, min = cxJournalMin(p);
+  const head = `<div class="gs-head"><span class="gs-unit"><span class="gs-sign">✍️</span>Writing · ${escapeHtml(p.lv)}</span><h2 class="gs-title">${escapeHtml(p.de)}</h2></div>`;
+  if (j.saved) {
+    const n = cxJournalList().filter(e => !e.c).length;
+    j.host.innerHTML = `<div class="gs-viewer cx-run cx-journal" style="${cxStyle(0)}" id="cx-journal">${head}
+      <div class="gs-result ok"><div class="gs-result-icon">🌟</div><div class="gs-result-title">Good job — ${j.saved.w} words!</div>
+        <div class="gs-result-note">Saved for correction. It's in your learning log${n > 1 ? ` with ${n - 1} other text${n > 2 ? "s" : ""}` : ""}: copy the log into your German project in Claude and ask for corrections.</div>
+        <div class="gs-result-act">${j.opts.mode === "path" ? `<button class="g-big-btn" id="cx-jdone" onclick="cxJournalDone()">Continue ▶</button>` : `<button class="g-big-btn" id="cx-jdone" onclick="cxJournalDone()">Done ✓</button>`}</div></div></div>`;
+    setTimeout(() => { const b = document.getElementById("cx-jdone"); if (b && j.opts.mode !== "path") try { b.focus({ preventScroll: true }); } catch (e) {} }, 30);
+    return;
+  }
+  const draft = cxJDraft(p.id);
+  j.host.innerHTML = `<div class="gs-viewer cx-run cx-journal" style="${cxStyle(0)}" id="cx-journal">${head}
+    <div class="gs-quiz">
+      <div class="gs-qpos">At least ${min} words · saved for Claude to correct · no score</div>
+      <div class="gs-qtext cx-en">${escapeHtml(p.t)}</div>
+      ${(p.help || []).length ? `<div class="cx-cue">${p.help.map(h => `<span class="gs-chip">${escapeHtml(h)}</span>`).join("")}</div>` : ""}
+      <textarea class="german-input cx-text cx-jtext" id="cx-jtext" rows="6" placeholder="Schreib hier…" autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="false" lang="de">${escapeHtml(draft)}</textarea>
+      <div class="cx-wc" id="cx-wc" aria-live="polite"></div>
+      <div class="gs-qact"><button class="g-big-btn" id="cx-jsave" onclick="cxJournalSubmit()">Save</button><button class="tc-link cx-typeit" onclick="cxJournalOther()">↻ another topic</button></div>
+    </div></div>`;
+  const ta = document.getElementById("cx-jtext");
+  ta.addEventListener("input", () => { cxJDraft(p.id, ta.value); cxJournalCount(); });
+  cxJournalCount();
+  if (j.opts.mode !== "path") setTimeout(() => { try { ta.focus({ preventScroll: true }); } catch (e) {} }, 60);
+}
+function cxJournalCount() {
+  const j = _cj, ta = document.getElementById("cx-jtext"), wc = document.getElementById("cx-wc"), btn = document.getElementById("cx-jsave");
+  if (!j || !ta || !wc) return;
+  const n = cxWordCount(ta.value), min = cxJournalMin(j.p), ok = n >= min;
+  wc.textContent = ok ? `${n} words ✓` : `${n} / ${min} words`;
+  wc.classList.toggle("ok", ok);
+  if (btn) btn.disabled = !ok;
+}
+function cxJournalOther() {
+  const j = _cj;
+  if (!j || j.saved) return;
+  j.skip++;
+  const p = cxJournalPick(j.skip);
+  if (p) { j.p = p; cxJournalRender(); }
+}
+function cxJournalSubmit() {
+  const j = _cj, ta = document.getElementById("cx-jtext");
+  if (!j || j.saved || !ta || cxWordCount(ta.value) < cxJournalMin(j.p)) return;
+  const e = cxJournalSave(j.p.id, ta.value);
+  if (!e) return;
+  cxJDraft(j.p.id, "");
+  j.saved = e;
+  cxJournalRender();
+}
+function cxJournalDone() { const j = _cj; _cj = null; if (j && j.opts.onDone) j.opts.onDone(); else if (j && j.opts.mode !== "path") renderJournal(); }
+
+// ☰ › 📖 Course › ✍️ My writing: what I wrote, what's corrected.
+function renderJournal() {
+  if (typeof cxOn !== "function" || !cxOn()) return;
+  showGameScreen();
+  cxClose(); _cj = null;
+  migrateCourse();
+  const list = cxJournalList().slice().reverse(), open = list.filter(e => !e.c).length;
+  const next = cxJournalPick(0);
+  document.getElementById("main-screen").innerHTML = `<div class="screen grammar course">
+    <div class="screen-top"><div class="screen-label">✍️ My writing</div>${backBtnHtml()}</div>
+    <div class="gr-unote">Write freely about everyday situations. Nothing is graded here: each text waits in your <b>learning log</b> for Claude to correct${open ? ` — <b>${open}</b> waiting now` : ""}. Once it's corrected, tick it.</div>
+    <div class="cx-links">
+      ${next ? `<button class="cx-chip" onclick="cxJournalOpen(document.getElementById('main-screen'),{mode:'menu'})">✍️ Write one now</button>` : ""}
+      ${typeof copyLearningReport === "function" ? `<button class="cx-chip" onclick="copyLearningReport()">📋 Copy for Claude</button>` : ""}
+    </div>
+    ${list.length ? `<div class="cx-jlist">${list.map(e => { const p = cxJournalPrompt(e.p);
+      return `<details class="cx-jentry ${e.c ? "done" : ""}"><summary><span class="cx-jd">${escapeHtml(fmtShortDate(e.d))}</span><span class="cx-jt">${escapeHtml(p ? p.de : e.p)}<small>${e.w} words · ${e.c ? "corrected ✓" : "to correct"}</small></span></summary>
+        <div class="cx-jbody">${escapeHtml(e.t)}</div>
+        <button class="g-sec-btn" onclick="cxJournalMark('${e.id}', ${e.c ? "false" : "true"});renderJournal()">${e.c ? "↺ Not corrected yet" : "✓ Corrected with Claude"}</button></details>`; }).join("")}</div>`
+      : `<div class="gr-unote">Nothing yet — your first text comes in Today, or write one now.</div>`}
+  </div>`;
+  if (typeof logScreen === "function") logScreen("writing");
 }
 
 // ── THE TODAY CARD ────────────────────────────
@@ -360,7 +475,7 @@ function cxTodayHtml() {
   const sec = c.lesson && cxSection(c.lesson.sec);
   const what = sec ? `📖 Grammar: <b>${escapeHtml(sec.title)}</b> — in your session`
     : c.due ? `📏 Grammar: <b>${c.due} rule${c.due === 1 ? "" : "s"}</b> to review — in your session`
-    : `✍️ Grammar: <b>a short writing prompt</b> — in your session`;
+    : `✍️ Writing: <b>${escapeHtml((cxJournalPick(0) || { de: "a few lines" }).de)}</b> — for Claude to correct`;
   return `<button class="tc-vx lesson cx-today" style="${sec ? cxSecStyle(sec.id) : cxStyle(0)}" onclick="showScreen('course')">${what}</button>`;
 }
 
@@ -371,7 +486,11 @@ function cxSecStatus(s) {
     const n = s.verb.filter(id => vxSheetPassed(id)).length;
     return n === s.verb.length ? { k: "done", txt: "Done · verb track" } : { k: "later", txt: `Verb track · ${n}/${s.verb.length} sheets` };
   }
-  if (!s.built || !s.sheets.length) return { k: "coming", txt: CX_ST_CHIP.coming };
+  if (!cxLearnable(s)) return { k: "coming", txt: CX_ST_CHIP.coming };
+  if (s.checkpoint) {
+    const st = cxSecState(s.id) || {};
+    return st.st >= 3 ? { k: "done", txt: `Passed · ${st.cp}%` } : cxCheckpointReady(s) ? { k: "now", txt: `Checkpoint — ${Math.round(s.checkpoint.pass * 100)}% moves on${st.cp ? ` · best ${st.cp}%` : ""}` } : { k: "later", txt: "After the stage's sections" };
+  }
   const st = cxSecState(s.id) || {};
   if (st.st >= 3) return { k: "done", txt: st.to >= 0 && !(st.sh > 0) ? CX_ST_CHIP.tested : CX_ST_CHIP.done };
   if (st.st === 2) return { k: "now", txt: CX_ST_CHIP.sheet };
@@ -381,10 +500,12 @@ function cxSecStatus(s) {
 function cxPlannerHtml() {
   const P = cxPlanner();
   const dot = { green: "🟢", amber: "🟠", red: "🔴", none: "⚪" }[P.status];
+  // At my own pace (the last 4 weeks), when it says something new.
+  const mine = P.mine && P.left && P.status !== "none" ? (P.late ? ` · at your pace: ${fmtShortDate(P.eta)}` : "") : "";
   const line = P.status === "none" ? "Set a finish date (⚙️ Study plan) and the course plans its sheets to it"
-    : P.status === "green" ? `On track · ${P.left} sheets ahead · all passed by <b>${fmtShortDate(P.target)}</b>`
-    : P.status === "amber" ? `Tight · ${P.left} sheets ahead · two on easy days to pass them by <b>${fmtShortDate(P.target)}</b>`
-    : `Behind · ${P.left} sheets ahead, ${Math.max(0, P.days)} days to <b>${fmtShortDate(P.target)}</b> — two sheets on easy days, or more minutes`;
+    : P.status === "green" ? `On track · ${P.left} sheets ahead · all passed by <b>${fmtShortDate(P.target)}</b>${mine}`
+    : P.status === "amber" ? `Tight · ${P.left} sheets ahead · a sheet every day to pass them by <b>${fmtShortDate(P.target)}</b>${mine}`
+    : `Behind · ${P.left} sheets ahead, ${Math.max(0, P.days)} days to <b>${fmtShortDate(P.target)}</b> — a second sheet every other day${P.need > 1.5 ? ", and still short: a later finish date" : ""}${mine}`;
   return `<div class="cx-plan ${P.status}">${dot} ${line}</div>`;
 }
 const CX_SEC_ICON = { done: "✓", now: "📖", later: "📐", coming: "·" };
@@ -405,7 +526,7 @@ function renderCourse() {
     return `<details class="cx-stage" style="${cxStyle(st.id)}" ${st.id === openStage ? "open" : ""}>
       <summary><span class="gr-sign">${st.id === 4 ? "✦" : st.id}</span><span class="gr-name">${escapeHtml(st.name)}<small>${escapeHtml(st.sub)}</small></span><span class="gr-st">${done}/${secs.length}</span></summary>
       <div class="gr-sheets">${secs.map(s => { const ss = cxSecStatus(s), coming = ss.k === "coming";
-        return `<button class="gr-sheet cx-sec ${ss.k}" onclick="renderCourseSection('${s.id}')"><span class="gr-sn">${CX_SEC_ICON[ss.k]}</span><span class="gr-stt">${escapeHtml(s.title)}${coming ? "" : `<small>${ss.txt}</small>`}</span>${coming ? "" : `<span class="set-chev">›</span>`}</button>`; }).join("")}</div>
+        return `<button class="gr-sheet cx-sec ${ss.k}" onclick="renderCourseSection('${s.id}')"><span class="gr-sn">${s.checkpoint && ss.k !== "done" ? "🏁" : CX_SEC_ICON[ss.k]}</span><span class="gr-stt">${escapeHtml(s.title)}${coming ? "" : `<small>${ss.txt}</small>`}</span>${coming ? "" : `<span class="set-chev">›</span>`}</button>`; }).join("")}</div>
     </details>`;
   }).join("");
   document.getElementById("main-screen").innerHTML = `<div class="screen grammar course">
@@ -417,10 +538,11 @@ function renderCourse() {
       <div><b>${learned}</b><span>rules learned</span></div>
       <div><b>${fix.length + due.length}</b><span>rules due</span></div>
     </div>
-    <div class="cx-links">
+    <div class="cx-links four">
       <button class="cx-chip" onclick="renderDrills()">🧩 Drills</button>
       <button class="cx-chip" onclick="renderCourseBook()">📚 Book map</button>
       <button class="cx-chip" onclick="renderGrammar()">📐 Verbs</button>
+      <button class="cx-chip" onclick="renderJournal()">✍️ Writing</button>
     </div>
     ${stages}
     <details class="gr-how"><summary>ℹ️ How the course works</summary>
@@ -455,7 +577,11 @@ function renderCourseSection(id) {
     body = `<div class="gr-unote">Taught by the verb track — its sheets come into Today with their tense.</div>
       <div class="gr-sheets">${s.verb.map((v, i) => { const sh = vxSheet(v), p = vxSheetPassed(v);
         return `<button class="gr-sheet ${p ? "done" : ""}" onclick="renderGrammarSheet('${v}')"><span class="gr-sn">${p ? "✓" : i + 1}</span><span class="gr-stt">${escapeHtml(sh ? sh.title : v)}</span><span class="set-chev">›</span></button>`; }).join("")}</div>`;
-  } else if (!s.built || !s.sheets.length) {
+  } else if (s.checkpoint) {
+    const ready = cxCheckpointReady(s);
+    body = `<div class="gr-unote">🏁 ${s.checkpoint.n} questions from every rule of this stage, mixed. ${Math.round(s.checkpoint.pass * 100)}% right first time moves you on; below, your weakest rules come first in the next days and it comes back.</div>
+      ${ready ? `<button class="gr-next" onclick="renderCourseDrill('${id}', null, 'checkpoint')" style="${cxStyle(s.stage)}"><span class="gr-next-k">🏁 Take it now — or it comes in Today</span><span class="gr-next-t">${s.checkpoint.n} questions</span></button>` : `<div class="set-note">Opens once every other section of the stage is done.</div>`}`;
+  } else if (!cxLearnable(s)) {
     body = `<div class="set-note">⏳ Coming with a later build session — already counted in the grammar plan.</div>`;
   } else {
     body = `<div class="gr-sheets">${s.sheets.map((sid, i) => { const sh = cxSheet(sid), p = cxSheetPassed(sid);
@@ -494,7 +620,10 @@ function renderCourseDrill(secId, setId, kind = "practice") {
   migrateCourse();
   const sec = secId && cxSection(secId), set = setId && cxSet(setId);
   let list = [], title = "Grammar", sub = "";
-  if (kind === "weak") {
+  if (kind === "checkpoint") {
+    list = cxCheckpointPlan(secId);
+    title = sec ? sec.title : "Grammar"; sub = "Everything of this stage, mixed";
+  } else if (kind === "weak") {
     const { fix, due } = cxDueRules();
     const weak = [...fix, ...due, ...Object.keys(CX.rules).filter(r => { const ws = cxRuleWS(r); return ws && ws.st && !cxRuleLearned(r); })];
     const avoid = new Set();
@@ -514,7 +643,7 @@ function renderCourseDrill(secId, setId, kind = "practice") {
     <div class="screen-top"><div class="screen-label">🧩 Drill</div><button class="back-btn" onclick="${back}">← Back</button></div>
     <div id="cx-host"></div></div>`;
   const again = `() => renderCourseDrill(${secId ? `'${secId}'` : "null"}, ${setId ? `'${setId}'` : "null"}, '${kind}')`;
-  cxRun(document.getElementById("cx-host"), list, { mode: "menu", kind: "practice", sec: secId || "", title, sub, again, onDone: () => { cxClose(); if (sec) renderCourseSection(secId); else renderDrills(); } });
+  cxRun(document.getElementById("cx-host"), list, { mode: "menu", kind: kind === "checkpoint" ? "checkpoint" : "practice", sec: secId || "", title, sub, again: kind === "checkpoint" ? "" : again, onDone: () => { cxClose(); if (sec) renderCourseSection(secId); else renderDrills(); } });
   scrollPageTop();
 }
 // ☰ › 🧩 Drills: weak rules · mixed practice · a chosen section.

@@ -455,3 +455,21 @@
 .cx-sets > summary { cursor:pointer; color:var(--text-2); font-size:13.5px; font-weight:700; padding:6px 0 8px; }
 .cx-set { min-height:44px; padding:9px 12px; font-size:14px; }
 .gr-rule .cx-learned { color:var(--success); font-size:12px; }
+/* the writing journal */
+.cx-jtext { min-height:150px; }
+.cx-wc { font-size:13px; color:var(--text-3); text-align:right; margin:2px 2px 0; font-variant-numeric:tabular-nums; }
+.cx-wc.ok { color:var(--success); font-weight:700; }
+.cx-journal .g-big-btn:disabled { opacity:0.45; cursor:default; }
+.cx-jlist { display:flex; flex-direction:column; gap:6px; }
+.cx-jentry { border-radius:var(--r-sm); border:1px solid hsl(38 70% 60% / 0.4); background:rgba(255,255,255,0.03); padding:0 12px; }
+.cx-jentry.done { border-color:var(--border); }
+.cx-jentry > summary { list-style:none; display:flex; gap:12px; align-items:center; min-height:44px; padding:8px 0; cursor:pointer; font-weight:700; font-size:14.5px; }
+.cx-jentry > summary::-webkit-details-marker { display:none; }
+.cx-jd { flex:0 0 auto; font-size:12px; color:var(--text-3); font-weight:600; min-width:46px; }
+.cx-jt { flex:1; min-width:0; }
+.cx-jt small { display:block; font-size:12px; font-weight:500; color:var(--text-3); margin-top:2px; }
+.cx-jentry.done .cx-jt small { color:var(--success); }
+.cx-jbody { white-space:pre-wrap; font-size:14.5px; line-height:1.5; color:var(--text); padding:2px 0 10px; overflow-wrap:anywhere; }
+.cx-jentry .g-sec-btn { width:100%; margin:0 0 10px; }
+.cx-links { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); }
+@media (min-width:560px) { .cx-links.four { grid-template-columns:repeat(4, minmax(0, 1fr)); } }

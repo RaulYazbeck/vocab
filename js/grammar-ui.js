@@ -438,7 +438,7 @@ function gsQuizAnswered(ok, given) {
   if (ok) { if (typeof playSuccess === "function") playSuccess(); if (typeof haptic === "function") haptic("select"); }
   else { if (typeof playFailure === "function") playFailure(); if (typeof haptic === "function") haptic("miss"); if (typeof holdAfterMistake === "function") holdAfterMistake("gs-qnext"); }
   // The answer counts like any other (the day's plan, quests) — see gsQuizStart.
-  if (typeof logEvent === "function") logEvent("answer", { m: g.mastery ? "grammar:mastery" : g.mode === "path" ? "path:quiz" : "grammar:quiz", ok, typed: Q.k === "type", sid: Q.sid, at: Q.at, first: cur.first });
+  if (typeof logEvent === "function") logEvent("answer", { m: g.mastery ? "grammar:mastery" : g.sh.cx ? "course:quiz" : g.mode === "path" ? "path:quiz" : "grammar:quiz", ok, typed: Q.k === "type", sid: Q.sid, at: Q.at, first: cur.first });
   if (g.sh.cx) { if (typeof cxQuizAnswer === "function") cxQuizAnswer(Q, ok, cur.first); }
   else if (typeof vxQuizAnswer === "function") vxQuizAnswer(Q, ok, given, cur.first);
   if (q.plan && (g.sh.cx ? cxPlanTake("sheet:" + g.sh.id, q.n, ok) : vxSheetPlanTake(g.sh.id, q.n, ok)) && typeof questEvent === "function") questEvent("answer", { mode: g.mode === "path" ? "path" : "grammar", ok, typed: Q.k === "type" });

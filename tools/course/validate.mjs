@@ -158,6 +158,22 @@ Object.values(CX.sets).forEach(set => {
 });
 
 // ── sections ──
+// A built section is a lesson (sheets), a checkpoint, or a verb-track
+// section with generated drills only.
+CX.sections.filter(s => s.built).forEach(s => ok(s.sheets.length > 0 || !!s.checkpoint || (s.verb && s.verb.length), `${s.id}: built as a lesson, a checkpoint or a verb section`));
+CX.sections.filter(s => s.built && s.checkpoint).forEach(s => {
+  ok(s.checkpoint.n >= 8 && s.checkpoint.pass > 0 && s.checkpoint.pass <= 1, `${s.id}: checkpoint size and pass mark`);
+  ok(CX.sections.indexOf(s) > CX.sections.findIndex(x => x.stage === s.stage) && CX.sections.filter(x => x.stage === s.stage).pop() === s, `${s.id}: the checkpoint closes its stage`);
+});
+CX.sections.filter(s => s.built && s.sheets.length > 1).forEach(s => {
+  // Each day of a several-sheet section drills the sheets passed so far.
+  s.sheets.forEach((_, k) => {
+    C.S.course = { ds: {}, rot: {}, sec: {}, dd: {}, dq: {}, qm: {} };
+    const allow = new Set(s.sheets.slice(0, k + 1).flatMap(id => CX.sheets[id].rid));
+    const plan = C.cxDrillPlan(s.id, C.CX_DRILL_N[1], allow);
+    ok(plan.length >= 6 && plan.every(e => e.item.r.every(r => allow.has(r) || CX.rules[r].sec !== s.id)), `${s.id}: after sheet ${k + 1}, a drill of ${plan.length} items on its rules only`);
+  });
+});
 CX.sections.filter(s => s.built && s.sheets.length).forEach(s => {
   const sets = s.sets.map(id => CX.sets[id]);
   ok(sets.length > 0, `${s.id}: drill sets`);
@@ -216,6 +232,23 @@ if (neg && neg.built) {
   ok(r4.ok && r4.soft.includes("caps"), "a noun written small: right, said");
 }
 
+// ── the writing journal's prompts ──
+{
+  const J = CX.journal || [];
+  ok(J.length >= 20, `writing prompts: ${J.length}`);
+  ok(new Set(J.map(p => p.id)).size === J.length, "every prompt id once");
+  ["A1", "A2", "B1"].forEach(lv => ok(J.filter(p => p.lv === lv).length >= 5, `at least 5 prompts at ${lv}`));
+  J.forEach(p => {
+    ok(/^w\.[a-z0-9.-]+$/.test(p.id), `${p.id}: id w.<name>`);
+    ok(["A1", "A2", "B1"].includes(p.lv), `${p.id}: a level A1 · A2 · B1`);
+    ok(typeof p.t === "string" && p.t.length >= 20 && typeof p.de === "string" && p.de.length >= 3, `${p.id}: a situation and a title`);
+    ok(!p.help || Array.isArray(p.help) && p.help.every(h => typeof h === "string" && h.length), `${p.id}: help is a list of starters`);
+    ok(!p.sec || !!CX.byId[p.sec], `${p.id}: its section ${p.sec} is in the skeleton`);
+    ok(!p.min || p.min >= 10 && p.min <= 250, `${p.id}: min words in range`);
+  });
+  ok(C.cxWordCount("Ich wohne seit 2021 in Zürich — es gefällt mir, z.B. der See.") === 12, "the word count (numbers and abbreviations count once)");
+}
+
 // ── no book text ──
 if (process.env.BOOK) {
   const dir = process.env.BOOK;
@@ -223,6 +256,7 @@ if (process.env.BOOK) {
   const sentences = new Set(book.split(/(?<=[.!?])\s+|\n/).map(s => C.cxLoose(s.replace(/^\s*\d+\.\s*/, ""))).filter(s => s.split(" ").length >= 3));
   const ours = [];
   Object.values(CX.sets).forEach(set => (set.items || []).forEach(it => [it.q, ...(it.a || []), ...(it.model || [])].forEach(s => s && ours.push([set.id, s]))));
+  (CX.journal || []).forEach(p => (p.help || []).forEach(h => ours.push([p.id, h])));
   Object.values(CX.sheets).forEach(sh => [...sh.ex.map(e => e[0]), ...sh.quiz.flatMap(q => [q.q, ...(q.o || [])])].forEach(s => ours.push([sh.id, String(s)])));
   let n = 0;
   ours.forEach(([where, s]) => {

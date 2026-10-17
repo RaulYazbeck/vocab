@@ -10,6 +10,7 @@
 //     itself and the count never grows
 //   • the study day rolling over in the middle of a drill
 //   • the sheet peeked over a question, then back to it with the keyboard
+//   • ✍️ the writing card in Today: Enter makes a new line, saved, done
 import { openApp } from "../verb-track/browser.mjs";
 
 let fails = 0;
@@ -124,6 +125,36 @@ const SETUP = () => {
     await page.evaluate(() => ok(_cx.answered, "Enter checks after the peek"));
   }
   report(await page.evaluate(() => ({ log: __log, fails: __fails })), "modes · another device · rollover · peek");
+  if (errors.length) { console.log("ERRORS", errors.slice(0, 5)); fails++; }
+  await browser.close();
+}
+// ── ✍️ the writing card in Today: Enter makes a new line, the count, saved, done ──
+{
+  const { browser, page, errors } = await openApp({ course: true });
+  await page.evaluate(SETUP);
+  await page.evaluate(() => {
+    S.course.mins = 90; // a roomy day: there's time to write
+    startPathSession("regular", { noBonus: true });
+    ok(pathSession.items.some(x => x.t === "cx" && x.part === "write"), "a roomy day: Today brings a writing card");
+    ok(toCx("write") && !!document.getElementById("cx-jtext"), "the writing card runs in Today");
+    window.__n0 = +(document.getElementById("p-count").textContent.split("/")[0]);
+  });
+  await page.click("#cx-jtext");
+  await page.keyboard.type("Am Samstag gehe ich gern auf den Markt.");
+  await page.keyboard.press("Enter");
+  await page.keyboard.type("Am Sonntag arbeite ich nie, sondern ich schlafe lange und trinke Kaffee. Dann gehen wir mit den Kindern an den See, und am Abend essen wir zusammen.");
+  await page.evaluate(() => {
+    ok(pathSession.cur.part === "write" && /\n/.test(document.getElementById("cx-jtext").value), "Enter in the text: a new line, the card stays");
+    ok(!document.getElementById("cx-jsave").disabled, "enough words: Save is on");
+    document.getElementById("cx-jsave").click();
+    ok(/Good job/.test(document.getElementById("cx-journal").innerText), "saved: good job");
+    cxJournalDone();
+    ok(S.course.dd.write === 1 && pathSession.cur && !(pathSession.cur.t === "cx" && pathSession.cur.part === "write"), "done: the session goes on, the writing part is done for today");
+    ok(S.learn.wr.length === 1 && S.learn.wr[0].t.includes("\n"), "the text kept with its lines");
+    ok(!cxTodayParts().some(p => p.part === "write"), "no second writing card today");
+    endPathSession(true);
+  });
+  report(await page.evaluate(() => ({ log: __log, fails: __fails })), "writing in Today");
   if (errors.length) { console.log("ERRORS", errors.slice(0, 5)); fails++; }
   await browser.close();
 }

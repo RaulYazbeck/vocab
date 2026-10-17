@@ -328,6 +328,12 @@ What exists today and what is new:
   (within what the date allows).
 - **If behind**, levers in order: two sheets on easy days → drop *Could* →
   sample drills instead of all → more minutes. *Must* is never cut.
+  *As built (Session 1 follow-up):* tight (≤ 1 sheet a day needed) — the
+  contrast days bring a sheet too; behind — a second sheet every other day,
+  never while rules are failing (more than 8 to fix) or the reviews pile
+  past 90; past 1.5 a day the planner says to pick a later date. My own
+  pace (sheets a day over the last 4 weeks, days with nothing built not
+  counted) tells when I'd finish, and the planner shows it when it's late.
 - **Status** is shown next to the existing word planner: green / amber / red.
 
 ---
@@ -407,6 +413,16 @@ Verified the same day: a simulated year at full size (55 lesson sections,
 220 rules, 6,490 items) — every rule reaches 🌳 Known, ~12–15 grammar
 questions a day, 39–41 on the busiest; rule reviews get 6–30 a day (all the
 room a day without a new sheet leaves). Content kept to A1 words met.
+Follow-up the same week: the logs (usage report: per-day course column,
+course answers with their time; learning log: the course's misses with what
+I wrote → the right answer, its JSON); the planner follows my pace and the
+levers above (simulated: 30 % of days skipped, a 30-day break, a start 5–7
+months late); stage checkpoints and multi-sheet sections; the **writing
+journal** — `js/course/writing.js` (30 prompts, A1 30 words · A2 60 · B1 90,
+Swiss-life situations, some tied to a section), the day's writing part, a
+live word count, saved as written ("good job", always done, no score) to
+`S.learn.wr` (synced, both devices' texts) and listed in the learning log for
+Claude to correct; ☰ › 📖 Course › ✍️ Writing ticks a text as corrected.
 
 ### Session 2 — Stage 0, the A1 sweep
 
@@ -498,4 +514,5 @@ screen · coverage report at 100 % (every blueprint exercise *mirrored*,
 - 9 build sessions, tested in between; Session 1 builds the system and pilots nicht vs kein.
 - Rules are review items `cx_<rule>` in `S.words` (same stages); a rule is learned at stage 2.
 - A Today session carries the grammar block as cards: warm-up, test-out, sheet and drill a third of the way in, reviews and writing two thirds in.
+- Writing is free and ungraded in the app: a prompt with a word minimum, saved for a tutor (Claude) to correct from the learning log; the drill sets' write/open items stay as model + checklist.
 - The word-order checker accepts the verb-second reordering of a time phrase and a pronoun subject by rule; other orders are listed per item; `fixed` sets accept only theirs.

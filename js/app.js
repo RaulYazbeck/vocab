@@ -37,6 +37,7 @@ function showScreen(name, from) {
   else if (name === "grammar" && typeof renderGrammar === "function") renderGrammar();
   else if (name === "course") { if (typeof renderCourse === "function") renderCourse(); else if (typeof renderGrammar === "function") renderGrammar(); }
   else if (name === "drills" && typeof renderDrills === "function") renderDrills();
+  else if (name === "writing" && typeof renderJournal === "function") renderJournal();
 }
 // The header title: back to Today from anywhere. A Today session with
 // answers, or a game in play, asks first; on Today it scrolls to the top.
