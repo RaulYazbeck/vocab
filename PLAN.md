@@ -338,6 +338,14 @@ What exists today and what is new:
   Simulated: the last section lands 1–6 days before the target with every
   rhythm tried (30 % of days skipped, a 30-day break, a start 5–6 months
   late, 15 Jul / 15 Aug / 15 Dec dates); every rule 🌳 Known by mid-August.
+  The gap counts *study days* (the days I open the app): my rhythm over
+  the last 4 weeks scales it, so coming every other day spaces sheets by
+  study days and still lands on the date. Mixed (contrast) days fall on the
+  days between sheets. A passed test-out takes its sheet and drill out of
+  today's plan. Verified (Session 1 follow-up 3): `sim.mjs --matrix` (39
+  runs, all pass) and `sim-app.mjs` (the real app, 150 days, ~29,000
+  answers: the count never grows, the plan is met on perfect days, state,
+  cloud docs and logs agree) — and the two-device sync with texts.
   *Then, when behind:* tight (≤ 1 sheet a day needed) — the
   contrast days bring a sheet too; behind — a second sheet every other day,
   never while rules are failing (more than 8 to fix) or the reviews pile

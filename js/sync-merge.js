@@ -465,6 +465,10 @@ function mergeStates(local, cloud, opts = {}) {
     ["sec", "ds", "qm"].forEach(k => { K[k] = syncDeepMax(syncIsObj(lc[k]) ? lc[k] : {}, syncIsObj(cc[k]) ? cc[k] : {}); });
     const since = [lc.since, cc.since].filter(Boolean).sort()[0];
     if (since) K.since = since;
+    // The days I studied (the last 60): both sides'. The last sheet and
+    // the last contrast day: the later.
+    if (Array.isArray(lc.seen) || Array.isArray(cc.seen)) K.seen = [...new Set([...(Array.isArray(lc.seen) ? lc.seen : []), ...(Array.isArray(cc.seen) ? cc.seen : [])])].filter(d => typeof d === "string").sort().slice(-60);
+    ["last", "cd"].forEach(k => { const v = [lc[k], cc[k]].filter(x => typeof x === "string").sort().pop(); if (v) K[k] = v; });
     // The days the course had nothing new: both sides' (the last 28).
     if (Array.isArray(lc.idle) || Array.isArray(cc.idle)) K.idle = [...new Set([...(Array.isArray(lc.idle) ? lc.idle : []), ...(Array.isArray(cc.idle) ? cc.idle : [])])].filter(d => typeof d === "string").sort().slice(-28);
     const ld = String(lc.day || ""), cd = String(cc.day || "");

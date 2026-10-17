@@ -60,11 +60,18 @@ German app only (`de/index.html` loads them; the French app never does).
                                       # the book map, the French app untouched
     node t-edge.mjs                   # edge cases: the real keyboard, ✕ mid-drill, HTML typed in, a damaged
                                       # state, Grandma / Speak mode, another device, the day rolling over, a peek
-    node sim.mjs [--acc 0.6 --testout 0 --days 300 --skip 0.3 --break 60:21 --late 150]
-                                      # the whole journey on the real scheduler (fake clock), every lesson
-                                      # section filled with synthetic packs: sections done by when, grammar
-                                      # questions a day, the rule review load, rules Known, speed at full size;
-                                      # skipped days, a break, a late start: the planner's pace and levers
+    node sim.mjs [--acc 0.6 --testout 0 --skip 0.3 --break 60:21 --late 150 --deadline 2027-12-15 --due 40:120]
+                                      # the whole journey to the finish date on the real scheduler (fake clock),
+                                      # every section filled with synthetic packs; checked every day: no new
+                                      # section before the pace allows, never two unless behind, one text at
+                                      # most; at the end: done by the target, every rule Known, no long gaps
+    node sim.mjs --matrix             # 13 scenarios × 3 seeds (struggling, strong, skipped days, breaks, a late
+                                      # start, earlier / later dates, heavy word days), each checked as above
+    node sim-app.mjs [--days 45 --acc 0.85 --skip 0.25]
+                                      # the real app on a fake clock, the test profile, the course at full size:
+                                      # every Today session played card by card — the count never grows, the
+                                      # course is done each day, the plan is met when every answer is right,
+                                      # the state and the cloud docs round-trip, the logs agree with what was done
 
 The older browser scripts (`tools/verb-track`, `tools/quests`) count Today's cards
 without the course: `openApp()` loads it off unless `COURSE=1` or `{ course: true }`.

@@ -473,3 +473,4 @@
 .cx-jentry .g-sec-btn { width:100%; margin:0 0 10px; }
 .cx-links { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); }
 @media (min-width:560px) { .cx-links.four { grid-template-columns:repeat(4, minmax(0, 1fr)); } }
+.cx-plan small { display:block; margin-top:3px; }

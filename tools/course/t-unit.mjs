@@ -31,6 +31,8 @@ const J = JSON.stringify;
   ok(m.course.dd.review === 1 && m.course.dd.warm === 1, "same day: both sides' parts", J(m.course.dd));
   m = ctx.mergeStates({ ...web, course: { ...web.course, idle: ["2026-10-01", "2026-10-03"] } }, { ...phone, course: { ...phone.course, idle: ["2026-10-02", "2026-10-03"] } }, {});
   ok(J(m.course.idle) === J(["2026-10-01", "2026-10-02", "2026-10-03"]), "days with nothing new: both sides'", J(m.course.idle));
+  m = ctx.mergeStates({ ...web, course: { ...web.course, seen: ["2026-10-01", "2026-10-03"], last: "2026-10-03", cd: "2026-10-01" } }, { ...phone, course: { ...phone.course, seen: ["2026-10-02"], last: "2026-10-02", cd: "2026-10-04" } }, { localWins: true });
+  ok(J(m.course.seen) === J(["2026-10-01", "2026-10-02", "2026-10-03"]) && m.course.last === "2026-10-03" && m.course.cd === "2026-10-04", "study days: both sides'; the last sheet and mixed day: the later", J([m.course.seen, m.course.last, m.course.cd]));
   m = ctx.mergeStates({ savedAt: 1, words: {} }, phone, {});
   ok(m.course && m.course.sec["s0.neg"].to === 50, "a side without the course keeps the other's");
 }
@@ -56,11 +58,12 @@ C.applyWrong = ws => { ws.wrong++; ws.lrn = 1; ws.dueAt = Date.now(); return { e
 fresh();
 let P = C.cxPlanner();
 ok(P.left > 90 && P.left < 120, `sheets ahead: ${P.left} (PLAN.md: ≈ 95–100 + the verb sheets not reached)`);
+ok(P.cl >= 60 && P.cl < P.left, `the course's own: ${P.cl} (the verb track paces the rest)`);
 ok(P.target === "2027-07-06" && P.status === "green", `15 Aug 2027 → all sheets passed by ${P.target}: ${P.status}`);
 C.S.path.deadline = "2027-01-31"; P = C.cxPlanner();
 ok(P.status === "red", `finish date 31 Jan 2027: ${P.status} (${P.need.toFixed(2)} a day)`);
-C.S.path.deadline = "2027-03-15"; P = C.cxPlanner();
-ok(P.status === "amber", `finish date 15 Mar 2027: ${P.status} (${P.need.toFixed(2)} a day)`);
+C.S.path.deadline = "2027-02-15"; P = C.cxPlanner();
+ok(P.status === "amber", `finish date 15 Feb 2027: ${P.status} (${P.need.toFixed(2)} a day)`);
 C.S.path.deadline = ""; ok(C.cxPlanner().status === "none", "no finish date: no status");
 // the verb track's passed sheets count as done
 fresh();
@@ -148,14 +151,40 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   ok(C.cxNextLessonDay() === "2026-10-19" && C.cxTodayParts().some(p => p.part === "sheet"), "a sheet missed: back the next day");
 }
 
-// contrast day: every 5th day, once two sections are done
-fresh();
-C.S.course.since = "2026-10-14"; C.S.course.sec = { "s0.neg": { st: 3 } };
-ok(!C.cxContrastDay(), "one section done: no contrast day");
-C.CX.byId["s0.gender"].built = true; C.CX.byId["s0.gender"].sheets = ["x"]; C.S.course.sec["s0.gender"] = { st: 3 };
-ok(C.cxContrastDay("2026-10-18") && !C.cxContrastDay("2026-10-19"), "two done: day 5 is a contrast day");
-ok(C.cxTodayParts().some(p => p.part === "review" && p.contrast) || true, "a contrast day brings a mixed review");
-C.CX.byId["s0.gender"].built = false; C.CX.byId["s0.gender"].sheets = [];
+// contrast days: about every 5th day once two sections are done, on a day between sheets
+{
+  fresh();
+  const fake = id => { C.CX.byId[id].built = true; C.CX.byId[id].sheets = ["cx.neg1"]; };
+  C.S.course.since = "2026-10-01"; C.S.course.sec = { "s0.neg": { st: 3 } }; C.S.course.seen = Array.from({ length: 18 }, (_, i) => C.addDays("2026-10-01", i));
+  ok(!C.cxContrastDue(), "one section done: no contrast day");
+  fake("s0.gender"); fake("s0.art"); C.S.course.sec["s0.gender"] = { st: 3 };
+  const kinds = () => C.cxTodayParts().map(p => p.part + (p.contrast ? ":mix" : "")).join(" ");
+  C.S.course.last = "2026-10-18";
+  ok(C.cxContrastDue() && /review:mix/.test(kinds()) && !/sheet|testout/.test(kinds()), "two done, a day between sheets: the mixed review", kinds());
+  C.cxPartDone({ part: "review", contrast: true, rules: [] });
+  ok(C.S.course.cd === "2026-10-18" && !C.cxContrastDue("2026-10-22") && C.cxContrastDue("2026-10-23"), "then not for 5 days");
+  C.S.course.cd = "2026-10-10"; C.S.course.dd = {}; C.S.course.last = "2026-10-01";
+  ok(C.cxGap() > 1 && /testout|sheet/.test(kinds()) && !/:mix/.test(kinds()), `a sheet due (every ${C.cxGap()} days): the sheet; the mixed day waits for a day between`, kinds());
+  C.S.path.deadline = "2027-03-25";
+  ok(C.cxGap() === 1 && C.cxPlanner().status === "green" && /:mix/.test(kinds()) && !/testout|sheet/.test(kinds()), "a sheet every day (on track): the mixed day takes the fifth day's slot", kinds());
+  C.S.path.deadline = "2027-02-01"; const st = C.cxPlanner().status;
+  ok(st !== "green" && /:mix/.test(kinds()) && /testout|sheet/.test(kinds()), `tight (${st}): the mixed day brings its sheet too`, kinds());
+  ["s0.gender", "s0.art"].forEach(id => { C.CX.byId[id].built = false; C.CX.byId[id].sheets = []; });
+}
+// my rhythm: the gap counts study days
+{
+  fresh();
+  C.S.course.since = "2026-09-20"; C.S.course.last = "2026-10-12";
+  const all = Array.from({ length: 29 }, (_, i) => C.addDays("2026-09-20", i));
+  C.S.course.seen = all.slice(); const g1 = C.cxGap();
+  C.S.course.seen = all.filter((_, i) => i % 2 === 0); const g2 = C.cxGap();
+  ok(C.cxAttend() < 0.6 && g2 < g1, `every other day in the app (${C.cxAttend().toFixed(2)}): sheets ${g2} study days apart instead of ${g1}, the same pace in the calendar`);
+  C.S.course.seen = all.slice(); C.S.course.last = "2026-10-16";
+  const g = C.cxGap(), next = C.cxNextLessonDay();
+  ok(next === C.addDays("2026-10-16", g), `came every day: the next sheet ${g} days after the last (${next})`);
+  C.S.course.seen = all.filter(d => d <= "2026-10-16");
+  ok(C.cxNextLessonDay() > next, "skipped days don't count: it comes later in the calendar");
+}
 
 // ── room for what's coming: a section of 2 sheets, a stage checkpoint ──
 {
@@ -192,7 +221,7 @@ C.CX.byId["s0.gender"].built = false; C.CX.byId["s0.gender"].sheets = [];
   ok(!C2.cxSecDone("s1.zu"), "not done after day 1");
   C2.S.course.day = "2000-01-01";
   ok(!C2.cxTodayParts().some(p => p.sec === "s1.zu"), "the next day: the second sheet waits for the gap");
-  C2.S.course.day = "2000-01-01"; C2.S.course.last = "2000-01-01";
+  C2.S.course.day = "2000-01-01"; C2.S.course.last = "2000-01-01"; C2.S.course.seen = Array.from({ length: 10 }, (_, i) => C2.addDays("2026-10-08", i));
   ok(J(C2.cxTodayParts().filter(p => p.sec === "s1.zu").map(p => p.part + ":" + (p.sheet || ""))) === J(["sheet:cx.t.zu2", "drill:"]), "its day: the second sheet, then the drill");
   C2.cxSheetResult("cx.t.zu2", 1, true, "path");
   list = C2.cxPartList({ part: "drill", sec: "s1.zu" });
@@ -218,14 +247,12 @@ C.CX.byId["s0.gender"].built = false; C.CX.byId["s0.gender"].sheets = [];
 // ── my rhythm: the pace of the last 4 weeks, the days with nothing new, the levers ──
 {
   fresh();
-  ok(C.cxPace() === null && !C.cxPlanner().mine, "no history yet: the usual pace (4 days in 5)");
+  ok(C.cxPace() === null && C.cxPlanner().pace === null, "no history yet: no pace of mine to report");
   C.S.course.since = "2026-10-04"; C.S.course.sec["s0.neg"] = { st: 3, at: "2026-10-10" };
   const p = C.cxPace();
   ok(Math.abs(p - 1 / 15) < 1e-9, `one sheet in 15 days: ${p && p.toFixed(3)} a day`);
-  ok(!C.cxPlanner().mine, "nothing waiting to learn (all built sections done): my pace isn't judged");
-  const next = C.cxNextSections; C.cxNextSections = () => [C.CX.byId["s0.neg"]];
-  const P = C.cxPlanner(); C.cxNextSections = next;
-  ok(P.mine && P.late && P.eta > P.target, `with sections waiting, at that pace I'd finish late (${P.eta}) — the planner says so`);
+  const P = C.cxPlanner();
+  ok(P.status === "green" && P.eta <= P.target, `the pace is the date's: the last sheet ${P.eta}, by the target ${P.target} — my slow start doesn't change the status`);
   C.S.course.idle = Array.from({ length: 9 }, (_, i) => C.addDays("2026-10-05", i));
   ok(C.cxPace() === null, "9 of the 15 days had nothing new to learn: too little to judge my pace");
   C.S.course.idle = ["2026-10-05", "2026-10-06"];
@@ -236,17 +263,6 @@ C.CX.byId["s0.gender"].built = false; C.CX.byId["s0.gender"].sheets = [];
   if (!C.cxNextSections(1).length) { C.S.course.day = "2026-10-15"; C.S.course.idle = ["2026-10-15"]; C.__today = "2026-10-18"; C.cxRollDay();
     ok(J(C.S.course.idle) === J(["2026-10-15", "2026-10-16", "2026-10-17", "2026-10-18"]), "nothing built then or now: the days between are idle too", J(C.S.course.idle)); }
   else ok(true, "(a section is built beyond the pilot: idle check skipped)");
-  // tight: a contrast day still brings a section; behind: a second one every other day
-  fresh(); C.S.course.since = "2026-10-14";
-  C.S.course.sec["s0.neg"] = { st: 3, at: "2026-10-14" };
-  ["pr1", "pr2", "pr3", "pr4", "pr5", "pr7", "im1", "im2", "im3", "pf1"].forEach(id => { C.S.verb.sh[id] = 100; });
-  C.S.path.deadline = "2027-08-15";
-  const lessonOn = () => C.cxTodayParts().some(p => ["sheet", "testout", "drill", "checkpoint"].includes(p.part));
-  if (C.cxContrastDay() && C.cxNextSections(1).length) {
-    ok(C.cxPlanner().status === "green" && !lessonOn(), "on track: a contrast day brings no new section");
-    C.S.path.deadline = "2027-04-15"; const st = C.cxPlanner().status;
-    ok((st === "amber" || st === "red") && lessonOn(), `tight (${st}): the contrast day brings one too`);
-  } else ok(true, "(no section waiting after the pilot: contrast lever not checked here)");
   ok(true);
 }
 

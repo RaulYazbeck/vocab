@@ -27,6 +27,8 @@
 //     rot    { rule: n } — where each rule's review rotation stands
 //     qm     { "sheet:point": [missed, right] } — sheet quiz first tries
 //     last   the day the last sheet was learned (the next is spaced from it)
+//     seen   the days I opened the app (the last 60): my rhythm
+//     cd     the last contrast day
 //     day / dd / dq — today, the parts done today, today's plan answers
 //     idle   the days (last 28) the course had nothing new: not held
 //            against my pace
@@ -133,6 +135,9 @@ function cxRollDay() {
     for (let d = from; d <= today; d = addDays(d, 1)) if (!C.idle.includes(d)) C.idle.push(d);
     C.idle = C.idle.sort().slice(-28);
   }
+  // The days I open the app (the last 60): my rhythm (cxAttend).
+  if (!Array.isArray(C.seen)) C.seen = [];
+  if (!C.seen.includes(today)) { C.seen.push(today); C.seen = C.seen.filter(d => typeof d === "string").sort().slice(-60); }
   C.day = today; C.dd = {}; C.dq = {};
 }
 function cxSecState(id) { return (S.course && S.course.sec && S.course.sec[id]) || null; }
@@ -509,15 +514,15 @@ function cxCheckpointPlan(secId) {
     }
   return out;
 }
-// Every 5th study day of the course is a contrast day: mixed items from
-// the sections done, no new sheet (once two sections are done).
-function cxContrastDay(today = studyToday()) {
+// A contrast day — mixed items from the sections done — about every 5th
+// day once two sections are done, on a day between new sheets (at one
+// sheet a day it takes that day's sheet slot).
+function cxContrastDue(today = studyToday()) {
   const C = S.course;
   if (!C.since) return false;
   const done = CX.sections.filter(s => s.built && cxSecDone(s.id)).length;
-  return done >= 2 && daysBetween(C.since, today) % 5 === 4;
+  return done >= 2 && (!C.cd || daysBetween(C.cd, today) >= 5);
 }
-
 // ── THE PLANNER (PLAN.md §9) ──────────────────
 // Every sheet passed by the finish date minus CX_LAG days (≈ early July
 // for 15 August), one a day, every 5th day a contrast day. Status:
@@ -546,13 +551,26 @@ function cxCourseSheetsLeft() {
   CX.sections.forEach(s => { if (!(s.verb && s.verb.length) && !cxSecDone(s.id)) n += s.n || 1; });
   return n;
 }
-// Days between two new sheets: 1 with no finish date (one a day).
+// My rhythm: the share of days I opened the app over the last 4 weeks
+// (1 before a week of it is recorded; never under a quarter).
+function cxAttend(today = studyToday()) {
+  const C = S.course;
+  if (!C || !Array.isArray(C.seen) || !C.seen.length) return 1;
+  // (from the first day recorded: an older copy of the app kept none)
+  const first = C.seen[0], from = first > addDays(today, -27) ? first : addDays(today, -27);
+  const days = daysBetween(from, today) + 1;
+  if (days < 7) return 1;
+  const n = C.seen.filter(d => d >= from && d <= today).length;
+  return Math.max(0.25, Math.min(1, n / days));
+}
+// Study days between two new sheets — the study days left to the target
+// (the days left × my rhythm) over the sheets left; 1 with no finish date.
 function cxGap(today = studyToday()) {
   const deadline = typeof pathDeadlineOn === "function" && pathDeadlineOn() ? S.path.deadline : "";
   if (!deadline) return 1;
   const days = daysBetween(today, addDays(deadline, -CX_LAG)), left = cxCourseSheetsLeft();
   if (!left || days <= 0) return 1;
-  return Math.max(1, Math.min(CX_GAP_MAX, Math.floor(days / left)));
+  return Math.max(1, Math.min(CX_GAP_MAX, Math.floor(days * cxAttend(today) / left)));
 }
 // A section already under way carries on whatever the gap: a sheet to
 // retake, a drill still to do, a checkpoint missed (it comes back the
@@ -564,31 +582,34 @@ function cxUnderway() {
     return !!st && (st.st === 1 || st.st === 2 || !!(s.checkpoint && st.tries));
   });
 }
-// The day the next new sheet comes (today when it's due).
+// The day the next new sheet comes: once `gap` study days have passed
+// since the last one (today when it's due; else the date if I come every day).
 function cxNextLessonDay(today = studyToday()) {
   const C = S.course;
   if (!C || !C.last || cxUnderway() || Object.keys(C.dd || {}).some(k => k.startsWith("new:"))) return today;
-  const d = addDays(C.last, cxGap(today));
-  return d > today ? d : today;
+  // (today counts: the app is open)
+  const n = (C.seen || []).filter(d => d > C.last && d < today).length + (today > C.last ? 1 : 0), g = cxGap(today);
+  return n >= g ? today : addDays(today, g - n);
 }
 function cxPlanner(today = studyToday()) {
-  const left = cxSheetsLeft(), must = cxSheetsLeft(["M", "S"]);
+  // left: every sheet of the map still to pass (the verb track's too);
+  // cl: the course's own — the ones this planner paces (the verb track
+  // paces its sheets itself).
+  const left = cxSheetsLeft(), must = cxSheetsLeft(["M", "S"]), cl = cxCourseSheetsLeft();
   const deadline = typeof pathDeadlineOn === "function" && pathDeadlineOn() ? S.path.deadline : "";
   const target = deadline ? addDays(deadline, -CX_LAG) : "";
   const days = target ? daysBetween(today, target) : 0;
-  // Sheets a day still needed. The usual pace is 4 days in 5 (the fifth is
-  // a contrast day); tight: the contrast days bring a sheet too (1 a day);
-  // behind: a second sheet every other day (1.5 a day) — cxTodayParts.
-  const need = target ? left / Math.max(1, days) : 0;
-  const status = !target ? "none" : !left ? "green" : days <= 0 ? "red" : need <= 0.8 ? "green" : need <= 1 ? "amber" : "red";
-  // My own pace (the last 4 weeks) says when I'd finish; the usual pace
-  // before there's enough of it.
-  const pace = cxPace(today), mine = pace !== null && cxNextSections(1).length > 0;
-  // (the course's own sheets: the verb track's come at their own pace)
-  const cl = cxCourseSheetsLeft();
-  const eta = addDays(today, Math.ceil(mine ? cl / Math.max(pace, 0.05) : cl * cxGap(today)));
+  // Sheets a day still needed. Up to 0.8 the pace spreads them out (cxGap);
+  // tight (up to 1): the contrast days bring one too; behind: a second one
+  // every other day (1.5 a day) — cxTodayParts.
+  const need = target ? cl / Math.max(1, days) : 0;
+  const status = !target ? "none" : !cl ? "green" : days <= 0 ? "red" : need <= 0.8 ? "green" : need <= 1 ? "amber" : "red";
+  // When the last sheet comes at this pace; and my own pace over the last
+  // 4 weeks (for the report — the pace itself is the date's, not mine).
+  const eta = addDays(today, cl * cxGap(today));
+  const pace = cxPace(today);
   const built = CX.sections.filter(s => s.built).length;
-  return { left, must, target, days, need, eta, pace, mine, late: !!(mine && target && cl && eta > target), status, built, total: CX.sections.length };
+  return { left, cl, must, target, days, need, eta, pace, status, built, total: CX.sections.length };
 }
 // The sheets I passed a day over the last 4 weeks (sections finished in
 // the course; the verb track keeps its own pace) — null before a week of it.
@@ -649,8 +670,9 @@ function cxTodayParts(scan) {
   // one too. Behind: a second one every
   // other day (or on an easy day) — never while the reviews are piling up
   // (after a break they catch up first).
-  const P = cxPlanner(), contrast = cxContrastDay();
-  const lesson = (!contrast || P.status === "amber" || P.status === "red") && cxNextLessonDay() <= studyToday();
+  const P = cxPlanner(), lessonDue = cxNextLessonDay() <= studyToday();
+  const contrast = !!dd.contrast || cxContrastDue() && (!lessonDue || cxGap() === 1);
+  const lesson = lessonDue && !(contrast && P.status === "green");
   const second = P.status === "red" && !contrast && fix.length <= CX_WARM_MAX && due.length <= 3 * CX_REVIEW[1]
     && (C.since && daysBetween(C.since, studyToday()) % 2 === 0 || cxBudget(scan).easy);
   const nSec = second ? 2 : 1;
@@ -747,7 +769,7 @@ function cxPartDone(p) {
   const C = S.course;
   cxRollDay();
   if (p.part === "warm") C.dd.warm = 1;
-  else if (p.part === "review") C.dd[p.contrast ? "contrast" : "review"] = 1;
+  else if (p.part === "review") { C.dd[p.contrast ? "contrast" : "review"] = 1; if (p.contrast) C.cd = studyToday(); }
   else if (p.part === "write") C.dd.write = 1;
   else if (p.part === "testout") C.dd["to:" + p.sec] = 1;
   else if (p.part === "sheet") C.dd["sheet:" + p.sec] = 1;
@@ -771,9 +793,23 @@ function cxPlanNumbers(scan) {
   // A test-out may make its sheet and drill unnecessary: they count half.
   const to = new Set(parts.filter(p => p.part === "testout").map(p => p.sec));
   const q = Math.round(parts.reduce((n, p) => n + cxPartSize(p) * (to.has(p.sec) && p.part !== "testout" ? 0.5 : 1), 0));
-  return { parts: parts.map(p => p.part), q };
+  // (half of each test-out's sheet and drill: taken off again if it's passed — cxPlanTrim)
+  const cut = {};
+  parts.forEach(p => { if (to.has(p.sec) && p.part !== "testout") cut[p.sec] = (cut[p.sec] || 0) + cxPartSize(p) * 0.5; });
+  return { parts: parts.map(p => p.part), q, ...(Object.keys(cut).length ? { cut } : {}) };
 }
 function cxPlanTarget(cx) { return cx ? Math.round((cx.q || 0) * 0.85) : 0; }
+// A test-out passed: its sheet and drill won't come, so today's plan
+// stops counting their half (the target only ever goes down here).
+function cxPlanTrim(secId) {
+  const plan = S.path && S.path.plan;
+  if (!plan || plan.day !== studyToday() || !plan.cx || !plan.cx.cut || !plan.cx.cut[secId]) return;
+  plan.cx.q = Math.max(0, Math.round(plan.cx.q - plan.cx.cut[secId]));
+  delete plan.cx.cut[secId];
+  if (typeof planTarget !== "function") return;
+  const t = planTarget(plan.reviews, plan.pace, (typeof vxPlanTarget === "function" ? vxPlanTarget(plan.vx) : 0) + cxPlanTarget(plan.cx));
+  if (t < plan.target) { plan.target = plan.goal = t; if (typeof planSyncQuest === "function") planSyncQuest(plan); }
+}
 
 // ── RESULTS ───────────────────────────────────
 // A course sheet's quiz is over (grammar-ui.js). Passing puts the
@@ -811,7 +847,7 @@ function cxTestoutResult(secId, right, n) {
   if (!S.course.since) S.course.since = studyToday();
   const cur = S.course.sec[secId] || (S.course.sec[secId] = { st: 0 });
   cur.to = Math.max(cur.to || 0, pct);
-  if (pass) { cxSecSet(secId, { st: 3 }); cur.at = studyToday(); cxIntroduceRules(secId, 3); }
+  if (pass) { cxSecSet(secId, { st: 3 }); cur.at = studyToday(); cxIntroduceRules(secId, 3); cxPlanTrim(secId); }
   else cxSecSet(secId, { st: 1 });
   if (typeof logEvent === "function") logEvent("cx_testout", { sec: secId, right, n, ok: pass });
   saveState();
@@ -1026,7 +1062,7 @@ function cxReportLines() {
   Object.keys(CX.rules).forEach(r => { const ws = cxRuleWS(r); if (ws && ws.st) { const t = tierOfStage(ws.st).icon; tiers[t] = (tiers[t] || 0) + 1; } });
   const sets = Object.values(S.course.ds || {}).reduce((a, d) => [a[0] + (d[0] || 0), a[1] + (d[1] || 0)], [0, 0]);
   return [`Course: ${done.length} section(s) done${done.length ? " (" + done.join(", ") + ")" : ""} · rules ${learned} learned / ${started} started / ${Object.keys(CX.rules).length}${started ? " (" + Object.entries(tiers).map(([t, n]) => t + n).join(" ") + ")" : ""}`,
-    `Course drills: ${sets[0]}/${sets[1]} right · today ${T.parts} part(s), ${T.due} rule(s) due${T.fix ? ` (${T.fix} to fix)` : ""} · ${P.left} sheets ahead, planner ${P.status}${P.target ? ` (course done by ${P.target}; at ${P.mine ? `my pace (${P.pace.toFixed(2)} sheets a day)` : "the usual pace"} ${P.eta})` : ""} · a new sheet every ${cxGap()} day(s), next ${cxNextLessonDay()}`];
+    `Course drills: ${sets[0]}/${sets[1]} right · today ${T.parts} part(s), ${T.due} rule(s) due${T.fix ? ` (${T.fix} to fix)` : ""} · ${P.cl} course sheets ahead (${P.left} with the verb track's), planner ${P.status}${P.target ? ` (all passed by ${P.target}, the last at this pace ${P.eta})` : ""} · a new sheet every ${cxGap()} day(s), next ${cxNextLessonDay()}${P.pace !== null ? ` · my pace over 4 weeks: ${P.pace.toFixed(2)} sheets a day` : ""}`];
 }
 // My writing not corrected yet, oldest first, for the tutor to correct.
 function cxJournalLines() {

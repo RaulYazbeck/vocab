@@ -358,7 +358,7 @@ function renderPathCx(it) {
     if (typeof logEvent === "function") logEvent("cx_open", { id: it.sheet, where: "path" });
     return;
   }
-  if (it.part === "write") { cxJournalOpen(host, { mode: "path", onDone: () => { cxPartDone(it); pathNext(); } }); return; }
+  if (it.part === "write") { cxJournalOpen(host, { mode: "path", partKey: "write:", onDone: () => { cxPartDone(it); pathNext(); } }); return; }
   const list = cxPartList(it).slice(0, it.qn || 99);
   if (!list.length) { cxPartDone(it); it.qn = 0; pathProgress(); pathNext(); return; }
   if (list.length < it.qn) { it.qn = list.length; pathProgress(); }
@@ -439,6 +439,11 @@ function cxJournalSubmit() {
   if (!e) return;
   cxJDraft(j.p.id, "");
   j.saved = e;
+  // A text written is one right answer of the day (its card counts 1 in
+  // Today's plan) — never graded, always right.
+  if (typeof questEvent === "function" && (!j.opts.partKey || cxPlanTake(j.opts.partKey, 1, true)))
+    questEvent("answer", { mode: j.opts.mode === "path" ? "path" : "grammar", ok: true, typed: true });
+  if (j.opts.mode === "path" && typeof pathSession !== "undefined" && pathSession) { pathSession.stats.answered++; pathSession.stats.correct++; }
   cxJournalRender();
 }
 function cxJournalCopy() {
@@ -508,13 +513,14 @@ function cxSecStatus(s) {
 function cxPlannerHtml() {
   const P = cxPlanner();
   const dot = { green: "🟢", amber: "🟠", red: "🔴", none: "⚪" }[P.status];
-  // At my own pace (the last 4 weeks), when it says something new.
-  const mine = P.mine && P.left && P.status !== "none" ? (P.late ? ` · at your pace: ${fmtShortDate(P.eta)}` : "") : "";
-  const line = P.status === "none" ? "Set a finish date (⚙️ Study plan) and the course plans its sheets to it"
-    : P.status === "green" ? `On track · ${P.left} sheets ahead, a new one ${cxGap() === 1 ? "every day" : `every ${cxGap()} days`} · all passed by <b>${fmtShortDate(P.target)}</b>${mine}`
-    : P.status === "amber" ? `Tight · ${P.left} sheets ahead · a sheet every day to pass them by <b>${fmtShortDate(P.target)}</b>${mine}`
-    : `Behind · ${P.left} sheets ahead, ${Math.max(0, P.days)} days to <b>${fmtShortDate(P.target)}</b> — a second sheet every other day${P.need > 1.5 ? ", and still short: a later finish date" : ""}${mine}`;
-  return `<div class="cx-plan ${P.status}">${dot} ${line}</div>`;
+  const g = cxGap();
+  const line = P.status === "none" ? "Set a finish date (⚙️ Study plan) and the course spreads its sheets to it"
+    : P.status === "green" ? `On track · ${P.cl} sheets ahead, a new one ${g === 1 ? "every day" : `every ${g} days`} · all passed by <b>${fmtShortDate(P.target)}</b>`
+    : P.status === "amber" ? `Tight · ${P.cl} sheets ahead · a sheet every day to pass them by <b>${fmtShortDate(P.target)}</b>`
+    : `Behind · ${P.cl} sheets ahead, ${Math.max(0, P.days)} days to <b>${fmtShortDate(P.target)}</b> — a second sheet every other day${P.need > 1.5 ? ", and still short: a later finish date" : ""}`;
+  // Everything built is done: the next sections come with the next build session.
+  const wait = P.cl && !cxNextSections(1).length ? `<small>Everything built so far is done — the next sections arrive with the next update.</small>` : "";
+  return `<div class="cx-plan ${P.status}">${dot} ${line}${wait}</div>`;
 }
 const CX_SEC_ICON = { done: "✓", now: "📖", later: "📐", coming: "·" };
 function renderCourse() {

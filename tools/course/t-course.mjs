@@ -173,6 +173,7 @@ const HELP = () => {
   const r = await page.evaluate(() => {
     startPathSession("regular", { noBonus: true });
     const s = pathSession;
+    const plan = pathEnsurePlan(), t0 = plan.target, cut0 = plan.cx && plan.cx.cut && plan.cx.cut["s0.neg"];
     let guard = 0, skipped = [];
     while (pathSession && s.cur && guard++ < 600) {
       const it = s.cur;
@@ -187,6 +188,7 @@ const HELP = () => {
       pathNext();
     }
     ok(cxSecDone("s0.neg") && S.course.sec["s0.neg"].to === 100, "the section is done by the test-out");
+    ok(cut0 > 0 && !(plan.cx.cut || {})["s0.neg"] && plan.target <= t0 && plan.target === planTarget(plan.reviews, plan.pace, (plan.vx ? vxPlanTarget(plan.vx) : 0) + cxPlanTarget(plan.cx)), `today's plan stops counting the skipped sheet and drill (${t0} → ${plan.target})`);
     ok(skipped.length === 0, `its sheet and drill skipped themselves (${skipped})`);
     ok(cxSection("s0.neg").rules.every(r => (S.words["cx_" + r] || {}).st === 3), "its rules are in light review (stage 3)");
     renderCourseSection("s0.neg");
