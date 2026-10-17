@@ -199,7 +199,7 @@ Object.entries(CX.cov).forEach(([ex, c0]) => {
   ok(["mirrored", "generated", "skipped", "planned"].includes(c.st), `cover ${ex}: status`);
   const ch = "c" + ex.split(".")[0];
   ok(!!(blueprint[ch] && blueprint[ch].exercises.some(e => e.id === ex)), `cover ${ex}: in the blueprint`);
-  if (c.st === "mirrored" || c.st === "generated") ok(!!CX.sets[c.set] && CX.sets[c.set].ex === ex, `cover ${ex}: set ${c.set}`);
+  if (c.st === "mirrored" || c.st === "generated") ok(!!CX.sets[c.set] && (CX.sets[c.set].ex === ex || (CX.sets[c.set].also || []).includes(ex)), `cover ${ex}: set ${c.set}`);
   if (c.st === "planned") ok(!!CX.byId[c.sec], `cover ${ex}: section ${c.sec}`);
   if (c.st === "skipped") ok(!!c.why, `cover ${ex}: why skipped`);
   void c0;
@@ -246,6 +246,23 @@ if (neg && neg.built) {
   ok(n > 240, `every line of the book's contents checked (${n})`);
 }
 
+// ── the build plan: every lesson has its session; nothing planned is left behind ──
+{
+  const { DONE, sessionPlans } = await import("./session.mjs");
+  CX.sections.forEach(s => ok(s.ses >= 1 && s.ses <= 9, `${s.id}: a build session (ses 1–9)`));
+  // a lesson of a finished session: every exercise it draws on has its drill (or a reason)
+  CX.sections.filter(s => s.ses <= DONE).forEach(s => (s.book || []).forEach(([ch, h]) => (blueprint[ch] ? blueprint[ch].exercises : []).filter(e => e.section === h).forEach(e =>
+    ok(C.cxCovOf(e.id).st !== "none", `${s.id} (session ${s.ses}, done): Übung ${e.id} has its drill`))));
+  // a planned exercise waits for a lesson of a later session, and that session uploads its chapter
+  const P = sessionPlans(C);
+  Object.entries(CX.cov).forEach(([ex, c]) => {
+    if (!c || c.st !== "planned") return;
+    const sec = CX.byId[c.sec];
+    ok(sec && sec.ses > DONE, `Übung ${ex}: planned for ${c.sec}, built in a later session (${sec && sec.ses})`);
+    ok(sec && P[sec.ses].chapters.includes("c" + ex.split(".")[0]), `Übung ${ex}: session ${sec && sec.ses} uploads chapter ${ex.split(".")[0]}`);
+  });
+}
+
 // ── the writing journal's prompts ──
 {
   const J = CX.journal || [];
@@ -260,6 +277,16 @@ if (neg && neg.built) {
     ok(!p.sec || !!CX.byId[p.sec], `${p.id}: its section ${p.sec} is in the skeleton`);
     ok(!p.min || p.min >= 10 && p.min <= 250, `${p.id}: min words in range`);
   });
+  const T = CX.themes || [];
+  ok(T.length >= 10 && T.some(t => t.id === "free"), `writing themes: ${T.length}, with "free"`);
+  ok(new Set(T.map(t => t.id)).size === T.length, "every theme id once");
+  T.forEach(t => {
+    ok(/^[a-z]+$/.test(t.id) && t.ico && t.name && t.de, `theme ${t.id}: id, icon, name, German title`);
+    ["A1", "A2", "B1"].forEach(lv => ok(typeof t[lv] === "string" && t[lv].length >= 20, `theme ${t.id}: a task at ${lv}`));
+  });
+  J.forEach(p => ok(!!T.find(t => t.id === p.th), `${p.id}: its theme ${p.th} exists`));
+  ["A1", "A2", "B1"].forEach(lv => T.forEach(t => ok(C.cxJournalPool(t.id, lv).length > 0, `theme ${t.id} at ${lv}: something to write`)));
+  ok(C.cxJournalPrompt("th.home.B1") && C.cxJournalPrompt("th.home.B1").lv === "B1" && !C.cxJournalPrompt("th.nope.A1"), "a theme's own task resolves by id");
   ok(C.cxWordCount("Ich wohne seit 2021 in Zürich — es gefällt mir, z.B. der See.") === 12, "the word count (numbers and abbreviations count once)");
 }
 

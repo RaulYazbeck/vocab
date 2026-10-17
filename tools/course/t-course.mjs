@@ -194,7 +194,7 @@ const HELP = () => {
     ok(skipped.length === 0, `its sheet and drill skipped themselves (${skipped})`);
     ok(cxSection("s0.neg").rules.every(r => (S.words["cx_" + r] || {}).st === 3), "its rules are in light review (stage 3)");
     renderCourseSection("s0.neg");
-    ok(/Tested out/.test(document.getElementById("main-screen").innerText), "the section says Tested out");
+    ok(/tested out/i.test(document.getElementById("main-screen").innerText), "the section says tested out");
     return { log: __log, fails: __fails };
   });
   say(r, "a test-out passed");
@@ -295,21 +295,46 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
     renderCourseDrill(null, null, "mixed"); ok(_cx.list.length > 0, `mixed drill: ${_cx.list.length} items`);
   });
   await noOverflow("runner");
-  await page.evaluate(() => renderCourseBook());
-  await page.waitForFunction(() => /exercises covered/.test((document.getElementById("cx-book") || {}).innerText || ""), null, { timeout: 8000 }).catch(() => {});
-  await page.evaluate(() => ok(/exercises covered/.test(document.getElementById("cx-book").innerText), "the book map loads the blueprint"));
-  await noOverflow("book map");
-  await page.evaluate(() => renderCourseChapter("c5"));
-  await page.waitForFunction(() => /Übung 5\.4/.test(document.getElementById("main-screen").innerText), null, { timeout: 8000 }).catch(() => {});
-  await page.evaluate(() => { const t = document.getElementById("main-screen").innerText; ok(/Übung 5\.4[\s\S]*mirrored/.test(t) && /Übung 5\.1[\s\S]*generated/.test(t) && /planned/.test(t), "chapter 5: mirrored, generated and planned exercises"); });
-  await page.evaluate(() => renderCourseChapter("c28"));
-  await page.waitForFunction(() => /Übung 28\.2/.test(document.getElementById("main-screen").innerText), null, { timeout: 8000 }).catch(() => {});
-  await page.evaluate(() => { const t = document.getElementById("main-screen").innerText; ok(/Negation[\s\S]*Übung 28\.2[\s\S]*mirrored/.test(t), "chapter 28: Negation's exercises mirrored"); });
+  await page.evaluate(() => {
+    renderCourseBook();
+    const t = document.getElementById("main-screen").innerText;
+    ok(/Building sentences/.test(t) && /haben and werden/.test(t) && !/Übung|mirrored|generated|planned|exercises/.test(t), "📚 By chapter: the chapters and their lessons, no build labels");
+  });
+  await noOverflow("by chapter");
+  await page.evaluate(() => {
+    renderCourseChapter("c28");
+    ok(/nicht or kein/.test(document.getElementById("main-screen").innerText), "chapter 28 lists the lesson that teaches it");
+    renderCourseSection("s0.neg");
+    const back = document.querySelector(".screen-top .back-btn");
+    ok(/Chapter 28/.test(back.textContent), `a lesson opened from a chapter goes back to it (${back.textContent})`);
+    back.click(); ok(/teach it/.test(document.getElementById("main-screen").innerText), "back: the chapter");
+    renderCourse(); renderCourseSection("s0.neg");
+    ok(/The basics/.test(document.querySelector(".screen-top .back-btn").textContent), "from the Course: back goes to its part");
+    renderCourse(); renderGrammar();
+    const gb = document.querySelector(".screen-top .back-btn"); ok(/Course/.test(gb.textContent), `📐 Verbs from the Course: back goes to the Course (${gb.textContent})`);
+    gb.click(); ok(/parts, in the order/i.test(document.getElementById("main-screen").innerText), "back: the Course");
+    renderCourseSection("s0.verbs"); document.querySelector(".gr-sheet").click();
+    ok(/Lesson/.test(document.querySelector(".screen-top .back-btn").textContent), "a verb sheet opened from a lesson goes back to the lesson");
+    showScreen("grammar"); ok(!/Course/.test(document.querySelector(".screen-top .back-btn").textContent), "📐 opened on its own: back as before");
+    renderCourseChapter("c5");
+  });
   await noOverflow("chapter");
   // ✍️ the writing journal: a live count, saved as it is, in the learning log, ticked when corrected
   await page.evaluate(() => { ok(cxJournalList().some(e => /^drill:dw\.neg/.test(e.p) && e.q), "the drills' own writing was saved for Claude, with its task"); S.writing = {}; renderJournal(); ok(/Nothing yet/.test(document.getElementById("main-screen").innerText), "✍️ My writing: empty (texts cleared for this check)"); });
   await noOverflow("Writing (empty)");
-  await page.evaluate(() => cxJournalOpen(document.getElementById("main-screen"), { mode: "menu" }));
+  await page.evaluate(() => {
+    const m = document.getElementById("main-screen");
+    ok(m.querySelectorAll(".cx-seg button").length === 3 && m.querySelectorAll(".cx-theme").length >= 14 && m.querySelectorAll(".cx-jgo").length === 1, "✍️ Writing: a level, the themes, one Write button");
+    cxJournalChoose("lv", "B1"); cxJournalChoose("th", "home");
+    ok(/Ein Problem in der Wohnung/.test(m.innerText) && /90\+ words/.test(m.innerText), "B1 · Home: its prompt shows before writing");
+    cxJournalChoose("th", "food"); cxJournalChoose("lv", "B1");
+    ok(/Essen und Trinken/.test(m.innerText), "a theme without a prompt at that level: its own task");
+    document.querySelector(".cx-jgo").click();
+    ok(_cj && _cj.p.id === "th.food.B1" && /Writing/.test(document.querySelector(".screen-top .back-btn").textContent) && !/another topic/.test(m.innerText), "Write: the editor, back to Writing (one task: no other topic)");
+    document.querySelector(".screen-top .back-btn").click();
+    cxJournalChoose("lv", "A1"); cxJournalChoose("th", "me"); document.querySelector(".cx-jgo").click();
+    ok(_cj && _cj.p.id === "w.me", `A1 · Me & family: Über mich (${_cj && _cj.p.id})`);
+  });
   await noOverflow("Writing prompt");
   await page.click("#cx-jtext");
   await page.keyboard.type("Ich heiße <b>Raul</b> und wohne in Zürich.");

@@ -231,7 +231,7 @@ cxPack({
     // The verb track's Präsens sheets: what the engine generates for them.
     "s0.verbs": {
       drills: [
-        { id: "d5.1", ex: "5.1", t: "type", title: "sein · haben · werden", how: "Write the verb's form.", gen: { kind: "conj", verbs: ["sein", "haben", "werden"], tense: "pr" }, n: 10, r: ["gs:pr3.r1", "gs:pr3.r2", "gs:pr5.lines"] },
+        { id: "d5.1", ex: "5.1", also: ["5.3"], t: "type", title: "sein · haben · werden", how: "Write the verb's form.", gen: { kind: "conj", verbs: ["sein", "haben", "werden"], tense: "pr" }, n: 10, r: ["gs:pr3.r1", "gs:pr3.r2", "gs:pr5.lines"] },
       ],
     },
   },
@@ -240,7 +240,7 @@ cxPack({
 // What each exercise of chapters 5 and 28 became (the book map).
 cxCover({
   "5.1": { st: "generated", set: "d5.1" },
-  "5.2": { st: "planned", sec: "s0.v2q" }, "5.3": { st: "planned", sec: "s0.verbs" },
+  "5.2": { st: "planned", sec: "s0.v2q" }, "5.3": { st: "generated", set: "d5.1" },
   "5.4": "d5.4", "5.5": "d5.5", "5.6": "d5.6", "5.7": "d5.7", "5.8": "d5.8", "5.9": "d5.9", "5.10": "d5.10",
   "5.11": { st: "planned", sec: "s1.neg2" },
   "28.1": { st: "planned", sec: "s1.front" },

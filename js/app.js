@@ -18,6 +18,7 @@ function startSession() {
 // from: the ☰ page the screen was opened from (its Back returns there).
 function showScreen(name, from) {
   if (from !== undefined) _screenFrom = from;
+  window._cxFrom = false; window._cxSec = null; window._cxChap = null; // the course sets them again
   // Leaving a Today session through the header or Settings ends it
   // properly (answers are already saved) instead of orphaning it.
   if (typeof pathSession !== "undefined" && pathSession) endPathSession(true);
@@ -70,6 +71,7 @@ function backBtnHtml(cls = "back-btn") {
 }
 function backToMenu() {
   _screenFrom = null;
+  window._cxFrom = false; window._cxSec = null; window._cxChap = null;
   if (typeof pathSession !== "undefined" && pathSession) endPathSession(true);
   if (typeof stopPathVoice === "function") stopPathVoice();
   activeMode = selectionType() === "anki" ? "anki" : (activeMode === "path" ? "drill" : activeMode);

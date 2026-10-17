@@ -52,7 +52,7 @@ const CX_KINDS = ["pick", "type", "transform", "compose", "open", "translate", "
 const CX_PRODUCTION = new Set(["compose", "write", "translate", "answer", "open"]);
 
 // ── REGISTRY ──────────────────────────────────
-const CX = { stages: [], chapters: {}, sections: [], byId: {}, sheets: {}, rules: {}, sets: {}, cov: {}, packs: [], journal: [] };
+const CX = { stages: [], chapters: {}, sections: [], byId: {}, sheets: {}, rules: {}, sets: {}, cov: {}, packs: [], journal: [], themes: [] };
 // (CX_TEST_OFF: the older test scripts measure Today without the course.)
 function cxOn() { return typeof WORD_KEY !== "undefined" && WORD_KEY === "de" && CX.sections.length > 0 && !(typeof window !== "undefined" && window.CX_TEST_OFF); }
 // The skeleton: { stages: [{ id, name, sub }], chapters: { c5: "title" },
@@ -100,6 +100,8 @@ function cxPack(pack) {
 function cxCover(map) { Object.assign(CX.cov, map); }
 // The writing journal's prompts (js/course/writing.js; packs may add).
 function cxJournal(list) { (list || []).forEach(p => { if (p && p.id && !CX.journal.some(q => q.id === p.id)) CX.journal.push(p); }); }
+// Its themes: { id, ico, name, de, A1, A2, B1 (a one-line task each) }.
+function cxJournalThemes(list) { (list || []).forEach(t => { if (t && t.id && !CX.themes.some(x => x.id === t.id)) CX.themes.push(t); }); }
 function cxSheet(id) { return CX.sheets[id] || null; }
 // A section the learner can work through: a lesson (its sheets) or a
 // stage's checkpoint. (Verb-track sections live in the verb track.)
@@ -1045,7 +1047,30 @@ function cxJournalMark(id, on = true) {
   if (on) e.c = studyToday(); else delete e.c;
   saveState();
 }
-function cxJournalPrompt(id) { return CX.journal.find(p => p.id === id) || null; }
+// A theme's own task at a level ("th.<theme>.<level>") when no prompt of
+// the theme is written for that level.
+function cxJournalPrompt(id) {
+  const p = CX.journal.find(x => x.id === id);
+  if (p) return p;
+  const m = /^th\.([a-z]+)\.(A1|A2|B1)$/.exec(String(id || "")), t = m && cxJournalTheme(m[1]);
+  return t && t[m[2]] ? { id, lv: m[2], th: t.id, de: t.de, t: t[m[2]] } : null;
+}
+function cxJournalTheme(id) { return CX.themes.find(t => t.id === id) || null; }
+// What I can write at a level, on a theme ("" = any): its prompts open to
+// me, never written first, then a done section's, then the oldest
+// written; a theme without one at that level gives its own task.
+function cxJournalPool(th, lv) {
+  const last = {};
+  cxJournalList().forEach(e => { if (!last[e.p] || e.d > last[e.p]) last[e.p] = e.d; });
+  const rank = p => [last[p.id] ? 1 : 0, p.sec ? 0 : 1, last[p.id] || ""];
+  const open = CX.journal.filter(p => p.lv === lv && (!th || p.th === th) && (!p.sec || cxSecDone(p.sec)));
+  const ids = open.map((p, i) => ({ p, i, k: rank(p) })).sort((a, b) => {
+    for (let j = 0; j < 3; j++) if (a.k[j] !== b.k[j]) return a.k[j] < b.k[j] ? -1 : 1;
+    return a.i - b.i;
+  }).map(o => o.p.id);
+  if (!ids.length && cxJournalPrompt(`th.${th || "free"}.${lv}`)) ids.push(`th.${th || "free"}.${lv}`);
+  return ids;
+}
 // A text's short name: its prompt's title, or its drill's section.
 function cxJournalTitle(e) {
   const p = cxJournalPrompt(e.p);

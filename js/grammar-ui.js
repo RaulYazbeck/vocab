@@ -603,6 +603,7 @@ document.addEventListener("keydown", e => {
 function renderGrammar() {
   showGameScreen();
   gsClose();
+  window._cxSec = null;
   migrateVerb();
   if (vxOn()) vxUnitsTick(true);
   const on = vxOn();
@@ -614,7 +615,7 @@ function renderGrammar() {
   const next = pend.length ? vxSheet(pend[0]) : null;
   const units = VX_UNITS.map(u => gsUnitRowHtml(u, scan)).join("");
   document.getElementById("main-screen").innerHTML = `<div class="screen grammar">
-    <div class="screen-top"><div class="screen-label">${vxT("📐 Grammar · Verbs")}</div>${backBtnHtml()}</div>
+    <div class="screen-top"><div class="screen-label">${vxT("📐 Grammar · Verbs")}</div>${window._cxFrom ? `<button class="back-btn" onclick="renderCourse()">← Course</button>` : backBtnHtml()}</div>
     <div class="gr-sum">
       <div><b>${on ? open : "—"}</b><span>${vxT("/ {0} tenses open", VX_UNITS.length)}</span></div>
       <div><b>${passed}</b><span>${vxT("/ {0} sheets", GS_SHEETS.length)}</span></div>
@@ -713,10 +714,13 @@ function renderGrammarSheet(id) {
   const sh = vxSheet(id);
   if (!sh) return renderGrammar();
   showGameScreen();
+  // Opened from a course lesson: back goes to that lesson.
+  const sec = window._cxSec && typeof renderCourseSection === "function" ? window._cxSec : null;
+  const back = sec ? () => renderCourseSection(sec) : () => renderGrammarUnit(sh.unit);
   document.getElementById("main-screen").innerHTML = `<div class="screen grammar gs-screen">
-    <div class="screen-top"><div class="screen-label">${vxT("📐 Grammar")}</div><button class="back-btn" onclick="renderGrammarUnit('${sh.unit}')">← ${escapeHtml(VX_UNIT[sh.unit].name)}</button></div>
+    <div class="screen-top"><div class="screen-label">${vxT("📐 Grammar")}</div><button class="back-btn" onclick="${sec ? `renderCourseSection('${sec}')` : `renderGrammarUnit('${sh.unit}')`}">← ${sec ? "Lesson" : escapeHtml(VX_UNIT[sh.unit].name)}</button></div>
     <div id="gs-host"></div></div>`;
-  gsOpen(document.getElementById("gs-host"), id, { mode: "menu", onDone: () => renderGrammarUnit(sh.unit) });
+  gsOpen(document.getElementById("gs-host"), id, { mode: "menu", onDone: back });
   scrollPageTop();
   if (typeof logEvent === "function") logEvent("vx_open", { id, where: "menu" });
 }
