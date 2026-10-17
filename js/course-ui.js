@@ -277,9 +277,9 @@ function cxResultHtml() {
     const sec = cxSection(o.sec), need = Math.round(((sec.checkpoint || {}).pass || 0.8) * 100);
     icon = res.passed ? "🏁" : "📖";
     const on = !res.passed && cxSecDone(o.sec);
-    title = res.passed ? `${escapeHtml((cxStage(sec.stage) || {}).name || "Stage")} — passed!` : on ? `${pct}% — moving on anyway` : `${pct}% — ${need}% moves on`;
-    note = res.passed ? "On to the next stage. Its rules keep coming back in your reviews."
-      : on ? "Third try: the next stage starts, so your finish date holds. The rules you missed come first in your reviews until they hold."
+    title = res.passed ? `${escapeHtml([(cxStage(sec.stage) || {}).sign, (cxStage(sec.stage) || {}).name].filter(Boolean).join(" · ") || "Checkpoint")} — passed!` : on ? `${pct}% — moving on anyway` : `${pct}% — ${need}% moves on`;
+    note = res.passed ? "On to the next part. Its rules keep coming back in your reviews."
+      : on ? "Third try: the next part starts, so your finish date holds. The rules you missed come first in your reviews."
       : "The rules you missed come first in your next sessions; the checkpoint comes back tomorrow.";
   } else if (o.kind === "drill") {
     const sec = cxSection(o.sec), some = sec && sec.sheets.some(cxSheetPassed) && !sec.sheets.every(cxSheetPassed);
@@ -334,7 +334,7 @@ document.addEventListener("keydown", e => {
 // (cxPartList: course-de.js)
 function cxPartTitle(p) {
   const sec = p.sec && cxSection(p.sec);
-  if (sec) return { title: sec.title, sub: p.part === "testout" ? "Do you know it already?" : p.part === "checkpoint" ? "Everything of this stage, mixed" : "Today's drill" };
+  if (sec) return { title: sec.title, sub: p.part === "testout" ? "Do you know it already?" : p.part === "checkpoint" ? "Everything of this part, mixed" : "Today's drill" };
   if (p.part === "warm") return { title: "Grammar", sub: "Yesterday's slips" };
   if (p.part === "write") return { title: "Writing", sub: (cxJournalPick(0) || { de: "Write it yourself" }).de };
   return { title: "Grammar", sub: p.contrast ? "Mixed: tell them apart" : "Rules due today" };
@@ -495,7 +495,7 @@ function cxSecStatus(s) {
   if (!cxLearnable(s)) return { k: "coming", txt: CX_ST_CHIP.coming };
   if (s.checkpoint) {
     const st = cxSecState(s.id) || {};
-    return st.st >= 3 ? { k: "done", txt: `Passed · ${st.cp}%` } : cxCheckpointReady(s) ? { k: "now", txt: `Checkpoint — ${Math.round(s.checkpoint.pass * 100)}% moves on${st.cp ? ` · best ${st.cp}%` : ""}` } : { k: "later", txt: "After the stage's sections" };
+    return st.st >= 3 ? { k: "done", txt: `Passed · ${st.cp}%` } : cxCheckpointReady(s) ? { k: "now", txt: `Checkpoint — ${Math.round(s.checkpoint.pass * 100)}% moves on${st.cp ? ` · best ${st.cp}%` : ""}` } : { k: "later", txt: "After this part's lessons" };
   }
   const st = cxSecState(s.id) || {};
   if (st.st >= 3) return { k: "done", txt: st.to >= 0 && !(st.sh > 0) ? CX_ST_CHIP.tested : CX_ST_CHIP.done };
@@ -533,7 +533,7 @@ function renderCourse() {
     const secs = CX.sections.filter(s => s.stage === st.id);
     const done = secs.filter(s => cxSecStatus(s).k === "done").length;
     return `<details class="cx-stage" style="${cxStyle(st.id)}" ${st.id === openStage ? "open" : ""}>
-      <summary><span class="gr-sign">${st.id === 4 ? "✦" : st.id}</span><span class="gr-name">${escapeHtml(st.name)}<small>${escapeHtml(st.sub)}</small></span><span class="gr-st">${done}/${secs.length}</span></summary>
+      <summary><span class="gr-sign">${escapeHtml(st.sign || String(st.id))}</span><span class="gr-name">${escapeHtml(st.name)}${st.sub ? `<small>${escapeHtml(st.sub)}</small>` : ""}</span><span class="gr-st">${done}/${secs.length}</span></summary>
       <div class="gr-sheets">${secs.map(s => { const ss = cxSecStatus(s), coming = ss.k === "coming";
         return `<button class="gr-sheet cx-sec ${ss.k}" onclick="renderCourseSection('${s.id}')"><span class="gr-sn">${s.checkpoint && ss.k !== "done" ? "🏁" : CX_SEC_ICON[ss.k]}</span><span class="gr-stt">${escapeHtml(s.title)}${coming ? "" : `<small>${ss.txt}</small>`}</span>${coming ? "" : `<span class="set-chev">›</span>`}</button>`; }).join("")}</div>
     </details>`;
@@ -588,8 +588,8 @@ function renderCourseSection(id) {
         return `<button class="gr-sheet ${p ? "done" : ""}" onclick="renderGrammarSheet('${v}')"><span class="gr-sn">${p ? "✓" : i + 1}</span><span class="gr-stt">${escapeHtml(sh ? sh.title : v)}</span><span class="set-chev">›</span></button>`; }).join("")}</div>`;
   } else if (s.checkpoint) {
     const ready = cxCheckpointReady(s);
-    body = `<div class="gr-unote">🏁 ${s.checkpoint.n} mixed questions from this stage. ${Math.round(s.checkpoint.pass * 100)}% moves you on; if not, it comes back the next day.</div>
-      ${ready ? `<button class="gr-next" onclick="renderCourseDrill('${id}', null, 'checkpoint')" style="${cxStyle(s.stage)}"><span class="gr-next-k">🏁 Take it now — or it comes in Today</span><span class="gr-next-t">${s.checkpoint.n} questions</span></button>` : `<div class="set-note">Opens once every other section of the stage is done.</div>`}`;
+    body = `<div class="gr-unote">🏁 ${s.checkpoint.n} mixed questions from this part. ${Math.round(s.checkpoint.pass * 100)}% moves you on; if not, it comes back the next day.</div>
+      ${ready ? `<button class="gr-next" onclick="renderCourseDrill('${id}', null, 'checkpoint')" style="${cxStyle(s.stage)}"><span class="gr-next-k">🏁 Take it now — or it comes in Today</span><span class="gr-next-t">${s.checkpoint.n} questions</span></button>` : `<div class="set-note">Opens once every other lesson of this part is done.</div>`}`;
   } else if (!cxLearnable(s)) {
     body = `<div class="set-note">⏳ Coming with a later build session — already counted in the grammar plan.</div>`;
   } else {
@@ -633,7 +633,7 @@ function renderCourseDrill(secId, setId, kind = "practice") {
   let list = [], title = "Grammar", sub = "";
   if (kind === "checkpoint") {
     list = cxCheckpointPlan(secId);
-    title = sec ? sec.title : "Grammar"; sub = "Everything of this stage, mixed";
+    title = sec ? sec.title : "Grammar"; sub = "Everything of this part, mixed";
   } else if (kind === "weak") {
     const { fix, due } = cxDueRules();
     const weak = [...fix, ...due, ...Object.keys(CX.rules).filter(r => { const ws = cxRuleWS(r); return ws && ws.st && !cxRuleLearned(r); })];

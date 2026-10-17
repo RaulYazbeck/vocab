@@ -9,11 +9,11 @@
 //   kind  lesson (default) · contrast · recap · verb · scenario
 cxDefine({
   stages: [
-    { id: 0, name: "Stage 0 · A1 grammar", sub: "a short test first: skip what you already know" },
-    { id: 1, name: "Stage 1 · A2 core", sub: "word order, cases, prepositions, clauses" },
-    { id: 2, name: "Stage 2 · B1", sub: "relative clauses, Konjunktiv, passive, particles" },
-    { id: 3, name: "Stage 3 · Conversation", sub: "six everyday scenarios" },
-    { id: 4, name: "Post-B1", sub: "for later — only if time allows" },
+    { id: 0, name: "The basics", sign: "A1" },
+    { id: 1, name: "Building sentences", sign: "A2" },
+    { id: 2, name: "Longer sentences", sign: "B1" },
+    { id: 3, name: "Conversation", sign: "💬" },
+    { id: 4, name: "After B1 · bonus", sign: "✦" },
   ],
   chapters: {
     c1: "Pronunciation and gender", c2: "Definite and indefinite articles", c3: "Pronouns, plurals, and the verb sein",
@@ -42,7 +42,7 @@ cxDefine({
     { id: "s0.accpron", stage: 0, level: "A1", prio: "M", title: "Accusative pronouns and man", book: [["c7", "Accusative case form of personal pronouns"], ["c7", "Pronouns in the accusative case"], ["c7", "Man"], ["c7", "Pronouns"]] },
     { id: "s0.verbs", stage: 0, level: "A1", prio: "M", kind: "verb", title: "Präsens · Imperativ · the Perfekt's structure", verb: ["pr1", "pr2", "pr3", "pr4", "pr5", "pr7", "im1", "im2", "im3", "pf1"],
       book: [["c6", "The present tense"], ["c6", "Formation of the Present Tense"], ["c6", "The Present Tense of haben, sein, and werden"], ["c8", ""], ["c9", ""], ["c10", "Formation of the present perfect tense"], ["c6", "The Infinitive"], ["c6", "Present Tense Forms"], ["c6", "fragen"], ["c6", "kaufen"], ["c6", "machen"], ["c6", "Verb Stems Ending in -t, -d, or -n"], ["c6", "Verb Stems Ending in -el or -er"], ["c8", "Irregular verbs in the present tense"], ["c8", "The addition of an umlaut"], ["c8", "Vowel change e to i"], ["c8", "Vowel change e to ie"], ["c9", "Addressing groups"], ["c9", "Imperatives with wir"], ["c9", "Imperatives"], ["c12", "Imperative verbs"], ["c12", "Formal commands"], ["c12", "Familiar commands"], ["c12", "Singular"], ["c12", "Plural"], ["c12", "Exhortations (mild commands, inclusive"], ["c12", "The command forms of sein and werden"], ["c17", ""], ["c17", "Modal auxiliaries"], ["c17", "Conjugation of the modal auxiliaries"]] },
-    { id: "s0.recap", stage: 0, level: "A1", prio: "M", kind: "recap", title: "Recap: Stage 0" },
+    { id: "s0.recap", stage: 0, level: "A1", prio: "M", kind: "recap", title: "Checkpoint: the basics" },
 
     // ── Stage 1 — A2 core ──
     { id: "s1.front", stage: 1, level: "A2", prio: "M", title: "Fronting; time – manner – place", book: [["c14", "Word order"], ["c28", "Word order"], ["c11", "Adverbs of time"]] },
@@ -70,7 +70,7 @@ cxDefine({
     { id: "s1.comp", stage: 1, level: "A2", prio: "M", title: "Comparative and superlative", book: [["c20", "Comparative and superlative"], ["c31", "Comparatives and superlatives"]] },
     { id: "s1.adj", stage: 1, level: "A2", prio: "M", n: 3, title: "Adjective endings (after der-words · after ein-words · no article)", book: [["c23", "Modifiers"], ["appC", "Declension with der-words"], ["appC", "Declension with ein-words"]] },
     { id: "s1.zu", stage: 1, level: "A2", prio: "M", n: 2, title: "zu + infinitive · um…zu, ohne…zu, anstatt…zu", book: [["c24", ""], ["c24", "Infinitive clauses"], ["c24", "Formation of infinitive clauses"], ["c24", "Verbs that introduce infinitive clauses"], ["c24", "Infinitive clauses as nouns"], ["c24", "Prepositions commonly used with infinitive"], ["c24", "Anstatt zu"], ["c24", "Ohne zu"], ["c24", "Um zu"]] },
-    { id: "s1.recap", stage: 1, level: "A2", prio: "M", kind: "recap", title: "Recap and checkpoint: Stage 1" },
+    { id: "s1.recap", stage: 1, level: "A2", prio: "M", kind: "recap", title: "Checkpoint: building sentences" },
 
     // ── Stage 2 — B1 ──
     { id: "s2.conj3", stage: 2, level: "B1", prio: "M", n: 2, title: "obwohl, bevor, nachdem, während, damit, bis, seit", book: [["c23", "Conjunctions"], ["c29", "Subordinating conjunctions"]] },
@@ -94,7 +94,7 @@ cxDefine({
     { id: "s2.adv", stage: 2, level: "B1", prio: "S", title: "Adverbs: types and position", book: [["c23", "Adverbs"]] },
     { id: "s2.ptadj", stage: 2, level: "B1", prio: "S", title: "Participles as adjectives", book: [["c29", "Present participles"], ["c29", "Past participles"], ["c29", "Attributive adjectives"]] },
     { id: "s2.ndecl", stage: 2, level: "B1", prio: "S", title: "n-declension nouns; adjectives used as nouns", book: [["appC", "Masculine nouns requiring an -(e)n ending"], ["appC", "Adjectives and participles used as nouns"], ["appC", "Neuter noun Herz requiring an -en ending"]] },
-    { id: "s2.recap", stage: 2, level: "B1", prio: "M", kind: "recap", title: "Recap and checkpoint: Stage 2" },
+    { id: "s2.recap", stage: 2, level: "B1", prio: "M", kind: "recap", title: "Checkpoint: longer sentences" },
 
     // ── Stage 3 — conversation ──
     { id: "s3.greet", stage: 3, level: "B1", prio: "M", kind: "scenario", title: "Greetings and introductions", book: [["c30", "Greetings and introductions"]] },

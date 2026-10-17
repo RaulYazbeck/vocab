@@ -33,7 +33,7 @@ function gsMd(s) {
     .replace(/(^|[\s(])\*([^*\s][^*]*?)\*(?=[\s).,;:!?]|$)/g, "$1<i>$2</i>");
 }
 function gsUnitOf(sheet) {
-  if (sheet.cx && typeof cxSection === "function") { const sec = cxSection(sheet.sec), st = sec && cxStage(sec.stage); return { hue: 38, sign: "📖", name: sec ? sec.title : "", stage: st ? "Course · " + st.name.split(" · ")[0] : "Course" }; }
+  if (sheet.cx && typeof cxSection === "function") { const sec = cxSection(sheet.sec), st = sec && cxStage(sec.stage); return { hue: 38, sign: "📖", name: sec ? sec.title : "", stage: st ? "Course · " + st.name : "Course" }; }
   return VX_UNIT[sheet.unit] || { hue: 38, sign: "•", name: "" };
 }
 // A sheet of the verb track, or of the course (course-de.js): the same
