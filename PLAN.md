@@ -328,7 +328,17 @@ What exists today and what is new:
   (within what the date allows).
 - **If behind**, levers in order: two sheets on easy days → drop *Could* →
   sample drills instead of all → more minutes. *Must* is never cut.
-  *As built (Session 1 follow-up):* tight (≤ 1 sheet a day needed) — the
+  *As built (Session 1 follow-up 2):* **the finish date sets the pace** —
+  no minutes to pick. The course's sheets still to learn are spread evenly
+  over the days left to the target (a new sheet every ⌊days ÷ sheets⌋ days,
+  1–7, recomputed daily), so they don't come every day until done and then
+  stop: the days between bring the reviews, mixed practice and writing. A
+  later date spaces them out, an earlier one brings them closer; a missed
+  sheet, a drill or a missed checkpoint carries on the next day anyway.
+  Simulated: the last section lands 1–6 days before the target with every
+  rhythm tried (30 % of days skipped, a 30-day break, a start 5–6 months
+  late, 15 Jul / 15 Aug / 15 Dec dates); every rule 🌳 Known by mid-August.
+  *Then, when behind:* tight (≤ 1 sheet a day needed) — the
   contrast days bring a sheet too; behind — a second sheet every other day,
   never while rules are failing (more than 8 to fix) or the reviews pile
   past 90; past 1.5 a day the planner says to pick a later date. My own
@@ -421,8 +431,11 @@ months late); stage checkpoints and multi-sheet sections; the **writing
 journal** — `js/course/writing.js` (30 prompts, A1 30 words · A2 60 · B1 90,
 Swiss-life situations, some tied to a section), the day's writing part, a
 live word count, saved as written ("good job", always done, no score) to
-`S.learn.wr` (synced, both devices' texts) and listed in the learning log for
-Claude to correct; ☰ › 📖 Course › ✍️ Writing ticks a text as corrected.
+`S.writing` (one cloud doc a year, every text kept with its date, merged
+across devices) and listed in the learning log for Claude to correct (the
+corrected ones stay listed by date); ☰ › 📖 Course › ✍️ Writing shows them all,
+copies them all, and ticks a text as corrected. Writing comes on the days
+between new sheets, on mixed days, and on light days.
 
 ### Session 2 — Stage 0, the A1 sweep
 
@@ -514,5 +527,6 @@ screen · coverage report at 100 % (every blueprint exercise *mirrored*,
 - 9 build sessions, tested in between; Session 1 builds the system and pilots nicht vs kein.
 - Rules are review items `cx_<rule>` in `S.words` (same stages); a rule is learned at stage 2.
 - A Today session carries the grammar block as cards: warm-up, test-out, sheet and drill a third of the way in, reviews and writing two thirds in.
-- Writing is free and ungraded in the app: a prompt with a word minimum, saved for a tutor (Claude) to correct from the learning log; the drill sets' write/open items stay as model + checklist.
+- Writing is free and ungraded in the app: a prompt with a word minimum, saved for a tutor (Claude) to correct from the learning log; the drill sets' write/open items stay as model + checklist. Texts are never deleted.
+- The finish date is the only pace setting: grammar sheets are spread evenly to it (no "minutes a day" choice).
 - The word-order checker accepts the verb-second reordering of a time phrase and a pronoun subject by rule; other orders are listed per item; `fixed` sets accept only theirs.

@@ -41,7 +41,7 @@ German app only (`de/index.html` loads them; the French app never does).
      `write` set — no new code needed.
    - Writing prompts tied to the section (optional): `cxJournal([{ id: "w.<name>", lv, de,
      t, help, sec: "<section id>" }])` — they open once the section is done. Free writing,
-     never graded: saved to `S.learn.wr` and listed in the learning log for correction.
+     never graded: saved to `S.writing` (kept forever, one cloud doc a year) and listed in the learning log for correction.
 2. Add its `<script>` tag to `de/index.html`, after `js/course/plan.js` and before
    `js/course-ui.js`.
 3. Run the checks below.

@@ -225,7 +225,7 @@ function syncMergeWords(lw, cw, preferLocal, cutFor, bw) {
 // top-level field, and each key of these objects on its own. The rest has
 // its own rules above.
 const SYNC_SPLIT = ["games", "path", "prefs", "quests"];
-const SYNC_NO_3WAY = new Set(["words", "usageArchive", "learn", "usage", "verb", "course", "savedAt", "resets", "resetAllAt"]);
+const SYNC_NO_3WAY = new Set(["words", "usageArchive", "learn", "writing", "usage", "verb", "course", "savedAt", "resets", "resetAllAt"]);
 // Quest fields that belong to the day (see syncLocalDay).
 const SYNC_QUEST_DAY_KEYS = ["day", "list", "m", "dayDone", "flash", "weekend", "dbl", "missedYesterday", "prevOk", "history"];
 function syncPiecesOf(state) {
@@ -271,6 +271,18 @@ function syncTake(out, p, src) {
   else syncSet(out, p, syncClone(v));
 }
 
+// Two lists of writing-journal texts → every text once (by id), the
+// corrected day if either side has one, by day.
+function syncWritingUnion(a, b) {
+  const by = {};
+  [...(Array.isArray(a) ? a : []), ...(Array.isArray(b) ? b : [])].forEach(e => {
+    if (!syncIsObj(e) || !e.id) return;
+    const x = by[e.id];
+    by[e.id] = x ? { ...x, ...e, c: [x.c, e.c].filter(Boolean).sort().pop() } : syncClone(e);
+    if (!by[e.id].c) delete by[e.id].c;
+  });
+  return Object.values(by).sort((p, q) => String(p.d).localeCompare(String(q.d)) || String(p.id).localeCompare(String(q.id)));
+}
 // Merge two progress states. Neither input is modified.
 //   local, cloud  full states (words included, no sync-only fields)
 //   opts.base     syncScalarsOf() of the last state both descend from,
@@ -286,10 +298,10 @@ function mergeStates(local, cloud, opts = {}) {
   const localWins = !!opts.localWins;
   const base = syncIsObj(opts.base) ? opts.base : null;
   const [win, lose] = localWins ? [local, cloud] : [cloud, local];
-  const { words: _w1, usageArchive: _u1, learn: _l1, ...winRest } = win;
+  const { words: _w1, usageArchive: _u1, learn: _l1, writing: _wr1, ...winRest } = win;
   const out = syncClone(winRest);
   // A field only the other side has (a save from an older version) is kept.
-  Object.keys(lose).forEach(k => { if (!(k in out) && !["words", "usageArchive", "learn"].includes(k)) out[k] = syncClone(lose[k]); });
+  Object.keys(lose).forEach(k => { if (!(k in out) && !["words", "usageArchive", "learn", "writing"].includes(k)) out[k] = syncClone(lose[k]); });
   // Pieces only one side changed since the shared state: from that side.
   const changed = syncChanges(local, cloud, base);
   Object.entries(changed).forEach(([p, who]) => syncTake(out, p, who === "l" ? local : cloud));
@@ -403,19 +415,18 @@ function mergeStates(local, cloud, opts = {}) {
     });
     L.verbs = verbs;
     if (ll.since || cl.since) L.since = [ll.since, cl.since].filter(Boolean).sort()[0];
-    // The writing journal (course-de.js): every text of both sides, by id;
-    // corrected on either side stays corrected. The last 120.
-    if (Array.isArray(ll.wr) || Array.isArray(cl.wr)) {
-      const by = {};
-      [...(Array.isArray(ll.wr) ? ll.wr : []), ...(Array.isArray(cl.wr) ? cl.wr : [])].forEach(e => {
-        if (!syncIsObj(e) || !e.id) return;
-        const a = by[e.id];
-        by[e.id] = a ? { ...a, ...e, c: [a.c, e.c].filter(Boolean).sort().pop() } : syncClone(e);
-        if (!by[e.id].c) delete by[e.id].c;
-      });
-      L.wr = Object.values(by).sort((a, b) => String(a.d).localeCompare(String(b.d)) || String(a.id).localeCompare(String(b.id))).slice(-120);
-    }
+    // (The writing journal's first home: both sides' texts, moved to
+    // S.writing on load — course-de.js.)
+    if (Array.isArray(ll.wr) || Array.isArray(cl.wr)) L.wr = syncWritingUnion(ll.wr, cl.wr);
     out.learn = L;
+  }
+  // The writing journal (course-de.js): a year at a time, every text of
+  // both sides (by id) — nothing is ever dropped; corrected on either side
+  // stays corrected.
+  if (syncIsObj(local.writing) || syncIsObj(cloud.writing)) {
+    const lw = syncIsObj(local.writing) ? local.writing : {}, cw = syncIsObj(cloud.writing) ? cloud.writing : {}, W = {};
+    new Set([...Object.keys(lw), ...Object.keys(cw)]).forEach(y => { W[y] = syncWritingUnion(lw[y], cw[y]); });
+    out.writing = W;
   }
   // The verb track (verb-track.js): tense states, quiz scores and opened
   // sheets — the higher; coverage cells — those of both; switched on or

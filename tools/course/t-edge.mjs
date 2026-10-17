@@ -66,7 +66,7 @@ const SETUP = () => {
   const { browser, page, errors } = await openApp({ course: true, extra: { course: { v: 1, sec: null, ds: "x", rot: [], qm: 5, dd: null, dq: "?", day: 7, since: null, mins: "abc" } } });
   await page.evaluate(SETUP);
   await page.evaluate(() => {
-    ok(S.course && typeof S.course.sec === "object" && !Array.isArray(S.course.rot) && S.course.mins === 60 && typeof S.course.day === "string", "a damaged S.course is repaired at load");
+    ok(S.course && typeof S.course.sec === "object" && !Array.isArray(S.course.rot) && !("mins" in S.course) && typeof S.course.day === "string", "a damaged S.course is repaired at load");
     renderHome(); renderCourse(); renderCourseSection("s0.neg"); renderDrills(); openSettingsPage("plan"); closeSettings();
     startPathSession("quick", { noBonus: true }); ok(pathSession.items.some(x => x.t === "cx"), "and Today still brings the course"); endPathSession(true);
   });
@@ -133,9 +133,9 @@ const SETUP = () => {
   const { browser, page, errors } = await openApp({ course: true });
   await page.evaluate(SETUP);
   await page.evaluate(() => {
-    S.course.mins = 90; // a roomy day: there's time to write
+    S.course.last = studyToday(); S.course.since = studyToday(); // a sheet learned today: tomorrow-style day between sheets
     startPathSession("regular", { noBonus: true });
-    ok(pathSession.items.some(x => x.t === "cx" && x.part === "write"), "a roomy day: Today brings a writing card");
+    ok(!pathSession.items.some(x => x.t === "cx" && ["testout", "sheet"].includes(x.part)) && pathSession.items.some(x => x.t === "cx" && x.part === "write"), "a day between sheets: no new sheet, a writing card");
     ok(toCx("write") && !!document.getElementById("cx-jtext"), "the writing card runs in Today");
     window.__n0 = +(document.getElementById("p-count").textContent.split("/")[0]);
   });
@@ -150,7 +150,14 @@ const SETUP = () => {
     ok(/Good job/.test(document.getElementById("cx-journal").innerText), "saved: good job");
     cxJournalDone();
     ok(S.course.dd.write === 1 && pathSession.cur && !(pathSession.cur.t === "cx" && pathSession.cur.part === "write"), "done: the session goes on, the writing part is done for today");
-    ok(S.learn.wr.length === 1 && S.learn.wr[0].t.includes("\n"), "the text kept with its lines");
+    const W = cxJournalList();
+    ok(W.length === 1 && W[0].t.includes("\n") && S.writing[W[0].d.slice(0, 4)].length === 1, "the text kept with its lines, under its year");
+    // the cloud: one doc a year, and back the same
+    const docs = buildSyncDocs(S), id = STORAGE_KEY + "_writing_" + W[0].d.slice(0, 4);
+    ok(docs[id] && docs[id].wr.length === 1 && !("writing" in docs[STORAGE_KEY]), "synced as its own doc (" + id + "), not in the main one");
+    const snap = Object.entries(docs).map(([k, v]) => ({ id: k, data: () => JSON.parse(JSON.stringify(v)) }));
+    const back = syncCloudState({ forEach: f => snap.forEach(f) }).state;
+    ok(JSON.stringify(back.writing) === JSON.stringify(S.writing), "and read back from the cloud the same");
     ok(!cxTodayParts().some(p => p.part === "write"), "no second writing card today");
     endPathSession(true);
   });

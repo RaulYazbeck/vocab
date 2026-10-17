@@ -26,13 +26,13 @@
 //     ds     { set: [right, asked, next] } — next: where its rotation stands
 //     rot    { rule: n } — where each rule's review rotation stands
 //     qm     { "sheet:point": [missed, right] } — sheet quiz first tries
-//     mins   the daily minutes in the app (PLAN.md §1: 60)
+//     last   the day the last sheet was learned (the next is spaced from it)
 //     day / dd / dq — today, the parts done today, today's plan answers
 //     idle   the days (last 28) the course had nothing new: not held
 //            against my pace
 //
-//   S.learn.wr (the learning log's doc, synced): the writing journal —
-//     [{ id, d: day, p: prompt id, t: text, w: words, c?: day corrected }]
+//   S.writing (synced, one cloud doc a year): the writing journal —
+//     { year: [{ id, d: day, p: prompt id, t: text, w: words, c?: day corrected }] }
 //
 // German app only: the French app never loads these files (cxOn()).
 // ─────────────────────────────────────────────
@@ -117,7 +117,8 @@ function migrateCourse() {
   ["sec", "ds", "rot", "qm", "dd", "dq"].forEach(k => { if (!C[k] || typeof C[k] !== "object" || Array.isArray(C[k])) C[k] = {}; });
   if (typeof C.day !== "string") C.day = "";
   if (typeof C.since !== "string") C.since = "";
-  if (!(C.mins >= 15)) C.mins = 60;
+  delete C.mins; // (a setting of the first build: the date sets the pace now)
+  cxWritingStore();
   cxRollDay();
 }
 function cxRollDay() {
@@ -531,6 +532,45 @@ function cxSheetsLeft(prio = null) {
   });
   return n;
 }
+// ── THE PACE: SPREAD TO THE DATE ──────────────
+// The finish date sets the pace, nothing else: the course's sheets still
+// to learn are spread evenly over the days left to the target, so a new
+// sheet comes every few days and the days between are for its reviews,
+// the mixed days and writing. A later date: further apart; an earlier
+// one: closer, down to one a day (then the levers in cxTodayParts). It
+// recomputes every day, so a break or a burst ahead evens itself out.
+// (The verb track's sheets keep their own pace.)
+const CX_GAP_MAX = 7;         // never a week without something new
+function cxCourseSheetsLeft() {
+  let n = 0;
+  CX.sections.forEach(s => { if (!(s.verb && s.verb.length) && !cxSecDone(s.id)) n += s.n || 1; });
+  return n;
+}
+// Days between two new sheets: 1 with no finish date (one a day).
+function cxGap(today = studyToday()) {
+  const deadline = typeof pathDeadlineOn === "function" && pathDeadlineOn() ? S.path.deadline : "";
+  if (!deadline) return 1;
+  const days = daysBetween(today, addDays(deadline, -CX_LAG)), left = cxCourseSheetsLeft();
+  if (!left || days <= 0) return 1;
+  return Math.max(1, Math.min(CX_GAP_MAX, Math.floor(days / left)));
+}
+// A section already under way carries on whatever the gap: a sheet to
+// retake, a drill still to do, a checkpoint missed (it comes back the
+// next day).
+function cxUnderway() {
+  return CX.sections.some(s => {
+    if (!cxLearnable(s) || cxSecDone(s.id)) return false;
+    const st = cxSecState(s.id);
+    return !!st && (st.st === 1 || st.st === 2 || !!(s.checkpoint && st.tries));
+  });
+}
+// The day the next new sheet comes (today when it's due).
+function cxNextLessonDay(today = studyToday()) {
+  const C = S.course;
+  if (!C || !C.last || cxUnderway() || Object.keys(C.dd || {}).some(k => k.startsWith("new:"))) return today;
+  const d = addDays(C.last, cxGap(today));
+  return d > today ? d : today;
+}
 function cxPlanner(today = studyToday()) {
   const left = cxSheetsLeft(), must = cxSheetsLeft(["M", "S"]);
   const deadline = typeof pathDeadlineOn === "function" && pathDeadlineOn() ? S.path.deadline : "";
@@ -544,9 +584,11 @@ function cxPlanner(today = studyToday()) {
   // My own pace (the last 4 weeks) says when I'd finish; the usual pace
   // before there's enough of it.
   const pace = cxPace(today), mine = pace !== null && cxNextSections(1).length > 0;
-  const eta = addDays(today, Math.ceil(left / (mine ? Math.max(pace, 0.1) : 0.8)));
+  // (the course's own sheets: the verb track's come at their own pace)
+  const cl = cxCourseSheetsLeft();
+  const eta = addDays(today, Math.ceil(mine ? cl / Math.max(pace, 0.05) : cl * cxGap(today)));
   const built = CX.sections.filter(s => s.built).length;
-  return { left, must, target, days, need, eta, pace, mine, late: !!(mine && target && left && eta > target), status, built, total: CX.sections.length };
+  return { left, must, target, days, need, eta, pace, mine, late: !!(mine && target && cl && eta > target), status, built, total: CX.sections.length };
 }
 // The sheets I passed a day over the last 4 weeks (sections finished in
 // the course; the verb track keeps its own pace) — null before a week of it.
@@ -565,9 +607,13 @@ function cxPace(today = studyToday()) {
 // today's plan, the grammar block fitted around it — the review and the
 // writing prompt give way first; the sheet and its drill never do.
 const CX_WORD_MIN = { review: 0.3, fresh: 1.2 };
+// The hour a day the plan is built around (PLAN.md §1) — not a setting:
+// the finish date sets the pace; this only keeps a heavy word day from
+// also getting a flood of grammar reviews.
+const CX_DAY_MIN = 60;
 // lesson: today brings a sheet and its drill (their minutes come first).
 function cxBudget(scan, lesson = true) {
-  const mins = (S.course && S.course.mins) || 60;
+  const mins = CX_DAY_MIN;
   let words = 0;
   try {
     // Today's plan when it's made (never made from here: the plan asks
@@ -598,12 +644,13 @@ function cxTodayParts(scan) {
   const C = S.course, dd = C.dd, parts = [];
   const { fix, due } = cxDueRules();
   if (fix.length && !dd.warm) parts.push({ part: "warm", rules: fix.slice(0, CX_WARM_MAX) });
-  // One new section a day, none on a contrast day. Tight for the finish
-  // date: the contrast days bring one too. Behind: a second one every
+  // A new section when the pace says so (cxGap: spread to the date), none
+  // on a contrast day. Tight for the finish date: the contrast days bring
+  // one too. Behind: a second one every
   // other day (or on an easy day) — never while the reviews are piling up
   // (after a break they catch up first).
   const P = cxPlanner(), contrast = cxContrastDay();
-  const lesson = !contrast || P.status === "amber" || P.status === "red";
+  const lesson = (!contrast || P.status === "amber" || P.status === "red") && cxNextLessonDay() <= studyToday();
   const second = P.status === "red" && !contrast && fix.length <= CX_WARM_MAX && due.length <= 3 * CX_REVIEW[1]
     && (C.since && daysBetween(C.since, studyToday()) % 2 === 0 || cxBudget(scan).easy);
   const nSec = second ? 2 : 1;
@@ -635,8 +682,10 @@ function cxTodayParts(scan) {
   // A contrast day: the due reviews and a few mixed items on top.
   if (contrast && !dd.contrast) parts.push({ part: "review", rules: rev, contrast: true });
   else if (rev.length && !dd.review) parts.push({ part: "review", rules: rev });
-  // Writing: when the day has room for it, and always on a contrast day.
-  if ((B.write || contrast) && !dd.write && cxJournalPick()) parts.push({ part: "write" });
+  // Writing: on the days between new sheets, on a contrast day, and on
+  // any day with room for it.
+  const lessonToday = parts.some(p => p.part === "testout" || p.part === "sheet" || p.part === "drill" || p.part === "checkpoint");
+  if ((B.write || contrast || !lessonToday) && !dd.write && cxJournalPick()) parts.push({ part: "write" });
   return parts;
 }
 // Questions each part asks (the session's count; fixed when it's built).
@@ -738,6 +787,7 @@ function cxSheetResult(id, score, all, where) {
   S.course.dd["try:" + sh.sec] = (S.course.dd["try:" + sh.sec] || 0) + 1;
   if (!S.course.since) S.course.since = studyToday();
   if (passed) {
+    S.course.last = studyToday(); // a sheet learned today: the next one is spaced from here
     const st = cxSecSet(sh.sec, { sh: Math.max(1, pct) });
     st.ok = Object.assign(st.ok || {}, { [id]: Math.max(1, pct) });
     const sec = cxSection(sh.sec);
@@ -779,6 +829,7 @@ function cxCheckpointResult(secId, right, n) {
   const pct = n ? Math.round(right / n * 100) : 0, pass = n > 0 && right / n >= cp.pass - 1e-9;
   const cur = S.course.sec[secId] || (S.course.sec[secId] = { st: 0 });
   cur.cp = Math.max(cur.cp || 0, pct); cur.tries = (cur.tries || 0) + 1;
+  S.course.last = studyToday();
   if (pass || cur.tries >= CX_CP_TRIES) { cxSecSet(secId, { st: 3 }); cur.at = studyToday(); if (!pass) cur.on = 1; }
   if (typeof logEvent === "function") logEvent("cx_checkpoint", { sec: secId, right, n, ok: pass });
   saveState();
@@ -878,12 +929,29 @@ function cxSectionsOfChapter(ch) { return CX.sections.filter(s => (s.book || [])
 // graded here — "always done"), for a tutor to correct from the learning
 // log. My level follows the course: the level of the next section.
 const CX_JOURNAL_MIN = { A1: 30, A2: 60, B1: 90 };
-const CX_JOURNAL_CAP = 120;   // entries kept (the oldest corrected go first)
 const CX_JOURNAL_LEN = 2000;  // characters kept of one text
+// Every text is kept, never dropped: S.writing = { year: [entry] }, one
+// cloud doc a year (sync.js). (The first build kept them in S.learn.wr:
+// moved here, also when an older copy of the app syncs some back.)
+function cxWritingStore() {
+  if (!S.writing || typeof S.writing !== "object" || Array.isArray(S.writing)) S.writing = {};
+  const old = S.learn && Array.isArray(S.learn.wr) ? S.learn.wr : null;
+  if (old) {
+    old.forEach(e => {
+      if (!e || !e.id || !e.d) return;
+      const y = String(e.d).slice(0, 4), list = S.writing[y] || (S.writing[y] = []);
+      const had = list.find(x => x.id === e.id);
+      if (!had) list.push(e); else if (e.c && !had.c) had.c = e.c;
+    });
+    delete S.learn.wr;
+    Object.values(S.writing).forEach(l => l.sort((a, b) => String(a.d).localeCompare(String(b.d))));
+  }
+  return S.writing;
+}
+// All my texts, oldest first.
 function cxJournalList() {
-  if (!S.learn || typeof S.learn !== "object") S.learn = {};
-  if (!Array.isArray(S.learn.wr)) S.learn.wr = [];
-  return S.learn.wr;
+  const W = cxWritingStore();
+  return Object.keys(W).sort().flatMap(y => Array.isArray(W[y]) ? W[y] : []);
 }
 function cxLevel() {
   const next = cxNextSections(1)[0] || [...CX.sections].reverse().find(s => s.built && cxSecDone(s.id));
@@ -913,15 +981,14 @@ function cxJournalPick(skip = 0) {
 function cxJournalSave(promptId, text) {
   const t = String(text || "").trim().slice(0, CX_JOURNAL_LEN), w = cxWordCount(t);
   if (!w) return null;
-  const list = cxJournalList();
-  const e = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), d: studyToday(), p: promptId, t, w };
-  list.push(e);
-  while (list.length > CX_JOURNAL_CAP) { const i = list.findIndex(x => x.c); list.splice(i >= 0 ? i : 0, 1); }
+  const W = cxWritingStore(), d = studyToday(), y = d.slice(0, 4);
+  const e = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), d, p: promptId, t, w };
+  (W[y] || (W[y] = [])).push(e);
   if (typeof logEvent === "function") logEvent("cx_write", { w, p: promptId });
   saveState();
   return e;
 }
-// Corrected with the tutor: it leaves the learning log's list.
+// Corrected with the tutor: it moves to the log's "corrected" list (kept).
 function cxJournalMark(id, on = true) {
   const e = cxJournalList().find(x => x.id === id);
   if (!e) return;
@@ -959,26 +1026,38 @@ function cxReportLines() {
   Object.keys(CX.rules).forEach(r => { const ws = cxRuleWS(r); if (ws && ws.st) { const t = tierOfStage(ws.st).icon; tiers[t] = (tiers[t] || 0) + 1; } });
   const sets = Object.values(S.course.ds || {}).reduce((a, d) => [a[0] + (d[0] || 0), a[1] + (d[1] || 0)], [0, 0]);
   return [`Course: ${done.length} section(s) done${done.length ? " (" + done.join(", ") + ")" : ""} · rules ${learned} learned / ${started} started / ${Object.keys(CX.rules).length}${started ? " (" + Object.entries(tiers).map(([t, n]) => t + n).join(" ") + ")" : ""}`,
-    `Course drills: ${sets[0]}/${sets[1]} right · today ${T.parts} part(s), ${T.due} rule(s) due${T.fix ? ` (${T.fix} to fix)` : ""} · ${P.left} sheets ahead, planner ${P.status}${P.target ? ` (course done by ${P.target}; at ${P.mine ? `my pace (${P.pace.toFixed(2)} sheets a day)` : "the usual pace"} ${P.eta})` : ""} · ${S.course.mins} min a day`];
+    `Course drills: ${sets[0]}/${sets[1]} right · today ${T.parts} part(s), ${T.due} rule(s) due${T.fix ? ` (${T.fix} to fix)` : ""} · ${P.left} sheets ahead, planner ${P.status}${P.target ? ` (course done by ${P.target}; at ${P.mine ? `my pace (${P.pace.toFixed(2)} sheets a day)` : "the usual pace"} ${P.eta})` : ""} · a new sheet every ${cxGap()} day(s), next ${cxNextLessonDay()}`];
 }
 // My writing not corrected yet, oldest first, for the tutor to correct.
 function cxJournalLines() {
-  const open = cxJournalList().filter(e => !e.c);
-  if (!open.length) return [];
-  const out = [``, `## MY WRITING — please correct (${open.length} text${open.length === 1 ? "" : "s"}: for each, my mistakes explained, a corrected version, one tip)`];
-  open.forEach(e => {
-    const p = cxJournalPrompt(e.p);
-    out.push(``, `[${e.d}] ${p ? `${p.de} — ${p.t}` : e.p} (${e.w} words${p ? `, level ${p.lv}` : ""})`, e.t);
-  });
-  out.push(``, `(When it's corrected, I tick it in 📖 Course › ✍️ My writing.)`);
+  const all = cxJournalList();
+  if (!all.length) return [];
+  const open = all.filter(e => !e.c), done = all.filter(e => e.c);
+  const head = e => { const p = cxJournalPrompt(e.p); return `[${e.d}] ${p ? `${p.de} — ${p.t}` : e.p} (${e.w} words${p ? `, level ${p.lv}` : ""})`; };
+  const out = [``, `## MY WRITING (${all.length} text${all.length === 1 ? "" : "s"} since ${all[0].d}; ${open.length} to correct)`];
+  if (open.length) {
+    out.push(`Please correct each text below: my mistakes explained, a corrected version, one tip.`);
+    open.forEach(e => out.push(``, head(e), e.t));
+  }
+  if (done.length) out.push(``, `Already corrected (date · topic · words · corrected on): ` + done.map(e => { const p = cxJournalPrompt(e.p); return `${e.d} ${p ? p.de : e.p} ${e.w}w ✓${e.c}`; }).join(" · "));
+  out.push(``, `(I tick a text once it's corrected, in 📖 Course › ✍️ Writing. Every text stays saved there.)`);
   return out;
+}
+// ✍️ Writing › Copy: every text in full, with its date — for a tutor.
+function cxJournalCopyText() {
+  const all = cxJournalList();
+  const line = e => { const p = cxJournalPrompt(e.p); return `[${e.d}] ${p ? `${p.de} — ${p.t}` : e.p} (${e.w} words${p ? `, level ${p.lv}` : ""}${e.c ? `, corrected ${e.c}` : ""})\n${e.t}`; };
+  const open = all.filter(e => !e.c), done = all.filter(e => e.c);
+  return [`# My German writing — ${all.length} text${all.length === 1 ? "" : "s"}, ${open.length} to correct`,
+    open.length ? `\n## To correct (oldest first) — for each: my mistakes explained, a corrected version, one tip\n\n` + open.map(line).join("\n\n") : "",
+    done.length ? `\n## Already corrected — to see how I progress\n\n` + done.map(line).join("\n\n") : ""].filter(Boolean).join("\n");
 }
 // For the learning log's JSON: sections, rules (stage, right, wrong, last misses), drill sets.
 function cxLearnJson() {
   if (!cxOn() || !S.course) return null;
   const rules = {};
   Object.keys(CX.rules).forEach(r => { const ws = cxRuleWS(r); if (ws && ws.st) rules[r] = [ws.st, ws.correct || 0, ws.wrong || 0, (ws.mh || []).map(h => [h[0], h[3], h[4]])]; });
-  return { sec: S.course.sec, rules, sets: S.course.ds, since: S.course.since || null, writing: cxJournalList().filter(e => !e.c).map(e => [e.d, e.p, e.w, e.t]) };
+  return { sec: S.course.sec, rules, sets: S.course.ds, since: S.course.since || null, writing: cxJournalList().map(e => e.c ? [e.d, e.p, e.w, e.c] : [e.d, e.p, e.w, e.t]) };
 }
 
 if (typeof module !== "undefined") module.exports = { CX, cxCheck, cxDefine, cxPack, cxCover };

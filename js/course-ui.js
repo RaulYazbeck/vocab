@@ -441,6 +441,12 @@ function cxJournalSubmit() {
   j.saved = e;
   cxJournalRender();
 }
+function cxJournalCopy() {
+  const text = cxJournalCopyText();
+  copyTextToClipboard(text)
+    .then(() => showCelebrateToast("✍️", "Your texts are copied", "Paste them into your German project in Claude"))
+    .catch(() => { window.prompt("Copy your texts:", text); });
+}
 function cxJournalDone() { const j = _cj; _cj = null; if (j && j.opts.onDone) j.opts.onDone(); else if (j && j.opts.mode !== "path") renderJournal(); }
 
 // ☰ › 📖 Course › ✍️ My writing: what I wrote, what's corrected.
@@ -453,10 +459,10 @@ function renderJournal() {
   const next = cxJournalPick(0);
   document.getElementById("main-screen").innerHTML = `<div class="screen grammar course">
     <div class="screen-top"><div class="screen-label">✍️ My writing</div>${backBtnHtml()}</div>
-    <div class="gr-unote">Write freely about everyday situations. Nothing is graded here: each text waits in your <b>learning log</b> for Claude to correct${open ? ` — <b>${open}</b> waiting now` : ""}. Once it's corrected, tick it.</div>
+    <div class="gr-unote">Write freely about everyday situations. Nothing is graded here, and every text is kept with its date. The ones to correct are in your <b>learning log</b> too${open ? ` — <b>${open}</b> waiting now` : ""}: paste either into Claude, then tick them here.</div>
     <div class="cx-links">
       ${next ? `<button class="cx-chip" onclick="cxJournalOpen(document.getElementById('main-screen'),{mode:'menu'})">✍️ Write one now</button>` : ""}
-      ${typeof copyLearningReport === "function" ? `<button class="cx-chip" onclick="copyLearningReport()">📋 Copy for Claude</button>` : ""}
+      ${list.length ? `<button class="cx-chip" onclick="cxJournalCopy()">📋 Copy my texts</button>` : ""}
     </div>
     ${list.length ? `<div class="cx-jlist">${list.map(e => { const p = cxJournalPrompt(e.p);
       return `<details class="cx-jentry ${e.c ? "done" : ""}"><summary><span class="cx-jd">${escapeHtml(fmtShortDate(e.d))}</span><span class="cx-jt">${escapeHtml(p ? p.de : e.p)}<small>${e.w} words · ${e.c ? "corrected ✓" : "to correct"}</small></span></summary>
@@ -494,7 +500,9 @@ function cxSecStatus(s) {
   const st = cxSecState(s.id) || {};
   if (st.st >= 3) return { k: "done", txt: st.to >= 0 && !(st.sh > 0) ? CX_ST_CHIP.tested : CX_ST_CHIP.done };
   if (st.st === 2) return { k: "now", txt: CX_ST_CHIP.sheet };
-  return { k: "now", txt: cxNextSections(1)[0] === s ? "Next — comes in Today" : "Ready" };
+  if (cxNextSections(1)[0] !== s) return { k: "now", txt: "Ready" };
+  const on = cxNextLessonDay();
+  return { k: "now", txt: on <= studyToday() ? "Next — comes in Today" : `Next — in Today on ${fmtShortDate(on)}` };
 }
 // One line: on track or not, and by when.
 function cxPlannerHtml() {
@@ -503,7 +511,7 @@ function cxPlannerHtml() {
   // At my own pace (the last 4 weeks), when it says something new.
   const mine = P.mine && P.left && P.status !== "none" ? (P.late ? ` · at your pace: ${fmtShortDate(P.eta)}` : "") : "";
   const line = P.status === "none" ? "Set a finish date (⚙️ Study plan) and the course plans its sheets to it"
-    : P.status === "green" ? `On track · ${P.left} sheets ahead · all passed by <b>${fmtShortDate(P.target)}</b>${mine}`
+    : P.status === "green" ? `On track · ${P.left} sheets ahead, a new one ${cxGap() === 1 ? "every day" : `every ${cxGap()} days`} · all passed by <b>${fmtShortDate(P.target)}</b>${mine}`
     : P.status === "amber" ? `Tight · ${P.left} sheets ahead · a sheet every day to pass them by <b>${fmtShortDate(P.target)}</b>${mine}`
     : `Behind · ${P.left} sheets ahead, ${Math.max(0, P.days)} days to <b>${fmtShortDate(P.target)}</b> — a second sheet every other day${P.need > 1.5 ? ", and still short: a later finish date" : ""}${mine}`;
   return `<div class="cx-plan ${P.status}">${dot} ${line}</div>`;
@@ -515,7 +523,7 @@ function renderCourse() {
   if (typeof gsClose === "function") gsClose();
   cxClose();
   migrateCourse();
-  const next = cxNextSections(1)[0];
+  const next = cxNextSections(1)[0], nextOn = cxNextLessonDay();
   const { fix, due } = cxDueRules();
   const learned = Object.keys(CX.rules).filter(cxRuleLearned).length;
   const openStage = next ? next.stage : 0;
@@ -531,7 +539,7 @@ function renderCourse() {
   }).join("");
   document.getElementById("main-screen").innerHTML = `<div class="screen grammar course">
     <div class="screen-top"><div class="screen-label">📖 Course</div>${backBtnHtml()}</div>
-    ${next ? `<button class="gr-next" onclick="renderCourseSection('${next.id}')" style="${cxStyle(next.stage)}"><span class="gr-next-k">📖 Next — it comes in Today</span><span class="gr-next-t">${escapeHtml(next.title)}</span></button>` : ""}
+    ${next ? `<button class="gr-next" onclick="renderCourseSection('${next.id}')" style="${cxStyle(next.stage)}"><span class="gr-next-k">📖 Next — ${nextOn <= studyToday() ? "it comes in Today" : `in Today on ${escapeHtml(fmtShortDate(nextOn))} (or open it now)`}</span><span class="gr-next-t">${escapeHtml(next.title)}</span></button>` : ""}
     ${cxPlannerHtml()}
     <div class="gr-sum">
       <div><b>${CX.sections.filter(s => cxSecStatus(s).k === "done").length}</b><span>/ ${CX.sections.length} sections</span></div>
@@ -546,7 +554,7 @@ function renderCourse() {
     </div>
     ${stages}
     <details class="gr-how"><summary>ℹ️ How the course works</summary>
-      <p><b>One section a day</b>, inside Today: a short test-out for the A1 basics (pass it and the section is done), else the sheet and its 3-question quiz, then the section's drill — 10 to 14 items climbing from picking to building and writing sentences.</p>
+      <p><b>Spread to your finish date</b>: a new section every few days, inside Today (the days between bring its reviews, mixed practice and writing). An earlier date brings them closer, a later one further apart; a break evens itself out. Each section: a short test-out for the A1 basics (pass it and the section is done), else the sheet and its 3-question quiz, then the section's drill — 10 to 14 items climbing from picking to building and writing sentences.</p>
       <p><b>Rules, not lists.</b> Each rule of a sheet is a review card on the same stages as your words. A miss names the rule, shows why, and sends it back to review; a rule is learned once it's right twice on separate days, and keeps coming back less and less.</p>
       <p><b>The book is the backbone</b>: every exercise of the grammar book is mirrored by a drill set of our own sentences, generated, or skipped on purpose — the 📚 book map shows where each one stands. Sections marked · arrive with the next build sessions; they already count in the plan.</p>
     </details>
@@ -719,9 +727,8 @@ function renderCourseChapter(ch) {
 function cxSettingsHtml() {
   if (typeof cxOn !== "function" || !cxOn()) return "";
   migrateCourse();
-  const P = cxPlanner(), dot = { green: "🟢", amber: "🟠", red: "🔴", none: "⚪" }[P.status];
-  return `${setChoiceHtml("⏱️", "Minutes a day in the app", "Grammar fits around your words: on a heavy day its reviews give way first, never the day's sheet.",
-      [30, 45, 60, 90].map(n => ({ label: n, on: S.course.mins === n, onclick: `cxSetMins(${n})` })), "")}
-    ${setNavHtml("📖", "Grammar course", `${dot} ${P.status === "none" ? "no finish date" : P.status === "green" ? "on track" : P.status === "amber" ? "tight" : "behind"} · ${P.left} sheets ahead${P.target ? ` · all passed by ${fmtShortDate(P.target)}` : ""}`, "closeSettings();showScreen('course')")}`;
+  const P = cxPlanner(), dot = { green: "🟢", amber: "🟠", red: "🔴", none: "⚪" }[P.status], g = cxGap();
+  const pace = P.status === "none" ? "a new sheet every day — set a finish date to spread them out"
+    : `a new sheet ${g === 1 ? "every day" : `every ${g} days`} · ${dot} ${P.status === "green" ? "on track" : P.status === "amber" ? "tight" : "behind"} · all passed by ${fmtShortDate(P.target)}`;
+  return setNavHtml("📖", "Grammar course", `Auto · ${pace} — set by your finish date`, "closeSettings();showScreen('course')");
 }
-function cxSetMins(n) { migrateCourse(); S.course.mins = n; saveState(); if (typeof logEvent === "function") logEvent("setting", { k: "cx_mins", v: n }); if (typeof renderSettingsPanel === "function") renderSettingsPanel(); }

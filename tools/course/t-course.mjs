@@ -323,7 +323,7 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
     const t = document.getElementById("main-screen").innerText;
     ok(/Good job — 3\d words/.test(t) && /learning log/.test(t), "saved: good job, it's in the learning log");
     const L = buildLearningReport();
-    ok(/## MY WRITING — please correct/.test(L) && /Ich heiße <b>Raul<\/b>/.test(L) && /"writing":\[\[/.test(L), "the learning log carries the text (and its JSON)");
+    ok(/## MY WRITING \(1 text since/.test(L) && /Please correct/.test(L) && /Ich heiße <b>Raul<\/b>/.test(L) && /"writing":\[\[/.test(L), "the learning log carries the text (and its JSON)");
     ok(/✍️1 \(3\d+w\)/.test(buildUsageReport()), "the usage report counts the text and its words");
     cxJournalDone();
     const m = document.getElementById("main-screen");
@@ -333,10 +333,12 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
   await page.evaluate(() => {
     document.querySelector(".cx-jentry").open = true;
     document.querySelector(".cx-jentry .g-sec-btn").click();
-    ok(/corrected ✓/.test(document.getElementById("main-screen").innerText) && !/MY WRITING/.test(buildLearningReport()), "ticked as corrected: it leaves the learning log");
+    const L2 = buildLearningReport();
+    ok(/corrected ✓/.test(document.getElementById("main-screen").innerText) && !/Please correct/.test(L2) && /Already corrected[^\n]*Über mich|Already corrected[^\n]*\d+w ✓/.test(L2), "ticked as corrected: kept, listed by date as corrected in the learning log");
+    ok(/Already corrected[\s\S]*Ich heiße <b>Raul<\/b>/.test(cxJournalCopyText()), "and ✍️ Copy my texts still has it in full");
   });
   await page.evaluate(() => { openSettings("menu"); ok(/Course/.test(document.getElementById("settings-panel").innerText) && !/Drills/.test(document.getElementById("settings-panel").innerText), "☰ has 📖 Course (Drills live inside it — one row, not two)"); closeSettings();
-    openSettingsPage("plan"); ok(/Grammar course/.test(document.getElementById("settings-panel").innerText) && /Minutes a day/.test(document.getElementById("settings-panel").innerText), "⚙️ Study plan shows the grammar plan and the minutes"); closeSettings(); });
+    openSettingsPage("plan"); ok(/Grammar course/.test(document.getElementById("settings-panel").innerText) && /Grammar course[\s\S]*set by your finish date/.test(document.getElementById("settings-panel").innerText) && !/Minutes a day/.test(document.getElementById("settings-panel").innerText), "⚙️ Study plan: the grammar pace, set by the finish date (no minutes to pick)"); closeSettings(); });
   const r = await page.evaluate(() => ({ log: __log, fails: __fails }));
   say(r, `screens · ${tag}`);
   if (errors.length) { console.log("ERRORS", errors.slice(0, 5)); fails++; }
