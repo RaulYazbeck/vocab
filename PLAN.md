@@ -359,12 +359,21 @@ What exists today and what is new:
 ## 10. Menu and screens
 
 - **Today** stays one button that runs the whole loop.
-- **📖 Course** (replaces 📐 Grammar): stages and sheets library · the
-  **book map** (31 chapters → sections, with level, status and coverage from
-  the blueprint) · drill any section.
-- **🧩 Drills:** weak rules · mixed practice · a chosen section.
+- **📖 Course** (replaces 📐 Grammar), built like the verb track's screens:
+  the next lesson · one line on the pace · the parts (A1 · A2 · B1 ·
+  Conversation · bonus) as cards → a part's numbered lessons → a lesson (its
+  sheet, one Practise card, its rules "in your reviews", the book chapters).
+  Words on screen: part · lesson · rule. The verb track keeps its own screens
+  (📐 Verbs), linked from the Course and shown in the parts at their level;
+  back always returns to where you came from.
+- **📚 By chapter:** the book's chapters, each with the lessons that teach it
+  and your progress. What each book exercise became (mirrored · generated ·
+  planned) is build data: `tools/course`, never on screen.
+- **🧩 Practise:** weak rules · mixed · one lesson.
+- **✍️ Writing:** a level (A1 · A2 · B1), a theme (13, one line per level,
+  or 🎲) and one Write button; my texts below, kept forever, copied for Claude.
 - **🎓 Exam** (Session 9): fide countdown, monthly mock, readiness hint.
-- **Plan settings:** the finish date (exists) and daily minutes.
+- **Plan settings:** the finish date (exists) sets the grammar pace.
 
 ---
 
@@ -392,13 +401,35 @@ Each session: a **new chat**, upload the files listed, paste the **shared
 prompt** + that session's line, build, test, push. After each session the
 learner tests in the app and brings the issues to the next one.
 
+**No chapter is guessed.** A session starts by checking the uploaded
+chapters against `node tools/course/session.mjs N`. If one is missing (for
+example chapter 5 in Session 2), Claude names the missing chapters and waits
+for them; it never writes a lesson or drill from a chapter it wasn't given.
+
+**No exercise is dropped between sessions.** Every lesson in
+`js/course/plan.js` names the session that builds it (`ses`), and
+`node tools/course/session.mjs N` derives what Session N uploads: the
+chapters of its lessons, plus every chapter holding an exercise planned for
+them. An exercise a session can't build yet (it belongs to another lesson)
+is marked `planned` with that lesson; the validator fails if that lesson's
+session is already done, or doesn't upload the exercise's chapter. Each
+session ends by raising `DONE` in `session.mjs`, which makes the validator
+demand that every exercise of the lessons built so far is covered (mirrored,
+generated, or skipped with a reason).
+
 ### Shared prompt (paste first, every session)
 
 > Read `PLAN.md` and `tools/book/blueprint.json` first; they hold the agreed
 > plan. This is **Session N of 9** (PLAN.md §12). I've uploaded this session's
-> book chapters: extract them with `pdftotext`, never commit book text, and
+> book chapters. **Before anything else**, run `node tools/course/session.mjs N`
+> and compare its list with what I uploaded: if a chapter is missing, stop and
+> tell me which ones — never build from a chapter you don't have, and never
+> invent its exercises. Then extract them with `pdftotext`, never commit book text, and
 > write our own sheets and drill items that mirror the blueprint's exercise
-> structure. Every section ends with at least one production drill. My
+> structure. Every section ends with at least one production drill. Every
+> exercise of the uploaded chapters gets a status; one left "planned" names
+> a lesson of a later session that uploads its chapter (no exercise dropped).
+> Raise `DONE` in `tools/course/session.mjs` to N before the checks. My
 > existing progress must stay intact. Follow CLAUDE.md, run the checks and
 > tests, then tell me exactly what was pushed and give me a short test checklist.
 > Issues from my last test: *(list, or "none")*
@@ -447,41 +478,41 @@ between new sheets, on mixed days, and on light days.
 
 ### Session 2 — Stage 0, the A1 sweep
 
-**Upload:** chapters 1, 2, 3, 4, 6, 7.
+**Upload:** chapters 1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 17, 28. *(from the course map: `node tools/course/session.mjs 2`)*
 **Builds:** the remaining 10 Stage 0 sheets with test-out quizzes and mirrored
 drills; links from the passed verb sheets to chapters 6, 8, 9, 10, 12; Stage 0 recap.
 **Test:** test-out — passing skips a sheet, missing schedules it.
 
 ### Session 3 — Stage 1A
 
-**Upload:** chapters 10, 12, 15, 28, 29, 30.
+**Upload:** chapters 5, 7, 10, 11, 12, 13, 14, 15, 28, 29. *(from the course map: `node tools/course/session.mjs 3`)*
 **Builds:** fronting / time–manner–place · niemand, nichts, nie · wer/wen/wem,
 welcher, was für · set responses and greetings · dative ×3 · contrast
 accusative vs dative · drills for pf2–pf6 (ch 10) and pr6 (ch 12).
 
 ### Session 4 — Stage 1B
 
-**Upload:** chapters 13, 14, 17, 18, 19, 23, appendix B.
+**Upload:** chapters 7, 11, 13, 14, 15, 17, 18, 19, 23, 29, appendix B. *(from the course map: `node tools/course/session.mjs 4`)*
 **Builds:** prepositions ×3 (accusative, dative, two-way) · contrast wo? vs
 wohin? · modal position · und/aber/oder/denn/sondern · weil/dass/wenn ·
 wissen vs kennen · reflexive pronouns · drills for pt21.
 
 ### Session 5 — Stage 1C
 
-**Upload:** chapters 2, 11, 20, 23, 24, appendix C.
+**Upload:** chapters 2, 11, 20, 23, 24, 31, appendix C. *(from the course map: `node tools/course/session.mjs 5`)*
 **Builds:** comparative and superlative · possessives and von + dative ·
 adjective endings ×3 · zu-infinitive ×2 · drills for fu1–fu2 · Stage 1 recap
 and checkpoint.
 
 ### Session 6 — Stage 2A
 
-**Upload:** chapters 13, 19, 20, 22, 23, 28, 29, appendix B.
+**Upload:** chapters 19, 20, 22, 23, 26, 28, 29, appendix B. *(from the course map: `node tools/course/session.mjs 6`)*
 **Builds:** conjunctions II ×2 · als/wenn/wann · indirect questions + dass vs
 ob · relative clauses ×3 · genitive ×2 · verb + preposition · wo-/da- compounds · adverbs.
 
 ### Session 7 — Stage 2B
 
-**Upload:** chapters 11, 16, 17, 24, 25, 26, 27, 29, appendix C.
+**Upload:** chapters 11, 16, 17, 25, 26, 27, 29, 31, appendix C. *(from the course map: `node tools/course/session.mjs 7`)*
 **Builds:** drills for pt22–pt24, pq1–pq2, k21–k25, pv1–pv4 · conditional
 sentences · *man* instead of the passive · modals in the Perfekt · lassen ·
 modal particles · short answers and emphasis · participles as adjectives ·
@@ -489,12 +520,12 @@ n-declension and adjectives as nouns · Stage 2 recap and checkpoint.
 
 ### Session 8 — Stage 3, conversation
 
-**Upload:** chapters 30, 31.
+**Upload:** chapters 30, 31. *(from the course map: `node tools/course/session.mjs 8`)*
 **Builds:** the 6 scenario units (dialogue, key phrases, drills, a writing prompt each).
 
 ### Session 9 — polish
 
-**Upload:** nothing.
+**Upload:** chapters 12, 21, 25, 26, 27. *(from the course map: `node tools/course/session.mjs 9`)*
 **Builds:** the monthly mock (mixed checkpoint across all stages) · 🎓 Exam
 screen · coverage report at 100 % (every blueprint exercise *mirrored*,
 *generated* or *skipped*) · the parked post-B1 list · fixes from testing.

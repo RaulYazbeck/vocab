@@ -2,13 +2,24 @@
 
 The grammar course (PLAN.md) lives in `js/course-de.js` (the model: registry,
 checker, the day's parts, the planner), `js/course-ui.js` (the drill runner and
-the 📖 Course / 🧩 Drills / 📚 book map screens) and its data in `js/course/`:
+the 📖 Course / 🧩 Practise / 📚 By chapter / ✍️ Writing screens) and its data in `js/course/`:
 
     js/course/plan.js          the skeleton: stages, chapters, every section in order
     js/course/s0-negation.js   a content pack: the pilot section "nicht or kein?"
-    js/course/writing.js       the writing journal's prompts (cxJournal)
+    js/course/writing.js       the writing themes (cxJournalThemes) and prompts (cxJournal)
 
 German app only (`de/index.html` loads them; the French app never does).
+
+## What a build session builds and uploads
+
+Every section in `plan.js` names its build session (`ses`). From that:
+
+    node session.mjs 3                # Session 3 — the chapters to upload, the lessons it builds
+
+At the end of a session, raise `DONE` in `session.mjs` to that session: the
+validator then requires every exercise of its chapters to be covered (mirrored,
+generated, skipped with a reason) — and every exercise still planned to point at
+a later session that uploads its chapter.
 
 ## Adding a section (every later build session)
 
@@ -39,7 +50,7 @@ German app only (`de/index.html` loads them; the French app never does).
    - Scenario units (Stage 3): a sheet holding the dialogue (`lines`), key phrases as
      rules, drill sets of kinds `order` (the conversation), `respond` and `type`, and a
      `write` set — no new code needed.
-   - Writing prompts tied to the section (optional): `cxJournal([{ id: "w.<name>", lv, de,
+   - Writing prompts tied to the section (optional): `cxJournal([{ id: "w.<name>", th, lv, de,
      t, help, sec: "<section id>" }])` — they open once the section is done. Free writing,
      never graded: saved to `S.writing` (kept forever, one cloud doc a year) and listed in the learning log for correction.
 2. Add its `<script>` tag to `de/index.html`, after `js/course/plan.js` and before
@@ -48,7 +59,7 @@ German app only (`de/index.html` loads them; the French app never does).
 
 ## Checks
 
-    node validate.mjs                 # the format, rules ↔ sheets, coverage (every exercise has a status,
+    node validate.mjs                 # the format, rules ↔ sheets, coverage (every exercise has a status and a session,
                                       # every line of the book's contents a lesson), the checker on every
                                       # answer, tiles, diagnosis, engine forms, one name per global
     BOOK=<dir> node validate.mjs      # + none of our sentences is a sentence of the book
@@ -58,7 +69,7 @@ German app only (`de/index.html` loads them; the French app never does).
                                       # npm install once in tools/audio/tests): progress intact,
                                       # Today with the course (test-out → sheet → drill, the count),
                                       # a test-out passed, every format and screen on phone + desktop,
-                                      # the book map, the French app untouched
+                                      # By chapter, back buttons, ✍️ Writing, the French app untouched
     node t-edge.mjs                   # edge cases: the real keyboard, ✕ mid-drill, HTML typed in, a damaged
                                       # state, Grandma / Speak mode, another device, the day rolling over, a peek
     node sim.mjs [--acc 0.6 --testout 0 --skip 0.3 --break 60:21 --late 150 --deadline 2027-12-15 --due 40:120]

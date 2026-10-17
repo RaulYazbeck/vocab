@@ -603,6 +603,7 @@ document.addEventListener("keydown", e => {
 function renderGrammar() {
   showGameScreen();
   gsClose();
+  window._cxSec = null; window._cxUnitFrom = null;
   migrateVerb();
   if (vxOn()) vxUnitsTick(true);
   const on = vxOn();
@@ -614,7 +615,7 @@ function renderGrammar() {
   const next = pend.length ? vxSheet(pend[0]) : null;
   const units = VX_UNITS.map(u => gsUnitRowHtml(u, scan)).join("");
   document.getElementById("main-screen").innerHTML = `<div class="screen grammar">
-    <div class="screen-top"><div class="screen-label">${vxT("📐 Grammar · Verbs")}</div>${backBtnHtml()}</div>
+    <div class="screen-top"><div class="screen-label">${vxT("📐 Grammar · Verbs")}</div>${window._cxFrom ? `<button class="back-btn" onclick="renderCourse()">← Course</button>` : backBtnHtml()}</div>
     <div class="gr-sum">
       <div><b>${on ? open : "—"}</b><span>${vxT("/ {0} tenses open", VX_UNITS.length)}</span></div>
       <div><b>${passed}</b><span>${vxT("/ {0} sheets", GS_SHEETS.length)}</span></div>
@@ -657,6 +658,10 @@ function renderGrammarUnit(id) {
   if (!u) return renderGrammar();
   showGameScreen();
   gsClose();
+  // Opened from a course lesson: back goes to that lesson (its sheets, from
+  // here, come back here).
+  if (window._cxSec) { window._cxUnitFrom = window._cxSec; window._cxSec = null; }
+  const from = window._cxUnitFrom && typeof renderCourseSection === "function" ? window._cxUnitFrom : null;
   const st = vxOn() ? vxUnitState(id) : 0;
   const ids = vxSheetIds(id);
   const rules = VX_RULES.filter(r => r.unit === id);
@@ -664,7 +669,7 @@ function renderGrammarUnit(id) {
   const known = items.filter(it => { const ws = S.words[vxKey(it.id)]; return ws && ws.st >= STAGE_KNOWN; }).length;
   const met = items.filter(it => { const ws = S.words[vxKey(it.id)]; return ws && ws.st; }).length;
   document.getElementById("main-screen").innerHTML = `<div class="screen grammar" style="${vxUnitStyle(id)}">
-    <div class="screen-top"><div class="screen-label">${vxT("📐 Grammar")}</div><button class="back-btn" onclick="renderGrammar()">${vxT("← Tenses")}</button></div>
+    <div class="screen-top"><div class="screen-label">${vxT("📐 Grammar")}</div>${from ? `<button class="back-btn" onclick="renderCourseSection('${from}')">← Lesson</button>` : `<button class="back-btn" onclick="renderGrammar()">${vxT("← Tenses")}</button>`}</div>
     <div class="gr-uhead"><span class="gr-sign big">${u.sign}</span><div><h2>${escapeHtml(u.name)}</h2><p>${escapeHtml(u.sub)}</p></div></div>
     ${st === 0 && vxOn() ? `<div class="set-note">${vxT("🔒 This tense opens {0}{1}. You can read its sheets now; passing every quiz opens it early.",
       vxUnitEta(u) ? vxT("around <b>{0}</b>", fmtShortDate(vxUnitEta(u))) : vxT("soon"),
@@ -713,10 +718,13 @@ function renderGrammarSheet(id) {
   const sh = vxSheet(id);
   if (!sh) return renderGrammar();
   showGameScreen();
+  // Opened from a course lesson: back goes to that lesson.
+  const sec = window._cxSec && typeof renderCourseSection === "function" ? window._cxSec : null;
+  const back = sec ? () => renderCourseSection(sec) : () => renderGrammarUnit(sh.unit);
   document.getElementById("main-screen").innerHTML = `<div class="screen grammar gs-screen">
-    <div class="screen-top"><div class="screen-label">${vxT("📐 Grammar")}</div><button class="back-btn" onclick="renderGrammarUnit('${sh.unit}')">← ${escapeHtml(VX_UNIT[sh.unit].name)}</button></div>
+    <div class="screen-top"><div class="screen-label">${vxT("📐 Grammar")}</div><button class="back-btn" onclick="${sec ? `renderCourseSection('${sec}')` : `renderGrammarUnit('${sh.unit}')`}">← ${sec ? "Lesson" : escapeHtml(VX_UNIT[sh.unit].name)}</button></div>
     <div id="gs-host"></div></div>`;
-  gsOpen(document.getElementById("gs-host"), id, { mode: "menu", onDone: () => renderGrammarUnit(sh.unit) });
+  gsOpen(document.getElementById("gs-host"), id, { mode: "menu", onDone: back });
   scrollPageTop();
   if (typeof logEvent === "function") logEvent("vx_open", { id, where: "menu" });
 }
