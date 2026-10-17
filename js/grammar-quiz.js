@@ -265,7 +265,9 @@ function gqPoints(sh) {
 }
 function gqPool(sh, at) { return (sh.quiz || []).filter(q => q.at === at); }
 // How many questions a sheet asks (fixed by the sheet).
+// A course sheet (course-de.js) asks qn of them: 3 drawn from 5+.
 function gqSheetSize(sh) {
+  if (sh.qn) return Math.min(sh.qn, gqPoints(sh).filter(at => gqPool(sh, at).length).length);
   const n = gqPoints(sh).reduce((s, at) => s + Math.min(gqPool(sh, at).length, (sh.qx && sh.qx[at]) || 1), 0);
   return Math.max(Math.min(GQ_MIN, (sh.quiz || []).length), Math.min(GQ_MAX, n));
 }
@@ -289,6 +291,10 @@ function gqDraw(sh, at, n, avoid, seen) {
 }
 function gqSheetQuiz(sh) {
   const avoid = new Set(), seen = new Set(), out = [];
+  if (sh.qn) {
+    shuffle(gqPoints(sh).slice()).forEach(at => { if (out.length < gqSheetSize(sh)) out.push(...gqDraw(sh, at, 1, avoid, seen)); });
+    return out;
+  }
   gqPoints(sh).forEach(at => out.push(...gqDraw(sh, at, (sh.qx && sh.qx[at]) || 1, avoid, seen)));
   // A short sheet still asks three: more from its fullest points.
   const target = gqSheetSize(sh);

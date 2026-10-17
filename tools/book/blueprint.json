@@ -2605,7 +2605,9 @@
  "c28": {
   "sections": [
    "Declarative sentences and word order",
+   "Negation",
    "Niemand, nichts, and niemals",
+   "Word order",
    "Interrogative sentences",
    "Interrogative words",
    "Wer",
@@ -2621,19 +2623,19 @@
    },
    {
     "id": "28.2",
-    "section": "Declarative sentences and word order",
+    "section": "Negation",
     "type": "negate",
     "items": 7
    },
    {
     "id": "28.3",
-    "section": "Declarative sentences and word order",
+    "section": "Negation",
     "type": "negate",
     "items": 7
    },
    {
     "id": "28.4",
-    "section": "Declarative sentences and word order",
+    "section": "Negation",
     "type": "negate",
     "items": 7
    },
@@ -2645,31 +2647,31 @@
    },
    {
     "id": "28.6",
-    "section": "Niemand, nichts, and niemals",
+    "section": "Word order",
     "type": "fill",
     "items": 7
    },
    {
     "id": "28.7",
-    "section": "Niemand, nichts, and niemals",
+    "section": "Word order",
     "type": "transform",
     "items": 5
    },
    {
     "id": "28.8",
-    "section": "Niemand, nichts, and niemals",
+    "section": "Word order",
     "type": "write-own",
     "items": 4
    },
    {
     "id": "28.9",
-    "section": "Niemand, nichts, and niemals",
+    "section": "Word order",
     "type": "compose",
     "items": 3
    },
    {
     "id": "28.10",
-    "section": "Niemand, nichts, and niemals",
+    "section": "Word order",
     "type": "write-own",
     "items": 3
    },

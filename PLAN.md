@@ -328,6 +328,30 @@ What exists today and what is new:
   (within what the date allows).
 - **If behind**, levers in order: two sheets on easy days → drop *Could* →
   sample drills instead of all → more minutes. *Must* is never cut.
+  *As built (Session 1 follow-up 2):* **the finish date sets the pace** —
+  no minutes to pick. The course's sheets still to learn are spread evenly
+  over the days left to the target (a new sheet every ⌊days ÷ sheets⌋ days,
+  1–7, recomputed daily), so they don't come every day until done and then
+  stop: the days between bring the reviews, mixed practice and writing. A
+  later date spaces them out, an earlier one brings them closer; a missed
+  sheet, a drill or a missed checkpoint carries on the next day anyway.
+  Simulated: the last section lands 1–6 days before the target with every
+  rhythm tried (30 % of days skipped, a 30-day break, a start 5–6 months
+  late, 15 Jul / 15 Aug / 15 Dec dates); every rule 🌳 Known by mid-August.
+  The gap counts *study days* (the days I open the app): my rhythm over
+  the last 4 weeks scales it, so coming every other day spaces sheets by
+  study days and still lands on the date. Mixed (contrast) days fall on the
+  days between sheets. A passed test-out takes its sheet and drill out of
+  today's plan. Verified (Session 1 follow-up 3): `sim.mjs --matrix` (39
+  runs, all pass) and `sim-app.mjs` (the real app, 150 days, ~29,000
+  answers: the count never grows, the plan is met on perfect days, state,
+  cloud docs and logs agree) — and the two-device sync with texts.
+  *Then, when behind:* tight (≤ 1 sheet a day needed) — the
+  contrast days bring a sheet too; behind — a second sheet every other day,
+  never while rules are failing (more than 8 to fix) or the reviews pile
+  past 90; past 1.5 a day the planner says to pick a later date. My own
+  pace (sheets a day over the last 4 weeks, days with nothing built not
+  counted) tells when I'd finish, and the planner shows it when it's late.
 - **Status** is shown next to the existing word planner: green / amber / red.
 
 ---
@@ -394,6 +418,32 @@ content:** the nicht vs kein section (sheet + drills mirroring 5.x and 28.2–28
 
 **Test:** the pilot appears in Today and in 📖 Course; a miss shows its rule;
 old progress and verb sheets are intact; the French app is unchanged.
+
+**Built (17 Oct 2026):** `js/course-de.js`, `js/course-ui.js`, `js/course/plan.js`
+(the whole skeleton, 73 sections), `js/course/s0-negation.js` (the pilot: 1 sheet,
+4 rules, 12 drill sets — 5•4–5•10, 28•2–28•4 mirrored, 5•1 generated, two
+production sets); the validator and tests in `tools/course` (README there says
+how a later session adds a section). The blueprint parser now also finds a
+heading right after an exercise (chapter 28's *Negation* and *Word order*).
+Not yet: easing new words in heavy grammar weeks (the planner trims the
+grammar block's review and writing first and brings two sheets on easy days).
+Verified the same day: a simulated year at full size (55 lesson sections,
+220 rules, 6,490 items) — every rule reaches 🌳 Known, ~12–15 grammar
+questions a day, 39–41 on the busiest; rule reviews get 6–30 a day (all the
+room a day without a new sheet leaves). Content kept to A1 words met.
+Follow-up the same week: the logs (usage report: per-day course column,
+course answers with their time; learning log: the course's misses with what
+I wrote → the right answer, its JSON); the planner follows my pace and the
+levers above (simulated: 30 % of days skipped, a 30-day break, a start 5–7
+months late); stage checkpoints and multi-sheet sections; the **writing
+journal** — `js/course/writing.js` (30 prompts, A1 30 words · A2 60 · B1 90,
+Swiss-life situations, some tied to a section), the day's writing part, a
+live word count, saved as written ("good job", always done, no score) to
+`S.writing` (one cloud doc a year, every text kept with its date, merged
+across devices) and listed in the learning log for Claude to correct (the
+corrected ones stay listed by date); ☰ › 📖 Course › ✍️ Writing shows them all,
+copies them all, and ticks a text as corrected. Writing comes on the days
+between new sheets, on mixed days, and on light days.
 
 ### Session 2 — Stage 0, the A1 sweep
 
@@ -483,3 +533,13 @@ screen · coverage report at 100 % (every blueprint exercise *mirrored*,
 - No dictation, no listening features, no Swiss notes.
 - Production drill required in every section; 8–10 hand-written items per mirrored exercise.
 - 9 build sessions, tested in between; Session 1 builds the system and pilots nicht vs kein.
+- Rules are review items `cx_<rule>` in `S.words` (same stages); a rule is learned at stage 2.
+- A Today session carries the grammar block as cards: warm-up, test-out, sheet and drill a third of the way in, reviews and writing two thirds in.
+- Writing is free and ungraded in the app: a prompt with a word minimum, saved for a tutor (Claude) to correct from the learning log; the drill sets' write/open items stay as model + checklist. Texts are never deleted.
+- The finish date is the only pace setting: grammar sheets are spread evenly to it (no "minutes a day" choice).
+- A drill's "write your own" is saved for Claude like the journal (one model line to compare; no checklist, no self-grading, no rule moves).
+- Post-B1 ("Could") sections aren't paced to the date: they come after the rest, one a week.
+- **Table-of-contents audit (Session 1 follow-up 4):** every line of the book's contents (243 headings + 8 chapter openings) is named by a lesson — taught there, in the verb track the lesson links to, or as part of it; the validator fails on any line without one. Most of the 79 lines that had no lesson were already covered (the verb track teaches the state passive, polite Konjunktiv II, modal forms, imperatives); real changes: conditionals and wishes got a second sheet (wenn-clauses · wishes and als ob), the impersonal passive joins *man*, *welcher* joins relative clauses. Order: Stage 1 now starts und/aber/denn early and takes accusative prepositions before the dative; possessives follow the dative prepositions (von + dative). Stage 2 brings Konjunktiv II and conditionals (fide speaking) and verb + preposition first; the genitive, participles and n-declension (*Should*) last.
+- Writing comes at least every 4 days. After a long time away (twice the gap), the next sheet comes at once.
+- Screens stay as light as the rest of the app: a miss is the answer with the fix marked, one line of why, the rule's name as a link to its sheet.
+- The word-order checker accepts the verb-second reordering of a time phrase and a pronoun subject by rule; other orders are listed per item; `fixed` sets accept only theirs.

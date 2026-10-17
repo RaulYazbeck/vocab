@@ -11,6 +11,9 @@
 //            plan made from the phone's old words): put right on open
 //   outdated the cloud was saved by newer sync rules than the phone runs:
 //            it reloads once, then writes nothing
+//   course   the web did the grammar course's pilot section and wrote a
+//            text yesterday; the phone, offline today, writes its own text,
+//            then syncs: both texts and the section on both devices
 // Every scenario also checks the web's other changes (a setting, the
 // daily goal, game data) survive the phone's old copy.
 //
@@ -24,7 +27,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(path.join(here, "../audio/tests/package.json"));
 const { chromium } = require("playwright-core");
 const BASE = process.env.BASE || "http://localhost:8765";
-const SCENARIOS = process.argv.slice(2).length ? process.argv.slice(2) : ["plain", "tap", "timeout", "offline", "repair", "outdated"];
+const SCENARIOS = process.argv.slice(2).length ? process.argv.slice(2) : ["plain", "tap", "timeout", "offline", "repair", "outdated", "course"];
 const DAY = 864e5;
 function chrome() {
   const root = process.env.PLAYWRIGHT_BROWSERS_PATH || "/opt/pw-browsers";
@@ -98,7 +101,8 @@ const snap = p => p.evaluate(() => {
   const plan = pathEnsurePlan();
   return { exp: S.exp, totalCorrect: S.totalCorrect, streak: getDailyStreak(), kept: S.quests.kept.slice(), qday: S.quests.day, qok: S.quests.m.ok,
     known, due, plan: plan && { day: plan.day, reviews: plan.reviews, leave: plan.leave, target: plan.target }, sessionLen: S.path.sessionLen,
-    other: { goal: S.dailyGoal, grandma: S.prefs.grandma, lastGame: S.games.lastGameId } };
+    other: { goal: S.dailyGoal, grandma: S.prefs.grandma, lastGame: S.games.lastGameId },
+    course: typeof cxJournalList === "function" ? { done: cxSecDone("s0.neg"), texts: cxJournalList().map(e => e.d + " " + e.t), rules: Object.keys(S.words).filter(k => /^cx_/.test(k)).length } : null };
 });
 // A day of study: every due word right in a Today session; the day kept.
 const study = (p, limit = 1e9) => p.evaluate(async limit => {
@@ -223,6 +227,31 @@ for (const sc of SCENARIOS) {
     });
     ok(alone === s.before.streak, `repair: from the synced day history alone (${alone})`);
     await s.web.ctx.close(); await s.phone.ctx.close();
+  } else if (sc === "course") {
+    await open(s.web, today10 - DAY + 10800e3);
+    await s.web.page.evaluate(() => {
+      cxPartBegin({ part: "testout", sec: "s0.neg" }); cxTestoutResult("s0.neg", 4, 8);
+      cxSheetResult("cx.neg1", 1, true, "path"); cxDrillDone("s0.neg", 10, 12);
+      cxJournalSave("w.me", "Ich heiße Raul und wohne in Zürich."); saveState();
+    });
+    await settle(s.web.page); await s.web.page.close(); s.web.page = null;
+    s.phone.failReads = true;
+    await open(s.phone, today10, { waitLoad: false, during: pg => pg.waitForFunction(() => typeof cxJournalSave === "function") });
+    await s.phone.page.waitForTimeout(1500);
+    await s.phone.page.evaluate(() => { cxJournalSave("w.day", "Am Morgen trinke ich Kaffee und fahre mit dem Tram."); saveState(); });
+    s.phone.failReads = false;
+    await s.phone.page.evaluate(() => resumeSync(true));
+    await s.phone.page.waitForFunction(() => initialLoadComplete && !loadInFlight, null, { timeout: 60000 });
+    await checkBoth(sc, s, (ph, wb) => {
+      for (const [who, x] of [["phone", ph], ["web", wb]]) {
+        ok(x.course && x.course.texts.length === 2 && x.course.texts.some(t => /Zürich/.test(t)) && x.course.texts.some(t => /Tram/.test(t)), `course: ${who} has both texts`, JSON.stringify(x.course));
+        ok(x.course && x.course.done && x.course.rules === 4, `course: ${who} has the section done and its 4 rules`, JSON.stringify(x.course));
+      }
+      const docs = Object.keys(s.cloud).filter(k => /_writing_/.test(k));
+      const n = docs.reduce((a, k) => a + JSON.parse(s.cloud[k]).wr.length, 0);
+      ok(docs.length >= 1 && n === 2, `course: the cloud holds both texts in the writing doc(s) (${docs.join(", ")})`);
+      ok(!/Zürich|Tram/.test(s.cloud.gv5_de), "course: no text in the main doc");
+    });
   } else if (sc === "outdated") {
     // newer sync rules saved the cloud
     const meta = JSON.parse(s.cloud.gv5_de); meta._p = 99; s.cloud.gv5_de = JSON.stringify(meta);

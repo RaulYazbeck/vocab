@@ -378,3 +378,104 @@
 .vd-miss .vx-answer { font-size:18px; text-align:left; margin:0; }
 .vd-act { display:flex; flex-direction:column; gap:9px; margin-top:14px; }
 .vd-act > * { width:100%; max-width:none; min-height:50px; }
+
+/* ── THE COURSE (course-ui.js) ─────────────────
+   The drill runner reuses the quiz's look (.gs-*); the screens reuse the
+   grammar screens' rows (.gr-*). A stage carries a hue like a tense. */
+.cx-gap { display:inline-block; min-width:2.6em; border-bottom:2px solid hsl(var(--th) 80% 66%); color:transparent; line-height:1.1; }
+.cx-hl { background:hsl(var(--th) 80% 55% / 0.28); color:inherit; border-radius:5px; padding:0 3px; box-shadow:0 0 0 1px hsl(var(--th) 80% 62% / 0.5); }
+.cx-how { font-size:13px; color:var(--text-2); margin:-4px 0 2px; }
+.cx-src { color:var(--text-3); }
+.cx-cue { display:flex; flex-wrap:wrap; gap:7px; margin:4px 0 2px; }
+.cx-cue .gs-chip { cursor:default; font-weight:700; }
+.cx-en { color:var(--text); }
+.cx-text { width:100%; min-height:84px; resize:vertical; font:inherit; font-size:16px; line-height:1.4; padding:11px 12px; }
+.cx-typeit { margin-left:auto; font-size:13px; }
+.cx-run .gs-qact { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+.cx-model, .cx-check { margin-top:10px; padding:10px 12px; border-radius:var(--r-sm); border:1px solid var(--border); background:rgba(255,255,255,0.04); display:flex; flex-direction:column; gap:6px; }
+.cx-model b, .cx-check b { font-size:12px; letter-spacing:0.4px; text-transform:uppercase; color:var(--text-3); }
+.cx-tick { display:flex; gap:8px; align-items:center; font-size:14px; color:var(--text-2); cursor:pointer; }
+.cx-tick input { width:18px; height:18px; accent-color:hsl(var(--th) 80% 60%); }
+.cx-rule { margin-top:10px; padding:10px 12px; border-radius:var(--r-sm); border:1px solid hsl(var(--th) 70% 60% / 0.4); background:hsl(var(--th) 70% 50% / 0.1); display:flex; flex-direction:column; gap:6px; }
+.cx-rule > b { color:hsl(var(--th) 88% 76%); font-size:14px; }
+.cx-diag { font-size:14.5px; color:var(--text); }
+.cx-rtext { font-size:13px; color:var(--text-2); line-height:1.45; }
+.cx-rule .gs-qsee { margin-top:2px; }
+.cx-also, .cx-note, .cx-move { font-size:13px; color:var(--text-2); margin-top:6px; }
+.cx-move { color:var(--teal-hi); }
+.cx-plan { padding:11px 13px; border-radius:var(--r-sm); margin-bottom:14px; border:1px solid var(--border); background:rgba(255,255,255,0.04); font-size:13.5px; line-height:1.45; display:flex; flex-direction:column; gap:5px; }
+.cx-plan small { color:var(--text-3); font-size:12px; }
+.cx-plan.green { border-color:rgba(46,204,113,0.4); }
+.cx-plan.amber { border-color:rgba(245,166,35,0.5); }
+.cx-plan.red { border-color:rgba(231,76,60,0.55); }
+.cx-links { display:flex; gap:8px; flex-wrap:wrap; margin:0 0 6px; }
+.cx-links .g-sec-btn { flex:1 1 auto; min-width:0; }
+.cx-stage { margin-bottom:9px; border-radius:var(--r); border:1px solid var(--border); background:rgba(255,255,255,0.03); padding:4px 10px 8px; }
+.cx-stage > summary { list-style:none; display:grid; grid-template-columns:38px 1fr auto; align-items:center; column-gap:11px; padding:8px 0; cursor:pointer; }
+.cx-stage > summary::-webkit-details-marker { display:none; }
+.cx-stage > summary .gr-sign { grid-row:auto; }
+.cx-sec.coming .gr-stt, .cx-sec.later .gr-stt { color:var(--text-2); }
+.cx-sec.coming .gr-due, .cx-sec.later .gr-due { background:rgba(255,255,255,0.05); color:var(--text-3); border-color:var(--border); }
+.cx-sec.done .gr-sn { background:var(--success-dim); color:var(--success); }
+.cx-sec .gr-sn { font-size:11px; }
+.gr-stt small { display:block; font-size:12px; font-weight:500; color:var(--text-3); margin-top:2px; }
+.cx-learned { color:var(--success) !important; }
+.cx-covsum { font-size:13px; color:var(--text-2); margin:4px 0 12px; }
+.cx-covsum b { color:var(--text); }
+.cx-bar { display:flex; height:5px; border-radius:3px; overflow:hidden; background:rgba(255,255,255,0.07); margin-top:6px; }
+.cx-bar i { display:block; height:100%; background:var(--success); }
+.cx-bar i.pl { background:rgba(245,166,35,0.55); }
+.cx-ch .gr-stt { flex:1; min-width:0; }
+.cx-bsec { margin:12px 0; }
+.cx-bh { font-weight:800; font-size:14.5px; margin-bottom:6px; }
+.cx-bh span { font-weight:500; font-size:12.5px; color:var(--text-2); }
+.cx-ex { display:grid; grid-template-columns:auto 1fr; gap:2px 10px; padding:8px 11px; margin-bottom:5px; border-radius:var(--r-sm); border:1px solid var(--border); background:rgba(255,255,255,0.03); font-size:13px; }
+.cx-ex > span:nth-child(2) { color:var(--text-3); }
+.cx-cov { grid-column:1 / -1; color:var(--text-2); }
+.cx-ex.mirrored, .cx-ex.generated { border-color:rgba(46,204,113,0.35); }
+.cx-ex.planned { border-color:rgba(245,166,35,0.3); }
+.cx-lines { flex-direction:column; align-items:stretch; }
+.cx-lines .gs-tok { text-align:left; }
+.cx-self { display:flex; gap:10px; width:100%; }
+.cx-self > * { flex:1; }
+.cx-typeit { margin:2px auto 0; font-size:13px; }
+/* the Course screen, compact: quiet rows for what's coming */
+.cx-plan { flex-direction:row; display:block; padding:9px 12px; font-size:13px; }
+.cx-chip { flex:1 1 0; min-width:0; padding:9px 6px; border-radius:var(--r-sm); border:1px solid var(--border); background:rgba(255,255,255,0.04);
+  color:var(--text); font:inherit; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap; }
+.cx-chip:hover { background:rgba(255,255,255,0.08); }
+.cx-links { margin:12px 0 14px; }
+.cx-stage .gr-sheets { gap:5px; }
+.cx-sec { min-height:44px; padding:9px 12px; font-size:14.5px; }
+.cx-sec.coming { min-height:0; padding:6px 12px; border-color:transparent; background:transparent; cursor:default; font-weight:600; }
+.cx-sec.coming .gr-sn { width:22px; height:22px; background:transparent; color:var(--text-3); }
+.cx-sec.coming .gr-stt { color:var(--text-3); }
+.cx-sec.now { border-color:hsl(var(--th) 70% 60% / 0.45); }
+.cx-sec.later .gr-sn { background:rgba(255,255,255,0.06); }
+.cx-sets > summary { cursor:pointer; color:var(--text-2); font-size:13.5px; font-weight:700; padding:6px 0 8px; }
+.cx-set { min-height:44px; padding:9px 12px; font-size:14px; }
+.gr-rule .cx-learned { color:var(--success); font-size:12px; }
+/* the writing journal */
+.cx-jtext { min-height:150px; }
+.cx-wc { font-size:13px; color:var(--text-3); text-align:right; margin:2px 2px 0; font-variant-numeric:tabular-nums; }
+.cx-wc.ok { color:var(--success); font-weight:700; }
+.cx-journal .g-big-btn:disabled { opacity:0.45; cursor:default; }
+.cx-jlist { display:flex; flex-direction:column; gap:6px; }
+.cx-jentry { border-radius:var(--r-sm); border:1px solid hsl(38 70% 60% / 0.4); background:rgba(255,255,255,0.03); padding:0 12px; }
+.cx-jentry.done { border-color:var(--border); }
+.cx-jentry > summary { list-style:none; display:flex; gap:12px; align-items:center; min-height:44px; padding:8px 0; cursor:pointer; font-weight:700; font-size:14.5px; }
+.cx-jentry > summary::-webkit-details-marker { display:none; }
+.cx-jd { flex:0 0 auto; font-size:12px; color:var(--text-3); font-weight:600; min-width:46px; }
+.cx-jt { flex:1; min-width:0; }
+.cx-jt small { display:block; font-size:12px; font-weight:500; color:var(--text-3); margin-top:2px; }
+.cx-jentry.done .cx-jt small { color:var(--success); }
+.cx-jbody { white-space:pre-wrap; font-size:14.5px; line-height:1.5; color:var(--text); padding:2px 0 10px; overflow-wrap:anywhere; }
+.cx-jentry .g-sec-btn { width:100%; margin:0 0 10px; }
+.cx-links { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); }
+@media (min-width:560px) { .cx-links.four { grid-template-columns:repeat(4, minmax(0, 1fr)); } }
+.cx-plan small { display:block; margin-top:3px; }
+/* a miss: the answer with the fix marked, why in one line, the rule a tap away */
+.cx-bad .p-diff { display:inline; margin:0; }
+.cx-why { font-size:14px; color:var(--text-2); margin-top:6px; line-height:1.45; }
+.cx-see { display:inline-block; margin-top:4px; font-size:13px; }
+.cx-rlist { margin:0 0 6px; padding-left:20px; font-size:14.5px; line-height:1.7; color:var(--text); }

@@ -51,7 +51,9 @@ def is_heading(lines, i):
         return False
     if not re.match(r"^[A-Za-zÄÖÜ]", t) or re.match(r"^(ich|du|er|wir|ihr|Sie|sie|man|wer|es)\b\s", t):
         return False
-    return i == 0 or not lines[i - 1].strip()
+    # After a blank line — or after an exercise's answer line (only
+    # underscores), which is where a heading right after an exercise sits.
+    return i == 0 or not lines[i - 1].strip() or re.fullmatch(r"[\s_]+", lines[i - 1]) is not None
 
 def chapter(text):
     lines = text.split("\n")
