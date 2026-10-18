@@ -361,14 +361,17 @@ What exists today and what is new:
 - **Today** stays one button that runs the whole loop.
 - **📖 Course** (replaces 📐 Grammar), built like the verb track's screens:
   the next lesson · one line on the pace · the parts (A1 · A2 · B1 ·
-  Conversation · bonus) as cards → a part's numbered lessons → a lesson (its
-  sheet, one Practise card, its rules "in your reviews", the book chapters).
+  Conversation · bonus) as cards that open their numbered lessons in place,
+  one part at a time → a lesson (its sheet, one Practise card, its rules "in
+  your reviews", the book chapters).
   Words on screen: part · lesson · rule. The verb track keeps its own screens
   (📐 Verbs), linked from the Course and shown in the parts at their level;
   back always returns to where you came from.
 - **📚 By chapter:** the book's chapters, each with the lessons that teach it
-  and your progress. What each book exercise became (mirrored · generated ·
-  planned) is build data: `tools/course`, never on screen.
+  and your progress, then its **Übungen** that have their drill, in the
+  book's order — each one runs on its own (to work along the book); the only
+  place a single exercise is picked. What each exercise became (mirrored ·
+  generated · planned) is build data: `tools/course`, never on screen.
 - **🧩 Practise:** weak rules · mixed · one lesson.
 - **✍️ Writing:** a level (A1 · A2 · B1), a theme (13, one line per level,
   or 🎲) and one Write button; my texts below, kept forever, copied for Claude.

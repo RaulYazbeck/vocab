@@ -471,3 +471,12 @@
 .cx-jgo { display:flex; width:100%; max-width:320px; margin:0 auto 20px; }
 .cx-jh { display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
 .cx-jh .tc-link { font-size:13px; }
+/* the Course: a part opens its lessons in place, one at a time */
+.cx-part { scroll-margin-top:12px; }
+.cx-pbody { display:grid; grid-template-rows:0fr; transition:grid-template-rows 0.28s var(--ease); }
+.cx-part.open .cx-pbody { grid-template-rows:1fr; }
+.cx-pin { overflow:hidden; min-height:0; }
+.cx-pin > .gr-sheets { padding:8px 0 4px 10px; opacity:0; transition:opacity 0.2s var(--ease); }
+.cx-part.open .cx-pin > .gr-sheets { opacity:1; transition-delay:0.08s; }
+.cx-part.open > .gr-unit { border-color:hsl(var(--th) 70% 60% / 0.45); }
+@media (prefers-reduced-motion: reduce) { .cx-pbody, .cx-pin > .gr-sheets { transition:none; } }

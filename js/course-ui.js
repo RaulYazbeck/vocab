@@ -512,7 +512,7 @@ function cxTodayHtml() {
 function cxSecStatus(s) {
   if (s.verb && s.verb.length) {
     const n = s.verb.filter(id => vxSheetPassed(id)).length;
-    return n === s.verb.length ? { k: "done", txt: "Done · in your verb track" } : { k: "verb", txt: `In your verb track · ${n}/${s.verb.length} sheets` };
+    return n === s.verb.length ? { k: "done", txt: "Done · in your verb track" } : { k: "verb", n, txt: `In your verb track · ${n}/${s.verb.length} sheets` };
   }
   if (!cxLearnable(s)) return { k: "coming", txt: "Coming soon" };
   const st = cxSecState(s.id) || {};
@@ -526,7 +526,6 @@ function cxSecStatus(s) {
 const CX_SEC_SIGN = { done: "✓", verb: "📐" };
 // Going back: to the Course, a part, a lesson.
 function cxBackHtml(to = "renderCourse()", label = "Course") { return `<button class="back-btn" onclick="${to}">← ${escapeHtml(label)}</button>`; }
-function cxPartLabel(stage) { const st = cxStage(stage); return st ? `${st.sign} · ${st.name}` : "Course"; }
 // One line: on track or not, and by when.
 function cxPlannerHtml() {
   const P = cxPlanner();
@@ -550,19 +549,45 @@ function cxPartEta(stage) {
   const d = addDays(cxNextLessonDay(), n * g);
   return d;
 }
+// A part's lessons, numbered, in order.
+function cxPartLessonsHtml(stage) {
+  return CX.sections.filter(s => s.stage === stage).map((s, i) => { const ss = cxSecStatus(s), sign = (s.checkpoint || s.kind === "recap") && ss.k !== "done" ? "🏁" : CX_SEC_SIGN[ss.k] || i + 1;
+    // not built yet: its title only, nothing to open
+    if (ss.k === "coming") return `<div class="gr-sheet cx-sec coming"><span class="gr-sn">${sign}</span><span class="gr-stt">${escapeHtml(s.title)}<small>${escapeHtml(ss.txt)}</small></span></div>`;
+    return `<button class="gr-sheet cx-sec ${ss.k}" onclick="renderCourseSection('${s.id}')"><span class="gr-sn">${sign}</span><span class="gr-stt">${escapeHtml(s.title)}<small>${escapeHtml(ss.txt)}</small></span>${ss.k === "now" && /Today/.test(ss.txt) ? `<span class="gr-due">in Today</span>` : `<span class="set-chev">›</span>`}</button>`; }).join("");
+}
+// A part: its card, and under it its lessons — opened in place, one part
+// at a time (the open one is kept while I go into a lesson and back).
 function cxPartRowHtml(st) {
   const secs = CX.sections.filter(s => s.stage === st.id), stat = secs.map(cxSecStatus);
-  const done = stat.filter(x => x.k === "done").length, now = stat.some(x => x.k === "now" || x.k === "verb");
+  const done = stat.filter(x => x.k === "done").length, now = stat.some(x => x.k === "now" || x.k === "verb" && x.n > 0);
   const chip = done === secs.length ? `<span class="gr-st solid">✅ Done</span>`
     : now || done ? `<span class="gr-st lesson">📖 ${done}/${secs.length} done</span>`
     : st.id === 4 ? `<span class="gr-st lock">✦ if time allows</span>`
     : `<span class="gr-st lock">🔒 ≈ ${fmtShortDate(cxPartEta(st.id))}</span>`;
-  return `<button class="gr-unit ${now || done ? "s1" : "s0"}" style="${cxStyle(st.id)}" onclick="renderCoursePart(${st.id})">
+  const open = window._cxOpenPart === st.id;
+  return `<div class="cx-part ${open ? "open" : ""}" id="cx-part-${st.id}" style="${cxStyle(st.id)}">
+    <button class="gr-unit ${now || done ? "s1" : "s0"}" aria-expanded="${open}" onclick="cxPartToggle(${st.id})">
     <span class="gr-sign">${escapeHtml(st.sign)}</span>
     <span class="gr-name">${escapeHtml(st.name)}<small>${secs.length} lessons</small></span>
     ${chip}
     <span class="gr-dots">${stat.map(x => `<i class="${x.k === "done" ? "on" : ""}"></i>`).join("")}</span>
-  </button>`;
+  </button>
+    <div class="cx-pbody" ${open ? "" : "inert"}><div class="cx-pin"><div class="gr-sheets">${cxPartLessonsHtml(st.id)}</div></div></div>
+  </div>`;
+}
+function cxPartToggle(id) {
+  const was = window._cxOpenPart;
+  window._cxOpenPart = was === id ? null : id;
+  document.querySelectorAll(".cx-part").forEach(el => {
+    const on = el.id === "cx-part-" + window._cxOpenPart;
+    el.classList.toggle("open", on);
+    const b = el.querySelector(".gr-unit"); if (b) b.setAttribute("aria-expanded", on);
+    const body = el.querySelector(".cx-pbody"); if (body) body.inert = !on;
+  });
+  // the part I opened stays in view while the other one closes above it
+  const el = window._cxOpenPart !== null && document.getElementById("cx-part-" + id);
+  if (el) setTimeout(() => { try { el.scrollIntoView({ block: "nearest", behavior: "smooth" }); } catch (e) {} }, 300);
 }
 function renderCourse() {
   if (typeof cxOn !== "function" || !cxOn()) { if (typeof renderGrammar === "function") renderGrammar(); return; }
@@ -595,27 +620,11 @@ function renderCourse() {
       <p><b>Your verbs</b> keep their own track (📐); its lessons show here at the right level.</p>
     </details>
   </div>`;
+  // back from a lesson: to its part, open where I left it
+  const back = window._cxScrollPart && document.getElementById("cx-part-" + window._cxOpenPart);
+  window._cxScrollPart = false;
+  if (back) back.scrollIntoView({ block: "start" }); else scrollPageTop();
   if (typeof logScreen === "function") logScreen("course");
-}
-// A part: its lessons, numbered, in order.
-function renderCoursePart(stage) {
-  const st = cxStage(stage);
-  if (!st) return renderCourse();
-  showGameScreen();
-  cxClose();
-  migrateCourse();
-  window._cxChap = null;
-  const secs = CX.sections.filter(s => s.stage === stage);
-  const done = secs.filter(s => cxSecStatus(s).k === "done").length;
-  document.getElementById("main-screen").innerHTML = `<div class="screen grammar course" style="${cxStyle(stage)}">
-    <div class="screen-top"><div class="screen-label">📖 Course</div>${cxBackHtml()}</div>
-    <div class="gr-uhead"><span class="gr-sign big">${escapeHtml(st.sign)}</span><div><h2>${escapeHtml(st.name)}</h2><p>${done} of ${secs.length} lessons done</p></div></div>
-    <div class="gr-sheets">${secs.map((s, i) => { const ss = cxSecStatus(s), sign = (s.checkpoint || s.kind === "recap") && ss.k !== "done" ? "🏁" : CX_SEC_SIGN[ss.k] || i + 1;
-      // not built yet: its title only, nothing to open
-      if (ss.k === "coming") return `<div class="gr-sheet cx-sec coming"><span class="gr-sn">${sign}</span><span class="gr-stt">${escapeHtml(s.title)}<small>${escapeHtml(ss.txt)}</small></span></div>`;
-      return `<button class="gr-sheet cx-sec ${ss.k}" onclick="renderCourseSection('${s.id}')"><span class="gr-sn">${sign}</span><span class="gr-stt">${escapeHtml(s.title)}<small>${escapeHtml(ss.txt)}</small></span>${ss.k === "now" && /Today/.test(ss.txt) ? `<span class="gr-due">in Today</span>` : `<span class="set-chev">›</span>`}</button>`; }).join("")}</div>
-  </div>`;
-  scrollPageTop();
 }
 // A rule: its title and where it stands.
 function cxRuleRowHtml(r) {
@@ -636,6 +645,7 @@ function renderCourseSection(id) {
   cxClose();
   migrateCourse();
   window._cxSec = null; window._cxUnitFrom = null; // set again by what it opens
+  if (!window._cxChap) { window._cxOpenPart = s.stage; window._cxScrollPart = true; }
   const ss = cxSecStatus(s), st = cxSecState(id) || {}, book = cxBookLine(s);
   let body = "";
   if (s.verb && s.verb.length) {
@@ -662,7 +672,7 @@ function renderCourseSection(id) {
         : `<div class="gr-unote">Each rule becomes a review card after the lesson:</div><ul class="cx-rlist">${s.rules.map(r => `<li>${escapeHtml(cxRule(r).title)}</li>`).join("")}</ul>`}`;
   }
   document.getElementById("main-screen").innerHTML = `<div class="screen grammar course" style="${cxStyle(s.stage)}">
-    <div class="screen-top"><div class="screen-label">📖 Course</div>${window._cxChap ? cxBackHtml(`renderCourseChapter('${window._cxChap}')`, window._cxChap.replace(/^c/, "Chapter ").replace(/^app/, "Appendix ")) : cxBackHtml(`renderCoursePart(${s.stage})`, cxPartLabel(s.stage))}</div>
+    <div class="screen-top"><div class="screen-label">📖 Course</div>${window._cxChap ? cxBackHtml(`renderCourseChapter('${window._cxChap}')`, window._cxChap.replace(/^c/, "Chapter ").replace(/^app/, "Appendix ")) : cxBackHtml()}</div>
     <div class="gr-uhead"><span class="gr-sign big">${escapeHtml(cxStage(s.stage).sign)}</span><div><h2>${escapeHtml(s.title)}</h2><p>${escapeHtml(ss.txt)}</p></div></div>
     ${body}
     ${book ? `<div class="gr-items">📚 In the book: ${escapeHtml(book)}</div>` : ""}
@@ -705,12 +715,15 @@ function renderCourseDrill(secId, setId, kind = "practice") {
     list = cxPracticePlan(secId, setId, set && set.gen ? 10 : 12);
     title = sec ? sec.title : "Grammar"; sub = set ? set.title : "Practise";
   }
-  const back = sec ? cxBackHtml(`renderCourseSection('${secId}')`, sec.title) : cxBackHtml("renderDrills()", "Practise");
+  // one exercise opened from its chapter goes back there
+  const chap = set && window._cxChap;
+  const back = chap ? cxBackHtml(`renderCourseChapter('${chap}')`, chap.replace(/^c/, "Chapter ").replace(/^app/, "Appendix "))
+    : sec ? cxBackHtml(`renderCourseSection('${secId}')`, sec.title) : cxBackHtml("renderDrills()", "Practise");
   document.getElementById("main-screen").innerHTML = `<div class="screen grammar gs-screen">
     <div class="screen-top"><div class="screen-label">🧩 Practise</div>${back}</div>
     <div id="cx-host"></div></div>`;
   const again = `() => renderCourseDrill(${secId ? `'${secId}'` : "null"}, ${setId ? `'${setId}'` : "null"}, '${kind}')`;
-  cxRun(document.getElementById("cx-host"), list, { mode: "menu", kind: kind === "checkpoint" ? "checkpoint" : "practice", sec: secId || "", title, sub, again: kind === "checkpoint" ? "" : again, onDone: () => { cxClose(); if (sec) renderCourseSection(secId); else renderDrills(); } });
+  cxRun(document.getElementById("cx-host"), list, { mode: "menu", kind: kind === "checkpoint" ? "checkpoint" : "practice", sec: secId || "", title, sub, again: kind === "checkpoint" ? "" : again, onDone: () => { cxClose(); if (chap) renderCourseChapter(chap); else if (sec) renderCourseSection(secId); else renderDrills(); } });
   scrollPageTop();
 }
 // 📖 Course › 🧩 Practise: weak rules · mixed · a lesson.
@@ -765,8 +778,23 @@ function renderCourseChapter(ch) {
     <div class="gr-sheets">${secs.map(s => { const ss = cxSecStatus(s), sign = ss.k === "done" ? "✓" : escapeHtml(cxStage(s.stage).sign), body = `<span class="gr-sn">${sign}</span><span class="gr-stt">${escapeHtml(s.title)}<small>${escapeHtml(ss.txt)}</small></span>`;
       return ss.k === "coming" ? `<div class="gr-sheet cx-sec coming" style="${cxStyle(s.stage)}">${body}</div>`
         : `<button class="gr-sheet cx-sec ${ss.k}" style="${cxStyle(s.stage)}" onclick="renderCourseSection('${s.id}')">${body}<span class="set-chev">›</span></button>`; }).join("")}</div>
+    ${cxChapterExercisesHtml(ch)}
   </div>`;
   scrollPageTop();
+}
+// The book's exercises of a chapter that have their drill, in the book's
+// order: one runs on its own (to work along the book). A drill standing for
+// two exercises shows both numbers; one not built yet isn't listed.
+function cxChapterExercisesHtml(ch) {
+  const n = ch.replace(/^c/, ""), key = ex => ex.split(".").map(Number);
+  const rows = Object.values(CX.sets).map(set => {
+    const sec = cxSection(set.sec), nums = [set.ex, ...(set.also || [])].filter(ex => ex && ex.split(".")[0] === n);
+    return sec && nums.length && (sec.built || cxLearnable(sec)) ? { set, nums } : null;
+  }).filter(Boolean).sort((a, b) => { const x = key(a.nums[0]), y = key(b.nums[0]); return x[0] - y[0] || x[1] - y[1]; });
+  if (!rows.length) return "";
+  return `<div class="gr-h">Übungen</div>
+    <div class="gr-sheets">${rows.map(({ set, nums }) => { const d = (S.course.ds || {})[set.id] || [], pct = d[1] ? Math.round(d[0] / d[1] * 100) : null;
+      return `<button class="gr-sheet cx-ex" style="${cxSecStyle(set.sec)}" onclick="renderCourseDrill('${set.sec}', '${set.id}')"><span class="gr-sn">🧩</span><span class="gr-stt">${escapeHtml(nums.join(" · "))} · ${escapeHtml(set.title)}<small>${escapeHtml(set.how || "")}</small></span>${pct !== null ? `<span class="gr-sc">${pct}%</span>` : `<span class="set-chev">›</span>`}</button>`; }).join("")}</div>`;
 }
 
 // ── SETTINGS: the grammar plan ────────────────

@@ -308,8 +308,20 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
     const back = document.querySelector(".screen-top .back-btn");
     ok(/Chapter 28/.test(back.textContent), `a lesson opened from a chapter goes back to it (${back.textContent})`);
     back.click(); ok(/teach it/.test(document.getElementById("main-screen").innerText), "back: the chapter");
-    renderCourse(); renderCourseSection("s0.neg");
-    ok(/The basics/.test(document.querySelector(".screen-top .back-btn").textContent), "from the Course: back goes to its part");
+    // the Course: a part opens its lessons in place, one part at a time
+    showScreen("course");
+    const parts = () => [...document.querySelectorAll(".cx-part")].map(p => p.classList.contains("open") ? 1 : 0).join("");
+    ok(parts() === "00000" && document.querySelector(".cx-part .cx-pbody").inert, `the Course opens with the parts closed (${parts()})`);
+    document.querySelector("#cx-part-0 .gr-unit").click();
+    ok(parts() === "10000" && /nicht or kein/.test(document.getElementById("cx-part-0").innerText) && /parts, in the order/i.test(document.getElementById("main-screen").innerText), "A1 opens in place: its lessons under it, still the Course");
+    document.querySelector("#cx-part-1 .gr-unit").click();
+    ok(parts() === "01000" && document.querySelector("#cx-part-0 .cx-pbody").inert, "A2 opens, A1 closes");
+    document.querySelector("#cx-part-1 .gr-unit").click(); ok(parts() === "00000", "a tap on the open part closes it");
+    document.querySelector("#cx-part-0 .gr-unit").click();
+    document.querySelector("#cx-part-0 button.cx-sec").click();
+    const lb = document.querySelector(".screen-top .back-btn");
+    ok(/Course/.test(lb.textContent), `a lesson goes back to the Course (${lb.textContent})`);
+    lb.click(); ok(parts() === "10000", "back from a lesson: its part still open");
     renderCourse(); renderGrammar();
     const gb = document.querySelector(".screen-top .back-btn"); ok(/Course/.test(gb.textContent), `📐 Verbs from the Course: back goes to the Course (${gb.textContent})`);
     gb.click(); ok(/parts, in the order/i.test(document.getElementById("main-screen").innerText), "back: the Course");
@@ -318,12 +330,22 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
     renderCourseSection("s0.verbs"); document.querySelector(".gr-mastery").click();
     ok(/Lesson/.test(document.querySelector(".screen-top .back-btn").textContent), "its tense in the verb track: back goes to the lesson");
     document.querySelector(".gr-sheet").click(); ok(!/Lesson/.test(document.querySelector(".screen-top .back-btn").textContent), "a sheet opened from the tense goes back to the tense");
-    renderCoursePart(0);
+    renderCourse();
     ok(document.querySelectorAll(".cx-sec.coming").length > 0 && !document.querySelector("button.cx-sec.coming") && /🏁/.test(document.getElementById("main-screen").innerText), "a part: lessons not built yet are quiet rows (nothing to open), the checkpoint flagged");
     { const keep = { ...S.verb.sh }; S.verb.sh.pr6 = 90; renderCourse();
       const a2 = [...document.querySelectorAll(".gr-unit")][1].innerText; S.verb.sh = keep;
       ok(/1\/\d+ done/.test(a2) && !/🔒/.test(a2), `a part with a lesson done in the verb track says so, not locked (${a2.replace(/\n/g, " ")})`); }
     showScreen("grammar"); ok(!/Course/.test(document.querySelector(".screen-top .back-btn").textContent), "📐 opened on its own: back as before");
+    // 📚 a chapter's Übungen: each one on its own, back to the chapter
+    renderCourseChapter("c5");
+    const exs = [...document.querySelectorAll(".cx-ex .gr-stt")].map(b => b.innerText.split(" · ")[0]);
+    ok(exs.join() === "5.1,5.4,5.5,5.6,5.7,5.8,5.9,5.10" && /5\.1 · 5\.3 · /.test(document.getElementById("main-screen").innerText), `chapter 5: its Übungen with drills, in the book's order (${exs})`);
+    ok(!/\b5\.2\b|\b5\.11\b|planned|mirrored|generated/.test(document.getElementById("main-screen").innerText), "not built yet: not listed; no build labels");
+    document.querySelectorAll(".cx-ex")[1].click();
+    ok(_cx && _cx.list.every(e => e.set === "d5.4") && /Chapter 5/.test(document.querySelector(".screen-top .back-btn").textContent), "Übung 5.4 runs on its own; back goes to chapter 5");
+    _cx.opts.onDone(); ok(document.querySelectorAll(".cx-ex").length === 8 && /Chapter 5/.test(document.querySelector(".screen-label").textContent), "done: back on the chapter");
+    renderCourseChapter("c28");
+    ok([...document.querySelectorAll(".cx-ex .gr-stt")].map(b => b.innerText.split(" · ")[0]).join() === "28.2,28.3,28.4", "chapter 28: 28.2–28.4");
     renderCourseChapter("c5");
   });
   await noOverflow("chapter");
