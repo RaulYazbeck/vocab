@@ -486,3 +486,9 @@
 .cx-due { font-size:13px; padding:4px 10px; border-radius:14px; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--text); }
 .cx-due.fix { border-color:hsl(38 70% 60% / 0.5); }
 .cx-due.more { color:var(--text-3); }
+/* 🧩 Practise: three rows; ✅ Due today: the number, one button */
+.cx-prow.off { opacity:0.55; cursor:default; }
+.cx-plink { display:block; margin:14px auto 0; font-size:13px; }
+.cx-dnum { text-align:center; font-size:44px; font-weight:900; line-height:1; margin:8px 0 14px; color:hsl(38 85% 65%); }
+.cx-chmix { margin-bottom:8px; }
+.gr-sheets .cx-dues-btn { margin-bottom:0; }

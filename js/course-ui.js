@@ -359,7 +359,7 @@ function renderPathCx(it) {
   if (list.length < it.qn) { it.qn = list.length; pathProgress(); }
   const t = cxPartTitle(it);
   cxRun(host, list, { mode: "path", kind: it.part === "review" && it.contrast ? "contrast" : it.part, sec: it.sec, title: t.title, sub: t.sub, it,
-    // (📚 My dues: its answers count like the words' reviews — not against
+    // (✅ Due today: its answers count like the words' reviews — not against
     // the share Today's own review card keeps for the plan)
     partKey: it.dues ? "" : it.part + ":" + (it.sec || ""), onDone: () => { cxPartDone(it); cxClose(); pathNext(); } });
 }
@@ -708,6 +708,12 @@ function renderCourseDrill(secId, setId, kind = "practice") {
     const avoid = new Set();
     list = [...new Set(weak)].slice(0, 12).map(r => { const e = cxReviewFor(r, avoid); if (e) avoid.add(e.set + "#" + e.i); return e; }).filter(Boolean);
     sub = "Your weak rules";
+  } else if (kind === "chapter") {
+    // 🔀 a chapter's Übungen mixed: a few from each, 12 in all
+    const sets = cxChapterSets(window._cxChap).map(r => r.set);
+    sets.forEach(st => list.push(...cxSetPick(st, Math.ceil(12 / Math.max(1, sets.length)) + 1)));
+    list = shuffle(list).slice(0, 12);
+    title = CX.chapters[window._cxChap] || "Grammar"; sub = "This chapter's Übungen, mixed";
   } else if (kind === "mixed") {
     const done = CX.sections.filter(s => s.built && s.sheets.length && (cxSecDone(s.id) || cxSheetPassed(s.sheets[0])));
     done.forEach(s => list.push(...cxDrillPlan(s.id, 6).filter(e => !["write", "open"].includes(cxItemKind(cxSet(e.set), e.item)))));
@@ -718,7 +724,7 @@ function renderCourseDrill(secId, setId, kind = "practice") {
     title = sec ? sec.title : "Grammar"; sub = set ? set.title : "Practise";
   }
   // one exercise opened from its chapter goes back there
-  const chap = set && window._cxChap;
+  const chap = (set || kind === "chapter") && window._cxChap;
   const back = chap ? cxBackHtml(`renderCourseChapter('${chap}')`, chap.replace(/^c/, "Chapter ").replace(/^app/, "Appendix "))
     : sec ? cxBackHtml(`renderCourseSection('${secId}')`, sec.title) : cxBackHtml("renderDrills()", "Practise");
   document.getElementById("main-screen").innerHTML = `<div class="screen grammar gs-screen">
@@ -728,7 +734,9 @@ function renderCourseDrill(secId, setId, kind = "practice") {
   cxRun(document.getElementById("cx-host"), list, { mode: "menu", kind: kind === "checkpoint" ? "checkpoint" : "practice", sec: secId || "", title, sub, again: kind === "checkpoint" ? "" : again, onDone: () => { cxClose(); if (chap) renderCourseChapter(chap); else if (sec) renderCourseSection(secId); else renderDrills(); } });
   scrollPageTop();
 }
-// 📖 Course › 🧩 Practise: weak rules · mixed · a lesson.
+// 📖 Course › 🧩 Practise: three rows that never grow — ✅ today's dues
+// (closed at 0), 📏 weak spots, 🔀 mixed. One lesson or one Übung: its
+// chapter (📚 By chapter) or its lesson page.
 function renderDrills() {
   if (typeof cxOn !== "function" || !cxOn()) return;
   showGameScreen();
@@ -737,69 +745,66 @@ function renderDrills() {
   const weak = Object.keys(CX.rules).filter(r => { const ws = cxRuleWS(r); return ws && ws.st && !cxRuleLearned(r); });
   const { fix, due } = cxDueRules();
   const nWeak = new Set([...weak, ...fix, ...due]).size;
-  const secs = CX.sections.filter(s => s.built && s.sets.length && s.sheets.length);
-  const anyDone = secs.some(s => cxSecDone(s.id) || cxSheetPassed(s.sheets[0]));
-  const D = typeof pathDues === "function" ? pathDues() : null, dn = k => D ? D[k].fix.length + D[k].due.length : 0;
-  const duesLine = D && D.n ? [dn("words") && `${dn("words")} word${dn("words") > 1 ? "s" : ""}`, dn("verbs") && `${dn("verbs")} verb${dn("verbs") > 1 ? "s" : ""}`, dn("rules") && `${dn("rules")} rule${dn("rules") > 1 ? "s" : ""}`].filter(Boolean).join(" · ") : "nothing due right now";
+  const anyDone = CX.sections.some(s => s.built && s.sheets.length && (cxSecDone(s.id) || cxSheetPassed(s.sheets[0])));
+  const D = pathDues(), dn = k => D[k].fix.length + D[k].due.length;
+  const parts = [["🌱", dn("words")], ["📐", dn("verbs")], ["📏", dn("rules")]].filter(x => x[1]).map(x => `${x[0]} ${x[1]}`).join("  ");
+  const row = (ico, title, sub, go, on) => `<button class="gr-sheet cx-prow ${on ? "" : "off"}" ${on ? `onclick="${go}"` : "disabled"}><span class="gr-sn">${ico}</span><span class="gr-stt">${title}<small>${sub}</small></span>${on ? `<span class="set-chev">›</span>` : ""}</button>`;
   document.getElementById("main-screen").innerHTML = `<div class="screen grammar course">
     <div class="screen-top"><div class="screen-label">🧩 Practise</div>${cxBackHtml()}</div>
-    ${D ? `<button class="gr-mastery cx-dues-btn" style="${cxStyle(0)}" onclick="renderDues()"><span class="gr-m-ico">📚</span><span class="gr-m-t"><b>My dues${D.n ? ` · ${D.n}` : ""}</b><small>${duesLine}</small></span><span class="set-chev">›</span></button>` : ""}
-    <div class="gr-unote">Outside your daily plan, as much as you like. A rule that's due moves just as in Today.</div>
     <div class="gr-sheets">
-      <button class="gr-sheet" ${nWeak ? `onclick="renderCourseDrill(null,null,'weak')"` : "disabled"}><span class="gr-sn">📏</span><span class="gr-stt">Weak rules<small>${nWeak ? `${nWeak} not holding yet` : "none right now"}</small></span><span class="set-chev">›</span></button>
-      <button class="gr-sheet" ${anyDone ? `onclick="renderCourseDrill(null,null,'mixed')"` : "disabled"}><span class="gr-sn">🔀</span><span class="gr-stt">Mixed<small>${anyDone ? "from every lesson you've done" : "after your first lesson"}</small></span><span class="set-chev">›</span></button>
+      ${D.n ? `<button class="gr-mastery cx-dues-btn" style="${cxStyle(0)}" onclick="renderDues()"><span class="gr-m-ico">✅</span><span class="gr-m-t"><b>Due today · ${D.n}</b><small>${parts}</small></span><span class="set-chev">›</span></button>`
+        : row("✅", "Due today", "✓ Done for today", "", false)}
+      ${row("📏", "Weak spots", nWeak ? `${nWeak} rule${nWeak > 1 ? "s" : ""} you keep missing` : "none right now", "renderCourseDrill(null,null,'weak')", nWeak)}
+      ${row("🔀", "Mixed", anyDone ? "all you've learned" : "after your first lesson", "renderCourseDrill(null,null,'mixed')", anyDone)}
     </div>
-    <div class="gr-h">One lesson</div>
-    <div class="gr-sheets">${secs.map(s => `<button class="gr-sheet" onclick="renderCourseDrill('${s.id}')"><span class="gr-sn">${escapeHtml(cxStage(s.stage).sign)}</span><span class="gr-stt">${escapeHtml(s.title)}<small>12 questions</small></span><span class="set-chev">›</span></button>`).join("")}</div>
+    <button class="tc-link cx-plink" onclick="renderCourseBook()">📚 One lesson or Übung → By chapter</button>
   </div>`;
   if (typeof logScreen === "function") logScreen("drills");
 }
 
-// 🧩 Practise › 📚 My dues: everything due today — words, verbs, grammar
-// rules — listed, and one button that drills just those (the ones to fix
-// first). It counts like Today: every answer moves its item.
-function cxDueChips(list, label, max = 40) {
+// ✅ Due today: today's share of what's due, listed, and one button that
+// drills just those (the ones to fix first). Answers count like Today's.
+function cxDueChips(list, max = 40) {
   const chips = list.slice(0, max).map(([txt, fix]) => `<span class="cx-due ${fix ? "fix" : ""}">${fix ? "🩹 " : ""}${escapeHtml(txt)}</span>`).join("");
-  return chips + (list.length > max ? `<span class="cx-due more">+${list.length - max} more</span>` : "");
+  return chips + (list.length > max ? `<span class="cx-due more">+${list.length - max}</span>` : "");
 }
 function renderDues() {
-  if (typeof pathDues !== "function") return renderDrills();
   showGameScreen();
   cxClose();
   const D = pathDues(), cap = PATH.SESSION_LENGTHS.long;
+  if (!D.n) return renderDrills();
   const words = [...D.words.fix.map(x => [x.d.words[x.i].de, 1]), ...D.words.due.map(x => [x.d.words[x.i].de, 0])];
   const vlabel = it => it.rule && typeof VX_RULE !== "undefined" && VX_RULE[it.rule] ? VX_RULE[it.rule].title
     : `${(it.x && it.x.inf) || ""} · ${(typeof VX_ITEM_KINDS !== "undefined" && VX_ITEM_KINDS[it.kind] && VX_ITEM_KINDS[it.kind].title) || it.kind}`;
   const verbs = [...D.verbs.fix.map(x => [vlabel(x.it), 1]), ...D.verbs.due.map(x => [vlabel(x.it), 0])];
   const rules = [...D.rules.fix.map(r => [cxRule(r).title, 1]), ...D.rules.due.map(r => [cxRule(r).title, 0])];
-  const group = (ico, name, list) => list.length ? `<div class="gr-h">${ico} ${name} · ${list.length}</div><div class="cx-dues">${cxDueChips(list)}</div>` : "";
-  const fixN = D.words.fix.length + D.verbs.fix.length + D.rules.fix.length;
+  const group = (ico, list) => list.length ? `<div class="gr-h">${ico} ${list.length}</div><div class="cx-dues">${cxDueChips(list)}</div>` : "";
+  const n = Math.min(D.n, cap), len = n <= PATH.SESSION_LENGTHS.quick ? "quick" : n <= PATH.SESSION_LENGTHS.regular ? "regular" : "long";
   document.getElementById("main-screen").innerHTML = `<div class="screen grammar course">
-    <div class="screen-top"><div class="screen-label">📚 My dues</div>${cxBackHtml("renderDrills()", "Practise")}</div>
-    ${D.n ? `<div class="cx-jnext"><b>${D.n} due today</b>${fixN ? `${fixN} to fix (🩹) ${fixN > 1 ? "come" : "comes"} first. ` : ""}${D.n > cap ? `A round drills ${cap}; the rest stay here for the next one.` : "One round drills them all."}</div>
-      <button class="g-big-btn cx-jgo" onclick="startPathSession('${Math.min(D.n, cap) <= PATH.SESSION_LENGTHS.quick ? "quick" : Math.min(D.n, cap) <= PATH.SESSION_LENGTHS.regular ? "regular" : "long"}', { focus: 'dues' })">Drill my dues ▶</button>
-      ${group("🌱", "Words", words)}${group("📐", "Verbs", verbs)}${group("📏", "Grammar rules", rules)}`
-      : `<div class="cx-jnext"><b>✓ Nothing due</b>Everything is reviewed for today — come back tomorrow, or practise from the list before.</div>`}
+    <div class="screen-top"><div class="screen-label">✅ Due today</div>${cxBackHtml("renderDrills()", "Practise")}</div>
+    <div class="cx-dnum">${D.n}</div>
+    <button class="g-big-btn cx-jgo" onclick="startPathSession('${len}', { focus: 'dues' })">Drill ${D.n > cap ? cap : "them"} ▶</button>
+    ${group("🌱", words)}${group("📐", verbs)}${group("📏", rules)}
   </div>`;
   scrollPageTop();
   if (typeof logScreen === "function") logScreen("dues");
 }
 
-// 🗺️ Journey: the course in a few lines — lessons done, rules, the pace.
+// 🗺️ Journey: the course in a few words — lessons done, the pace, and
+// the next 7 days with the lesson days lit (≈, coming every day).
 function cxJourneyHtml() {
   if (typeof cxOn !== "function" || !cxOn()) return "";
   migrateCourse();
   const P = cxPlanner(), total = CX.sections.length, done = CX.sections.filter(s => cxSecStatus(s).k === "done").length;
-  const started = Object.keys(CX.rules).filter(r => (cxRuleWS(r) || {}).st).length, learned = Object.keys(CX.rules).filter(cxRuleLearned).length;
-  const { fix, due } = cxDueRules(), next = cxNextSections(1)[0], on = cxNextLessonDay();
   const dot = { green: "🟢 on track", amber: "🟠 tight", red: "🔴 behind", none: "" }[P.status];
+  const days = cxForecastDays(7);
+  const wd = d => new Date(d + "T12:00").toLocaleDateString("en-GB", { weekday: "short" });
   return `<div class="jl jl-cx" role="button" tabindex="0" onclick="showScreen('course')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showScreen('course')}">
-    <div class="jl-head"><span class="jl-name">📖 Grammar course</span><span class="jl-pct">${done} / ${total} lessons</span></div>
-    <div class="jl-bar"><i style="width:${Math.round(done / Math.max(1, total) * 100)}%"></i></div>
-    <div class="jl-left">${started ? `${learned} of ${started} rules learned${fix.length + due.length ? ` · 📏 ${fix.length + due.length} due` : ""}` : "Each rule becomes a review card after its lesson"}</div>
-    <div class="jl-eta">${next ? `Next lesson: <b>${on <= studyToday() ? "today" : escapeHtml(fmtShortDate(on))}</b> · ` : "The next lessons arrive with the next update · "}${P.target ? `all done by <b>${escapeHtml(fmtShortDate(P.target))}</b>${dot ? ` · ${dot}` : ""}` : "set a finish date to pace it"}</div>
+    <div class="jl-head"><span class="jl-name">📖 Grammar</span><span class="jl-pct">${done}/${total}${dot ? ` · ${dot}` : ""}</span></div>
+    <div class="cx-week">${days.map(x => `<span class="cx-wday ${x.lesson ? "on" : ""}" title="${x.lesson ? "a lesson" : ""}">${wd(x.d)}<b>${+x.d.slice(8)}</b><i>${x.lesson ? "📖" : ""}</i></span>`).join("")}</div>
   </div>`;
 }
+
 
 // ── 📚 BY CHAPTER ─────────────────────────────
 // The book's chapters, each with the lessons that teach it and where you
@@ -836,14 +841,18 @@ function renderCourseChapter(ch) {
 // The book's exercises of a chapter that have their drill, in the book's
 // order: one runs on its own (to work along the book). A drill standing for
 // two exercises shows both numbers; one not built yet isn't listed.
-function cxChapterExercisesHtml(ch) {
-  const n = ch.replace(/^c/, ""), key = ex => ex.split(".").map(Number);
-  const rows = Object.values(CX.sets).map(set => {
+function cxChapterSets(ch) {
+  const n = String(ch || "").replace(/^c/, ""), key = ex => ex.split(".").map(Number);
+  return Object.values(CX.sets).map(set => {
     const sec = cxSection(set.sec), nums = [set.ex, ...(set.also || [])].filter(ex => ex && ex.split(".")[0] === n);
     return sec && nums.length && (sec.built || cxLearnable(sec)) ? { set, nums } : null;
   }).filter(Boolean).sort((a, b) => { const x = key(a.nums[0]), y = key(b.nums[0]); return x[0] - y[0] || x[1] - y[1]; });
+}
+function cxChapterExercisesHtml(ch) {
+  const rows = cxChapterSets(ch);
   if (!rows.length) return "";
   return `<div class="gr-h">Übungen</div>
+    ${rows.length > 1 ? `<button class="gr-mastery cx-chmix" style="${cxStyle(0)}" onclick="renderCourseDrill(null, null, 'chapter')"><span class="gr-m-ico">🔀</span><span class="gr-m-t"><b>Mix them</b><small>12 questions from all ${rows.length}</small></span><span class="set-chev">›</span></button>` : ""}
     <div class="gr-sheets">${rows.map(({ set, nums }) => { const d = (S.course.ds || {})[set.id] || [], pct = d[1] ? Math.round(d[0] / d[1] * 100) : null;
       return `<button class="gr-sheet cx-ex" style="${cxSecStyle(set.sec)}" onclick="renderCourseDrill('${set.sec}', '${set.id}')"><span class="gr-sn">🧩</span><span class="gr-stt">${escapeHtml(nums.join(" · "))} · ${escapeHtml(set.title)}<small>${escapeHtml(set.how || "")}</small></span>${pct !== null ? `<span class="gr-sc">${pct}%</span>` : `<span class="set-chev">›</span>`}</button>`; }).join("")}</div>`;
 }
