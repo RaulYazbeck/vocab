@@ -709,7 +709,7 @@ function settingsMenuHtml() {
     <div class="menu-list">
       ${menuRowHtml("🎮", "Games", "", "menuGo('games')")}
       ${menuRowHtml("🗺️", "Journey", `${scan.known.toLocaleString()} / ${scan.total.toLocaleString()} known`, "menuGo('journey')")}
-      ${typeof cxOn === "function" && cxOn() ? menuRowHtml("📖", "Course", (() => { const d = cxDueRules(), n = d.fix.length + d.due.length; return n ? `Grammar · <span class="accent">${n} rule${n > 1 ? "s" : ""} due</span>` : `Grammar · ${CX.sections.filter(s => cxSecStatus(s).k === "done").length} / ${CX.sections.length} sections`; })(), "menuGo('course')")
+      ${typeof cxOn === "function" && cxOn() ? menuRowHtml("📖", "Course", (() => { const d = cxDueRules(), n = d.fix.length + d.due.length; return n ? `Grammar · <span class="accent">${n} rule${n > 1 ? "s" : ""} due</span>` : `Grammar · ${CX.sections.filter(s => cxSecStatus(s).k === "done").length} / ${CX.sections.length} lessons`; })(), "menuGo('course')")
         : typeof vxAvailable === "function" && vxAvailable() ? menuRowHtml("📐", "Grammar", vxOn() ? `${VX_UNITS.filter(u => vxUnitOpen(u.id)).length} / ${VX_UNITS.length} tenses` : "", "menuGo('grammar')") : ""}
       ${menuRowHtml("⚔️", "Bosses", `${beaten} / ${decks} beaten`, "menuGo('bosses')")}
       ${menuRowHtml("🎨", "Collection", chests ? `<span class="accent">🎁 ${chests} to open</span>` : "", "menuGo('collection')")}
@@ -846,7 +846,7 @@ function deadlineLineHtml(scan) {
   const st = pathDeadlineStatus(scan);
   if (!st.ok) return `⚠️ ${d} is out of reach — at the fastest pace you'd finish around <b>${fmtShortDate(st.eta)}</b>. Pick a later date in ⚙️ Settings`;
   const plan = pathEnsurePlan();
-  return `🗓️ Quests are sized to finish everything — words and verbs — by <b>${d}</b> · ${plan.pace + ((plan.vx && plan.vx.items) || 0)} new today`;
+  return `🗓️ Quests are sized to finish everything — ${typeof cxOn === "function" && cxOn() ? "words, verbs and grammar" : "words and verbs"} — by <b>${d}</b> · ${plan.pace + ((plan.vx && plan.vx.items) || 0)} new today`;
 }
 function setDeadlineFromSettings(iso) {
   setPathDeadline(iso);
@@ -928,10 +928,11 @@ function renderHome() {
   // …and so are the course's grammar rules and its lesson (course-de.js).
   const cx = typeof cxTodayCounts === "function" ? cxTodayCounts() : { due: 0, fix: 0, parts: 0 };
   t.due += cx.due; t.fix += cx.fix;
+  const CXON = typeof cxOn === "function" && cxOn();
   const extra = t.frontier && !t.newLeft && t.reason !== "autopaused";
   const stats = [];
-  if (t.fix) stats.push(`<span class="tc-stat warn" title="Words and verbs you slipped on — Start fixes them first">🩹 ${t.fix} to fix</span>`);
-  stats.push(`<span class="tc-stat" title="Reviews due today">📚 ${t.due} due</span>`);
+  if (t.fix) stats.push(`<span class="tc-stat warn" title="${CXON ? "Words, verbs and grammar rules" : "Words and verbs"} you slipped on — Start fixes them first">🩹 ${t.fix} to fix</span>`);
+  stats.push(`<span class="tc-stat" title="${CXON ? "Reviews due today — words, verbs and grammar rules (📖 Course › 🧩 Practise › My dues lists them)" : "Reviews due today"}">📚 ${t.due} due</span>`);
   stats.push(!t.frontier ? `<span class="tc-stat">🏔️ all met</span>`
     : extra ? `<button class="tc-stat tc-stat-btn" onclick="pathLearnExtra();startPathSession('quick')" title="Today's new words are done — learn ${PATH.EXTRA_NEW} more">🌱 +${PATH.EXTRA_NEW} new</button>`
     : `<span class="tc-stat" ${t.reason === "slowed" ? `title="Fewer new words today while you catch up on ${t.overdue} reviews${pathDeadlineOn() ? " — finish today's plan to lift it" : ""}"` : ""}>🌱 ${t.newLeft} new${t.reason === "slowed" ? ` <span class="tc-slow" aria-label="slowed down while you catch up">🐢</span>` : ""}</span>`);
@@ -1096,11 +1097,13 @@ function renderJourney() {
       ${tierBarHtml(scan.tiers, scan.total, "big")}
       <div class="tier-legend">${TIERS.map(t => `<span><i class="tb-${t.id}"></i>${t.icon} ${t.name} ${(scan.tiers[t.id] || 0) - (t.id === "new" ? vxLeftOver : 0)}</span>`).join("")}${vxLeftOver ? `<span>📐 via the verb track ${vxLeftOver}</span>` : ""}</div>
     </div>
+    ${typeof cxJourneyHtml === "function" ? cxJourneyHtml() : ""}
     ${fcHtml}
     ${levels}
     ${stageGuideHtml()}
     <div class="journey-links">
-      ${typeof vxAvailable === "function" && vxAvailable() ? `<button class="g-sec-btn" onclick="showScreen('grammar')">📐 Grammar</button>` : ""}
+      ${typeof cxOn === "function" && cxOn() ? `<button class="g-sec-btn" onclick="showScreen('course')">📖 Course</button>`
+        : typeof vxAvailable === "function" && vxAvailable() ? `<button class="g-sec-btn" onclick="showScreen('grammar')">📐 Grammar</button>` : ""}
       <button class="g-sec-btn" onclick="renderCollection()">🎨 Collection</button>
       <button class="g-sec-btn" onclick="renderBestiary('journey')">⚔️ Bosses</button>
       <button class="g-sec-btn" onclick="showScreen('badges')">🏆 Achievements</button>
@@ -1126,6 +1129,8 @@ function forecastHtml() {
   });
   const max = Math.max(1, ...parts.map(x => x.num));
   const seg = (n, cls) => n >= 0.5 ? `<i class="${cls}" style="height:${(n / max * 100).toFixed(1)}%"></i>` : "";
+  // The course's days under the bars (course-de.js): 📖 a lesson, 📏 rules, ✍️ writing.
+  const cxd = typeof cxForecastDays === "function" ? cxForecastDays(f.days.length) : [];
   const cols = f.days.map((d, i) => {
     const x = parts[i];
     const what = `${d.total} reviews: ${Math.round(d.scheduled)} already scheduled · ${Math.round(d.fromNew)} from new words · ${Math.round(d.carried)} catching up${d.newWords ? ` · plus ${d.newWords} new words` : ""}`;
@@ -1135,6 +1140,7 @@ function forecastHtml() {
       <div class="jf-stack">${seg(x.c, "jf-c")}${seg(x.m, "jf-m")}${seg(x.n, "jf-new")}${seg(x.s, "jf-s")}</div>
       <div class="jf-l">${i === 0 ? "today" : i === 1 ? "tmr" : "+" + i}</div>
       <div class="jf-nw">${d.newWords ? `🌱${d.newWords}` : ""}</div>
+      ${cxd.length ? (() => { const c = cxd[i] || {}; return `<div class="jf-cx" title="${[c.lesson && "a new grammar lesson and its drill", c.rules && `${c.rules} grammar rule${c.rules > 1 ? "s" : ""} to review`, c.write && "a writing prompt"].filter(Boolean).join(" · ") || "no grammar"}"><span>${c.lesson ? "📖" : ""}${c.write ? "✍️" : ""}</span><span>${c.rules ? `📏${c.rules}` : ""}</span></div>`; })() : ""}
     </div>`;
   }).join("");
   const d0 = f.days[0];
@@ -1144,8 +1150,10 @@ function forecastHtml() {
   return `<div class="jf-head"><span class="stats-section-title">${title}</span><small>${how} · ${Math.round(f.p * 100)}% right</small></div>
     <div class="jf">${cols}</div>
     <div class="jf-legend"><span><i class="jf-s"></i>already scheduled</span><span><i class="jf-new"></i>from new words</span><span><i class="jf-c"></i>catching up</span>${plan ? `<span><i class="jf-m"></i>meeting new words</span>` : ""}</div>
+    ${cxd.length ? `<div class="jf-legend"><span>📖 a grammar lesson + its drill</span><span>📏 grammar rules due</span><span>✍️ writing</span><span>≈ if you come every day</span></div>` : ""}
     ${plan && d0 ? (() => { const pt = planToday();
-      return `<div class="jf-note">Today: ${pt.reviews} reviews${pt.catchUp ? ` + ${pt.catchUp} catching up` : ""} + ${pt.newWords} new words ≈ ${d0.target} right answers, with room for misses.${pt.catchUp ? " Finish today's plan and your full new words are back." : ""}</div>`; })() : ""}
+      const vxA = pt.vx && typeof vxPlanTarget === "function" ? vxPlanTarget(pt.vx) : 0, cxA = pt.cx && typeof cxPlanTarget === "function" ? cxPlanTarget(pt.cx) : 0;
+      return `<div class="jf-note">Today: ${pt.reviews} reviews${pt.catchUp ? ` + ${pt.catchUp} catching up` : ""} + ${pt.newWords} new words${vxA ? ` + 📐 verbs` : ""}${cxA ? ` + 📖 grammar` : ""} ≈ ${d0.target} right answers, with room for misses.${pt.catchUp ? " Finish today's plan and your full new words are back." : ""}</div>`; })() : ""}
     ${wait > 0 ? `<div class="jf-wait">Today takes part of your backlog; ${wait} wait${wait === 1 ? "s" : ""} for the next days (they still show as due).</div>` : ""}`;
 }
 // "How does a word move?" — the schedule, in plain words.

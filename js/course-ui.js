@@ -359,7 +359,9 @@ function renderPathCx(it) {
   if (list.length < it.qn) { it.qn = list.length; pathProgress(); }
   const t = cxPartTitle(it);
   cxRun(host, list, { mode: "path", kind: it.part === "review" && it.contrast ? "contrast" : it.part, sec: it.sec, title: t.title, sub: t.sub, it,
-    partKey: it.part + ":" + (it.sec || ""), onDone: () => { cxPartDone(it); cxClose(); pathNext(); } });
+    // (📚 My dues: its answers count like the words' reviews — not against
+    // the share Today's own review card keeps for the plan)
+    partKey: it.dues ? "" : it.part + ":" + (it.sec || ""), onDone: () => { cxPartDone(it); cxClose(); pathNext(); } });
 }
 
 // ── THE WRITING JOURNAL ───────────────────────
@@ -737,8 +739,11 @@ function renderDrills() {
   const nWeak = new Set([...weak, ...fix, ...due]).size;
   const secs = CX.sections.filter(s => s.built && s.sets.length && s.sheets.length);
   const anyDone = secs.some(s => cxSecDone(s.id) || cxSheetPassed(s.sheets[0]));
+  const D = typeof pathDues === "function" ? pathDues() : null, dn = k => D ? D[k].fix.length + D[k].due.length : 0;
+  const duesLine = D && D.n ? [dn("words") && `${dn("words")} word${dn("words") > 1 ? "s" : ""}`, dn("verbs") && `${dn("verbs")} verb${dn("verbs") > 1 ? "s" : ""}`, dn("rules") && `${dn("rules")} rule${dn("rules") > 1 ? "s" : ""}`].filter(Boolean).join(" · ") : "nothing due right now";
   document.getElementById("main-screen").innerHTML = `<div class="screen grammar course">
     <div class="screen-top"><div class="screen-label">🧩 Practise</div>${cxBackHtml()}</div>
+    ${D ? `<button class="gr-mastery cx-dues-btn" style="${cxStyle(0)}" onclick="renderDues()"><span class="gr-m-ico">📚</span><span class="gr-m-t"><b>My dues${D.n ? ` · ${D.n}` : ""}</b><small>${duesLine}</small></span><span class="set-chev">›</span></button>` : ""}
     <div class="gr-unote">Outside your daily plan, as much as you like. A rule that's due moves just as in Today.</div>
     <div class="gr-sheets">
       <button class="gr-sheet" ${nWeak ? `onclick="renderCourseDrill(null,null,'weak')"` : "disabled"}><span class="gr-sn">📏</span><span class="gr-stt">Weak rules<small>${nWeak ? `${nWeak} not holding yet` : "none right now"}</small></span><span class="set-chev">›</span></button>
@@ -748,6 +753,52 @@ function renderDrills() {
     <div class="gr-sheets">${secs.map(s => `<button class="gr-sheet" onclick="renderCourseDrill('${s.id}')"><span class="gr-sn">${escapeHtml(cxStage(s.stage).sign)}</span><span class="gr-stt">${escapeHtml(s.title)}<small>12 questions</small></span><span class="set-chev">›</span></button>`).join("")}</div>
   </div>`;
   if (typeof logScreen === "function") logScreen("drills");
+}
+
+// 🧩 Practise › 📚 My dues: everything due today — words, verbs, grammar
+// rules — listed, and one button that drills just those (the ones to fix
+// first). It counts like Today: every answer moves its item.
+function cxDueChips(list, label, max = 40) {
+  const chips = list.slice(0, max).map(([txt, fix]) => `<span class="cx-due ${fix ? "fix" : ""}">${fix ? "🩹 " : ""}${escapeHtml(txt)}</span>`).join("");
+  return chips + (list.length > max ? `<span class="cx-due more">+${list.length - max} more</span>` : "");
+}
+function renderDues() {
+  if (typeof pathDues !== "function") return renderDrills();
+  showGameScreen();
+  cxClose();
+  const D = pathDues(), cap = PATH.SESSION_LENGTHS.long;
+  const words = [...D.words.fix.map(x => [x.d.words[x.i].de, 1]), ...D.words.due.map(x => [x.d.words[x.i].de, 0])];
+  const vlabel = it => it.rule && typeof VX_RULE !== "undefined" && VX_RULE[it.rule] ? VX_RULE[it.rule].title
+    : `${(it.x && it.x.inf) || ""} · ${(typeof VX_ITEM_KINDS !== "undefined" && VX_ITEM_KINDS[it.kind] && VX_ITEM_KINDS[it.kind].title) || it.kind}`;
+  const verbs = [...D.verbs.fix.map(x => [vlabel(x.it), 1]), ...D.verbs.due.map(x => [vlabel(x.it), 0])];
+  const rules = [...D.rules.fix.map(r => [cxRule(r).title, 1]), ...D.rules.due.map(r => [cxRule(r).title, 0])];
+  const group = (ico, name, list) => list.length ? `<div class="gr-h">${ico} ${name} · ${list.length}</div><div class="cx-dues">${cxDueChips(list)}</div>` : "";
+  const fixN = D.words.fix.length + D.verbs.fix.length + D.rules.fix.length;
+  document.getElementById("main-screen").innerHTML = `<div class="screen grammar course">
+    <div class="screen-top"><div class="screen-label">📚 My dues</div>${cxBackHtml("renderDrills()", "Practise")}</div>
+    ${D.n ? `<div class="cx-jnext"><b>${D.n} due today</b>${fixN ? `${fixN} to fix (🩹) ${fixN > 1 ? "come" : "comes"} first. ` : ""}${D.n > cap ? `A round drills ${cap}; the rest stay here for the next one.` : "One round drills them all."}</div>
+      <button class="g-big-btn cx-jgo" onclick="startPathSession('${Math.min(D.n, cap) <= PATH.SESSION_LENGTHS.quick ? "quick" : Math.min(D.n, cap) <= PATH.SESSION_LENGTHS.regular ? "regular" : "long"}', { focus: 'dues' })">Drill my dues ▶</button>
+      ${group("🌱", "Words", words)}${group("📐", "Verbs", verbs)}${group("📏", "Grammar rules", rules)}`
+      : `<div class="cx-jnext"><b>✓ Nothing due</b>Everything is reviewed for today — come back tomorrow, or practise from the list before.</div>`}
+  </div>`;
+  scrollPageTop();
+  if (typeof logScreen === "function") logScreen("dues");
+}
+
+// 🗺️ Journey: the course in a few lines — lessons done, rules, the pace.
+function cxJourneyHtml() {
+  if (typeof cxOn !== "function" || !cxOn()) return "";
+  migrateCourse();
+  const P = cxPlanner(), total = CX.sections.length, done = CX.sections.filter(s => cxSecStatus(s).k === "done").length;
+  const started = Object.keys(CX.rules).filter(r => (cxRuleWS(r) || {}).st).length, learned = Object.keys(CX.rules).filter(cxRuleLearned).length;
+  const { fix, due } = cxDueRules(), next = cxNextSections(1)[0], on = cxNextLessonDay();
+  const dot = { green: "🟢 on track", amber: "🟠 tight", red: "🔴 behind", none: "" }[P.status];
+  return `<div class="jl jl-cx" role="button" tabindex="0" onclick="showScreen('course')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showScreen('course')}">
+    <div class="jl-head"><span class="jl-name">📖 Grammar course</span><span class="jl-pct">${done} / ${total} lessons</span></div>
+    <div class="jl-bar"><i style="width:${Math.round(done / Math.max(1, total) * 100)}%"></i></div>
+    <div class="jl-left">${started ? `${learned} of ${started} rules learned${fix.length + due.length ? ` · 📏 ${fix.length + due.length} due` : ""}` : "Each rule becomes a review card after its lesson"}</div>
+    <div class="jl-eta">${next ? `Next lesson: <b>${on <= studyToday() ? "today" : escapeHtml(fmtShortDate(on))}</b> · ` : "The next lessons arrive with the next update · "}${P.target ? `all done by <b>${escapeHtml(fmtShortDate(P.target))}</b>${dot ? ` · ${dot}` : ""}` : "set a finish date to pace it"}</div>
+  </div>`;
 }
 
 // ── 📚 BY CHAPTER ─────────────────────────────
@@ -802,7 +853,7 @@ function cxSettingsHtml() {
   if (typeof cxOn !== "function" || !cxOn()) return "";
   migrateCourse();
   const P = cxPlanner(), dot = { green: "🟢", amber: "🟠", red: "🔴", none: "⚪" }[P.status], g = cxGap();
-  const pace = P.status === "none" ? "a new sheet every day — set a finish date to spread them out"
-    : `a new sheet ${g === 1 ? "every day" : `every ${g} days`} · ${dot} ${P.status === "green" ? "on track" : P.status === "amber" ? "tight" : "behind"} · all passed by ${fmtShortDate(P.target)}`;
+  const pace = P.status === "none" ? "a new lesson every day — set a finish date to spread them out"
+    : `a new lesson ${g === 1 ? "every day" : `every ${g} days`} · ${dot} ${P.status === "green" ? "on track" : P.status === "amber" ? "tight" : "behind"} · all done by ${fmtShortDate(P.target)}`;
   return setNavHtml("📖", "Grammar course", `Auto · ${pace} — set by your finish date`, "closeSettings();showScreen('course')");
 }

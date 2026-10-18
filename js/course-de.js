@@ -721,6 +721,39 @@ function cxTodayParts(scan) {
   if ((B.write || contrast || !lessonToday || writeDue) && !dd.write && cxJournalPick()) parts.push({ part: "write" });
   return parts;
 }
+// The course's next days for the Journey's forecast (≈, if I come every
+// day): a new lesson (its sheet and drill), the grammar rules coming due,
+// a writing prompt — the same rules as cxTodayParts. Today is what's
+// planned or done today. [{ d, lesson, rules, write }]
+function cxForecastDays(n = 8) {
+  if (!cxOn()) return [];
+  migrateCourse();
+  const today = studyToday(), C = S.course, dd = C.dd || {}, parts = cxTodayParts();
+  const lessonToday = parts.some(p => ["testout", "sheet", "drill", "checkpoint"].includes(p.part)) || Object.keys(dd).some(k => k.startsWith("new:"));
+  // Lessons left to come: each sheet of the lessons built takes a day.
+  let sheets = cxNextSections(99).reduce((k, s) => k + Math.max(1, s.sheets.filter(id => !cxSheetPassed(id)).length || 1), 0) - (lessonToday ? 1 : 0);
+  const g = cxGap(today);
+  let next = lessonToday ? (cxUnderway() ? addDays(today, 1) : addDays(today, g)) : cxNextLessonDay();
+  let lastW = cxJournalList().filter(e => !/^drill:/.test(e.p)).map(e => e.d).pop() || "";
+  const prompts = !!cxJournalPick();
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const d = addDays(today, i);
+    let lesson = false;
+    if (i === 0) lesson = lessonToday;
+    else if (sheets > 0 && d >= next) { lesson = true; sheets--; next = addDays(d, g); }
+    // Rules: today, the ones due now (as Today counts them); a later day,
+    // the ones coming due that day.
+    const end = studyDayStart(i + 1), start = studyDayStart(i);
+    const rules = i === 0 ? (({ fix, due }) => fix.length + due.length)(cxDueRules())
+      : Object.keys(CX.rules).filter(r => { const ws = cxRuleWS(r); return ws && ws.st && !(ws.rp || ws.fl || ws.lrn) && ws.dueAt >= start && ws.dueAt < end; }).length;
+    const write = i === 0 ? parts.some(p => p.part === "write") || !!dd.write
+      : !!prompts && (!lesson || !lastW || daysBetween(lastW, d) >= CX_WRITE_EVERY);
+    if (write) lastW = d;
+    out.push({ d, lesson, rules, write });
+  }
+  return out;
+}
 // Questions each part asks (the session's count; fixed when it's built).
 function cxPartSize(p) {
   if (p.part === "warm") return p.rules.length;
@@ -749,7 +782,8 @@ function cxPartLive(p) {
   // section isn't done then — the sheet comes back tomorrow).
   if (p.part === "drill" || p.part === "checkpoint") return !cxSecDone(p.sec) && !S.course.dd["sec:" + p.sec];
   if (p.part === "warm") return cxDueRules().fix.length > 0 && !S.course.dd.warm;
-  if (p.part === "review") return !S.course.dd[p.contrast ? "contrast" : "review"];
+  // (📚 My dues asks the rules due whatever Today did)
+  if (p.part === "review") return !!p.dues || !S.course.dd[p.contrast ? "contrast" : "review"];
   if (p.part === "write") return !S.course.dd.write;
   return true;
 }
@@ -780,7 +814,9 @@ function cxPartDone(p) {
   const C = S.course;
   cxRollDay();
   if (p.part === "warm") C.dd.warm = 1;
-  else if (p.part === "review") { C.dd[p.contrast ? "contrast" : "review"] = 1; if (p.contrast) C.cd = studyToday(); }
+  // (📚 My dues doesn't close Today's reviews: rules it left, or due later
+  // today, still come — Today's card only holds the rules still due)
+  else if (p.part === "review" && !p.dues) { C.dd[p.contrast ? "contrast" : "review"] = 1; if (p.contrast) C.cd = studyToday(); }
   else if (p.part === "write") C.dd.write = 1;
   else if (p.part === "testout") C.dd["to:" + p.sec] = 1;
   else if (p.part === "sheet") C.dd["sheet:" + p.sec] = 1;

@@ -291,7 +291,7 @@ qt({ id: "a_plan", slot: "A", fam: "plan", icon: "📅", w: 0, fixed: true, ok: 
   title: q => `Today's plan: ${q.target} right answers`,
   sub: () => { const p = S.path.plan; const parts = [];
     const pt = p && p.day === studyToday() ? planToday() : null;
-    if (pt) parts.push(`${pt.reviews} reviews${pt.catchUp ? ` + ${pt.catchUp} catching up` : ""} + ${pt.newWords} new words`);
+    if (pt) parts.push(`${pt.reviews} reviews${pt.catchUp ? ` + ${pt.catchUp} catching up` : ""} + ${pt.newWords} new words${pt.vx && typeof vxPlanTarget === "function" && vxPlanTarget(pt.vx) ? " + verbs" : ""}${pt.cx && typeof cxPlanTarget === "function" && cxPlanTarget(pt.cx) ? " + grammar" : ""}`);
     if (S.path.deadline && pathDaysLeft() >= 0) {
       const st = pathDeadlineStatus();
       parts.push(st.ok ? `on course for ${fmtShortDate(S.path.deadline)}` : `⚠️ at the fastest pace: ≈ ${fmtShortDate(st.eta)}`);

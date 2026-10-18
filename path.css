@@ -877,3 +877,8 @@ body.grandma .g-today-main { font-size:19px; }
 body.grandma .g-grid-head > span { font-size:16px; }
 /* Quest rows: the whole row plays it */
 body.grandma button.gm-quest { min-height:76px; }
+/* 🗺️ Journey: the grammar course, and its days under the forecast */
+.jl-cx { display:block; width:100%; text-align:left; background:none; border:none; border-top:1px solid rgba(255,255,255,0.08); color:inherit; font:inherit; cursor:pointer; padding-left:0; padding-right:0; padding-bottom:0; }
+.jl-bar { height:6px; border-radius:3px; background:rgba(255,255,255,0.07); overflow:hidden; }
+.jl-bar i { display:block; height:100%; background:var(--teal); }
+.jf-cx { display:flex; flex-direction:column; align-items:center; font-size:10px; line-height:13px; min-height:26px; color:var(--text-3); white-space:nowrap; }

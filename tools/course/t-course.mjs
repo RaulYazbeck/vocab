@@ -398,6 +398,55 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
   });
   await page.evaluate(() => { openSettings("menu"); ok(/Course/.test(document.getElementById("settings-panel").innerText) && !/Drills/.test(document.getElementById("settings-panel").innerText), "☰ has 📖 Course (Drills live inside it — one row, not two)"); closeSettings();
     openSettingsPage("plan"); ok(/Grammar course/.test(document.getElementById("settings-panel").innerText) && /Grammar course[\s\S]*set by your finish date/.test(document.getElementById("settings-panel").innerText) && !/Minutes a day/.test(document.getElementById("settings-panel").innerText), "⚙️ Study plan: the grammar pace, set by the finish date (no minutes to pick)"); closeSettings(); });
+  // 📚 My dues: everything due — words, verbs, rules — listed, and drilled alone
+  await page.evaluate(() => {
+    const rs = Object.keys(CX.rules).slice(0, 2);
+    Object.keys(CX.rules).forEach(r => { delete S.words["cx_" + r]; });
+    S.words["cx_" + rs[0]] = { st: 3, dueAt: Date.now() - 1000, correct: 2 };
+    S.words["cx_" + rs[1]] = { st: 2, dueAt: Date.now() - 1000, correct: 1, wrong: 1, rp: 1 };
+    S.course.dd.review = 1; // Today already did its rule reviews
+    const D = pathDues();
+    renderDrills();
+    ok(/My dues · \d+/.test(document.getElementById("main-screen").innerText) && D.rules.fix.length === 1 && D.rules.due.length === 1, `🧩 Practise: My dues first (${D.n}: ${D.words.fix.length + D.words.due.length} words, ${D.verbs.fix.length + D.verbs.due.length} verbs, 2 rules)`);
+    document.querySelector(".cx-dues-btn").click();
+    const t = document.getElementById("main-screen").innerText;
+    ok(/\d+ due today/.test(t) && /Words · \d+/i.test(t) && /Grammar rules · 2/i.test(t) && /🩹/.test(t) && /← Practise/.test(t), "My dues: the count, each kind listed (the ones to fix marked), back to Practise");
+    document.querySelector(".cx-jgo").click();
+    const s = pathSession, cx = s.items.filter(x => x.t === "cx");
+    ok(s.focus === "dues" && !s.items.some(x => x.t === "learn" && !(x.w && x.w.vx) || x.t === "bonus" || x.t === "sheet" || x.fresh) && s.items.length > 0, `the round: only what's due — no new words, sheets or bonus rounds (${s.items.length} cards)`);
+    ok(cx.length === 1 && cx[0].part === "review" && cx[0].rules.length === 2 && cx[0].rules[0] === rs[1] && cxPartLive(cx[0]), `the rules: one card, the one to fix first — even after Today's reviews (${cx.map(c => c.part + ":" + c.rules + ":" + cxPartLive(c))} want ${rs[1]})`);
+    const n = Math.min(PATH.SESSION_LENGTHS.long, D.n);
+    ok(+document.getElementById("p-count").textContent.split("/")[1] === n, `at most a Long session's worth, the count right (${document.getElementById("p-count").textContent} of ${D.n} due)`);
+    // the rule card run to the end: Today's reviews aren't closed by it
+    while (pathSession.cur !== cx[0]) pathNext();
+    const before = (S.course.dq || {})["review:"] || 0;
+    while (_cx && !_cx.done) { cxAnswerCur(true); if (_cx && !_cx.done) cxNext(); }
+    ok(((S.course.dq || {})["review:"] || 0) === before && !cxDueRules().fix.length && !cxDueRules().due.length, `My dues' rules: answered (none due now), without using Today's review share (${before})`);
+    delete S.course.dd.review; cxPartDone({ part: "review", rules: [], dues: true });
+    ok(!S.course.dd.review, "a My dues card doesn't close Today's reviews (rules due later today still come)");
+    endPathSession(true); backToMenu();
+  });
+  await noOverflow("My dues");
+  // 🗺️ Journey: the course in a few lines, its days under the forecast
+  await page.evaluate(() => {
+    const rs = Object.keys(CX.rules).slice(0, 3);
+    S.words["cx_" + rs[0]] = { st: 3, dueAt: Date.now() - 1000, correct: 2 };
+    S.words["cx_" + rs[1]] = { st: 3, dueAt: Date.now() - 1000, correct: 2 };
+    S.words["cx_" + rs[2]] = { st: 3, dueAt: studyDayStart(3) + 3600e3, correct: 2 };
+    renderJourney();
+    const m = document.getElementById("main-screen"), t = m.innerText;
+    ok(/Grammar course/.test(t) && /\d+ \/ 73 lessons/.test(t) && /Next lesson/.test(t), "Journey: the grammar course block (lessons, next lesson, the pace)");
+    const cols = m.querySelectorAll(".jf-cx");
+    ok(cols.length === 8 && /📖/.test(cols[0].textContent) && /📏2/.test(cols[0].textContent) && !/📏/.test(cols[1].textContent) && /📏1/.test(cols[3].textContent), `the forecast marks today's lesson, the rules due today and in 3 days (${[...cols].map(c => c.textContent)})`);
+    ok(/words, verbs and grammar/.test(t) && /📖 Course/.test(t) && !/📐 Grammar/.test(t), "the finish-date line counts grammar; the link opens the Course");
+    m.querySelector(".jl-cx").click(); ok(/parts, in the order/i.test(document.getElementById("main-screen").innerText), "tap: the Course");
+    renderJourney();
+  });
+  await noOverflow("Journey");
+  await page.evaluate(() => {
+    ok(/\d+ \/ 73 lessons/.test(settingsMenuHtml()) || /rules? due/.test(settingsMenuHtml()), "☰: lessons, not sections");
+    ok(!/sections/.test(settingsMenuHtml()), "☰: no 'sections'");
+  });
   const r = await page.evaluate(() => ({ log: __log, fails: __fails }));
   say(r, `screens · ${tag}`);
   if (errors.length) { console.log("ERRORS", errors.slice(0, 5)); fails++; }
@@ -417,6 +466,9 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
     ok(!pathSession.items.some(x => x.t === "cx"), "no course cards in Today");
     endPathSession(true);
     ok(!Object.keys(S.words).some(k => /^cx_/.test(k)), "no cx_ items");
+    renderJourney(); ok(!document.querySelector(".jl-cx, .jf-cx") && !/grammar/i.test(document.getElementById("main-screen").innerText.replace(/Grammar/g, "")), "Journey: no course block or course days");
+    renderHome(); ok(!/grammar rules|My dues/i.test(document.getElementById("today-card").innerHTML), "Today: nothing about grammar rules");
+    ok(pathDues().rules.due.length === 0 && pathDues().rules.fix.length === 0, "My dues counts no rules");
     return { log, fails: f };
   });
   say(r, "French app");

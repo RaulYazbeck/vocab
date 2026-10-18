@@ -276,7 +276,7 @@ function planToday(scan = pathScan()) {
   const q = pathNewQuota(scan);
   // Never more catching up than the backlog the plan left for later.
   const catchUp = Math.min(plan.leave || 0, Math.round(q.held * 3 / 1.1));
-  return { reviews: plan.reviews, catchUp, newWords: q.base, target: plan.target, reason: q.reason, vx: plan.vx || null };
+  return { reviews: plan.reviews, catchUp, newWords: q.base, target: plan.target, reason: q.reason, vx: plan.vx || null, cx: plan.cx || null };
 }
 function pathLearnExtra() {
   pathRollDay();
@@ -472,6 +472,16 @@ function pathReviewCandidates(now = Date.now()) {
   due.sort((a, b) => a.ws.st - b.ws.st || a.ws.dueAt - b.ws.dueAt);
   return { fix, due };
 }
+// Everything due today and nothing else: words, verb items and the
+// course's grammar rules, each { fix, due } — for 📚 My dues (Course ›
+// Practise), which lists them and drills just them.
+function pathDues(now = Date.now()) {
+  const words = pathReviewCandidates(now);
+  const verbs = typeof vxOn === "function" && vxOn() ? vxDueItems(now) : { fix: [], due: [] };
+  const rules = typeof cxOn === "function" && cxOn() ? cxDueRules(now) : { fix: [], due: [] };
+  const n = o => o.fix.length + o.due.length;
+  return { words, verbs, rules, n: n(words) + n(verbs) + n(rules) };
+}
 function pathSpotCandidates(n = 1, rng = Math.random) {
   const out = [];
   const cutoff = Date.now() - 14 * 864e5;
@@ -583,7 +593,7 @@ function focusItem(x, focus) {
   if (x.due) return pathItemFor(w, x.ws);
   return { t: "typed", w };
 }
-const FOCUS_LABELS = { deck: "Deck focus", level: "Level focus", pos: "Word-type focus", hard: "The hard ones", stale: "Refresh",
+const FOCUS_LABELS = { dues: "My dues", deck: "Deck focus", level: "Level focus", pos: "Word-type focus", hard: "The hard ones", stale: "Refresh",
   stale30: "Dust-off", oldest: "Oldest first", comeback: "Comeback", reverse: "Mirror", cloze: "Sentences", spot: "Spot checks",
   rescue: "Rescue", new: "Explorer" };
 
@@ -620,7 +630,7 @@ function questNudges() {
 // choice check → typed recall a few items later), an optional spot
 // check on a 💎 word and optional bonus-round offers.
 function buildPathQueue(lenKey, opts = {}) {
-  const budget = PATH.SESSION_LENGTHS[lenKey] || PATH.SESSION_LENGTHS.regular;
+  let budget = PATH.SESSION_LENGTHS[lenKey] || PATH.SESSION_LENGTHS.regular;
   const rng = Math.random;
   const now = Date.now();
   const scan = pathScan(true);
@@ -637,6 +647,28 @@ function buildPathQueue(lenKey, opts = {}) {
     const n = exploreBatchSize(left, Math.max(3, Math.min(8, q.left || 4)));
     if (n > q.left) { S.path.extraToday = (S.path.extraToday || 0) + (n - q.left); }
     clusters = planNewWords(n, rng, deck ? deck.id : null);
+  } else if (focus === "dues") {
+    // 📚 My dues: what's due and to fix — words, verbs, grammar rules —
+    // nothing new, no bonus rounds. The ones to fix first, the rules and
+    // verbs before the words (a few, never crowded out by a pile of words) — at
+    // most a Long session's worth; the rest stay due for the next round.
+    const D = pathDues(now), cap = PATH.SESSION_LENGTHS.long;
+    const picks = [
+      ...D.rules.fix.map(r => ["r", r]), ...D.verbs.fix.map(x => ["v", x]), ...D.words.fix.map(x => ["w", x]),
+      ...D.rules.due.map(r => ["r", r]), ...D.verbs.due.map(x => ["v", x]), ...D.words.due.map(x => ["w", x]),
+    ].slice(0, cap);
+    reviews = picks.filter(p => p[0] === "w").map(([, x]) => pathItemFor(pathWord(x.d.id, x.i), x.ws, rng));
+    const verbs = [];
+    let avoid = "";
+    picks.filter(p => p[0] === "v").forEach(([, x]) => { const ex = vxMakeExercise(x.it, avoid); if (ex) { verbs.push({ t: "typed", w: vxWord(ex) }); avoid = ex.x.inf; } });
+    if (verbs.length) {
+      const step = Math.max(1, Math.floor((reviews.length + verbs.length) / verbs.length));
+      verbs.forEach((it, i) => reviews.splice(Math.min(reviews.length, i * step + 1), 0, it));
+    }
+    // The grammar rules: one card asking each of them (a third of the way in).
+    const rules = picks.filter(p => p[0] === "r").map(p => p[1]);
+    if (rules.length) reviews.splice(Math.floor(reviews.length / 3), 0, { t: "cx", part: "review", rules, dues: true, qn: rules.length });
+    budget = Math.max(1, reviews.length - (rules.length ? 1 : 0) + rules.length);
   } else if (focus) {
     // "Practise anyway" (nothing due): its words are 🧺 extra practice.
     reviews = focusWords(focus, opts.param).slice(0, budget)
