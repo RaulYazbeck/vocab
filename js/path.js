@@ -472,11 +472,21 @@ function pathReviewCandidates(now = Date.now()) {
   due.sort((a, b) => a.ws.st - b.ws.st || a.ws.dueAt - b.ws.dueAt);
   return { fix, due };
 }
-// Everything due today and nothing else: words, verb items and the
-// course's grammar rules, each { fix, due } — for 📚 My dues (Course ›
-// Practise), which lists them and drills just them.
+// What's due today and nothing else — words, verb items, the course's
+// grammar rules, each { fix, due }: for ✅ Due today (Course › Practise).
+// With a finish date, the backlog your plan spreads over the next days
+// (plan.leave) isn't today's: the words are cut to today's share, the
+// most urgent first (Today's own order), so it reaches 0 when today's
+// reviews are done.
 function pathDues(now = Date.now()) {
   const words = pathReviewCandidates(now);
+  const plan = typeof pathEnsurePlan === "function" ? pathEnsurePlan() : null;
+  const leave = plan && plan.leave ? plan.leave : 0;
+  if (leave) {
+    const keep = Math.max(0, words.fix.length + words.due.length - leave);
+    words.due = words.due.slice(0, Math.max(0, keep - words.fix.length));
+    if (keep < words.fix.length) words.fix = words.fix.slice(0, keep);
+  }
   const verbs = typeof vxOn === "function" && vxOn() ? vxDueItems(now) : { fix: [], due: [] };
   const rules = typeof cxOn === "function" && cxOn() ? cxDueRules(now) : { fix: [], due: [] };
   const n = o => o.fix.length + o.due.length;
@@ -593,7 +603,7 @@ function focusItem(x, focus) {
   if (x.due) return pathItemFor(w, x.ws);
   return { t: "typed", w };
 }
-const FOCUS_LABELS = { dues: "My dues", deck: "Deck focus", level: "Level focus", pos: "Word-type focus", hard: "The hard ones", stale: "Refresh",
+const FOCUS_LABELS = { dues: "Due today", deck: "Deck focus", level: "Level focus", pos: "Word-type focus", hard: "The hard ones", stale: "Refresh",
   stale30: "Dust-off", oldest: "Oldest first", comeback: "Comeback", reverse: "Mirror", cloze: "Sentences", spot: "Spot checks",
   rescue: "Rescue", new: "Explorer" };
 
@@ -648,7 +658,7 @@ function buildPathQueue(lenKey, opts = {}) {
     if (n > q.left) { S.path.extraToday = (S.path.extraToday || 0) + (n - q.left); }
     clusters = planNewWords(n, rng, deck ? deck.id : null);
   } else if (focus === "dues") {
-    // 📚 My dues: what's due and to fix — words, verbs, grammar rules —
+    // ✅ Due today: today's share of what's due — words, verbs, grammar rules —
     // nothing new, no bonus rounds. The ones to fix first, the rules and
     // verbs before the words (a few, never crowded out by a pile of words) — at
     // most a Long session's worth; the rest stay due for the next round.

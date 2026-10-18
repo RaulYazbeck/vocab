@@ -398,7 +398,7 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
   });
   await page.evaluate(() => { openSettings("menu"); ok(/Course/.test(document.getElementById("settings-panel").innerText) && !/Drills/.test(document.getElementById("settings-panel").innerText), "☰ has 📖 Course (Drills live inside it — one row, not two)"); closeSettings();
     openSettingsPage("plan"); ok(/Grammar course/.test(document.getElementById("settings-panel").innerText) && /Grammar course[\s\S]*set by your finish date/.test(document.getElementById("settings-panel").innerText) && !/Minutes a day/.test(document.getElementById("settings-panel").innerText), "⚙️ Study plan: the grammar pace, set by the finish date (no minutes to pick)"); closeSettings(); });
-  // 📚 My dues: everything due — words, verbs, rules — listed, and drilled alone
+  // 🧩 Practise: three rows · ✅ Due today: today's share, listed, drilled alone
   await page.evaluate(() => {
     const rs = Object.keys(CX.rules).slice(0, 2);
     Object.keys(CX.rules).forEach(r => { delete S.words["cx_" + r]; });
@@ -407,10 +407,15 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
     S.course.dd.review = 1; // Today already did its rule reviews
     const D = pathDues();
     renderDrills();
-    ok(/My dues · \d+/.test(document.getElementById("main-screen").innerText) && D.rules.fix.length === 1 && D.rules.due.length === 1, `🧩 Practise: My dues first (${D.n}: ${D.words.fix.length + D.words.due.length} words, ${D.verbs.fix.length + D.verbs.due.length} verbs, 2 rules)`);
+    const rows = [...document.querySelectorAll("#main-screen .gr-sheets > *")].map(b => b.innerText.replace(/\n/g, " "));
+    ok(rows.length === 3 && /Due today · \d+/.test(rows[0]) && /Weak spots/.test(rows[1]) && /Mixed/.test(rows[2]) && D.rules.fix.length === 1 && D.rules.due.length === 1,
+      `🧩 Practise: three rows, no lesson list (${rows.join(" | ")})`);
+    // the backlog your plan spreads over the next days isn't today's
+    const plan = pathEnsurePlan(), all = pathReviewCandidates(), allN = all.fix.length + all.due.length;
+    ok(!plan || D.words.fix.length + D.words.due.length === Math.max(0, allN - (plan.leave || 0)), `today's words only: ${D.words.fix.length + D.words.due.length} of ${allN} due (${plan ? plan.leave : 0} wait for later days)`);
     document.querySelector(".cx-dues-btn").click();
     const t = document.getElementById("main-screen").innerText;
-    ok(/\d+ due today/.test(t) && /Words · \d+/i.test(t) && /Grammar rules · 2/i.test(t) && /🩹/.test(t) && /← Practise/.test(t), "My dues: the count, each kind listed (the ones to fix marked), back to Practise");
+    ok(new RegExp("^" + D.n + "$", "m").test(t) && /🩹/.test(t) && /← Practise/.test(t) && document.querySelectorAll(".cx-due").length > 0, "Due today: the number, what's due (the ones to fix marked), back to Practise");
     document.querySelector(".cx-jgo").click();
     const s = pathSession, cx = s.items.filter(x => x.t === "cx");
     ok(s.focus === "dues" && !s.items.some(x => x.t === "learn" && !(x.w && x.w.vx) || x.t === "bonus" || x.t === "sheet" || x.fresh) && s.items.length > 0, `the round: only what's due — no new words, sheets or bonus rounds (${s.items.length} cards)`);
@@ -426,7 +431,19 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
     ok(!S.course.dd.review, "a My dues card doesn't close Today's reviews (rules due later today still come)");
     endPathSession(true); backToMenu();
   });
-  await noOverflow("My dues");
+  await noOverflow("Due today");
+  await page.evaluate(() => {
+    // nothing due left today: the row closes, the others stay open
+    const keep = window.pathDues; window.pathDues = () => ({ words: { fix: [], due: [] }, verbs: { fix: [], due: [] }, rules: { fix: [], due: [] }, n: 0 });
+    renderDrills(); const b = document.querySelector("#main-screen .gr-sheets > *");
+    ok(b.disabled && /Done for today/.test(b.innerText), "0 due: ✓ Done for today, closed");
+    window.pathDues = keep;
+    // 📚 a chapter's Übungen mixed
+    renderCourseChapter("c5"); document.querySelector(".cx-chmix").click();
+    const sets = new Set(_cx.list.map(e => e.set));
+    ok(_cx.list.length === 12 && sets.size >= 4 && [...sets].every(id => /^d5\./.test(id)) && /Chapter 5/.test(document.querySelector(".screen-top .back-btn").textContent), `chapter 5 mixed: 12 from its Übungen (${[...sets].join(" ")}), back to the chapter`);
+    cxClose(); backToMenu();
+  });
   // 🗺️ Journey: the course in a few lines, its days under the forecast
   await page.evaluate(() => {
     const rs = Object.keys(CX.rules).slice(0, 3);
@@ -467,8 +484,8 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
     endPathSession(true);
     ok(!Object.keys(S.words).some(k => /^cx_/.test(k)), "no cx_ items");
     renderJourney(); ok(!document.querySelector(".jl-cx, .jf-cx") && !/grammar/i.test(document.getElementById("main-screen").innerText.replace(/Grammar/g, "")), "Journey: no course block or course days");
-    renderHome(); ok(!/grammar rules|My dues/i.test(document.getElementById("today-card").innerHTML), "Today: nothing about grammar rules");
-    ok(pathDues().rules.due.length === 0 && pathDues().rules.fix.length === 0, "My dues counts no rules");
+    renderHome(); ok(!/grammar rules|✅ Due today/i.test(document.getElementById("today-card").innerHTML), "Today: nothing about grammar rules");
+    ok(pathDues().rules.due.length === 0 && pathDues().rules.fix.length === 0, "Due today counts no rules");
     return { log, fails: f };
   });
   say(r, "French app");

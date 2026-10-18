@@ -782,7 +782,7 @@ function cxPartLive(p) {
   // section isn't done then — the sheet comes back tomorrow).
   if (p.part === "drill" || p.part === "checkpoint") return !cxSecDone(p.sec) && !S.course.dd["sec:" + p.sec];
   if (p.part === "warm") return cxDueRules().fix.length > 0 && !S.course.dd.warm;
-  // (📚 My dues asks the rules due whatever Today did)
+  // (✅ Due today asks the rules due whatever Today did)
   if (p.part === "review") return !!p.dues || !S.course.dd[p.contrast ? "contrast" : "review"];
   if (p.part === "write") return !S.course.dd.write;
   return true;
@@ -814,7 +814,7 @@ function cxPartDone(p) {
   const C = S.course;
   cxRollDay();
   if (p.part === "warm") C.dd.warm = 1;
-  // (📚 My dues doesn't close Today's reviews: rules it left, or due later
+  // (✅ Due today doesn't close Today's reviews: rules it left, or due later
   // today, still come — Today's card only holds the rules still due)
   else if (p.part === "review" && !p.dues) { C.dd[p.contrast ? "contrast" : "review"] = 1; if (p.contrast) C.cd = studyToday(); }
   else if (p.part === "write") C.dd.write = 1;

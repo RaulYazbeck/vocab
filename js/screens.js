@@ -932,7 +932,7 @@ function renderHome() {
   const extra = t.frontier && !t.newLeft && t.reason !== "autopaused";
   const stats = [];
   if (t.fix) stats.push(`<span class="tc-stat warn" title="${CXON ? "Words, verbs and grammar rules" : "Words and verbs"} you slipped on — Start fixes them first">🩹 ${t.fix} to fix</span>`);
-  stats.push(`<span class="tc-stat" title="${CXON ? "Reviews due today — words, verbs and grammar rules (📖 Course › 🧩 Practise › My dues lists them)" : "Reviews due today"}">📚 ${t.due} due</span>`);
+  stats.push(`<span class="tc-stat" title="${CXON ? "Reviews due today — words, verbs and grammar rules" : "Reviews due today"}">📚 ${t.due} due</span>`);
   stats.push(!t.frontier ? `<span class="tc-stat">🏔️ all met</span>`
     : extra ? `<button class="tc-stat tc-stat-btn" onclick="pathLearnExtra();startPathSession('quick')" title="Today's new words are done — learn ${PATH.EXTRA_NEW} more">🌱 +${PATH.EXTRA_NEW} new</button>`
     : `<span class="tc-stat" ${t.reason === "slowed" ? `title="Fewer new words today while you catch up on ${t.overdue} reviews${pathDeadlineOn() ? " — finish today's plan to lift it" : ""}"` : ""}>🌱 ${t.newLeft} new${t.reason === "slowed" ? ` <span class="tc-slow" aria-label="slowed down while you catch up">🐢</span>` : ""}</span>`);
