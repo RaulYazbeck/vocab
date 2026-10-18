@@ -790,21 +790,21 @@ function renderDues() {
   if (typeof logScreen === "function") logScreen("dues");
 }
 
-// 🗺️ Journey: the course in a few lines — lessons done, rules, the pace.
+// 🗺️ Journey: the course in a few words — lessons done, the pace, and
+// the next 7 days with the lesson days lit (≈, coming every day).
 function cxJourneyHtml() {
   if (typeof cxOn !== "function" || !cxOn()) return "";
   migrateCourse();
   const P = cxPlanner(), total = CX.sections.length, done = CX.sections.filter(s => cxSecStatus(s).k === "done").length;
-  const started = Object.keys(CX.rules).filter(r => (cxRuleWS(r) || {}).st).length, learned = Object.keys(CX.rules).filter(cxRuleLearned).length;
-  const { fix, due } = cxDueRules(), next = cxNextSections(1)[0], on = cxNextLessonDay();
   const dot = { green: "🟢 on track", amber: "🟠 tight", red: "🔴 behind", none: "" }[P.status];
+  const days = cxForecastDays(7);
+  const wd = d => new Date(d + "T12:00").toLocaleDateString("en-GB", { weekday: "short" });
   return `<div class="jl jl-cx" role="button" tabindex="0" onclick="showScreen('course')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showScreen('course')}">
-    <div class="jl-head"><span class="jl-name">📖 Grammar course</span><span class="jl-pct">${done} / ${total} lessons</span></div>
-    <div class="jl-bar"><i style="width:${Math.round(done / Math.max(1, total) * 100)}%"></i></div>
-    <div class="jl-left">${started ? `${learned} of ${started} rules learned${fix.length + due.length ? ` · 📏 ${fix.length + due.length} due` : ""}` : "Each rule becomes a review card after its lesson"}</div>
-    <div class="jl-eta">${next ? `Next lesson: <b>${on <= studyToday() ? "today" : escapeHtml(fmtShortDate(on))}</b> · ` : "The next lessons arrive with the next update · "}${P.target ? `all done by <b>${escapeHtml(fmtShortDate(P.target))}</b>${dot ? ` · ${dot}` : ""}` : "set a finish date to pace it"}</div>
+    <div class="jl-head"><span class="jl-name">📖 Grammar</span><span class="jl-pct">${done}/${total}${dot ? ` · ${dot}` : ""}</span></div>
+    <div class="cx-week">${days.map(x => `<span class="cx-wday ${x.lesson ? "on" : ""}" title="${x.lesson ? "a lesson" : ""}">${wd(x.d)}<b>${+x.d.slice(8)}</b><i>${x.lesson ? "📖" : ""}</i></span>`).join("")}</div>
   </div>`;
 }
+
 
 // ── 📚 BY CHAPTER ─────────────────────────────
 // The book's chapters, each with the lessons that teach it and where you

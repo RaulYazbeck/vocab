@@ -1088,14 +1088,19 @@ function renderJourney() {
   }).join("");
   const fcHtml = forecastHtml();
   const vxLeftOver = (scan.ret || 0) - (scan.retMet || 0); // see "What's left" above
+  const lean = typeof cxOn === "function" && cxOn(); // German: the short header (fewer words)
   document.getElementById("main-screen").innerHTML = `<div class="screen journey">
     <div class="screen-top"><div class="screen-label">🗺️ Journey</div>${backBtnHtml()}</div>
     <div class="jh">
       <div class="jh-big"><b>${scan.known.toLocaleString()}</b> / ${scan.total.toLocaleString()} words Known ✓ <span>${pct(scan.known, scan.total)}%</span></div>
-      ${pathDeadlineOn() ? `<div class="jh-plan">${deadlineLineHtml(scan)}</div>` : ""}
+      ${lean ? `${pathDeadlineOn() ? (pathDaysLeft() >= 0 && pathDeadlineStatus(scan).ok ? `<div class="jh-goal">🎯 ${fmtShortDate(S.path.deadline)}</div>` : `<div class="jh-plan">${deadlineLineHtml(scan)}</div>`) : ""}
+      ${scan.repair || scan.flagged ? `<div class="jh-sub">${scan.repair ? `🩹 ${scan.repair} in repair` : ""}${scan.repair && scan.flagged ? " · " : ""}${scan.flagged ? `⚠️ ${scan.flagged} flagged` : ""}</div>` : ""}
+      ${tierBarHtml(scan.tiers, scan.total, "big")}
+      <div class="tier-legend">${TIERS.filter(t => t.id !== "new").map(t => `<span title="${t.name}"><i class="tb-${t.id}"></i>${t.icon} ${scan.tiers[t.id] || 0}</span>`).join("")}</div>`
+      : `${pathDeadlineOn() ? `<div class="jh-plan">${deadlineLineHtml(scan)}</div>` : ""}
       <div class="jh-sub">💎 ${scan.locked.toLocaleString()} locked in · 🌱 ${scan.met.toLocaleString()} met${scan.repair ? ` · 🩹 ${scan.repair} in repair` : ""}${scan.flagged ? ` · ⚠️ ${scan.flagged} flagged` : ""}</div>
       ${tierBarHtml(scan.tiers, scan.total, "big")}
-      <div class="tier-legend">${TIERS.map(t => `<span><i class="tb-${t.id}"></i>${t.icon} ${t.name} ${(scan.tiers[t.id] || 0) - (t.id === "new" ? vxLeftOver : 0)}</span>`).join("")}${vxLeftOver ? `<span>📐 via the verb track ${vxLeftOver}</span>` : ""}</div>
+      <div class="tier-legend">${TIERS.map(t => `<span><i class="tb-${t.id}"></i>${t.icon} ${t.name} ${(scan.tiers[t.id] || 0) - (t.id === "new" ? vxLeftOver : 0)}</span>`).join("")}${vxLeftOver ? `<span>📐 via the verb track ${vxLeftOver}</span>` : ""}</div>`}
     </div>
     ${typeof cxJourneyHtml === "function" ? cxJourneyHtml() : ""}
     ${fcHtml}
@@ -1130,7 +1135,8 @@ function forecastHtml() {
   const max = Math.max(1, ...parts.map(x => x.num));
   const seg = (n, cls) => n >= 0.5 ? `<i class="${cls}" style="height:${(n / max * 100).toFixed(1)}%"></i>` : "";
   // The course's days under the bars (course-de.js): 📖 a lesson, 📏 rules, ✍️ writing.
-  const cxd = typeof cxForecastDays === "function" ? cxForecastDays(f.days.length) : [];
+  const cxd = []; // (the course's days: the strip in its own block, cxJourneyHtml)
+  const lean = typeof cxOn === "function" && cxOn(); // German: the short Journey (fewer words)
   const cols = f.days.map((d, i) => {
     const x = parts[i];
     const what = `${d.total} reviews: ${Math.round(d.scheduled)} already scheduled · ${Math.round(d.fromNew)} from new words · ${Math.round(d.carried)} catching up${d.newWords ? ` · plus ${d.newWords} new words` : ""}`;
@@ -1145,16 +1151,15 @@ function forecastHtml() {
   }).join("");
   const d0 = f.days[0];
   const wait = d0 && d0.waiting;
-  const title = plan ? "Your plan coming up" : "Reviews coming up";
-  const how = plan ? "≈ right answers a day, if you finish your quests" : "≈ if you clear each day's reviews";
-  return `<div class="jf-head"><span class="stats-section-title">${title}</span><small>${how} · ${Math.round(f.p * 100)}% right</small></div>
+  const title = lean ? "Coming up" : plan ? "Your plan coming up" : "Reviews coming up";
+  const how = lean ? (plan ? "right answers a day" : "reviews a day") : plan ? "≈ right answers a day, if you finish your quests" : "≈ if you clear each day's reviews";
+  return `<div class="jf-head"><span class="stats-section-title">${title}</span><small>${how}${lean ? "" : ` · ${Math.round(f.p * 100)}% right`}</small></div>
     <div class="jf">${cols}</div>
-    <div class="jf-legend"><span><i class="jf-s"></i>already scheduled</span><span><i class="jf-new"></i>from new words</span><span><i class="jf-c"></i>catching up</span>${plan ? `<span><i class="jf-m"></i>meeting new words</span>` : ""}</div>
-    ${cxd.length ? `<div class="jf-legend"><span>📖 a grammar lesson + its drill</span><span>📏 grammar rules due</span><span>✍️ writing</span><span>≈ if you come every day</span></div>` : ""}
-    ${plan && d0 ? (() => { const pt = planToday();
-      const vxA = pt.vx && typeof vxPlanTarget === "function" ? vxPlanTarget(pt.vx) : 0, cxA = pt.cx && typeof cxPlanTarget === "function" ? cxPlanTarget(pt.cx) : 0;
-      return `<div class="jf-note">Today: ${pt.reviews} reviews${pt.catchUp ? ` + ${pt.catchUp} catching up` : ""} + ${pt.newWords} new words${vxA ? ` + 📐 verbs` : ""}${cxA ? ` + 📖 grammar` : ""} ≈ ${d0.target} right answers, with room for misses.${pt.catchUp ? " Finish today's plan and your full new words are back." : ""}</div>`; })() : ""}
-    ${wait > 0 ? `<div class="jf-wait">Today takes part of your backlog; ${wait} wait${wait === 1 ? "s" : ""} for the next days (they still show as due).</div>` : ""}`;
+    ${lean ? `<div class="jf-legend"><span><i class="jf-s"></i>reviews</span><span><i class="jf-new"></i>new words' reviews</span>${plan ? `<span><i class="jf-m"></i>new words</span>` : ""}<span><i class="jf-c"></i>backlog</span></div>`
+      : `<div class="jf-legend"><span><i class="jf-s"></i>already scheduled</span><span><i class="jf-new"></i>from new words</span><span><i class="jf-c"></i>catching up</span>${plan ? `<span><i class="jf-m"></i>meeting new words</span>` : ""}</div>`}
+    ${plan && d0 && !lean ? (() => { const pt = planToday();
+      return `<div class="jf-note">Today: ${pt.reviews} reviews${pt.catchUp ? ` + ${pt.catchUp} catching up` : ""} + ${pt.newWords} new words ≈ ${d0.target} right answers, with room for misses.${pt.catchUp ? " Finish today's plan and your full new words are back." : ""}</div>`; })() : ""}
+    ${wait > 0 ? `<div class="jf-wait">${lean ? `↻ ${wait} overdue spread over the next days` : `Today takes part of your backlog; ${wait} wait${wait === 1 ? "s" : ""} for the next days (they still show as due).`}</div>` : ""}`;
 }
 // "How does a word move?" — the schedule, in plain words.
 function stageGuideHtml() {

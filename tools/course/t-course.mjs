@@ -452,10 +452,10 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
     S.words["cx_" + rs[2]] = { st: 3, dueAt: studyDayStart(3) + 3600e3, correct: 2 };
     renderJourney();
     const m = document.getElementById("main-screen"), t = m.innerText;
-    ok(/Grammar course/.test(t) && /\d+ \/ 73 lessons/.test(t) && /Next lesson/.test(t), "Journey: the grammar course block (lessons, next lesson, the pace)");
-    const cols = m.querySelectorAll(".jf-cx");
-    ok(cols.length === 8 && /📖/.test(cols[0].textContent) && /📏2/.test(cols[0].textContent) && !/📏/.test(cols[1].textContent) && /📏1/.test(cols[3].textContent), `the forecast marks today's lesson, the rules due today and in 3 days (${[...cols].map(c => c.textContent)})`);
-    ok(/words, verbs and grammar/.test(t) && /📖 Course/.test(t) && !/📐 Grammar/.test(t), "the finish-date line counts grammar; the link opens the Course");
+    ok(/Grammar/.test(t) && /\d+\/73/.test(t) && /on track|tight|behind/.test(t), "Journey: 📖 Grammar · lessons done · the pace, in a few words");
+    const days = m.querySelectorAll(".cx-wday");
+    ok(days.length === 7 && days[0].classList.contains("on") && /📖/.test(days[0].textContent) && !m.querySelector(".jf-cx") && !/Today: \d+ reviews/.test(t), `the next 7 days, today's lesson lit; nothing under the bars, no long note (${[...days].map(d => d.textContent).join(" ")})`);
+    ok(/🎯/.test(t) && !/Quests are sized/.test(t) && !/via the verb track/.test(t) && /📖 Course/.test(t) && !/📐 Grammar/.test(t), "the header: the goal date only, no long lines; the link opens the Course");
     m.querySelector(".jl-cx").click(); ok(/parts, in the order/i.test(document.getElementById("main-screen").innerText), "tap: the Course");
     renderJourney();
   });
