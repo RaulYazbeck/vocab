@@ -69,7 +69,8 @@ a later session that uploads its chapter.
                                       # npm install once in tools/audio/tests): progress intact,
                                       # Today with the course (test-out → sheet → drill, the count),
                                       # a test-out passed, every format and screen on phone + desktop,
-                                      # By chapter, back buttons, ✍️ Writing, the French app untouched
+                                      # the parts opening in place, By chapter and its Übungen, back
+                                      # buttons, ✍️ Writing, the French app untouched
     node t-edge.mjs                   # edge cases: the real keyboard, ✕ mid-drill, HTML typed in, a damaged
                                       # state, Grandma / Speak mode, another device, the day rolling over, a peek
     node sim.mjs [--acc 0.6 --testout 0 --skip 0.3 --break 60:21 --late 150 --deadline 2027-12-15 --due 40:120]
