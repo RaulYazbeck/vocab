@@ -17,7 +17,8 @@ function startPathSession(lenKey, opts = {}) {
   if (typeof quitAllGames === "function") quitAllGames();
   _screenFrom = null;
   lenKey = PATH.SESSION_LENGTHS[lenKey] ? lenKey : (S.path.sessionLen || "regular");
-  S.path.sessionLen = lenKey;
+  // (📚 My dues sizes itself to what's due: the length you picked for Today stays)
+  if (opts.focus !== "dues") S.path.sessionLen = lenKey;
   const q = buildPathQueue(lenKey, opts);
   const island = document.getElementById("floating-island");
   if (island) island.remove();

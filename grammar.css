@@ -480,3 +480,9 @@
 .cx-part.open .cx-pin > .gr-sheets { opacity:1; transition-delay:0.08s; }
 .cx-part.open > .gr-unit { border-color:hsl(var(--th) 70% 60% / 0.45); }
 @media (prefers-reduced-motion: reduce) { .cx-pbody, .cx-pin > .gr-sheets { transition:none; } }
+/* 📚 My dues: what's due, as chips */
+.cx-dues-btn { margin-bottom:12px; }
+.cx-dues { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+.cx-due { font-size:13px; padding:4px 10px; border-radius:14px; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--text); }
+.cx-due.fix { border-color:hsl(38 70% 60% / 0.5); }
+.cx-due.more { color:var(--text-3); }

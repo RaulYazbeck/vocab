@@ -372,7 +372,14 @@ What exists today and what is new:
   book's order — each one runs on its own (to work along the book); the only
   place a single exercise is picked. What each exercise became (mirrored ·
   generated · planned) is build data: `tools/course`, never on screen.
-- **🧩 Practise:** weak rules · mixed · one lesson.
+- **🧩 Practise:** 📚 **My dues** first — everything due today (words,
+  verbs, grammar rules) listed, and one button that drills just those (the
+  ones to fix first, rules and verbs before the words, at most a Long
+  session's worth) · weak rules · mixed · one lesson. Today stays as it is.
+- **🗺️ Journey:** a grammar block (lessons done, rules learned and due, the
+  next lesson, the finish date) and, under the forecast's bars, the course's
+  days (≈, coming every day): 📖 a lesson and its drill · 📏 rules due · ✍️
+  writing.
 - **✍️ Writing:** a level (A1 · A2 · B1), a theme (13, one line per level,
   or 🎲) and one Write button; my texts below, kept forever, copied for Claude.
 - **🎓 Exam** (Session 9): fide countdown, monthly mock, readiness hint.
