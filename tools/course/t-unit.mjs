@@ -57,19 +57,22 @@ C.applyWrong = ws => { ws.wrong++; ws.lrn = 1; ws.dueAt = Date.now(); return { e
 
 fresh();
 let P = C.cxPlanner();
-ok(P.left > 90 && P.left < 120, `sheets ahead: ${P.left} (PLAN.md: ≈ 95–100 + the verb sheets not reached)`);
+ok(P.left > 120 && P.left < 160, `sheets ahead: ${P.left} (the complete course: built lessons' real sheets, the others' estimates, the verb lessons')`);
 ok(P.cl >= 60 && P.cl < P.left, `the course's own: ${P.cl} (the verb track paces the rest)`);
 ok(P.target === "2027-07-06" && P.status === "green", `15 Aug 2027 → all sheets passed by ${P.target}: ${P.status}`);
 C.S.path.deadline = "2027-01-15"; P = C.cxPlanner();
 ok(P.status === "red", `finish date 15 Jan 2027: ${P.status} (${P.need.toFixed(2)} a day)`);
-C.S.path.deadline = "2027-02-15"; P = C.cxPlanner();
-ok(P.status === "amber", `finish date 15 Feb 2027: ${P.status} (${P.need.toFixed(2)} a day)`);
+// amber: lessons back to back (study days ≥ sheets, < sheets + a day's break per lesson)
+C.S.path.deadline = C.addDays("2026-10-18", P.S + 1 + 40); P = C.cxPlanner();
+ok(P.status === "amber" && C.cxBreak() === 0, `finish date ${C.S.path.deadline}: ${P.status}, no break (${P.need.toFixed(2)} a day)`);
+C.S.path.deadline = C.addDays("2026-10-18", P.S + P.L + 5 + 40); P = C.cxPlanner();
+ok(P.status === "green" && C.cxBreak() >= 1, `finish date ${C.S.path.deadline}: ${P.status}, a break of ${C.cxBreak()} day(s)`);
 C.S.path.deadline = ""; ok(C.cxPlanner().status === "none", "no finish date: no status");
 // the verb track's passed sheets count as done
 fresh();
 const before = C.cxPlanner().left;
-["pr1", "pr2", "pr3", "pr4", "pr5", "pr7", "im1", "im2", "im3", "pf1"].forEach(id => { C.S.verb.sh[id] = 100; });
-ok(C.cxPlanner().left === before - 10 && C.cxSecDone("s0.verbs"), "the passed verb sheets count as done (their section too)");
+["pr1", "pr2", "pr3", "pr4", "pr5", "pr7", "im1", "im2", "im3", "pf1", "pt11", "pt12", "pt13"].forEach(id => { C.S.verb.sh[id] = 100; });
+ok(C.cxPlanner().left === before - 13 && C.cxSecDone("s0.verbs"), "the passed verb sheets count as done (their section too)");
 
 // the day
 fresh();
@@ -129,14 +132,14 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
 // the finish date sets the pace: new sheets spread evenly to the target
 {
   fresh();
-  const left = C.cxCourseSheetsLeft(), days = C.daysBetween("2026-10-18", "2027-07-06");
-  ok(C.cxGap() === Math.floor(days / left) && C.cxGap() >= 2, `15 Aug 2027: ${left} sheets over ${days} days — a new one every ${C.cxGap()} days`);
+  const K = C.cxClock(), days = C.daysBetween("2026-10-18", "2027-07-06");
+  ok(K.days === days && Math.abs(K.G - (days - K.S) / K.L) < 1e-9 && C.cxBreak() >= 1 && C.cxGap() === C.cxBreak() + 1, `15 Aug 2027: ${K.S} sheets, ${K.L} lessons over ${days} days — a break of ≈ ${K.G.toFixed(2)} days after each (${C.cxBreak()} now)`);
   C.S.path.deadline = "2027-12-15"; const later = C.cxGap();
   C.S.path.deadline = "2027-04-15"; const sooner = C.cxGap();
   ok(later > sooner && sooner >= 1, `a later date spaces them out (${later} days), an earlier one brings them closer (${sooner})`);
   C.S.path.deadline = "2026-12-01"; ok(C.cxGap() === 1, "a date too close: every day (and the levers)");
   C.S.path.deadline = ""; ok(C.cxGap() === 1, "no finish date: every day");
-  C.S.path.deadline = "2030-01-01"; ok(C.cxGap() === 7, "far away: never more than a week apart");
+  C.S.path.deadline = "2030-01-01"; ok(C.cxBreak() === 7, "far away: never more than a week's break");
   fresh(); const g = C.cxGap();
   ok(C.cxTodayParts().some(p => p.part === "sheet"), "first day: a sheet");
   C.cxSheetResult("cx.neg1", 1, true, "path");
@@ -165,10 +168,10 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   ok(C.S.course.cd === "2026-10-18" && !C.cxContrastDue("2026-10-22") && C.cxContrastDue("2026-10-23"), "then not for 5 days");
   C.S.course.cd = "2026-10-10"; C.S.course.dd = {}; C.S.course.last = "2026-10-01";
   ok(C.cxGap() > 1 && /testout|sheet/.test(kinds()) && !/:mix/.test(kinds()), `a sheet due (every ${C.cxGap()} days): the sheet; the mixed day waits for a day between`, kinds());
-  C.S.path.deadline = "2027-03-25";
-  ok(C.cxGap() === 1 && C.cxPlanner().status === "green" && /:mix/.test(kinds()) && !/testout|sheet/.test(kinds()), "a sheet every day (on track): the mixed day takes the fifth day's slot", kinds());
-  C.S.path.deadline = "2027-02-01"; const st = C.cxPlanner().status;
-  ok(st !== "green" && /:mix/.test(kinds()) && /testout|sheet/.test(kinds()), `tight (${st}): the mixed day brings its sheet too`, kinds());
+  { const K = C.cxClock(); C.S.path.deadline = C.addDays("2026-10-18", K.S + 1 + 40); }
+  ok(C.cxBreak() === 0 && /testout|sheet/.test(kinds()) && !/:mix/.test(kinds()), "lessons back to back (no break): the lesson; the mixed day waits for a break", kinds());
+  C.S.path.deadline = "2027-01-01"; const st = C.cxPlanner().status;
+  ok(st === "red" && /testout|sheet/.test(kinds()) && !/:mix/.test(kinds()), `behind (${st}): the lesson comes, no mixed day`, kinds());
   ["s0.gender", "s0.art"].forEach(id => { C.CX.byId[id].built = false; C.CX.byId[id].sheets = []; });
 }
 // my rhythm: the gap counts study days
@@ -221,7 +224,9 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   C2.cxDrillDone("s1.zu", 10, 12); C2.cxPartDone({ part: "drill", sec: "s1.zu" });
   ok(!C2.cxSecDone("s1.zu"), "not done after day 1");
   C2.S.course.day = "2000-01-01";
-  ok(!C2.cxTodayParts().some(p => p.sec === "s1.zu"), "the next day: the second sheet waits for the gap");
+  C2.__today = "2026-10-19";
+  ok(J(C2.cxTodayParts().filter(p => p.sec === "s1.zu").map(p => p.part + ":" + (p.sheet || ""))) === J(["sheet:cx.t.zu2", "drill:"]), "the next day: its second sheet at once (a lesson's sheets on consecutive days)", J(C2.cxTodayParts()));
+  C2.__today = "2026-10-18";
   C2.S.course.day = "2000-01-01"; C2.S.course.last = "2000-01-01"; C2.S.course.seen = Array.from({ length: 10 }, (_, i) => C2.addDays("2026-10-08", i));
   ok(J(C2.cxTodayParts().filter(p => p.sec === "s1.zu").map(p => p.part + ":" + (p.sheet || ""))) === J(["sheet:cx.t.zu2", "drill:"]), "its day: the second sheet, then the drill");
   C2.cxSheetResult("cx.t.zu2", 1, true, "path");
@@ -233,7 +238,7 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   fresh2();
   ok(!C2.cxCheckpointReady(C2.CX.byId["s0.recap"]) && !C2.cxTodayParts().some(p => p.part === "checkpoint"), "the checkpoint waits while stage 0 has sections to do (coming ones too)");
   C2.CX.sections.filter(s => s.stage === 0 && s.id !== "s0.recap").forEach(s => { C2.S.course.sec[s.id] = { st: 3 }; });
-  ["pr1", "pr2", "pr3", "pr4", "pr5", "pr7", "im1", "im2", "im3", "pf1"].forEach(id => { C2.S.verb.sh[id] = 100; });
+  ["pr1", "pr2", "pr3", "pr4", "pr5", "pr7", "im1", "im2", "im3", "pf1", "pt11", "pt12", "pt13"].forEach(id => { C2.S.verb.sh[id] = 100; });
   C2.cxIntroduceRules("s0.neg", 3);
   ok(C2.cxCheckpointReady(C2.CX.byId["s0.recap"]) && C2.cxTodayParts().some(p => p.part === "checkpoint" && p.sec === "s0.recap"), "stage 0 done: the checkpoint comes in Today");
   const plan = C2.cxCheckpointPlan("s0.recap");
@@ -243,6 +248,123 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   ok(!C2.cxCheckpointResult("s0.recap", 9, 12) && C2.cxSecDone("s0.recap") && C2.S.course.sec["s0.recap"].on === 1, "third try: the stage moves on anyway (the date matters more)");
   fresh2(); C2.cxIntroduceRules("s0.neg", 3);
   ok(C2.cxCheckpointResult("s0.recap", 10, 12) && C2.cxSecDone("s0.recap"), "83%: passed");
+}
+
+// ── the lesson clock (PLAN.md §9): lesson, practise, lesson, practise ──
+{
+  // tBuild(id, n): a lesson built with n sheets (the pilot's shape, its own rules)
+  const C3 = loadCourse({ extra: `
+    function tBuild(id, n) {
+      const pilot = CX.byId["s0.neg"], ps = CX.sheets["cx.neg1"], k = id.replace(/\\W/g, "");
+      const rid = Array.from({ length: 2 * n }, (_, i) => "t." + k + "-r" + (i + 1));
+      const sheets = Array.from({ length: n }, (_, j) => ({ id: "cx.t." + k + j, title: id + " " + (j + 1), qn: 3, struct: ps.struct, why: "x", rules: ["a", "b"], ex: ps.ex, trap: "t",
+        quiz: [{ at: "r1", k: "pick", q: "x", o: ["a", "b"], a: 0, why: "w" }], rid: rid.slice(2 * j, 2 * j + 2) }));
+      const sets = pilot.sets.map(i => CX.sets[i]).filter(s => !s.gen).map((s, i) => ({ ...s, id: "d.t." + k + "." + i, ex: undefined, items: s.items.map((it, j) => ({ ...it, r: [rid[(i + j) % rid.length]] })) }));
+      cxPack({ id: "t-" + k, sections: { [id]: { rules: Object.fromEntries(rid.map(r => [r, r])), sheets, drills: sets, testout: false } } });
+      _cxSimMemo = null;
+    }` });
+  const day = d => { C3.__today = d; };
+  const fresh3 = () => {
+    C3.S = { words: {}, verb: { sh: {}, su: {}, day: "" }, path: { deadline: "2027-08-15", newPerDay: 10 } };
+    day("2026-10-18");
+    C3.pathDeadlineOn = () => !!C3.S.path.deadline; C3.pathScan = () => ({ due: 60 });
+    C3.vxOn = () => true; C3.vxSheetPassed = id => !!(C3.S.verb.sh[id] > 0);
+    C3.getWS = (d, i) => C3.S.words[d + "_" + i] || (C3.S.words[d + "_" + i] = { correct: 0, wrong: 0 });
+    C3.introduceWord = ws => { if (ws.st) return false; ws.st = 1; ws.lrn = 1; ws.dueAt = Date.now(); return true; };
+    C3.scheduleStage = ws => { ws.dueAt = Date.now() + 864e5; };
+    C3.applyCorrect = ws => { ws.correct++; ws.lrn = 0; return { events: [] }; }; C3.applyWrong = ws => { ws.wrong++; ws.lrn = 1; return { events: [] }; };
+    C3.migrateCourse();
+  };
+  const id = () => (C3.cxClockLesson() || {}).id;
+  const verbToday = () => C3.cxVerbClock().today;
+  // a study day: the day rolls over, the app is opened
+  const open = d => { day(d); C3.S.course.day = "x"; C3.cxRollDay(); C3.S.verb.day = d; C3.S.verb.su = {}; };
+  // a verb sheet opened and passed in Today
+  const passVerb = v => { C3.S.verb.su[v] = 1; C3.cxVerbSheetLearned(v); C3.S.verb.sh[v] = 100; };
+  const VERBS0 = ["pr1", "pr2", "pr3", "pr4", "pr5", "pr7", "im1", "im2", "im3", "pf1", "pt11", "pt12", "pt13"];
+  ok(C3.CX.byId["s1.pt21"].verb.join() === "pt21" && C3.CX.byId["s0.verbs"].verb.slice(-3).join() === "pt11,pt12,pt13", "the Präteritum in steps: war & hatte in the A1 lesson, the regular one in A2");
+  ok(C3.CX.sections.filter(s => s.verb).flatMap(s => s.verb).sort().join() === C3.GS_SHEETS.map(s => s.id).sort().join(), "every verb sheet in exactly one lesson");
+
+  fresh3();
+  ok(id() === "s0.neg", `nothing begun: the first built lesson in course order (${id()})`);
+  // the learner: nicht/kein done, the Präsens lesson 9 of 10
+  C3.S.course.sec["s0.neg"] = { st: 3, at: "2026-10-17" }; C3.S.course.last = "2026-10-17";
+  VERBS0.filter(v => v !== "pr7").forEach(v => { C3.S.verb.sh[v] = 100; });
+  ok(id() === "s0.verbs" && C3.cxCurrentLesson() && C3.cxCurrentLesson().id === "s0.verbs", "a lesson under way (the A1 verb lesson, 12/13): it carries on");
+  ok(J(verbToday()) === J(["pr7"]) && C3.cxNextLessonDay() === "2026-10-18", `its next sheet comes today, whatever the break (${verbToday()})`);
+  C3.S.verb.day = "2026-10-18"; C3.S.verb.su.pr7 = 1;
+  ok(J(verbToday()) === J([]), "opened today (one a day): no other sheet today");
+  passVerb("pr7");
+  ok(C3.cxSecDone("s0.verbs") && !C3.cxCurrentLesson() && C3.S.course.last === "2026-10-18", "its last sheet passed: the lesson is done, its break starts today");
+  const b0 = C3.cxBreak(), K0 = C3.cxClock();
+  ok(b0 === C3.cxBreakAfter(C3.cxLessonsDone(), K0.G) && b0 >= 1 && b0 <= 3, `a break of ${b0} study day(s) (G ≈ ${K0.G.toFixed(2)} = (${K0.D} days − ${K0.S} sheets) ÷ ${K0.L} lessons)`);
+  // the break: no new sheet; then the next lesson — the first ready one (skip ahead to A2)
+  ok(C3.cxNextLessonDay() === C3.addDays("2026-10-18", b0 + 1), `the next lesson on ${C3.cxNextLessonDay()}`);
+  open("2026-10-19");
+  ok(b0 < 1 || (C3.cxDayLessons().length === 0 && J(verbToday()) === J([]) && !C3.cxTodayParts().some(p => ["sheet", "testout", "drill"].includes(p.part))), "a break day: no lesson, no sheet");
+  ok(C3.cxTodayParts().some(p => p.part === "write" || p.part === "review"), "a break day: practice (reviews, writing)");
+  ok(id() === "s1.pf", `every built A1 lesson done: the next built one comes, an A2 verb lesson (${id()})`);
+  for (let i = 2; i <= b0 + 1; i++) open(C3.addDays("2026-10-18", i));
+  ok(J(verbToday()) === J(["pf2"]), `the break over (${b0} study days): the next lesson's first sheet (${verbToday()})`);
+  passVerb("pf2");
+  open(C3.addDays("2026-10-18", b0 + 2));
+  ok(J(verbToday()) === J(["pf3"]), "the next study day: its next sheet (days in a row)");
+  // a day missed mid-lesson: it carries on at the next study day
+  open(C3.addDays("2026-10-18", b0 + 5));
+  ok(J(verbToday()) === J(["pf3"]) && C3.cxCurrentLesson().id === "s1.pf", "two days missed mid-lesson: the same sheet the next study day (never stretched)");
+  ["pf3", "pf4", "pf5", "pf6"].forEach((v, i) => { open(C3.addDays("2026-10-18", b0 + 5 + i)); passVerb(v); });
+  const end1 = C3.S.course.last, b1 = C3.cxBreak();
+  ok(C3.cxSecDone("s1.pf") && Math.abs(b1 - b0) <= 1, `after the 5-sheet lesson the same break, ± 1 (${b1} vs ${b0} after the 1-sheet one)`);
+  // an earlier lesson built later fills the gap first
+  C3.tBuild("s0.gender", 3);
+  ok(id() === "s0.gender", `an A1 lesson built later comes next, before the A2 ones (${id()})`);
+  // a lesson whose prerequisite isn't built waits
+  C3.tBuild("s0.acc", 1);
+  ok(!C3.cxLessonReady(C3.cxSection("s0.acc")) && C3.cxSection("s0.acc").after.includes("s0.art"), "s0.acc built, but it builds on s0.art (not built): it waits");
+  // the estimate → the real count
+  const S1 = C3.cxClock().S;
+  ok(C3.cxLessonSize(C3.cxSection("s0.plural")) === C3.cxSection("s0.plural").n && C3.cxLessonSize(C3.cxSection("s0.gender")) === 3, "not built: its estimate (n); built: its real sheets");
+  C3.tBuild("s0.plural", C3.cxSection("s0.plural").n + 2);
+  ok(C3.cxClock().S === S1 + 2, `a lesson built with 2 sheets more than its estimate: 2 more sheets ahead (${S1} → ${C3.cxClock().S})`);
+  // a 3-sheet course lesson: its sheets on days in a row, each with its drill
+  const d0 = C3.addDays(end1, b1 + 1);
+  for (let i = 1; i <= b1 + 1; i++) open(C3.addDays(end1, i));
+  const kinds = () => C3.cxTodayParts().filter(p => p.sec === "s0.gender").map(p => p.part + ":" + (p.sheet || "")).join(" ");
+  ok(kinds() === "sheet:cx.t.s0gender0 drill:", `its day: sheet 1 and its drill (${kinds()})`);
+  C3.cxSheetResult("cx.t.s0gender0", 1, true, "path");
+  ok(!/sheet/.test(kinds()), "sheet 1 passed: no second sheet today");
+  C3.cxDrillDone("s0.gender", 10, 12); C3.cxPartDone({ part: "drill", sec: "s0.gender" });
+  open(C3.addDays(d0, 1));
+  ok(kinds() === "sheet:cx.t.s0gender1 drill:", `the next day: sheet 2 (${kinds()})`);
+  C3.cxSheetResult("cx.t.s0gender1", 1, true, "path"); C3.cxDrillDone("s0.gender", 10, 12);
+  open(C3.addDays(d0, 2));
+  C3.cxSheetResult("cx.t.s0gender2", 1, true, "path"); C3.cxDrillDone("s0.gender", 10, 12);
+  ok(C3.cxSecDone("s0.gender") && C3.S.course.last === C3.addDays(d0, 2), "3 sheets, 3 days in a row: done, the break counts from its last day");
+  // back after a long time away: the next lesson at once
+  day(C3.addDays(d0, 40));
+  ok(C3.cxNextLessonDay() === C3.addDays(d0, 40), "back after a long time away: the next lesson at once");
+  // the carry: the breaks alternate around G and add up to it
+  const seq = Array.from({ length: 10 }, (_, k) => C3.cxBreakAfter(k, 2.3));
+  ok(seq.every(b => b === 2 || b === 3) && seq.reduce((a, b) => a + b, 0) === 23, `G 2.3: breaks ${seq.join(" ")} (23 days over 10 lessons)`);
+  ok(J(Array.from({ length: 4 }, (_, k) => C3.cxBreakAfter(k, 0.5))) === J([0, 1, 0, 1]), "G 0.5: a break after every other lesson");
+  // no finish date: lesson after lesson
+  C3.S.path.deadline = ""; ok(C3.cxClock().G === 0 && C3.cxBreak() === 0, "no finish date: no break, lesson after lesson");
+  C3.S.path.deadline = "2027-08-15";
+  // waiting for new lessons: nothing built is ready
+  fresh3();
+  C3.S.course.sec["s0.neg"] = { st: 3 }; C3.S.course.last = "2026-10-01";
+  C3.CX.sections.filter(s => s.verb && s.prio !== "C").forEach(s => s.verb.forEach(v => { C3.S.verb.sh[v] = 100; }));
+  // (the lessons built above done; s0.acc's prerequisite isn't built)
+  C3.CX.sections.filter(s => s.built && s.id !== "s0.acc").forEach(s => { C3.S.course.sec[s.id] = { st: 3 }; });
+  ok(!C3.cxClockLesson() && C3.cxPlanner().waiting && C3.cxDayLessons().length === 0, "nothing ready (the rest not built yet): waiting — no lesson, the planner says so");
+  ok(C3.cxClock().L > 50 && C3.cxPlanner().status === "green", `…and the lessons still to come are in the pace (${C3.cxClock().L} lessons, ${C3.cxClock().S} sheets)`);
+  // the bonus waits for every other lesson
+  ok(!C3.cxLessonReady(C3.cxSection("s4.k2p")), "the post-B1 verb lesson waits for the rest of the course");
+  // the forecast: the complete course's dates — every lesson starts, the last paced one by the target
+  fresh3(); C3.CX.sections.forEach(s => { if (s.built) delete C3.S.course.sec[s.id]; });
+  const sim = C3.cxClockSim();
+  const starts = C3.CX.sections.filter(s => s.prio !== "C").map(s => sim.start[s.id]);
+  ok(starts.every(Boolean) && sim.last && sim.last <= "2027-07-06", `the clock run forward: every lesson starts, the last ends ${sim.last} (target 2027-07-06)`);
 }
 
 // ── my rhythm: the pace of the last 4 weeks, the days with nothing new, the levers ──
@@ -260,7 +382,7 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   ok(Math.abs(C.cxPace() - 1 / 13) < 1e-9, "days with nothing new don't count against me");
   // the day rolls over with nothing built left: it's an idle day
   fresh(); C.S.course.since = "2026-10-10"; C.S.course.sec["s0.neg"] = { st: 3, at: "2026-10-10" };
-  ["pr1", "pr2", "pr3", "pr4", "pr5", "pr7", "im1", "im2", "im3", "pf1"].forEach(id => { C.S.verb.sh[id] = 100; });
+  ["pr1", "pr2", "pr3", "pr4", "pr5", "pr7", "im1", "im2", "im3", "pf1", "pt11", "pt12", "pt13"].forEach(id => { C.S.verb.sh[id] = 100; });
   if (!C.cxNextSections(1).length) { C.S.course.day = "2026-10-15"; C.S.course.idle = ["2026-10-15"]; C.__today = "2026-10-18"; C.cxRollDay();
     ok(J(C.S.course.idle) === J(["2026-10-15", "2026-10-16", "2026-10-17", "2026-10-18"]), "nothing built then or now: the days between are idle too", J(C.S.course.idle)); }
   else ok(true, "(a section is built beyond the pilot: idle check skipped)");
@@ -285,7 +407,7 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   const j = C.cxLearnJson();
   ok(j && j.rules[r] && j.rules[r][3].length === 1 && j.sec, "and its JSON carries the rules and sections", J(j && j.rules[r]));
   const rep = C.cxReportLines();
-  ok(rep.length === 2 && /rule\(s\) due/.test(rep[1]) && /a new sheet every \d+ day/.test(rep[1]), "the usage report: sections, rules by tier, today and the planner", J(rep));
+  ok(rep.length === 2 && /rule\(s\) due/.test(rep[1]) && /lesson clock: .*breaks ≈ [\d.]+ day/.test(rep[1]), "the usage report: sections, rules by tier, today and the planner", J(rep));
 }
 
 // ── the writing journal ──

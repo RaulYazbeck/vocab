@@ -168,7 +168,7 @@ review only; miss → the sheet is scheduled.
 | N | Numbers, time, dates | 4, 6 |
 | N | Accusative: the articles | 7 |
 | N | Accusative pronouns and *man* | 7 |
-| ✓ | pr1–pr5, pr7 (Präsens) · im1–im3 (Imperativ) · pf1 (Perfekt structure) | 6, 8, 9, 10, 12 |
+| ✓ | pr1–pr5, pr7 (Präsens) · im1–im3 (Imperativ) · pf1 (Perfekt structure) · pt11–pt13 (war & hatte, the modals' past) | 6, 8, 9, 10, 12, 17 |
 | N | Recap: Stage 0 | — |
 
 ### Stage 1 — A2 core
@@ -328,7 +328,8 @@ What exists today and what is new:
   (within what the date allows).
 - **If behind**, levers in order: two sheets on easy days → drop *Could* →
   sample drills instead of all → more minutes. *Must* is never cut.
-  *As built (Session 1 follow-up 2):* **the finish date sets the pace** —
+  *As built (Session 1 follow-up 2; the spacing per sheet is replaced by the
+  lesson clock below):* **the finish date sets the pace** —
   no minutes to pick. The course's sheets still to learn are spread evenly
   over the days left to the target (a new sheet every ⌊days ÷ sheets⌋ days,
   1–7, recomputed daily), so they don't come every day until done and then
@@ -353,6 +354,55 @@ What exists today and what is new:
   pace (sheets a day over the last 4 weeks, days with nothing built not
   counted) tells when I'd finish, and the planner shows it when it's late.
 - **Status** is shown next to the existing word planner: green / amber / red.
+
+### The lesson clock (agreed 19 Oct 2026 — replaces "a new sheet every N days")
+
+The course runs **lesson, consolidate, lesson, consolidate**. The verb
+lessons are lessons of the course like any other (they follow the same clock;
+their sheets still live in the verb track).
+
+- **Lesson:** one of the 73 in `js/course/plan.js` (course lessons, verb
+  lessons, checkpoints, the post-B1 bonus). *nᵢ* = its sheets (a checkpoint
+  counts 1).
+- **Study day:** a day I open the app.
+1. **One lesson at a time**, in course order.
+2. **Inside a lesson:** one sheet per study day, on consecutive study days,
+   until its *nᵢ* sheets are done (each course sheet with its drill the same
+   day). A lesson of *n* sheets takes *n* study days.
+3. **Between two lessons:** a break of *G* study days — no new sheet; the
+   drill, reviews, mixed practice and writing of what I learned.
+4. **The same G after every lesson**, 1 sheet or 10:
+   *G = (study days left − sheets left) ÷ lessons left*, the study days
+   counted to the target (finish date − 40 days ≈ 6 July for 15 Aug) and
+   scaled by my rhythm (the share of days I open the app). Capped at 7.
+5. **x ± 1:** the fraction is carried, so the breaks alternate around G
+   (2.3 → 2, 2, 3, 2, 2, 3…) and the average is exact.
+6. **Recomputed every day** — with missed days, my progress and every lesson
+   added — but only during a break: a lesson under way is never stretched.
+7. A day missed mid-lesson: the lesson carries on at the next study day. A
+   sheet quiz failed: the same sheet the next day (the lesson takes a day
+   more). A passed test-out ends the lesson that day. Back after a long time
+   away (twice the break in the calendar): the next lesson starts at once.
+8. **Behind** (more sheets than study days): no breaks; then a second sheet
+   on every other day (never while rules are failing or reviews pile up);
+   past that the planner says to pick a later date.
+9. The post-B1 bonus lessons aren't paced to the target: after the rest,
+   spread to the finish date itself.
+
+**Sheet counts are estimates until a lesson is built.** `n` in `plan.js` is a
+deliberately generous guess (from the book headings the lesson covers) so the
+pace counts the course as if it were complete; a built lesson counts its real
+sheets. While building a chapter the estimate is **not** a target — write as
+many sheets as the topic needs; the clock adjusts the next day. Once every
+lesson is built, the counts are exact.
+
+**Order with an incomplete app:** the next lesson is the first one in course
+order that is built and whose prerequisites (`after` in `plan.js`) are done.
+So when every built A1 lesson is done, a built A2 lesson comes next (today:
+the A2 verb lessons); a lesson that depends on one not built yet waits. When
+an earlier lesson is built later, it comes next (it fills the gap) before the
+order moves on. If nothing built is ready, the break simply continues
+("waiting for new lessons") and the next day's recalculation absorbs it.
 
 ---
 
@@ -486,6 +536,21 @@ corrected ones stay listed by date); ☰ › 📖 Course › ✍️ Writing show
 copies them all, and ticks a text as corrected. Writing comes on the days
 between new sheets, on mixed days, and on light days.
 
+**Fixes after the first week (agreed 19 Oct 2026):**
+1. **The session length is the length:** the grammar cards' questions count
+   inside Quick 15 / Regular 30 / Long 60 — they take room from word reviews,
+   never from new words. A lesson that doesn't fit a session waits for the
+   next session (the session stays 15).
+2. **✍️ Writing:** tapping a starter types it into the text, at the cursor.
+3. The Journey's "x/73" counts lessons done (+1 for each full lesson; a verb
+   lesson once all its verb sheets are passed) — unchanged.
+4. The Journey's coming days include the course's questions, and the
+   "out of reach" warning counts the course too.
+5. **Twists:** a twist round counts for stars and rank-ups when it is neutral
+   or harder (🪞 Mirror, 💀 Sudden death, 🚀 Turbo); 🌟 Golden words makes
+   it easier, so it doesn't.
+6. **The lesson clock** (§9).
+
 ### Session 2 — Stage 0, the A1 sweep
 
 **Upload:** chapters 1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 17, 28. *(from the course map: `node tools/course/session.mjs 2`)*
@@ -579,7 +644,9 @@ screen · coverage report at 100 % (every blueprint exercise *mirrored*,
 - Writing is free and ungraded in the app: a prompt with a word minimum, saved for a tutor (Claude) to correct from the learning log; the drill sets' write/open items stay as model + checklist. Texts are never deleted.
 - The finish date is the only pace setting: grammar sheets are spread evenly to it (no "minutes a day" choice).
 - A drill's "write your own" is saved for Claude like the journal (one model line to compare; no checklist, no self-grading, no rule moves).
-- Post-B1 ("Could") sections aren't paced to the date: they come after the rest, one a week.
+- Post-B1 ("Could") sections aren't paced to the date: they come after the rest, spread to the finish date.
+- **Präteritum in three steps (19 Oct 2026):** war & hatte and the modals' past (pt11–pt13) belong to the A1 verb lesson, the regular Präteritum to A2, the strong and mixed Präteritum to B1. The book teaches war/hatte with the strong verbs (chapter 16); we take them earlier on purpose, as the verb track always did — the book's headings stay with the lessons that cover them in full. Every verb sheet now belongs to exactly one lesson.
+- **Lesson clock (19 Oct 2026):** lesson, consolidate, lesson, consolidate — a lesson's sheets on consecutive study days, then the same break G after every lesson, G = (study days left − sheets left) ÷ lessons left, recomputed daily; verb lessons included. Sheet counts of unbuilt lessons are generous estimates, never a target when building. The next lesson is the first built one whose prerequisites are done; an earlier one built later fills the gap first.
 - **Table-of-contents audit (Session 1 follow-up 4):** every line of the book's contents (243 headings + 8 chapter openings) is named by a lesson — taught there, in the verb track the lesson links to, or as part of it; the validator fails on any line without one. Most of the 79 lines that had no lesson were already covered (the verb track teaches the state passive, polite Konjunktiv II, modal forms, imperatives); real changes: conditionals and wishes got a second sheet (wenn-clauses · wishes and als ob), the impersonal passive joins *man*, *welcher* joins relative clauses. Order: Stage 1 now starts und/aber/denn early and takes accusative prepositions before the dative; possessives follow the dative prepositions (von + dative). Stage 2 brings Konjunktiv II and conditionals (fide speaking) and verb + preposition first; the genitive, participles and n-declension (*Should*) last.
 - Writing comes at least every 4 days. After a long time away (twice the gap), the next sheet comes at once.
 - Screens stay as light as the rest of the app: a miss is the answer with the fix marked, one line of why, the rule's name as a link to its sheet.

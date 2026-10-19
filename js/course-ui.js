@@ -405,15 +405,48 @@ function cxJournalRender() {
     <div class="gs-quiz">
       <div class="gs-qpos">${min}+ words · for Claude to correct</div>
       <div class="gs-qtext cx-en">${escapeHtml(p.t)}</div>
-      ${(p.help || []).length ? `<div class="cx-cue">${p.help.map(h => `<span class="gs-chip">${escapeHtml(h)}</span>`).join("")}</div>` : ""}
+      ${(p.help || []).length ? `<div class="cx-cue cx-starters">${p.help.map((h, i) => `<button type="button" class="gs-chip" onpointerdown="event.preventDefault()" onmousedown="event.preventDefault()" onclick="cxJournalStarter(${i})" aria-label="Type: ${escapeHtml(h)}">${escapeHtml(h)}</button>`).join("")}</div>` : ""}
       <textarea class="german-input cx-text cx-jtext" id="cx-jtext" rows="6" placeholder="Schreib hier…" autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="false" lang="de">${escapeHtml(draft)}</textarea>
       <div class="cx-wc" id="cx-wc" aria-live="polite"></div>
       <div class="gs-qact"><button class="g-big-btn" id="cx-jsave" onclick="cxJournalSubmit()">Save</button>${!j.opts.pool || j.opts.pool.length > 1 ? `<button class="tc-link cx-typeit" onclick="cxJournalOther()">↻ another topic</button>` : ""}</div>
     </div></div>`;
   const ta = document.getElementById("cx-jtext");
   ta.addEventListener("input", () => { cxJDraft(p.id, ta.value); cxJournalCount(); });
+  // Where the cursor was when a starter is tapped (a tap can blur the text first).
+  ta.addEventListener("blur", () => { j.sel = [ta.selectionStart, ta.selectionEnd]; });
+  j.sel = null;
   cxJournalCount();
   if (j.opts.mode !== "path") setTimeout(() => { try { ta.focus({ preventScroll: true }); } catch (e) {} }, 60);
+}
+// A starter tapped: typed into the text where the cursor is (at the end
+// when the text isn't focused). Its "…" are the gaps to fill: the cursor
+// lands in the first one; a leading "…" means "go on with the sentence".
+// "Ich mag … nicht." → "Ich mag | nicht." · "… sondern …" → "sondern |".
+// A choice ("Es regnet / schneit …", "Liebe … / Lieber …") gives its first.
+function cxStarterText(h) {
+  const s = String(h || "").replace(/(\S+) \/ \S+/g, "$1").replace(/^\s*…\s*/, ""), i = s.indexOf("…");
+  const clean = x => x.replace(/\s*…\s*/g, " ").replace(/\s+/g, " ");
+  if (i < 0) return { text: s.trim() + " ", at: s.trim().length + 1 };
+  const before = clean(s.slice(0, i)).replace(/\s+$/, ""), after = clean(s.slice(i + 1)).trim();
+  const text = before + " " + (after ? (/^[?.!,;:]/.test(after) ? "" : " ") + after : "");
+  return { text: /^\s/.test(text) ? text.trimStart() : text, at: before ? before.length + 1 : 0 };
+}
+function cxJournalStarter(i) {
+  const j = _cj, ta = document.getElementById("cx-jtext");
+  if (!j || j.saved || !ta || !j.p.help || j.p.help[i] === undefined) return;
+  const st = cxStarterText(j.p.help[i]);
+  const v = ta.value, focused = document.activeElement === ta;
+  const sel = focused ? [ta.selectionStart, ta.selectionEnd] : j.sel && j.sel[1] <= v.length ? j.sel : [v.length, v.length];
+  const a = sel[0], b = sel[1];
+  // A space between it and what's before (none at the start of a line).
+  const pre = a > 0 && !/\s$/.test(v.slice(0, a)) ? " " : "";
+  ta.value = v.slice(0, a) + pre + st.text + v.slice(b);
+  const at = a + pre.length + st.at;
+  try { ta.focus({ preventScroll: true }); } catch (e) { ta.focus(); }
+  try { ta.setSelectionRange(at, at); } catch (e) {}
+  j.sel = [at, at];
+  cxJDraft(j.p.id, ta.value);
+  cxJournalCount();
 }
 function cxJournalCount() {
   const j = _cj, ta = document.getElementById("cx-jtext"), wc = document.getElementById("cx-wc"), btn = document.getElementById("cx-jsave");
@@ -514,14 +547,17 @@ function cxTodayHtml() {
 function cxSecStatus(s) {
   if (s.verb && s.verb.length) {
     const n = s.verb.filter(id => vxSheetPassed(id)).length;
-    return n === s.verb.length ? { k: "done", txt: "Done · in your verb track" } : { k: "verb", n, txt: `In your verb track · ${n}/${s.verb.length} sheets` };
+    if (n === s.verb.length) return { k: "done", txt: "Done · in your verb track" };
+    // the lesson clock's verb lesson: when its sheets come
+    const nx = typeof cxClockLesson === "function" ? cxClockLesson() : null, on = nx === s ? cxNextLessonDay() : "";
+    return { k: "verb", n, txt: `In your verb track · ${n}/${s.verb.length} sheets${on ? on <= studyToday() ? " · comes in Today" : ` · in Today on ${fmtShortDate(on)}` : ""}` };
   }
   if (!cxLearnable(s)) return { k: "coming", txt: "Coming soon" };
   const st = cxSecState(s.id) || {};
   if (s.checkpoint) return st.st >= 3 ? { k: "done", txt: `Passed · ${st.cp}%` } : cxCheckpointReady(s) ? { k: "now", txt: `Ready · ${Math.round(s.checkpoint.pass * 100)}% moves you on${st.cp ? ` · best ${st.cp}%` : ""}` } : { k: "later", txt: "After this part's lessons" };
   if (st.st >= 3) return { k: "done", txt: st.to >= 0 && !(st.sh > 0) ? "Done · tested out 🎓" : "Done" };
   if (st.st === 2) return { k: "now", txt: "Sheet passed · its drill next" };
-  if (cxNextSections(1)[0] !== s) return { k: "now", txt: "Ready" };
+  if (cxNextSections(1)[0] !== s) return { k: "now", txt: cxLessonReady(s) ? "Ready" : "After the lessons it builds on" };
   const on = cxNextLessonDay();
   return { k: "now", txt: on <= studyToday() ? "Next · comes in Today" : `Next · in Today on ${fmtShortDate(on)}` };
 }
@@ -529,27 +565,26 @@ const CX_SEC_SIGN = { done: "✓", verb: "📐" };
 // Going back: to the Course, a part, a lesson.
 function cxBackHtml(to = "renderCourse()", label = "Course") { return `<button class="back-btn" onclick="${to}">← ${escapeHtml(label)}</button>`; }
 // One line: on track or not, and by when.
+// The lesson clock in words: a lesson's sheets on days in a row, then
+// about G days to practise it (PLAN.md §9).
+function cxBreakWords(G) { const g = Math.round(G); return g <= 0 ? "no break" : `about ${g} day${g > 1 ? "s" : ""} to practise it`; }
 function cxPlannerHtml() {
   const P = cxPlanner();
   const dot = { green: "🟢", amber: "🟠", red: "🔴", none: "⚪" }[P.status];
-  const g = cxGap();
   const line = P.status === "none" ? "Set a finish date (⚙️ Study plan) and the course spreads its lessons to it"
-    : P.status === "green" ? `On track · a new lesson ${g === 1 ? "every day" : `every ${g} days`} · all done by <b>${fmtShortDate(P.target)}</b>`
-    : P.status === "amber" ? `Tight · a lesson every day to finish by <b>${fmtShortDate(P.target)}</b>`
-    : `Behind · ${Math.max(0, P.days)} days to <b>${fmtShortDate(P.target)}</b> — two lessons every other day${P.need > 1.5 ? ", and still short: a later finish date" : ""}`;
-  const wait = P.cl && !cxNextSections(1).length ? `<small>Everything built so far is done — the next lessons arrive with the next update.</small>` : "";
+    : P.status === "green" ? `On track · each lesson's sheets on days in a row, then ${cxBreakWords(P.G)} · all done by <b>${fmtShortDate(P.target)}</b>`
+    : P.status === "amber" ? `Tight · lessons back to back to finish by <b>${fmtShortDate(P.target)}</b>`
+    : `Behind · ${Math.max(0, P.days)} days to <b>${fmtShortDate(P.target)}</b> — a second sheet on some days${P.need > 1.5 ? ", and still short: a later finish date" : ""}`;
+  const wait = P.waiting ? `<small>Everything built so far is done — the next lessons arrive with the next update (already counted in the plan).</small>` : "";
   return `<div class="cx-plan ${P.status}">${dot} ${line}${wait}</div>`;
 }
 // When a part starts, about: its first lesson after the ones before it.
+// (the lesson clock run forward on the complete course — its estimates —
+// coming every day: the first of the part's lessons to start)
 function cxPartEta(stage) {
-  const g = cxGap();
-  let n = 0;
-  for (const s of CX.sections) {
-    if (s.stage === stage) break;
-    if (!(s.verb && s.verb.length) && s.prio !== "C" && !cxSecDone(s.id)) n += s.n || 1;
-  }
-  const d = addDays(cxNextLessonDay(), n * g);
-  return d;
+  const sim = cxClockSim();
+  const ds = CX.sections.filter(s => s.stage === stage).map(s => sim.start[s.id]).filter(Boolean).sort();
+  return ds[0] || addDays(studyToday(), 1);
 }
 // A part's lessons, numbered, in order.
 function cxPartLessonsHtml(stage) {
@@ -617,9 +652,10 @@ function renderCourse() {
     <div class="gr-h">The parts, in the order you learn them</div>
     <div class="gr-units">${CX.stages.map(cxPartRowHtml).join("")}</div>
     <details class="gr-how"><summary>ℹ️ How the course works</summary>
-      <p><b>A lesson</b> = a short sheet, then its drill — in Today, a new one every few days, spread to your finish date.</p>
+      <p><b>Lesson, practise, lesson, practise.</b> A lesson's sheets come in Today one a day, on days in a row (each with its drill); then a few days with no new sheet to practise it — the same break after every lesson, set by your finish date and recounted every day.</p>
       <p><b>Each rule</b> becomes a review card, like your words. A miss names the rule and sends it back.</p>
-      <p><b>Your verbs</b> keep their own track (📐); its lessons show here at the right level.</p>
+      <p><b>The verb lessons</b> are lessons like the others: their sheets live in your verb track (📐) and come into Today when the course reaches them.</p>
+      <p><b>Lessons still to come</b> are counted with an estimate of their sheets, so the pace is the whole course's. Once everything built is done, the next built lesson comes — even from the next level.</p>
     </details>
   </div>`;
   // back from a lesson: to its part, open where I left it
@@ -653,7 +689,7 @@ function renderCourseSection(id) {
   if (s.verb && s.verb.length) {
     window._cxFrom = true;
     const units = [...new Set(s.verb.map(v => (vxSheet(v) || {}).unit).filter(u => u && VX_UNIT[u]))];
-    body = `<div class="gr-unote">Taught in your verb track — its sheets come into Today with their tense.</div>
+    body = `<div class="gr-unote">Taught in your verb track — its sheets come into Today one a day when the course reaches this lesson.</div>
       <div class="gr-sheets">${s.verb.map((v, i) => { const sh = vxSheet(v), p = vxSheetPassed(v);
         return `<button class="gr-sheet ${p ? "done" : ""}" onclick="window._cxSec='${id}';renderGrammarSheet('${v}')"><span class="gr-sn">${p ? "✓" : i + 1}</span><span class="gr-stt">${escapeHtml(sh ? sh.title : v)}</span>${p ? `<span class="gr-sc">${S.verb.sh[v]}%</span>` : `<span class="set-chev">›</span>`}</button>`; }).join("")}</div>
       ${units.map(u => `<button class="gr-mastery" style="${vxUnitStyle(u)}" onclick="window._cxSec='${id}';renderGrammarUnit('${u}')"><span class="gr-m-ico">${escapeHtml(VX_UNIT[u].sign)}</span><span class="gr-m-t"><b>${escapeHtml(VX_UNIT[u].name)}</b><small>The whole tense in your verb track: its rules, mastery, verbs</small></span><span class="set-chev">›</span></button>`).join("")}`;
@@ -861,8 +897,8 @@ function cxChapterExercisesHtml(ch) {
 function cxSettingsHtml() {
   if (typeof cxOn !== "function" || !cxOn()) return "";
   migrateCourse();
-  const P = cxPlanner(), dot = { green: "🟢", amber: "🟠", red: "🔴", none: "⚪" }[P.status], g = cxGap();
-  const pace = P.status === "none" ? "a new lesson every day — set a finish date to spread them out"
-    : `a new lesson ${g === 1 ? "every day" : `every ${g} days`} · ${dot} ${P.status === "green" ? "on track" : P.status === "amber" ? "tight" : "behind"} · all done by ${fmtShortDate(P.target)}`;
+  const P = cxPlanner(), dot = { green: "🟢", amber: "🟠", red: "🔴", none: "⚪" }[P.status];
+  const pace = P.status === "none" ? "lesson after lesson — set a finish date to spread them out"
+    : `each lesson, then ${cxBreakWords(P.G)} · ${dot} ${P.status === "green" ? "on track" : P.status === "amber" ? "tight" : "behind"} · all done by ${fmtShortDate(P.target)}`;
   return setNavHtml("📖", "Grammar course", `Auto · ${pace} — set by your finish date`, "closeSettings();showScreen('course')");
 }

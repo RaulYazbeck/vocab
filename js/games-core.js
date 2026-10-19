@@ -547,12 +547,16 @@ function itemFormat(w, ctx) {
 }
 function rookieTagHtml(w) { return isRookie(w) ? `<span class="g-rookie" title="New word — gentler format, half the cost of a miss">🌱</span>` : ""; }
 
+// ranked: the twist is neutral or makes the round harder, so its stars
+// count for the rank (a 3★ round unlocks the next one); 🌟 Golden words
+// makes 3★ easier, so a golden round never moves the rank.
 const TWISTS = {
-  mirror: { icon: "🪞", name: "Mirror", desc: "Directions flipped" },
-  sudden: { icon: "💀", name: "Sudden death", desc: "One slip ends the round" },
-  golden: { icon: "🌟", name: "Golden words", desc: "Three words are worth ×3" },
-  turbo:  { icon: "🚀", name: "Turbo", desc: "A third less time, everything faster" },
+  mirror: { icon: "🪞", name: "Mirror", desc: "Directions flipped", ranked: true },
+  sudden: { icon: "💀", name: "Sudden death", desc: "One slip ends the round", ranked: true },
+  golden: { icon: "🌟", name: "Golden words", desc: "Three words are worth ×3", ranked: false },
+  turbo:  { icon: "🚀", name: "Turbo", desc: "A third less time, everything faster", ranked: true },
 };
+function twistRanked(id) { return !id || !!(TWISTS[id] && TWISTS[id].ranked); }
 const TWIST_CHANCE = 0.2;
 function rollTwist(def, size) {
   if (size === "bonus" || !def.twists || !def.twists.length) return null;
@@ -1446,13 +1450,17 @@ function finishGame(ctx, result) {
     if (twist) {
       const prev = G.twistBest[def.id];
       if (prev === undefined || result.score > prev) { newBest = prev !== undefined && result.score > 0; G.twistBest[def.id] = result.score; }
-    } else {
+    }
+    if (twistRanked(twist)) {
       const rs = G.rankStars[def.id] = G.rankStars[def.id] || [0, 0, 0, 0, 0];
-      const rb = G.rankBest[def.id] = G.rankBest[def.id] || [];
       if (stars > (rs[rank] || 0)) rs[rank] = stars;
-      if (rb[rank] === undefined || result.score > rb[rank]) { newBest = rb[rank] !== undefined && result.score > 0; rb[rank] = result.score; }
       if (stars > (G.stars[def.id] || 0)) G.stars[def.id] = stars;
-      if (G.best[def.id] === undefined || result.score > G.best[def.id]) G.best[def.id] = result.score;
+      // (a twist round's score keeps to its own best: twistBest)
+      if (!twist) {
+        const rb = G.rankBest[def.id] = G.rankBest[def.id] || [];
+        if (rb[rank] === undefined || result.score > rb[rank]) { newBest = rb[rank] !== undefined && result.score > 0; rb[rank] = result.score; }
+        if (G.best[def.id] === undefined || result.score > G.best[def.id]) G.best[def.id] = result.score;
+      }
       if (stars === 3 && rank === gameRankOf(def.id) && rank < GAME_RANKS.length - 1) {
         G.rank[def.id] = rank + 1; rankedUp = true;
       }
@@ -1518,7 +1526,7 @@ function renderGameResults(sum, ctx) {
         <div class="result-emoji">${emoji}</div>
         <div class="result-title">${title}</div>
         ${size === "full" ? `<div class="g-stars-row">${starsHtml(stars, 3, "big")}</div>` : ""}
-        ${size === "full" ? `<div class="g-rank-line">${twist ? `${TWISTS[twist].icon} ${TWISTS[twist].name} round · twists don't change your rank` : rankedUp ? `<span class="g-rankup">${GAME_RANKS[rank + 1].icon} ${GAME_RANKS[rank + 1].name} unlocked!</span>` : maxR < GAME_RANKS.length - 1 && rank === maxR ? `${rankLabel(rank)} · 3★ unlocks ${rankLabel(rank + 1)}` : rankLabel(rank)}</div>` : ""}
+        ${size === "full" ? `<div class="g-rank-line">${twist && !twistRanked(twist) ? `${TWISTS[twist].icon} ${TWISTS[twist].name} round · it makes the round easier, so it doesn't change your rank` : rankedUp ? `<span class="g-rankup">${GAME_RANKS[rank + 1].icon} ${GAME_RANKS[rank + 1].name} unlocked!</span>` : maxR < GAME_RANKS.length - 1 && rank === maxR ? `${rankLabel(rank)} · 3★ unlocks ${rankLabel(rank + 1)}` : rankLabel(rank)}</div>` : ""}
         ${newBest ? `<div class="g-newbest">🏅 New personal best!</div>` : ""}
         ${credit && (credit.up || credit.flagged) ? `<div class="g-credit">${credit.up ? `📈 ${credit.up} word${credit.up > 1 ? "s" : ""} moved up` : ""}${credit.up && credit.flagged ? " · " : ""}${credit.flagged ? `⚠️ ${credit.flagged} flagged for ${sayOr("a typed check", "a check out loud")}` : ""}</div>` : ""}
         <div>

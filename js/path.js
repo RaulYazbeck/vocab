@@ -321,10 +321,13 @@ const KNOWN_LAG = 30; // simulated: last word met → 99% Known in ~11 days, plu
 function pathDeadlineStatus(scan = pathScan(), today = studyToday()) {
   if (!pathDeadlineOn()) return { ok: true, eta: "" };
   const vx = typeof vxOn === "function" && vxOn() ? vxPaceNeeded(scan) : null;
-  // Every word met and every verb item and form started: on course.
-  if (!pathUnmet(scan) && !(vx && vx.left)) return { ok: true, eta: S.path.deadline };
+  // Every word met, every verb item and form started, every lesson learned: on course.
+  if (!pathUnmet(scan) && !(vx && vx.left) && !(typeof cxFastestEta === "function" && cxFastestEta(today))) return { ok: true, eta: S.path.deadline };
   let eta = pathUnmet(scan) ? addDays(today, Math.ceil(pathUnmet(scan) / PLAN.MAX_PACE) + KNOWN_LAG) : today;
   if (vx && vx.eta > eta) eta = vx.eta;
+  // The grammar course too (course-de.js): its lessons at the fastest pace.
+  const cx = typeof cxFastestEta === "function" ? cxFastestEta(today) : null;
+  if (cx && cx > eta) eta = cx;
   const ok = pathDaysLeft(today) >= 0 && eta <= S.path.deadline;
   return { ok, eta: ok ? S.path.deadline : eta };
 }
@@ -349,6 +352,8 @@ function pathPace(scan = pathScan(), today = studyToday()) {
 function planTarget(reviews, pace, extra = 0) {
   return Math.max(PLAN.GOAL_MIN, Math.min(PLAN.GOAL_MAX, Math.ceil((reviews * 1.1 + pace * 3 + extra) / 10) * 10));
 }
+// The course's share of a day's plan (for the Journey's bars).
+function cxPlanTargetOf(plan) { return plan && plan.cx && typeof cxPlanTarget === "function" ? cxPlanTarget(plan.cx) : 0; }
 function planSyncQuest(plan) {
   const pq = S.quests && S.quests.list && S.quests.list.find(q => q.tpl === "a_plan" && !q.done);
   if (pq) pq.target = plan.target;
@@ -635,12 +640,54 @@ function questNudges() {
   return out;
 }
 
+// ── THE GRAMMAR IN A SESSION ──────────────────
+// What of the day's grammar fits a session's room (its length less its
+// new words): the course's cards (cxTodayParts) and the verb track's
+// sheets, each counted by the questions it asks. In order — yesterday's
+// slips, the lesson (its test-out, sheet and drill · a checkpoint · a
+// verb sheet), then the rule reviews and the writing prompt. A lesson that
+// doesn't fit whole waits for the next session (the length stays the
+// length); the warm-up and the reviews take what room there is (the rest
+// come next session). → { cards, sheets: [verb sheet ids], q }
+function pathGrammarFit(room, scan) {
+  const cards = [], sheets = [];
+  let q = 0;
+  const course = typeof cxOn === "function" && cxOn();
+  const cxp = course ? cxTodayParts(scan).map(p => ({ t: "cx", ...p, qn: cxPartSize(p) })).filter(c => c.qn > 0) : [];
+  const vxs = typeof vxOn === "function" && vxOn() ? vxSheetsToday() : [];
+  const sheetQ = id => (typeof gqSheetSize === "function" && typeof vxSheet === "function" && vxSheet(id) ? gqSheetSize(vxSheet(id)) : 4);
+  const fits = n => q + n <= room;
+  // A list of rules (warm-up, reviews): as many as fit, at least one card's worth.
+  const slice = c => {
+    const n = Math.min(c.qn, room - q);
+    if (n <= 0) return;
+    if (n < c.qn) { const extra = c.contrast ? Math.min(CX_CONTRAST_MIX, n) : 0; c.rules = c.rules.slice(0, n - extra); c.qn = c.rules.length + extra; c.cut = 1; }
+    if (c.qn > 0) { cards.push(c); q += c.qn; }
+  };
+  const warm = cxp.filter(c => c.part === "warm"), late = cxp.filter(c => c.part === "review" || c.part === "write");
+  warm.forEach(slice);
+  // The lesson: what's left of it today comes whole (test-out, sheet and
+  // drill together) or waits for the next session.
+  const lessonCards = cxp.filter(c => !warm.includes(c) && !late.includes(c));
+  [...new Set(lessonCards.map(c => c.sec))].forEach(sec => {
+    const mine = lessonCards.filter(c => c.sec === sec), n = mine.reduce((k, x) => k + x.qn, 0);
+    if (fits(n)) { cards.push(...mine); q += n; }
+  });
+  // (without the course — the French app — the verb sheets keep coming on
+  // top of the length, as they always have)
+  if (!course) sheets.push(...vxs);
+  else for (const id of vxs) { const n = sheetQ(id); if (fits(n)) { sheets.push(id); q += n; } else break; }
+  late.forEach(c => { if (c.part === "write") { if (fits(1)) { cards.push(c); q += 1; } } else slice(c); });
+  return { cards, sheets, q };
+}
+
 // ── QUEUE ─────────────────────────────────────
 // Builds one session: fixes, due reviews, new-word rituals (learn card →
 // choice check → typed recall a few items later), an optional spot
 // check on a 💎 word and optional bonus-round offers.
 function buildPathQueue(lenKey, opts = {}) {
   let budget = PATH.SESSION_LENGTHS[lenKey] || PATH.SESSION_LENGTHS.regular;
+  let grammarQ = 0; // the grammar's questions in this session (inside the budget)
   const rng = Math.random;
   const now = Date.now();
   const scan = pathScan(true);
@@ -692,11 +739,18 @@ function buildPathQueue(lenKey, opts = {}) {
     const newCount = Math.min(q.left, Math.floor(newSlots / 3));
     clusters = planNewWords(newCount, rng);
     const nNew0 = clusters.reduce((s, c) => s + c.length, 0);
-    // The verb track (verb-track.js): today's sheets first, then verb
-    // items within a quarter of the session — they take that room from
-    // word reviews, never from new words.
-    const vxp = typeof vxOn === "function" && vxOn() ? vxSessionPlan(Math.round(budget * VX_SESSION_SHARE)) : null;
-    const reviewBudget = Math.max(0, budget - nNew0 * 3 - (vxp ? vxp.items.length : 0));
+    // The grammar of the day — the course's cards (course-de.js) and the
+    // verb track's sheets — counts inside the length you picked: its
+    // questions take room from word reviews, never from new words. What
+    // doesn't fit waits for the next session (pathGrammarFit).
+    const gfit = pathGrammarFit(Math.max(0, budget - nNew0 * 3), scan);
+    // The verb track (verb-track.js): verb items within a quarter of the
+    // session, in the room the grammar leaves — they take it from word
+    // reviews, never from new words.
+    const vxp = typeof vxOn === "function" && vxOn() ? vxSessionPlan(Math.min(Math.round(budget * VX_SESSION_SHARE), Math.max(0, budget - nNew0 * 3 - gfit.q))) : null;
+    if (vxp) vxp.sheets = gfit.sheets;
+    grammarQ = gfit.q;
+    const reviewBudget = Math.max(0, budget - nNew0 * 3 - gfit.q - (vxp ? vxp.items.length : 0));
     reviews = [...fix, ...due].slice(0, reviewBudget).map(x => pathItemFor(pathWord(x.d.id, x.i), x.ws, rng));
     // (Tense-drill misses wait for the end of the session: vxEnd.)
     if (vxp) { vxEnd = vxp.items.filter(ex => ex.end); vxp.items = vxp.items.filter(ex => !ex.end); }
@@ -717,7 +771,7 @@ function buildPathQueue(lenKey, opts = {}) {
     if (nudges && nudges.focus.length) {
       // With a finish date, today's plan comes first: quest words only
       // take room the plan's reviews and new words leave free.
-      const spare = budget - reviews.length - nNew0 * 3;
+      const spare = budget - reviews.length - nNew0 * 3 - grammarQ;
       const room = pathDeadlineOn() ? Math.max(0, Math.min(Math.round(budget / 3), spare))
         : Math.min(Math.round(budget / 3), Math.max(Math.round(budget / 5), spare));
       const have = new Set(reviews.map(r => r.w.deckId + "_" + r.w.idx));
@@ -753,9 +807,8 @@ function buildPathQueue(lenKey, opts = {}) {
     // test-out, sheet and drill come a third of the way in (after some
     // words — PLAN.md §8), the rule reviews and the writing prompt two
     // thirds in. Each is one card that asks its own questions.
-    const cxp = typeof cxOn === "function" && cxOn() ? cxTodayParts(scan) : [];
-    if (cxp.length) {
-      const cards = cxp.map(p => ({ t: "cx", ...p, qn: cxPartSize(p) })).filter(c => c.qn > 0);
+    const cards = gfit.cards;
+    if (cards.length) {
       const a = cards.filter(c => ["warm", "testout", "sheet", "drill"].includes(c.part)), b = cards.filter(c => !a.includes(c));
       const lead = reviews.length && reviews[0].t === "sheet" ? 1 : 0;
       const at1 = Math.min(reviews.length, Math.max(lead, Math.floor(reviews.length / 3)));
@@ -807,7 +860,7 @@ function buildPathQueue(lenKey, opts = {}) {
   // just stay on schedule).
   if (!focus) {
     const have = new Set(out.filter(x => x.w).map(x => x.w.deckId + "_" + x.w.idx));
-    let short = budget - counted();
+    let short = budget - counted() - grammarQ;
     // Verb quests Today's quotas left short: verb forms come first.
     const vxNeed = short > 0 && typeof questPracticeNeed === "function" && typeof vxPracticeItems === "function" ? questPracticeNeed() : 0;
     if (vxNeed > 0) vxPracticeItems(Math.min(vxNeed, short)).forEach(ex => { out.push({ t: "typed", w: vxWord(ex), practice: !!ex.practice }); short--; });
@@ -1149,9 +1202,14 @@ function pathForecast(days = 8) {
   // Today is the plan itself: never show less than this morning's plan.
   if (plan && out[0] && plan.reviews + catchUp0 > out[0].total) { out[0].scheduled += plan.reviews + catchUp0 - out[0].total; out[0].total = plan.reviews + catchUp0; }
   // Later days: the verb track adds about what it adds today (its due
-  // items are part of today's plan only — a small share either way).
-  const vxExtra = plan && typeof vxPlanTarget === "function" ? vxPlanTarget(plan.vx) + Math.round(((plan.vx && plan.vx.due) || 0) * 1.1) : 0;
-  if (plan) out.forEach((r, i) => { r.target = i === 0 ? plan.target : planTarget(r.total, r.newWords, vxExtra); });
+  // items are part of today's plan only — a small share either way). With
+  // the grammar course (course-de.js), the course adds each day's own —
+  // its lessons (the verb lessons' sheets too: the lesson clock), the
+  // rules coming due, the writing prompt.
+  const cxDays = plan && typeof cxForecastAnswers === "function" ? cxForecastAnswers(days) : [];
+  const vxNoSheets = plan && plan.vx && cxDays.length ? { ...plan.vx, sheets: 0, sheetQ: 0 } : plan && plan.vx;
+  const vxExtra = plan && typeof vxPlanTarget === "function" ? vxPlanTarget(vxNoSheets) + Math.round(((plan.vx && plan.vx.due) || 0) * 1.1) : 0;
+  if (plan) out.forEach((r, i) => { r.cx = i === 0 ? cxPlanTargetOf(plan) : cxDays[i] || 0; r.target = i === 0 ? plan.target : planTarget(r.total, r.newWords, vxExtra + r.cx); });
   return { p, days: out };
 }
 

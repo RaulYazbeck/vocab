@@ -143,8 +143,10 @@ function gsRender(dir = "") {
   const dots = Array.from({ length: total }, (_, i) => `<i class="${i === g.step ? "on" : i < g.step ? "done" : ""}${i === g.steps.length ? " q" : ""}"></i>`).join("");
   const sibs = sh.cx ? cxSection(sh.sec).sheets : vxSheetIds(sh.unit);
   const n = sibs.indexOf(sh.id) + 1, of = sibs.length;
+  // (German: a verb sheet counts in its course lesson, as the Course shows it)
+  const L = !sh.cx && typeof cxVerbLessonOf === "function" ? cxVerbLessonOf(sh.id) : null;
   const head = `<div class="gs-head" style="${gsStyleOf(sh)}">
-      <span class="gs-unit"><span class="gs-sign">${u.sign}</span>${sh.cx ? escapeHtml(u.stage || "Course") + (of > 1 ? ` · ${n}/${of}` : "") : `${escapeHtml(u.name)} · ${g.mastery ? vxT("🏆 optional") : `${n}/${of}`}`}</span>
+      <span class="gs-unit"><span class="gs-sign">${u.sign}</span>${sh.cx ? escapeHtml(u.stage || "Course") + (of > 1 ? ` · ${n}/${of}` : "") : `${escapeHtml(u.name)} · ${g.mastery ? vxT("🏆 optional") : L ? `${escapeHtml(L.sign)} lesson ${L.n}/${L.of}` : `${n}/${of}`}`}</span>
       <h2 class="gs-title">${escapeHtml(sh.title)}</h2>
       ${g.mastery ? "" : `<div class="gs-dots" aria-hidden="true">${dots}</div>`}
     </div>`;
@@ -628,7 +630,7 @@ function renderGrammar() {
     <div class="gr-units">${units}</div>
     ${L ? gsLedgerHtml(L) : ""}
     <details class="gr-how"><summary>${vxT("ℹ️ How the verb track works")}</summary>
-      ${VX_FR ? VXF.how : `<p><b>Tenses open in order</b> — each one only after the tenses it is built from, and when your Path gets that far (so your finish date sets the day). A new tense starts with its sheets in Today, one or two a day; pass each quiz and the tense joins your reviews and the verb games.</p>
+      ${VX_FR ? VXF.how : typeof cxOn === "function" && cxOn() ? `<p><b>The verb lessons are lessons of the 📖 Course.</b> Their sheets come into Today when the course reaches them — one a day, on days in a row, then a few days to practise — and a tense joins your reviews and the verb games once its sheets are passed.</p>` : `<p><b>Tenses open in order</b> — each one only after the tenses it is built from, and when your Path gets that far (so your finish date sets the day). A new tense starts with its sheets in Today, one or two a day; pass each quiz and the tense joins your reviews and the verb games.</p>
       <p><b>Rules, not lists.</b> Each rule is one item in your reviews, asked every time with another verb you've met — A1 verbs first, the regular ones before the exceptions. Verbs you can't build by rule (ging, ist gegangen, fährt, nimm!) get their own item.</p>
       <p><b>The ledger</b> checks every verb: its meaning Known, its irregular forms Known, and its Präsens, Präteritum and Perfekt produced right at least once — the three every other tense is built from.</p>`}
     </details>
@@ -769,6 +771,9 @@ function vxTodayHtml() {
   const pend = vxSheetsToday();
   if (!pend.length) return "";
   const sh = vxSheet(pend[0]), u = VX_UNIT[sh.unit];
+  // German: the course lesson it belongs to, its name and count as the Course shows them
+  const L = typeof cxVerbLessonOf === "function" ? cxVerbLessonOf(sh.id) : null;
+  if (L) return `<button class="tc-vx lesson" style="${vxUnitStyle(sh.unit)}" onclick="window._cxFrom=true;renderCourseSection('${L.s.id}')">📖 ${escapeHtml(L.sign)} · <b>${escapeHtml(L.s.title)}</b> · sheet ${L.n} of ${L.of} in your session</button>`;
   const ids = vxSheetIds(sh.unit), done = ids.filter(vxSheetPassed).length;
   return `<button class="tc-vx lesson" style="${vxUnitStyle(sh.unit)}" onclick="showScreen('grammar')">${vxT("📖 <b>{0}</b> lesson {1}/{2} · next sheet in your session", escapeHtml(u.name), done, ids.length)}</button>`;
 }

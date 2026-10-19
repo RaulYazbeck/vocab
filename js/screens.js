@@ -827,7 +827,7 @@ function deadlineSettingsHtml() {
   const scan = pathScan();
   const st = pathDeadlineStatus(scan);
   const late = !st.ok
-    ? `<span>⚠️ Out of reach: even at the fastest pace (${PLAN.MAX_PACE} new words a day, and the verbs as fast as their tenses open) you'd finish around ${fmtShortDate(st.eta)}. Pick a later date to get an honest daily plan.</span>` : "";
+    ? `<span>⚠️ Out of reach: even at the fastest pace (${PLAN.MAX_PACE} new words a day, the verbs as fast as their tenses open${typeof cxOn === "function" && cxOn() ? ", the grammar lessons 1.5 sheets a day" : ""}) you'd finish around ${fmtShortDate(st.eta)}. Pick a later date to get an honest daily plan.</span>` : "";
   return `<div class="set-choice">
       <div class="set-choice-head"><span class="set-icon">🗓️</span><span class="set-label">Finish everything by</span></div>
       <div class="set-date-row">
@@ -1127,10 +1127,10 @@ function forecastHtml() {
   const R = plan ? 1.1 : 1;
   // Bar parts in the numbers' unit, scaled to add up to that number.
   const parts = f.days.map(d => {
-    const raw = { s: d.scheduled * R, n: d.fromNew * R, c: d.carried * R, m: plan ? d.newWords * 3 : 0 };
+    const raw = { s: d.scheduled * R, n: d.fromNew * R, c: d.carried * R, m: plan ? d.newWords * 3 : 0, g: plan ? d.cx || 0 : 0 };
     const num = plan ? d.target : d.total;
-    const sum = raw.s + raw.n + raw.c + raw.m, k = sum > 0 ? num / sum : 0;
-    return { num, s: raw.s * k, n: raw.n * k, c: raw.c * k, m: raw.m * k };
+    const sum = raw.s + raw.n + raw.c + raw.m + raw.g, k = sum > 0 ? num / sum : 0;
+    return { num, s: raw.s * k, n: raw.n * k, c: raw.c * k, m: raw.m * k, g: raw.g * k };
   });
   const max = Math.max(1, ...parts.map(x => x.num));
   const seg = (n, cls) => n >= 0.5 ? `<i class="${cls}" style="height:${(n / max * 100).toFixed(1)}%"></i>` : "";
@@ -1139,11 +1139,11 @@ function forecastHtml() {
   const lean = typeof cxOn === "function" && cxOn(); // German: the short Journey (fewer words)
   const cols = f.days.map((d, i) => {
     const x = parts[i];
-    const what = `${d.total} reviews: ${Math.round(d.scheduled)} already scheduled · ${Math.round(d.fromNew)} from new words · ${Math.round(d.carried)} catching up${d.newWords ? ` · plus ${d.newWords} new words` : ""}`;
+    const what = `${d.total} reviews: ${Math.round(d.scheduled)} already scheduled · ${Math.round(d.fromNew)} from new words · ${Math.round(d.carried)} catching up${d.newWords ? ` · plus ${d.newWords} new words` : ""}${plan && d.cx ? ` · plus ≈ ${d.cx} grammar answers` : ""}`;
     const tip = plan ? `${i === 0 ? "Today's plan" : "≈ plan"}: ${x.num} right answers for ${i === 0 ? "" : "≈ "}${what}` : `${i === 0 ? "Today's plan" : "≈"} ${what}`;
     return `<div class="jf-col" title="${tip}">
       <div class="jf-n">${i === 0 ? "" : "≈"}${x.num}</div>
-      <div class="jf-stack">${seg(x.c, "jf-c")}${seg(x.m, "jf-m")}${seg(x.n, "jf-new")}${seg(x.s, "jf-s")}</div>
+      <div class="jf-stack">${seg(x.g, "jf-g")}${seg(x.c, "jf-c")}${seg(x.m, "jf-m")}${seg(x.n, "jf-new")}${seg(x.s, "jf-s")}</div>
       <div class="jf-l">${i === 0 ? "today" : i === 1 ? "tmr" : "+" + i}</div>
       <div class="jf-nw">${d.newWords ? `🌱${d.newWords}` : ""}</div>
       ${cxd.length ? (() => { const c = cxd[i] || {}; return `<div class="jf-cx" title="${[c.lesson && "a new grammar lesson and its drill", c.rules && `${c.rules} grammar rule${c.rules > 1 ? "s" : ""} to review`, c.write && "a writing prompt"].filter(Boolean).join(" · ") || "no grammar"}"><span>${c.lesson ? "📖" : ""}${c.write ? "✍️" : ""}</span><span>${c.rules ? `📏${c.rules}` : ""}</span></div>`; })() : ""}
@@ -1155,7 +1155,7 @@ function forecastHtml() {
   const how = lean ? (plan ? "right answers a day" : "reviews a day") : plan ? "≈ right answers a day, if you finish your quests" : "≈ if you clear each day's reviews";
   return `<div class="jf-head"><span class="stats-section-title">${title}</span><small>${how}${lean ? "" : ` · ${Math.round(f.p * 100)}% right`}</small></div>
     <div class="jf">${cols}</div>
-    ${lean ? `<div class="jf-legend"><span><i class="jf-s"></i>reviews</span><span><i class="jf-new"></i>new words' reviews</span>${plan ? `<span><i class="jf-m"></i>new words</span>` : ""}<span><i class="jf-c"></i>backlog</span></div>`
+    ${lean ? `<div class="jf-legend"><span><i class="jf-s"></i>reviews</span><span><i class="jf-new"></i>new words' reviews</span>${plan ? `<span><i class="jf-m"></i>new words</span><span><i class="jf-g"></i>grammar</span>` : ""}<span><i class="jf-c"></i>backlog</span></div>`
       : `<div class="jf-legend"><span><i class="jf-s"></i>already scheduled</span><span><i class="jf-new"></i>from new words</span><span><i class="jf-c"></i>catching up</span>${plan ? `<span><i class="jf-m"></i>meeting new words</span>` : ""}</div>`}
     ${plan && d0 && !lean ? (() => { const pt = planToday();
       return `<div class="jf-note">Today: ${pt.reviews} reviews${pt.catchUp ? ` + ${pt.catchUp} catching up` : ""} + ${pt.newWords} new words ≈ ${d0.target} right answers, with room for misses.${pt.catchUp ? " Finish today's plan and your full new words are back." : ""}</div>`; })() : ""}

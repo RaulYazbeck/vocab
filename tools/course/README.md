@@ -41,9 +41,17 @@ a later session that uploads its chapter.
    - `diag`: detectors that name the rule a wrong answer broke (swap · ending · seq ·
      pos · missing · extra).
    - `testout: { n, miss }` for Stage 0 sections.
-   - Several sheets (`n: 2` or `3` in plan.js): list them in order, each with its own `rid`.
-     Each sheet's rules go into review when it's passed, that day's drill keeps to them,
-     and the section is done after the last sheet and its drill (one sheet a day).
+   - Several sheets: list them in order, each with its own `rid`. Each sheet's rules go
+     into review when it's passed, that day's drill keeps to them, and the section is done
+     after the last sheet and its drill (one sheet a day, on consecutive study days).
+   - **`n` in plan.js is only an estimate.** It is the planner's guess of a lesson's
+     sheets while the lesson isn't built, so the pace counts the course as if it were
+     complete (PLAN.md §9, the lesson clock). It is **not** a target: write as many
+     sheets as the topic needs — 1 or 6 — and don't bend a lesson to match the number.
+     Once the pack is loaded the real count replaces it and the clock adjusts the next
+     day. (The estimates are generous on purpose and average out.)
+   - `after` in plan.js names the lessons this one builds on: it waits until they are
+     done, so a lesson built ahead of an earlier one it needs never comes too early.
    - A stage's recap section: `checkpoint: { n: 20, pass: 0.8 }` (a sheet is optional). It
      opens once every other section of the stage is done, asks the stage's rules mixed,
      and comes back the next day when missed — after 3 tries the stage moves on anyway.
@@ -73,6 +81,10 @@ a later session that uploads its chapter.
                                       # buttons, ✍️ Writing, 📚 My dues (list + a round of only
                                       # what's due), the Journey's grammar block and days,
                                       # the French app untouched
+    node t-fixes.mjs                  # the fixes after the first week: the length is the length (Quick 15 keeps
+                                      # a lesson that doesn't fit out), the Präsens lesson's last sheet in a Long
+                                      # 60, ✍️ starters typed at the cursor, the Journey's days and "out of reach"
+                                      # with the course, twist rounds ranking up (never with Golden words)
     node t-edge.mjs                   # edge cases: the real keyboard, ✕ mid-drill, HTML typed in, a damaged
                                       # state, Grandma / Speak mode, another device, the day rolling over, a peek
     node sim.mjs [--acc 0.6 --testout 0 --skip 0.3 --break 60:21 --late 150 --deadline 2027-12-15 --due 40:120]
@@ -80,8 +92,12 @@ a later session that uploads its chapter.
                                       # every section filled with synthetic packs; checked every day: no new
                                       # section before the pace allows, never two unless behind, one text at
                                       # most; at the end: done by the target, every rule Known, no long gaps
-    node sim.mjs --matrix             # 13 scenarios × 3 seeds (struggling, strong, skipped days, breaks, a late
-                                      # start, earlier / later dates, heavy word days), each checked as above
+    node sim.mjs --matrix             # 18 scenarios × 3 seeds (struggling, strong, skipped days, breaks, a late
+                                      # start, earlier / later dates, heavy word days, the lessons arriving with
+                                      # their build sessions with 30 % more / fewer sheets than estimated),
+                                      # each checked as above — the lesson clock: one lesson at a time, its sheets
+                                      # on study days in a row, no new lesson before its break is over
+    node sim.mjs --arrive --grow 1.3  # the lessons arrive session by session, each 30 % bigger than its estimate
     node sim-app.mjs [--days 45 --acc 0.85 --skip 0.25]
                                       # the real app on a fake clock, the test profile, the course at full size:
                                       # every Today session played card by card — the count never grows, the
