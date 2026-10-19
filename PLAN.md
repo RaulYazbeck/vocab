@@ -168,7 +168,7 @@ review only; miss → the sheet is scheduled.
 | N | Numbers, time, dates | 4, 6 |
 | N | Accusative: the articles | 7 |
 | N | Accusative pronouns and *man* | 7 |
-| ✓ | pr1–pr5, pr7 (Präsens) · im1–im3 (Imperativ) · pf1 (Perfekt structure) | 6, 8, 9, 10, 12 |
+| ✓ | pr1–pr5, pr7 (Präsens) · im1–im3 (Imperativ) · pf1 (Perfekt structure) · pt11–pt13 (war & hatte, the modals' past) | 6, 8, 9, 10, 12, 17 |
 | N | Recap: Stage 0 | — |
 
 ### Stage 1 — A2 core
@@ -192,7 +192,7 @@ review only; miss → the sheet is scheduled.
 | N | Modals: position, and in subordinate clauses (pr5, pt12 ✓) | 17 |
 | N | und, aber, oder, denn, sondern | 14, 29 |
 | N | weil, dass, wenn — the verb goes last | 29 |
-| ◐ | pt11–pt13 ✓ (war, hatte, the modals) + pt21 — regular Präteritum (the lesson clock puts every verb sheet in a lesson) | 14 |
+| ◐ | pt21 — regular Präteritum | 14 |
 | N | wissen vs kennen | 18 |
 | N | Reflexive pronouns (accusative and dative) | 23 |
 | ◐ | fu1–fu2 — future with werden | 11 |
@@ -645,6 +645,7 @@ screen · coverage report at 100 % (every blueprint exercise *mirrored*,
 - The finish date is the only pace setting: grammar sheets are spread evenly to it (no "minutes a day" choice).
 - A drill's "write your own" is saved for Claude like the journal (one model line to compare; no checklist, no self-grading, no rule moves).
 - Post-B1 ("Could") sections aren't paced to the date: they come after the rest, spread to the finish date.
+- **Präteritum in three steps (19 Oct 2026):** war & hatte and the modals' past (pt11–pt13) belong to the A1 verb lesson, the regular Präteritum to A2, the strong and mixed Präteritum to B1. The book teaches war/hatte with the strong verbs (chapter 16); we take them earlier on purpose, as the verb track always did — the book's headings stay with the lessons that cover them in full. Every verb sheet now belongs to exactly one lesson.
 - **Lesson clock (19 Oct 2026):** lesson, consolidate, lesson, consolidate — a lesson's sheets on consecutive study days, then the same break G after every lesson, G = (study days left − sheets left) ÷ lessons left, recomputed daily; verb lessons included. Sheet counts of unbuilt lessons are generous estimates, never a target when building. The next lesson is the first built one whose prerequisites are done; an earlier one built later fills the gap first.
 - **Table-of-contents audit (Session 1 follow-up 4):** every line of the book's contents (243 headings + 8 chapter openings) is named by a lesson — taught there, in the verb track the lesson links to, or as part of it; the validator fails on any line without one. Most of the 79 lines that had no lesson were already covered (the verb track teaches the state passive, polite Konjunktiv II, modal forms, imperatives); real changes: conditionals and wishes got a second sheet (wenn-clauses · wishes and als ob), the impersonal passive joins *man*, *welcher* joins relative clauses. Order: Stage 1 now starts und/aber/denn early and takes accusative prepositions before the dative; possessives follow the dative prepositions (von + dative). Stage 2 brings Konjunktiv II and conditionals (fide speaking) and verb + preposition first; the genitive, participles and n-declension (*Should*) last.
 - Writing comes at least every 4 days. After a long time away (twice the gap), the next sheet comes at once.

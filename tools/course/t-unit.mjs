@@ -71,8 +71,8 @@ C.S.path.deadline = ""; ok(C.cxPlanner().status === "none", "no finish date: no 
 // the verb track's passed sheets count as done
 fresh();
 const before = C.cxPlanner().left;
-["pr1", "pr2", "pr3", "pr4", "pr5", "pr7", "im1", "im2", "im3", "pf1"].forEach(id => { C.S.verb.sh[id] = 100; });
-ok(C.cxPlanner().left === before - 10 && C.cxSecDone("s0.verbs"), "the passed verb sheets count as done (their section too)");
+["pr1", "pr2", "pr3", "pr4", "pr5", "pr7", "im1", "im2", "im3", "pf1", "pt11", "pt12", "pt13"].forEach(id => { C.S.verb.sh[id] = 100; });
+ok(C.cxPlanner().left === before - 13 && C.cxSecDone("s0.verbs"), "the passed verb sheets count as done (their section too)");
 
 // the day
 fresh();
@@ -238,7 +238,7 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   fresh2();
   ok(!C2.cxCheckpointReady(C2.CX.byId["s0.recap"]) && !C2.cxTodayParts().some(p => p.part === "checkpoint"), "the checkpoint waits while stage 0 has sections to do (coming ones too)");
   C2.CX.sections.filter(s => s.stage === 0 && s.id !== "s0.recap").forEach(s => { C2.S.course.sec[s.id] = { st: 3 }; });
-  ["pr1", "pr2", "pr3", "pr4", "pr5", "pr7", "im1", "im2", "im3", "pf1"].forEach(id => { C2.S.verb.sh[id] = 100; });
+  ["pr1", "pr2", "pr3", "pr4", "pr5", "pr7", "im1", "im2", "im3", "pf1", "pt11", "pt12", "pt13"].forEach(id => { C2.S.verb.sh[id] = 100; });
   C2.cxIntroduceRules("s0.neg", 3);
   ok(C2.cxCheckpointReady(C2.CX.byId["s0.recap"]) && C2.cxTodayParts().some(p => p.part === "checkpoint" && p.sec === "s0.recap"), "stage 0 done: the checkpoint comes in Today");
   const plan = C2.cxCheckpointPlan("s0.recap");
@@ -281,14 +281,16 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   const open = d => { day(d); C3.S.course.day = "x"; C3.cxRollDay(); C3.S.verb.day = d; C3.S.verb.su = {}; };
   // a verb sheet opened and passed in Today
   const passVerb = v => { C3.S.verb.su[v] = 1; C3.cxVerbSheetLearned(v); C3.S.verb.sh[v] = 100; };
-  const VERBS0 = ["pr1", "pr2", "pr3", "pr4", "pr5", "pr7", "im1", "im2", "im3", "pf1"];
+  const VERBS0 = ["pr1", "pr2", "pr3", "pr4", "pr5", "pr7", "im1", "im2", "im3", "pf1", "pt11", "pt12", "pt13"];
+  ok(C3.CX.byId["s1.pt21"].verb.join() === "pt21" && C3.CX.byId["s0.verbs"].verb.slice(-3).join() === "pt11,pt12,pt13", "the Präteritum in steps: war & hatte in the A1 lesson, the regular one in A2");
+  ok(C3.CX.sections.filter(s => s.verb).flatMap(s => s.verb).sort().join() === C3.GS_SHEETS.map(s => s.id).sort().join(), "every verb sheet in exactly one lesson");
 
   fresh3();
   ok(id() === "s0.neg", `nothing begun: the first built lesson in course order (${id()})`);
   // the learner: nicht/kein done, the Präsens lesson 9 of 10
   C3.S.course.sec["s0.neg"] = { st: 3, at: "2026-10-17" }; C3.S.course.last = "2026-10-17";
   VERBS0.filter(v => v !== "pr7").forEach(v => { C3.S.verb.sh[v] = 100; });
-  ok(id() === "s0.verbs" && C3.cxCurrentLesson() && C3.cxCurrentLesson().id === "s0.verbs", "a lesson under way (the verb lesson, 9/10): it carries on");
+  ok(id() === "s0.verbs" && C3.cxCurrentLesson() && C3.cxCurrentLesson().id === "s0.verbs", "a lesson under way (the A1 verb lesson, 12/13): it carries on");
   ok(J(verbToday()) === J(["pr7"]) && C3.cxNextLessonDay() === "2026-10-18", `its next sheet comes today, whatever the break (${verbToday()})`);
   C3.S.verb.day = "2026-10-18"; C3.S.verb.su.pr7 = 1;
   ok(J(verbToday()) === J([]), "opened today (one a day): no other sheet today");
@@ -380,7 +382,7 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   ok(Math.abs(C.cxPace() - 1 / 13) < 1e-9, "days with nothing new don't count against me");
   // the day rolls over with nothing built left: it's an idle day
   fresh(); C.S.course.since = "2026-10-10"; C.S.course.sec["s0.neg"] = { st: 3, at: "2026-10-10" };
-  ["pr1", "pr2", "pr3", "pr4", "pr5", "pr7", "im1", "im2", "im3", "pf1"].forEach(id => { C.S.verb.sh[id] = 100; });
+  ["pr1", "pr2", "pr3", "pr4", "pr5", "pr7", "im1", "im2", "im3", "pf1", "pt11", "pt12", "pt13"].forEach(id => { C.S.verb.sh[id] = 100; });
   if (!C.cxNextSections(1).length) { C.S.course.day = "2026-10-15"; C.S.course.idle = ["2026-10-15"]; C.__today = "2026-10-18"; C.cxRollDay();
     ok(J(C.S.course.idle) === J(["2026-10-15", "2026-10-16", "2026-10-17", "2026-10-18"]), "nothing built then or now: the days between are idle too", J(C.S.course.idle)); }
   else ok(true, "(a section is built beyond the pilot: idle check skipped)");

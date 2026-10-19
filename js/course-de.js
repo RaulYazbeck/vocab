@@ -717,6 +717,13 @@ function cxVerbClock(scan) {
   const nx = cxClockLesson(), next = nx && cxIsVerb(nx) ? nx.verb.filter(id => !vxSheetPassed(id)) : [];
   return { today, next, inLesson: cxVerbLessonIds() };
 }
+// The course lesson a verb sheet belongs to (null: none, or no course) —
+// so Today and the sheet name the lesson the Course shows, with its count.
+function cxVerbLessonOf(id) {
+  if (!cxOn() || !cxVerbLessonIds().has(id)) return null;
+  const s = CX.sections.find(x => cxIsVerb(x) && x.verb.includes(id));
+  return s ? { s, n: s.verb.indexOf(id) + 1, of: s.verb.length, sign: (cxStage(s.stage) || {}).sign || "" } : null;
+}
 // A verb sheet of a course lesson learned: the break is counted from it.
 function cxVerbSheetLearned(id) {
   if (!cxOn() || !cxVerbLessonIds().has(id)) return;

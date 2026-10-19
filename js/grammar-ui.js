@@ -143,8 +143,10 @@ function gsRender(dir = "") {
   const dots = Array.from({ length: total }, (_, i) => `<i class="${i === g.step ? "on" : i < g.step ? "done" : ""}${i === g.steps.length ? " q" : ""}"></i>`).join("");
   const sibs = sh.cx ? cxSection(sh.sec).sheets : vxSheetIds(sh.unit);
   const n = sibs.indexOf(sh.id) + 1, of = sibs.length;
+  // (German: a verb sheet counts in its course lesson, as the Course shows it)
+  const L = !sh.cx && typeof cxVerbLessonOf === "function" ? cxVerbLessonOf(sh.id) : null;
   const head = `<div class="gs-head" style="${gsStyleOf(sh)}">
-      <span class="gs-unit"><span class="gs-sign">${u.sign}</span>${sh.cx ? escapeHtml(u.stage || "Course") + (of > 1 ? ` · ${n}/${of}` : "") : `${escapeHtml(u.name)} · ${g.mastery ? vxT("🏆 optional") : `${n}/${of}`}`}</span>
+      <span class="gs-unit"><span class="gs-sign">${u.sign}</span>${sh.cx ? escapeHtml(u.stage || "Course") + (of > 1 ? ` · ${n}/${of}` : "") : `${escapeHtml(u.name)} · ${g.mastery ? vxT("🏆 optional") : L ? `${escapeHtml(L.sign)} lesson ${L.n}/${L.of}` : `${n}/${of}`}`}</span>
       <h2 class="gs-title">${escapeHtml(sh.title)}</h2>
       ${g.mastery ? "" : `<div class="gs-dots" aria-hidden="true">${dots}</div>`}
     </div>`;
@@ -769,6 +771,9 @@ function vxTodayHtml() {
   const pend = vxSheetsToday();
   if (!pend.length) return "";
   const sh = vxSheet(pend[0]), u = VX_UNIT[sh.unit];
+  // German: the course lesson it belongs to, its name and count as the Course shows them
+  const L = typeof cxVerbLessonOf === "function" ? cxVerbLessonOf(sh.id) : null;
+  if (L) return `<button class="tc-vx lesson" style="${vxUnitStyle(sh.unit)}" onclick="window._cxFrom=true;renderCourseSection('${L.s.id}')">📖 ${escapeHtml(L.sign)} · <b>${escapeHtml(L.s.title)}</b> · sheet ${L.n} of ${L.of} in your session</button>`;
   const ids = vxSheetIds(sh.unit), done = ids.filter(vxSheetPassed).length;
   return `<button class="tc-vx lesson" style="${vxUnitStyle(sh.unit)}" onclick="showScreen('grammar')">${vxT("📖 <b>{0}</b> lesson {1}/{2} · next sheet in your session", escapeHtml(u.name), done, ids.length)}</button>`;
 }

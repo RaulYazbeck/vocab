@@ -1,7 +1,7 @@
 // The fixes after the first week (PLAN.md §12, "Fixes after the first
 // week"), in the real app (same setup as t-course.mjs):
 //   1 · the session length is the length: the grammar inside it — the
-//       learner's own day (the Präsens lesson 9/10: its last sheet in a
+//       learner's own day (the A1 verb lesson 12/13: its last sheet in a
 //       Long 60 that still reads x/60)
 //   2 · ✍️ a writing starter tapped is typed, at the cursor
 //   4 · the Journey's coming days count the course; "out of reach" counts it
@@ -29,12 +29,18 @@ const HELP = () => {
     migrateCourse();
     S.course.sec["s0.neg"] = { st: 3, sh: 100, ok: { "cx.neg1": 100 }, at: addDays(studyToday(), -2) };
     S.course.since = addDays(studyToday(), -2); S.course.last = addDays(studyToday(), -2);
-    ["pr1", "pr2", "pr3", "pr4", "pr5", "im1", "im2", "im3", "pf1"].forEach(id => { S.verb.sh[id] = 100; });
+    ["pr1", "pr2", "pr3", "pr4", "pr5", "im1", "im2", "im3", "pf1", "pt11", "pt12", "pt13"].forEach(id => { S.verb.sh[id] = 100; });
     delete S.verb.sh.pr7; S.verb.su = {}; S.verb.ns = 0;
     S.path.plan = null; invalidatePathScan();
     ok(cxCurrentLesson() && cxCurrentLesson().id === "s0.verbs", `the lesson under way: the Präsens lesson (${(cxCurrentLesson() || {}).id})`);
-    ok(JSON.stringify(vxSheetsToday()) === JSON.stringify(["pr7"]), `today's sheet: its 10th, pr7 (${vxSheetsToday()})`);
+    ok(JSON.stringify(vxSheetsToday()) === JSON.stringify(["pr7"]), `today's sheet: the one left, pr7 (${vxSheetsToday()})`);
     ok(!cxTodayParts().some(p => ["testout", "sheet", "drill"].includes(p.part)), "no course lesson on top of it (one lesson at a time)");
+    // the names and counts agree: the Course, the Today card, the sheet
+    renderHome();
+    const card = (document.querySelector(".tc-vx.lesson") || {}).innerText || "";
+    ok(/A1 · Präsens · Imperativ · the Perfekt's structure · war & hatte · sheet 6 of 13 in your session/.test(card), `the Today card names the course lesson and its count ("${card}")`);
+    renderCourseSection("s0.verbs");
+    ok(/12\/13 sheets/.test(document.getElementById("main-screen").innerText), "the Course: 12/13 sheets — the same count");
     startPathSession("long", { noBonus: true });
     const s = pathSession, cnt = () => (document.getElementById("p-count") || {}).textContent;
     ok(s.items.some(x => x.t === "sheet" && x.sheet === "pr7"), "Today brings it");
@@ -45,6 +51,8 @@ const HELP = () => {
       const it = s.cur; totals.add(+cnt().split("/")[1]);
       if (it.t === "repairOffer" || s.repairPhase) break;
       if (it.t === "sheet") {
+        const badge = (document.querySelector(".gs-unit") || {}).innerText || "";
+        ok(/Präsens · A1 lesson 6\/13/.test(badge), `the sheet's badge: its tense, then its place in the course lesson ("${badge}")`);
         while (_gs.step < _gs.steps.length) gsGo(1);
         while (!_gs.quiz.done) { const cur = _gs.quiz.list[_gs.quiz.i], Q = cur.q;
           if (Q.k === "type") { document.getElementById("gs-input").value = Q.a[0]; gsQuizCheck(); }
