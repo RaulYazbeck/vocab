@@ -55,6 +55,10 @@ CX.sections.forEach(s => {
   ok(["M", "S", "C"].includes(s.prio), `${s.id}: prio M/S/C`);
   ok(/^(A1|A2|B1|B2|C1)$/.test(s.level), `${s.id}: level`);
   ok(!!s.title, `${s.id}: title`);
+  // the planner's estimate (PLAN.md §9): a whole number of sheets, 1–10 (not a target)
+  ok(Number.isInteger(s.n) && s.n >= 1 && s.n <= 10, `${s.id}: n (its estimated sheets) 1–10`);
+  // what it builds on: lessons that exist and come before it (the order holds)
+  (s.after || []).forEach(a => ok(!!CX.byId[a] && CX.sections.indexOf(CX.byId[a]) < CX.sections.indexOf(s), `${s.id}: after ${a} — an earlier lesson`));
   (s.book || []).forEach(([ch, head]) => {
     ok(!!blueprint[ch], `${s.id}: chapter ${ch} is in the blueprint`);
     if (blueprint[ch]) ok(head === "" || blueprint[ch].sections.includes(head), `${s.id}: "${head}" is a section of ${ch}`);

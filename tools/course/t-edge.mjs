@@ -25,7 +25,7 @@ const SETUP = () => {
 {
   const { browser, page, errors } = await openApp({ course: true });
   await page.evaluate(SETUP);
-  await page.evaluate(() => { startPathSession("regular", { noBonus: true }); ok(toCx("testout"), "Today reaches the test-out card"); });
+  await page.evaluate(() => { startPathSession("long", { noBonus: true }); ok(toCx("testout"), "Today reaches the test-out card"); });
   // a typed question: type it, Enter checks, Enter goes on
   const typed = async right => {
     const a = await page.evaluate(right => { const cur = _cx.list[_cx.i]; const k = cxItemKind(cxSet(cur.set), cur.item); return { k, a: cur.item.a[0], o: cur.item.o || cxSet(cur.set).o }; }, right);
@@ -52,7 +52,7 @@ const SETUP = () => {
     const ds0 = JSON.stringify(S.course.ds), q0 = S.quests.m.ok;
     endPathSession(true);
     ok(JSON.stringify(S.course.ds) === ds0 && S.course.dd["new:s0.neg"], "✕ mid-card: the answers and the day's section are kept");
-    startPathSession("regular", { noBonus: true });
+    startPathSession("long", { noBonus: true });
     ok(pathSession.items.some(x => x.t === "cx" && x.part === "testout"), "the next session brings the test-out again (not finished)");
     void q0;
   });
@@ -82,15 +82,15 @@ const SETUP = () => {
   await page.evaluate(() => {
     S.prefs.grandma = true; applyPrefClasses(); backToMenu(); renderHome();
     ok(/Start/.test(document.getElementById("home").innerText), "👵 Grandma home draws");
-    startPathSession("regular", { noBonus: true });
+    startPathSession("long", { noBonus: true });
     ok(toCx("testout") && !!document.getElementById("cx-run"), "👵 Grandma: the course card runs in Today");
     endPathSession(true); S.prefs.grandma = false; applyPrefClasses();
     S.prefs.speak = true;
-    startPathSession("regular", { noBonus: true });
+    startPathSession("long", { noBonus: true });
     ok(toCx("testout") && !!document.getElementById("cx-run"), "🗣️ Speak, don't spell: the course card runs");
     endPathSession(true); S.prefs.speak = false;
     // another device passes the sheet while this session is open
-    startPathSession("regular", { noBonus: true });
+    startPathSession("long", { noBonus: true });
     const s = pathSession, cnt = () => +(document.getElementById("p-count").textContent.split("/")[1]);
     const total0 = cnt();
     toCx("testout"); while (!_cx.done) { const c = _cx.list[_cx.i], set = cxSet(c.set), k = cxItemKind(set, c.item); if (k === "pick") cxPick((c.item.o || set.o).indexOf(c.item.a[0])); else { if (c.mode === "tiles") cxTypeInstead(); if (document.getElementById("cx-input")) { document.getElementById("cx-input").value = "falsch"; } else { document.getElementById("cx-text").value = "Ich habe kein Auto."; } cxCheckCur(); cxCheckCur(); } window.mistakeHeld = () => false; cxNext(); }
@@ -134,7 +134,7 @@ const SETUP = () => {
   await page.evaluate(SETUP);
   await page.evaluate(() => {
     S.course.last = studyToday(); S.course.since = studyToday(); // a sheet learned today: tomorrow-style day between sheets
-    startPathSession("regular", { noBonus: true });
+    startPathSession("long", { noBonus: true });
     ok(!pathSession.items.some(x => x.t === "cx" && ["testout", "sheet"].includes(x.part)) && pathSession.items.some(x => x.t === "cx" && x.part === "write"), "a day between sheets: no new sheet, a writing card");
     ok(toCx("write") && !!document.getElementById("cx-jtext"), "the writing card runs in Today");
     window.__n0 = +(document.getElementById("p-count").textContent.split("/")[0]);

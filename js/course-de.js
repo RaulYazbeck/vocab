@@ -43,6 +43,7 @@ const CX_DECK = "cx";
 const CX_LAG = 40;            // days: every sheet passed ≈ early July for 15 Aug (PLAN.md §9)
 const CX_DRILL_N = [10, 14];  // the day's drill: items (min, max)
 const CX_REVIEW = [6, 30];    // rule reviews a day (min, max): never starved, never a flood
+const CX_DAY_Q = 50;          // the day's grammar questions the reviews fill up to (never under CX_REVIEW[0])
 const CX_WARM_MAX = 8;        // yesterday's slips in the warm-up (the rest join the review)
 const CX_Q_MIN = 0.5;         // minutes a review question takes
 const CX_TESTOUT = { n: 8, miss: 1 }; // a test-out: questions, misses allowed
@@ -491,10 +492,6 @@ function cxTestoutPlan(secId) {
 }
 
 // ── THE ORDER ─────────────────────────────────
-// The next sections to learn: built, not done, in the skeleton's order.
-function cxNextSections(n = 1) {
-  return CX.sections.filter(s => cxLearnable(s) && !cxSecDone(s.id) && (!s.checkpoint || cxCheckpointReady(s))).slice(0, n);
-}
 // A checkpoint opens once every other section of its stage is done.
 function cxCheckpointReady(sec) {
   return CX.sections.filter(s => s.stage === sec.stage && s !== sec && !(s.kind === "recap")).every(s => cxSecDone(s.id));
@@ -527,35 +524,82 @@ function cxContrastDue(today = studyToday()) {
   const done = CX.sections.filter(s => s.built && cxSecDone(s.id)).length;
   return done >= 2 && (!C.cd || daysBetween(C.cd, today) >= 5);
 }
-// ── THE PLANNER (PLAN.md §9) ──────────────────
-// Every sheet passed by the finish date minus CX_LAG days (≈ early July
-// for 15 August), one a day, every 5th day a contrast day. Status:
-// green — one a day keeps it · amber — two on easy days are needed ·
-// red — more than that (drop Could, then sample drills, then more time).
-function cxSheetsLeft(prio = null) {
-  let n = 0;
-  CX.sections.forEach(s => {
-    if (prio && !prio.includes(s.prio)) return;
-    if (s.verb && s.verb.length) { n += s.verb.filter(id => !(typeof vxSheetPassed === "function" && vxSheetPassed(id))).length; return; }
-    if (!cxSecDone(s.id)) n += s.n || 1;
-  });
-  return n;
+// ── THE PLANNER: THE LESSON CLOCK (PLAN.md §9) ─
+// Lesson, consolidate, lesson, consolidate. One lesson at a time, in
+// course order; its sheets on consecutive study days (one a day, each
+// course sheet with its drill); then a break of G study days with no new
+// sheet — the drill, reviews, mixed practice and writing of what I just
+// learned — the same G after every lesson, 1 sheet or 10:
+//   G = (study days left − sheets left) ÷ lessons left
+// counted to the target (the finish date − CX_LAG), the study days scaled
+// by my rhythm (cxAttend). Recomputed every day; a lesson under way is
+// never stretched. The fraction is carried from lesson to lesson, so the
+// breaks alternate around G (2.3 → 2, 2, 3, 2, 2, 3…).
+// The verb lessons are lessons like any other: the clock says when their
+// sheets come, the verb track brings them (cxVerbClock). A lesson not
+// built yet counts its estimated sheets (`n` in plan.js), so the pace is
+// the complete course's. The post-B1 bonus ("Could") isn't paced to the
+// target: it comes after the rest, spread to the finish date itself.
+const CX_GAP_MAX = 7;         // a break is never longer than a week
+const CX_SECOND_MAX = 2;      // behind: at most this many new sheets a day
+
+function cxIsVerb(s) { return !!(s && s.verb && s.verb.length); }
+function cxIsRecap(s) { return !!(s && (s.kind === "recap" || s.checkpoint)); }
+// A lesson's sheets: the verb track's, a built lesson's own (a checkpoint
+// counts 1), or — not built yet — the estimate.
+function cxLessonSize(s) {
+  if (cxIsVerb(s)) return s.verb.length;
+  if (cxIsRecap(s)) return 1;
+  return s.built && s.sheets.length ? s.sheets.length : Math.max(1, s.n || 1);
 }
-// ── THE PACE: SPREAD TO THE DATE ──────────────
-// The finish date sets the pace, nothing else: the course's sheets still
-// to learn are spread evenly over the days left to the target, so a new
-// sheet comes every few days and the days between are for its reviews,
-// the mixed days and writing. A later date: further apart; an earlier
-// one: closer, down to one a day (then the levers in cxTodayParts). It
-// recomputes every day, so a break or a burst ahead evens itself out.
-// (The verb track's sheets keep their own pace.)
-const CX_GAP_MAX = 7;         // never a week without something new
-// could: also the post-B1 sections ("only if time allows": not paced to
-// the date — they come after, one a week).
-function cxCourseSheetsLeft(could = false) {
-  let n = 0;
-  CX.sections.forEach(s => { if (!(s.verb && s.verb.length) && (could || s.prio !== "C") && !cxSecDone(s.id)) n += s.n || 1; });
-  return n;
+// Its sheets still to learn (0 once they're passed, though its drill may
+// still be open that day).
+function cxLessonLeft(s) {
+  if (cxSecDone(s.id)) return 0;
+  if (cxIsVerb(s)) return s.verb.filter(id => !(typeof vxSheetPassed === "function" && vxSheetPassed(id))).length;
+  if (cxIsRecap(s)) return 1;
+  if (!s.built || !s.sheets.length) return Math.max(1, s.n || 1);
+  const st = cxSecState(s.id);
+  return st && st.st >= 2 ? 0 : s.sheets.filter(id => !cxSheetPassed(id)).length;
+}
+// Built: a pack loaded (a verb lesson: its sheets in the verb track, which is on).
+function cxLessonBuilt(s) {
+  if (cxIsVerb(s)) return typeof vxOn === "function" && vxOn() && typeof vxSheet === "function" && s.verb.every(id => !!vxSheet(id));
+  return cxLearnable(s);
+}
+// The post-B1 bonus waits for every other lesson.
+function cxBonusOpen() { return CX.sections.every(s => s.prio === "C" || cxSecDone(s.id)); }
+// Can it be learned now: built, not done, every lesson it builds on
+// (`after`) done; a checkpoint once its stage is; the bonus after the rest.
+function cxLessonReady(s) {
+  if (!s || cxSecDone(s.id) || !cxLessonBuilt(s)) return false;
+  if ((s.after || []).some(id => !cxSecDone(id))) return false;
+  if (s.checkpoint && !cxCheckpointReady(s)) return false;
+  if (s.prio === "C" && !cxBonusOpen()) return false;
+  return true;
+}
+// Begun and not finished: a sheet passed (or a sheet, test-out or
+// checkpoint tried and missed).
+function cxLessonStarted(s) {
+  if (cxSecDone(s.id)) return false;
+  if (cxIsVerb(s)) return s.verb.some(id => vxSheetPassed(id));
+  const st = cxSecState(s.id);
+  return !!st && (st.st === 1 || st.st === 2 || !!(st.ok && Object.keys(st.ok).length) || !!(s.checkpoint && st.tries));
+}
+// The lesson under way: carried on whatever the break says.
+function cxCurrentLesson() {
+  return CX.sections.find(s => cxLessonStarted(s) && cxLessonReady(s)) || null;
+}
+// The lesson the clock takes next: the one under way, else the first
+// ready one in course order (an earlier lesson built later comes first).
+function cxClockLesson() {
+  return cxCurrentLesson() || CX.sections.find(cxLessonReady) || null;
+}
+// The next lessons in the clock's order (built and ready).
+function cxNextSections(n = 1) {
+  const cur = cxCurrentLesson(), out = cur ? [cur] : [];
+  for (const s of CX.sections) { if (out.length >= n) break; if (s !== cur && cxLessonReady(s)) out.push(s); }
+  return out.slice(0, n);
 }
 // My rhythm: the share of days I opened the app over the last 4 weeks
 // (1 before a week of it is recorded; never under a quarter).
@@ -566,59 +610,221 @@ function cxAttend(today = studyToday()) {
   const first = C.seen[0], from = first > addDays(today, -27) ? first : addDays(today, -27);
   const days = daysBetween(from, today) + 1;
   if (days < 7) return 1;
-  const n = C.seen.filter(d => d >= from && d <= today).length;
+  // (today counts: the app is open — before or after the day rolls over)
+  const n = C.seen.filter(d => d >= from && d <= today).length + (C.seen.includes(today) ? 0 : 1);
   return Math.max(0.25, Math.min(1, n / days));
 }
-// Study days between two new sheets — the study days left to the target
-// (the days left × my rhythm) over the sheets left; 1 with no finish date.
-function cxGap(today = studyToday()) {
+// The clock's numbers today: the lessons and sheets left (paced: Must and
+// Should; once they're all done, the bonus to the finish date), the study
+// days left and G. No finish date: lesson after lesson (G 0).
+function cxClock(today = studyToday()) {
   const deadline = typeof pathDeadlineOn === "function" && pathDeadlineOn() ? S.path.deadline : "";
-  if (!deadline) return 1;
-  const days = daysBetween(today, addDays(deadline, -CX_LAG)), left = cxCourseSheetsLeft();
-  if (!left) return cxCourseSheetsLeft(true) ? CX_GAP_MAX : 1; // only post-B1 left: one a week
-  if (days <= 0) return 1;
-  return Math.max(1, Math.min(CX_GAP_MAX, Math.floor(days * cxAttend(today) / left)));
+  let bonus = false, L = 0, Sh = 0;
+  const count = s => { if (!cxSecDone(s.id)) { L++; Sh += cxLessonLeft(s); } };
+  CX.sections.forEach(s => { if (s.prio !== "C") count(s); });
+  if (!L) { bonus = true; CX.sections.forEach(s => { if (s.prio === "C") count(s); }); }
+  if (!deadline) return { deadline: "", target: "", days: 0, D: 0, L, S: Sh, G: 0, bonus };
+  const target = bonus ? deadline : addDays(deadline, -CX_LAG);
+  const days = daysBetween(today, target), D = Math.max(0, days) * cxAttend(today);
+  const G = L ? Math.max(0, Math.min(CX_GAP_MAX, (D - Sh) / L)) : 0;
+  return { deadline, target, days, D, L, S: Sh, G, bonus };
 }
-// A section already under way carries on whatever the gap: a sheet to
-// retake, a drill still to do, a checkpoint missed (it comes back the
-// next day).
-function cxUnderway() {
-  return CX.sections.some(s => {
-    if (!cxLearnable(s) || cxSecDone(s.id)) return false;
-    const st = cxSecState(s.id);
-    return !!st && (st.st === 1 || st.st === 2 || !!(s.checkpoint && st.tries));
-  });
+// The break after the k-th lesson (k lessons done): the fraction carried,
+// so the breaks alternate around G and add up to it.
+function cxBreakAfter(k, G) { return Math.floor((k + 1) * G + 1e-9) - Math.floor(k * G + 1e-9); }
+function cxLessonsDone() { return CX.sections.filter(s => cxSecDone(s.id)).length; }
+function cxBreak(today = studyToday()) { return cxBreakAfter(cxLessonsDone(), cxClock(today).G); }
+// (kept for the screens and the tests: days from one lesson's start to
+// the next one's, a one-sheet lesson — the break plus its day)
+function cxGap(today = studyToday()) { return cxBreak(today) + 1; }
+// The verb sheets of the course's lessons.
+let _cxVerbIds = null;
+function cxVerbLessonIds() {
+  if (!_cxVerbIds) { _cxVerbIds = new Set(); CX.sections.forEach(s => (s.verb || []).forEach(id => _cxVerbIds.add(id))); }
+  return _cxVerbIds;
 }
-// The day the next new sheet comes: once `gap` study days have passed
-// since the last one (today when it's due; else the date if I come every day).
+// New sheets begun today: the course's passed today, the verb lessons'
+// opened today (a verb sheet opened uses up its day — verb-track.js).
+function cxSheetsToday() {
+  const C = S.course, dd = (C && C.dd) || {};
+  let n = 0;
+  Object.keys(dd).forEach(k => { if (k.startsWith("sheet:")) n += +dd[k] || 1; });
+  if (S.verb && S.verb.day === studyToday() && S.verb.su) Object.keys(S.verb.su).forEach(id => { if (cxVerbLessonIds().has(id)) n++; });
+  return n;
+}
+// A lesson piece learned today (a sheet passed, a test-out or checkpoint done).
+function cxLearnedToday() {
+  const C = S.course;
+  return !!C && (C.last === studyToday() || Object.keys(C.dd || {}).some(k => /^(sheet|to|sec):/.test(k)));
+}
+// The day the next new sheet comes: today while a lesson is under way;
+// after a lesson, once its break (study days) is over — or at once, back
+// after a long time away (twice the break in the calendar).
 function cxNextLessonDay(today = studyToday()) {
   const C = S.course;
-  if (!C || !C.last || cxUnderway() || Object.keys(C.dd || {}).some(k => k.startsWith("new:"))) return today;
+  if (!C || cxCurrentLesson()) return today;
+  if (!C.last) return today;
   // (today counts: the app is open)
-  const n = (C.seen || []).filter(d => d > C.last && d < today).length + (today > C.last ? 1 : 0), g = cxGap(today);
-  // Back after a long time away (twice the gap in the calendar): now.
-  if (n >= g || daysBetween(C.last, today) >= 2 * g) return today;
-  return addDays(today, g - n);
+  const n = (C.seen || []).filter(d => d > C.last && d < today).length + (today > C.last ? 1 : 0), b = cxBreak(today);
+  if (n > b || daysBetween(C.last, today) >= 2 * (b + 1)) return today;
+  return addDays(today, b + 1 - n);
 }
+// The planner's status from the clock's numbers (see cxPlanner).
+function cxStatusOf(K) { return !K.target ? "none" : !K.L ? "green" : K.days <= 0 ? "red" : K.D >= K.S + K.L ? "green" : K.D >= K.S ? "amber" : "red"; }
+// Behind: a second sheet today (every other day, or on an easy day) —
+// never while rules are failing or the reviews pile up.
+function cxSecondToday(scan) {
+  if (cxStatusOf(cxClock()) !== "red") return false;
+  const { fix, due } = cxDueRules(), C = S.course;
+  return fix.length <= CX_WARM_MAX && due.length <= 3 * CX_REVIEW[1]
+    && (!!C.since && daysBetween(C.since, studyToday()) % 2 === 0 || cxBudget(scan).easy);
+}
+// Today's lessons and how many new sheets each may still give:
+// [{ s, sheets }] — the lesson under way (or the next one, its break
+// over); behind, a second sheet, then the next lesson may start the same
+// day. [] on a break day.
+function cxDayLessons(scan) {
+  if (!cxOn()) return [];
+  const today = studyToday();
+  if (cxNextLessonDay(today) > today) return [];
+  const allow = cxSecondToday(scan) ? CX_SECOND_MAX : 1;
+  let room = Math.max(0, allow - cxSheetsToday());
+  const out = [], cur = cxCurrentLesson();
+  // A lesson finished today (its break starts) brings no other one today
+  // unless behind.
+  if (!cur && cxLearnedToday() && allow < 2) return [];
+  const list = cur ? [cur, ...CX.sections.filter(s => s !== cur && cxLessonReady(s))] : CX.sections.filter(cxLessonReady);
+  for (const s of list) {
+    const left = cxLessonLeft(s), k = Math.min(left, room);
+    out.push({ s, sheets: k });
+    room -= k;
+    // One lesson at a time: the next only when this one has nothing left
+    // after today and there's room for another sheet.
+    if (left - k > 0 || room <= 0 || allow < 2) break;
+  }
+  return out;
+}
+// The verb track's sheets as the clock gives them (verb-track.js):
+// today's — the verb lesson's next sheet(s) on its days; next — the verb
+// lesson under way or next in line, its sheets still to learn (the
+// grammar screen's "next lesson"); inLesson — every verb sheet of a
+// lesson (the others the verb track paces itself). null: no course.
+function cxVerbClock(scan) {
+  if (!cxOn()) return null;
+  migrateCourse();
+  const today = [];
+  cxDayLessons(scan).forEach(({ s, sheets }) => { if (cxIsVerb(s)) today.push(...s.verb.filter(id => !vxSheetPassed(id)).slice(0, sheets)); });
+  const nx = cxClockLesson(), next = nx && cxIsVerb(nx) ? nx.verb.filter(id => !vxSheetPassed(id)) : [];
+  return { today, next, inLesson: cxVerbLessonIds() };
+}
+// A verb sheet of a course lesson learned: the break is counted from it.
+function cxVerbSheetLearned(id) {
+  if (!cxOn() || !cxVerbLessonIds().has(id)) return;
+  migrateCourse();
+  S.course.last = studyToday();
+  if (!S.course.since) S.course.since = studyToday();
+  _cxSimMemo = null;
+}
+
+// ── THE CLOCK, FORWARD ────────────────────────
+// The days to come (≈, if I come every day): when each lesson starts and
+// ends at today's G. complete: every lesson as if built (the estimates —
+// the course's dates); else only what is built (the coming days).
+// → { days: [{ d, lesson: id | null }], start: { id: day }, end: { id: day }, last: day }
+let _cxSimMemo = null;
+function cxClockSim(n = 400, complete = true) {
+  const today = studyToday();
+  const key = [today, complete, n, CX.packs.length, S.course && S.course.last, cxSheetsToday(), cxLessonsDone(), cxSheetsLeft(), S.path && S.path.deadline, Object.keys((S.course && S.course.dd) || {}).length].join("|");
+  if (_cxSimMemo && _cxSimMemo.key === key) return _cxSimMemo.out;
+  const G = cxClock(today).G, done = new Set(CX.sections.filter(s => cxSecDone(s.id)).map(s => s.id));
+  const left = {};
+  CX.sections.forEach(s => { if (!done.has(s.id)) left[s.id] = cxLessonLeft(s); });
+  const isDone = id => done.has(id);
+  const ready = s => !isDone(s.id) && (complete || cxLessonBuilt(s)) && (s.after || []).every(isDone)
+    && (!cxIsRecap(s) || CX.sections.filter(x => x.stage === s.stage && x !== s && !cxIsRecap(x)).every(x => isDone(x.id)))
+    && (s.prio !== "C" || CX.sections.every(x => x.prio === "C" || isDone(x.id)));
+  let k = done.size, last = (S.course && S.course.last) || "", cur = cxCurrentLesson();
+  const out = { days: [], start: {}, end: {}, last: "" };
+  const finish = (s, d) => { done.add(s.id); out.end[s.id] = d; k++; last = d; cur = null; };
+  // Today: what the day holds (or already did).
+  const day0 = cxDayLessons();
+  let lessonToday = null;
+  day0.forEach(({ s, sheets }) => {
+    lessonToday = lessonToday || s.id;
+    if (!out.start[s.id]) out.start[s.id] = today;
+    left[s.id] = Math.max(0, (left[s.id] || 0) - sheets);
+    if (left[s.id] <= 0) finish(s, today); else cur = s;
+  });
+  if (!lessonToday && cxLearnedToday()) { lessonToday = (cur && cur.id) || "·"; if (!cur) last = today; }
+  out.days.push({ d: today, lesson: lessonToday });
+  for (let i = 1; i < n; i++) {
+    const d = addDays(today, i);
+    let id = null;
+    if (!cur && (!last || daysBetween(last, d) > cxBreakAfter(k, G))) {
+      cur = CX.sections.find(ready) || null;
+      if (cur && !out.start[cur.id]) out.start[cur.id] = d;
+    }
+    if (cur) {
+      id = cur.id;
+      left[cur.id] = (left[cur.id] || 1) - 1;
+      if (left[cur.id] <= 0) finish(cur, d);
+    }
+    out.days.push({ d, lesson: id });
+    if (!cur && CX.sections.every(s => isDone(s.id) || !ready(s)) && !CX.sections.some(ready)) {
+      // Nothing left that can come: the rest of the days are empty.
+      if (complete || CX.sections.every(s => isDone(s.id))) { for (let j = i + 1; j < n; j++) out.days.push({ d: addDays(today, j), lesson: null }); break; }
+    }
+  }
+  CX.sections.forEach(s => { if (s.prio !== "C" && out.end[s.id] && out.end[s.id] > out.last) out.last = out.end[s.id]; });
+  _cxSimMemo = { key, out };
+  return out;
+}
+// A verb tense's sheets all learned, on the clock (≈ days from today) —
+// for the verb track's pace (verb-track.js vxUnitOpenDays); null when
+// its sheets aren't all in the course's lessons; -1 when they're in the
+// post-B1 bonus ("if time allows": not paced to the date).
+function cxVerbUnitDays(unit) {
+  if (!cxOn() || typeof vxSheetIds !== "function") return null;
+  const ids = vxSheetIds(unit).filter(id => !vxSheetPassed(id));
+  if (!ids.length) return 0;
+  if (!ids.every(id => cxVerbLessonIds().has(id))) return null;
+  if (CX.sections.some(s => cxIsVerb(s) && s.prio === "C" && s.verb.some(id => ids.includes(id)))) return -1;
+  const sim = cxClockSim(), today = studyToday();
+  let d = 0;
+  for (const s of CX.sections) {
+    if (!cxIsVerb(s) || !s.verb.some(id => ids.includes(id))) continue;
+    const e = sim.end[s.id];
+    if (!e) return null;
+    d = Math.max(d, daysBetween(today, e));
+  }
+  return d;
+}
+
+// ── THE PLANNER'S STATUS ──────────────────────
+// green — a break of a day or more after every lesson keeps the date ·
+// amber — lessons back to back (no break) · red — more sheets than study
+// days: a second sheet on some days, past 1.5 a day a later date.
+function cxSheetsLeft(prio = null) {
+  let n = 0;
+  CX.sections.forEach(s => { if (!prio || prio.includes(s.prio)) n += cxLessonLeft(s); });
+  return n;
+}
+// The paced lessons' sheets still to learn (Must and Should).
+function cxCourseSheetsLeft(could = false) { return cxSheetsLeft(could ? null : ["M", "S"]); }
 function cxPlanner(today = studyToday()) {
-  // left: every sheet of the map still to pass (the verb track's too);
-  // cl: the course's own — the ones this planner paces (the verb track
-  // paces its sheets itself).
-  const left = cxSheetsLeft(), must = cxSheetsLeft(["M", "S"]), cl = cxCourseSheetsLeft();
-  const deadline = typeof pathDeadlineOn === "function" && pathDeadlineOn() ? S.path.deadline : "";
-  const target = deadline ? addDays(deadline, -CX_LAG) : "";
-  const days = target ? daysBetween(today, target) : 0;
-  // Sheets a day still needed. Up to 0.8 the pace spreads them out (cxGap);
-  // tight (up to 1): the contrast days bring one too; behind: a second one
-  // every other day (1.5 a day) — cxTodayParts.
-  const need = target ? cl / Math.max(1, days) : 0;
-  const status = !target ? "none" : !cl ? "green" : days <= 0 ? "red" : need <= 0.8 ? "green" : need <= 1 ? "amber" : "red";
-  // When the last sheet comes at this pace; and my own pace over the last
-  // 4 weeks (for the report — the pace itself is the date's, not mine).
-  const eta = addDays(today, cl * cxGap(today));
+  // left: every sheet still to learn; cl: the paced ones (Must, Should).
+  const K = cxClock(today), left = cxSheetsLeft(), must = cxSheetsLeft(["M", "S"]), cl = must;
+  const target = K.target, days = K.days;
+  // Sheets a study day still needed.
+  const need = target ? K.S / Math.max(1, K.D) : 0;
+  const status = cxStatusOf(K);
+  // When the last paced lesson ends at this pace (≈, coming every day);
+  // and my own pace over the last 4 weeks (for the report).
+  const sim = target ? cxClockSim() : null;
+  const eta = sim && sim.last ? sim.last : today;
   const pace = cxPace(today);
-  const built = CX.sections.filter(s => s.built).length;
-  return { left, cl, must, target, days, need, eta, pace, status, built, total: CX.sections.length };
+  const built = CX.sections.filter(s => s.built || cxIsVerb(s)).length;
+  return { left, cl, must, target, days, need, eta, pace, status, built, total: CX.sections.length, G: K.G, L: K.L, S: K.S, D: K.D, brk: cxBreak(today), waiting: !!K.L && !cxClockLesson() };
 }
 // The sheets I passed a day over the last 4 weeks (sections finished in
 // the course; the verb track keeps its own pace) — null before a week of it.
@@ -668,48 +874,54 @@ function cxBudget(scan, lesson = true) {
 //   review   due rule items (and, on a contrast day, mixed items)
 //   write    a short writing prompt
 // Each is one card in a Today session that runs several questions.
+// A course lesson's pieces today: its checkpoint, or a test-out (Stage 0,
+// before its first sheet), today's sheet (`sheets` new ones allowed) and
+// its drill — none once today's part of it is finished.
+function cxLessonParts(sec, sheets, dd, add) {
+  if (dd["sec:" + sec.id] || cxSecDone(sec.id)) return; // today's part of it, finished
+  if (sec.checkpoint) { add({ part: "checkpoint", sec: sec.id }); return; }
+  const st = cxSecState(sec.id) || { st: 0 };
+  const sheetDone = (dd["sheet:" + sec.id] || 0) > 0;
+  if (sec.stage === 0 && sec.testout !== false && st.to === undefined && !(st.st >= 2) && !sheetDone && !(st.ok && Object.keys(st.ok).length)) add({ part: "testout", sec: sec.id });
+  // One sheet a day (two when behind); a sheet missed twice today waits
+  // for tomorrow (new questions then) — and its drill with it.
+  if (!(st.st >= 2) && sheets > 0) {
+    if ((dd["try:" + sec.id] || 0) >= 2 && !sheetDone) return;
+    add({ part: "sheet", sec: sec.id, sheet: sec.sheets.find(id => !cxSheetPassed(id)) || sec.sheets[0] });
+  }
+  add({ part: "drill", sec: sec.id });
+}
+function cxUnderway() { return !!cxCurrentLesson(); }
 function cxTodayParts(scan) {
   if (!cxOn()) return [];
   migrateCourse();
   const C = S.course, dd = C.dd, parts = [];
   const { fix, due } = cxDueRules();
   if (fix.length && !dd.warm) parts.push({ part: "warm", rules: fix.slice(0, CX_WARM_MAX) });
-  // A new section when the pace says so (cxGap: spread to the date), none
-  // on a contrast day. Tight for the finish date: the contrast days bring
-  // one too. Behind: a second one every
-  // other day (or on an easy day) — never while the reviews are piling up
-  // (after a break they catch up first).
-  const P = cxPlanner(), lessonDue = cxNextLessonDay() <= studyToday();
-  const contrast = !!dd.contrast || cxContrastDue() && (!lessonDue || cxGap() === 1);
-  const lesson = lessonDue && !(contrast && P.status === "green");
-  const second = P.status === "red" && !contrast && fix.length <= CX_WARM_MAX && due.length <= 3 * CX_REVIEW[1]
-    && (C.since && daysBetween(C.since, studyToday()) % 2 === 0 || cxBudget(scan).easy);
-  const nSec = second ? 2 : 1;
-  if (lesson) {
-    const started = Object.keys(dd).filter(k => k.startsWith("new:")).map(k => k.slice(4));
-    let slots = nSec;
-    for (const sec of CX.sections) {
-      if (slots <= 0) break;
-      if (!cxLearnable(sec)) continue;
-      const mine = started.includes(sec.id);
-      if (!mine && cxSecDone(sec.id)) continue;
-      // A checkpoint waits for the rest of its stage (sections still to
-      // come included).
-      if (sec.checkpoint && !cxCheckpointReady(sec)) continue;
-      slots--;
-      if (dd["sec:" + sec.id] || cxSecDone(sec.id)) continue; // today's section, finished
-      if (sec.checkpoint) { parts.push({ part: "checkpoint", sec: sec.id }); continue; }
-      const st = cxSecState(sec.id) || { st: 0 };
-      if (sec.stage === 0 && sec.testout !== false && st.to === undefined && !(st.st >= 2)) parts.push({ part: "testout", sec: sec.id });
-      // A sheet missed twice today waits for tomorrow (new questions then).
-      if (!(st.st >= 2)) { if ((dd["try:" + sec.id] || 0) < 2) parts.push({ part: "sheet", sec: sec.id, sheet: sec.sheets.find(id => !cxSheetPassed(id)) || sec.sheets[0] }); else continue; }
-      parts.push({ part: "drill", sec: sec.id });
-    }
-  }
+  // Today's lesson (the lesson clock: cxDayLessons) — its sheet with its
+  // drill, a test-out first in Stage 0, or its checkpoint; none on a break
+  // day. A contrast day falls on a break day only. A verb lesson's sheet
+  // comes through the verb track (cxVerbClock).
+  const lessons = cxDayLessons(scan);
+  const contrast = !!dd.contrast || cxContrastDue() && !lessons.length;
+  lessons.forEach(({ s: sec, sheets }, li) => {
+    if (cxIsVerb(sec)) return;
+    // (a second lesson — behind — only if the day's grammar has room for it)
+    const mine = [];
+    cxLessonParts(sec, sheets, dd, p => mine.push(p));
+    if (li > 0 && parts.reduce((n, p) => n + cxPartSize(p), 0) + mine.reduce((n, p) => n + cxPartSize(p), 0) > CX_DAY_Q) return;
+    parts.push(...mine);
+  });
   // The reviews fit around the day: all the room a day without a new
   // sheet leaves, at least CX_REVIEW[0] even on a heavy one.
   const B = cxBudget(scan, parts.some(p => p.part === "sheet" || p.part === "drill" || p.part === "checkpoint"));
-  const rev = [...(dd.warm ? fix : fix.slice(CX_WARM_MAX)), ...due].slice(0, B.review);
+  // (a pile of due rules is cleared over about three days, even on a heavy
+  // word day: rules left waiting never reach Known)
+  const pile = (dd.warm ? fix.length : Math.max(0, fix.length - CX_WARM_MAX)) + due.length;
+  // — and the reviews stop where the day reaches CX_DAY_Q questions.
+  const asked = parts.reduce((n, p) => n + cxPartSize(p), 0);
+  const revN = Math.min(Math.max(B.review, Math.min(CX_REVIEW[1], Math.ceil(pile / 3))), Math.max(CX_REVIEW[0], CX_DAY_Q - asked));
+  const rev = [...(dd.warm ? fix : fix.slice(CX_WARM_MAX)), ...due].slice(0, revN);
   // A contrast day: the due reviews and a few mixed items on top.
   if (contrast && !dd.contrast) parts.push({ part: "review", rules: rev, contrast: true });
   else if (rev.length && !dd.review) parts.push({ part: "review", rules: rev });
@@ -722,26 +934,21 @@ function cxTodayParts(scan) {
   return parts;
 }
 // The course's next days for the Journey's forecast (≈, if I come every
-// day): a new lesson (its sheet and drill), the grammar rules coming due,
-// a writing prompt — the same rules as cxTodayParts. Today is what's
-// planned or done today. [{ d, lesson, rules, write }]
+// day): a lesson day (the lesson clock, with what is built — cxClockSim),
+// the grammar rules coming due, a writing prompt — the same rules as
+// cxTodayParts. Today is what's planned or done today.
+// [{ d, lesson, sec, rules, write }]
 function cxForecastDays(n = 8) {
   if (!cxOn()) return [];
   migrateCourse();
   const today = studyToday(), C = S.course, dd = C.dd || {}, parts = cxTodayParts();
-  const lessonToday = parts.some(p => ["testout", "sheet", "drill", "checkpoint"].includes(p.part)) || Object.keys(dd).some(k => k.startsWith("new:"));
-  // Lessons left to come: each sheet of the lessons built takes a day.
-  let sheets = cxNextSections(99).reduce((k, s) => k + Math.max(1, s.sheets.filter(id => !cxSheetPassed(id)).length || 1), 0) - (lessonToday ? 1 : 0);
-  const g = cxGap(today);
-  let next = lessonToday ? (cxUnderway() ? addDays(today, 1) : addDays(today, g)) : cxNextLessonDay();
+  const sim = cxClockSim(n, false);
   let lastW = cxJournalList().filter(e => !/^drill:/.test(e.p)).map(e => e.d).pop() || "";
   const prompts = !!cxJournalPick();
   const out = [];
   for (let i = 0; i < n; i++) {
-    const d = addDays(today, i);
-    let lesson = false;
-    if (i === 0) lesson = lessonToday;
-    else if (sheets > 0 && d >= next) { lesson = true; sheets--; next = addDays(d, g); }
+    const d = addDays(today, i), sd = sim.days[i] || {};
+    const lesson = !!sd.lesson, sec = sd.lesson && sd.lesson !== "·" ? sd.lesson : "";
     // Rules: today, the ones due now (as Today counts them); a later day,
     // the ones coming due that day.
     const end = studyDayStart(i + 1), start = studyDayStart(i);
@@ -750,9 +957,34 @@ function cxForecastDays(n = 8) {
     const write = i === 0 ? parts.some(p => p.part === "write") || !!dd.write
       : !!prompts && (!lesson || !lastW || daysBetween(lastW, d) >= CX_WRITE_EVERY);
     if (write) lastW = d;
-    out.push({ d, lesson, rules, write });
+    out.push({ d, lesson, sec, rules, write });
   }
   return out;
+}
+// The right answers the course adds to each coming day's plan (≈, the
+// Journey's "Coming up"; today's is the plan's own): a lesson day its
+// sheet (a course lesson's with its drill), the rules coming due, the
+// writing prompt — counted as cxPlanTarget counts them.
+function cxForecastAnswers(n = 8) {
+  if (!cxOn()) return [];
+  const sheetQ = (sh, dflt) => sh && typeof gqSheetSize === "function" ? gqSheetSize(sh) : dflt;
+  return cxForecastDays(n).map(x => {
+    let q = x.rules + (x.write ? 1 : 0);
+    const s = x.sec && cxSection(x.sec);
+    if (s) q += cxIsVerb(s) ? sheetQ(typeof vxSheet === "function" ? vxSheet(s.verb.find(id => !vxSheetPassed(id)) || s.verb[0]) : null, 4)
+      : sheetQ(cxSheet(s.sheets.find(id => !cxSheetPassed(id)) || s.sheets[0]), 3) + CX_DRILL_N[1];
+    return cxPlanTarget({ q });
+  });
+}
+// The finish date out of reach for the course? At the fastest the planner
+// goes (a second sheet every other day: 1.5 a day), when the last paced
+// sheet would come, plus the time its rules take to be Known (path.js
+// pathDeadlineStatus).
+function cxFastestEta(today = studyToday()) {
+  if (!cxOn()) return null;
+  const K = cxClock(today);
+  if (!K.L || K.bonus) return null;
+  return addDays(today, Math.ceil(K.S / 1.5 / cxAttend(today)) + (typeof KNOWN_LAG === "number" ? KNOWN_LAG : 30));
 }
 // Questions each part asks (the session's count; fixed when it's built).
 function cxPartSize(p) {
@@ -813,13 +1045,15 @@ function cxPartList(p) {
 function cxPartDone(p) {
   const C = S.course;
   cxRollDay();
-  if (p.part === "warm") C.dd.warm = 1;
+  // (a card cut to fit its session — path.js pathGrammarFit — leaves its
+  // other rules for the next session: the part stays open)
+  if (p.part === "warm") { if (!p.cut) C.dd.warm = 1; }
   // (✅ Due today doesn't close Today's reviews: rules it left, or due later
   // today, still come — Today's card only holds the rules still due)
-  else if (p.part === "review" && !p.dues) { C.dd[p.contrast ? "contrast" : "review"] = 1; if (p.contrast) C.cd = studyToday(); }
+  else if (p.part === "review" && !p.dues) { if (!p.cut || p.contrast) C.dd[p.contrast ? "contrast" : "review"] = 1; if (p.contrast) C.cd = studyToday(); }
   else if (p.part === "write") C.dd.write = 1;
   else if (p.part === "testout") C.dd["to:" + p.sec] = 1;
-  else if (p.part === "sheet") C.dd["sheet:" + p.sec] = 1;
+  else if (p.part === "sheet") { if (!C.dd["sheet:" + p.sec]) C.dd["sheet:" + p.sec] = 1; } // (counted when passed: cxSheetResult)
   else if (p.part === "drill" || p.part === "checkpoint") C.dd["sec:" + p.sec] = 1;
   saveState();
 }
@@ -869,8 +1103,13 @@ function cxSheetResult(id, score, all, where) {
   cxRollDay();
   S.course.dd["try:" + sh.sec] = (S.course.dd["try:" + sh.sec] || 0) + 1;
   if (!S.course.since) S.course.since = studyToday();
-  if (passed) {
+  if (passed && !cxSheetPassed(id)) {
     S.course.last = studyToday(); // a sheet learned today: the next one is spaced from here
+    // (the day's new sheets, wherever it was passed: one a day — cxDayLessons)
+    S.course.dd["sheet:" + sh.sec] = (S.course.dd["sheet:" + sh.sec] || 0) + 1;
+    _cxSimMemo = null;
+  }
+  if (passed) {
     const st = cxSecSet(sh.sec, { sh: Math.max(1, pct) });
     st.ok = Object.assign(st.ok || {}, { [id]: Math.max(1, pct) });
     const sec = cxSection(sh.sec);
@@ -894,7 +1133,7 @@ function cxTestoutResult(secId, right, n) {
   if (!S.course.since) S.course.since = studyToday();
   const cur = S.course.sec[secId] || (S.course.sec[secId] = { st: 0 });
   cur.to = Math.max(cur.to || 0, pct);
-  if (pass) { cxSecSet(secId, { st: 3 }); cur.at = studyToday(); cxIntroduceRules(secId, 3); cxPlanTrim(secId); }
+  if (pass) { cxSecSet(secId, { st: 3 }); cur.at = studyToday(); S.course.last = studyToday(); cxIntroduceRules(secId, 3); cxPlanTrim(secId); }
   else cxSecSet(secId, { st: 1 });
   if (typeof logEvent === "function") logEvent("cx_testout", { sec: secId, right, n, ok: pass });
   saveState();
@@ -922,7 +1161,8 @@ function cxCheckpointResult(secId, right, n) {
 function cxDrillDone(secId, right, n) {
   migrateCourse();
   const st = cxSecState(secId);
-  if (st && st.st >= 2 && st.st < 3) { cxSecSet(secId, { st: 3 }); st.at = studyToday(); }
+  // (the lesson ends: its break is counted from today)
+  if (st && st.st >= 2 && st.st < 3) { cxSecSet(secId, { st: 3 }); st.at = studyToday(); S.course.last = studyToday(); }
   if (typeof logEvent === "function") logEvent("cx_drill", { sec: secId, right, n });
   saveState();
 }
@@ -1144,7 +1384,7 @@ function cxReportLines() {
   Object.keys(CX.rules).forEach(r => { const ws = cxRuleWS(r); if (ws && ws.st) { const t = tierOfStage(ws.st).icon; tiers[t] = (tiers[t] || 0) + 1; } });
   const sets = Object.values(S.course.ds || {}).reduce((a, d) => [a[0] + (d[0] || 0), a[1] + (d[1] || 0)], [0, 0]);
   return [`Course: ${done.length} section(s) done${done.length ? " (" + done.join(", ") + ")" : ""} · rules ${learned} learned / ${started} started / ${Object.keys(CX.rules).length}${started ? " (" + Object.entries(tiers).map(([t, n]) => t + n).join(" ") + ")" : ""}`,
-    `Course drills: ${sets[0]}/${sets[1]} right · today ${T.parts} part(s), ${T.due} rule(s) due${T.fix ? ` (${T.fix} to fix)` : ""} · ${P.cl} course sheets ahead (${P.left} with the verb track's), planner ${P.status}${P.target ? ` (all passed by ${P.target}, the last at this pace ${P.eta})` : ""} · a new sheet every ${cxGap()} day(s), next ${cxNextLessonDay()}${P.pace !== null ? ` · my pace over 4 weeks: ${P.pace.toFixed(2)} sheets a day` : ""}`];
+    `Course drills: ${sets[0]}/${sets[1]} right · today ${T.parts} part(s), ${T.due} rule(s) due${T.fix ? ` (${T.fix} to fix)` : ""} · ${P.cl} course sheets ahead (${P.left} with the verb track's), planner ${P.status}${P.target ? ` (all passed by ${P.target}, the last at this pace ${P.eta})` : ""} · lesson clock: ${(cxClockLesson() || {}).id || "waiting for new lessons"}${cxCurrentLesson() ? " under way" : ""}, breaks ≈ ${P.G.toFixed(1)} day(s) (this one ${cxBreak()}), next sheet ${cxNextLessonDay()}${P.pace !== null ? ` · my pace over 4 weeks: ${P.pace.toFixed(2)} sheets a day` : ""}`];
 }
 // My writing not corrected yet, oldest first, for the tutor to correct.
 function cxJournalLines() {

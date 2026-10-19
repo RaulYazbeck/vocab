@@ -330,10 +330,14 @@ function vxSheetIds(unit) { return typeof GS_SHEETS === "undefined" ? [] : GS_SH
 function vxSheet(id) { return typeof GS_SHEET_BY_ID === "undefined" ? null : GS_SHEET_BY_ID[id] || null; }
 function vxSheetPassed(id) { return (S.verb && S.verb.sh && S.verb.sh[id] > 0) || false; }
 // Sheets waiting in Today: every unit in its lesson, in curriculum order.
+// In the German course (course-de.js), a sheet of a course lesson waits
+// for the lesson clock instead: the verb lesson under way or next in line
+// comes first (cxVerbClock); the others still to learn wait for theirs.
 function vxPendingSheets() {
   if (!vxOn()) return [];
-  const out = [];
-  VX_UNITS.forEach(u => { if (vxUnitState(u.id) === 1) vxSheetIds(u.id).forEach(s => { if (!vxSheetPassed(s)) out.push(s); }); });
+  const clock = typeof cxVerbClock === "function" ? cxVerbClock() : null;
+  const out = clock ? clock.next.slice() : [];
+  VX_UNITS.forEach(u => { if (vxUnitState(u.id) === 1) vxSheetIds(u.id).forEach(s => { if (!vxSheetPassed(s) && !(clock && clock.inLesson.has(s)) && !out.includes(s)) out.push(s); }); });
   return out;
 }
 // The sheets your next Today session brings: today's allowance
@@ -343,7 +347,12 @@ function vxPendingSheets() {
 // tomorrow and nothing announces them.
 function vxSheetsToday() {
   if (!vxOn()) return [];
-  return vxPendingSheets().slice(0, vxQuotas().sheetsLeft);
+  const clock = typeof cxVerbClock === "function" ? cxVerbClock() : null;
+  if (!clock) return vxPendingSheets().slice(0, vxQuotas().sheetsLeft);
+  // The course's lesson clock: the verb lesson's sheet(s) on its days;
+  // a sheet of no course lesson keeps the verb track's own pace.
+  const own = vxPendingSheets().filter(s => !clock.inLesson.has(s)).slice(0, vxQuotas().sheetsLeft);
+  return [...clock.today, ...own.filter(s => !clock.today.includes(s))];
 }
 // A sheet uses up one of the day's VX_SHEETS_PER_DAY once: opened in
 // Today, or passed on the grammar screen — the same sheet again that day
@@ -375,6 +384,8 @@ function vxSheetResult(id, score, all, where) {
   // A first pass outside Today (the grammar screen) uses up one of the
   // day's sheets too; a sheet in Today counted when it opened.
   if (passed && where !== "path" && !vxSheetPassed(id)) vxSheetUse(id);
+  // (a first pass of a course lesson's sheet: its break counts from today)
+  if (passed && !vxSheetPassed(id) && typeof cxVerbSheetLearned === "function") cxVerbSheetLearned(id);
   if (passed) V.sh[id] = Math.max(V.sh[id] || 0, Math.max(1, pct));
   V.sr[id] = 1;
   if (typeof logEvent === "function") logEvent("vx_sheet", { id, pct, ok: passed, where: where || "" });
@@ -1451,7 +1462,13 @@ function vxUnitOpenDays(scan) {
     const sheets = vxSheetIds(u.id).filter(id => !vxSheetPassed(id)).length;
     const eta = st === 1 ? null : vxUnitEta(u, scan);
     let d = (eta ? Math.max(0, daysBetween(today, eta)) : 0) + Math.ceil(sheets / VX_SHEETS_PER_DAY);
-    u.req.forEach(r => { if (out[r] !== undefined) d = Math.max(d, out[r] + 1); });
+    // In the course, its sheets come with their lessons (the lesson clock),
+    // and a tense whose sheets are all passed opens then, Path or not; a
+    // tense of the post-B1 bonus isn't paced to the date (-1).
+    const cd = typeof cxVerbUnitDays === "function" ? cxVerbUnitDays(u.id) : null;
+    if (cd === -1) { out[u.id] = -1; return; }
+    if (cd !== null) d = cd;
+    u.req.forEach(r => { if (out[r] !== undefined && out[r] >= 0) d = Math.max(d, out[r] + 1); });
     out[u.id] = d;
   });
   _vxOpenDays = out; _vxOpenDaysAt = Date.now();
@@ -1469,10 +1486,12 @@ function vxPaceNeeded0(scan) {
   const end = Math.max(14, pathDaysLeft() - PLAN.LAG);
   const open = vxUnitOpenDays(scan);
   const itemsBy = {}, cellsBy = {};
-  vxCatalog().forEach(it => { const ws = S.words[vxKey(it.id)]; if (!ws || !ws.st) itemsBy[it.unit] = (itemsBy[it.unit] || 0) + 1; });
+  // (a tense not paced to the date — the course's post-B1 bonus — left out)
+  vxCatalog().forEach(it => { const ws = S.words[vxKey(it.id)]; if ((!ws || !ws.st) && open[it.unit] !== -1) itemsBy[it.unit] = (itemsBy[it.unit] || 0) + 1; });
   vxRequiredCells().forEach(c => {
     if (vxCovHas(c.x.inf, c.t)) return;
     const u = VX_FR ? VX_TENSE_UNIT[c.t] : c.t === "pt" ? (VX_PT1_VERBS.has(c.x.F.base) && !c.x.F.sep && !c.x.F.insep ? "pt1" : "pt2") : VX_TENSE_UNIT[c.t];
+    if (open[u] === -1) return;
     cellsBy[u] = (cellsBy[u] || 0) + 1;
   });
   const pace = by => {
@@ -1553,7 +1572,7 @@ function vxPlanNumbers(scan) {
   const { fix, due } = vxDueItems();
   const items = Math.min(q.items, vxNewCandidates().length);
   const cells = Math.min(q.cells, vxOpenCells(q.cells).length);
-  const pend = vxPendingSheets().slice(0, VX_SHEETS_PER_DAY);
+  const pend = vxSheetsToday();
   // Each sheet asks its own number of questions (grammar-quiz.js).
   const sheetQ = pend.reduce((n, id) => n + (typeof gqSheetSize === "function" ? gqSheetSize(vxSheet(id)) : 4), 0);
   return { due: fix.length + due.length, items, cells, sheets: pend.length, sheetQ };

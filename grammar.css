@@ -388,6 +388,8 @@
 .cx-src { color:var(--text-3); }
 .cx-cue { display:flex; flex-wrap:wrap; gap:7px; margin:4px 0 2px; }
 .cx-cue .gs-chip { cursor:default; font-weight:700; }
+.cx-starters .gs-chip { cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.cx-starters .gs-chip:active { transform:scale(0.96); background:var(--teal-hi); color:var(--bg, #0b1220); }
 .cx-en { color:var(--text); }
 .cx-text { width:100%; min-height:84px; resize:vertical; font:inherit; font-size:16px; line-height:1.4; padding:11px 12px; }
 .cx-typeit { margin-left:auto; font-size:13px; }

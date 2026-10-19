@@ -168,8 +168,9 @@ function pathProgress() {
   // own count (🩹 x/N).
   const rep = !!s.repairPhase;
   // A 📖 sheet counts its quiz's questions (first tries; a missed one
-  // asked again at the end doesn't add) on top of that length.
-  // A 📖 course card (course-ui.js) counts the questions it asks the same way.
+  // asked again at the end doesn't add) inside that length (path.js
+  // pathGrammarFit). A 📖 course card (course-ui.js) counts the questions
+  // it asks the same way.
   const q = x => x.t !== "bonus" && x.t !== "learn" && x.t !== "sheet" && x.t !== "cx" && !x.warm && !!x.repair === rep;
   const sheetQ = x => rep ? 0 : x.t === "cx" ? x.qn || 0 : x.t !== "sheet" ? 0 : x.qn || (x.qn = typeof gqSheetSize === "function" && typeof vxSheet === "function" && vxSheet(x.sheet) ? gqSheetSize(vxSheet(x.sheet)) : 0);
   const cur = s.items[s.i], quiz = cur && cur.t === "sheet" && typeof _gs !== "undefined" && _gs && _gs.mode === "path" ? _gs.quiz : null;

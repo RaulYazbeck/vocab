@@ -5,7 +5,8 @@
 //     sheet and tense exactly as saved — the course adds nothing until
 //     it's used, and its rules live under their own key (cx_…)
 //   • Today: the course's cards come after the verb sheet, a third of the
-//     way in; the count (x/N) adds their questions, only moves forward and
+//     way in; the count (x/N) holds their questions inside the length you
+//     picked (a lesson that doesn't fit waits), only moves forward and
 //     never changes its total; the test-out (missed) → the sheet → its
 //     drill; a miss names its rule (title, why, the sheet a tap away) and
 //     comes back once at the end; the section is done, its rules in review
@@ -40,7 +41,9 @@ const HELP = () => {
     if (k === "order") { cur.picked = cur.bank.map((b, bi) => [b.i, bi]).sort((x, y) => x[0] - y[0]).map(x => x[1]); if (!right) cur.picked.reverse(); return cxCheckCur(); }
     if (cur.mode === "tiles") {
       if (right) { const words = cxTiles(set, item).tiles; const used = new Set(); cur.picked = words.map(w => { const bi = cur.bank.findIndex((t, i) => t.w === w && !used.has(i)); used.add(bi); return bi; }); }
-      else cur.picked = [cur.bank.length - 1, 0];
+      // (wrong: the answer's first word alone — never the right sentence; [last, first]
+      // could be it when two tiles happen to be shuffled the other way round)
+      else { const w0 = cxTiles(set, item).tiles[0]; cur.picked = [cur.bank.findIndex(t => t.w === w0)]; }
       return cxCheckCur();
     }
     const inp = document.getElementById("cx-input");
@@ -76,12 +79,18 @@ const HELP = () => {
     const before = wordsSnap();
     const parts = cxTodayParts().map(p => p.part);
     ok(parts.join() === "testout,sheet,drill", `today's course parts: ${parts}`);
-    startPathSession("regular", { noBonus: true });
+    // (a Quick 15 can't hold the lesson — test-out 8 + sheet 3 + drill 14: it waits, the session stays 15)
+    startPathSession("quick", { noBonus: true });
+    ok(!pathSession.items.some(x => x.t === "cx" && ["testout", "sheet", "drill"].includes(x.part)) && +((document.getElementById("p-count") || {}).textContent || "").split("/")[1] === 15,
+      `Quick 15: the lesson doesn't fit — not in it, the count is 15 (${(document.getElementById("p-count") || {}).textContent}; ${pathSession.items.filter(x => x.t === "cx").map(x => x.part)})`);
+    pathSession = null; backToMenu();
+    startPathSession("long", { noBonus: true });
     const s = pathSession, cnt = () => (document.getElementById("p-count") || {}).textContent;
     const cx = s.items.filter(x => x.t === "cx");
     const iFirstCx = s.items.findIndex(x => x.t === "cx"), iSheet = s.items.findIndex(x => x.t === "sheet");
     ok(cx.length === 3 && iFirstCx > 0 && (iSheet < 0 || iSheet < iFirstCx), `3 course cards (${cx.map(x => x.part + ":" + x.qn)}), after the verb sheet, at ${iFirstCx} of ${s.items.length}`);
     const total0 = +cnt().split("/")[1];
+    ok(total0 === 60, `Long: the count is 60 with the grammar inside it (${cnt()})`);
     let guard = 0, totals = new Set([total0]), last = 0, mono = true, seq = [];
     const tick = () => { const c = cnt(); totals.add(+c.split("/")[1]); const pos = +c.split("/")[0]; if (pos < last) mono = false; last = pos; return c; };
     const m0 = S.quests.m.ok;
@@ -173,7 +182,7 @@ const HELP = () => {
   const { browser, page, errors } = await openApp({ course: true });
   await page.evaluate(HELP);
   const r = await page.evaluate(() => {
-    startPathSession("regular", { noBonus: true });
+    startPathSession("long", { noBonus: true });
     const s = pathSession;
     const plan = pathEnsurePlan(), t0 = plan.target, cut0 = plan.cx && plan.cx.cut && plan.cx.cut["s0.neg"];
     let guard = 0, skipped = [];
@@ -207,7 +216,7 @@ const HELP = () => {
   const { browser, page, errors } = await openApp({ course: true });
   await page.evaluate(HELP);
   const r = await page.evaluate(() => {
-    startPathSession("regular", { noBonus: true });
+    startPathSession("long", { noBonus: true });
     const s = pathSession, cnt = () => (document.getElementById("p-count") || {}).textContent;
     const totals = new Set([+cnt().split("/")[1]]);
     let guard = 0, drillRan = false;

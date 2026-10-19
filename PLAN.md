@@ -192,7 +192,7 @@ review only; miss → the sheet is scheduled.
 | N | Modals: position, and in subordinate clauses (pr5, pt12 ✓) | 17 |
 | N | und, aber, oder, denn, sondern | 14, 29 |
 | N | weil, dass, wenn — the verb goes last | 29 |
-| ◐ | pt21 — regular Präteritum | 14 |
+| ◐ | pt11–pt13 ✓ (war, hatte, the modals) + pt21 — regular Präteritum (the lesson clock puts every verb sheet in a lesson) | 14 |
 | N | wissen vs kennen | 18 |
 | N | Reflexive pronouns (accusative and dative) | 23 |
 | ◐ | fu1–fu2 — future with werden | 11 |

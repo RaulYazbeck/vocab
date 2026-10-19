@@ -628,7 +628,7 @@ function renderGrammar() {
     <div class="gr-units">${units}</div>
     ${L ? gsLedgerHtml(L) : ""}
     <details class="gr-how"><summary>${vxT("ℹ️ How the verb track works")}</summary>
-      ${VX_FR ? VXF.how : `<p><b>Tenses open in order</b> — each one only after the tenses it is built from, and when your Path gets that far (so your finish date sets the day). A new tense starts with its sheets in Today, one or two a day; pass each quiz and the tense joins your reviews and the verb games.</p>
+      ${VX_FR ? VXF.how : typeof cxOn === "function" && cxOn() ? `<p><b>The verb lessons are lessons of the 📖 Course.</b> Their sheets come into Today when the course reaches them — one a day, on days in a row, then a few days to practise — and a tense joins your reviews and the verb games once its sheets are passed.</p>` : `<p><b>Tenses open in order</b> — each one only after the tenses it is built from, and when your Path gets that far (so your finish date sets the day). A new tense starts with its sheets in Today, one or two a day; pass each quiz and the tense joins your reviews and the verb games.</p>
       <p><b>Rules, not lists.</b> Each rule is one item in your reviews, asked every time with another verb you've met — A1 verbs first, the regular ones before the exceptions. Verbs you can't build by rule (ging, ist gegangen, fährt, nimm!) get their own item.</p>
       <p><b>The ledger</b> checks every verb: its meaning Known, its irregular forms Known, and its Präsens, Präteritum and Perfekt produced right at least once — the three every other tense is built from.</p>`}
     </details>
