@@ -41,9 +41,17 @@ a later session that uploads its chapter.
    - `diag`: detectors that name the rule a wrong answer broke (swap · ending · seq ·
      pos · missing · extra).
    - `testout: { n, miss }` for Stage 0 sections.
-   - Several sheets (`n: 2` or `3` in plan.js): list them in order, each with its own `rid`.
-     Each sheet's rules go into review when it's passed, that day's drill keeps to them,
-     and the section is done after the last sheet and its drill (one sheet a day).
+   - Several sheets: list them in order, each with its own `rid`. Each sheet's rules go
+     into review when it's passed, that day's drill keeps to them, and the section is done
+     after the last sheet and its drill (one sheet a day, on consecutive study days).
+   - **`n` in plan.js is only an estimate.** It is the planner's guess of a lesson's
+     sheets while the lesson isn't built, so the pace counts the course as if it were
+     complete (PLAN.md §9, the lesson clock). It is **not** a target: write as many
+     sheets as the topic needs — 1 or 6 — and don't bend a lesson to match the number.
+     Once the pack is loaded the real count replaces it and the clock adjusts the next
+     day. (The estimates are generous on purpose and average out.)
+   - `after` in plan.js names the lessons this one builds on: it waits until they are
+     done, so a lesson built ahead of an earlier one it needs never comes too early.
    - A stage's recap section: `checkpoint: { n: 20, pass: 0.8 }` (a sheet is optional). It
      opens once every other section of the stage is done, asks the stage's rules mixed,
      and comes back the next day when missed — after 3 tries the stage moves on anyway.
