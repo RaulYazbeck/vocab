@@ -921,10 +921,12 @@ function renderHome() {
   const note = t.reason === "autopaused"
     ? `<div class="tc-note">⏸ New words paused after a few days away — they resume ${pathDeadlineOn() ? "as soon as you finish today's plan" : "as reviews clear"}. <button class="tc-link" onclick="pathResume();renderHome()">Resume now</button></div>`
     : t.reason === "catchup" ? `<div class="tc-note">🧹 Catching up first: ${t.overdue} overdue reviews. New words return ${pathDeadlineOn() ? "as soon as you finish today's plan" : "when the pile is smaller"}.</div>` : "";
-  // Verbs are part of the same day: their reviews, repairs and new items
-  // are in these numbers too (verb-track.js).
+  // Verbs are part of the same day: their reviews and repairs are in these
+  // numbers too (verb-track.js). Their new items aren't in "🌱 new": they
+  // are new forms of verbs already met as words, so 🌱 stays the words
+  // the Journey counts — Start still brings them.
   const vx = typeof vxTodayCounts === "function" ? vxTodayCounts() : { due: 0, fix: 0, fresh: 0 };
-  t.due += vx.due; t.fix += vx.fix; t.newLeft += vx.fresh;
+  t.due += vx.due; t.fix += vx.fix;
   // …and so are the course's grammar rules and its lesson (course-de.js).
   const cx = typeof cxTodayCounts === "function" ? cxTodayCounts() : { due: 0, fix: 0, parts: 0 };
   t.due += cx.due; t.fix += cx.fix;
@@ -936,7 +938,7 @@ function renderHome() {
   stats.push(!t.frontier ? `<span class="tc-stat">🏔️ all met</span>`
     : extra ? `<button class="tc-stat tc-stat-btn" onclick="pathLearnExtra();startPathSession('quick')" title="Today's new words are done — learn ${PATH.EXTRA_NEW} more">🌱 +${PATH.EXTRA_NEW} new</button>`
     : `<span class="tc-stat" ${t.reason === "slowed" ? `title="Fewer new words today while you catch up on ${t.overdue} reviews${pathDeadlineOn() ? " — finish today's plan to lift it" : ""}"` : ""}>🌱 ${t.newLeft} new${t.reason === "slowed" ? ` <span class="tc-slow" aria-label="slowed down while you catch up">🐢</span>` : ""}</span>`);
-  const nothing = !t.due && !t.newLeft && !cx.parts;
+  const nothing = !t.due && !t.newLeft && !vx.fresh && !cx.parts;
   home.innerHTML = `
     <div class="today-card" id="today-card">
       <div class="tc-head">
@@ -963,7 +965,7 @@ function renderHome() {
 function renderGrandmaHome(home) {
   const t = pathTodaySummary();
   const vx = typeof vxTodayCounts === "function" ? vxTodayCounts() : { due: 0, fix: 0, fresh: 0 };
-  t.due += vx.due; t.fix += vx.fix; t.newLeft += vx.fresh;
+  t.due += vx.due; t.fix += vx.fix; // (new verb forms: not "new", as in renderHome)
   const cx = typeof cxTodayCounts === "function" ? cxTodayCounts() : { due: 0, fix: 0, parts: 0 };
   t.due += cx.due; t.fix += cx.fix;
   const Q = S.quests;
@@ -971,7 +973,7 @@ function renderGrandmaHome(home) {
   const sg = sagaProgress();
   const scan = t.scan;
   const pct = scan.total ? Math.round(scan.known / scan.total * 100) : 0;
-  const nothing = !t.due && !t.newLeft && !cx.parts;
+  const nothing = !t.due && !t.newLeft && !vx.fresh && !cx.parts;
   const banner = t.reason === "autopaused"
     ? `<div class="tc-note">⏸ New words paused after a few days away — they come back by themselves. <button class="tc-link" onclick="pathResume();renderHome()">Resume now</button></div>` : "";
   home.innerHTML = `
