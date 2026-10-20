@@ -57,6 +57,8 @@ const r = await page.evaluate(() => {
   const chips = document.querySelector(".tc-stats").innerText;
   const due = +((chips.match(/(\d+) due/) || [])[1] || -1);
   ok(due === words.due + vx.due, `📚 due = words ${words.due} + verbs ${vx.due} (${chips.replace(/\n/g, " ")})`);
+  const fresh = +((chips.match(/🌱 (\d+) new/) || [])[1] ?? -1);
+  ok(!/🌱 \d+ new/.test(chips) || fresh === words.newLeft, `🌱 new = words only (${words.newLeft}), not their verbs' new forms (${vx.fresh})`);
   ok(/words and verbs/.test(deadlineLineHtml(pathScan())), "the plan line says words and verbs");
   // 3. quests
   const c = questContext();
