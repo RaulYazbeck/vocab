@@ -174,7 +174,7 @@ cxPack({
         { id: "dw.num", t: "write", end: true, title: "Write your own", how: "In your own words — saved for Claude to correct.", items: [
           { q: "Your week: three days, what you do and at what time.", model: ["Am Montag arbeite ich bis fünf. Am Mittwoch gehe ich um sieben ins Fitness. Am Samstag schlafe ich lange."], r: ["num.am", "num.uhr"] },
           { q: "Your birthday and two other dates that matter to you.", model: ["Mein Geburtstag ist am zwölften Juni. Am ersten August ist der Nationalfeiertag."], r: ["num.ord"] },
-          { q: "An invented phone number and a house number, in words.", model: ["Meine Nummer ist null sieben neun, drei vier fünf, sechs sieben, acht neun. Ich wohne in der Hausnummer siebenundzwanzig."], r: ["num.base", "num.und"] },
+          { q: "An invented phone number and a house number, in words.", model: ["Meine Nummer ist null sieben neun, drei vier fünf, sechs sieben, acht neun. Ich wohne an der Bahnhofstrasse siebenundzwanzig."], r: ["num.base", "num.und"] },
           { q: "A receipt: three things and their prices, in words.", model: ["Brot: vier Franken zwanzig. Milch: ein Franken sechzig. Käse: neun Franken fünfzig."], r: ["num.big"] },
           { q: "Your day: four times, the everyday way.", model: ["Ich stehe um halb sieben auf. Um Viertel nach sieben frühstücke ich. Um acht fahre ich zur Arbeit. Um sechs bin ich zu Hause."], r: ["num.uhr"] },
           { q: "Your plans for this year: months and seasons (im).", model: ["Im Mai fahre ich nach Italien. Im Sommer besuche ich meine Familie."], r: ["num.am"] },

@@ -749,8 +749,8 @@ function renderCourseSection(id) {
     body = `<div class="gr-unote">Taught in your verb track — its sheets come into Today one a day when the course reaches this lesson.</div>
       <div class="gr-sheets">${s.verb.map((v, i) => { const sh = vxSheet(v), p = vxSheetPassed(v);
         return `<button class="gr-sheet ${p ? "done" : ""}" onclick="window._cxSec='${id}';renderGrammarSheet('${v}')"><span class="gr-sn">${p ? "✓" : i + 1}</span><span class="gr-stt">${escapeHtml(sh ? sh.title : v)}</span>${p ? `<span class="gr-sc">${S.verb.sh[v]}%</span>` : `<span class="set-chev">›</span>`}</button>`; }).join("")}</div>
-      ${units.map(u => `<button class="gr-mastery" style="${vxUnitStyle(u)}" onclick="window._cxSec='${id}';renderGrammarUnit('${u}')"><span class="gr-m-ico">${escapeHtml(VX_UNIT[u].sign)}</span><span class="gr-m-t"><b>${escapeHtml(VX_UNIT[u].name)}</b><small>The whole tense in your verb track: its rules, mastery, verbs</small></span><span class="set-chev">›</span></button>`).join("")}
-      ${s.sets.some(sid => !cxSet(sid).gen) ? `<button class="gr-mastery" onclick="renderCourseDrill('${id}')"><span class="gr-m-ico">🧩</span><span class="gr-m-t"><b>Practise</b><small>The book's exercises for these sheets, 12 at a time · any time${cxSecDone(id) ? " · also in your mixed days" : ""}</small></span><span class="set-chev">›</span></button>` : ""}`;
+      ${s.sets.some(sid => !cxSet(sid).gen) ? `<button class="gr-mastery" onclick="renderCourseDrill('${id}')"><span class="gr-m-ico">🧩</span><span class="gr-m-t"><b>Practise</b><small>The book's exercises for these sheets, 12 at a time · any time${cxSecDone(id) ? " · also in your mixed days" : ""}</small></span><span class="set-chev">›</span></button>` : ""}
+      ${units.map(u => `<button class="gr-mastery" style="${vxUnitStyle(u)}" onclick="window._cxSec='${id}';renderGrammarUnit('${u}')"><span class="gr-m-ico">${escapeHtml(VX_UNIT[u].sign)}</span><span class="gr-m-t"><b>${escapeHtml(VX_UNIT[u].name)}</b><small>The whole tense in your verb track: its rules, mastery, verbs</small></span><span class="set-chev">›</span></button>`).join("")}`;
   } else if (s.checkpoint) {
     const ready = cxCheckpointReady(s);
     body = `<div class="gr-unote">🏁 ${s.checkpoint.n} mixed questions from this part. ${Math.round(s.checkpoint.pass * 100)}% moves you on; if not, it comes back the next day.</div>
@@ -949,7 +949,7 @@ function cxChapterExercisesHtml(ch) {
   return `<div class="gr-h">Übungen</div>
     ${rows.length > 1 ? `<button class="gr-mastery cx-chmix" style="${cxStyle(0)}" onclick="renderCourseDrill(null, null, 'chapter')"><span class="gr-m-ico">🔀</span><span class="gr-m-t"><b>Mix them</b><small>12 questions from all ${rows.length}</small></span><span class="set-chev">›</span></button>` : ""}
     <div class="gr-sheets">${rows.map(({ set, nums }) => { const d = (S.course.ds || {})[set.id] || [], pct = d[1] ? Math.round(d[0] / d[1] * 100) : null;
-      return `<button class="gr-sheet cx-ex" style="${cxSecStyle(set.sec)}" onclick="renderCourseDrill('${set.sec}', '${set.id}')"><span class="gr-sn">🧩</span><span class="gr-stt">${escapeHtml(nums.join(" · "))} · ${escapeHtml(set.title)}<small>${escapeHtml(set.how || "")}</small></span>${pct !== null ? `<span class="gr-sc">${pct}%</span>` : `<span class="set-chev">›</span>`}</button>`; }).join("")}</div>`;
+      return `<button class="gr-sheet cx-ex" style="${cxSecStyle(set.sec)}" onclick="renderCourseDrill('${set.sec}', '${set.id}')"><span class="gr-sn">🧩</span><span class="gr-stt">${escapeHtml(nums.join(" · "))} · ${escapeHtml(set.title)}<small>${gsMd(set.how || "")}</small></span>${pct !== null ? `<span class="gr-sc">${pct}%</span>` : `<span class="set-chev">›</span>`}</button>`; }).join("")}</div>`;
 }
 
 // ── SETTINGS: the grammar plan ────────────────

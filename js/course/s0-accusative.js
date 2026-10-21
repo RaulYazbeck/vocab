@@ -331,7 +331,7 @@ cxPack({
         // ── Übung 7•11: the pronoun in the sentence ──
         { id: "d7.11", ex: "7.11", t: "transform", title: "Say it with a pronoun", how: "Write the sentence again — a pronoun for the highlighted part.", d: ["es", "er", "ihm"], items: [
           { q: "Ich sehe den Mann jeden Tag.", hl: "den Mann", a: ["Ich sehe ihn jeden Tag."], r: ["accp.forms"] },
-          { q: "Wir haben heute den Zug verpasst.", hl: "den Zug", a: ["Wir haben ihn heute verpasst."], r: ["accp.gender"] },
+          { q: "Wir haben heute den Zug verpasst.", hl: "den Zug", a: ["Wir haben ihn heute verpasst."], r: ["accp.gender"], note: "A pronoun object moves up, right after the verb: haben **ihn** heute verpasst." },
           { q: "Kannst du die Rechnung bezahlen?", hl: "die Rechnung", a: ["Kannst du sie bezahlen?"], r: ["accp.gender"] },
           { q: "Sie liest das Buch heute.", hl: "das Buch", a: ["Sie liest es heute."], r: ["accp.gender"] },
           { q: "Er ruft seine Mutter jeden Tag an.", hl: "seine Mutter", a: ["Er ruft sie jeden Tag an."], r: ["accp.forms"] },

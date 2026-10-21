@@ -57,7 +57,7 @@ cxPack({
           rules: [
             "**die**: -ung, -heit, -keit, -schaft, -ion, -tät, -ie — and most nouns in **-e**: die Wohnung, die Freiheit, die Information, die Woche.",
             "**das**: -chen and -lein (small things), -um, -ment — and a verb used as a noun: das Brötchen, das Museum, das Dokument, das Essen.",
-            "**der**: days, months and seasons (der Montag, der Mai, der Winter), -ling and -ismus (der Frühling, der Tourismus) — and most things in -er/-en/-el: der Computer, der Löffel.",
+            "**der**: days, months and seasons (der Montag, der Mai, der Winter), -ling and -ismus (der Frühling, der Tourismus) — and many things in -er/-el: der Computer, der Löffel.",
           ],
           table: { head: ["Ending", "Article", "Examples"], rows: [
             ["-ung · -heit · -keit", "die", "Zeitung · Gesundheit · Möglichkeit"],
@@ -156,7 +156,7 @@ cxPack({
           { q: "The girl is six.", a: ["Das Mädchen ist sechs.", "Das Mädchen ist sechs Jahre alt."], r: ["gen.people"] },
           { q: "The table is too small.", a: ["Der Tisch ist zu klein."], r: ["gen.three"] },
           { q: "The front door is open.", a: ["Die Haustür ist offen.", "Die Haustür ist auf."], r: ["gen.comp"] },
-          { q: "The neighbour (a man) is nice.", a: ["Der Nachbar ist nett."], r: ["gen.people"] },
+          { q: "The neighbour (a man) is nice.", a: ["Der Nachbar ist nett.", "Der Nachbar ist freundlich.", "Der Nachbar ist sympathisch."], r: ["gen.people"] },
           { q: "The doctor (a woman) is from Bern.", a: ["Die Ärztin kommt aus Bern.", "Die Ärztin ist aus Bern."], r: ["gen.in"] },
           { q: "The newspaper is new.", a: ["Die Zeitung ist neu."], r: ["gen.die"] },
           { q: "The bread roll is warm.", a: ["Das Brötchen ist warm."], r: ["gen.das"] },

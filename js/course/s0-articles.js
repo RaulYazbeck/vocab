@@ -165,7 +165,7 @@ cxPack({
         { id: "d2.8", ex: "2.8", t: "transform", low: true, title: "this, every, which", how: "Swap the article for the word in brackets. welcher makes it a question.", d: ["dieser", "diese", "dieses", "welcher", "welche", "welches", "jeder", "jede", "jedes"], items: [
           { q: "Der Bus fährt nach Luzern. (welcher)", a: ["Welcher Bus fährt nach Luzern?"], r: ["art.welch"] },
           { q: "Die Wohnung ist zu teuer. (dieser)", a: ["Diese Wohnung ist zu teuer."], r: ["art.dies"] },
-          { q: "Das Kind spricht drei Sprachen. (jeder)", a: ["Jedes Kind spricht drei Sprachen."], r: ["art.dies"] },
+          { q: "Das Kind bekommt ein Geschenk. (jeder)", a: ["Jedes Kind bekommt ein Geschenk."], r: ["art.dies"] },
           { q: "Der Kurs beginnt im Mai. (welcher)", a: ["Welcher Kurs beginnt im Mai?"], r: ["art.welch"] },
           { q: "Die Kinder spielen Fußball. (welcher)", a: ["Welche Kinder spielen Fußball?"], r: ["art.welch"] },
           { q: "Das Zimmer hat einen Balkon. (dieser)", a: ["Dieses Zimmer hat einen Balkon."], r: ["art.dies"] },
@@ -205,7 +205,7 @@ cxPack({
           { q: "This train goes to Basel.", a: ["Dieser Zug fährt nach Basel."], r: ["art.dies"] },
           { q: "Which bus goes to the station?", a: ["Welcher Bus fährt zum Bahnhof?"], r: ["art.welch"] },
           { q: "My parents live in Zürich.", a: ["Meine Eltern wohnen in Zürich."], r: ["art.poss"] },
-          { q: "Is that your bag, Mrs Keller?", a: ["Ist das Ihre Tasche, Frau Keller?"], r: ["art.ihr"] },
+          { q: "Is that your bag, Mrs Keller?", a: ["Ist das Ihre Tasche, Frau Keller?", "Frau Keller, ist das Ihre Tasche?"], r: ["art.ihr"] },
           { q: "Every day is different.", a: ["Jeder Tag ist anders."], r: ["art.dies"] },
           { q: "She is a doctor.", a: ["Sie ist Ärztin."], r: ["art.job"] },
           { q: "There's a café here.", a: ["Hier ist ein Café.", "Hier gibt es ein Café.", "Es gibt hier ein Café."], r: ["art.ein"] },

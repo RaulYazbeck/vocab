@@ -535,6 +535,16 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   // tiles of a question set: the first word small (it doesn't give the start away)
   const tl = C.cxTiles(C.cxSet("d6.9"), C.cxSet("d6.9").items[0]).tiles;
   ok(tl[0] === "wohnst", `question tiles: the verb written small (${tl.join(" ")})`);
+  // the verb drills' own sentences reach the verb log: the form right in a
+  // sentence otherwise wrong, the word I wrote for it on a miss
+  const notes = []; C.learnNoteVerb = (F, t, p, right, given, want) => notes.push([F.inf, t, p, right, given, want]);
+  const it87 = C.cxSet("d8.7").items[1], it614 = C.cxSet("d6.14").items[0];
+  C.cxRecordAnswer({ set: "d8.7", item: it87 }, false, { rule: null }, { given: "Fahrt er nach Haus?" });
+  C.cxRecordAnswer({ set: "d8.7", item: it87 }, false, { rule: null }, { given: "Fährt er zu Hause?" });
+  C.cxRecordAnswer({ set: "d6.14", item: it614 }, true, { ok: true }, { given: "beginnt" });
+  ok(notes.length === 3 && !notes[0][3] && notes[0][4] === "Fahrt" && notes[0][5] === "fährt" && notes[1][3] && notes[2][3] && notes[2][0] === "beginnen",
+    "verb drills feed the verb log: fahrt logged as the miss, fährt in a wrong sentence still right", J(notes));
+  delete C.learnNoteVerb;
 }
 
 console.log(`course unit: ${pass} passed, ${fail} failed`);

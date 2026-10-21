@@ -1242,6 +1242,22 @@ function cxRecordAnswer(e, ok, res, opts = {}) {
     const x = vxVerb(item.inf);
     if (x) learnNoteVerb(x.F, item.t || "pr", item.p || "er", !!ok, opts.given || "", (item.a || [])[0] || "");
   }
+  // A verb lesson's own sentence: each verb form it checks (vf) goes to the
+  // verb log too — right when the form is in what I wrote, whatever else
+  // the sentence got wrong; a miss logs the word I wrote in its place.
+  if (item.vf && !item.inf && typeof learnNoteVerb === "function" && typeof vxVerb === "function") item.vf.forEach(([inf, t, p]) => {
+    const x = vxVerb(inf), f = x && typeof vxForm === "function" ? vxForm(x, t, p) : null;
+    if (!f) return;
+    // (umlauts count here: fahrt for fährt is the verb's mistake)
+    const tok = s => cxStrict(s).replace(/ß/g, "ss").split(" ").filter(Boolean);
+    const W = String(opts.given || "").replace(/[.,!?;:„“"«»()…–—]/g, " ").split(/\s+/).filter(Boolean), T = W.map(w => tok(w)[0] || "");
+    const has = a => { let i = 0; return tok(a).every(w => { while (i < T.length && T[i] !== w) i++; return i++ < T.length; }); };
+    const right = W.length ? (f.acc || [f.ans]).some(has) : !!ok;
+    const head = tok(f.ans)[0] || "";
+    let k = 0;
+    T.forEach((w, i) => { if (cxLev(w, head) < cxLev(T[k], head)) k = i; });
+    learnNoteVerb(x.F, t, p, right, W.length && cxLev(T[k], head) <= 2 ? W[k] : opts.given || "", f.ans);
+  });
   if (!ok && typeof _learnDay === "function") _learnDay("mk", "grammar");
   if (typeof logEvent === "function") logEvent("answer", { m: "course:" + (opts.where || "drill"), ok: !!ok, typed: !!opts.typed, set: e.set, rule: out.rule || "", ...(opts.ms > 0 ? { ms: opts.ms } : {}) });
   saveState();

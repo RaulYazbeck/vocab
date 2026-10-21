@@ -123,7 +123,7 @@ cxPack({
         { id: "d2.6", ex: "2.6", t: "transform", low: true, title: "Ask about it", how: "Ask it as a yes/no question.", items: [
           { q: "Der Laden ist neu.", a: ["Ist der Laden neu?"], r: ["v2.q"] },
           { q: "Dieses Zimmer ist frei.", a: ["Ist dieses Zimmer frei?"], r: ["v2.q"] },
-          { q: "Keine Bäckerei ist offen.", a: ["Ist keine Bäckerei offen?"], r: ["v2.q"] },
+          { q: "Das ist kein Problem.", a: ["Ist das kein Problem?"], r: ["v2.q"] },
           { q: "Eine Apotheke ist in der Nähe.", a: ["Ist eine Apotheke in der Nähe?"], r: ["v2.q"] },
           { q: "Die Wohnung hat einen Balkon.", a: ["Hat die Wohnung einen Balkon?"], r: ["v2.q"] },
           { q: "Mein Pass ist im Auto.", a: ["Ist mein Pass im Auto?"], r: ["v2.q"] },
@@ -176,7 +176,7 @@ cxPack({
           { q: "Are you working today? (du)", a: ["Arbeitest du heute?"], r: ["v2.q"] },
           { q: "Do you live in Bern? (Sie)", a: ["Wohnen Sie in Bern?"], r: ["v2.q"] },
           { q: "Does the train stop in Aarau?", a: ["Hält der Zug in Aarau?"], r: ["v2.q"] },
-          { q: "Are the children asleep?", a: ["Schlafen die Kinder?"], r: ["v2.q"] },
+          { q: "Are the children asleep?", a: ["Schlafen die Kinder?", "Schlafen die Kinder schon?"], r: ["v2.q"] },
           { q: "Do you have time tomorrow? (du)", a: ["Hast du morgen Zeit?"], r: ["v2.q"] },
           { q: "Does she speak Italian?", a: ["Spricht sie Italienisch?"], r: ["v2.q"] },
           { q: "Is the post office open?", a: ["Ist die Post offen?", "Hat die Post offen?"], r: ["v2.q"] },
@@ -353,7 +353,7 @@ cxPack({
         ] },
         // ── Übung 4•5: wie heißt…? ──
         { id: "d4.5", ex: "4.5", t: "answer", title: "What's the name?", how: "Answer — or ask — in a whole sentence.", items: [
-          { q: "«Wie heißt die Ärztin?» (Frau Doktor Frei)", a: ["Sie heißt Frau Doktor Frei.", "Die Ärztin heißt Frau Doktor Frei."], r: ["wq.wie"] },
+          { q: "«Wie heißt die neue Ärztin?» (Doktor Frei)", a: ["Sie heißt Doktor Frei.", "Die neue Ärztin heißt Doktor Frei."], r: ["wq.wie"] },
           { q: "«Wie heißt dein Bruder?» (Luca)", a: ["Er heißt Luca.", "Mein Bruder heißt Luca."], r: ["wq.wie"] },
           { q: "«Wie heißen Sie?» (You're Eva Roth.)", a: ["Ich heiße Eva Roth.", "Mein Name ist Eva Roth."], r: ["wq.wie"] },
           { q: "«Wie heißt das Dorf?» (Leuk)", a: ["Es heißt Leuk.", "Das Dorf heißt Leuk."], r: ["wq.wie"] },

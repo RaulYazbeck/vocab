@@ -49,6 +49,9 @@ a later session that uploads its chapter.
      order — `ruf … an` passes in *Ruf mich morgen an!*. Pure tables are generated, never
      written: `gen: { kind: "conj", verbs, tense: "pr" | "pt" | "im", persons? }` (a
      command asks du · ihr · Sie and wants the whole command: *kommen Sie*).
+     In the app the same `vf` feeds the learning log's verbs (`learnNoteVerb`): the form
+     counts right when it's in what was written (umlauts count), and a miss logs the word
+     written in its place — so a slip like *fahrt* shows in the tutor's report.
    - A verb lesson's book exercises (its sheets live in the verb track): a pack for the
      verb section with drills only, their rules the verb sheets' points (`gs:pr4.r2` —
      a miss names that sheet's rule; the verb track keeps its own reviews). They're

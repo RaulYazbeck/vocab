@@ -58,7 +58,7 @@ cxPack({
           why: "Some nouns already sound plural, so they add nothing. Foreign words take -s, as in English.",
           rid: ["pl.zero", "pl.s", "pl.num"],
           rules: [
-            "Masculine and neuter nouns in **-er, -en, -el, -chen, -lein** add nothing — sometimes just an umlaut: der Lehrer → die Lehrer · das Brötchen → die Brötchen · der Apfel → die **Ä**pfel · die Mutter → die M**ü**tter.",
+            "Masculine and neuter nouns in **-er, -en, -el, -chen, -lein** add nothing — sometimes just an umlaut: der Lehrer → die Lehrer · das Brötchen → die Brötchen · der Apfel → die **Ä**pfel. Two feminine ones do the same: die M**ü**tter, die T**ö**chter.",
             "**-s** for foreign words and words ending in a vowel (not -e): das Auto → Auto**s** · das Handy → Handy**s** · das Hotel → Hotel**s** · das Sofa → Sofa**s**.",
             "After a number above one the noun is plural: ein Kind — zwei **Kinder** · eine Stunde — drei **Stunden**. Money and measures stay as they are: zwei Kilo, drei Franken.",
           ],
@@ -141,7 +141,7 @@ cxPack({
           { w: ["mein", "Freundin (plural)", "wohnen", "in Bern"], a: ["Meine Freundinnen wohnen in Bern."], r: ["pl.en", "pl.die"] },
           { k: "translate", q: "Two rolls, please.", a: ["Zwei Brötchen, bitte.", "Ich möchte zwei Brötchen, bitte."], r: ["pl.zero", "pl.num"] },
           { k: "translate", q: "The hotels are full.", a: ["Die Hotels sind voll."], r: ["pl.s"] },
-          { k: "translate", q: "The trains are late today.", a: ["Die Züge sind heute zu spät.", "Heute sind die Züge zu spät.", "Die Züge haben heute Verspätung.", "Heute haben die Züge Verspätung."], r: ["pl.e"] },
+          { k: "translate", q: "The trains are late today.", a: ["Die Züge sind heute zu spät.", "Heute sind die Züge zu spät.", "Die Züge kommen heute zu spät.", "Die Züge haben heute Verspätung.", "Heute haben die Züge Verspätung."], r: ["pl.e"] },
           { k: "translate", q: "We have no tickets.", a: ["Wir haben keine Tickets.", "Wir haben keine Fahrkarten.", "Wir haben keine Billette."], r: ["pl.die", "pl.s"] },
           { k: "translate", q: "My sisters live in Geneva.", a: ["Meine Schwestern wohnen in Genf."], r: ["pl.en"] },
           { k: "translate", q: "The children are in the garden.", a: ["Die Kinder sind im Garten."], r: ["pl.er", "pl.die"] },

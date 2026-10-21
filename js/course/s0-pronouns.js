@@ -136,7 +136,7 @@ cxPack({
           { q: "Sie (she) ___ nicht zu Hause.", a: ["ist"], r: ["pron.pl"] },
           { q: "Sie (they) ___ nicht zu Hause.", a: ["sind"], r: ["pron.pl"] },
           { q: "Wir ___ um sechs zu Hause.", a: ["sind"], r: ["pron.pl"] },
-          { q: "Das Kind ___ krank zu Hause.", a: ["ist"], r: ["pron.es"] },
+          { q: "Das Kind ___ allein zu Hause.", a: ["ist"], r: ["pron.es"] },
           { q: "Herr Weber, wann ___ Sie zu Hause?", a: ["sind"], r: ["pron.sie"] },
         ] },
         // ── Übung 3•8 · 3•2: the subject → its pronoun ──
@@ -168,15 +168,15 @@ cxPack({
         // ── Production: say it ──
         { id: "dp.pron", t: "translate", end: true, title: "Say it in German", how: "Translate — mind the pronoun and its verb.", items: [
           { q: "The bus? It's late.", a: ["Der Bus? Er hat Verspätung.", "Der Bus? Er ist zu spät.", "Der Bus? Er kommt zu spät."], r: ["pron.3"] },
-          { q: "The soup is too hot.", a: ["Die Suppe ist zu heiß."], r: ["pron.3"] },
+          { q: "The soup? It's too hot.", a: ["Die Suppe? Sie ist zu heiß."], r: ["pron.3"] },
           { q: "The children? They're at school.", a: ["Die Kinder? Sie sind in der Schule."], r: ["pron.pl"] },
           { q: "It's raining.", a: ["Es regnet."], r: ["pron.es"] },
           { q: "It's cold today.", a: ["Es ist heute kalt.", "Heute ist es kalt."], r: ["pron.es"] },
           { q: "Mr Weber, are you coming too?", a: ["Herr Weber, kommen Sie auch?", "Herr Weber, kommen Sie mit?"], r: ["pron.sie", "pron.title"] },
           { q: "Anna, are you coming too?", a: ["Anna, kommst du auch?", "Anna, kommst du mit?"], r: ["pron.du"] },
-          { q: "Kids, are you hungry?", a: ["Kinder, habt ihr Hunger?"], r: ["pron.du"] },
+          { q: "Kids, are you hungry?", a: ["Kinder, habt ihr Hunger?", "Kinder, seid ihr hungrig?"], r: ["pron.du"] },
           { q: "Good morning, Mrs Graf.", a: ["Guten Morgen, Frau Graf."], r: ["pron.title"] },
-          { q: "Excuse me, do you speak English? (to a stranger)", a: ["Entschuldigung, sprechen Sie Englisch?"], r: ["pron.sie"] },
+          { q: "Excuse me, do you speak English? (to a stranger)", a: ["Entschuldigung, sprechen Sie Englisch?", "Entschuldigen Sie, sprechen Sie Englisch?"], r: ["pron.sie"] },
         ] },
         // ── Production: your own ──
         { id: "dw.pron", t: "write", end: true, title: "Write your own", how: "In your own words — saved for Claude to correct.", items: [
