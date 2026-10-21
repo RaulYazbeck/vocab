@@ -85,6 +85,10 @@ a later session that uploads its chapter.
                                       # a lesson that doesn't fit out), the Präsens lesson's last sheet in a Long
                                       # 60, ✍️ starters typed at the cursor, the Journey's days and "out of reach"
                                       # with the course, twist rounds ranking up (never with Golden words)
+    node t-fixes2.mjs                 # the fixes of 21 Oct: "+5" only once today's are met, its round brings
+                                      # exactly 5 in deck order, its undo (and the undo through a sync), the
+                                      # count never going down, Shift+Enter 5 a day, no "rules to review"
+                                      # line, drag & drop on the tiles (phone + desktop, no listeners left)
     node t-edge.mjs                   # edge cases: the real keyboard, ✕ mid-drill, HTML typed in, a damaged
                                       # state, Grandma / Speak mode, another device, the day rolling over, a peek
     node sim.mjs [--acc 0.6 --testout 0 --skip 0.3 --break 60:21 --late 150 --deadline 2027-12-15 --due 40:120]

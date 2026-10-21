@@ -38,7 +38,7 @@ function cxRun(host, list, opts = {}) {
   if (!entries.length) { _cx.done = true; }
   cxRender();
 }
-function cxClose() { _cx = null; }
+function cxClose() { cxDragOff(); _cx = null; }
 // Questions answered for the first time so far (the Today count).
 function cxPartAt(it) {
   if (it.part === "sheet") {
@@ -115,6 +115,62 @@ function cxBind() {
   document.querySelectorAll("#cx-run .gs-opt").forEach(b => b.onclick = () => cxPick(+b.dataset.o));
   document.querySelectorAll("#cx-bank .gs-tok").forEach(b => b.onclick = () => { if (r.answered) return; cur.picked.push(+b.dataset.b); cxRefreshTiles(); });
   document.querySelectorAll("#cx-built .gs-tok").forEach(b => b.onclick = () => { if (r.answered) return; cur.picked.splice(+b.dataset.j, 1); cxRefreshTiles(); });
+  cxDragBind();
+}
+// ── DRAG & DROP ON THE TILES ──────────────────
+// The games' engine (games-core.js gDrag, as in 🧱 Sentence Builder): drag
+// a word from the bank to any place in your sentence — between words
+// already there too — move one inside it, or drag it back to the bank.
+// A tap still works as before. Its listeners are taken off at every redraw.
+let _cxDragL = [];
+function cxDragOff() { _cxDragL.forEach(([t, type, fn, o]) => t.removeEventListener(type, fn, o)); _cxDragL = []; }
+function cxDragBind() {
+  cxDragOff();
+  const r = _cx, cur = r && r.list[r.i], root = document.getElementById("cx-run");
+  const built = () => document.getElementById("cx-built"), bank = () => document.getElementById("cx-bank");
+  if (!cur || !root || !built() || !bank() || typeof gDrag !== "function") return;
+  const clear = () => {
+    root.querySelectorAll(".g-caret").forEach(c => c.remove());
+    bank().classList.remove("drop-hot");
+  };
+  gDrag(root, {
+    listen: (t, type, fn, o) => { t.addEventListener(type, fn, o); _cxDragL.push([t, type, fn, o]); },
+    items: "#cx-bank .gs-tok:not(:disabled), #cx-built .gs-tok",
+    canDrag: () => _cx === r && !r.answered,
+    resolve: (x, y, el) => {
+      const L = built();
+      if (pointIn(L, x, y, 14)) {
+        const kids = [...L.querySelectorAll(".gs-tok")].filter(k => k !== el);
+        // (a conversation's lines stand one under the other: above or below)
+        const col = L.classList.contains("cx-lines"), below = kids.findIndex(k => { const b = k.getBoundingClientRect(); return y < b.top + b.height / 2; });
+        return { zone: "line", index: col ? (below < 0 ? kids.length : below) : insertionIndex(kids, x, y), kids };
+      }
+      if (el.dataset.j !== undefined && pointIn(bank(), x, y, 24)) return { zone: "bank" };
+      return null;
+    },
+    hover: t => {
+      clear();
+      if (!t) return;
+      if (t.zone === "bank") { bank().classList.add("drop-hot"); return; }
+      const L = built(), ph = L.querySelector(".gs-built-ph");
+      if (ph) ph.remove();
+      const caret = document.createElement("span");
+      caret.className = "g-caret" + (L.classList.contains("cx-lines") ? " cx-caret-row" : "");
+      L.insertBefore(caret, t.kids[t.index] || null);
+    },
+    drop: (el, t) => {
+      clear();
+      if (_cx !== r || r.answered) return false;
+      if (t.zone === "bank") cur.picked.splice(+el.dataset.j, 1);
+      else {
+        // (the index counts the sentence without the dragged word)
+        const bi = el.dataset.j !== undefined ? cur.picked.splice(+el.dataset.j, 1)[0] : +el.dataset.b;
+        cur.picked.splice(Math.min(t.index, cur.picked.length), 0, bi);
+      }
+      cxRefreshTiles();
+      return true;
+    },
+  });
 }
 function cxRefreshTiles() {
   const r = _cx, cur = r.list[r.i];
@@ -346,7 +402,7 @@ function renderPathCx(it) {
   pathShowTyped(false);
   pathSetActions("");
   const host = document.getElementById("p-card");
-  if (!cxPartLive(it)) { it.qn = 0; pathProgress(); pathNext(); return; }
+  if (!cxPartLive(it)) { pathTopUp(it, 0); pathProgress(); pathNext(); return; }
   cxPartBegin(it);
   if (it.part === "sheet") {
     gsOpen(host, it.sheet, { mode: "path", onDone: res => { gsClose(); if (res && res.passed) cxPartDone(it); pathNext(); } });
@@ -355,8 +411,8 @@ function renderPathCx(it) {
   }
   if (it.part === "write") { cxJournalOpen(host, { mode: "path", partKey: "write:", onDone: () => { cxPartDone(it); pathNext(); } }); return; }
   const list = cxPartList(it).slice(0, it.qn || 99);
-  if (!list.length) { cxPartDone(it); it.qn = 0; pathProgress(); pathNext(); return; }
-  if (list.length < it.qn) { it.qn = list.length; pathProgress(); }
+  if (!list.length) { cxPartDone(it); pathTopUp(it, 0); pathProgress(); pathNext(); return; }
+  if (list.length < it.qn) { pathTopUp(it, list.length); pathProgress(); }
   const t = cxPartTitle(it);
   cxRun(host, list, { mode: "path", kind: it.part === "review" && it.contrast ? "contrast" : it.part, sec: it.sec, title: t.title, sub: t.sub, it,
     // (✅ Due today: its answers count like the words' reviews — not against
@@ -530,10 +586,11 @@ function cxTodayHtml() {
   if (typeof cxOn !== "function" || !cxOn()) return "";
   const c = cxTodayCounts();
   if (!c.parts) return "";
+  // (rules due get no line: they're in 📚 due and come in the session)
   const sec = c.lesson && cxSection(c.lesson.sec);
   const what = sec ? `📖 Grammar: <b>${escapeHtml(sec.title)}</b> — in your session`
-    : c.due ? `📏 Grammar: <b>${c.due} rule${c.due === 1 ? "" : "s"}</b> to review — in your session`
-    : `✍️ Writing: <b>${escapeHtml((cxJournalPick(0) || { de: "a few lines" }).de)}</b> — for Claude to correct`;
+    : c.write ? `✍️ Writing: <b>${escapeHtml((cxJournalPick(0) || { de: "a few lines" }).de)}</b> — for Claude to correct` : "";
+  if (!what) return "";
   return `<button class="tc-vx lesson cx-today" style="${sec ? cxSecStyle(sec.id) : cxStyle(0)}" onclick="showScreen('course')">${what}</button>`;
 }
 

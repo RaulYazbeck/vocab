@@ -59,7 +59,7 @@ const SYNC_SET_PATHS = [
   "badges", "loginDates", "goalDates", "quests.qdays", "quests.kept", "quests.frozen", "quests.cos.owned", "games.daily.completedDates", "vocabGoalDates",
 ];
 // S.path keys that belong to the day (the rest are settings).
-const SYNC_PATH_DAY_KEYS = ["day", "introducedToday", "extraToday", "spotToday", "plan", "autoPaused", "autoPausedOn"];
+const SYNC_PATH_DAY_KEYS = ["day", "introducedToday", "extraToday", "extraBtn", "extraUndo", "spotToday", "plan", "autoPaused", "autoPausedOn"];
 // [count, day] pairs: the later day's count; the higher on the same day.
 const SYNC_DAY_COUNTERS = [
   ["drillCorrectToday", "drillMilestonesDate", "drillMilestonesClaimed"],
@@ -192,7 +192,8 @@ function syncPathDay(p) {
 }
 function syncPathProgress(state) {
   const p = state.path, q = state.quests;
-  return syncNum(p.extraToday) + syncNum(p.spotToday) + (syncIsObj(q) && q.day === syncPathDay(p) ? syncQuestProgress(q) : 0);
+  // (an undone "+5" is progress too: the side that took it back keeps the day)
+  return syncNum(p.extraToday) + syncNum(p.extraUndo) + syncNum(p.spotToday) + (syncIsObj(q) && q.day === syncPathDay(p) ? syncQuestProgress(q) : 0);
 }
 // Which side's day to keep (true = local): the later day if anything was
 // done on it, else the earlier one; the same day — the one with more

@@ -936,8 +936,11 @@ function renderHome() {
   if (t.fix) stats.push(`<span class="tc-stat warn" title="${CXON ? "Words, verbs and grammar rules" : "Words and verbs"} you slipped on — Start fixes them first">🩹 ${t.fix} to fix</span>`);
   stats.push(`<span class="tc-stat" title="${CXON ? "Reviews due today — words, verbs and grammar rules" : "Reviews due today"}">📚 ${t.due} due</span>`);
   stats.push(!t.frontier ? `<span class="tc-stat">🏔️ all met</span>`
-    : extra ? `<button class="tc-stat tc-stat-btn" onclick="pathLearnExtra();startPathSession('quick')" title="Today's new words are done — learn ${PATH.EXTRA_NEW} more">🌱 +${PATH.EXTRA_NEW} new</button>`
+    : extra ? `<button class="tc-stat tc-stat-btn" onclick="pathStartExtra()" title="Today's new words are done — learn ${PATH.EXTRA_NEW} more">🌱 +${PATH.EXTRA_NEW} new</button>`
     : `<span class="tc-stat" ${t.reason === "slowed" ? `title="Fewer new words today while you catch up on ${t.overdue} reviews${pathDeadlineOn() ? " — finish today's plan to lift it" : ""}"` : ""}>🌱 ${t.newLeft} new${t.reason === "slowed" ? ` <span class="tc-slow" aria-label="slowed down while you catch up">🐢</span>` : ""}</span>`);
+  // A "+5" pressed by mistake: take back the words not met yet.
+  const undo = t.frontier && typeof pathExtraUndoable === "function" ? pathExtraUndoable() : 0;
+  if (undo) stats.push(`<button class="tc-stat tc-stat-btn tc-undo" onclick="pathUndoExtra();renderHome()" title="Take back the extra new words you added — the ones not learnt yet">↶ Undo +${undo}</button>`);
   const nothing = !t.due && !t.newLeft && !vx.fresh && !cx.parts;
   home.innerHTML = `
     <div class="today-card" id="today-card">

@@ -167,6 +167,7 @@ body[data-cardback="cb_prism"] .today-card { background-image:conic-gradient(fro
 .tc-stat { font-size:12.5px; font-weight:700; color:var(--text-2); background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:20px; padding:4px 9px; white-space:nowrap; font-family:inherit; }
 .tc-stat-btn { cursor:pointer; color:var(--teal); border-color:rgba(0,201,177,0.4); background:var(--teal-dim); }
 .tc-stat-btn:active { transform:scale(0.95); }
+.tc-stat-btn.tc-undo { color:var(--text-2); border-color:var(--border); background:rgba(255,255,255,0.05); }
 .tc-slow { margin-left:2px; }
 .tc-stat.warn { color:#FF9A3C; border-color:rgba(255,154,60,0.35); }
 .tc-len { display:flex; gap:6px; margin-bottom:10px; }
