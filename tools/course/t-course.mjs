@@ -341,7 +341,7 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
     gb.click(); ok(/parts, in the order/i.test(document.getElementById("main-screen").innerText), "back: the Course");
     renderCourseSection("s0.verbs"); document.querySelector(".gr-sheet").click();
     ok(/Lesson/.test(document.querySelector(".screen-top .back-btn").textContent), "a verb sheet opened from a lesson goes back to the lesson");
-    renderCourseSection("s0.verbs"); document.querySelector(".gr-mastery").click();
+    renderCourseSection("s0.verbs"); document.querySelector(".gr-mastery[onclick*=renderGrammarUnit]").click();
     ok(/Lesson/.test(document.querySelector(".screen-top .back-btn").textContent), "its tense in the verb track: back goes to the lesson");
     document.querySelector(".gr-sheet").click(); ok(!/Lesson/.test(document.querySelector(".screen-top .back-btn").textContent), "a sheet opened from the tense goes back to the tense");
     renderCourse();
