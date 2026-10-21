@@ -1,0 +1,197 @@
+// ── COURSE PACK · Stage 0 · Personal pronouns; du / ihr / Sie ──
+// Book: chapter 3 (Übung 3•1–3•5, 3•8), chapter 4 "Titles" (4•1, 4•3),
+// chapter 6 "Personal Pronouns" and 7•15 (a noun → its pronoun). Two
+// sheets: er, sie, es for nouns — then du, ihr, Sie and how to address
+// people.
+cxPack({
+  id: "s0-pronouns",
+  sections: {
+    "s0.pron": {
+      testout: { n: 6, miss: 1 },
+      rules: {
+        "pron.3": "der → er, die → sie, das → es — things too",
+        "pron.pl": "plural → sie, with a plural verb",
+        "pron.es": "es for weather, time and das Kind",
+        "pron.du": "du for one you know well, ihr for several",
+        "pron.sie": "Sie: polite, one or many, with a capital",
+        "pron.title": "Herr / Frau + surname; introducing yourself",
+      },
+      sheets: [
+        { id: "cx.pron1", title: "er, sie, es — for people and things", qn: 3,
+          struct: [["der", "who"], ["→ er", "mid"], ["die", "end"], ["→ sie", "mid"], ["das", "thing"], ["→ es", "mid"]],
+          why: "A pronoun takes the gender of its noun, not of the thing: the table is **er**, the lamp **sie**, the bed **es**.",
+          rid: ["pron.3", "pron.pl", "pron.es"],
+          rules: [
+            "**der** → **er** · **die** → **sie** · **das** → **es** — for things too: Der Zug? **Er** kommt gleich. Die Tür? **Sie** ist zu.",
+            "Every plural → **sie** (they), with a plural verb: Die Kinder? **Sie** sind müde. — *she* is sie with a singular verb: **sie ist**, *they* **sie sind**.",
+            "**es** stands for das-nouns — das Kind, das Mädchen: **es** — and for weather and time: **Es** regnet. **Es** ist sehr kalt. **Es** ist acht Uhr.",
+          ],
+          table: { head: ["noun", "pronoun", "example"], rows: [
+            ["der Bus · der Mann", "er", "**Er** ist pünktlich."], ["die Bank · die Frau", "sie", "**Sie** ist zu."],
+            ["das Café · das Kind", "es", "**Es** ist neu."], ["die Leute · die Häuser", "sie (plural)", "**Sie** sind sehr alt."],
+          ] },
+          ex: [
+            ["Wo ist der Bahnhof? — **Er** ist gleich da vorne.", "Where's the station? — It's just ahead."],
+            ["Die Suppe ist gut, aber **sie** ist zu heiß.", "The soup is good, but it's too hot."],
+            ["Das Baby schläft — **es** ist müde.", "The baby is asleep — it's tired."],
+            ["**Es** regnet schon wieder.", "It's raining again."],
+          ],
+          trap: "English *it* is three words in German: Der Kaffee? **Er** ist kalt (not ~~es~~). Pick the pronoun from the noun's article.",
+          quiz: [
+            { at: "r1", k: "pick", q: "Der Computer ist neu. ___ ist schnell.", o: ["Er", "Es", "Sie"], a: 0, why: "der Computer → er." },
+            { at: "r1", k: "type", cx: true, q: "die Brücke → ___", a: ["sie"], r: ["pron.3"], why: "die → sie, things too." },
+            { at: "r2", k: "pick", q: "Die Schuhe sind schön. ___ sind teuer.", o: ["Sie", "Er", "Es"], a: 0, why: "Plural → sie." },
+            { at: "r2", k: "pick", q: "Meine Eltern? ___ wohnen in Biel.", o: ["Sie", "Ihr", "Er"], a: 0, why: "They → sie, plural verb." },
+            { at: "r3", k: "pick", q: "___ schneit.", o: ["Es", "Er", "Sie"], a: 0, why: "Weather: es." },
+            { at: "r3", k: "pick", q: "Das Mädchen ist zehn. ___ spielt Klavier.", o: ["Es", "Sie", "Er"], a: 0, why: "das Mädchen → es (sie is heard too in speech, but es follows the article)." },
+            { at: "table", k: "pick", q: "das Café → ___", o: ["es", "er", "sie"], a: 0, why: "das → es." },
+            { at: "trap", k: "pick", q: "Der Kaffee? ___ ist kalt.", o: ["Er", "Es", "Sie"], a: 0, why: "der Kaffee → er: German *it* follows the article." },
+          ] },
+        { id: "cx.pron2", title: "du, ihr or Sie?", qn: 3,
+          struct: [["du", "who"], ["· one friend", "mid"], ["ihr", "who"], ["· several", "mid"], ["Sie", "end"], ["· polite", "mid"]],
+          why: "Three words for *you*: **du** and **ihr** for people you know well, **Sie** to keep a polite distance — the first thing a Swiss office, shop or doctor notices.",
+          rid: ["pron.du", "pron.sie", "pron.title"],
+          rules: [
+            "**du**: one person you know well — family, friends, children, and colleagues who offer it. **ihr**: several of them: Kommst **du** heute mit? Kommt **ihr** auch mit?",
+            "**Sie** (always a capital S): one or several people, politely — strangers, at a counter, your landlord. Its verb is like the plural: **Sie sind**, **Sie haben**, Kommen **Sie** mit?",
+            "With Sie go **Herr / Frau + surname**: Guten Tag, Frau Keller. Introduce yourself: Ich heiße … · Mein Name ist … — and a title stays: Frau Doktor Meier.",
+          ],
+          table: { head: ["you say…", "to…", "example"], rows: [
+            ["du", "a friend, a child, family", "Wie geht's **dir**? · Kommst **du**?"],
+            ["ihr", "two or more of them", "Was macht **ihr** heute?"],
+            ["Sie", "a stranger, a client, the doctor", "Was möchten **Sie**, Herr Graf?"],
+          ] },
+          ex: [
+            ["Lena, kommst **du** heute Abend?", "Lena, are you coming tonight?"],
+            ["Kinder, wo seid **ihr**?", "Kids, where are you?"],
+            ["Entschuldigung, sprechen **Sie** Englisch?", "Excuse me, do you speak English?"],
+            ["Guten Tag, Herr Rossi. Ich heiße Marta Lopez.", "Hello, Mr Rossi. My name is Marta Lopez."],
+          ],
+          trap: "Never du to someone you call Herr or Frau: ~~Frau Keller, hast du Zeit?~~ → Frau Keller, haben **Sie** Zeit? When in doubt, say **Sie** — the other person offers du.",
+          quiz: [
+            { at: "r1", k: "pick", q: "Your sister: ___ hast heute frei, oder?", o: ["Du", "Ihr", "Sie"], a: 0, why: "One person you know well: du." },
+            { at: "r1", k: "pick", q: "Two friends: Habt ___ Hunger?", o: ["ihr", "du", "Sie"], a: 0, why: "Several friends: ihr." },
+            { at: "r2", k: "pick", q: "At the post office: Haben ___ eine Briefmarke?", o: ["Sie", "du", "ihr"], a: 0, why: "A stranger: Sie." },
+            { at: "r2", k: "type", cx: true, q: "Herr Huber, ___ Sie aus Zürich? (sein)", a: ["sind"], r: ["pron.sie"], why: "Sie takes the plural form: Sie sind." },
+            { at: "r3", k: "pick", q: "Hello to Mrs Graf:", o: ["Guten Tag, Frau Graf.", "Hallo, Graf.", "Guten Tag, Frau Lisa."], a: 0, why: "Frau + surname." },
+            { at: "r3", k: "pick", q: "Introduce yourself:", o: ["Ich heiße Ana Ruiz.", "Ich bin heiße Ana Ruiz.", "Mein Name heißt Ana Ruiz."], a: 0, why: "Ich heiße … or Mein Name ist …" },
+            { at: "table", k: "pick", q: "Your new landlord: ___", o: ["Sie", "du", "ihr"], a: 0, why: "Polite distance: Sie." },
+            { at: "trap", k: "pick", q: "Frau Keller, ___ Zeit?", o: ["haben Sie", "hast du", "habt ihr"], a: 0, why: "Frau + surname → Sie." },
+          ] },
+      ],
+      diag: [
+        { t: "swap", from: "^(er|sie|es)$", to: "^(er|sie|es)$", rule: "pron.3", msg: "It's **{right}** — the pronoun takes the noun's gender (der → er, die → sie, das → es)." },
+        { t: "swap", from: "^(du|ihr)$", to: "^sie$", rule: "pron.sie", msg: "This one is polite: **Sie**." },
+        { t: "swap", from: "^sie$", to: "^(du|ihr)$", rule: "pron.du", msg: "Someone you know well: **{right}**." },
+      ],
+      drills: [
+        // ── Übung 3•1 · 3•3 · 7•15: the noun → its pronoun ──
+        { id: "d3.1", ex: "3.1", also: ["3.3", "7.15"], t: "type", title: "The noun → its pronoun", how: "Write er, sie or es — or sie for a plural.", items: [
+          { q: "der Bahnhof → ___", a: ["er"], r: ["pron.3"] },
+          { q: "die Bäckerei → ___", a: ["sie"], r: ["pron.3"] },
+          { q: "das Formular → ___", a: ["es"], r: ["pron.3"] },
+          { q: "ein Kollege → ___", a: ["er"], r: ["pron.3"] },
+          { q: "eine Nachbarin → ___", a: ["sie"], r: ["pron.3"] },
+          { q: "das Baby → ___", a: ["es"], r: ["pron.es"] },
+          { q: "die Kinder → ___", a: ["sie"], r: ["pron.pl"] },
+          { q: "dieser Laden → ___", a: ["er"], r: ["pron.3"] },
+          { q: "keine Zeit → ___", a: ["sie"], r: ["pron.3"] },
+          { q: "meine Schlüssel → ___", a: ["sie"], r: ["pron.pl"] },
+          { q: "das Wetter → ___", a: ["es"], r: ["pron.es"] },
+          { q: "der Tee → ___", a: ["er"], r: ["pron.3"] },
+        ] },
+        // ── Übung 3•4: which noun can it be? ──
+        { id: "d3.4", ex: "3.4", t: "pick", title: "Which noun is it?", how: "The pronoun and the verb tell you: which noun fits?", items: [
+          { q: "«Er ist kaputt.» Er = ___", o: ["der Drucker", "die Lampe", "das Handy"], a: ["der Drucker"], r: ["pron.3"] },
+          { q: "«Sie sind frisch.» Sie = ___", o: ["die Brötchen", "das Brot", "die Butter"], a: ["die Brötchen"], r: ["pron.pl"] },
+          { q: "«Es ist zu klein.» Es = ___", o: ["das Zimmer", "der Raum", "die Küche"], a: ["das Zimmer"], r: ["pron.3"] },
+          { q: "«Sie ist geschlossen.» Sie = ___", o: ["die Post", "der Laden", "die Läden"], a: ["die Post"], r: ["pron.3", "pron.pl"] },
+          { q: "«Er fährt um acht.» Er = ___", o: ["der Bus", "die Bahn", "die Busse"], a: ["der Bus"], r: ["pron.3"] },
+          { q: "«Sie sind im Garten.» Sie = ___", o: ["die Kinder", "das Kind", "die Katze"], a: ["die Kinder"], r: ["pron.pl"] },
+          { q: "«Es ist neu.» Es = ___", o: ["das Velo", "der Wagen", "die Tasche"], a: ["das Velo"], r: ["pron.3"] },
+          { q: "«Sie ist sehr nett.» Sie = ___", o: ["die Lehrerin", "die Lehrer", "der Lehrer"], a: ["die Lehrerin"], r: ["pron.pl", "pron.3"] },
+          { q: "«Er ist noch warm.» Er = ___", o: ["der Kuchen", "die Pizza", "das Brot"], a: ["der Kuchen"], r: ["pron.3"] },
+          { q: "«Sie sind zu teuer.» Sie = ___", o: ["die Tickets", "das Ticket", "die Fahrkarte"], a: ["die Tickets"], r: ["pron.pl"] },
+        ] },
+        // ── Übung 3•5: du, ihr or Sie? ──
+        { id: "d3.5", ex: "3.5", t: "pick", title: "du, ihr or Sie?", how: "Who are you talking to? Pick the word for *you*.", o: ["du", "ihr", "Sie"], items: [
+          { q: "your boss, Frau Huber: ___", a: ["Sie"], r: ["pron.sie"] },
+          { q: "your little nephew Tim: ___", a: ["du"], r: ["pron.du"] },
+          { q: "your two best friends: ___", a: ["ihr"], r: ["pron.du"] },
+          { q: "the doctor, Herr Doktor Frei: ___", a: ["Sie"], r: ["pron.sie"] },
+          { q: "a stranger at the bus stop: ___", a: ["Sie"], r: ["pron.sie"] },
+          { q: "your mother: ___", a: ["du"], r: ["pron.du"] },
+          { q: "your children, both at once: ___", a: ["ihr"], r: ["pron.du"] },
+          { q: "Herr Weber and Frau Graf, your neighbours: ___", a: ["Sie"], r: ["pron.sie"] },
+          { q: "a colleague who said «Sag du zu mir»: ___", a: ["du"], r: ["pron.du"] },
+          { q: "your sister and her husband: ___", a: ["ihr"], r: ["pron.du"] },
+        ] },
+        // ── Übung 4•3: the pronoun and its form of sein ──
+        { id: "d4.3", ex: "4.3", t: "type", title: "Who is at home?", how: "Write the form of sein.", items: [
+          { q: "Meine Eltern ___ zu Hause.", a: ["sind"], r: ["pron.pl"] },
+          { q: "Ihr ___ zu Hause, oder?", a: ["seid"], r: ["pron.du"] },
+          { q: "Frau Graf, ___ Sie morgen zu Hause?", a: ["sind"], r: ["pron.sie"] },
+          { q: "Mein Bruder ___ heute zu Hause.", a: ["ist"], r: ["pron.3"] },
+          { q: "Du ___ ja zu Hause!", a: ["bist"], r: ["pron.du"] },
+          { q: "Sie (she) ___ nicht zu Hause.", a: ["ist"], r: ["pron.pl"] },
+          { q: "Sie (they) ___ nicht zu Hause.", a: ["sind"], r: ["pron.pl"] },
+          { q: "Wir ___ um sechs zu Hause.", a: ["sind"], r: ["pron.pl"] },
+          { q: "Das Kind ___ krank zu Hause.", a: ["ist"], r: ["pron.es"] },
+          { q: "Herr Weber, wann ___ Sie zu Hause?", a: ["sind"], r: ["pron.sie"] },
+        ] },
+        // ── Übung 3•8 · 3•2: the subject → its pronoun ──
+        { id: "d3.8", ex: "3.8", also: ["3.2"], t: "transform", title: "Say it with a pronoun", how: "Write the sentence again with a pronoun for the highlighted part.", d: ["er", "sie", "es"], items: [
+          { q: "Der Zug kommt gleich.", hl: "Der Zug", a: ["Er kommt gleich."], r: ["pron.3"] },
+          { q: "Die Brötchen sind noch warm.", hl: "Die Brötchen", a: ["Sie sind noch warm."], r: ["pron.pl"] },
+          { q: "Ist die Apotheke heute offen?", hl: "die Apotheke", a: ["Ist sie heute offen?"], r: ["pron.3"] },
+          { q: "Das Mädchen wohnt bei uns.", hl: "Das Mädchen", a: ["Es wohnt bei uns."], r: ["pron.es"] },
+          { q: "Herr Keller arbeitet bei der Post.", hl: "Herr Keller", a: ["Er arbeitet bei der Post."], r: ["pron.3"] },
+          { q: "Meine Kolleginnen essen in der Kantine.", hl: "Meine Kolleginnen", a: ["Sie essen in der Kantine."], r: ["pron.pl"] },
+          { q: "Wo sind die Schlüssel?", hl: "die Schlüssel", a: ["Wo sind sie?"], r: ["pron.pl"] },
+          { q: "Das Wetter wird morgen besser.", hl: "Das Wetter", a: ["Es wird morgen besser."], r: ["pron.es"] },
+          { q: "Die Ärztin hat heute keine Zeit.", hl: "Die Ärztin", a: ["Sie hat heute keine Zeit."], r: ["pron.3"] },
+          { q: "Der Kaffee ist leider kalt.", hl: "Der Kaffee", a: ["Er ist leider kalt."], r: ["pron.3"] },
+        ] },
+        // ── Übung 4•1: introducing yourself, greeting by name ──
+        { id: "d4.1", ex: "4.1", t: "answer", title: "Names and greetings", how: "Answer in a whole sentence — politely.", items: [
+          { q: "«Guten Tag, wie heißen Sie?» (You're Marco Rossi.)", a: ["Ich heiße Marco Rossi.", "Mein Name ist Marco Rossi.", "Guten Tag, ich heiße Marco Rossi.", "Guten Tag, mein Name ist Marco Rossi."], r: ["pron.title"] },
+          { q: "«Ich heiße Keller, Anna Keller.» — Greet her.", a: ["Guten Tag, Frau Keller.", "Grüezi, Frau Keller.", "Freut mich, Frau Keller."], r: ["pron.title"] },
+          { q: "«Mein Name ist Brunner, Peter Brunner.» — Greet him.", a: ["Guten Tag, Herr Brunner.", "Grüezi, Herr Brunner.", "Freut mich, Herr Brunner."], r: ["pron.title"] },
+          { q: "«Wie ist Ihr Name?» (You're Lea Meier.)", a: ["Mein Name ist Lea Meier.", "Ich heiße Lea Meier."], r: ["pron.title"] },
+          { q: "«Sind Sie Frau Graf?» (Yes.)", a: ["Ja, ich bin Frau Graf.", "Ja, das bin ich."], r: ["pron.sie", "pron.title"] },
+          { q: "«Wie heißt du?» (A child asks you. You're Sam.)", a: ["Ich heiße Sam.", "Ich bin Sam."], r: ["pron.du"] },
+          { q: "Ask the new neighbour, politely, for his name.", a: ["Wie heißen Sie?", "Wie ist Ihr Name?"], r: ["pron.sie"] },
+          { q: "Ask a child for her name.", a: ["Wie heißt du?"], r: ["pron.du"] },
+          { q: "Ask two children their names.", a: ["Wie heißt ihr?"], r: ["pron.du"] },
+          { q: "«Guten Tag, ich bin Doktor Frei.» — Greet her.", a: ["Guten Tag, Frau Doktor Frei.", "Guten Tag, Frau Doktor.", "Grüezi, Frau Doktor Frei."], r: ["pron.title"] },
+        ] },
+        // ── Production: say it ──
+        { id: "dp.pron", t: "translate", end: true, title: "Say it in German", how: "Translate — mind the pronoun and its verb.", items: [
+          { q: "The bus? It's late.", a: ["Der Bus? Er hat Verspätung.", "Der Bus? Er ist zu spät.", "Der Bus? Er kommt zu spät."], r: ["pron.3"] },
+          { q: "The soup is too hot.", a: ["Die Suppe ist zu heiß."], r: ["pron.3"] },
+          { q: "The children? They're at school.", a: ["Die Kinder? Sie sind in der Schule."], r: ["pron.pl"] },
+          { q: "It's raining.", a: ["Es regnet."], r: ["pron.es"] },
+          { q: "It's cold today.", a: ["Es ist heute kalt.", "Heute ist es kalt."], r: ["pron.es"] },
+          { q: "Mr Weber, are you coming too?", a: ["Herr Weber, kommen Sie auch?", "Herr Weber, kommen Sie mit?"], r: ["pron.sie", "pron.title"] },
+          { q: "Anna, are you coming too?", a: ["Anna, kommst du auch?", "Anna, kommst du mit?"], r: ["pron.du"] },
+          { q: "Kids, are you hungry?", a: ["Kinder, habt ihr Hunger?"], r: ["pron.du"] },
+          { q: "Good morning, Mrs Graf.", a: ["Guten Morgen, Frau Graf."], r: ["pron.title"] },
+          { q: "Excuse me, do you speak English? (to a stranger)", a: ["Entschuldigung, sprechen Sie Englisch?"], r: ["pron.sie"] },
+        ] },
+        // ── Production: your own ──
+        { id: "dw.pron", t: "write", end: true, title: "Write your own", how: "In your own words — saved for Claude to correct.", items: [
+          { q: "Introduce yourself at a new job: name, where you're from.", model: ["Guten Tag, ich heiße Sara Costa. Ich komme aus Portugal."], r: ["pron.title"] },
+          { q: "Ask your new colleague, Herr Lang, two polite questions.", model: ["Herr Lang, wohnen Sie in Bern? Trinken Sie Kaffee?"], r: ["pron.sie"] },
+          { q: "Ask a friend two questions with du.", model: ["Hast du heute Zeit? Kommst du mit ins Kino?"], r: ["pron.du"] },
+          { q: "Ask two friends what they're doing at the weekend (ihr).", model: ["Was macht ihr am Wochenende?"], r: ["pron.du"] },
+          { q: "Describe the weather today with es.", model: ["Es ist kalt und es regnet."], r: ["pron.es"] },
+          { q: "Your phone, your bag, your keys: one sentence each, with er / sie / es.", model: ["Mein Handy? Es ist alt. Meine Tasche? Sie ist neu. Meine Schlüssel? Sie sind weg."], r: ["pron.3", "pron.pl"] },
+          { q: "Talk about two family members with er and sie.", model: ["Mein Bruder wohnt in Basel. Er ist Koch. Meine Mutter ist in Spanien. Sie ist Lehrerin."], r: ["pron.3"] },
+          { q: "Greet your doctor and say how you are.", model: ["Guten Tag, Frau Doktor Frei. Es geht mir nicht so gut."], r: ["pron.title", "pron.es"] },
+        ] },
+      ],
+    },
+  },
+});
+
+cxCover({ "3.1": "d3.1", "3.2": "d3.8", "3.3": "d3.1", "3.4": "d3.4", "3.5": "d3.5", "3.8": "d3.8", "4.1": "d4.1", "4.3": "d4.3", "7.15": "d3.1" });

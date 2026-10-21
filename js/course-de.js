@@ -111,6 +111,16 @@ function cxSection(id) { return CX.byId[id] || null; }
 function cxStage(id) { return CX.stages.find(s => s.id === id) || null; }
 function cxSet(id) { return CX.sets[id] || null; }
 function cxRule(id) { return CX.rules[id] || null; }
+// A rule to show on a miss: the course's own, or a verb sheet's point
+// ("gs:pr4.r2" — the verb lesson's book drills): { title, text, sheet }.
+function cxRuleView(id) {
+  const r = cxRule(id);
+  if (r) return r;
+  const m = /^gs:(\w+)\.(\w+)$/.exec(String(id || "")), sh = m && typeof vxSheet === "function" ? vxSheet(m[1]) : null;
+  if (!sh) return null;
+  const i = /^r(\d)$/.exec(m[2]);
+  return { id, title: sh.title, text: i ? (sh.rules || [])[+i[1] - 1] || sh.why : m[2] === "trap" ? sh.trap : sh.why, sheet: sh.id, verb: true };
+}
 function cxWordKey(rule) { return CX_DECK + "_" + rule; }
 
 // ── STATE ─────────────────────────────────────
@@ -241,7 +251,8 @@ const CX_TIME2A = /^(am|im|um|nächste[ns]?|letzte[ns]?|diese[ns]?|jeden|heute|m
 const CX_TIME2B = /^(abend|morgen|mittag|nachmittag|montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag|wochenende|sommer|winter|herbst|frühling|januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember|woche|monat|jahr|acht|neun|zehn|elf|zwölf|eins|zwei|drei|vier|fünf|sechs|sieben|früh)$/;
 function cxTimeLen(w, i) {
   const a = (w[i] || "").toLowerCase(), b = (w[i + 1] || "").toLowerCase();
-  if (CX_TIME2A.test(a) && CX_TIME2B.test(b)) return 2;
+  // (um acht Uhr: the Uhr moves with it)
+  if (CX_TIME2A.test(a) && CX_TIME2B.test(b)) return /^uhr$/i.test(w[i + 2] || "") ? 3 : 2;
   return CX_TIME1.test(a) ? 1 : 0;
 }
 const _cxOrders = new WeakMap();
@@ -380,28 +391,35 @@ function cxDiagnose(item, T, A, sec, orig = null) {
 // (order: a = the lines in their order).
 function cxItemKind(set, item) { return item.k || set.t; }
 // A generated set's items, from the verb engine (grammar-de.js): pure
-// conjugation is never hand-written (PLAN.md §7).
+// conjugation is never hand-written (PLAN.md §7). gen: { kind: "conj",
+// verbs, tense?: "pr" | "pt" | "im", persons? } — a command (im) asks
+// du · ihr · Sie and its answer is the whole command (komm · kommt · kommen Sie).
+const CX_GEN_LABEL = { pr: { er: "er/sie/es", sie: "sie (they)" }, pt: { er: "er/sie/es", sie: "sie (they)" }, im: { du: "du:", ihr: "ihr:", Sie: "Sie:" } };
 function cxGenItems(set, n = 10) {
   const g = set.gen;
   if (!g || g.kind !== "conj" || typeof vxVerb !== "function") return [];
-  const out = [], persons = ["ich", "du", "er", "wir", "ihr", "sie"], label = { er: "er/sie/es", sie: "sie (they)" };
+  const t = g.tense || "pr", label = CX_GEN_LABEL[t] || {};
+  const out = [], persons = g.persons || (t === "im" ? ["du", "ihr", "Sie"] : ["ich", "du", "er", "wir", "ihr", "sie"]);
   const verbs = g.verbs.map(vxVerb).filter(Boolean);
+  const q = (x, p) => t === "im" ? `${label[p] || p} ___! (${x.inf})` : `${label[p] || p} ___ (${x.inf})`;
   for (let i = 0; i < n * 3 && out.length < n && verbs.length; i++) {
     const x = verbs[i % verbs.length], p = persons[Math.floor(Math.random() * persons.length)];
-    const f = vxForm(x, g.tense || "pr", p);
-    if (!f || out.some(o => o.q === `${label[p] || p} ___ (${x.inf})`)) continue;
-    out.push({ k: "type", q: `${label[p] || p} ___ (${x.inf})`, a: f.acc || [f.ans], r: set.r || [], gen: true, inf: x.inf, p });
+    const f = vxForm(x, t, p);
+    if (!f || out.some(o => o.q === q(x, p))) continue;
+    out.push({ k: "type", q: q(x, p), a: f.acc || [f.ans], r: set.r || [], gen: true, inf: x.inf, p, t });
   }
   return out;
 }
 function cxSetItems(set) { return set.gen ? cxGenItems(set, set.n || 10) : set.items || []; }
 // The tiles of a build-it item: the answer's words (or the item's own
 // tiles), the first one small unless it's a name or noun (cap), plus up to
-// two wrong ones that would fit (the set's d).
+// two wrong ones that would fit (the set's d). A set marked low writes
+// every first word small (a question's verb, a command) — its items that
+// start with a noun or a name say cap.
 const CX_SMALL_START = /^(ich|du|er|sie|es|wir|ihr|man|das|der|die|den|dem|ein|eine|einen|kein\w*|mein\w*|dein\w*|sein\w*|unser\w*|heute|morgen|gestern|jetzt|hier|dort|da|im|am|in|um|nein|ja|nicht|warum|wann|wo|wie|was|wer|hast|hat|habt|haben|bist|ist|sind|seid|bin|kommst|kommt|wohnst|wohnt|gehst|geht|kannst|kann|willst|will|musst|muss|arbeitest|arbeitet|trinkst|trinkt|isst|fährst|fährt|spielst|spielt|siehst|sieht|brauchst|braucht|kaufst|kauft|wird|werden|wirst)$/i;
 function cxTiles(set, item) {
   const src = item.tiles || String(item.a[0]).replace(/[.!?]+$/, "").split(/\s+/).map(w => w.replace(/[,;:]$/, ""));
-  const tiles = src.map((w, i) => i === 0 && !item.cap && CX_SMALL_START.test(w) ? w.toLowerCase() : w);
+  const tiles = src.map((w, i) => i === 0 && !item.cap && (set.low || CX_SMALL_START.test(w)) ? w.toLowerCase() : w);
   const have = new Set(tiles.map(w => w.toLowerCase()));
   const extra = shuffle((item.d || set.d || []).filter(w => !have.has(String(w).toLowerCase())).slice()).slice(0, 2);
   return { tiles, extra };
@@ -435,9 +453,13 @@ function cxSecSets(secId) { const sec = cxSection(secId); return sec ? sec.sets.
 function cxDrillPlan(secId, n = CX_DRILL_N[1], allow = null) {
   const sets = cxSecSets(secId).filter(s => !s.gen && !s.mix && (!allow || (s.items || []).some(it => (it.r || []).some(r => allow.has(r)))));
   if (!sets.length) return [];
-  const prod = sets.filter(s => CX_PRODUCTION.has(s.t) && s.end);
-  const main = sets.filter(s => !prod.includes(s)).sort((a, b) => (CX_LADDER[a.t] || 0) - (CX_LADDER[b.t] || 0));
+  // (more sets than a drill has room for — the verb lesson's book
+  // exercises: the ones asked least so far, in turn; production too)
+  const asked = s => ((S.course && S.course.ds && S.course.ds[s.id]) || [0, 0])[1] || 0;
+  const least = (list, k) => list.length <= k ? list : list.map((s, i) => ({ s, i })).sort((a, b) => asked(a.s) - asked(b.s) || a.i - b.i).slice(0, k).sort((a, b) => a.i - b.i).map(o => o.s);
+  const prod = least(sets.filter(s => CX_PRODUCTION.has(s.t) && s.end), 2);
   const room = Math.max(1, n - prod.length);
+  const main = least(sets.filter(s => !(CX_PRODUCTION.has(s.t) && s.end)), room).sort((a, b) => (CX_LADDER[a.t] || 0) - (CX_LADDER[b.t] || 0));
   const per = Math.max(1, Math.floor(room / Math.max(1, main.length)));
   const out = [];
   main.forEach(s => out.push(...cxSetPick(s, per, new Set(), allow)));
@@ -1028,6 +1050,12 @@ function cxPartLive(p) {
 }
 // What a part asks, in order (course-ui.js runs it; sim.mjs answers it).
 const CX_CONTRAST_MIX = 6;    // mixed items a contrast day adds
+// The sections mixed practice draws on: the lessons done — and the verb
+// lessons done whose book exercises have their drills here (their sheets
+// live in the verb track; these are the book's Übungen for them).
+function cxMixSections() {
+  return CX.sections.filter(s => s.built && cxSecDone(s.id) && (s.sheets.length || cxIsVerb(s) && s.sets.some(id => !cxSet(id).gen)));
+}
 function cxPartList(p) {
   if (p.part === "testout") return cxTestoutPlan(p.sec);
   if (p.part === "checkpoint") return cxCheckpointPlan(p.sec);
@@ -1043,7 +1071,7 @@ function cxPartList(p) {
   if (p.part === "review" && p.contrast) {
     // Contrast: the day's reviews, then items from every section done, mixed.
     const mix = [];
-    CX.sections.filter(s => s.built && s.sheets.length && cxSecDone(s.id)).forEach(s => mix.push(...cxDrillPlan(s.id, 4).filter(e => !["write", "open"].includes(cxItemKind(cxSet(e.set), e.item)))));
+    cxMixSections().forEach(s => mix.push(...cxDrillPlan(s.id, 4).filter(e => !["write", "open"].includes(cxItemKind(cxSet(e.set), e.item)))));
     return [...reviews(), ...shuffle(mix).slice(0, CX_CONTRAST_MIX)];
   }
   if (p.part === "write") return []; // the journal (course-ui.js cxJournalOpen)
@@ -1212,7 +1240,7 @@ function cxRecordAnswer(e, ok, res, opts = {}) {
   }
   if (item.inf && typeof learnNoteVerb === "function" && typeof vxVerb === "function") {
     const x = vxVerb(item.inf);
-    if (x) learnNoteVerb(x.F, "pr", item.p || "er", !!ok, opts.given || "", (item.a || [])[0] || "");
+    if (x) learnNoteVerb(x.F, item.t || "pr", item.p || "er", !!ok, opts.given || "", (item.a || [])[0] || "");
   }
   if (!ok && typeof _learnDay === "function") _learnDay("mk", "grammar");
   if (typeof logEvent === "function") logEvent("answer", { m: "course:" + (opts.where || "drill"), ok: !!ok, typed: !!opts.typed, set: e.set, rule: out.rule || "", ...(opts.ms > 0 ? { ms: opts.ms } : {}) });

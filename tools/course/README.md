@@ -6,6 +6,10 @@ the 📖 Course / 🧩 Practise / 📚 By chapter / ✍️ Writing screens) and 
 
     js/course/plan.js          the skeleton: stages, chapters, every section in order
     js/course/s0-negation.js   a content pack: the pilot section "nicht or kein?"
+    js/course/s0-*.js          Stage 0 (Session 2): sounds, gender, articles, plurals,
+                               pronouns, questions (verb second · W-questions), numbers,
+                               the accusative (articles · pronouns and man), the A1 verb
+                               lesson's book exercises (s0-verbs.js) and the checkpoint
     js/course/writing.js       the writing themes (cxJournalThemes) and prompts (cxJournal)
 
 German app only (`de/index.html` loads them; the French app never does).
@@ -37,7 +41,20 @@ a later session that uploads its chapter.
      write / open (model + checklist, self-graded) · respond · order (a = the lines in order).
      `hl` highlights the part to negate/change; `fixed: true` on a set when its order is
      the point (fronting drills) — otherwise the checker also accepts the verb-second
-     reordering of a time phrase and a pronoun subject by rule.
+     reordering of a time phrase and a pronoun subject by rule. `low: true` on a set
+     writes every first tile small (questions, commands: the capital would give the
+     start away) — its items that start with a noun or a name say `cap: true`.
+   - Verb forms: `vf: [[inf, tense, person]]` on an item makes the validator check that
+     every accepted answer holds the engine's form (`pr` · `pt` · `im`), its words in
+     order — `ruf … an` passes in *Ruf mich morgen an!*. Pure tables are generated, never
+     written: `gen: { kind: "conj", verbs, tense: "pr" | "pt" | "im", persons? }` (a
+     command asks du · ihr · Sie and wants the whole command: *kommen Sie*).
+   - A verb lesson's book exercises (its sheets live in the verb track): a pack for the
+     verb section with drills only, their rules the verb sheets' points (`gs:pr4.r2` —
+     a miss names that sheet's rule; the verb track keeps its own reviews). They're
+     practised from the lesson's page (🧩 Practise), 📚 By chapter, and mixed into the
+     contrast days and 🔀 Mixed once the lesson is done. A section with more sets than
+     a drill has room for gives the least-asked ones in turn, its production last.
    - `diag`: detectors that name the rule a wrong answer broke (swap · ending · seq ·
      pos · missing · extra).
    - `testout: { n, miss }` for Stage 0 sections.
@@ -70,8 +87,10 @@ a later session that uploads its chapter.
     node validate.mjs                 # the format, rules ↔ sheets, coverage (every exercise has a status and a session,
                                       # every line of the book's contents a lesson), the checker on every
                                       # answer, tiles, diagnosis, engine forms, one name per global
-    BOOK=<dir> node validate.mjs      # + none of our sentences is a sentence of the book
-                                      #   (<dir>: pdftotext -layout of the chapters — never in the repo)
+    BOOK=<dir> node validate.mjs      # + none of our sentences is a sentence of the book — the items,
+                                      #   the sheets' examples and quizzes, and every whole sentence in
+                                      #   their rules, tables and traps (<dir>: pdftotext -layout of the
+                                      #   chapters — never in the repo)
     node t-unit.mjs                   # sync merge, planner, the day's parts, answers, word orders
     node t-course.mjs                 # the real app (serve the repo root on :8765 first, and
                                       # npm install once in tools/audio/tests): progress intact,

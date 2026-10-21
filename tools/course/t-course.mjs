@@ -8,8 +8,10 @@
 //     way in; the count (x/N) holds their questions inside the length you
 //     picked (a lesson that doesn't fit waits), only moves forward and
 //     never changes its total; the test-out (missed) → the sheet → its
-//     drill; a miss names its rule (title, why, the sheet a tap away) and
-//     comes back once at the end; the section is done, its rules in review
+//     drill of the lesson the clock gives (the first one built: Sounds and
+//     spelling since Session 2); a miss names its rule (title, why, the
+//     sheet a tap away) and comes back once at the end; the section is
+//     done, its rules in review
 //   • the next day: the rules come back (warm-up / review cards)
 //   • a test-out passed: the section is done, the sheet and drill skipped,
 //     its rules in light review (stage 3)
@@ -79,6 +81,9 @@ const HELP = () => {
     const before = wordsSnap();
     const parts = cxTodayParts().map(p => p.part);
     ok(parts.join() === "testout,sheet,drill", `today's course parts: ${parts}`);
+    // the lesson the clock gives: the first built one in course order
+    const L = cxClockLesson(), sh0 = L.sheets[0], esc = t => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    ok(L.id === CX.sections.find(x => x.built && x.sheets.length).id, `the first built lesson comes first (${L.id})`);
     // (a Quick 15 can't hold the lesson — test-out 8 + sheet 3 + drill 14: it waits, the session stays 15)
     startPathSession("quick", { noBonus: true });
     ok(!pathSession.items.some(x => x.t === "cx" && ["testout", "sheet", "drill"].includes(x.part)) && +((document.getElementById("p-count") || {}).textContent || "").split("/")[1] === 15,
@@ -103,9 +108,9 @@ const HELP = () => {
           ok(_gs && _gs.mode === "path" && _gs.sh.cx, "the sheet opens in the viewer, in Today");
           while (_gs.step < _gs.steps.length) gsGo(1);
           while (!_gs.quiz.done) { seq.push(tick()); gsAnswerCur(true); gsQuizNext(); }
-          ok(cxSheetPassed("cx.neg1"), "sheet passed in Today");
-          ok(Object.keys(S.course.sec["s0.neg"]).length && S.course.sec["s0.neg"].st === 2, "section: sheet passed (st 2)");
-          ok(cxSection("s0.neg").rules.every(rr => S.words["cx_" + rr] && S.words["cx_" + rr].st === 1 && S.words["cx_" + rr].lrn), "its 4 rules are introduced (stage 1, to confirm)");
+          ok(cxSheetPassed(sh0), "sheet passed in Today");
+          ok(Object.keys(S.course.sec[L.id]).length && S.course.sec[L.id].st === (L.sheets.length > 1 ? 1 : 2), "section: sheet passed (st 2)");
+          ok(cxSheet(sh0).rid.every(rr => S.words["cx_" + rr] && S.words["cx_" + rr].st === 1 && S.words["cx_" + rr].lrn), `its ${cxSheet(sh0).rid.length} rules are introduced (stage 1, to confirm)`);
           seq.push("|"); gsQuizFinish(); continue;
         }
         if (!_cx) { pathNext(); continue; }
@@ -129,8 +134,8 @@ const HELP = () => {
           k++;
           cxNext();
         }
-        if (kind === "testout") ok(!cxSecDone("s0.neg") && S.course.sec["s0.neg"].to < 100 && S.course.sec["s0.neg"].st === 1, `test-out with 2 misses: not passed (${S.course.sec["s0.neg"].to}%) → the sheet is next`);
-        if (kind === "drill") ok(cxSecDone("s0.neg"), "after its drill the section is done");
+        if (kind === "testout") ok(!cxSecDone(L.id) && S.course.sec[L.id].to < 100 && S.course.sec[L.id].st === 1, `test-out with 2 misses: not passed (${S.course.sec[L.id].to}%) → the sheet is next`);
+        if (kind === "drill") ok(cxSecDone(L.id) || L.sheets.length > 1, "after its drill the section is done");
         seq.push("|"); cxFinish(); continue;
       }
       tick();
@@ -147,15 +152,15 @@ const HELP = () => {
     ok(totals.size === 1, `counter total never changed (${[...totals]})`);
     ok(mono, "counter only moves forward");
     ok(plan > 10, `the course's right answers count in today's plan (+${plan})`);
-    ok(S.course.dd["sec:s0.neg"] && S.course.dd["new:s0.neg"], "the day knows the section was today's");
+    ok(S.course.dd["sec:" + L.id] && S.course.dd["new:" + L.id], "the day knows the section was today's");
     ok(JSON.stringify([S.verb.sh, S.verb.tu]) === verb0, "verb sheets and tenses unchanged");
     const b = JSON.parse(before), a = new Map(JSON.parse(wordsSnap()).map(x => [x[0], x]));
     ok(b.every(x => a.has(x[0]) && (a.get(x[0])[1] || 0) >= (x[1] || 0) && a.get(x[0])[3] === x[3] && a.get(x[0])[4] === x[4]), `no word record lost or lowered by the course's cards (${b.length})`);
     __log.push("  counter in the course cards: " + seq.join(" "));
     // ── the reports ──
     const rep = buildUsageReport(), ll = buildLearningReport();
-    ok(/Course: 1 section\(s\) done \(nicht or kein\?\)/.test(rep), "the usage report has the course line");
-    ok(/## GRAMMAR COURSE/.test(ll) && /Rules in my reviews: .*kein/.test(ll) && /grammar course: broke a rule/.test(ll), "the learning log has the course, its rules and the grammar mistakes");
+    ok(new RegExp("Course: 1 section\\(s\\) done \\(" + esc(L.title) + "\\)").test(rep), `the usage report has the course line (${L.title})`);
+    ok(/## GRAMMAR COURSE/.test(ll) && new RegExp("Rules in my reviews: .*" + esc(cxRule(L.rules[0]).title)).test(ll) && /grammar course: broke a rule/.test(ll), "the learning log has the course, its rules and the grammar mistakes");
     // ── the Today line never says "0 rules" ──
     backToMenu(); renderHome();
     const line = (document.querySelector(".cx-today") || {}).innerText || "";
@@ -169,7 +174,7 @@ const HELP = () => {
     S.course.day = "2000-01-01"; cxRollDay();
     const d = cxDueRules(), parts3 = cxTodayParts();
     ok(d.fix.length + d.due.length > 0 && parts3.some(p => p.part === "warm" || p.part === "review"), `the next day its rules come back (${parts3.map(p => p.part + ":" + (p.rules || []).length)})`);
-    ok(!parts3.some(p => p.part === "sheet"), "and no sheet: the next section isn't built yet");
+    ok(!parts3.some(p => p.part === "sheet" && p.sec === L.id), "and not its sheet again: the lesson is done");
     return { log: __log, fails: __fails };
   }, saved);
   say(r, "Today: progress intact, test-out → sheet → drill");
@@ -184,7 +189,7 @@ const HELP = () => {
   const r = await page.evaluate(() => {
     startPathSession("long", { noBonus: true });
     const s = pathSession;
-    const plan = pathEnsurePlan(), t0 = plan.target, cut0 = plan.cx && plan.cx.cut && plan.cx.cut["s0.neg"];
+    const L = cxClockLesson(), plan = pathEnsurePlan(), t0 = plan.target, cut0 = plan.cx && plan.cx.cut && plan.cx.cut[L.id];
     let guard = 0, skipped = [];
     while (pathSession && s.cur && guard++ < 600) {
       const it = s.cur;
@@ -198,11 +203,11 @@ const HELP = () => {
       if (it.t === "bonus") { pathBonus(false); continue; }
       pathNext();
     }
-    ok(cxSecDone("s0.neg") && S.course.sec["s0.neg"].to === 100, "the section is done by the test-out");
-    ok(cut0 > 0 && !(plan.cx.cut || {})["s0.neg"] && plan.target <= t0 && plan.target === planTarget(plan.reviews, plan.pace, (plan.vx ? vxPlanTarget(plan.vx) : 0) + cxPlanTarget(plan.cx)), `today's plan stops counting the skipped sheet and drill (${t0} → ${plan.target})`);
+    ok(cxSecDone(L.id) && S.course.sec[L.id].to === 100, `the section is done by the test-out (${L.id})`);
+    ok(cut0 > 0 && !(plan.cx.cut || {})[L.id] && plan.target <= t0 && plan.target === planTarget(plan.reviews, plan.pace, (plan.vx ? vxPlanTarget(plan.vx) : 0) + cxPlanTarget(plan.cx)), `today's plan stops counting the skipped sheet and drill (${t0} → ${plan.target})`);
     ok(skipped.length === 0, `its sheet and drill skipped themselves (${skipped})`);
-    ok(cxSection("s0.neg").rules.every(r => (S.words["cx_" + r] || {}).st === 3), "its rules are in light review (stage 3)");
-    renderCourseSection("s0.neg");
+    ok(L.rules.every(r => (S.words["cx_" + r] || {}).st === 3), "its rules are in light review (stage 3)");
+    renderCourseSection(L.id);
     ok(/tested out/i.test(document.getElementById("main-screen").innerText), "the section says tested out");
     return { log: __log, fails: __fails };
   });
@@ -217,7 +222,7 @@ const HELP = () => {
   await page.evaluate(HELP);
   const r = await page.evaluate(() => {
     startPathSession("long", { noBonus: true });
-    const s = pathSession, cnt = () => (document.getElementById("p-count") || {}).textContent;
+    const s = pathSession, cnt = () => (document.getElementById("p-count") || {}).textContent, L = cxClockLesson(), sh0 = L.sheets[0];
     const totals = new Set([+cnt().split("/")[1]]);
     let guard = 0, drillRan = false;
     while (pathSession && s.cur && guard++ < 600) {
@@ -227,7 +232,7 @@ const HELP = () => {
       if (it.t === "cx" && it.part === "sheet") {
         while (_gs.step < _gs.steps.length) gsGo(1);
         let k = 0; while (!_gs.quiz.done) { gsAnswerCur(k++ !== 0); gsQuizNext(); }
-        ok(!cxSheetPassed("cx.neg1"), "the sheet missed once in Today: not passed");
+        ok(!cxSheetPassed(sh0), "the sheet missed once in Today: not passed");
         gsQuizFinish(); continue;
       }
       if (it.t === "cx" && _cx) {
@@ -238,7 +243,7 @@ const HELP = () => {
       if (it.t === "bonus") { pathBonus(false); continue; }
       pathNext();
     }
-    ok(drillRan && !cxSecDone("s0.neg"), "its drill ran as practice; the section isn't done");
+    ok(drillRan && !cxSecDone(L.id), "its drill ran as practice; the section isn't done");
     ok(totals.size === 1, `the count never changed (${[...totals]})`);
     ok(!Object.keys(S.words).some(k => /^cx_/.test(k)), "no rule went into review (the sheet isn't passed)");
     const p = cxTodayParts().map(x => x.part);
@@ -348,13 +353,22 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
     // 📚 a chapter's Übungen: each one on its own, back to the chapter
     renderCourseChapter("c5");
     const exs = [...document.querySelectorAll(".cx-ex .gr-stt")].map(b => b.innerText.split(" · ")[0]);
-    ok(exs.join() === "5.1,5.4,5.5,5.6,5.7,5.8,5.9,5.10" && /5\.1 · 5\.3 · /.test(document.getElementById("main-screen").innerText), `chapter 5: its Übungen with drills, in the book's order (${exs})`);
-    ok(!/\b5\.2\b|\b5\.11\b|planned|mirrored|generated/.test(document.getElementById("main-screen").innerText), "not built yet: not listed; no build labels");
-    document.querySelectorAll(".cx-ex")[1].click();
+    ok(exs.join() === "5.1,5.2,5.4,5.5,5.6,5.7,5.8,5.9,5.10" && /5\.1 · 5\.3 · /.test(document.getElementById("main-screen").innerText), `chapter 5: its Übungen with drills, in the book's order (${exs})`);
+    ok(!/\b5\.11\b|planned|mirrored|generated/.test(document.getElementById("main-screen").innerText), "not built yet: not listed; no build labels");
+    [...document.querySelectorAll(".cx-ex")].find(b => /^5\.4 /.test(b.querySelector(".gr-stt").innerText)).click();
     ok(_cx && _cx.list.every(e => e.set === "d5.4") && /Chapter 5/.test(document.querySelector(".screen-top .back-btn").textContent), "Übung 5.4 runs on its own; back goes to chapter 5");
-    _cx.opts.onDone(); ok(document.querySelectorAll(".cx-ex").length === 8 && /Chapter 5/.test(document.querySelector(".screen-label").textContent), "done: back on the chapter");
+    _cx.opts.onDone(); ok(document.querySelectorAll(".cx-ex").length === 9 && /Chapter 5/.test(document.querySelector(".screen-label").textContent), "done: back on the chapter");
     renderCourseChapter("c28");
-    ok([...document.querySelectorAll(".cx-ex .gr-stt")].map(b => b.innerText.split(" · ")[0]).join() === "28.2,28.3,28.4", "chapter 28: 28.2–28.4");
+    ok([...document.querySelectorAll(".cx-ex .gr-stt")].map(b => b.innerText.split(" · ")[0]).join() === "28.2,28.3,28.4,28.11,28.12,28.16,28.17", "chapter 28: 28.2–28.4, and the questions (28.11–12, 28.16–17)");
+    // a passed verb lesson: its book exercises, one Practise card on its page
+    renderCourseSection("s0.verbs");
+    const pr = [...document.querySelectorAll(".gr-mastery")].find(b => /Practise/.test(b.innerText));
+    ok(!!pr, "the verb lesson's page: a Practise card for the book's exercises");
+    pr.click(); ok(_cx && _cx.list.length === 12 && _cx.list.every(e => cxSet(e.set).sec === "s0.verbs") && /📖|Practise/.test(document.getElementById("main-screen").innerText), `…12 of its book exercises (${_cx && [...new Set(_cx.list.map(e => e.set))].join(" ")})`);
+    cxClose();
+    // a Stage 0 lesson of two sheets: what its test-out takes
+    renderCourseSection("s0.gender");
+    ok(/6 of 7 right/.test(document.getElementById("main-screen").innerText) && /its 2 sheets, one a day/.test(document.getElementById("main-screen").innerText), "a two-sheet lesson says what its test-out takes (6 of 7) and that its sheets come one a day");
     renderCourseChapter("c5");
   });
   await noOverflow("chapter");

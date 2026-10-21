@@ -113,13 +113,14 @@ Object.values(CX.sets).forEach(set => {
     const items = C.cxGenItems(set, set.n || 10);
     ok(items.length >= 8, `${tag}: the generator gives 8+ items (${items.length})`);
     (set.r || []).forEach(r => ok(ruleOk(r), `${tag}: rule ${r}`));
+    const tense = set.gen.tense || "pr";
+    ok(["pr", "pt", "im"].includes(tense), `${tag}: tense ${tense}`);
     items.forEach(it => {
-      const m = /^(\S+(?: \(they\))?) ___ \((\S+)\)$/.exec(it.q);
-      ok(!!m, `${tag}: generated "${it.q}"`);
+      const m = /^(\S+(?: \(they\))?) ___!? \((\S+)\)$/.exec(it.q);
+      ok(!!m && m[2] === it.inf, `${tag}: generated "${it.q}"`);
       if (!m) return;
-      const p = { "er/sie/es": "er", "sie (they)": "sie" }[m[1]] || m[1];
-      const f = C.vxForm(C.vxVerb(m[2]), "pr", p);
-      ok(f && it.a.includes(f.ans) && C.cxCheck(it, f.ans).ok, `${tag}: "${it.q}" = the engine's ${f && f.ans}`);
+      const f = C.vxForm(C.vxVerb(it.inf), tense, it.p);
+      ok(f && it.a.includes(f.ans) && C.cxCheck(it, f.ans).ok && it.t === tense, `${tag}: "${it.q}" = the engine's ${f && f.ans}`);
     });
     return;
   }
@@ -154,9 +155,13 @@ Object.values(CX.sets).forEach(set => {
       if (it.hl) ok(it.q.includes(it.hl), `${t}: the highlight "${it.hl}" is in the sentence`);
       if (k === "compose") ok((it.w || []).length >= 3, `${t}: cue words`);
     }
+    // a form the engine can check (vf: [[inf, tense, person]]): every
+    // accepted answer holds one of the engine's forms (komm / komme), its
+    // words in order — a separable prefix after the rest (ruf … an)
     if ((it.vf || []).length) it.vf.forEach(([inf, tense, p]) => {
-      const f = C.vxForm(C.vxVerb(inf), tense, p);
-      ok(f && it.a.every(a => C.cxToks(a).includes(C.cxLoose(f.ans))), `${t}: ${inf} ${tense} ${p} = the engine's ${f && f.ans}`);
+      const f = C.vxVerb(inf) && C.vxForm(C.vxVerb(inf), tense, p);
+      const has = (a, x) => { const A = C.cxToks(a); let i = 0; return C.cxToks(x).every(t => { while (i < A.length && A[i] !== t) i++; return i++ < A.length; }); };
+      ok(f && it.a.every(a => f.acc.some(x => has(a, x))), `${t}: ${inf} ${tense} ${p} = the engine's ${f && f.ans}`);
     });
   });
 });
@@ -303,6 +308,11 @@ if (process.env.BOOK) {
   Object.values(CX.sets).forEach(set => (set.items || []).forEach(it => [it.q, ...(it.a || []), ...(it.model || [])].forEach(s => s && ours.push([set.id, s]))));
   (CX.journal || []).forEach(p => (p.help || []).forEach(h => ours.push([p.id, h])));
   Object.values(CX.sheets).forEach(sh => [...sh.ex.map(e => e[0]), ...sh.quiz.flatMap(q => [q.q, ...(q.o || [])])].forEach(s => ours.push([sh.id, String(s)])));
+  // the whole sentences inside a sheet's rules, why, trap, table and lines, and the items' notes
+  // (a grammar term — "was für ein" — is no sentence: only what ends in . ! ?)
+  const sentencesOf = t => String(t || "").replace(/\*\*|~~|\{\{|\}\}|\(\(|\)\)|\[\[|\]\]/g, "").split(/(?<=[.!?])\s+|\s[·—→]\s|:\s/).map(x => x.trim()).filter(x => /[.!?]$/.test(x));
+  Object.values(CX.sheets).forEach(sh => [...(sh.rules || []), sh.why, sh.trap, ...((sh.table || {}).rows || []).flat(), ...(sh.lines || []).flat()].forEach(t => sentencesOf(t).forEach(s => ours.push([sh.id, s]))));
+  Object.values(CX.sets).forEach(set => (set.items || []).forEach(it => sentencesOf(it.note).forEach(s => ours.push([set.id, s]))));
   let n = 0;
   ours.forEach(([where, s]) => {
     const k = C.cxLoose(s.replace(/\*\*|\(→[^)]*\)/g, ""));
