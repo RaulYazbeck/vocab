@@ -247,6 +247,8 @@ function migratePath() {
   if (typeof P.day !== "string") P.day = "";
   if (!(P.introducedToday >= 0)) P.introducedToday = 0;
   if (!(P.extraToday >= 0)) P.extraToday = 0;
+  if (!(P.extraBtn >= 0)) P.extraBtn = 0;
+  if (!(P.extraUndo >= 0)) P.extraUndo = 0;
   if (typeof P.lastActiveDay !== "string") P.lastActiveDay = "";
   if (P.autoPaused === undefined) P.autoPaused = false;
   if (P.welcomed === undefined) P.welcomed = false;

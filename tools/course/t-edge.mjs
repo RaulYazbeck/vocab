@@ -101,7 +101,8 @@ const SETUP = () => {
     ok(s.cur.t === "cx" && s.cur.part === "sheet", "on the sheet card when the sync lands");
     // re-entering the card (as after a redraw) finds it done: it skips itself
     pathNext.call && renderPathCx(s.cur);
-    ok(s.cur.part === "drill" && cnt() <= total0, `the passed sheet skipped itself, the drill is next, the count didn't grow (${total0} → ${cnt()})`);
+    ok(s.cur.part === "drill" && cnt() === total0, `the passed sheet skipped itself, the drill is next, the count stayed (${total0} → ${cnt()})`);
+    ok(s.items.slice(s.i + 1).some(x => x.w && !x.w.vx && !x.warm && (x.t !== "choice" || !x.fresh)), "its questions came back as word reviews after the drill");
     // the day rolls over in the middle of the drill
     const k0 = _cx.i;
     S.course.day = "2000-01-01";

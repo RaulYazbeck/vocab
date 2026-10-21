@@ -141,7 +141,7 @@ const r = await page.evaluate((APP) => {
     shift(); shift(); shift();
     ok(s.answered && s.stats.wrong === st0.wrong && s.stats.correct === st0.correct + 1 && s.stats.answered === st0.answered + 1, "Shift+Enter ×3: counted right, the miss gone");
     ok(/Counted/.test(document.getElementById("p-fb").innerHTML), "…shown as ✓ Counted");
-    ok(s.missed.length === missed0 && S.path.secretOk.n === 1, "…not waiting for the repair round, one of today's 3 used");
+    ok(s.missed.length === missed0 && S.path.secretOk.n === 1, "…not waiting for the repair round, one of today's 5 used");
     ok(JSON.parse(verb0).nc + 1 === S.verb.nc && vxCovHas("gehen", "pf"), "…the verb ledger rolled back, then counted once, the form set");
     shift(); ok(s.answered && s.stats.correct === st0.correct + 1, "a 4th Shift+Enter does nothing");
     // A near miss: no daily cap.

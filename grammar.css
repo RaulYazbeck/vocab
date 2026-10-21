@@ -419,6 +419,10 @@
 .cx-learned { color:var(--success) !important; }
 .cx-lines { flex-direction:column; align-items:stretch; }
 .cx-lines .gs-tok { text-align:left; }
+/* drag & drop on the course's tiles (course-ui.js cxDragBind) */
+.cx-run #cx-bank .gs-tok, .cx-run #cx-built .gs-tok { touch-action:none; }
+.cx-run .gs-bank.drop-hot { background:var(--accent-dim); border-radius:var(--r-sm); }
+.g-caret.cx-caret-row { width:auto; min-height:4px; height:4px; }
 .cx-self { display:flex; gap:10px; width:100%; }
 .cx-self > * { flex:1; }
 .cx-typeit { margin:2px auto 0; font-size:13px; }

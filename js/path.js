@@ -195,7 +195,7 @@ function pathMeetWord(w) {
 // ── PACE ──────────────────────────────────────
 function pathRollDay() {
   const P = S.path, today = studyToday();
-  if (P.day !== today) { P.day = today; P.extraToday = 0; P.spotToday = 0; }
+  if (P.day !== today) { P.day = today; P.extraToday = 0; P.extraBtn = 0; P.extraUndo = 0; P.spotToday = 0; }
 }
 // Auto-pause after AUTO_PAUSE_DAYS missed days with reviews waiting;
 // it lifts by itself once the backlog is back under THROTTLE_HALF —
@@ -264,7 +264,8 @@ function pathNewQuota(scan = pathScan()) {
   }
   const held = plan && reason !== "paused" ? full - base : 0;
   if (plan && typeof usageNoteBrake === "function") usageNoteBrake(reason, scan.overdue);
-  const quota = base + (P.extraToday || 0);
+  // (extraUndo: "+5"s taken back — counted apart so a sync never brings them back)
+  const quota = base + Math.max(0, (P.extraToday || 0) - (P.extraUndo || 0));
   return { quota, left: Math.max(0, quota - scan.metToday), reason, base, held };
 }
 // Today's plan in words. When the brake holds new words back, the room
@@ -278,11 +279,38 @@ function planToday(scan = pathScan()) {
   const catchUp = Math.min(plan.leave || 0, Math.round(q.held * 3 / 1.1));
   return { reviews: plan.reviews, catchUp, newWords: q.base, target: plan.target, reason: q.reason, vx: plan.vx || null, cx: plan.cx || null };
 }
+// "+5 new": only once today's own new words are met — never on top of
+// words still waiting. Its session brings exactly those words.
 function pathLearnExtra() {
   pathRollDay();
-  S.path.extraToday = (S.path.extraToday || 0) + PATH.EXTRA_NEW;
+  if (pathNewQuota(pathScan(true)).left > 0) return false;
+  const P = S.path;
+  P.extraToday = (P.extraToday || 0) + PATH.EXTRA_NEW;
+  P.extraBtn = (P.extraBtn || 0) + PATH.EXTRA_NEW;
   saveState();
   logEvent("extra_new", {});
+  return true;
+}
+function pathStartExtra() {
+  pathLearnExtra();
+  // Quick: room for exactly the 5 (3 questions each) — never saved as your length
+  startPathSession("quick", { extra: true });
+}
+// How many of the "+5" words added today can still be taken back: never
+// one already met (it stays learnt and counted).
+function pathExtraUndoable(q = pathNewQuota()) {
+  const P = S.path;
+  return Math.max(0, Math.min(PATH.EXTRA_NEW, (P.extraBtn || 0) - (P.extraUndo || 0), q.left));
+}
+function pathUndoExtra() {
+  pathRollDay();
+  const n = pathExtraUndoable(pathNewQuota(pathScan(true)));
+  if (!n) return 0;
+  S.path.extraUndo = (S.path.extraUndo || 0) + n;
+  invalidatePathScan();
+  saveState();
+  logEvent("extra_undo", { n });
+  return n;
 }
 function setPathNewPerDay(n) {
   if (!PATH.NEW_PER_DAY_OPTIONS.includes(n)) return;
@@ -736,7 +764,9 @@ function buildPathQueue(lenKey, opts = {}) {
     const newSlots = Math.max(Math.round(budget * 0.3), budget - Math.min(reviewsAvail, Math.round(budget * 0.7)));
     // Each new word costs ~3 counted items: a choice check and two
     // spaced typed recalls (successive relearning, criterion 2).
-    const newCount = Math.min(q.left, Math.floor(newSlots / 3));
+    // A "+5" session (pathStartExtra) brings all of them, whatever's due.
+    const newCount = opts.extra ? Math.min(q.left, Math.max(PATH.EXTRA_NEW, Math.floor(newSlots / 3)), Math.floor(budget / 3))
+      : Math.min(q.left, Math.floor(newSlots / 3));
     clusters = planNewWords(newCount, rng);
     const nNew0 = clusters.reduce((s, c) => s + c.length, 0);
     // The grammar of the day — the course's cards (course-de.js) and the

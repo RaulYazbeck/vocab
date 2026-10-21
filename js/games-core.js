@@ -696,12 +696,15 @@ function floatScore(anchor, text, cls = "") {
 // item is picked up, a ghost follows the finger, `resolve(x, y)` names
 // the drop target, `hover(target)` can draw a caret/highlight and
 // `drop(item, target)` commits. A drop outside any target snaps back.
-// All listeners go through gListen, so quitting a game cleans up.
+// All listeners go through gListen, so quitting a game cleans up —
+// or, outside a game (the course's tiles), through `opts.listen`, so its
+// caller can take them off again.
 const DRAG_SLOP = 6;
 let _dragJustEnded = 0;
 function gDrag(root, opts) {
   let st = null;
   const ctx = activeGame && activeGame.ctx;
+  const gListen = opts.listen || window.gListen;
   const cleanup = (dropped) => {
     if (!st) return;
     const s0 = st; st = null;

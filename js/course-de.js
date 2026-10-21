@@ -1071,7 +1071,7 @@ function cxTodayCounts() {
   const { fix, due } = cxDueRules();
   const parts = cxTodayParts();
   const lesson = parts.find(p => p.part === "sheet" || p.part === "testout" || p.part === "drill") || null;
-  return { due: due.length + fix.length, fix: fix.length, lesson, parts: parts.length };
+  return { due: due.length + fix.length, fix: fix.length, lesson, write: parts.some(p => p.part === "write"), parts: parts.length };
 }
 // The day's plan (made once in the morning, path.js): the right answers
 // the course adds to the target.

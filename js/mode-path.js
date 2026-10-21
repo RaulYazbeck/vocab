@@ -17,8 +17,9 @@ function startPathSession(lenKey, opts = {}) {
   if (typeof quitAllGames === "function") quitAllGames();
   _screenFrom = null;
   lenKey = PATH.SESSION_LENGTHS[lenKey] ? lenKey : (S.path.sessionLen || "regular");
-  // (✅ Due today sizes itself to what's due: the length you picked for Today stays)
-  if (opts.focus !== "dues") S.path.sessionLen = lenKey;
+  // (✅ Due today sizes itself to what's due, a "+5" round brings its words:
+  // the length you picked for Today stays)
+  if (opts.focus !== "dues" && !opts.extra) S.path.sessionLen = lenKey;
   const q = buildPathQueue(lenKey, opts);
   const island = document.getElementById("floating-island");
   if (island) island.remove();
@@ -33,7 +34,7 @@ function startPathSession(lenKey, opts = {}) {
     renderPathCaughtUp(); return;
   }
   pathSession = {
-    lenKey, items: q.items, i: -1, budget: q.budget, startedAt: Date.now(), startExp: S.exp,
+    lenKey, extra: !!opts.extra, items: q.items, i: -1, budget: q.budget, startedAt: Date.now(), startExp: S.exp,
     stats: { answered: 0, correct: 0, wrong: 0, near: 0 }, moves: new Map(), met: [], repaired: 0,
     locked: 0, flagged: 0, missed: [], reasks: {}, bonusShown: 0, lastBonus: "", answered: false,
     cur: null, shownAt: 0, pendingReverse: null, typedSeen: 0,
@@ -598,11 +599,11 @@ function pathReverseResolve(right) {
 }
 // ── PRIVATE "MY TYPO" OVERRIDE ────────────────
 // A deliberate triple gesture (tap the ✗ ×3, or Shift+Enter ×3) on a wrong
-// typed answer turns it into a full success. Honour system, max 3 a day —
+// typed answer turns it into a full success. Honour system, max 5 a day —
 // and without a cap on an "≈ Almost" (one slip), where you judge the typo.
 // On a phone the ✗ reacts on touch-down and never takes the focus from
 // the answer field: the keyboard stays up and nothing moves between taps.
-const SECRET_OK_PER_DAY = 3;
+const SECRET_OK_PER_DAY = 5;
 let _secretTaps = [];
 function pathSecretPress(need, windowMs) {
   const now = Date.now();
@@ -852,6 +853,33 @@ function pathReask(w, gap) {
   while (pos < s.items.length && n < gap) { if (s.items[pos].t !== "bonus" && s.items[pos].t !== "learn") n++; pos++; }
   s.items.splice(pos, 0, { t: "choice", w, reask: true, warm: true, rev: Math.random() < 0.5 });
   pathSpace(s.items, s.i + 1);
+}
+
+// A 📖 card asking fewer questions than the session counted for it (a part
+// done meanwhile elsewhere, a drill or review with fewer items left): the
+// length you picked stays the length. The missing questions come as word
+// reviews not in this session yet — due ones first, else practice on the
+// least recently seen — spread over the next cards.
+function pathTopUp(it, qn) {
+  const s = pathSession, lost = (it.qn || 0) - qn;
+  it.qn = qn;
+  if (!s || lost <= 0 || s.repairPhase) return;
+  const have = new Set(s.items.filter(x => x.w && !x.w.vx).map(x => wordKey(x.w)));
+  const { fix, due } = pathReviewCandidates(Date.now());
+  const add = [];
+  [...fix, ...due].forEach(x => { const k = x.d.id + "_" + x.i; if (add.length < lost && !have.has(k)) { have.add(k); add.push(pathItemFor(pathWord(x.d.id, x.i), x.ws)); } });
+  if (add.length < lost) focusWords("stale").forEach(x => { const k = x.d.id + "_" + x.i; if (add.length < lost && !have.has(k)) { have.add(k); add.push({ ...focusItem(x, "stale"), practice: true }); } });
+  // (after the rest of this grammar block: a sheet and its drill stay together)
+  let pos = s.i + 1;
+  while (pos < s.items.length && (s.items[pos].t === "cx" || s.items[pos].t === "sheet")) pos++;
+  add.forEach(a => {
+    // (a 🌱 word meets a multiple choice before typing, as in buildPathQueue)
+    const ws = S.words[wordKey(a.w)];
+    if (["typed", "spot", "cloze", "reverse"].includes(a.t) && !(ws && (ws.st || 0) >= 2)) { s.items.splice(pos, 0, { t: "choice", w: a.w, warm: true, rev: Math.random() < 0.5 }); pos++; }
+    s.items.splice(pos, 0, a);
+    pos = Math.min(s.items.length, pos + 2);
+  });
+  if (add.length) pathSpace(s.items, s.i + 1);
 }
 
 // ── REPAIR ROUND (end of session, optional) ───
@@ -1155,7 +1183,8 @@ function renderPathSummary(abandoned) {
   const vxSheets = s.items.slice(0, s.i + 1).filter(x => x.t === "sheet" && typeof vxSheetPassed === "function" && vxSheetPassed(x.sheet)).length;
   const missed = s.missed.slice();
   const met = s.met.slice();
-  const lenKey = s.lenKey;
+  // (after a "+5" round, another round is one of the length you picked)
+  const lenKey = s.extra ? S.path.sessionLen || "regular" : s.lenKey;
   // Mistakes still open (skipped or missed again) wait for next time.
   const openLeft = pathOpenMistakes().length;
   // Small rewards for good habits, no fuss: every mistake repaired, or
@@ -1227,7 +1256,7 @@ function renderPathCaughtUp() {
           t.reason === "paused" ? "New words are paused (Settings → New words/day)." :
           "Nothing is due and today's new words are met."}</div>
         <div class="g-result-actions">
-          ${!done ? `<button class="g-big-btn" onclick="pathLearnExtra();startPathSession('quick')">🌱 Learn ${PATH.EXTRA_NEW} extra</button>` : ""}
+          ${!done && !t.newLeft && t.reason !== "autopaused" ? `<button class="g-big-btn" onclick="pathStartExtra()">🌱 Learn ${PATH.EXTRA_NEW} extra</button>` : ""}
           <button class="g-sec-btn" onclick="openGamesHub(null)">🎮 Play a game</button>
           <button class="g-link-btn" onclick="backToMenu()">← Today</button>
         </div>
