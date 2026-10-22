@@ -49,9 +49,9 @@ const SETUP = () => {
   await page.evaluate(() => ok(_cx.i === 2, "after the hold, Enter goes on"));
   // ✕ in the middle: what was answered stays, the card comes back
   await page.evaluate(() => {
-    const ds0 = JSON.stringify(S.course.ds), q0 = S.quests.m.ok;
+    const ds0 = JSON.stringify(S.course.ds), q0 = S.quests.m.ok, sec = pathSession.cur.sec;
     endPathSession(true);
-    ok(JSON.stringify(S.course.ds) === ds0 && S.course.dd["new:s0.neg"], "✕ mid-card: the answers and the day's section are kept");
+    ok(JSON.stringify(S.course.ds) === ds0 && S.course.dd["new:" + sec], `✕ mid-card: the answers and the day's section are kept (${sec})`);
     startPathSession("long", { noBonus: true });
     ok(pathSession.items.some(x => x.t === "cx" && x.part === "testout"), "the next session brings the test-out again (not finished)");
     void q0;
@@ -96,7 +96,8 @@ const SETUP = () => {
     toCx("testout"); while (!_cx.done) { const c = _cx.list[_cx.i], set = cxSet(c.set), k = cxItemKind(set, c.item); if (k === "pick") cxPick((c.item.o || set.o).indexOf(c.item.a[0])); else { if (c.mode === "tiles") cxTypeInstead(); if (document.getElementById("cx-input")) { document.getElementById("cx-input").value = "falsch"; } else { document.getElementById("cx-text").value = "Ich habe kein Auto."; } cxCheckCur(); cxCheckCur(); } window.mistakeHeld = () => false; cxNext(); }
     cxFinish();
     // (the sheet card is next) — meanwhile the other device's sync arrives:
-    S.course.sec["s0.neg"] = { st: 2, sh: 100, ok: { "cx.neg1": 100 }, to: S.course.sec["s0.neg"].to };
+    const sec = s.cur.sec, sh1 = cxSection(sec).sheets;
+    S.course.sec[sec] = { st: 2, sh: 100, ok: Object.fromEntries(sh1.map(id => [id, 100])), to: S.course.sec[sec].to };
     pathNext && 0;
     ok(s.cur.t === "cx" && s.cur.part === "sheet", "on the sheet card when the sync lands");
     // re-entering the card (as after a redraw) finds it done: it skips itself

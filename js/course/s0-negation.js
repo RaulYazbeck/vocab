@@ -231,16 +231,18 @@ cxPack({
     // The verb track's Präsens sheets: what the engine generates for them.
     "s0.verbs": {
       drills: [
-        { id: "d5.1", ex: "5.1", also: ["5.3"], t: "type", title: "sein · haben · werden", how: "Write the verb's form.", gen: { kind: "conj", verbs: ["sein", "haben", "werden"], tense: "pr" }, n: 10, r: ["gs:pr3.r1", "gs:pr3.r2", "gs:pr5.lines"] },
+        { id: "d5.1", ex: "5.1", also: ["5.3", "3.6", "6.22", "6.23", "6.24"], t: "type", title: "sein · haben · werden", how: "Write the verb's form.", gen: { kind: "conj", verbs: ["sein", "haben", "werden"], tense: "pr" }, n: 10, r: ["gs:pr3.r1", "gs:pr3.r2", "gs:pr5.lines"] },
       ],
     },
   },
 });
 
-// What each exercise of chapters 5 and 28 became (the book map).
+// What each exercise of chapters 5 and 28 became (the book map). The
+// question exercises (5•2, 28•11–12, 28•16–17) are drilled in
+// s0-questions.js since Session 2.
 cxCover({
   "5.1": { st: "generated", set: "d5.1" },
-  "5.2": { st: "planned", sec: "s0.v2q" }, "5.3": { st: "generated", set: "d5.1" },
+  "5.2": "d5.2", "5.3": { st: "generated", set: "d5.1" },
   "5.4": "d5.4", "5.5": "d5.5", "5.6": "d5.6", "5.7": "d5.7", "5.8": "d5.8", "5.9": "d5.9", "5.10": "d5.10",
   "5.11": { st: "planned", sec: "s1.neg2" },
   "28.1": { st: "planned", sec: "s1.front" },
@@ -248,8 +250,8 @@ cxCover({
   "28.5": { st: "planned", sec: "s1.neg2" },
   "28.6": { st: "planned", sec: "s1.front" }, "28.7": { st: "planned", sec: "s1.front" }, "28.8": { st: "planned", sec: "s1.front" },
   "28.9": { st: "planned", sec: "s1.front" }, "28.10": { st: "planned", sec: "s1.front" },
-  "28.11": { st: "planned", sec: "s0.v2q" }, "28.12": { st: "planned", sec: "s0.v2q" },
+  "28.11": "d28.11", "28.12": "d28.12",
   "28.13": { st: "planned", sec: "s1.wer" }, "28.14": { st: "planned", sec: "s1.wer" },
-  "28.15": { st: "planned", sec: "s2.woda" }, "28.16": { st: "planned", sec: "s0.wq" }, "28.17": { st: "planned", sec: "s0.wq" },
+  "28.15": { st: "planned", sec: "s2.woda" }, "28.16": "d28.16", "28.17": "d28.17",
   "28.18": { st: "planned", sec: "s2.woda" }, "28.19": { st: "planned", sec: "s2.woda" }, "28.20": { st: "planned", sec: "s2.woda" }, "28.21": { st: "planned", sec: "s2.woda" },
 });

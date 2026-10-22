@@ -8,7 +8,8 @@ const ctx = await browser.newContext({ viewport: { width: 420, height: 800 }, se
 const page = await ctx.newPage();
 await page.route(/gstatic\.com/, r => r.abort());
 await page.addInitScript(() => {
-  const fake = { collection: (...a) => window.__fakeDb.collection(...a) };
+  // (batch: a save after the cloud load writes here — accepted, nothing kept)
+  const fake = { collection: (...a) => window.__fakeDb.collection(...a), batch: () => ({ set() {}, delete() {}, commit: async () => {} }) };
   window.firebase = { initializeApp() {}, firestore: () => fake,
     auth: () => ({ onAuthStateChanged() {}, signOut() {}, signInWithPopup: async () => {}, currentUser: null }) };
   window.firebase.auth.GoogleAuthProvider = function () {};

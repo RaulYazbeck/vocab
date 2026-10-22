@@ -157,6 +157,8 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
 // contrast days: about every 5th day once two sections are done, on a day between sheets
 {
   fresh();
+  // (two more lessons, as if built — what they really hold comes back at the end)
+  const real = ["s0.gender", "s0.art"].map(id => [id, C.CX.byId[id].built, C.CX.byId[id].sheets]);
   const fake = id => { C.CX.byId[id].built = true; C.CX.byId[id].sheets = ["cx.neg1"]; };
   C.S.course.since = "2026-10-01"; C.S.course.sec = { "s0.neg": { st: 3 } }; C.S.course.seen = Array.from({ length: 18 }, (_, i) => C.addDays("2026-10-01", i));
   ok(!C.cxContrastDue(), "one section done: no contrast day");
@@ -172,7 +174,7 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   ok(C.cxBreak() === 0 && /testout|sheet/.test(kinds()) && !/:mix/.test(kinds()), "lessons back to back (no break): the lesson; the mixed day waits for a break", kinds());
   C.S.path.deadline = "2027-01-01"; const st = C.cxPlanner().status;
   ok(st === "red" && /testout|sheet/.test(kinds()) && !/:mix/.test(kinds()), `behind (${st}): the lesson comes, no mixed day`, kinds());
-  ["s0.gender", "s0.art"].forEach(id => { C.CX.byId[id].built = false; C.CX.byId[id].sheets = []; });
+  real.forEach(([id, built, sheets]) => { C.CX.byId[id].built = built; C.CX.byId[id].sheets = sheets; });
 }
 // my rhythm: the gap counts study days
 {
@@ -241,8 +243,8 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   ["pr1", "pr2", "pr3", "pr4", "pr5", "pr7", "im1", "im2", "im3", "pf1", "pt11", "pt12", "pt13"].forEach(id => { C2.S.verb.sh[id] = 100; });
   C2.cxIntroduceRules("s0.neg", 3);
   ok(C2.cxCheckpointReady(C2.CX.byId["s0.recap"]) && C2.cxTodayParts().some(p => p.part === "checkpoint" && p.sec === "s0.recap"), "stage 0 done: the checkpoint comes in Today");
-  const plan = C2.cxCheckpointPlan("s0.recap");
-  ok(plan.length === 12 && new Set(plan.map(e => e.rule)).size === 4, `12 questions over the stage's 4 rules (${plan.length})`);
+  const plan = C2.cxCheckpointPlan("s0.recap"), stageRules = C2.cxStageRules(0);
+  ok(plan.length === 12 && plan.every(e => stageRules.includes(e.rule)) && new Set(plan.map(e => e.rule)).size === Math.min(12, stageRules.length), `12 questions over the stage's rules, round and round (${plan.length} over ${new Set(plan.map(e => e.rule)).size} of ${stageRules.length})`);
   ok(!C2.cxCheckpointResult("s0.recap", 8, 12) && !C2.cxSecDone("s0.recap"), "67%: not passed, it comes back");
   ok(!C2.cxCheckpointResult("s0.recap", 9, 12) && !C2.cxSecDone("s0.recap"), "75%: not passed");
   ok(!C2.cxCheckpointResult("s0.recap", 9, 12) && C2.cxSecDone("s0.recap") && C2.S.course.sec["s0.recap"].on === 1, "third try: the stage moves on anyway (the date matters more)");
@@ -252,8 +254,16 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
 
 // ── the lesson clock (PLAN.md §9): lesson, practise, lesson, practise ──
 {
+  // The course as Session 1 left it — only the pilot built (Session 2's
+  // lessons taken out again), so the clock's scenarios below stay the same.
   // tBuild(id, n): a lesson built with n sheets (the pilot's shape, its own rules)
   const C3 = loadCourse({ extra: `
+    (function () {
+      CX.sections.filter(s => s.ses === 2 && !s.verb).forEach(s => {
+        s.sets.forEach(id => delete CX.sets[id]); s.sheets.forEach(id => delete CX.sheets[id]); s.rules.forEach(r => delete CX.rules[r]);
+        Object.assign(s, { built: false, sheets: [], sets: [], rules: [], diag: [] }); delete s.checkpoint; delete s.testout;
+      });
+    })();
     function tBuild(id, n) {
       const pilot = CX.byId["s0.neg"], ps = CX.sheets["cx.neg1"], k = id.replace(/\\W/g, "");
       const rid = Array.from({ length: 2 * n }, (_, i) => "t." + k + "-r" + (i + 1));
@@ -468,6 +478,82 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   m = ctx.mergeStates(wa, wb, { localWins: false });
   ok(J(m.writing["2026"].map(e => e.id)) === J(["a", "b"]) && m.writing["2026"][1].c === "2027-01-03" && m.writing["2027"][0].id === "c", "writing: both devices' texts, year by year, corrected stays corrected", J(m.writing));
   ok(!("writing" in ctx.mergeStates({ savedAt: 1, words: {} }, { savedAt: 2, words: {} }, {})), "no writing anywhere: none made up");
+}
+
+// ── Session 2: Stage 0 built — where my progress lands, the verb lesson's drills ──
+{
+  const VERBS0 = ["pr1", "pr2", "pr3", "pr4", "pr5", "pr7", "im1", "im2", "im3", "pf1", "pt11", "pt12", "pt13"];
+  const S0 = ["s0.sounds", "s0.gender", "s0.art", "s0.plural", "s0.pron", "s0.v2q", "s0.wq", "s0.num", "s0.acc", "s0.accpron"];
+  ok(S0.every(id => C.cxLearnable(C.cxSection(id))) && C.cxSection("s0.recap").checkpoint, "every Stage 0 lesson is built, and its checkpoint");
+  C.vxOn = () => true;
+  fresh();
+  ok(C.cxClockLesson().id === "s0.sounds" && C.cxTodayParts().some(p => p.part === "testout" && p.sec === "s0.sounds"), "nothing begun: Sounds and spelling first, with its test-out");
+  // my progress as it stands: nicht / kein done, the A1 verb lesson passed
+  fresh(); C.S.course.sec["s0.neg"] = { st: 3, at: "2026-10-17" }; C.S.course.last = "2026-10-01";
+  VERBS0.forEach(v => { C.S.verb.sh[v] = 100; });
+  ok(C.cxSecDone("s0.verbs") && C.cxSecDone("s0.neg"), "what I passed stays passed: the pilot and the A1 verb lesson are done");
+  ok(C.cxClockLesson().id === "s0.sounds", `the Stage 0 lessons built now come before the A2 verb lessons (${C.cxClockLesson().id})`);
+  // …but an A2 verb lesson I've started carries on first
+  C.S.verb.sh.pf2 = 100;
+  ok(C.cxCurrentLesson() && C.cxCurrentLesson().id === "s1.pf" && C.cxClockLesson().id === "s1.pf", "a lesson under way (pf2 passed) carries on first — never stretched");
+  delete C.S.verb.sh.pf2;
+  // a test-out passed: a two-sheet lesson done in one go, its rules in light review
+  C.cxPartBegin({ part: "testout", sec: "s0.gender" });
+  ok(C.cxTestoutResult("s0.gender", 7, 7) && C.cxSecDone("s0.gender") && C.cxSection("s0.gender").rules.every(r => (C.S.words["cx_" + r] || {}).st === 3), "the gender test-out passed: the lesson is done, its 7 rules at stage 3");
+  // a test-out missed: the first sheet comes, then its drill (one sheet a day)
+  fresh(); C.S.course.sec["s0.neg"] = { st: 3 }; VERBS0.forEach(v => { C.S.verb.sh[v] = 100; });
+  ["s0.sounds"].forEach(id => { C.S.course.sec[id] = { st: 3, at: "2026-10-01" }; });
+  C.S.course.last = "2026-10-01";
+  ok(C.cxClockLesson().id === "s0.gender", "Sounds done: Gender next");
+  ok(!C.cxTestoutResult("s0.gender", 4, 7), "the gender test-out missed (4/7)");
+  ok(J(C.cxTodayParts().filter(p => p.sec === "s0.gender").map(p => p.part + ":" + (p.sheet || ""))) === J(["sheet:cx.gen1", "drill:"]), "…its first sheet today, then the drill", J(C.cxTodayParts()));
+  const allow = new Set(C.cxSheet("cx.gen1").rid);
+  C.cxSheetResult("cx.gen1", 1, true, "path");
+  const dl = C.cxPartList({ part: "drill", sec: "s0.gender" });
+  ok(dl.length >= 10 && dl.every(e => e.item.r.every(r => allow.has(r))) && ["compose", "translate", "write", "answer"].includes(C.cxItemKind(C.cxSet(dl[dl.length - 1].set), dl[dl.length - 1].item)), `day 1's drill: sheet 1's rules only, production last (${dl.length})`);
+  ok(!C.cxSecDone("s0.gender") && C.cxLessonLeft(C.cxSection("s0.gender")) === 1, "one sheet passed: the lesson goes on tomorrow");
+  // the verb lesson's book drills: a day's practice rotates its 30 sets, production last
+  fresh(); VERBS0.forEach(v => { C.S.verb.sh[v] = 100; });
+  const vsets = C.cxSecSets("s0.verbs").filter(s => !s.gen);
+  ok(vsets.length >= 25, `the verb lesson has its book exercises (${vsets.length} sets)`);
+  const p1 = C.cxDrillPlan("s0.verbs", 12), last = e => C.cxItemKind(C.cxSet(e.set), e.item);
+  ok(p1.length === 12 && ["compose", "translate", "write"].includes(last(p1[p1.length - 1])), `12 items, production last (${p1.map(e => e.set).join(" ")})`);
+  p1.forEach(e => { const ds = C.S.course.ds[e.set] || (C.S.course.ds[e.set] = [0, 0, 0]); ds[1]++; });
+  const p2 = C.cxDrillPlan("s0.verbs", 12), seen1 = new Set(p1.map(e => e.set));
+  ok(p2.filter(e => !seen1.has(e.set)).length >= 8, "the next practice: mostly other sets (the least asked first)");
+  ok(C.cxMixSections().some(s => s.id === "s0.verbs"), "the verb lesson done: its drills join the mixed days");
+  // the engine's forms: commands (du · ihr · Sie) and the generated sets' answers
+  const imp = C.cxGenItems(C.cxSet("d9.1"), 10);
+  ok(imp.length >= 8 && imp.every(it => it.t === "im" && it.a.includes(C.vxForm(C.vxVerb(it.inf), "im", it.p).ans)), "generated commands: the engine's form, with Sie where it belongs", J(imp.slice(0, 3).map(it => [it.q, it.a])));
+  // the word-order rule moves "um sieben Uhr" whole
+  const zug = { a: ["Ich nehme den Zug um sieben Uhr."] };
+  ok(C.cxOrders(zug).includes("Um sieben Uhr nehme ich den Zug.") && !C.cxOrders(zug).some(o => /Uhr$/.test(o.replace(/\.$/, "")) && /^Um sieben nehme/.test(o)), "«um sieben Uhr» moves as one: Um sieben Uhr nehme ich den Zug.", J(C.cxOrders(zug)));
+  ok(C.cxCheck(zug, "Um sieben Uhr nehme ich den Zug").ok && !C.cxCheck(zug, "Um sieben nehme ich den Zug Uhr").ok, "…and the broken order isn't accepted");
+  // a verb rule on a miss: the sheet's own point
+  const rv = C.cxRuleView("gs:pr4.r2");
+  ok(rv && rv.sheet === "pr4" && /sprechen/.test(rv.text) && !C.cxRuleView("gs:nope.r1"), "a miss in the verb drills names the verb sheet's rule");
+  // tiles of a question set: the first word small (it doesn't give the start away)
+  const tl = C.cxTiles(C.cxSet("d6.9"), C.cxSet("d6.9").items[0]).tiles;
+  ok(tl[0] === "wohnst", `question tiles: the verb written small (${tl.join(" ")})`);
+  // the verb drills' own sentences reach the verb log: the form right in a
+  // sentence otherwise wrong, the word I wrote for it on a miss — and, as
+  // agreed, a missing umlaut is never a mistake (fahrt for fährt is right)
+  // unless the 1 / 2 choice was asked and the other form picked
+  const notes = []; C.learnNoteVerb = (F, t, p, right, given, want) => notes.push([F.inf, t, p, right, given, want]);
+  const it87 = C.cxSet("d8.7").items[1], it614 = C.cxSet("d6.14").items[0];
+  C.cxRecordAnswer({ set: "d8.7", item: it87 }, false, { rule: null }, { given: "Fahrt er nach Haus?" });
+  C.cxRecordAnswer({ set: "d8.7", item: it87 }, false, { rule: null, umlaut: "fahrt" }, { given: "Fahrt er nach Hause?" });
+  C.cxRecordAnswer({ set: "d8.7", item: it87 }, false, { rule: null }, { given: "Fährt sie nach Hause?" });
+  C.cxRecordAnswer({ set: "d6.14", item: it614 }, true, { ok: true }, { given: "beginnt" });
+  ok(notes.length === 4 && notes[0][3] && !notes[1][3] && notes[1][4] === "fahrt" && notes[2][3] && notes[3][3] && notes[3][0] === "beginnen",
+    "verb drills feed the verb log: a missing umlaut is right, the other form picked in the 1 / 2 choice is the miss", J(notes));
+  // the 1 / 2 choice in the course's drills: only when the plain spelling is another real form
+  const uc = (set, i, typed) => C.cxUmlautChoice(C.cxSet(set).items[i], typed);
+  const u1 = uc("d8.7", 1, "Fahrt er nach Hause?"), u2 = uc("d8.10", 0, "schlaft");
+  ok(u1 && u1.right === "fährt" && u1.others.includes("fahrt") && u2 && u2.right === "schläft", "fahrt / schlaft typed: asked which one (fährt or fahrt)", J([u1, u2]));
+  ok(!uc("d8.7", 1, "Fährt er nach Hause?") && !uc("d8.13", 0, "Wie lange fahrst du schon Auto?") && !uc("d1.2", 0, "die"),
+    "typed with its umlaut, only one form that fits (fahrst → fährst), or no verb: nothing asked");
+  delete C.learnNoteVerb;
 }
 
 console.log(`course unit: ${pass} passed, ${fail} failed`);
