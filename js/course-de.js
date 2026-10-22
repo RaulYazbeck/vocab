@@ -211,6 +211,8 @@ function cxDueRules(now = Date.now()) {
 // ── TEXT ──────────────────────────────────────
 // Strict key: case and punctuation don't count. Loose key: ß/ss and a
 // missing umlaut don't either (a soft slip, said in the feedback).
+// Umlauts are never typed (agreed): a missing one is never a mistake;
+// for a verb form that is ambiguous without it, see cxUmlautChoice.
 function cxStrict(s) {
   return String(s || "").normalize("NFC").toLowerCase().replace(/[.,!?;:„“"«»‚‘’()…–—]/g, " ").replace(/\s+/g, " ").trim();
 }
@@ -330,6 +332,34 @@ function cxCheck(item, typed, sec) {
   if (d) { res.rule = d.rule; res.msg = d.msg; }
   if (!res.rule) res.rule = (item.r || [])[0] || null;
   return res;
+}
+// ── UMLAUTS: NEVER TYPED (agreed) ─────────────
+// The learner never has to type an umlaut (or ß): a missing one is never
+// a mistake, anywhere in the app — cxCheck accepts it (soft: the spelling
+// is shown). Only when the plain spelling is itself another real form of
+// a verb (fahrt: er fährt, or ihr fahrt?) is it asked, untimed, which one
+// was meant: the verb track's small 1 / 2 choice (vxUmlautChoice,
+// vxUmlautAsk in grammar-ui.js), here for the verb forms an item checks
+// (inf, or vf). Asked even when the plain form is the right one: typing it
+// didn't say which. Picking right is right; picking the other is a miss.
+// Tiles never ask (they carry the umlaut). → the choice + the word typed, or null.
+function cxUmlautChoice(item, typed) {
+  if (typeof vxUmlautChoice !== "function" || typeof vxVerb !== "function" || typeof vxForm !== "function") return null;
+  const vf = item.inf ? [[item.inf, item.t || "pr", item.p || "er"]] : item.vf || [];
+  const W = String(typed || "").replace(/[.,!?;:„“"«»()…–—]/g, " ").split(/\s+/).filter(Boolean);
+  const key = w => cxLoose(w);
+  for (const [inf, t, p] of vf) {
+    const x = vxVerb(inf), f = x && vxForm(x, t, p);
+    if (!f) continue;
+    // (the form's first word: ruf … an, fahren Sie — the word that can carry an umlaut)
+    const acc = [...new Set((f.acc || [f.ans]).map(a => String(a).split(" ")[0]))];
+    for (const w of W) {
+      if (/[äöüÄÖÜ]/.test(w) || !acc.some(a => key(a) === key(w))) continue;
+      const ch = vxUmlautChoice(w, acc, x);
+      if (ch && !ch.wrong) return { ...ch, word: w };
+    }
+  }
+  return null;
 }
 // The detectors a section names (its `diag`), in order; the first that
 // fits explains the miss:
@@ -1245,15 +1275,17 @@ function cxRecordAnswer(e, ok, res, opts = {}) {
   // A verb lesson's own sentence: each verb form it checks (vf) goes to the
   // verb log too — right when the form is in what I wrote, whatever else
   // the sentence got wrong; a miss logs the word I wrote in its place.
+  // A missing umlaut is never a mistake here either (see cxUmlautChoice):
+  // fahrt for fährt counts right — unless the 1 / 2 choice was asked and I
+  // picked the other form (res.umlaut: the form I picked).
   if (item.vf && !item.inf && typeof learnNoteVerb === "function" && typeof vxVerb === "function") item.vf.forEach(([inf, t, p]) => {
     const x = vxVerb(inf), f = x && typeof vxForm === "function" ? vxForm(x, t, p) : null;
     if (!f) return;
-    // (umlauts count here: fahrt for fährt is the verb's mistake)
-    const tok = s => cxStrict(s).replace(/ß/g, "ss").split(" ").filter(Boolean);
-    const W = String(opts.given || "").replace(/[.,!?;:„“"«»()…–—]/g, " ").split(/\s+/).filter(Boolean), T = W.map(w => tok(w)[0] || "");
-    const has = a => { let i = 0; return tok(a).every(w => { while (i < T.length && T[i] !== w) i++; return i++ < T.length; }); };
+    const W = String(opts.given || "").replace(/[.,!?;:„“"«»()…–—]/g, " ").split(/\s+/).filter(Boolean), T = W.map(w => cxToks(w)[0] || "");
+    const has = a => { let i = 0; return cxToks(a).every(w => { while (i < T.length && T[i] !== w) i++; return i++ < T.length; }); };
+    const head = cxToks(f.ans)[0] || "";
+    if (res && res.umlaut && cxLoose(res.umlaut) === head) { learnNoteVerb(x.F, t, p, false, res.umlaut, f.ans); return; }
     const right = W.length ? (f.acc || [f.ans]).some(has) : !!ok;
-    const head = tok(f.ans)[0] || "";
     let k = 0;
     T.forEach((w, i) => { if (cxLev(w, head) < cxLev(T[k], head)) k = i; });
     learnNoteVerb(x.F, t, p, right, W.length && cxLev(T[k], head) <= 2 ? W[k] : opts.given || "", f.ans);

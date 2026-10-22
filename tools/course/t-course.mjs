@@ -366,6 +366,26 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
     ok(!!pr, "the verb lesson's page: a Practise card for the book's exercises");
     pr.click(); ok(_cx && _cx.list.length === 12 && _cx.list.every(e => cxSet(e.set).sec === "s0.verbs") && /📖|Practise/.test(document.getElementById("main-screen").innerText), `…12 of its book exercises (${_cx && [...new Set(_cx.list.map(e => e.set))].join(" ")})`);
     cxClose();
+    // umlauts are never typed (agreed): "Fahrt" for fährt asks 1 / 2 — the right pick is right, the other a miss
+    const umlTry = pickRight => {
+      S.course.ds["d8.7"] = [5, 5, 0]; // typed, not tiles
+      renderCourseDrill("s0.verbs", "d8.7");
+      for (let g = 0; g < 14 && !_cx.done; g++) {
+        const cur = _cx.list[_cx.i];
+        if (/Ich fahre nach Hause/.test(cur.item.q) && cur.mode !== "tiles") {
+          // (the harness answers the 1 / 2 box itself — umlautAuto; here it picks as told)
+          const auto = window.vxUmlautAsk; let asked = null;
+          window.vxUmlautAsk = (host, ch, onPick) => { asked = ch; onPick(pickRight, pickRight ? ch.right : ch.other); return true; };
+          document.getElementById("cx-input").value = "Fahrt er nach Hause?"; cxCheckCur();
+          window.vxUmlautAsk = auto;
+          const res = [!!asked && asked.right === "fährt" && asked.other === "fahrt", _cx.answered, cur.ok]; cxClose(); return res;
+        }
+        cxAnswerCur(true); cxNext();
+      }
+      cxClose(); return null;
+    };
+    const ua = umlTry(true), ub = umlTry(false);
+    ok(ua && ua[0] && ua[1] && ua[2] === true && ub && ub[0] && ub[2] === false, `"Fahrt er nach Hause?": asked fährt or fahrt — fährt is right, fahrt a miss (${JSON.stringify([ua, ub])})`);
     // a Stage 0 lesson of two sheets: what its test-out takes
     renderCourseSection("s0.gender");
     ok(/6 of 7 right/.test(document.getElementById("main-screen").innerText) && /its 2 sheets, one a day/.test(document.getElementById("main-screen").innerText), "a two-sheet lesson says what its test-out takes (6 of 7) and that its sheets come one a day");

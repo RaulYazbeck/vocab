@@ -2,8 +2,9 @@
 //
 //   node validate.mjs              # the checks below; exit 1 on a failure
 //   BOOK=<dir> node validate.mjs   # also: no item copies a sentence of the
-//                                  # book (dir: chapter texts from pdftotext,
-//                                  # kept OUT of the repo)
+//                                  # book — five words or more; a short simple
+//                                  # sentence is anyone's German (dir: chapter
+//                                  # texts from pdftotext, kept OUT of the repo)
 //
 // Checks: every data file is loaded by de/index.html (and none by the
 // French app) · the format of every section, sheet, rule, drill set and
@@ -300,6 +301,13 @@ if (neg && neg.built) {
 }
 
 // ── no book text ──
+// The rule: no book text in the repo — our sheets, sentences and stories
+// are our own. But the book doesn't own the German language: a simple,
+// short everyday sentence (four words or fewer — Wer ist das? · Es wird
+// kalt. · Kannst du mir helfen?) is anyone's, and is fine even if the book
+// happens to use it too. From five words on, a sentence the book has is
+// flagged and rephrased.
+const BOOK_MIN_WORDS = 5;
 if (process.env.BOOK) {
   const dir = process.env.BOOK;
   const book = fs.readdirSync(dir).filter(f => f.endsWith(".txt")).map(f => fs.readFileSync(path.join(dir, f), "utf8")).join("\n");
@@ -316,7 +324,7 @@ if (process.env.BOOK) {
   let n = 0;
   ours.forEach(([where, s]) => {
     const k = C.cxLoose(s.replace(/\*\*|\(→[^)]*\)/g, ""));
-    if (k.split(" ").length < 3) return;
+    if (k.split(" ").length < BOOK_MIN_WORDS) return; // short and simple: anyone's German
     n++;
     ok(!sentences.has(k), `${where}: "${s}" is our own (not a sentence of the book)`);
   });

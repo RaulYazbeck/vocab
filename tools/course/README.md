@@ -50,8 +50,10 @@ a later session that uploads its chapter.
      written: `gen: { kind: "conj", verbs, tense: "pr" | "pt" | "im", persons? }` (a
      command asks du · ihr · Sie and wants the whole command: *kommen Sie*).
      In the app the same `vf` feeds the learning log's verbs (`learnNoteVerb`): the form
-     counts right when it's in what was written (umlauts count), and a miss logs the word
-     written in its place — so a slip like *fahrt* shows in the tutor's report.
+     counts right when it's in what was written, and a miss logs the word written in its
+     place. Umlauts are never typed (agreed): a missing one is never a mistake; when the
+     plain spelling is another real form (*fahrt*: fährt or fahrt?) the drill asks the verb
+     track's 1 / 2 choice (`cxUmlautChoice`) — picking the other form is the miss.
    - A verb lesson's book exercises (its sheets live in the verb track): a pack for the
      verb section with drills only, their rules the verb sheets' points (`gs:pr4.r2` —
      a miss names that sheet's rule; the verb track keeps its own reviews). They're
@@ -90,7 +92,7 @@ a later session that uploads its chapter.
     node validate.mjs                 # the format, rules ↔ sheets, coverage (every exercise has a status and a session,
                                       # every line of the book's contents a lesson), the checker on every
                                       # answer, tiles, diagnosis, engine forms, one name per global
-    BOOK=<dir> node validate.mjs      # + none of our sentences is a sentence of the book — the items,
+    BOOK=<dir> node validate.mjs      # + none of our sentences of 5+ words is a sentence of the book (a short simple one is anyone's German) — the items,
                                       #   the sheets' examples and quizzes, and every whole sentence in
                                       #   their rules, tables and traps (<dir>: pdftotext -layout of the
                                       #   chapters — never in the repo)

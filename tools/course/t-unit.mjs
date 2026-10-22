@@ -536,14 +536,23 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   const tl = C.cxTiles(C.cxSet("d6.9"), C.cxSet("d6.9").items[0]).tiles;
   ok(tl[0] === "wohnst", `question tiles: the verb written small (${tl.join(" ")})`);
   // the verb drills' own sentences reach the verb log: the form right in a
-  // sentence otherwise wrong, the word I wrote for it on a miss
+  // sentence otherwise wrong, the word I wrote for it on a miss — and, as
+  // agreed, a missing umlaut is never a mistake (fahrt for fährt is right)
+  // unless the 1 / 2 choice was asked and the other form picked
   const notes = []; C.learnNoteVerb = (F, t, p, right, given, want) => notes.push([F.inf, t, p, right, given, want]);
   const it87 = C.cxSet("d8.7").items[1], it614 = C.cxSet("d6.14").items[0];
   C.cxRecordAnswer({ set: "d8.7", item: it87 }, false, { rule: null }, { given: "Fahrt er nach Haus?" });
-  C.cxRecordAnswer({ set: "d8.7", item: it87 }, false, { rule: null }, { given: "Fährt er zu Hause?" });
+  C.cxRecordAnswer({ set: "d8.7", item: it87 }, false, { rule: null, umlaut: "fahrt" }, { given: "Fahrt er nach Hause?" });
+  C.cxRecordAnswer({ set: "d8.7", item: it87 }, false, { rule: null }, { given: "Fährt sie nach Hause?" });
   C.cxRecordAnswer({ set: "d6.14", item: it614 }, true, { ok: true }, { given: "beginnt" });
-  ok(notes.length === 3 && !notes[0][3] && notes[0][4] === "Fahrt" && notes[0][5] === "fährt" && notes[1][3] && notes[2][3] && notes[2][0] === "beginnen",
-    "verb drills feed the verb log: fahrt logged as the miss, fährt in a wrong sentence still right", J(notes));
+  ok(notes.length === 4 && notes[0][3] && !notes[1][3] && notes[1][4] === "fahrt" && notes[2][3] && notes[3][3] && notes[3][0] === "beginnen",
+    "verb drills feed the verb log: a missing umlaut is right, the other form picked in the 1 / 2 choice is the miss", J(notes));
+  // the 1 / 2 choice in the course's drills: only when the plain spelling is another real form
+  const uc = (set, i, typed) => C.cxUmlautChoice(C.cxSet(set).items[i], typed);
+  const u1 = uc("d8.7", 1, "Fahrt er nach Hause?"), u2 = uc("d8.10", 0, "schlaft");
+  ok(u1 && u1.right === "fährt" && u1.others.includes("fahrt") && u2 && u2.right === "schläft", "fahrt / schlaft typed: asked which one (fährt or fahrt)", J([u1, u2]));
+  ok(!uc("d8.7", 1, "Fährt er nach Hause?") && !uc("d8.13", 0, "Wie lange fahrst du schon Auto?") && !uc("d1.2", 0, "die"),
+    "typed with its umlaut, only one form that fits (fahrst → fährst), or no verb: nothing asked");
   delete C.learnNoteVerb;
 }
 

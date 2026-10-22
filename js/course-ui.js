@@ -214,7 +214,26 @@ function cxCheckCur() {
     val = inp ? inp.value : "";
     if (!val.trim()) { if (inp) shakeEl(inp); return; }
   }
+  const fb = document.getElementById("cx-fb");
+  if (typeof vxUmlautAsking === "function" && vxUmlautAsking(fb)) return;
   const res = cxCheck(item, val, sec);
+  // Umlauts are never typed (agreed): a missing one is forgiven, and only
+  // when the plain spelling is another real verb form (fahrt: fährt or
+  // fahrt?) the small 1 / 2 choice asks which — as in the verb track.
+  const uc = res.ok && cur.mode !== "tiles" && typeof vxUmlautAsk === "function" ? cxUmlautChoice(item, val) : null;
+  if (uc) {
+    const inp = document.getElementById("cx-input"), act = document.getElementById("cx-act");
+    if (inp) inp.disabled = true;
+    if (act) act.innerHTML = ""; // (pick 1 or 2 — Next comes after)
+    vxUmlautAsk(fb, uc, (okPick, picked) => {
+      if (_cx !== r || r.list[r.i] !== cur || r.answered) return;
+      if (inp) inp.classList.add(okPick ? "correct" : "wrong");
+      // the right one: right, the spelling shown · the other one: a miss
+      const given = okPick ? val : val.replace(uc.word, picked);
+      cxAnswered(okPick, given, okPick ? res : { ok: false, soft: [], right: res.right, rule: (item.r || [])[0] || null, umlaut: picked }, true);
+    });
+    return;
+  }
   if (!res.ok && res.near && !cur.near) {
     cur.near = true;
     const inp = document.getElementById("cx-input");
