@@ -599,11 +599,11 @@ function pathReverseResolve(right) {
 }
 // ── PRIVATE "MY TYPO" OVERRIDE ────────────────
 // A deliberate triple gesture (tap the ✗ ×3, or Shift+Enter ×3) on a wrong
-// typed answer turns it into a full success. Honour system, max 5 a day —
+// typed answer turns it into a full success. Honour system, max 10 a day —
 // and without a cap on an "≈ Almost" (one slip), where you judge the typo.
 // On a phone the ✗ reacts on touch-down and never takes the focus from
 // the answer field: the keyboard stays up and nothing moves between taps.
-const SECRET_OK_PER_DAY = 5;
+const SECRET_OK_PER_DAY = 10;
 let _secretTaps = [];
 function pathSecretPress(need, windowMs) {
   const now = Date.now();

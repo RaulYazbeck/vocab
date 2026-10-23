@@ -301,7 +301,15 @@ function cxOrders(item) {
 //   ß/ss and an umlaut (soft: said, still right). Several word orders are
 //   accepted when the item lists them. A wrong answer is diagnosed by the
 //   section's detectors (cxDiagnose) to name the rule it broke.
-function cxAnswers(item) { return (item.a || []).map(String); }
+// A gap with letters attached ("Z___t (time)") is answered with the letters
+// that fill it (ei) — or the whole word (zeit): both are right.
+const CX_GAP = /([A-Za-zÄÖÜäöüß]*)___([A-Za-zÄÖÜäöüß]*)/;
+function cxAnswers(item) {
+  const a = (item.a || []).map(String), m = typeof item.q === "string" ? CX_GAP.exec(item.q) : null;
+  if (!m || !(m[1] || m[2]) || item.k === "order") return a;
+  const full = a.map(x => m[1] + x + m[2]).filter(x => !a.includes(x));
+  return [...a, ...full];
+}
 function cxCheck(item, typed, sec) {
   const answers = [...cxAnswers(item), ...(item.k === "order" || item.fixed ? [] : cxOrders(item))], t = String(typed || "").trim();
   if (!t) return { ok: false, empty: true, soft: [], right: answers[0] || "" };
@@ -1185,6 +1193,9 @@ function cxSheetResult(id, score, all, where) {
     if (sec.sheets.every(s => cxSheetPassed(s))) { cxSecSet(sh.sec, { st: 2 }); cxIntroduceRules(sh.sec, 1); }
   } else cxSecSet(sh.sec, { st: 1 });
   if (typeof logEvent === "function") logEvent("cx_sheet", { id, pct, ok: passed, where: where || "" });
+  // The "Pass today's grammar sheet" quest counts course sheets too (it used
+  // to hear only the verb track's), wherever the sheet was passed.
+  if (passed && typeof questEvent === "function") questEvent("vx_sheet", { id });
   saveState();
   return passed;
 }
