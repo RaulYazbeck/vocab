@@ -5,7 +5,7 @@
 //   2 · the session's count never goes down when a 📖 card asks fewer
 //       questions than planned
 //   3 · drag & drop on the course's tiles (the games' engine)
-//   4 · Shift+Enter ×3: 5 a day
+//   4 · Shift+Enter ×3: 10 a day
 //   5 · no "rules to review" line on the Today card
 //   6 · undo a "+5" — and the undo survives a sync
 //
@@ -140,7 +140,7 @@ const HELP = () => {
     S.course.dd = {};
     const c2 = cxTodayCounts();
     ok(!c2.write || /✍️ Writing/.test(cxTodayHtml()) || /📖/.test(cxTodayHtml()), "the writing line only when writing is part of today");
-    // 4 · Shift+Enter ×3: 5 a day
+    // 4 · Shift+Enter ×3: 10 a day
     const shift = () => document.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", shiftKey: true, bubbles: true }));
     const wrongTyped = () => {
       const s = pathSession;
@@ -150,16 +150,16 @@ const HELP = () => {
       document.getElementById("p-input").value = "zzzz falsch"; pathCheckTyped();
       return s.answered && s.undo;
     };
-    S.path.secretOk = { d: studyToday(), n: 4 };
+    S.path.secretOk = { d: studyToday(), n: 9 };
     startPathSession("long", { noBonus: true });
     ok(wrongTyped(), "a wrong typed answer");
     const w0 = pathSession.stats.wrong;
     shift(); shift(); shift();
-    ok(pathSession.stats.wrong === w0 - 1 && S.path.secretOk.n === 5, `the 5th of the day: counted right (${S.path.secretOk.n} used)`);
+    ok(pathSession.stats.wrong === w0 - 1 && S.path.secretOk.n === 10, `the 10th of the day: counted right (${S.path.secretOk.n} used)`);
     ok(wrongTyped(), "another wrong typed answer");
     const w1 = pathSession.stats.wrong;
     shift(); shift(); shift();
-    ok(pathSession.stats.wrong === w1 && S.path.secretOk.n === 5, "a 6th: refused, the miss stays");
+    ok(pathSession.stats.wrong === w1 && S.path.secretOk.n === 10, "an 11th: refused, the miss stays");
     endPathSession(true);
     return { log: __log, fails: __fails };
   });

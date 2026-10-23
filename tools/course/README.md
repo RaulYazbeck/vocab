@@ -111,7 +111,7 @@ a later session that uploads its chapter.
                                       # with the course, twist rounds ranking up (never with Golden words)
     node t-fixes2.mjs                 # the fixes of 21 Oct: "+5" only once today's are met, its round brings
                                       # exactly 5 in deck order, its undo (and the undo through a sync), the
-                                      # count never going down, Shift+Enter 5 a day, no "rules to review"
+                                      # count never going down, Shift+Enter 10 a day, no "rules to review"
                                       # line, drag & drop on the tiles (phone + desktop, no listeners left)
     node t-edge.mjs                   # edge cases: the real keyboard, ✕ mid-drill, HTML typed in, a damaged
                                       # state, Grandma / Speak mode, another device, the day rolling over, a peek
