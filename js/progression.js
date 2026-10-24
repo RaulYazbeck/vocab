@@ -124,10 +124,7 @@ function goalProgress() {
 function markGoalIfReached() {
   const today = todayISO();
   if (!S.goalDates) S.goalDates = [];
-  // (with a finish date, the day's plan quest done — Today has nothing left
-  // to ask — reaches the goal too, even under its estimated count)
-  const planDone = !!(S.path && S.path.deadline && S.quests && S.quests.day === today && (S.quests.list || []).some(q => q.tpl === "a_plan" && q.done));
-  if ((planDone || goalProgress() >= getDailyGoal()) && !S.goalDates.includes(today)) S.goalDates.push(today);
+  if (goalProgress() >= getDailyGoal() && !S.goalDates.includes(today)) S.goalDates.push(today);
   if (typeof questMarkKept === "function" && S.quests && S.quests.m) questMarkKept();
 }
 // Caller saves. n = correct answers given in a game.

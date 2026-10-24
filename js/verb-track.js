@@ -1586,29 +1586,32 @@ function vxPlanTarget(vx) {
 }
 // Items for one Today session: { sheets:[ids], learn:[ex], items:[ex] }.
 // counted items stay within `room`. Sheets first, then fixes and due
-// items (at most `dueRoom` of them — their share of the session next to
-// the words' reviews, path.js), then new items (each: an intro card + a
-// typed check), then coverage drills, in what room is left.
-function vxSessionPlan(room, dueRoom = room) {
+// items, then new items (each: an intro card + a typed check), then
+// coverage drills — each at most its share of the session (lim.due /
+// fresh / cells: path.js gives every part of the day's work its share of
+// each session), in what room is left.
+function vxSessionPlan(room, lim = {}) {
   if (!vxOn()) return { sheets: [], items: [], learns: [] };
   vxUnitsTick(false);
   const q = vxQuotas();
   const sheets = vxSheetsToday();
   const items = [], learns = [];
   const { fix, due } = vxDueItems();
+  const cap = (k, n) => Math.max(0, Math.min(n, lim[k] != null ? lim[k] : Infinity));
   let avoid = "";
+  const dueMax = cap("due", room);
   [...fix, ...due].forEach(({ it }) => {
-    if (items.length >= Math.min(room, dueRoom)) return;
+    if (items.length >= dueMax) return;
     const ex = vxMakeExercise(it, avoid);
     if (ex) { items.push(ex); avoid = ex.x.inf; }
   });
-  const fresh = vxNewCandidates().slice(0, Math.min(q.itemsLeft, Math.max(0, room - items.length)));
+  const fresh = vxNewCandidates().slice(0, cap("fresh", Math.min(q.itemsLeft, Math.max(0, room - items.length))));
   fresh.forEach(it => {
     const ex = vxMakeExercise(it, avoid);
     if (!ex) return;
     learns.push(ex); items.push({ ...ex, fresh: true }); avoid = ex.x.inf;
   });
-  const cells = vxOpenCells(Math.min(q.cellsLeft, Math.max(0, room - items.length)));
+  const cells = vxOpenCells(cap("cells", Math.min(q.cellsLeft, Math.max(0, room - items.length))));
   cells.forEach(c => { const ex = vxCellExercise(c); if (ex) items.push(ex); });
   // Missed in a tense drill: checked at the end of the session, from the
   // next day on (outside the room — a few more reviews, by your choice).

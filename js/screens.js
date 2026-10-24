@@ -946,6 +946,11 @@ function renderHome() {
   // (grammar rules due past the day's review block wait for the next days:
   // they show in 📚 due, ✅ Due today brings them, but Start has none today)
   const nothing = !(t.due - cx.due) && !t.newLeft && !vx.fresh && !cx.parts && !ow.cells && !ow.sheets;
+  // Everything done but today's plan short of its count: extra practice
+  // brings exactly what it still needs (the plan's margin).
+  const planLeft = nothing && typeof pathPlanLeft === "function" ? pathPlanLeft() || 0 : 0;
+  // (a day that finished what it owed: the days planRate learns from)
+  if (nothing && ow.total === 0 && typeof usageDay === "function") try { usageDay().owed0 = 1; } catch (e) {}
   home.innerHTML = `
     <div class="today-card" id="today-card">
       <div class="tc-head">
@@ -959,7 +964,7 @@ function renderHome() {
       <div class="tc-len" role="radiogroup" aria-label="Session length">
         ${Object.entries(PATH.SESSION_LENGTHS).map(([k, n]) => `<button class="tc-len-btn ${k === len ? "on" : ""}" role="radio" aria-checked="${k === len}" onclick="setSessionLen('${k}')">${k[0].toUpperCase() + k.slice(1)} <small>${n}</small></button>`).join("")}
       </div>
-      <button class="tc-start ${nothing ? "calm" : ""}" onclick="startPathSession('${len}'${nothing ? ", { practice: true }" : ""})">${nothing ? "✓ All caught up · extra practice ▶" : "Start ▶"}</button>
+      <button class="tc-start ${nothing ? "calm" : ""}" onclick="startPathSession('${len}'${nothing ? ", { practice: true }" : ""})">${!nothing ? "Start ▶" : planLeft > 0 ? `✓ All caught up · ${planLeft} more for today's plan ▶` : "✓ All caught up · extra practice ▶"}</button>
       ${Q.boosts ? `<div class="tc-boost" title="A chest boost: used automatically when your next Today session ends (5+ answers)">⚡ Next session: ×1.5 XP${Q.boosts > 1 ? ` <small>(${Q.boosts} boosts)</small>` : ""}</div>` : ""}
       ${ankiOwed ? `<div class="tc-anki">🃏 Anki: <strong>${ankiOwed}</strong> owed today <button class="tc-link" onclick="runQuestAction('anki')">Start ▶</button></div>` : ""}
       ${questCardsHtml()}
@@ -1130,7 +1135,7 @@ function renderJourney() {
 // day's new words underneath. Today is the plan itself.
 // With a finish date the numbers are the plan quest's right answers, so
 // today's matches the quest: reviews at the rate a review takes (f.kw —
-// your misses' returns and repairs included, path.js planWordFactor) plus
+// your misses' returns and repairs included, path.js planRate) plus
 // 🌱 meeting new words (3 answers each). Without one: reviews.
 function forecastHtml() {
   const f = pathForecast(8);

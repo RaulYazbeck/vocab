@@ -329,16 +329,19 @@ const PLAN = { LAG: 75, MIN_PACE: 5, MAX_PACE: 30, SPREAD: 7, SMALL_BACKLOG: 20,
 // Right answers each piece of the day's work takes (planTarget) — set by
 // how a Today session asks it, never by how much you happened to answer:
 //   NEW     a new word: its multiple choice and two typed recalls
-//   VX_DUE  a verb item due: one answer, a miss checked again in the
-//           session (measured: 1.18 a due item, Oct 2026)
 //   VX_NEW  a new verb item: its typed check (the intro card isn't asked)
 //   CELL    a ledger form (cell): one drill
 //   CX      a grammar question of the course: one right answer each
-//   WORD    a word due: one review, plus the same-day returns and repairs
-//           of the ones you miss — measured from your own days
-//           (planWordFactor), WORD_DEFAULT until there are enough of them
-//   ROUND   the count is rounded up to the next 5 (the small buffer)
-const PLAN_K = { NEW: 3, VX_DUE: 1.2, VX_NEW: 1, CELL: 1, CX: 1, WORD_DEFAULT: 1.15, WORD_MIN: 1, WORD_MAX: 1.5, WORD_DAYS: 14, WORD_NEED: 5, ROUND: 5 };
+//   WORD    a word due: one review, plus the same-day returns, repairs
+//           and warm-ups of the ones you miss — measured from your own
+//           days (planRate), WORD_DEFAULT until there are enough of them
+//   VERB    a verb item due: one answer, plus the repairs of the ones you
+//           miss — measured the same way, VERB_DEFAULT until then
+//   MARGIN  the safety distance: the count is the work + 5 %, so it
+//           lands just past the day's work, not before it (a little
+//           extra practice tops it up — pathPlanLeft)
+//   ROUND   … rounded up to the next 5
+const PLAN_K = { NEW: 3, VX_NEW: 1, CELL: 1, CX: 1, WORD_DEFAULT: 1.15, VERB_DEFAULT: 1.1, RATE_MIN: 1, RATE_MAX: 1.5, RATE_DAYS: 14, RATE_NEED: 5, MARGIN: 0.05, ROUND: 5 };
 function pathDeadlineOn() { return !!(S.path && S.path.deadline); }
 function pathDaysLeft(today = studyToday()) { return pathDeadlineOn() ? daysBetween(today, S.path.deadline) : 0; }
 // Words still to meet — retired cards aside (the verb track covers them).
@@ -389,42 +392,47 @@ function pathPace(scan = pathScan(), today = studyToday()) {
 // reviews). App updates never rebuild a day that has started.
 // reviews: the morning's reviews, the verb track's due items (vxDue) among
 // them; extra: right answers the verb track's new items, cells and sheets
-// (verb-track.js vxPlanTarget) and the course (cxPlanTarget) add; kw: right
-// answers a word review takes (planWordFactor, the plan keeps the
-// morning's). See PLAN_K.
-function planTarget(reviews, pace, extra = 0, vxDue = 0, kw = PLAN_K.WORD_DEFAULT) {
+// (verb-track.js vxPlanTarget) and the course (cxPlanTarget) add; kw / kv:
+// right answers a word review / a verb item due takes (planRate — the plan
+// keeps the morning's). See PLAN_K.
+function planTarget(reviews, pace, extra = 0, vxDue = 0, kw = PLAN_K.WORD_DEFAULT, kv = PLAN_K.VERB_DEFAULT) {
   const words = Math.max(0, reviews - vxDue);
-  const n = words * kw + vxDue * PLAN_K.VX_DUE + pace * PLAN_K.NEW + extra;
+  const n = (words * kw + vxDue * kv + pace * PLAN_K.NEW + extra) * (1 + PLAN_K.MARGIN);
   return Math.max(PLAN.GOAL_MIN, Math.min(PLAN.GOAL_MAX, Math.ceil(Math.round(n * 100) / 100 / PLAN_K.ROUND) * PLAN_K.ROUND));
 }
 // A plan's count from its own numbers.
 function planTargetOf(plan) {
   return planTarget(plan.reviews, plan.pace, (typeof vxPlanTarget === "function" ? vxPlanTarget(plan.vx) : 0) + (typeof cxPlanTarget === "function" ? cxPlanTarget(plan.cx) : 0),
-    (plan.vx && plan.vx.due) || 0, plan.kw || PLAN_K.WORD_DEFAULT);
+    (plan.vx && plan.vx.due) || 0, plan.kw || PLAN_K.WORD_DEFAULT, plan.kv || PLAN_K.VERB_DEFAULT);
 }
-// Right answers a word due in the morning takes, from your last
-// WORD_DAYS study days that finished what they owed (usage day.owed0):
-// the reviews, fixes and repair-round tries of words (day.src rv, rf, rr)
-// over the morning's word reviews (plan.rev less the verbs'). Nothing
-// asked on top counts (extra practice, focus or quest words, games), so it
-// follows your mistakes and the words coming due during the day, not how
-// much you chose to do. The middle value, within WORD_MIN–WORD_MAX;
-// WORD_DEFAULT until WORD_NEED such days are recorded.
-function planWordFactor(today = studyToday()) {
-  const days = (S.usage && S.usage.days) || {}, fs = [];
-  for (let i = 1; i <= 30 && fs.length < PLAN_K.WORD_DAYS; i++) {
+// Right answers a piece of the morning's work takes, from your last
+// RATE_DAYS study days that finished what they owed (usage day.owed0):
+//   "w" a word due — its reviews, fixes, repair-round tries and warm-ups
+//       (day.src rv, rf, rr, w) over the morning's word reviews (plan.rev
+//       less the verbs');
+//   "v" a verb item due — its answers and repair-round tries (vxd, vxr)
+//       over the morning's verb items due (plan.vx.due).
+// Nothing asked on top counts (extra practice, focus or quest words,
+// games), so it follows your mistakes and what comes due during the day,
+// not how much you chose to do. The middle value, within RATE_MIN–RATE_MAX;
+// the default until RATE_NEED such days are recorded.
+const PLAN_RATES = { w: { src: ["rv", "rf", "rr", "w"], base: p => (p.rev || 0) - ((p.vx && p.vx.due) || 0), min: 20, def: "WORD_DEFAULT" },
+  v: { src: ["vxd", "vxr"], base: p => (p.vx && p.vx.due) || 0, min: 8, def: "VERB_DEFAULT" } };
+function planRate(kind, today = studyToday()) {
+  const R = PLAN_RATES[kind], days = (S.usage && S.usage.days) || {}, fs = [];
+  for (let i = 1; i <= 30 && fs.length < PLAN_K.RATE_DAYS; i++) {
     const d = days[addDays(today, -i)];
     if (!d || !d.src || !d.plan || !d.owed0) continue;
-    const morning = (d.plan.rev || 0) - ((d.plan.vx && d.plan.vx.due) || 0);
-    if (morning < 20) continue;
-    const ok = ["rv", "rf", "rr"].reduce((n, k) => n + ((d.src[k] || [])[1] || 0), 0);
-    fs.push(ok / morning);
+    const base = R.base(d.plan);
+    if (base < R.min) continue;
+    fs.push(R.src.reduce((n, k) => n + ((d.src[k] || [])[1] || 0), 0) / base);
   }
-  if (fs.length < PLAN_K.WORD_NEED) return PLAN_K.WORD_DEFAULT;
+  if (fs.length < PLAN_K.RATE_NEED) return PLAN_K[R.def];
   fs.sort((a, b) => a - b);
   const m = fs.length % 2 ? fs[(fs.length - 1) / 2] : (fs[fs.length / 2 - 1] + fs[fs.length / 2]) / 2;
-  return Math.round(Math.max(PLAN_K.WORD_MIN, Math.min(PLAN_K.WORD_MAX, m)) * 100) / 100;
+  return Math.round(Math.max(PLAN_K.RATE_MIN, Math.min(PLAN_K.RATE_MAX, m)) * 100) / 100;
 }
+function planWordFactor(today) { return planRate("w", today); }
 // The course's share of a day's plan (for the Journey's bars).
 function cxPlanTargetOf(plan) { return plan && plan.cx && typeof cxPlanTarget === "function" ? cxPlanTarget(plan.cx) : 0; }
 function planSyncQuest(plan) {
@@ -464,7 +472,7 @@ function pathEnsurePlan(scan) {
   }
   scan = scan || pathScan(true);
   const pace = pathPace(scan, today);
-  const kw = prev && prev.kw ? prev.kw : planWordFactor(today);
+  const kw = prev && prev.kw ? prev.kw : planRate("w", today), kv = prev && prev.kv ? prev.kv : planRate("v", today);
   let reviews, leave, vx = null, cx = null;
   if (prev) {
     // Finish date changed today: same morning reviews, new pace.
@@ -485,14 +493,14 @@ function pathEnsurePlan(scan) {
     // The course's grammar block (course-de.js): its questions add theirs.
     cx = typeof cxPlanNumbers === "function" ? cxPlanNumbers(scan) : null;
   }
-  const plan = { v: 5, day: today, deadline: P.deadline, pace, reviews, leave, kw, ...(vx ? { vx } : {}), ...(cx ? { cx } : {}) };
+  const plan = { v: 5, day: today, deadline: P.deadline, pace, reviews, leave, kw, kv, ...(vx ? { vx } : {}), ...(cx ? { cx } : {}) };
   plan.target = plan.goal = planTargetOf(plan);
   const target = plan.target;
   P.plan = plan;
   // Made before this device synced (sync.js): see pathAfterSync.
   if (typeof cloudLoadedOnce !== "undefined" && !cloudLoadedOnce) P.plan.pre = 1;
   planSyncQuest(P.plan);
-  logEvent("plan", { pace, reviews, target, leave, kw, due: scan.due, od: scan.overdue, ...(vx ? { vx } : {}), snap: pathSnapshot(scan) });
+  logEvent("plan", { pace, reviews, target, leave, kw, kv, due: scan.due, od: scan.overdue, ...(vx ? { vx } : {}), snap: pathSnapshot(scan) });
   return P.plan;
 }
 // A plan made before this device's first sync of the session (opened
@@ -530,41 +538,32 @@ function pathSnapshot(scan = pathScan()) {
 }
 // ── KEEPING PACE (finish date) ────────────────
 // pathDeadlineStatus says whether the date can still be made at the
-// fastest pace. This says whether the pace the plans ask is being kept:
-// over the last PACE_CHECK.DAYS days, the new words met, verb items
-// started and ledger forms filled against what each day's plan asked (a
-// day without studying asked its share and did nothing). Each morning the
-// pace is worked out again from what's left, so a short week makes the
-// coming days heavier: amber says so while there's room to catch up —
-// also when what the date needs comes close to the most a day may ask —
-// red when the date is out of reach even at the fastest pace.
-// → { level: "ok" | "amber" | "red", words, items, cells: [done, asked], eta, why: [] }
-const PACE_CHECK = { DAYS: 7, MIN_DAYS: 4, SHORT: 0.85, NEAR_CAP: 0.85 };
+// fastest pace. This says whether the plans are being kept: of the last
+// PACE_CHECK.DAYS days, how many didn't finish what they owed (usage
+// owed0 — a day without studying didn't either). Each morning the pace is
+// worked out again from what's left, so unfinished days make the coming
+// ones heavier: amber says so while there's room to catch up — also when
+// what the date needs comes close to the most a day may ask — red when
+// the date is out of reach even at the fastest pace. (Counted from the
+// first day this check could see: a plan that knows its word rate, kw.
+// Asked vs delivered would be no measure: the verb track often has
+// nothing new to give until more verbs are met.)
+// → { level: "ok" | "amber" | "red", missed, days, eta, why: [] }
+const PACE_CHECK = { DAYS: 7, MIN_DAYS: 4, MISSED: 2, NEAR_CAP: 0.85 };
 function pathPaceCheck(today = studyToday()) {
-  const out = { level: "ok", words: [0, 0], items: [0, 0], cells: [0, 0], why: [] };
+  const out = { level: "ok", missed: 0, days: 0, why: [] };
   if (!pathDeadlineOn()) return out;
   const st = pathDeadlineStatus(undefined, today);
   if (!st.ok) { out.level = "red"; out.eta = st.eta; out.why.push("date"); return out; }
   const days = (S.usage && S.usage.days) || {};
-  let last = null, seen = 0, first = null;
+  let seen = false;
   for (let i = PACE_CHECK.DAYS; i >= 1; i--) {
-    const d = addDays(today, -i), v = days[d], p = v && v.plan;
-    if (p) { last = p; seen++; if (!first) first = p; }
-    if (!last) continue; // before the first plan of the window
-    const asked = p || last; // a day without a plan asked what the last one did
-    out.words[1] += asked.pace || 0; out.words[0] += p ? v.met || 0 : 0;
-    if (asked.vx) { out.items[1] += asked.vx.items || 0; out.items[0] += p ? (v.vx && v.vx.in) || 0 : 0; out.cells[1] += asked.vx.cells || 0; }
+    const v = days[addDays(today, -i)];
+    if (!seen && !(v && v.plan && v.plan.kw)) continue;
+    seen = true; out.days++;
+    if (!(v && v.owed0)) out.missed++;
   }
-  // Forms filled: between the window's first morning and this one (a form
-  // can be filled by any verb answer, not only its drill).
-  const now = days[today] && days[today].plan && days[today].plan.snap;
-  if (first && first.snap && now && first.snap.c != null && now.c != null) out.cells[0] = now.c - first.snap.c;
-  else out.cells[0] = out.cells[1];
-  if (seen >= PACE_CHECK.MIN_DAYS) {
-    [["words", out.words], ["verb items", out.items], ["forms", out.cells]].forEach(([k, [done, asked]]) => {
-      if (asked >= 10 && done < asked * PACE_CHECK.SHORT) out.why.push(k);
-    });
-  }
+  if (out.days >= PACE_CHECK.MIN_DAYS && out.missed >= PACE_CHECK.MISSED) out.why.push("days");
   const scan = pathScan();
   if (pathPaceNeeded(scan, today) >= PLAN.MAX_PACE * PACE_CHECK.NEAR_CAP) out.why.push("words pace");
   if (typeof vxOn === "function" && vxOn()) {
@@ -813,6 +812,26 @@ function pathGrammarFit(room, scan) {
   return { cards, sheets, q };
 }
 
+// Right answers today's plan quest still needs (finish date, quest open),
+// 0 once it's done; null without a plan.
+function pathPlanLeft() {
+  if (!pathDeadlineOn() || !S.quests || !S.quests.list) return null;
+  const q = S.quests.list.find(x => x.tpl === "a_plan");
+  if (!q) return null;
+  return q.done ? 0 : Math.max(0, q.target - ((S.quests.m && S.quests.m.ok) || 0));
+}
+// Shares of a session's room: { part: count } → { part: share }, each in
+// proportion to its count when they don't all fit (largest remainders;
+// every part with something gets at least one while there's room).
+function pathShares(n, room) {
+  const keys = Object.keys(n), total = keys.reduce((a, k) => a + n[k], 0);
+  if (total <= room) return { ...n };
+  const out = {}; let used = 0;
+  const rest = keys.map(k => { const x = room * n[k] / total; out[k] = Math.floor(x); used += out[k]; return [k, x - out[k]]; });
+  keys.forEach(k => { if (n[k] && !out[k] && used < room) { out[k] = 1; used++; } });
+  rest.sort((a, b) => b[1] - a[1]).forEach(([k]) => { if (used < room && out[k] < n[k]) { out[k]++; used++; } });
+  return out;
+}
 // ── QUEUE ─────────────────────────────────────
 // Builds one session: fixes, due reviews, new-word rituals (learn card →
 // choice check → typed recall a few items later), an optional spot
@@ -860,7 +879,10 @@ function buildPathQueue(lenKey, opts = {}) {
     budget = Math.max(1, reviews.length - (rules.length ? 1 : 0) + rules.length);
   } else if (focus) {
     // "Practise anyway" (nothing due): its words are 🧺 extra practice.
-    reviews = focusWords(focus, opts.param).slice(0, budget)
+    // (with today's plan still open, extra practice brings what its count
+    // still needs — at most the length you picked)
+    const left = opts.practice && focus === "stale" ? pathPlanLeft() : null;
+    reviews = focusWords(focus, opts.param).slice(0, left > 0 ? Math.min(budget, left) : budget)
       .map(x => opts.practice && !x.due ? { ...focusItem(x, focus), practice: true } : focusItem(x, focus));
   } else {
     const { fix, due } = pathReviewCandidates(now);
@@ -886,25 +908,22 @@ function buildPathQueue(lenKey, opts = {}) {
     // questions take room from word reviews, never from new words. What
     // doesn't fit waits for the next session (pathGrammarFit).
     const gfit = pathGrammarFit(Math.max(0, budget - nNew0 * 3), scan);
-    // The room the new words and the grammar leave goes, in this order, to
-    // what's due — the words' reviews and the verb track's (verb-track.js)
-    // side by side, each its share of what's due when they don't all fit —
-    // then to new verb items, then to the verb ledger's forms (cells). No
-    // fixed share for the verbs: a day with many verbs due gets them all,
-    // over as many sessions as it takes, and what's owed today is what a
-    // session brings first (pathOwedLeft).
-    // The words' share counts only what they owe today: a backlog the
-    // plan leaves for the coming days (plan.leave) takes what room is left
-    // after the verbs' new items and forms.
+    // The room the new words and the grammar leave goes to the rest of the
+    // day's work, every part its share of each session when it doesn't all
+    // fit (pathShares): the words' owed reviews, the verb track's due items
+    // (verb-track.js), its new items and its ledger's forms (cells). No
+    // fixed share for the verbs, nothing left out for a whole session: a
+    // day with many verbs gets them all, over its sessions. A backlog the
+    // plan leaves for the coming days (plan.leave) takes what room is left.
     const room = Math.max(0, budget - nNew0 * 3 - gfit.q);
-    let vxDueRoom = vxDueN, wRoom = wOwed;
-    if (wOwed + vxDueN > room) {
-      vxDueRoom = Math.min(vxDueN, Math.round(room * vxDueN / (wOwed + vxDueN)));
-      if (vxDueN && !vxDueRoom && room) vxDueRoom = 1; // at least one verb when some are due
-      wRoom = Math.min(wOwed, room - vxDueRoom);
-      vxDueRoom = Math.min(vxDueN, room - wRoom); // what the words leave unused
+    let vxNewN = 0, cellN = 0;
+    if (vxOnNow) {
+      const vq = vxQuotas(scan);
+      vxNewN = Math.min(vq.itemsLeft, vxNewCandidates().length);
+      cellN = Math.min(vq.cellsLeft, vxOpenCells(vq.cellsLeft).length);
     }
-    const vxp = vxOnNow ? vxSessionPlan(room - wRoom, vxDueRoom) : null;
+    const sh = pathShares({ w: wOwed, due: vxDueN, fresh: vxNewN, cells: cellN }, room);
+    const vxp = vxOnNow ? vxSessionPlan(room - sh.w, { due: sh.due, fresh: sh.fresh, cells: sh.cells }) : null;
     if (vxp) vxp.sheets = gfit.sheets;
     grammarQ = gfit.q;
     // (the words take the rest: their share, then the backlog)
@@ -1012,19 +1031,23 @@ function buildPathQueue(lenKey, opts = {}) {
     if (!spotDone) { out.push({ t: "spot", w: spots[0] }); spotDone = true; continue; }
     break;
   }
-  // Once what's owed today runs out, a session doesn't pad itself to its
-  // length with practice on words that aren't due (they'd count toward
-  // the day's plan without moving anything): it ends there, and "All
-  // caught up · extra practice" is the way to practise more. One
-  // exception, for an open quest: verb forms for a verb quest left short
-  // (and the focus quests' words above, within the spare room). With
-  // nothing owed at all the session is extra practice (opts.practice → a
-  // "stale" focus session, mode-path.js), the length you picked.
+  // Once what's owed today runs out, the rest of the session is practice
+  // on your least recently seen words (normal rules: a word near its
+  // review can step up early, the rest just stay on schedule). Without a
+  // finish date: the length you picked. With one: only what today's plan
+  // still needs — its count less the right answers given and this
+  // session's own questions — so the padding is the plan's small margin
+  // (planTarget), not a whole session's worth.
   if (!focus) {
-    const short = budget - counted() - grammarQ;
+    const have = new Set(out.filter(x => x.w).map(x => x.w.deckId + "_" + x.w.idx));
+    let short = budget - counted() - grammarQ;
     // Verb quests Today's quotas left short: verb forms come first.
     const vxNeed = short > 0 && typeof questPracticeNeed === "function" && typeof vxPracticeItems === "function" ? questPracticeNeed() : 0;
-    if (vxNeed > 0) vxPracticeItems(Math.min(vxNeed, short)).forEach(ex => { out.push({ t: "typed", w: vxWord(ex), practice: !!ex.practice }); });
+    if (vxNeed > 0) vxPracticeItems(Math.min(vxNeed, short)).forEach(ex => { out.push({ t: "typed", w: vxWord(ex), practice: !!ex.practice, questFill: true }); short--; });
+    const left = pathPlanLeft();
+    if (left !== null) short = Math.min(short, Math.max(0, left - counted() - grammarQ));
+    if (short > 0) focusWords("stale").filter(x => !have.has(x.d.id + "_" + x.i)).slice(0, short)
+      .forEach(x => out.push({ ...focusItem(x, "stale"), practice: true }));
   }
   // Verb items missed in a tense drill: checked at the very end.
   vxEnd.forEach(ex => out.push({ t: "typed", w: vxWord(ex), drillCheck: true }));
@@ -1071,16 +1094,21 @@ function buildPathQueue(lenKey, opts = {}) {
   pathSpace(out, 0);
   return { items: out, budget, newWords: nNew, reviews: reviews.length, quota: q, focus };
 }
-// Where a Today answer comes from (usage day.src → planWordFactor): the
+// Where a Today answer comes from (usage day.src → planRate): the
 // day's owed work — rv a word's review, rf a fix (repair, flag, relearn),
-// rr its try in the repair round, new a new word's checks; vxd / vxn /
-// cell / vxr the verb track's due items, new items, ledger forms and
-// repair-round tries — or x, asked on top of it (extra practice, a word
-// that isn't due in a focus session or for a focus quest, a warm-up, a
-// spot check, the word of the day).
+// rr its try in the repair round, w a warm-up choice before a weak word's
+// typed check (or a new word's missed choice asked again), new a new
+// word's checks; vxd / vxn / cell / vxr the verb track's due items, new
+// items, ledger forms and repair-round tries — q a spot check or the word
+// of the day — or asked on top of it: xq for another quest (a focus
+// quest's words, verb forms for a verb quest, a word that isn't due in a
+// focus session), x extra practice (the plan's padding, "extra practice").
 function pathAnswerSrc(it) {
   if (!it) return "";
-  if (it.practice || it.extra || it.warm || it.reask || it.nudge || it.wotd || (it.t === "spot" && !it.maint)) return "x";
+  if (it.nudge || it.questFill || it.extra) return "xq";
+  if (it.practice) return "x";
+  if (it.wotd || (it.t === "spot" && !it.maint)) return "q";
+  if (it.warm || it.reask) return "w";
   const ex = it.w && it.w.vx;
   if (ex) return it.repair ? "vxr" : ex.cell ? "cell" : it.fresh ? "vxn" : "vxd";
   if (it.repair) return "rr";
@@ -1326,7 +1354,7 @@ function backlogTake(backlog, normal, pace, kw = PLAN_K.WORD_DEFAULT) {
 function pathForecast(days = 8) {
   const scan = pathScan(true);
   const now = Date.now(), dayStart = studyDayStart(0, now), today = studyToday();
-  const p = recentAccuracy(), kw = planWordFactor();
+  const p = recentAccuracy(), kw = planRate("w"), kv = planRate("v");
   const plan = pathEnsurePlan(scan);
   const kThrottle = plan ? 2 : 1;
   const basePace = plan ? plan.pace : (S.path.newPerDay || 0);
@@ -1431,7 +1459,7 @@ function pathForecast(days = 8) {
   // rules coming due, the writing prompt.
   const cxDays = plan && typeof cxForecastAnswers === "function" ? cxForecastAnswers(days) : [];
   const vxNoSheets = plan && plan.vx && cxDays.length ? { ...plan.vx, sheets: 0, sheetQ: 0 } : plan && plan.vx;
-  const vxExtra = plan && typeof vxPlanTarget === "function" ? vxPlanTarget(vxNoSheets) + ((plan.vx && plan.vx.due) || 0) * PLAN_K.VX_DUE : 0;
+  const vxExtra = plan && typeof vxPlanTarget === "function" ? vxPlanTarget(vxNoSheets) + ((plan.vx && plan.vx.due) || 0) * kv : 0;
   if (plan) out.forEach((r, i) => { r.cx = i === 0 ? cxPlanTargetOf(plan) : cxDays[i] || 0; r.target = i === 0 ? plan.target : planTarget(r.total, r.newWords, vxExtra + r.cx, 0, kw); });
   return { p, kw, days: out };
 }

@@ -6,9 +6,9 @@
 // the lesson clock runs as it will once they are.
 //
 // The learner does the day's plan: Long sessions until Today has nothing
-// left to ask (or, with the code before pathOwed, until the plan quest is
-// done or Today says "All caught up"). Accuracy by kind of card, from the
-// profile's usage log by default.
+// left to ask (with the code before pathOwed: until it says "All caught
+// up"), then extra practice until the plan quest is done — the padding.
+// Accuracy by kind of card, from the profile's usage log by default.
 //
 // Every day it records the plan (its parts and count), the right answers
 // given, what was still owed at the end, how the plan quest ended (count /
@@ -104,8 +104,9 @@ const r = await page.evaluate(async (CFG) => {
     else { const ans = it.t === "cloze" ? it.cloze.answer : it.t === "reverse" ? gamePrompt(it.w) : it.w[WORD_KEY]; pathGradeTyped(ok ? ans : "zzz qqq", ok); }
     pathNext();
   };
-  const playSession = () => {
-    startPathSession(CFG.len, { noBonus: true });
+  const tick = () => new Promise(r => setTimeout(r, 0)); // (the app's deferred work runs, as between taps)
+  const playSession = async (opts = {}) => {
+    startPathSession(CFG.len, { noBonus: true, ...opts });
     const s = pathSession;
     if (!s) return false;
     let guard = 0;
@@ -123,6 +124,7 @@ const r = await page.evaluate(async (CFG) => {
       playWord(it, s);
     }
     if (pathSession) { fail(`${studyToday()}: a session didn't end (${s.cur && s.cur.t})`); endPathSession(true); }
+    await tick();
     off += 20 * 60000; // twenty minutes later
     invalidatePathScan(); if (typeof invalidatePathOwed === "function") invalidatePathOwed();
     return true;
@@ -150,27 +152,36 @@ const r = await page.evaluate(async (CFG) => {
     const owed0 = NEW ? pathOwed(true) : null;
     const pc = NEW && typeof pathPaceCheck === "function" ? pathPaceCheck() : null;
     const st = pathDeadlineStatus();
-    let n = 0, okAtOwed0 = null;
-    while (n < 12) {
-      const q = planQ();
-      if (!owedAny()) { if (okAtOwed0 === null) okAtOwed0 = S.quests.m.ok || 0; break; }
-      if (!NEW && q && q.done) break; // (before: the plan quest done → the day is done)
-      if (!playSession()) break;
-      n++;
+    // The day: Today until nothing is owed, then extra practice until the
+    // plan quest is done (the padding).
+    // (more can come due while practising: the learner goes on until both
+    // are done)
+    let n = 0, pad = 0, okAtOwed0 = null;
+    for (let round = 0; round < 4; round++) {
+      while (n < 12) {
+        if (!owedAny()) { if (okAtOwed0 === null) okAtOwed0 = S.quests.m.ok || 0; break; }
+        if (!(await playSession())) break;
+        n++;
+      }
+      if (okAtOwed0 === null && !owedAny()) okAtOwed0 = S.quests.m.ok || 0;
+      while (pad < 6 && planQ() && !planQ().done) { if (!(await playSession({ practice: true }))) break; pad++; }
+      if (!owedAny()) break;
     }
-    if (okAtOwed0 === null && !owedAny()) okAtOwed0 = S.quests.m.ok || 0;
     const q = planQ(), ow = NEW ? pathOwed(true) : null, u = usageDay();
-    if (NEW && ow.total > 0) fail(`${today}: ${ow.total} still owed after ${n} sessions ${JSON.stringify(ow)}` + (ow.cx ? ` · course: ${JSON.stringify(cxTodayCounts())} parts ${JSON.stringify(cxTodayParts().map(p => [p.part, p.sec, cxPartSize(p)]))} rules due ${JSON.stringify(cxDueRules())}` : ""));
-    if (NEW && q && !q.done && !ow.total) fail(`${today}: nothing owed but the plan quest is open (${q.prog}/${q.target})`);
+    const dueNotAsked = () => { const c = pathReviewCandidates(Date.now()), ks = new Set([...c.fix, ...c.due].map(x => x.d.id + "_" + x.i)), out = [];
+      vocabGroups().forEach(g => g.decks.forEach(d => d.words.forEach((w, i) => { const k = d.id + "_" + i, ws = S.words[k]; if (ws && isDue(ws) && !ks.has(k)) out.push(k + JSON.stringify({ st: ws.st, rt: ws.rt, sk: ws.sk, lrn: ws.lrn, rp: ws.rp, fl: ws.fl, due: ws.dueAt && new Date(ws.dueAt).toISOString() })); })));
+      return out.join(" ") + ` · leave ${S.path.plan && S.path.plan.leave} · candidates ${ks.size}`; };
+    if (NEW && ow.total > 0) fail(`${today}: ${ow.total} still owed after ${n} sessions ${JSON.stringify(ow)}` + (ow.words ? ` · due words not in Today: ${dueNotAsked()}` : "") + (ow.cx ? ` · course: ${JSON.stringify(cxTodayCounts())} parts ${JSON.stringify(cxTodayParts().map(p => [p.part, p.sec, cxPartSize(p)]))} rules due ${JSON.stringify(cxDueRules())}` : ""));
+    if (q && !q.done) fail(`${today}: the plan quest still open after the day and ${pad} extra round(s) (${q.prog}/${q.target})`);
     const sn = snap();
     if (!firstAllMet && sn.unmet === 0) firstAllMet = today;
     if (!firstAllKnown && sn.known >= sn.total) firstAllKnown = today;
     if (!ledgerDone && sn.cellsLeft === 0) ledgerDone = today;
     if (!itemsStarted && sn.itemsLeft === 0) itemsStarted = today;
     if (!itemsKnown && sn.vxKnown >= sn.vxAll) itemsKnown = today;
-    days.push({ d: today, target: plan ? plan.target : 0, ok: S.quests.m.ok || 0, okAtOwed0, sessions: n, kw: plan && plan.kw,
+    days.push({ d: today, target: plan ? plan.target : 0, ok: S.quests.m.ok || 0, okAtOwed0, sessions: n, pad, kw: plan && plan.kw,
       plan: plan ? { rev: plan.reviews, pace: plan.pace, leave: plan.leave, vx: plan.vx, cxq: plan.cx ? plan.cx.q : 0 } : null,
-      owedStart: owed0 && owed0.total, owedEnd: ow && ow.total, done: q ? (q.done ? (q.prog >= q.target ? "count" : "owed") : "open") : "-",
+      owedStart: owed0 && owed0.total, owedEnd: ow && ow.total, done: q ? (q.done ? ((u.src && u.src.x ? u.src.x[1] : 0) > 0 ? "with padding" : "by the work alone") : "open") : "-",
       src: u.src || null, met: u.met || 0, vx: u.vx || null, status: st.ok ? "ok" : "late " + st.eta, pace: pc ? pc.level + (pc.why.length ? ":" + pc.why.join("/") : "") : "",
       need: { words: pathPaceNeeded(), vx: vxPaceNeeded(pathScan()) }, ...sn });
     if (day % 30 === 29) { const j = JSON.parse(JSON.stringify(S)); if (!j.words || Object.keys(j.words).length !== Object.keys(S.words).length) fail(`${today}: state round trip`); }
@@ -183,17 +194,22 @@ const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
 const avg = f => act.length ? Math.round(act.reduce((a, d) => a + f(d), 0) / act.length * 10) / 10 : 0;
 console.log(`code: ${r.NEW ? "new (pathOwed)" : "before"} · ${act.length} days studied, ${r.days.length - act.length} skipped · ${r.start} → ${r.days.length ? r.days[r.days.length - 1].d : ""} · finish date ${r.deadline}`);
 console.log(`all words met ${r.firstAllMet || "—"} · all Known ${r.firstAllKnown || "—"} · verb ledger complete ${r.ledgerDone || "—"} · verb items all started ${r.itemsStarted || "—"} · all Known ${r.itemsKnown || "—"}`);
-console.log(`avg/day: target ${avg(d => d.target)} · right answers ${avg(d => d.ok)} · at "nothing owed" ${avg(d => d.okAtOwed0 || d.ok)} · sessions ${avg(d => d.sessions)}`);
-const ratio = act.filter(d => d.target && d.okAtOwed0).map(d => d.okAtOwed0 / d.target).sort((a, b) => a - b);
+// Padding: right answers of extra practice (usage src "x") — the plan's
+// margin; for other quests (xq): their own; the work: every other one.
+const padOf = d => (d.src && d.src.x ? d.src.x[1] : 0), qOf = d => (d.src && d.src.xq ? d.src.xq[1] : 0), workOf = d => Math.max(0, d.ok - padOf(d) - qOf(d));
+console.log(`avg/day: target ${avg(d => d.target)} · right answers ${avg(d => d.ok)} · of them the day's work ${avg(workOf)} · padding ${avg(padOf)} · for other quests ${avg(qOf)} · sessions ${avg(d => d.sessions)} + extra rounds ${avg(d => d.pad)}`);
+const padd = act.map(padOf).sort((a, b) => a - b);
+console.log(`padding per day (right answers on top of the work): median ${padd[Math.floor(padd.length / 2)] || 0} · p90 ${padd[Math.floor(padd.length * 0.9)] || 0} · max ${padd[padd.length - 1] || 0} · days with none ${pct(padd.filter(x => !x).length, padd.length)}%`);
+const ratio = act.filter(d => d.target).map(d => workOf(d) / d.target).sort((a, b) => a - b);
 const q = p => ratio.length ? ratio[Math.min(ratio.length - 1, Math.floor(p * ratio.length))].toFixed(2) : "—";
-console.log(`work done ÷ count (right answers when nothing was owed ÷ the plan's count): p10 ${q(0.1)} · median ${q(0.5)} · p90 ${q(0.9)} · within ±10% ${pct(ratio.filter(x => x >= 0.9 && x <= 1.1).length, ratio.length)}% · count too high (<0.9) ${pct(ratio.filter(x => x < 0.9).length, ratio.length)}% · too low (>1.1) ${pct(ratio.filter(x => x > 1.1).length, ratio.length)}%`);
+console.log(`the day's work ÷ the plan's count: p10 ${q(0.1)} · median ${q(0.5)} · p90 ${q(0.9)} · within ±10% ${pct(ratio.filter(x => x >= 0.9 && x <= 1.1).length, ratio.length)}% · count too high (<0.9) ${pct(ratio.filter(x => x < 0.9).length, ratio.length)}% · too low (>1.1) ${pct(ratio.filter(x => x > 1.1).length, ratio.length)}%`);
 const ends = act.reduce((a, d) => (a[d.done] = (a[d.done] || 0) + 1, a), {});
 console.log(`plan quest ended: ${JSON.stringify(ends)} · days left owing: ${act.filter(d => d.owedEnd > 0).length} · late status days: ${act.filter(d => d.status !== "ok").length} · pace amber days: ${act.filter(d => /^amber/.test(d.pace)).length}`);
 for (let i = 0; i < r.days.length; i += 14) {
   const w = r.days.slice(i, i + 14).filter(d => !d.skipped);
   if (!w.length) continue;
   const l = w[w.length - 1], m = f => Math.round(w.reduce((a, d) => a + f(d), 0) / w.length);
-  console.log(`${w[0].d}  target ${m(d => d.target)}  ok ${m(d => d.ok)}  @owed0 ${m(d => d.okAtOwed0 || d.ok)}  ses ${m(d => d.sessions)}  pace ${l.plan ? l.plan.pace : "-"}  vx ${l.plan && l.plan.vx ? `${l.plan.vx.due}d ${l.plan.vx.items}i ${l.plan.vx.cells}c` : "-"}  kw ${l.kw}  met ${l.met}  unmet ${l.unmet}  known ${l.known}/${l.total}  od ${l.od}  cellsLeft ${l.cellsLeft}  itemsLeft ${l.itemsLeft}  ${l.status} ${l.pace}`);
+  console.log(`${w[0].d}  target ${m(d => d.target)}  ok ${m(d => d.ok)}  @owed0 ${m(d => d.okAtOwed0 || d.ok)}  ses ${m(d => d.sessions)}+${m(d => d.pad)}  pace ${l.plan ? l.plan.pace : "-"}  vx ${l.plan && l.plan.vx ? `${l.plan.vx.due}d ${l.plan.vx.items}i ${l.plan.vx.cells}c` : "-"}  kw ${l.kw}  met ${l.met}  unmet ${l.unmet}  known ${l.known}/${l.total}  od ${l.od}  cellsLeft ${l.cellsLeft}  itemsLeft ${l.itemsLeft}  ${l.status} ${l.pace}`);
 }
 r.fails.forEach(f => console.log("✗", f));
 if (errors.length) console.log("page errors:", errors.slice(0, 8));

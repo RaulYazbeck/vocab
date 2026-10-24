@@ -144,8 +144,7 @@ function questMarkKept() {
   if (!Array.isArray(Q.kept)) Q.kept = [];
   if (Q.day !== today || (Q.qdays || []).includes(today) || Q.kept.includes(today)) return;
   const longDone = (Q.m.sessions || []).some(s => s.len === "long" && !s.ab);
-  const planDone = (Q.list || []).some(q => q.tpl === "a_plan" && q.done); // (nothing left to ask today)
-  if (!longDone && !planDone && goalProgress() < Math.ceil(getDailyGoal() * KEEP_GOAL_SHARE)) return;
+  if (!longDone && goalProgress() < Math.ceil(getDailyGoal() * KEEP_GOAL_SHARE)) return;
   Q.kept.push(today);
   logEvent("day_kept", { long: longDone });
 }
@@ -285,12 +284,13 @@ qt({ id: "a_path", slot: "A", fam: "path", icon: "📖", w: 3, target: c => sz(c
 // With a finish date (Settings), this one always takes the Core slot:
 // the day's reviews + new words, sized so the 4 quests keep you on time.
 // Its progress is the goal bar's counter (right answers outside games),
-// so the two always show the same number. It is done when Today has
-// nothing left to ask today (questPlanDone) — before the count if the
-// estimate was high, after it if something is still owed.
+// so the two always show the same number. Its count is the morning's
+// estimate of the day's work plus a small margin (planTarget); if the
+// work runs out first, extra practice makes up the rest — only what the
+// count still needs (buildPathQueue).
 qt({ id: "a_plan", slot: "A", fam: "plan", icon: "📅", w: 0, fixed: true, ok: () => false,
   target: c => c.plan ? c.plan.target : sz(c, 0.45, 10, 90),
-  title: q => { const left = questPlanLeft(q); return `Today's plan: ${q.target} right answers${left ? ` · ${left} still to do` : ""}`; },
+  title: q => `Today's plan: ${q.target} right answers`,
   sub: () => { const p = S.path.plan; const parts = [];
     const pt = p && p.day === studyToday() ? planToday() : null;
     if (pt) parts.push(`${pt.reviews} reviews${pt.catchUp ? ` + ${pt.catchUp} catching up` : ""} + ${pt.newWords} new words${pt.vx && typeof vxPlanTarget === "function" && vxPlanTarget(pt.vx) ? " + verbs" : ""}${pt.cx && typeof cxPlanTarget === "function" && cxPlanTarget(pt.cx) ? " + grammar" : ""}`);
@@ -298,10 +298,9 @@ qt({ id: "a_plan", slot: "A", fam: "plan", icon: "📅", w: 0, fixed: true, ok: 
       const st = pathDeadlineStatus();
       const pc = st.ok && typeof pathPaceCheck === "function" ? pathPaceCheck() : null;
       // (amber: the last week's plans weren't kept, or the date needs close to the most a day may ask)
-      const behind = pc && pc.level === "amber" ? pc.why.filter(k => !k.endsWith("pace")) : [];
       parts.push(!st.ok ? `⚠️ at the fastest pace: ≈ ${fmtShortDate(st.eta)}`
-        : pc && pc.level === "amber" ? (behind.length ? `🟠 behind this week on ${behind.join(", ")} — finish each day's plan to stay on course for ${fmtShortDate(S.path.deadline)}`
-          : `🟠 on course for ${fmtShortDate(S.path.deadline)}, close to the most a day may ask — keep every day`)
+        : pc && pc.why.includes("days") ? `🟠 ${pc.missed} of the last ${pc.days} days unfinished — the coming days get heavier; finish each day's work to stay on course for ${fmtShortDate(S.path.deadline)}`
+        : pc && pc.level === "amber" ? `🟠 on course for ${fmtShortDate(S.path.deadline)}, close to the most a day may ask — keep every day`
         : `on course for ${fmtShortDate(S.path.deadline)}`);
     }
     return parts.join(" · "); },
@@ -830,28 +829,6 @@ function questFocusCtaHtml() {
     <div class="p-move"><span class="p-move-w">${questIcon(q)} ${escapeHtml(questTitle(q, true))}<small>${q.prog} / ${q.target}</small></span>
     <button class="g-sec-btn" onclick="questGo(${i})">▶ Go</button></div>`).join("")}</div>`;
 }
-// The day's plan (finish date) is done when Today has nothing left to ask
-// today (pathOwed — reviews, new words, verbs, cells, sheets, grammar),
-// once something was answered: its count is the morning's estimate of
-// that work, so it never asks for padding on top of it, and reaching the
-// count while something is still owed leaves it open ("· N still to do").
-// Two safety nets: a count well past the estimate (+20%, at least +15)
-// closes it, so a form Today can't bring never keeps it open; and without
-// a plan (no finish date) it is the count, as before.
-const PLAN_OVERRUN = 0.2;
-function questPlanDone(q) {
-  if (!(S.path && S.path.deadline) || typeof pathOwed !== "function") return q.prog >= q.target;
-  if (q.prog >= q.target + Math.max(15, Math.ceil(q.target * PLAN_OVERRUN))) return true;
-  if (!(S.quests.m.ok > 0)) return false;
-  if (pathOwedAny()) return false;
-  if (typeof usageDay === "function") try { usageDay().owed0 = 1; } catch (e) {}
-  return true;
-}
-// What's still owed today, for the plan quest's title once its count is reached.
-function questPlanLeft(q) {
-  if (!q || q.done || q.prog < q.target || !(S.path && S.path.deadline) || typeof pathOwed !== "function") return 0;
-  return pathOwed().total;
-}
 // Recompute every quest; pay out newly finished ones.
 function questRecompute(silent = false) {
   const Q = S.quests;
@@ -860,7 +837,7 @@ function questRecompute(silent = false) {
   Q.list.forEach((q, i) => {
     q.prog = questProgOf(q);
     if (q.hidden) q.hidden.prog = questProgOf(q.hidden);
-    if (!q.done && (q.tpl === "a_plan" ? questPlanDone(q) : q.prog >= q.target)) { q.done = true; q.doneAt = Date.now(); finished.push([q, i]); }
+    if (!q.done && q.prog >= q.target) { q.done = true; q.doneAt = Date.now(); finished.push([q, i]); }
   });
   if (Q.weekend && !Q.weekend.done) {
     Q.weekend.prog = questProgOf(Q.weekend);
@@ -882,7 +859,6 @@ function questPay(q, i) {
   const t = byId(q.tpl) || {};
   logEvent("quest_done", { tpl: q.tpl, slot: q.slot });
   if (q.tpl === "a_plan" && typeof pathMarkPlanDone === "function") pathMarkPlanDone();
-  if (q.tpl === "a_plan" && typeof markGoalIfReached === "function") markGoalIfReached();
   if (i === "F") {
     Q.flashes++;
     questQueueChest("flash", "common");
