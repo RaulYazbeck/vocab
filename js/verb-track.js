@@ -67,7 +67,6 @@ function vxHasTense(x, t) { return VX_FR ? VXF.hasTense(x, t) : x.v.tenses.inclu
 const VX_DECK = "vx";
 const VX_PASS_RE = 1;            // a quiz: every question right the first time (grammar-quiz.js)
 const VX_SHEETS_PER_DAY = 2;     // new sheets brought into Today per day
-const VX_SESSION_SHARE = 0.25;   // verb items take at most this share of a session
 const VX_LEMMA_MIN = 2;          // a verb joins the verb track once its word is past day 0
 const VX_ITEM_PACE = [1, 12];    // new verb items a day (min, max) with a finish date
 const VX_CELL_PACE = [2, 30];    // coverage drills a day (min, max)
@@ -1577,16 +1576,20 @@ function vxPlanNumbers(scan) {
   const sheetQ = pend.reduce((n, id) => n + (typeof gqSheetSize === "function" ? gqSheetSize(vxSheet(id)) : 4), 0);
   return { due: fix.length + due.length, items, cells, sheets: pend.length, sheetQ };
 }
-// Right answers the verb track adds to the day's target.
+// Right answers the verb track adds to the day's target on top of its due
+// items (counted with the reviews, path.js planTarget): each new item's
+// typed check, each ledger form's drill, each sheet's questions (PLAN_K).
 function vxPlanTarget(vx) {
   if (!vx) return 0;
-  return Math.round(vx.items * 2 + vx.cells * 1.1 + (vx.sheetQ != null ? vx.sheetQ : vx.sheets * 4));
+  const k = typeof PLAN_K === "object" ? PLAN_K : { VX_NEW: 1, CELL: 1 };
+  return Math.round(vx.items * k.VX_NEW + vx.cells * k.CELL + (vx.sheetQ != null ? vx.sheetQ : vx.sheets * 4));
 }
 // Items for one Today session: { sheets:[ids], learn:[ex], items:[ex] }.
 // counted items stay within `room`. Sheets first, then fixes and due
-// items, then new items (each: an intro card + a typed check), then
-// coverage drills.
-function vxSessionPlan(room) {
+// items (at most `dueRoom` of them — their share of the session next to
+// the words' reviews, path.js), then new items (each: an intro card + a
+// typed check), then coverage drills, in what room is left.
+function vxSessionPlan(room, dueRoom = room) {
   if (!vxOn()) return { sheets: [], items: [], learns: [] };
   vxUnitsTick(false);
   const q = vxQuotas();
@@ -1595,7 +1598,7 @@ function vxSessionPlan(room) {
   const { fix, due } = vxDueItems();
   let avoid = "";
   [...fix, ...due].forEach(({ it }) => {
-    if (items.length >= room) return;
+    if (items.length >= Math.min(room, dueRoom)) return;
     const ex = vxMakeExercise(it, avoid);
     if (ex) { items.push(ex); avoid = ex.x.inf; }
   });

@@ -941,7 +941,11 @@ function renderHome() {
   // A "+5" pressed by mistake: take back the words not met yet.
   const undo = t.frontier && typeof pathExtraUndoable === "function" ? pathExtraUndoable() : 0;
   if (undo) stats.push(`<button class="tc-stat tc-stat-btn tc-undo" onclick="pathUndoExtra();renderHome()" title="Take back the extra new words you added — the ones not learnt yet">↶ Undo +${undo}</button>`);
-  const nothing = !t.due && !t.newLeft && !vx.fresh && !cx.parts;
+  // (the verb ledger's forms and sheets owed today keep Start a Start too)
+  const ow = typeof pathOwed === "function" ? pathOwed() : { cells: 0, sheets: 0 };
+  // (grammar rules due past the day's review block wait for the next days:
+  // they show in 📚 due, ✅ Due today brings them, but Start has none today)
+  const nothing = !(t.due - cx.due) && !t.newLeft && !vx.fresh && !cx.parts && !ow.cells && !ow.sheets;
   home.innerHTML = `
     <div class="today-card" id="today-card">
       <div class="tc-head">
@@ -976,7 +980,8 @@ function renderGrandmaHome(home) {
   const sg = sagaProgress();
   const scan = t.scan;
   const pct = scan.total ? Math.round(scan.known / scan.total * 100) : 0;
-  const nothing = !t.due && !t.newLeft && !vx.fresh && !cx.parts;
+  const ow = typeof pathOwed === "function" ? pathOwed() : { cells: 0, sheets: 0 };
+  const nothing = !(t.due - cx.due) && !t.newLeft && !vx.fresh && !cx.parts && !ow.cells && !ow.sheets;
   const banner = t.reason === "autopaused"
     ? `<div class="tc-note">⏸ New words paused after a few days away — they come back by themselves. <button class="tc-link" onclick="pathResume();renderHome()">Resume now</button></div>` : "";
   home.innerHTML = `
@@ -1124,15 +1129,16 @@ function renderJourney() {
 // (already scheduled · from new words · catching up), ≈ numbers, each
 // day's new words underneath. Today is the plan itself.
 // With a finish date the numbers are the plan quest's right answers, so
-// today's matches the quest: reviews ×1.1 (a miss takes a second answer)
-// plus 🌱 meeting new words (3 answers each). Without one: reviews.
+// today's matches the quest: reviews at the rate a review takes (f.kw —
+// your misses' returns and repairs included, path.js planWordFactor) plus
+// 🌱 meeting new words (3 answers each). Without one: reviews.
 function forecastHtml() {
   const f = pathForecast(8);
   const plan = pathDeadlineOn() && f.days[0] && f.days[0].target != null;
-  const R = plan ? 1.1 : 1;
+  const R = plan ? f.kw || 1 : 1;
   // Bar parts in the numbers' unit, scaled to add up to that number.
   const parts = f.days.map(d => {
-    const raw = { s: d.scheduled * R, n: d.fromNew * R, c: d.carried * R, m: plan ? d.newWords * 3 : 0, g: plan ? d.cx || 0 : 0 };
+    const raw = { s: d.scheduled * R, n: d.fromNew * R, c: d.carried * R, m: plan ? d.newWords * PLAN_K.NEW : 0, g: plan ? d.cx || 0 : 0 };
     const num = plan ? d.target : d.total;
     const sum = raw.s + raw.n + raw.c + raw.m + raw.g, k = sum > 0 ? num / sum : 0;
     return { num, s: raw.s * k, n: raw.n * k, c: raw.c * k, m: raw.m * k, g: raw.g * k };

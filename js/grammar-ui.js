@@ -1102,7 +1102,7 @@ function pathGradeVerb(val, ok, said = false) {
     if (input) input.classList.add("wrong");
   }
   s.stats.answered++;
-  logEvent("answer", { m: ex.cell ? "path:cell" : "path:verb", ok: ok === true, typed: !said, hint, ms: Date.now() - s.shownAt });
+  logEvent("answer", { m: ex.cell ? "path:cell" : "path:verb", ok: ok === true, typed: !said, hint, ms: Date.now() - s.shownAt, src: typeof pathAnswerSrc === "function" ? pathAnswerSrc(it) : "" });
   questEvent("answer", { mode: "path", ok: ok === true, typed: !said, st: from, w, it: "verb", hint, ms: Date.now() - s.shownAt, said, fix: wasFix || !!it.repair, retried: !!it.tenseRetry });
   saveState();
   // Feedback: the form in colour, the rule behind it, the whole row.

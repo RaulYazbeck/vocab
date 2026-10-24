@@ -128,6 +128,8 @@ function _usageAggregate(type, d, now) {
         if (!lm[m]) lm[m] = [0, 0];
         lm[m][0] += Math.round(d.ms); lm[m][1]++;
       }
+      // src[where it came from] = [answers, right] (Today: path.js pathAnswerSrc)
+      if (d.src) { const sr = _uf(day, "src", () => ({})); if (!sr[d.src]) sr[d.src] = [0, 0]; sr[d.src][0]++; if (d.ok === true) sr[d.src][1]++; }
       if (d.voice) day.voice++;
       if (d.near) day.near++;
       if (d.hint) day.hint++;
@@ -228,8 +230,9 @@ function _usageAggregate(type, d, now) {
     // change mid-day updates pace/target but keeps the morning pile.
     case "plan": {
       const p = day.plan || (day.plan = { due: d.due, od: d.od });
-      Object.assign(p, { pace: d.pace, rev: d.reviews, tgt: d.target, leave: d.leave });
+      Object.assign(p, { pace: d.pace, rev: d.reviews, tgt: d.target, leave: d.leave, ...(d.kw ? { kw: d.kw } : {}) });
       if (d.vx) p.vx = d.vx;
+      if (d.snap && !p.snap) p.snap = d.snap; // (the morning's: pathPaceCheck)
       break;
     }
     // Chests: earned by source; opened by source × rarity, what decided
@@ -278,6 +281,9 @@ function _usageTierSnapshot() {
       day.tiers = { ...scan.tiers };
       day.end = { ok: (S.quests && S.quests.m && S.quests.m.ok) || 0, rev: typeof pathReviewedToday === "function" ? pathReviewedToday() : 0,
         due: scan.due, od: scan.overdue, pend: (S.quests && S.quests.pending || []).length };
+      // owed0: the day finished everything it owed (path.js pathOwed) — the
+      // days planWordFactor learns from
+      if (typeof pathOwedAny === "function" && !pathOwedAny()) day.owed0 = 1;
     } catch (e) {}
   }, 0);
 }
@@ -557,11 +563,11 @@ function usagePlanLines(activeDays) {
   if (!rows.length) return [];
   const done = v => v.planAt != null || !!(v.qt && v.qt.a_plan && v.qt.a_plan[1]);
   const kept = rows.filter(([, v]) => done(v)).length;
-  const out = [``, `Plan per day (date · morning due/overdue · plan reviews+new → target, left for later · right answers · due words reviewed · new met · brake morning→end (lifted at h) · plan done at h · at last session due/overdue · chests waiting): plan finished ${kept}/${rows.length} days`];
+  const out = [``, `Plan per day (date · morning due/overdue · plan reviews+new → target, left for later · right answers · due words reviewed · new met · brake morning→end (lifted at h) · plan done at h · at last session due/overdue · chests waiting · answers a word review took (kw) · everything owed done · right/answers by source — rv reviews, rf fixes, rr repair round, new new words, vxd/vxn/cell/vxr verbs, x on top): plan finished ${kept}/${rows.length} days`];
   rows.forEach(([d, v]) => {
     const p = v.plan || {}, b = v.brk, e = v.end || {};
     const f = x => x == null ? "—" : x;
-    out.push(`${d} · ${f(p.due)}/${f(p.od)} · ${p.rev != null ? `${p.rev}+${p.pace}${p.vx ? ` (verbs: ${p.vx.due} due, ${p.vx.items} new, ${p.vx.cells} drills, ${p.vx.sheets} sheets)` : ""} → ${p.tgt}, leave ${p.leave}` : "—"} · ${f(e.ok)} · ${f(e.rev)} · ${f(v.met)} · ${b ? `${b.am}→${b.now}${b.off != null ? ` (${b.off}h)` : ""}` : "—"} · ${v.planAt != null ? v.planAt + "h" : done(v) ? "done" : "not done"} · ${f(e.due)}/${f(e.od)} · ${f(e.pend)}`);
+    out.push(`${d} · ${f(p.due)}/${f(p.od)} · ${p.rev != null ? `${p.rev}+${p.pace}${p.vx ? ` (verbs: ${p.vx.due} due, ${p.vx.items} new, ${p.vx.cells} drills, ${p.vx.sheets} sheets)` : ""} → ${p.tgt}, leave ${p.leave}` : "—"} · ${f(e.ok)} · ${f(e.rev)} · ${f(v.met)} · ${b ? `${b.am}→${b.now}${b.off != null ? ` (${b.off}h)` : ""}` : "—"} · ${v.planAt != null ? v.planAt + "h" : done(v) ? "done" : "not done"} · ${f(e.due)}/${f(e.od)} · ${f(e.pend)} · ${f(p.kw)} · ${v.owed0 ? "owed done" : "—"} · ${v.src ? Object.entries(v.src).map(([k, x]) => `${k} ${x[1]}/${x[0]}`).join(" ") : "—"}`);
   });
   return out;
 }

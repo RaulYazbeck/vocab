@@ -28,7 +28,8 @@ function chrome() {
 // on with COURSE=1 or { course: true } (tools/course).
 export async function openApp({ width = 390, height = 844, profile = true, extra = null, state = process.env.REAL_STATE || "", app = "de", umlautAuto = true, vxOff = false, course = process.env.COURSE === "1" } = {}) {
   const browser = await chromium.launch({ executablePath: chrome(), args: ["--no-sandbox"] });
-  const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 2 });
+  // TZID: the learner's time zone (a real profile's days roll over at its 4 AM)
+  const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 2, ...(process.env.TZID ? { timezoneId: process.env.TZID } : {}) });
   const page = await ctx.newPage();
   if (vxOff) await page.addInitScript(() => { window.VX_TEST_OFF = true; });
   if (!course) await page.addInitScript(() => { window.CX_TEST_OFF = true; });

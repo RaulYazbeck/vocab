@@ -963,7 +963,7 @@ function pathRecordMove(w, from, res) {
   s.moves.set(k, { w, from: prev ? prev.from : from, to, events });
 }
 function pathLogAnswer(it, ok, extra) {
-  logEvent("answer", { m: "path:" + it.t, ok, ms: Date.now() - (pathSession ? pathSession.shownAt : Date.now()), ...extra });
+  logEvent("answer", { m: "path:" + it.t, ok, ms: Date.now() - (pathSession ? pathSession.shownAt : Date.now()), src: pathAnswerSrc(it), ...extra });
 }
 
 // ── VOICE (optional) ──────────────────────────
