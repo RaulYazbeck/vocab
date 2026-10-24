@@ -1089,6 +1089,9 @@ function buildPathQueue(lenKey, opts = {}) {
     if (ws && (ws.st || 0) >= 2) continue;
     let at = Math.max(0, i - 3);
     for (let j = i - 1; j >= at; j--) if (out[j].t === "learn" && out[j].w && sameWord(out[j].w, it.w)) { at = j + 1; break; }
+    // never inside the grammar block (a test-out, its sheet and drill come together): before it
+    const gram = x => !!x && (x.t === "cx" || x.t === "sheet");
+    while (at > 0 && gram(out[at]) && gram(out[at - 1])) at--;
     out.splice(at, 0, { t: "choice", w: it.w, warm: true, rev: rng() < 0.5 });
     choiced.add(k);
     i++;
