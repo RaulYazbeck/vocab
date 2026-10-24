@@ -42,7 +42,7 @@ function startPathSession(lenKey, opts = {}) {
     ok5: 0, upCount: 0, wotdHit: false, golden: 0,
   };
   pathMarkActive();
-  logEvent("session_start", { kind: "path", len: lenKey, n: q.items.length, nw: q.newWords, focus: q.focus || "", mix: pathQueueMix(q.items) });
+  logEvent("session_start", { kind: "path", len: lenKey, n: q.items.length, nw: q.newWords, focus: q.focus || "", mix: pathQueueMix(q.items), ...(q.shares ? { sh: q.shares } : {}), ...(q.pad ? { pad: q.pad } : {}) });
   logScreen("path");
   renderPathShell();
   bindPathKeys();

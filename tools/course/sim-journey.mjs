@@ -199,7 +199,8 @@ const r = await page.evaluate(async (CFG) => {
       need: { words: pathPaceNeeded(), vx: vxPaceNeeded(pathScan()) }, ...sn });
     if (day % 30 === 29) { const j = JSON.parse(JSON.stringify(S)); if (!j.words || Object.keys(j.words).length !== Object.keys(S.words).length) fail(`${today}: state round trip`); }
   }
-  return { start, deadline, firstAllMet, firstAllKnown, ledgerDone, itemsStarted, itemsKnown, atDeadline, days, fails, notes, NEW };
+  const reportTail = typeof buildUsageReport === "function" ? buildUsageReport(0).split("\n").filter(l => /^Plan per day|^20\d\d-\d\d-\d\d · /.test(l)).slice(-4) : [];
+  return { reportTail, start, deadline, firstAllMet, firstAllKnown, ledgerDone, itemsStarted, itemsKnown, atDeadline, days, fails, notes, NEW };
 }, CFG);
 
 const act = r.days.filter(d => !d.skipped);
@@ -225,6 +226,7 @@ for (let i = 0; i < r.days.length; i += 14) {
   const l = w[w.length - 1], m = f => Math.round(w.reduce((a, d) => a + f(d), 0) / w.length);
   console.log(`${w[0].d}  target ${m(d => d.target)}  ok ${m(d => d.ok)}  @owed0 ${m(d => d.okAtOwed0 || d.ok)}  ses ${m(d => d.sessions)}+${m(d => d.pad)}  pace ${l.plan ? l.plan.pace : "-"}  vx ${l.plan && l.plan.vx ? `${l.plan.vx.due}d ${l.plan.vx.items}i ${l.plan.vx.cells}c` : "-"}  kw ${l.kw}  met ${l.met}  unmet ${l.unmet}  known ${l.known}/${l.total}  verbs ${l.verbs}  od ${l.od}  cellsLeft ${l.cellsLeft}  itemsLeft ${l.itemsLeft}  ${l.status} ${l.pace}`);
 }
+if (process.argv.includes("--report")) r.reportTail.forEach(l => console.log("report> " + l));
 r.fails.forEach(f => console.log("✗", f));
 if (errors.length) console.log("page errors:", errors.slice(0, 8));
 if (OUT) fs.writeFileSync(OUT, JSON.stringify({ cfg: CFG, ...r, errors }));

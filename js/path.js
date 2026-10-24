@@ -518,7 +518,8 @@ function pathEnsurePlan(scan) {
   // Made before this device synced (sync.js): see pathAfterSync.
   if (typeof cloudLoadedOnce !== "undefined" && !cloudLoadedOnce) P.plan.pre = 1;
   planSyncQuest(P.plan);
-  logEvent("plan", { pace, reviews, target, leave, kw, kv, due: scan.due, od: scan.overdue, ...(vx ? { vx } : {}), snap: pathSnapshot(scan) });
+  const pc = pathPaceCheck(today);
+  logEvent("plan", { pace, reviews, target, leave, kw, kv, due: scan.due, od: scan.overdue, ...(vx ? { vx } : {}), snap: pathSnapshot(scan), pc: pc.level + (pc.why.length ? ":" + pc.why.join("/") : "") });
   return P.plan;
 }
 // A plan made before this device's first sync of the session (opened
@@ -549,6 +550,7 @@ function pathSnapshot(scan = pathScan()) {
   const out = { m: scan.met - (scan.retMet || 0) };
   if (typeof vxOn === "function" && vxOn()) {
     const left = vxLeft();
+    out.v = vxVerbs().filter(vxVerbReady).length; // verbs met (past day 0): the verb lean's effect
     out.c = vxRequiredCells().length - left.cells;
     out.i = vxCatalog().length - left.items;
   }
@@ -866,6 +868,7 @@ function buildPathQueue(lenKey, opts = {}) {
   let clusters = [], reviews = [];
   pathRollDay();
   let spots = [], vxEnd = [];
+  let shares = null, padN = 0; // (for the usage log: the session's split, the padding it planned)
   if (focus === "new") {
     // Explorer: a bonus cluster from one deck (on top of today's pace).
     const deck = opts.param && getDeck(opts.param);
@@ -941,6 +944,7 @@ function buildPathQueue(lenKey, opts = {}) {
       cellN = Math.min(vq.cellsLeft, vxOpenCells(vq.cellsLeft).length);
     }
     const sh = pathShares({ w: wOwed, due: vxDueN, fresh: vxNewN, cells: cellN }, room);
+    shares = sh;
     const vxp = vxOnNow ? vxSessionPlan(room - sh.w, { due: sh.due, fresh: sh.fresh, cells: sh.cells }) : null;
     if (vxp) vxp.sheets = gfit.sheets;
     grammarQ = gfit.q;
@@ -1065,7 +1069,7 @@ function buildPathQueue(lenKey, opts = {}) {
     const left = pathPlanLeft();
     if (left !== null) short = Math.min(short, Math.max(0, left - counted() - grammarQ));
     if (short > 0) focusWords("stale").filter(x => !have.has(x.d.id + "_" + x.i)).slice(0, short)
-      .forEach(x => out.push({ ...focusItem(x, "stale"), practice: true }));
+      .forEach(x => { out.push({ ...focusItem(x, "stale"), practice: true }); padN++; });
   }
   // Verb items missed in a tense drill: checked at the very end.
   vxEnd.forEach(ex => out.push({ t: "typed", w: vxWord(ex), drillCheck: true }));
@@ -1110,7 +1114,7 @@ function buildPathQueue(lenKey, opts = {}) {
     }
   }
   pathSpace(out, 0);
-  return { items: out, budget, newWords: nNew, reviews: reviews.length, quota: q, focus };
+  return { items: out, budget, newWords: nNew, reviews: reviews.length, quota: q, focus, shares, pad: padN };
 }
 // Where a Today answer comes from (usage day.src → planRate): the
 // day's owed work — rv a word's review, rf a fix (repair, flag, relearn),
@@ -1123,8 +1127,9 @@ function buildPathQueue(lenKey, opts = {}) {
 // focus session), x extra practice (the plan's padding, "extra practice").
 function pathAnswerSrc(it) {
   if (!it) return "";
-  if (it.nudge || it.questFill || it.extra) return "xq";
-  if (it.practice) return "x";
+  if (it.questFill) return "xq";
+  if (it.practice) return "x"; // (extra practice, the plan's top-up: practice even where focusItem says extra)
+  if (it.nudge || it.extra) return "xq";
   if (it.wotd || (it.t === "spot" && !it.maint)) return "q";
   if (it.warm || it.reask) return "w";
   const ex = it.w && it.w.vx;
