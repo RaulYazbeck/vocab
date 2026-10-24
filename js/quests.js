@@ -284,8 +284,10 @@ qt({ id: "a_path", slot: "A", fam: "path", icon: "📖", w: 3, target: c => sz(c
 // With a finish date (Settings), this one always takes the Core slot:
 // the day's reviews + new words, sized so the 4 quests keep you on time.
 // Its progress is the goal bar's counter (right answers outside games),
-// so the two always show the same number. If the due and new words run
-// out first, extra practice makes up the rest.
+// so the two always show the same number. Its count is the morning's
+// estimate of the day's work plus a small margin (planTarget); if the
+// work runs out first, extra practice makes up the rest — only what the
+// count still needs (buildPathQueue).
 qt({ id: "a_plan", slot: "A", fam: "plan", icon: "📅", w: 0, fixed: true, ok: () => false,
   target: c => c.plan ? c.plan.target : sz(c, 0.45, 10, 90),
   title: q => `Today's plan: ${q.target} right answers`,
@@ -294,7 +296,12 @@ qt({ id: "a_plan", slot: "A", fam: "plan", icon: "📅", w: 0, fixed: true, ok: 
     if (pt) parts.push(`${pt.reviews} reviews${pt.catchUp ? ` + ${pt.catchUp} catching up` : ""} + ${pt.newWords} new words${pt.vx && typeof vxPlanTarget === "function" && vxPlanTarget(pt.vx) ? " + verbs" : ""}${pt.cx && typeof cxPlanTarget === "function" && cxPlanTarget(pt.cx) ? " + grammar" : ""}`);
     if (S.path.deadline && pathDaysLeft() >= 0) {
       const st = pathDeadlineStatus();
-      parts.push(st.ok ? `on course for ${fmtShortDate(S.path.deadline)}` : `⚠️ at the fastest pace: ≈ ${fmtShortDate(st.eta)}`);
+      const pc = st.ok && typeof pathPaceCheck === "function" ? pathPaceCheck() : null;
+      // (amber: the last week's plans weren't kept, or the date needs close to the most a day may ask)
+      parts.push(!st.ok ? `⚠️ at the fastest pace: ≈ ${fmtShortDate(st.eta)}`
+        : pc && pc.why.includes("days") ? `🟠 ${pc.missed} of the last ${pc.days} days unfinished — the coming days get heavier; finish each day's work to stay on course for ${fmtShortDate(S.path.deadline)}`
+        : pc && pc.level === "amber" ? `🟠 on course for ${fmtShortDate(S.path.deadline)}, close to the most a day may ask — keep every day`
+        : `on course for ${fmtShortDate(S.path.deadline)}`);
     }
     return parts.join(" · "); },
   prog: m => m.ok, go: "path" });
@@ -790,8 +797,8 @@ function questAllDone() { return S.quests.list.length === 4 && S.quests.list.eve
 function questTodayExhausted() {
   const t = pathTodaySummary();
   const vx = typeof vxTodayCounts === "function" ? vxTodayCounts() : { due: 0, fresh: 0 };
-  const sheets = typeof vxOn === "function" && vxOn() && typeof vxSheetsToday === "function" ? vxSheetsToday().length : 0;
-  return !(t.due + vx.due) && !(t.newLeft + vx.fresh) && !sheets;
+  const ow = typeof pathOwed === "function" ? pathOwed() : { cells: 0, sheets: 0 };
+  return !(t.due + vx.due) && !(t.newLeft + vx.fresh) && !ow.sheets && !ow.cells;
 }
 // How many more answers the open verb quests (the ones extra practice can
 // top up) still need — the most any of them needs, as one answer counts

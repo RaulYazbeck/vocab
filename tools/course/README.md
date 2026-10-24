@@ -132,5 +132,16 @@ a later session that uploads its chapter.
                                       # course is done each day, the plan is met when every answer is right,
                                       # the state and the cloud docs round-trip, the logs agree with what was done
 
+    REAL_STATE=state.json TZID=Europe/Berlin node sim-journey.mjs [--days 300 --seed 7 --skip 0.1 --breaks 60:5
+                       --accScale 0.9 --typed 0.86 --verb 0.8 --len long --out run.json]
+                                      # a real backup's journey to its finish date, in the real app: every Today
+                                      # session played card by card (accuracy by kind of card) until Today has
+                                      # nothing left to ask; every day the plan, the right answers, what was still
+                                      # owed, how the plan quest ended, the answers by source, the date status and
+                                      # the pace check; at the end when everything was met / Known, the verb ledger
+                                      # and items, and how close the plan's count came to the day's work. Fails on
+                                      # a day left owing, a plan quest left open with nothing owed, a session that
+                                      # doesn't end, a page error. Runs the code before pathOwed too (for comparing).
+
 The older browser scripts (`tools/verb-track`, `tools/quests`) count Today's cards
 without the course: `openApp()` loads it off unless `COURSE=1` or `{ course: true }`.

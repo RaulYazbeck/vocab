@@ -169,6 +169,7 @@ const PATH = {
   NEW_PER_DAY_OPTIONS: [0, 5, 10, 15, 20, 30],
   NEW_PER_DAY_DEFAULT: 10,
   CLUSTER_MIN: 3, CLUSTER_MAX: 4,
+  VERB_LEAN: 0.5,      // a deck's verbs weigh this much more when new words are drawn (path.js pickClusterDeck)
   THROTTLE_HALF: 60,   // overdue reviews that halve new words
   THROTTLE_STOP: 120,  // … and that pause them
   AUTO_PAUSE_DAYS: 3,

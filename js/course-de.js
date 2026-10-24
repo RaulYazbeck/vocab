@@ -1152,7 +1152,8 @@ function cxPlanNumbers(scan) {
   parts.forEach(p => { if (to.has(p.sec) && p.part !== "testout") cut[p.sec] = (cut[p.sec] || 0) + cxPartSize(p) * 0.5; });
   return { parts: parts.map(p => p.part), q, ...(Object.keys(cut).length ? { cut } : {}) };
 }
-function cxPlanTarget(cx) { return cx ? Math.round((cx.q || 0) * 0.85) : 0; }
+// (one right answer a question: a miss is asked again in the same run, course-ui.js)
+function cxPlanTarget(cx) { return cx ? Math.round((cx.q || 0) * (typeof PLAN_K === "object" ? PLAN_K.CX : 1)) : 0; }
 // A test-out passed: its sheet and drill won't come, so today's plan
 // stops counting their half (the target only ever goes down here).
 function cxPlanTrim(secId) {
@@ -1161,7 +1162,7 @@ function cxPlanTrim(secId) {
   plan.cx.q = Math.max(0, Math.round(plan.cx.q - plan.cx.cut[secId]));
   delete plan.cx.cut[secId];
   if (typeof planTarget !== "function") return;
-  const t = planTarget(plan.reviews, plan.pace, (typeof vxPlanTarget === "function" ? vxPlanTarget(plan.vx) : 0) + cxPlanTarget(plan.cx));
+  const t = typeof planTargetOf === "function" ? planTargetOf(plan) : plan.target;
   if (t < plan.target) { plan.target = plan.goal = t; if (typeof planSyncQuest === "function") planSyncQuest(plan); }
 }
 

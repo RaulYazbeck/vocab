@@ -27,13 +27,15 @@ const A = await page.evaluate(() => {
   window.playAchievement = () => {}; window.speak = () => {};
   if (vxAvailable() && !vxOn()) vxSwitchOn();
   const out = [], ok = (c, m, x) => out.push([!!c, m + (x !== undefined ? " — " + x : "")]);
-  const real = { sum: pathTodaySummary, vxc: vxTodayCounts, sh: vxSheetsToday, acc: window.recentAccuracy };
+  const real = { sum: pathTodaySummary, vxc: vxTodayCounts, sh: vxSheetsToday, acc: window.recentAccuracy, owed: window.pathOwed };
   const today = (due, newLeft, vxDue = 0, vxFresh = 0, sheets = 0) => {
     window.pathTodaySummary = () => ({ due, fix: 0, newLeft, scan: {} });
     window.vxTodayCounts = () => ({ due: vxDue, fix: 0, fresh: vxFresh });
     window.vxSheetsToday = () => new Array(sheets).fill("x");
+    // (what Today still owes: the ledger's forms and sheets too — path.js pathOwed)
+    window.pathOwed = () => ({ words: due, fresh: newLeft, vxDue, vxNew: vxFresh, cells: 0, sheets, cx: 0, total: due + newLeft + vxDue + vxFresh + sheets });
   };
-  const restore = () => { window.pathTodaySummary = real.sum; window.vxTodayCounts = real.vxc; window.vxSheetsToday = real.sh; window.recentAccuracy = real.acc; };
+  const restore = () => { window.pathTodaySummary = real.sum; window.vxTodayCounts = real.vxc; window.vxSheetsToday = real.sh; window.recentAccuracy = real.acc; window.pathOwed = real.owed; };
   const METRIC = { b_vxforms: "vxOk", a_vxsure: "vxTenseSure", b_ledger: "vxCells", b_known: "known", b_up: "up", a_path: "path", c_games: "game", a_deck: "", a_cloze: "cloze", b_hard: "hard" };
   const setup = (tpls, progs, targets, mOk = 10) => {
     questEnsureToday();

@@ -42,7 +42,7 @@ function startPathSession(lenKey, opts = {}) {
     ok5: 0, upCount: 0, wotdHit: false, golden: 0,
   };
   pathMarkActive();
-  logEvent("session_start", { kind: "path", len: lenKey, n: q.items.length, nw: q.newWords, focus: q.focus || "", mix: pathQueueMix(q.items) });
+  logEvent("session_start", { kind: "path", len: lenKey, n: q.items.length, nw: q.newWords, focus: q.focus || "", mix: pathQueueMix(q.items), ...(q.shares ? { sh: q.shares } : {}), ...(q.pad ? { pad: q.pad } : {}) });
   logScreen("path");
   renderPathShell();
   bindPathKeys();
@@ -963,7 +963,7 @@ function pathRecordMove(w, from, res) {
   s.moves.set(k, { w, from: prev ? prev.from : from, to, events });
 }
 function pathLogAnswer(it, ok, extra) {
-  logEvent("answer", { m: "path:" + it.t, ok, ms: Date.now() - (pathSession ? pathSession.shownAt : Date.now()), ...extra });
+  logEvent("answer", { m: "path:" + it.t, ok, ms: Date.now() - (pathSession ? pathSession.shownAt : Date.now()), src: pathAnswerSrc(it), ...extra });
 }
 
 // ── VOICE (optional) ──────────────────────────

@@ -114,4 +114,17 @@ ok(m.games.world.stage === 3, "no fingerprints: the device that saved last, as b
 m = merge(phone3, shared, { localWins: true, base });
 ok(m.path.sessionLen === "long" && m.quests.tokens === 1, "nothing new in the cloud: local changes stand");
 
+// The day's usage record (usage-log.js): answers by source (src), the day
+// that finished everything it owed (owed0) and the morning's snapshot
+// (plan.snap) — one device's count never lost to the other's.
+{
+  const dayA = { ans: { "path:typed": [10, 8, 0] }, src: { rv: [10, 8], rr: [2, 2] }, plan: { rev: 50, snap: { m: 1300, c: 300, i: 140 } } };
+  const dayB = { ans: { "path:typed": [12, 9, 0] }, src: { rv: [12, 9], cell: [4, 3] }, owed0: 1, plan: { rev: 50, snap: { m: 1300, c: 300, i: 140 } } };
+  const m = merge({ usage: { days: { "2026-10-24": dayA } } }, { usage: { days: { "2026-10-24": dayB } } }, { localWins: true });
+  const d = m.usage.days["2026-10-24"];
+  ok(d.src.rv[0] === 12 && d.src.rv[1] === 9 && d.src.rr[1] === 2 && d.src.cell[1] === 3, "usage src: each source kept, the larger count wins", J(d.src));
+  ok(d.owed0 === 1, "usage owed0: a day finished on either device stays finished", J(d.owed0));
+  ok(d.plan.snap.c === 300 && d.plan.rev === 50, "usage plan snapshot kept", J(d.plan));
+}
+
 console.log(`merge: ${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);

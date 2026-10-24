@@ -67,7 +67,6 @@ function vxHasTense(x, t) { return VX_FR ? VXF.hasTense(x, t) : x.v.tenses.inclu
 const VX_DECK = "vx";
 const VX_PASS_RE = 1;            // a quiz: every question right the first time (grammar-quiz.js)
 const VX_SHEETS_PER_DAY = 2;     // new sheets brought into Today per day
-const VX_SESSION_SHARE = 0.25;   // verb items take at most this share of a session
 const VX_LEMMA_MIN = 2;          // a verb joins the verb track once its word is past day 0
 const VX_ITEM_PACE = [1, 12];    // new verb items a day (min, max) with a finish date
 const VX_CELL_PACE = [2, 30];    // coverage drills a day (min, max)
@@ -716,7 +715,10 @@ const VX_EXTRA_COVER = VX_FR ? {
   b1_konjunktiv2_12: ["dürfen", "k2", "ich"], b1_konjunktiv2_13: ["mögen", "k2", "ich"],
   b1_konjunktiv2_14: ["kommen", "k2", "ich", "k2-wuerde"], b1_konjunktiv2_15: ["helfen", "k2", "du", "k2-wuerde"], b1_konjunktiv2_16: ["kaufen", "k2"], b1_konjunktiv2_17: ["reisen", "k2", "wir"], b1_konjunktiv2_18: ["fragen", "k2", "sie"],
   b1_konjunktiv2_19: ["gehen", "k2"], b1_konjunktiv2_20: ["kommen", "k2"], b1_konjunktiv2_21: ["geben", "k2"], b1_konjunktiv2_22: ["wissen", "k2", "ich"], b1_konjunktiv2_23: ["brauchen", "k2", "ich"],
-  b1_konjunktiv2_24: ["machen", "k2p", "ich"], b1_konjunktiv2_25: ["kommen", "k2p"], b1_konjunktiv2_26: ["wissen", "k2p", "ich"],
+  // (b1_konjunktiv2_24–26 — hätte gemacht, wäre gekommen, hätte gewusst —
+  // stay word cards, met with the deck once Konjunktiv II opens: their rule,
+  // Konjunktiv II · past, is a post-B1 lesson not paced to the finish date,
+  // and B1 words can't wait for it. Oct 2026.)
   b1_passiv_0: ["reparieren", "pv", "er", "pv-pr"], b1_passiv_1: ["fragen", "pv", "er", "pv-pr"], b1_passiv_2: ["einladen", "pv", "er", "pv-pr"], b1_passiv_3: ["abholen", "pv", "sie", "pv-pr"],
   b1_passiv_4: ["bauen", "pv", "sie", "pv-pr"], b1_passiv_5: ["reparieren", "pv", "er", "pv-pt"], b1_passiv_6: ["fragen", "pv", "er", "pv-pt"], b1_passiv_7: ["öffnen", "pv", "er", "pv-pt"],
   b1_passiv_8: ["schicken", "pv", "sie", "pv-pt"], b1_passiv_9: ["reparieren", "pv", "er", "pv-pf"], b1_passiv_10: ["einladen", "pv", "ich", "pv-pf"], b1_passiv_11: ["reparieren", "pv", "er", "pv-mod"], b1_passiv_12: ["bezahlen", "pv", "er", "pv-mod"], b1_passiv_13: ["überprüfen", "pv", "er", "pv-mod"],
@@ -1577,35 +1579,42 @@ function vxPlanNumbers(scan) {
   const sheetQ = pend.reduce((n, id) => n + (typeof gqSheetSize === "function" ? gqSheetSize(vxSheet(id)) : 4), 0);
   return { due: fix.length + due.length, items, cells, sheets: pend.length, sheetQ };
 }
-// Right answers the verb track adds to the day's target.
+// Right answers the verb track adds to the day's target on top of its due
+// items (counted with the reviews, path.js planTarget): each new item's
+// typed check, each ledger form's drill, each sheet's questions (PLAN_K).
 function vxPlanTarget(vx) {
   if (!vx) return 0;
-  return Math.round(vx.items * 2 + vx.cells * 1.1 + (vx.sheetQ != null ? vx.sheetQ : vx.sheets * 4));
+  const k = typeof PLAN_K === "object" ? PLAN_K : { VX_NEW: 1, CELL: 1 };
+  return Math.round(vx.items * k.VX_NEW + vx.cells * k.CELL + (vx.sheetQ != null ? vx.sheetQ : vx.sheets * 4));
 }
 // Items for one Today session: { sheets:[ids], learn:[ex], items:[ex] }.
 // counted items stay within `room`. Sheets first, then fixes and due
 // items, then new items (each: an intro card + a typed check), then
-// coverage drills.
-function vxSessionPlan(room) {
+// coverage drills — each at most its share of the session (lim.due /
+// fresh / cells: path.js gives every part of the day's work its share of
+// each session), in what room is left.
+function vxSessionPlan(room, lim = {}) {
   if (!vxOn()) return { sheets: [], items: [], learns: [] };
   vxUnitsTick(false);
   const q = vxQuotas();
   const sheets = vxSheetsToday();
   const items = [], learns = [];
   const { fix, due } = vxDueItems();
+  const cap = (k, n) => Math.max(0, Math.min(n, lim[k] != null ? lim[k] : Infinity));
   let avoid = "";
+  const dueMax = cap("due", room);
   [...fix, ...due].forEach(({ it }) => {
-    if (items.length >= room) return;
+    if (items.length >= dueMax) return;
     const ex = vxMakeExercise(it, avoid);
     if (ex) { items.push(ex); avoid = ex.x.inf; }
   });
-  const fresh = vxNewCandidates().slice(0, Math.min(q.itemsLeft, Math.max(0, room - items.length)));
+  const fresh = vxNewCandidates().slice(0, cap("fresh", Math.min(q.itemsLeft, Math.max(0, room - items.length))));
   fresh.forEach(it => {
     const ex = vxMakeExercise(it, avoid);
     if (!ex) return;
     learns.push(ex); items.push({ ...ex, fresh: true }); avoid = ex.x.inf;
   });
-  const cells = vxOpenCells(Math.min(q.cellsLeft, Math.max(0, room - items.length)));
+  const cells = vxOpenCells(cap("cells", Math.min(q.cellsLeft, Math.max(0, room - items.length))));
   cells.forEach(c => { const ex = vxCellExercise(c); if (ex) items.push(ex); });
   // Missed in a tense drill: checked at the end of the session, from the
   // next day on (outside the room — a few more reviews, by your choice).
