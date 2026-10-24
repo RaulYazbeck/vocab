@@ -31,6 +31,7 @@ const CFG = {
   breaks: String(arg("breaks", "")).split(",").filter(Boolean).map(b => b.split(":").map(Number)),
   acc: { typed: +arg("typed", 0.86), choice: +arg("choice", 0.97), verb: +arg("verb", 0.8), course: +arg("course", 0.88), sheetq: +arg("sheetq", 0.94), repair: +arg("repair", 0.9) },
   scale: +arg("accScale", 1),
+  lean: arg("lean", ""), // PATH.VERB_LEAN for this run (compare with / without)
 };
 const OUT = arg("out", "");
 const { browser, page, errors } = await openApp({ course: true, width: 390, height: 844, state: process.env.REAL_STATE || "" });
@@ -47,6 +48,7 @@ const r = await page.evaluate(async (CFG) => {
   Math.random = rnd;
   const at = h => { const d = new RD(Date.now()); d.setHours(h, 0, 0, 0); off += d.getTime() - Date.now(); };
   const NEW = typeof pathOwedAny === "function"; // the code under test has pathOwed
+  if (CFG.lean !== "" && PATH.VERB_LEAN !== undefined) PATH.VERB_LEAN = +CFG.lean;
   const owedAny = NEW ? () => pathOwedAny() : () => !questTodayExhausted();
   const planQ = () => (S.quests.list || []).find(q => q.tpl === "a_plan");
 
