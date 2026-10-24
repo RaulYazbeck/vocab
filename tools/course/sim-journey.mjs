@@ -132,13 +132,23 @@ const r = await page.evaluate(async (CFG) => {
   const snap = () => {
     const sc = pathScan(true), L = vxLeft();
     return { met: sc.met, known: sc.known, total: sc.total, unmet: pathUnmet(sc), od: sc.overdue, due: sc.due, cellsLeft: L.cells, itemsLeft: L.items,
-      vxKnown: vxCatalog().filter(it => { const ws = S.words[vxKey(it.id)]; return ws && ws.st >= STAGE_KNOWN; }).length, vxAll: vxCatalog().length };
+      vxKnown: vxCatalog().filter(it => { const ws = S.words[vxKey(it.id)]; return ws && ws.st >= STAGE_KNOWN; }).length, vxAll: vxCatalog().length,
+      verbs: vxVerbs().filter(vxVerbReady).length };
+  };
+  // What's late, and why (the last few words / verb items short of Known).
+  const stragglers = () => {
+    const words = vocabGroups().flatMap(g => g.decks.flatMap(d => d.words.map((w, i) => [d.id + "_" + i, S.words[d.id + "_" + i], w])))
+      .filter(([k, ws]) => !(ws && ws.st >= STAGE_KNOWN)).slice(0, 12)
+      .map(([k, ws, w]) => `${k} ${w[WORD_KEY]} st${ws ? ws.st : 0}${ws && ws.rt ? " rt" : ""}${ws && ws.sk ? " sk" : ""}${ws && ws.fl ? " fl" : ""}${ws && ws.rp ? " rp" : ""}${ws && ws.lrn ? " lrn" : ""} k${ws && ws.k ? ws.k.toFixed(2) : "-"} due ${ws && ws.dueAt ? new Date(ws.dueAt).toISOString().slice(0, 10) : "-"}`);
+    const items = vxCatalog().filter(it => { const ws = S.words[vxKey(it.id)]; return !ws || (ws.st || 0) < STAGE_KNOWN; }).slice(0, 12)
+      .map(it => { const ws = S.words[vxKey(it.id)]; return `${it.id} st${ws ? ws.st : 0} unit ${it.unit}:${vxUnitState(it.unit)}${it.x ? " lemma st" + vxLemma(it.x).st : ""}${it.kind === "r" ? " verbs " + vxRuleVerbs(it.rule).length : ""} due ${ws && ws.dueAt ? new Date(ws.dueAt).toISOString().slice(0, 10) : "-"}`; });
+    return { words, items };
   };
 
   // ── the days ──
   const days = [];
   const start = studyToday(), deadline = S.path.deadline;
-  let firstAllMet = null, firstAllKnown = null, ledgerDone = null, itemsStarted = null, itemsKnown = null;
+  let firstAllMet = null, firstAllKnown = null, ledgerDone = null, itemsStarted = null, itemsKnown = null, atDeadline = null;
   for (let day = 0; day < CFG.days; day++) {
     if (day > 0) off += 864e5;
     at(8);
@@ -179,6 +189,7 @@ const r = await page.evaluate(async (CFG) => {
     if (!ledgerDone && sn.cellsLeft === 0) ledgerDone = today;
     if (!itemsStarted && sn.itemsLeft === 0) itemsStarted = today;
     if (!itemsKnown && sn.vxKnown >= sn.vxAll) itemsKnown = today;
+    if (today === deadline || (day === CFG.days - 1 && !atDeadline)) atDeadline = { d: today, ...stragglers() };
     days.push({ d: today, target: plan ? plan.target : 0, ok: S.quests.m.ok || 0, okAtOwed0, sessions: n, pad, kw: plan && plan.kw,
       plan: plan ? { rev: plan.reviews, pace: plan.pace, leave: plan.leave, vx: plan.vx, cxq: plan.cx ? plan.cx.q : 0 } : null,
       owedStart: owed0 && owed0.total, owedEnd: ow && ow.total, done: q ? (q.done ? ((u.src && u.src.x ? u.src.x[1] : 0) > 0 ? "with padding" : "by the work alone") : "open") : "-",
@@ -186,7 +197,7 @@ const r = await page.evaluate(async (CFG) => {
       need: { words: pathPaceNeeded(), vx: vxPaceNeeded(pathScan()) }, ...sn });
     if (day % 30 === 29) { const j = JSON.parse(JSON.stringify(S)); if (!j.words || Object.keys(j.words).length !== Object.keys(S.words).length) fail(`${today}: state round trip`); }
   }
-  return { start, deadline, firstAllMet, firstAllKnown, ledgerDone, itemsStarted, itemsKnown, days, fails, notes, NEW };
+  return { start, deadline, firstAllMet, firstAllKnown, ledgerDone, itemsStarted, itemsKnown, atDeadline, days, fails, notes, NEW };
 }, CFG);
 
 const act = r.days.filter(d => !d.skipped);
@@ -197,6 +208,7 @@ console.log(`all words met ${r.firstAllMet || "—"} · all Known ${r.firstAllKn
 // Padding: right answers of extra practice (usage src "x") — the plan's
 // margin; for other quests (xq): their own; the work: every other one.
 const padOf = d => (d.src && d.src.x ? d.src.x[1] : 0), qOf = d => (d.src && d.src.xq ? d.src.xq[1] : 0), workOf = d => Math.max(0, d.ok - padOf(d) - qOf(d));
+if (r.atDeadline) { console.log(`short of Known on ${r.atDeadline.d}: words ${r.atDeadline.words.length ? r.atDeadline.words.join(" | ") : "none"}`); console.log(`  verb items ${r.atDeadline.items.length ? r.atDeadline.items.join(" | ") : "none"}`); }
 console.log(`avg/day: target ${avg(d => d.target)} · right answers ${avg(d => d.ok)} · of them the day's work ${avg(workOf)} · padding ${avg(padOf)} · for other quests ${avg(qOf)} · sessions ${avg(d => d.sessions)} + extra rounds ${avg(d => d.pad)}`);
 const padd = act.map(padOf).sort((a, b) => a - b);
 console.log(`padding per day (right answers on top of the work): median ${padd[Math.floor(padd.length / 2)] || 0} · p90 ${padd[Math.floor(padd.length * 0.9)] || 0} · max ${padd[padd.length - 1] || 0} · days with none ${pct(padd.filter(x => !x).length, padd.length)}%`);
@@ -209,7 +221,7 @@ for (let i = 0; i < r.days.length; i += 14) {
   const w = r.days.slice(i, i + 14).filter(d => !d.skipped);
   if (!w.length) continue;
   const l = w[w.length - 1], m = f => Math.round(w.reduce((a, d) => a + f(d), 0) / w.length);
-  console.log(`${w[0].d}  target ${m(d => d.target)}  ok ${m(d => d.ok)}  @owed0 ${m(d => d.okAtOwed0 || d.ok)}  ses ${m(d => d.sessions)}+${m(d => d.pad)}  pace ${l.plan ? l.plan.pace : "-"}  vx ${l.plan && l.plan.vx ? `${l.plan.vx.due}d ${l.plan.vx.items}i ${l.plan.vx.cells}c` : "-"}  kw ${l.kw}  met ${l.met}  unmet ${l.unmet}  known ${l.known}/${l.total}  od ${l.od}  cellsLeft ${l.cellsLeft}  itemsLeft ${l.itemsLeft}  ${l.status} ${l.pace}`);
+  console.log(`${w[0].d}  target ${m(d => d.target)}  ok ${m(d => d.ok)}  @owed0 ${m(d => d.okAtOwed0 || d.ok)}  ses ${m(d => d.sessions)}+${m(d => d.pad)}  pace ${l.plan ? l.plan.pace : "-"}  vx ${l.plan && l.plan.vx ? `${l.plan.vx.due}d ${l.plan.vx.items}i ${l.plan.vx.cells}c` : "-"}  kw ${l.kw}  met ${l.met}  unmet ${l.unmet}  known ${l.known}/${l.total}  verbs ${l.verbs}  od ${l.od}  cellsLeft ${l.cellsLeft}  itemsLeft ${l.itemsLeft}  ${l.status} ${l.pace}`);
 }
 r.fails.forEach(f => console.log("✗", f));
 if (errors.length) console.log("page errors:", errors.slice(0, 8));

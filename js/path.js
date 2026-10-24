@@ -134,8 +134,26 @@ function pickClusterDeck(scan, exclude = [], rng = Math.random) {
   // Unlocked-but-unmet words (manual unlocks) go first.
   const pending = cands.filter(d => { const deck = getDeck(d.id); return unmetIndices(deck, 1)[0] < (S.unlocked[d.id] || 0); });
   const pool = pending.length ? pending : cands;
-  const pick = weightedPick(pool.map(d => ({ d, w: d.avail !== undefined ? d.avail : d.total - d.met })), rng);
+  // Verbs lean in (PATH.VERB_LEAN): a deck weighs its words left, a share
+  // more for the verbs among them — a deck of verbs half again as much —
+  // so a level's verbs come a little ahead of its other words. A verb
+  // brings the verb track's work (its forms, its items) and needs time to
+  // climb, so meeting verbs earlier spreads that work out instead of
+  // piling it up at the end of the level and before the finish date.
+  const pick = weightedPick(pool.map(d => { const n = d.avail !== undefined ? d.avail : d.total - d.met; return { d, w: n + PATH.VERB_LEAN * pathVerbsLeft(d.id) }; }), rng);
   return pick ? getDeck(pick.d.id) : null;
+}
+// Verbs not met yet in a deck (verb-track.js: the words that are verbs).
+let _verbIdx = null;
+function pathVerbsLeft(deckId) {
+  if (typeof vxOn !== "function" || !vxOn() || typeof vxVerbs !== "function") return 0;
+  if (!_verbIdx) {
+    _verbIdx = {};
+    vxVerbs().forEach(x => (x.v.words || [x.v.word]).forEach(w => { if (w) (_verbIdx[w.deckId] = _verbIdx[w.deckId] || new Set()).add(w.idx); }));
+  }
+  let n = 0;
+  (_verbIdx[deckId] || new Set()).forEach(i => { if (!isMet(deckId, i) && !(typeof vxRetired === "function" && vxRetired(deckId, i))) n++; });
+  return n;
 }
 // Returns up to `max` words for new clusters (planned, not yet met).
 function planNewWords(max, rng = Math.random, onlyDeck = null) {
