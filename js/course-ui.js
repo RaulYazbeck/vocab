@@ -607,7 +607,8 @@ function cxTodayHtml() {
   if (!c.parts) return "";
   // (rules due get no line: they're in 📚 due and come in the session)
   const sec = c.lesson && cxSection(c.lesson.sec);
-  const what = sec ? `📖 Grammar: <b>${escapeHtml(sec.title)}</b> — in your session`
+  // (its sheet passed — in Today or ☰ › Course — only the drill is left)
+  const what = sec ? `📖 Grammar: <b>${escapeHtml(sec.title)}</b> — ${c.lesson.part === "drill" ? "its drill, " : ""}in your session`
     : c.write ? `✍️ Writing: <b>${escapeHtml((cxJournalPick(0) || { de: "a few lines" }).de)}</b> — for Claude to correct` : "";
   if (!what) return "";
   return `<button class="tc-vx lesson cx-today" style="${sec ? cxSecStyle(sec.id) : cxStyle(0)}" onclick="showScreen('course')">${what}</button>`;
@@ -779,9 +780,10 @@ function renderCourseSection(id) {
   } else {
     const started = s.rules.some(r => (cxRuleWS(r) || {}).st), to = s.stage === 0 && s.testout !== false && st.to === undefined && !(st.st >= 2);
     const tn = (s.testout && s.testout.n) || CX_TESTOUT.n, tm = s.testout && s.testout.miss !== undefined ? s.testout.miss : CX_TESTOUT.miss;
-    body = `${ss.k !== "done" ? `<div class="gr-unote">${to ? `A short test first: ${tn - tm} of ${tn} right and the lesson is done. Otherwise ${s.sheets.length > 1 ? `its ${s.sheets.length} sheets, one a day, each with its drill` : "the sheet, then its drill"}.` : "The sheet, then its drill — they come in Today."}</div>` : ""}
+    body = `${ss.k !== "done" ? `<div class="gr-unote">${to ? `A short test first: ${tn - tm} of ${tn} right and the lesson is done. Otherwise ${s.sheets.length > 1 ? `its ${s.sheets.length} sheets, one a day, each with its drill` : "the sheet, then its drill"}.` : cxDrillOwed(id) ? "Sheet passed — its drill is next: here, or in Today." : "The sheet, then its drill — they come in Today."}</div>` : ""}
       <div class="gr-sheets">${s.sheets.map((sid, i) => { const sh = cxSheet(sid), p = cxSheetPassed(sid);
         return `<button class="gr-sheet ${p ? "done" : ""}" onclick="renderCourseSheet('${sid}')"><span class="gr-sn">${p ? "✓" : i + 1}</span><span class="gr-stt">${escapeHtml(s.sheets.length > 1 ? sh.title : "The sheet")}<small>${p ? "passed" : "read it, then 3 questions"}</small></span>${p ? `<span class="gr-sc">${(st.ok && st.ok[sid]) || st.sh || 100}%</span>` : `<span class="set-chev">›</span>`}</button>`; }).join("")}</div>
+      ${cxDrillOwed(id) ? `<button class="gr-mastery" onclick="renderLessonDrill('${id}')"><span class="gr-m-ico">✅</span><span class="gr-m-t"><b>Its drill</b><small>The one Today gives — done here, the lesson is done</small></span><span class="set-chev">›</span></button>` : ""}
       <button class="gr-mastery" onclick="renderCourseDrill('${id}')"><span class="gr-m-ico">🧩</span><span class="gr-m-t"><b>Practise</b><small>12 questions, from picking to writing · any time</small></span><span class="set-chev">›</span></button>
       <div class="gr-h">In your reviews</div>
       ${started ? `<div class="gr-rules">${s.rules.map(cxRuleRowHtml).join("")}</div>`
@@ -805,6 +807,30 @@ function renderCourseSheet(id) {
   gsOpen(document.getElementById("gs-host"), id, { mode: "menu", onDone: () => renderCourseSection(sh.sec) });
   scrollPageTop();
   if (typeof logEvent === "function") logEvent("cx_open", { id, where: "menu" });
+}
+// A lesson's drill outside Today (every sheet passed, the drill not done
+// yet — wherever the sheets were passed): the same drill Today gives,
+// and it finishes the lesson as Today's does (its card there is then
+// skipped). Several lessons in a day this way is fine.
+function cxDrillOwed(id) {
+  const s = cxSection(id), st = cxSecState(id) || {};
+  return !!s && !s.checkpoint && !cxIsVerb(s) && st.st === 2 && !cxSecDone(id) && !S.course.dd["sec:" + id];
+}
+function renderLessonDrill(id) {
+  if (!cxDrillOwed(id)) return renderCourseSection(id);
+  showGameScreen();
+  const p = { part: "drill", sec: id }, list = cxPartList(p);
+  if (!list.length) { cxDrillDone(id, 0, 0); cxPartDone(p); return renderCourseSection(id); }
+  cxPartBegin(p);
+  const t = cxPartTitle(p);
+  document.getElementById("main-screen").innerHTML = `<div class="screen grammar gs-screen">
+    <div class="screen-top"><div class="screen-label">📖 Course</div>${cxBackHtml(`renderCourseSection('${id}')`, cxSection(id).title)}</div>
+    <div id="cx-host"></div></div>`;
+  // (its answers count for today's plan as Today's drill would — one share)
+  cxRun(document.getElementById("cx-host"), list, { mode: "menu", kind: "drill", sec: id, title: t.title, sub: t.sub, partKey: "drill:" + id,
+    onDone: () => { cxPartDone(p); cxClose(); renderCourseSection(id); } });
+  scrollPageTop();
+  if (typeof logEvent === "function") logEvent("cx_open", { id, where: "menu-drill" });
 }
 // Practice outside Today: a lesson's mixed drill, one set, weak rules
 // or everything done. Answers count like any other (rules due move).

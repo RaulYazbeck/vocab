@@ -1519,9 +1519,12 @@ function vxPaceNeeded0(scan) {
 // of them, repairs) and new items still to come today.
 function vxTodayCounts() {
   if (!vxOn()) return { due: 0, fix: 0, fresh: 0 };
-  const { fix, due } = vxDueItems();
+  const { fix: all, due } = vxDueItems();
+  // (an item met today and not missed isn't one to fix yet — as words met
+  // today, path.js; it's still due: Today's sessions ask it)
+  const today = studyToday(), fix = all.filter(({ ws }) => !(ws.lrn && !ws.rp && !ws.fl && !ws.wrong && ws.metOn === today));
   const q = vxQuotas();
-  return { due: fix.length + due.length, fix: fix.length, fresh: Math.min(q.itemsLeft, vxNewCandidates().length) };
+  return { due: all.length + due.length, fix: fix.length, fresh: Math.min(q.itemsLeft, vxNewCandidates().length) };
 }
 // Work left on the whole journey (every verb, every unit).
 function vxLeft() {
