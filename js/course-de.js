@@ -195,11 +195,15 @@ function cxIntroduceRules(secId, stage = 1, rules = null) {
   return n;
 }
 // Every rule item that's started: { fix: [...], due: [...] }.
+// A rule met today (its sheet passed today) and not missed yet is neither:
+// the lesson's drill practises it today; from tomorrow, if it's still in
+// its learning step, it's one to fix (as words met today — path.js).
+function cxRuleFresh(ws, today = studyToday()) { return !!ws.lrn && !ws.rp && !ws.fl && !ws.wrong && ws.metOn === today; }
 function cxDueRules(now = Date.now()) {
-  const fix = [], due = [];
+  const fix = [], due = [], today = studyToday();
   Object.keys(CX.rules).forEach(r => {
     const ws = cxRuleWS(r);
-    if (!ws || !ws.st) return;
+    if (!ws || !ws.st || cxRuleFresh(ws, today)) return;
     if (ws.rp || ws.fl || ws.lrn) fix.push(r);
     else if (ws.dueAt && ws.dueAt <= now) due.push(r);
   });
