@@ -353,10 +353,11 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   // back after a long time away: the next lesson at once
   day(C3.addDays(d0, 40));
   ok(C3.cxNextLessonDay() === C3.addDays(d0, 40), "back after a long time away: the next lesson at once");
-  // the carry: the breaks alternate around G and add up to it
+  // G rounded down: the days saved stay in the days left (G grows later)
   const seq = Array.from({ length: 10 }, (_, k) => C3.cxBreakAfter(k, 2.3));
-  ok(seq.every(b => b === 2 || b === 3) && seq.reduce((a, b) => a + b, 0) === 23, `G 2.3: breaks ${seq.join(" ")} (23 days over 10 lessons)`);
-  ok(J(Array.from({ length: 4 }, (_, k) => C3.cxBreakAfter(k, 0.5))) === J([0, 1, 0, 1]), "G 0.5: a break after every other lesson");
+  ok(seq.every(b => b === 2), `G 2.3: breaks ${seq.join(" ")} (the 0.3 kept for later lessons)`);
+  ok(C3.cxBreakAfter(0, 2.9999999999) === 3 && C3.cxBreakAfter(5, 3) === 3, "G 3 (or a hair under it): 3");
+  ok(J(Array.from({ length: 4 }, (_, k) => C3.cxBreakAfter(k, 0.5))) === J([0, 0, 0, 0]), "G 0.5 (behind): no break");
   // no finish date: lesson after lesson
   C3.S.path.deadline = ""; ok(C3.cxClock().G === 0 && C3.cxBreak() === 0, "no finish date: no break, lesson after lesson");
   C3.S.path.deadline = "2027-08-15";
