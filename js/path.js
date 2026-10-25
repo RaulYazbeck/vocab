@@ -989,10 +989,19 @@ function buildPathQueue(lenKey, opts = {}) {
     spots = (S.path.spotToday || 0) < 2 && budget >= 15 ? pathSpotCandidates(1, rng) : [];
     // Word of the day (a quest): slip it in once per session.
     const wk = typeof questWotdKey === "function" ? questWotdKey() : null;
-    if (wk) {
+    // (inside the length: when the session is full it takes the place of
+    // the last word review; never in a "+5" round — new words only)
+    if (wk && !opts.extra) {
       const di = wk.lastIndexOf("_"), dId = wk.substring(0, di), idx = +wk.slice(di + 1);
-      if (getDeck(dId) && isMet(dId, idx) && !reviews.some(r => r.w.deckId === dId && r.w.idx === idx))
-        reviews.splice(Math.floor(reviews.length * 0.4), 0, { t: "typed", w: pathWord(dId, idx), wotd: true });
+      if (getDeck(dId) && isMet(dId, idx) && !reviews.some(r => r.w && r.w.deckId === dId && r.w.idx === idx)) {
+        const used = reviews.filter(r => !["learn", "sheet", "cx"].includes(r.t)).length + nNew0 * 3 + grammarQ + spots.length;
+        let drop = -1;
+        if (used >= budget) for (let i = reviews.length - 1; i >= 0 && drop < 0; i--) { const r = reviews[i]; if (r.t !== "learn" && r.t !== "sheet" && r.t !== "cx" && !r.fresh && !r.fix) drop = i; }
+        if (used < budget || drop >= 0) {
+          if (drop >= 0) reviews.splice(drop, 1);
+          reviews.splice(Math.floor(reviews.length * 0.4), 0, { t: "typed", w: pathWord(dId, idx), wotd: true });
+        }
+      }
     }
     // Today's lesson sheets: the first opens the session (a tense starts
     // with its sheet); a second waits for the middle, so the session
