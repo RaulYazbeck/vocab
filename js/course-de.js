@@ -693,9 +693,11 @@ function cxClock(today = studyToday()) {
   const G = L ? Math.max(0, Math.min(CX_GAP_MAX, (D - Sh) / L)) : 0;
   return { deadline, target, days, D, L, S: Sh, G, bonus };
 }
-// The break after the k-th lesson (k lessons done): the fraction carried,
-// so the breaks alternate around G and add up to it.
-function cxBreakAfter(k, G) { return Math.floor((k + 1) * G + 1e-9) - Math.floor(k * G + 1e-9); }
+// The break after a lesson: G rounded down. The fraction isn't lost: the
+// days it leaves stay in the days left, so G grows as the course goes on
+// and the harder lessons at the end get the longer breaks (2 2 2 … 3 3 3).
+// (k, the lessons done: kept for the callers)
+function cxBreakAfter(k, G) { return Math.floor(G + 1e-9); }
 function cxLessonsDone() { return CX.sections.filter(s => cxSecDone(s.id)).length; }
 function cxBreak(today = studyToday()) { return cxBreakAfter(cxLessonsDone(), cxClock(today).G); }
 // (kept for the screens and the tests: days from one lesson's start to
