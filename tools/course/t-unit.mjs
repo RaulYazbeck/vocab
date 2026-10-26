@@ -594,6 +594,13 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   VERBS0.forEach(v => { C.S.verb.sh[v] = 100; }); C.S.course.last = "2026-10-01";
   const parts = C.cxTodayParts().filter(p => p.sec === "s1.front");
   ok(!parts.some(p => p.part === "testout") && parts.some(p => p.part === "sheet" && p.sheet === "cx.front1"), "a Stage 1 lesson: no test-out, its first sheet", J(parts));
+  // a sheet missed today: its drill still comes, as practice — on that sheet's rules, never the next sheet's
+  fresh(); C.CX.sections.filter(s => s.stage === 0 && !s.verb).forEach(s => { C.S.course.sec[s.id] = { st: 3, at: "2026-10-01" }; });
+  VERBS0.forEach(v => { C.S.verb.sh[v] = 100; }); C.S.course.last = "2026-10-01";
+  C.cxPartBegin({ part: "sheet", sec: "s1.front", sheet: "cx.front1" });
+  C.cxSheetResult("cx.front1", 0, false, "path");
+  const miss = C.cxPartList({ part: "drill", sec: "s1.front" }), r1 = new Set(C.cxSheet("cx.front1").rid);
+  ok(!C.cxSheetPassed("cx.front1") && miss.length >= 10 && miss.every(e => e.item.r.every(rr => r1.has(rr))), `sheet 1 missed: its drill keeps to sheet 1's rules (${[...new Set(miss.flatMap(e => e.item.r))].join(" ")})`);
   // the generated Perfekt: the auxiliary and the participle, as the engine has them
   const pf = C.cxGenItems(C.cxSet("d10.9"), 10);
   ok(pf.length === 10 && pf.every(it => it.t === "pf" && /^er\/sie\/es ___ \(/.test(it.q) && it.a.includes(C.vxForm(C.vxVerb(it.inf), "pf", "er").ans) && /^(hat|ist) /.test(it.a[0])),

@@ -62,10 +62,11 @@ cxPack({
             "An adjective after them always ends in **-en** in the dative: dem **alten** Mann · der **neuen** Kollegin · meinem **kleinen** Bruder · den **netten** Nachbarn.",
             "Verbs of giving and telling take a **dative person** and an **accusative thing**: **geben · schenken · bringen · schicken · zeigen · erklären · erzählen · empfehlen · kaufen · leihen · schreiben**: Ich **erkläre dem Kunden den Weg**.",
           ],
-          table: { head: ["", "m", "f", "n", "plural"], rows: [
-            ["der-words", "dies**em**", "dies**er**", "dies**em**", "dies**en** …n"],
-            ["ein-words", "mein**em**", "mein**er**", "mein**em**", "mein**en** …n"],
-            ["+ adjective", "dem alt**en** Mann", "der neu**en** Ärztin", "dem klein**en** Kind", "den nett**en** Leuten"],
+          table: { head: ["", "der-words · ein-words", "+ adjective"], rows: [
+            ["m", "dies**em** · mein**em**", "dem alt**en** Mann"],
+            ["f", "dies**er** · mein**er**", "der neu**en** Ärztin"],
+            ["n", "dies**em** · mein**em**", "dem klein**en** Kind"],
+            ["plural", "dies**en** · mein**en** …n", "den nett**en** Leuten"],
           ] },
           ex: [
             ["Ich erkläre **dem neuen Kollegen** das Programm.", "I'm explaining the programme to the new colleague."],
@@ -539,9 +540,12 @@ cxPack({
             "Where the two differ: der → **den** / **dem** · die → die / **der** · das → das / **dem** · the plural die → die / **den …n** — and the pronouns: mich / **mir** · dich / **dir** · ihn / **ihm** · sie / **ihr** · sie / **ihnen**.",
             "Learn the dative verbs as exceptions — **helfen, danken, antworten, gratulieren, gefallen, gehören** — and the classic pair: **fragen** + accusative, **antworten** + dative: Ich frage **dich**, du antwortest **mir**.",
           ],
-          table: { head: ["", "m", "f", "n", "plural", "pronouns"], rows: [
-            ["accusative · wen? was?", "den · einen", "die · eine", "das · ein", "die", "mich · dich · ihn · sie"],
-            ["dative · wem?", "**dem** · **einem**", "**der** · **einer**", "**dem** · **einem**", "**den** …n", "**mir** · **dir** · **ihm** · **ihr**"],
+          table: { head: ["", "accusative · wen? was?", "dative · wem?"], rows: [
+            ["m", "den · einen", "**dem** · **einem**"],
+            ["f", "die · eine", "**der** · **einer**"],
+            ["n", "das · ein", "**dem** · **einem**"],
+            ["plural", "die", "**den** …n"],
+            ["pronouns", "mich · dich · ihn · sie", "**mir** · **dir** · **ihm** · **ihr**"],
           ] },
           ex: [
             ["Ich besuche **meinen** Opa und bringe **ihm** einen Kuchen.", "I visit my grandpa and bring him a cake."],

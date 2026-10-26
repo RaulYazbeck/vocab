@@ -1128,11 +1128,19 @@ function cxPartList(p) {
   if (p.part === "testout") return cxTestoutPlan(p.sec);
   if (p.part === "checkpoint") return cxCheckpointPlan(p.sec);
   if (p.part === "drill") {
-    // A section of several sheets, not all passed yet: today's drill
-    // keeps to the rules of the sheets passed.
-    const sec = cxSection(p.sec), st = cxSecState(p.sec) || {};
-    const allow = !(st.st >= 2) && sec.sheets.length > 1 ? new Set(sec.sheets.filter(cxSheetPassed).flatMap(id => cxSheet(id).rid || [])) : null;
-    return cxDrillPlan(p.sec, CX_DRILL_N[1], allow && allow.size ? allow : null);
+    // A section of several sheets, not all passed yet: today's drill keeps
+    // to the sheets passed — and, when today's sheet was tried and missed,
+    // that sheet too (its drill still comes, as practice). Never a sheet not
+    // read yet: with none passed, the first sheet's rules.
+    const sec = cxSection(p.sec), st = cxSecState(p.sec) || {}, dd = (S.course && S.course.dd) || {};
+    let allow = null;
+    if (!(st.st >= 2) && sec.sheets.length > 1) {
+      const k = sec.sheets.findIndex(id => !cxSheetPassed(id));
+      const missedToday = dd["try:" + p.sec] && !dd["sheet:" + p.sec];
+      const upTo = k < 0 ? sec.sheets.length : (missedToday || k === 0 ? k + 1 : k);
+      allow = new Set(sec.sheets.slice(0, upTo).flatMap(id => cxSheet(id).rid || []));
+    }
+    return cxDrillPlan(p.sec, CX_DRILL_N[1], allow);
   }
   const reviews = () => { const avoid = new Set(); return (p.rules || []).map(r => { const e = cxReviewFor(r, avoid); if (e) avoid.add(e.set + "#" + e.i); return e; }).filter(Boolean); };
   if (p.part === "warm" || (p.part === "review" && !p.contrast)) return reviews();
