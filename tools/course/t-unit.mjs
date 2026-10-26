@@ -254,12 +254,12 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
 
 // ── the lesson clock (PLAN.md §9): lesson, practise, lesson, practise ──
 {
-  // The course as Session 1 left it — only the pilot built (Session 2's
-  // lessons taken out again), so the clock's scenarios below stay the same.
+  // The course as Session 1 left it — only the pilot built (the lessons of
+  // Sessions 2 and 3 taken out again), so the clock's scenarios below stay the same.
   // tBuild(id, n): a lesson built with n sheets (the pilot's shape, its own rules)
   const C3 = loadCourse({ extra: `
     (function () {
-      CX.sections.filter(s => s.ses === 2 && !s.verb).forEach(s => {
+      CX.sections.filter(s => s.ses >= 2 && !s.verb).forEach(s => {
         s.sets.forEach(id => delete CX.sets[id]); s.sheets.forEach(id => delete CX.sheets[id]); s.rules.forEach(r => delete CX.rules[r]);
         Object.assign(s, { built: false, sheets: [], sets: [], rules: [], diag: [] }); delete s.checkpoint; delete s.testout;
       });
@@ -555,6 +555,62 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   ok(!uc("d8.7", 1, "Fährt er nach Hause?") && !uc("d8.13", 0, "Wie lange fahrst du schon Auto?") && !uc("d1.2", 0, "die"),
     "typed with its umlaut, only one form that fits (fahrst → fährst), or no verb: nothing asked");
   delete C.learnNoteVerb;
+}
+
+// ── Session 3: Stage 1A built — where my progress lands next, in what order ──
+{
+  const VERBS0 = ["pr1", "pr2", "pr3", "pr4", "pr5", "pr7", "im1", "im2", "im3", "pf1", "pt11", "pt12", "pt13"];
+  const S1 = ["s1.front", "s1.neg2", "s1.resp", "s1.dat", "s1.datpron", "s1.datverb", "s1.accdat", "s1.wer"];
+  ok(S1.every(id => C.cxLearnable(C.cxSection(id))), "the eight Stage 1A lessons are built");
+  ok(["s1.pf", "s1.sep"].every(id => C.cxSecSets(id).filter(s => !s.gen).length >= 8), "the Perfekt and prefix lessons have their book drills");
+  C.vxOn = () => true;
+  // all of Stage 0 done (lessons, checkpoint, the A1 verb lesson): the first
+  // built A2 lesson comes — then the rest in course order, the verb lessons
+  // (pf2–pf6, pr6) among them, wer / wen / wem after the dative
+  fresh(); C.S.course.last = "2026-10-01";
+  C.CX.sections.filter(s => s.stage === 0 && !s.verb).forEach(s => { C.S.course.sec[s.id] = { st: 3, at: "2026-10-01" }; });
+  VERBS0.forEach(v => { C.S.verb.sh[v] = 100; });
+  const order = [];
+  for (let k = 0; k < 12; k++) {
+    const s = C.cxClockLesson();
+    if (!s || s.stage !== 1) break;
+    order.push(s.id);
+    if (s.verb) s.verb.forEach(v => { C.S.verb.sh[v] = 100; }); else C.S.course.sec[s.id] = { st: 3, at: "2026-10-01" };
+  }
+  // (the regular Präteritum, a verb lesson, comes where the course puts it: before the dative)
+  ok(J(order) === J(["s1.front", "s1.neg2", "s1.resp", "s1.pf", "s1.sep", "s1.pt21", "s1.dat", "s1.datpron", "s1.datverb", "s1.accdat", "s1.wer"]),
+    "Stage 0 done: the A2 lessons in course order — fronting first, wer/wen/wem after the dative", J(order));
+  // a lesson waits for the ones it builds on
+  fresh(); C.CX.sections.filter(s => s.stage === 0 && !s.verb).forEach(s => { C.S.course.sec[s.id] = { st: 3 }; }); VERBS0.forEach(v => { C.S.verb.sh[v] = 100; });
+  ok(!C.cxLessonReady(C.cxSection("s1.wer")) && !C.cxLessonReady(C.cxSection("s1.datverb")) && !C.cxLessonReady(C.cxSection("s1.accdat")),
+    "wer/wen/wem waits for the dative, the dative verbs and the contrast for the dative pronouns");
+  C.S.course.sec["s1.dat"] = { st: 3 };
+  ok(C.cxLessonReady(C.cxSection("s1.wer")) && C.cxLessonReady(C.cxSection("s1.datpron")) && !C.cxLessonReady(C.cxSection("s1.datverb")), "the dative done: wer/wen/wem and the pronouns are ready, the dative verbs still wait");
+  // where I stand if I'm in the middle of Stage 0: Stage 0 keeps going first
+  fresh(); C.S.course.sec["s0.neg"] = { st: 3 }; C.S.course.sec["s0.sounds"] = { st: 3 }; VERBS0.forEach(v => { C.S.verb.sh[v] = 100; });
+  ok(C.cxClockLesson().stage === 0, `mid Stage 0: the next Stage 0 lesson, not a new A2 one (${C.cxClockLesson().id})`);
+  // no test-out after Stage 0: the lesson opens with its sheet
+  fresh(); C.CX.sections.filter(s => s.stage === 0 && !s.verb).forEach(s => { C.S.course.sec[s.id] = { st: 3, at: "2026-10-01" }; });
+  VERBS0.forEach(v => { C.S.verb.sh[v] = 100; }); C.S.course.last = "2026-10-01";
+  const parts = C.cxTodayParts().filter(p => p.sec === "s1.front");
+  ok(!parts.some(p => p.part === "testout") && parts.some(p => p.part === "sheet" && p.sheet === "cx.front1"), "a Stage 1 lesson: no test-out, its first sheet", J(parts));
+  // the generated Perfekt: the auxiliary and the participle, as the engine has them
+  const pf = C.cxGenItems(C.cxSet("d10.9"), 10);
+  ok(pf.length === 10 && pf.every(it => it.t === "pf" && /^er\/sie\/es ___ \(/.test(it.q) && it.a.includes(C.vxForm(C.vxVerb(it.inf), "pf", "er").ans) && /^(hat|ist) /.test(it.a[0])),
+    "generated Perfekt: hat / ist + the participle, the engine's", J(pf.slice(0, 3).map(it => [it.q, it.a])));
+  // a participle on its own (p2only) is logged as the Perfekt
+  const notes = []; C.learnNoteVerb = (F, t, p, right, given, want) => notes.push([F.inf, t, p, right, given, want]);
+  const it1010 = C.cxSet("d10.10").items[0];
+  C.cxRecordAnswer({ set: "d10.10", item: it1010 }, true, { ok: true }, { given: "studiert" });
+  C.cxRecordAnswer({ set: "d10.10", item: it1010 }, false, { rule: null }, { given: "gestudiert" });
+  ok(notes.length === 2 && notes.every(n => n[0] === "studieren" && n[1] === "pf") && notes[0][3] && !notes[1][3] && notes[1][4] === "gestudiert",
+    "a participle typed alone goes to the verb log as the Perfekt — right, or the word written", J(notes));
+  delete C.learnNoteVerb;
+  // the Perfekt lesson done: its book drills join the mixed days and Practise
+  fresh(); VERBS0.concat(["pf2", "pf3", "pf4", "pf5", "pf6"]).forEach(v => { C.S.verb.sh[v] = 100; });
+  ok(C.cxSecDone("s1.pf") && C.cxMixSections().some(s => s.id === "s1.pf"), "the Perfekt lesson passed: its drills join the mixed days");
+  const pp = C.cxDrillPlan("s1.pf", 12);
+  ok(pp.length === 12 && ["compose", "translate", "write"].includes(C.cxItemKind(C.cxSet(pp[pp.length - 1].set), pp[pp.length - 1].item)), `its practice: 12 items, production last (${pp.map(e => e.set).join(" ")})`);
 }
 
 console.log(`course unit: ${pass} passed, ${fail} failed`);

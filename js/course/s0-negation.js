@@ -239,19 +239,15 @@ cxPack({
 
 // What each exercise of chapters 5 and 28 became (the book map). The
 // question exercises (5•2, 28•11–12, 28•16–17) are drilled in
-// s0-questions.js since Session 2.
+// s0-questions.js since Session 2; 5•11, 28•1 and 28•5–28•14 by the
+// Stage 1 lessons since Session 3 (s1-negation, s1-order, s1-questions,
+// s1-perfekt).
 cxCover({
   "5.1": { st: "generated", set: "d5.1" },
   "5.2": "d5.2", "5.3": { st: "generated", set: "d5.1" },
   "5.4": "d5.4", "5.5": "d5.5", "5.6": "d5.6", "5.7": "d5.7", "5.8": "d5.8", "5.9": "d5.9", "5.10": "d5.10",
-  "5.11": { st: "planned", sec: "s1.neg2" },
-  "28.1": { st: "planned", sec: "s1.front" },
   "28.2": "d28.2", "28.3": "d28.3", "28.4": "d28.4",
-  "28.5": { st: "planned", sec: "s1.neg2" },
-  "28.6": { st: "planned", sec: "s1.front" }, "28.7": { st: "planned", sec: "s1.front" }, "28.8": { st: "planned", sec: "s1.front" },
-  "28.9": { st: "planned", sec: "s1.front" }, "28.10": { st: "planned", sec: "s1.front" },
   "28.11": "d28.11", "28.12": "d28.12",
-  "28.13": { st: "planned", sec: "s1.wer" }, "28.14": { st: "planned", sec: "s1.wer" },
   "28.15": { st: "planned", sec: "s2.woda" }, "28.16": "d28.16", "28.17": "d28.17",
   "28.18": { st: "planned", sec: "s2.woda" }, "28.19": { st: "planned", sec: "s2.woda" }, "28.20": { st: "planned", sec: "s2.woda" }, "28.21": { st: "planned", sec: "s2.woda" },
 });

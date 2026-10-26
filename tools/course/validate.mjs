@@ -115,7 +115,7 @@ Object.values(CX.sets).forEach(set => {
     ok(items.length >= 8, `${tag}: the generator gives 8+ items (${items.length})`);
     (set.r || []).forEach(r => ok(ruleOk(r), `${tag}: rule ${r}`));
     const tense = set.gen.tense || "pr";
-    ok(["pr", "pt", "im"].includes(tense), `${tag}: tense ${tense}`);
+    ok(["pr", "pt", "im", "pf"].includes(tense), `${tag}: tense ${tense}`);
     items.forEach(it => {
       const m = /^(\S+(?: \(they\))?) ___!? \((\S+)\)$/.exec(it.q);
       ok(!!m && m[2] === it.inf, `${tag}: generated "${it.q}"`);
@@ -243,6 +243,39 @@ if (neg && neg.built) {
   ok(r4.ok && r4.soft.includes("caps"), "a noun written small: right, said");
 }
 
+// ── the checker on typical mistakes (Session 3's lessons) ──
+// each: [set, item, what was typed, the rule it should name, words its message must hold]
+{
+  const cases = [
+    ["d28.7", 0, "Der Schlüssel habe ich im Auto vergessen.", "front.obj", "den"],
+    ["dfront.c", 0, "Es regnet, deshalb ich nehme den Bus.", "front.conn", "verb"],
+    ["d14.7", 0, "Im Winter wir fahren jedes Wochenende Ski.", "front.one", "verb"],
+    ["d28.5", 0, "Niemand kommen heute mit.", "neg2.one", "kommt"],
+    ["d28.5", 1, "Ich habe nicht nichts gekauft.", "neg2.one", "nicht nichts"],
+    ["dneg2.m", 1, "Nein, ich wohne noch nicht in Basel.", "neg2.mehr", "nicht mehr"],
+    ["dp.neg2", 9, "Ich kenne hier nicht jemanden.", "neg2.who", "niemanden"],
+    ["d15.2", 0, "meinen Vater", "dat.words", "meinem"],
+    ["d15.9", 0, "unseren nette Nachbarn", "dat.adj", "netten"],
+    ["d15.11", 0, "Zeigst du sie die Fotos?", "datp.vs", "ihnen"],
+    ["d15.12", 1, "Ich gebe ihm es.", "ord.both", "accusative"],
+    ["d15.6", 0, "mich", "dv.verbs", "mir"],
+    ["ddv.g", 0, "Ich gefalle die Wohnung.", "dv.gef", "mir"],
+    ["dad.t", 6, "ihm", "ad.forms", "ihn"],
+    ["d28.13", 0, "Wen hilft Lisa beim Umzug?", "wer.case", "wem"],
+    ["d28.13", 1, "Mit wen tanzt Tom?", "wer.prep", "wem"],
+    ["dwer.w", 2, "welchen", "wer.welch", "welchem"],
+    ["dresp.t", 2, "dir", "resp.how", "Ihnen"],
+    ["d10.11", 2, "Die Kinder haben in den Wald gegangen.", "gs:pf2.r1", "sein"],
+    ["d10.18", 0, "Wir haben den Schlüssel geverloren.", "gs:pf4.r2", "verloren"],
+    ["d10.20", 3, "Er hat das Velo gerepariert.", "gs:pf4.r3", "repariert"],
+    ["d12.7", 0, "Du zumachst das Fenster.", "gs:pr6.r1", "end"],
+  ];
+  cases.forEach(([set, i, typed, rule, word]) => {
+    const s = CX.sets[set], r = s && C.cxCheck(s.items[i], typed, C.cxSection(s.sec));
+    ok(r && !r.ok && r.rule === rule && String(r.msg || "").includes(word), `diagnosis: "${typed}" → ${rule}, «${word}» (got ${r && r.rule}: ${r && r.msg})`);
+  });
+}
+
 // ── the book's table of contents: every line has its lesson ──
 // (each heading of the blueprint — and a chapter's opening part, when it
 // has exercises — is named by a section: taught there, in the verb track
@@ -318,7 +351,7 @@ if (process.env.BOOK) {
   Object.values(CX.sheets).forEach(sh => [...sh.ex.map(e => e[0]), ...sh.quiz.flatMap(q => [q.q, ...(q.o || [])])].forEach(s => ours.push([sh.id, String(s)])));
   // the whole sentences inside a sheet's rules, why, trap, table and lines, and the items' notes
   // (a grammar term — "was für ein" — is no sentence: only what ends in . ! ?)
-  const sentencesOf = t => String(t || "").replace(/\*\*|~~|\{\{|\}\}|\(\(|\)\)|\[\[|\]\]/g, "").split(/(?<=[.!?])\s+|\s[·—→]\s|:\s/).map(x => x.trim()).filter(x => /[.!?]$/.test(x));
+  const sentencesOf = t => String(t || "").replace(/\*\*|~~|\{\{|\}\}|\(\(|\)\)|\[\[|\]\]/g, "").split(/(?<=[.!?])\s+|\s[·—→]\s|:\s/).map(x => x.replace(/^[·—→\s]+/, "").trim()).filter(x => /[.!?]$/.test(x));
   Object.values(CX.sheets).forEach(sh => [...(sh.rules || []), sh.why, sh.trap, ...((sh.table || {}).rows || []).flat(), ...(sh.lines || []).flat()].forEach(t => sentencesOf(t).forEach(s => ours.push([sh.id, s]))));
   Object.values(CX.sets).forEach(set => (set.items || []).forEach(it => sentencesOf(it.note).forEach(s => ours.push([set.id, s]))));
   let n = 0;

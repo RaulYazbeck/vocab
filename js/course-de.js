@@ -448,9 +448,10 @@ function cxDiagnose(item, T, A, sec, orig = null) {
 function cxItemKind(set, item) { return item.k || set.t; }
 // A generated set's items, from the verb engine (grammar-de.js): pure
 // conjugation is never hand-written (PLAN.md §7). gen: { kind: "conj",
-// verbs, tense?: "pr" | "pt" | "im", persons? } — a command (im) asks
-// du · ihr · Sie and its answer is the whole command (komm · kommt · kommen Sie).
-const CX_GEN_LABEL = { pr: { er: "er/sie/es", sie: "sie (they)" }, pt: { er: "er/sie/es", sie: "sie (they)" }, im: { du: "du:", ihr: "ihr:", Sie: "Sie:" } };
+// verbs, tense?: "pr" | "pt" | "im" | "pf", persons? } — a command (im) asks
+// du · ihr · Sie and its answer is the whole command (komm · kommt · kommen Sie);
+// the Perfekt (pf) wants the auxiliary and the participle (hat gegessen).
+const CX_GEN_LABEL = { pr: { er: "er/sie/es", sie: "sie (they)" }, pt: { er: "er/sie/es", sie: "sie (they)" }, pf: { er: "er/sie/es", sie: "sie (they)" }, im: { du: "du:", ihr: "ihr:", Sie: "Sie:" } };
 function cxGenItems(set, n = 10) {
   const g = set.gen;
   if (!g || g.kind !== "conj" || typeof vxVerb !== "function") return [];
@@ -1316,11 +1317,12 @@ function cxRecordAnswer(e, ok, res, opts = {}) {
     const W = String(opts.given || "").replace(/[.,!?;:„“"«»()…–—]/g, " ").split(/\s+/).filter(Boolean), T = W.map(w => cxToks(w)[0] || "");
     const has = a => { let i = 0; return cxToks(a).every(w => { while (i < T.length && T[i] !== w) i++; return i++ < T.length; }); };
     const head = cxToks(f.ans)[0] || "";
-    if (res && res.umlaut && cxLoose(res.umlaut) === head) { learnNoteVerb(x.F, t, p, false, res.umlaut, f.ans); return; }
+    if (res && res.umlaut && cxLoose(res.umlaut) === head) { learnNoteVerb(x.F, t === "p2only" ? "pf" : t, p, false, res.umlaut, f.ans); return; }
     const right = W.length ? (f.acc || [f.ans]).some(has) : !!ok;
     let k = 0;
     T.forEach((w, i) => { if (cxLev(w, head) < cxLev(T[k], head)) k = i; });
-    learnNoteVerb(x.F, t, p, right, W.length && cxLev(T[k], head) <= 2 ? W[k] : opts.given || "", f.ans);
+    // (a participle on its own, p2only, counts as the Perfekt there)
+    learnNoteVerb(x.F, t === "p2only" ? "pf" : t, p, right, W.length && cxLev(T[k], head) <= 2 ? W[k] : opts.given || "", f.ans);
   });
   if (!ok && typeof _learnDay === "function") _learnDay("mk", "grammar");
   if (typeof logEvent === "function") logEvent("answer", { m: "course:" + (opts.where || "drill"), ok: !!ok, typed: !!opts.typed, set: e.set, rule: out.rule || "", ...(opts.ms > 0 ? { ms: opts.ms } : {}) });
