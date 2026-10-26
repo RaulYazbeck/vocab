@@ -128,6 +128,12 @@ a later session that uploads its chapter.
                                       # exactly 5 in deck order, its undo (and the undo through a sync), the
                                       # count never going down, Shift+Enter 10 a day, no "rules to review"
                                       # line, drag & drop on the tiles (phone + desktop, no listeners left)
+    node t-stage1.mjs [--days 70 --acc 0.9 --seed 5 --partial]
+                                      # Stage 1 in the real app, day by day on a fake clock, the lessons as built
+                                      # (nothing synthetic), from Stage 0 done: no test-out after Stage 0, a lesson's
+                                      # sheets on study days in a row, each day's drill on the sheets read so far,
+                                      # the lessons in course order, their rules in review and in the mixed days,
+                                      # the count, the state round trip (--partial: a slow learner, invariants only)
     node t-edge.mjs                   # edge cases: the real keyboard, ✕ mid-drill, HTML typed in, a damaged
                                       # state, Grandma / Speak mode, another device, the day rolling over, a peek
     node sim.mjs [--acc 0.6 --testout 0 --skip 0.3 --break 60:21 --late 150 --deadline 2027-12-15 --due 40:120]

@@ -635,6 +635,12 @@ in `t-unit` (the order the lessons come in, what waits for what, no test-out, th
 Perfekt, participles in the verb log, the Perfekt lesson's practice); the clock test takes the
 lessons of Sessions 2–3 out to replay Session 1; `t-course` runs every new drill set through the
 real runner and lists chapters 5 and 28's new Übungen.
+**Review the same day:** fixed — a wrong ending (*den Leute*, *nette*) counted as "almost, check the
+spelling" and was credited on the retry (now a mistake, its rule named); the checker moved *heute*
+out of *bis heute*; a sheet missed in Today brought a drill on the whole lesson (now that sheet's
+rules: Stage 0's two-sheet lessons had it too); 28•9 asked for dative words before the dative
+(now prepositional phrases come as chunks); a few proofreading fixes, small first tiles, two tables
+narrowed. New: `t-stage1.mjs` (Stage 1 in the real app, day by day, the lessons as built).
 
 ### Session 4 — Stage 1B
 
