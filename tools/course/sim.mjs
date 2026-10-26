@@ -45,9 +45,11 @@ function simBuild(maxSes, grow) {
     const n = Math.max(1, Math.round((sec.n || 1) * grow)), rid = Array.from({ length: 4 * n }, (_, i) => "sim." + k + "-r" + (i + 1));
     const sheets = Array.from({ length: n }, (_, j) => ({ id: "cx.sim." + k + j, title: sec.title + (n > 1 ? " " + (j + 1) : ""), qn: 3, struct: [["a", "who"], ["b", "verb"]], why: "x",
       rid: rid.slice(4 * j, 4 * j + 4), rules: ["r1", "r2", "r3", "r4"], ex: [["a", "a"], ["b", "b"], ["c", "c"]], trap: "t", quiz: [] }));
+    // (the pilot's sentences, not its detectors: those would blame its real
+    // rule — kein — for every miss on these placeholder rules)
     const sets = pilot.sets.map(id => CX.sets[id]).filter(s => !s.gen).map((s, i) => ({ ...s, id: "d.sim." + k + "." + i, ex: undefined,
       items: s.items.map((it, j) => ({ ...it, r: [rid[(i * 3 + j) % rid.length]] })) }));
-    cxPack({ id: "sim-" + k, sections: { [sec.id]: { rules: Object.fromEntries(rid.map(r => [r, r])), sheets, drills: sets, diag: pilot.diag } } });
+    cxPack({ id: "sim-" + k, sections: { [sec.id]: { rules: Object.fromEntries(rid.map(r => [r, r])), sheets, drills: sets } } });
   });
 }`;
 // arrive: the day (from the start) each build session's lessons arrive.
@@ -180,8 +182,19 @@ function run(o) {
   const coreRules = new Set(core.flatMap(s => s.rules));
   const rules = Object.keys(C.CX.rules).filter(r => coreRules.has(r)).map(r => C.cxRuleWS(r)).filter(Boolean);
   const known = rules.filter(ws => ws.st >= 5).length;
-  // by the finish date (the run ends there): every rule Known, but a slip or two in the last days
-  if (feasible && known < rules.length * 0.98) fail(`${rules.length - known} rules not 🌳 Known by the finish date`);
+  // by the finish date (the run ends there): every rule Known, but a slip or two in the last days.
+  // A learner who stays below 75 % (the model barely improves) can't have every rule Known:
+  // half of them at least, and none of the others dropped: none waiting (due, or a slip to fix)
+  // unasked for two weeks.
+  // (Before Session 3's review this passed at 98 % only because the placeholder lessons carried
+  // the pilot's detectors, which put every miss on kein.)
+  if (feasible && acc >= 0.75 && known < rules.length * 0.98) fail(`${rules.length - known} rules not 🌳 Known by the finish date`);
+  if (feasible && acc < 0.75) {
+    if (known < rules.length * 0.5) fail(`only ${known}/${rules.length} rules 🌳 Known by the finish date`);
+    const end = C.__now, waiting = ws => ws.rp || ws.fl || ws.lrn || ws.dueAt <= end;
+    const idle = rules.filter(ws => !(ws.st >= 5) && waiting(ws) && !(ws.lastAnsweredAt > end - 14 * DAY)).length;
+    if (idle) fail(`${idle} rules waiting, not Known, unasked for two weeks`);
+  }
   // stretches without a new sheet while the app was used and sections remained
   let longest = 0;
   for (let i = 1; i < M.sheetDays.length; i++) {

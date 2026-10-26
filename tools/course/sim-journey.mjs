@@ -61,9 +61,11 @@ const r = await page.evaluate(async (CFG) => {
     const n = sec.n || 1, rid = Array.from({ length: 4 * n }, (_, i) => "sim." + k + "-r" + (i + 1));
     const sheets = Array.from({ length: n }, (_, j) => ({ id: "cx.sim." + k + j, title: sec.title + (n > 1 ? " " + (j + 1) : ""), qn: 3,
       struct: ps.struct, why: ps.why, rules: ps.rules, ex: ps.ex, trap: ps.trap, quiz: ps.quiz.map(q => ({ ...q })), rid: rid.slice(4 * j, 4 * j + 4) }));
+    // (the pilot's sentences, not its detectors: those would blame its real
+    // rule — kein — for every miss on these placeholder rules)
     const sets = pilot.sets.map(id => CX.sets[id]).filter(s => !s.gen).map((s, i) => ({ ...s, id: "d.sim." + k + "." + i, ex: undefined,
       items: s.items.map((it, j) => ({ ...it, r: [rid[(i * 3 + j) % rid.length]] })) }));
-    cxPack({ id: "sim-" + k, sections: { [sec.id]: { rules: Object.fromEntries(rid.map(x => [x, x])), sheets, drills: sets, diag: pilot.diag } } });
+    cxPack({ id: "sim-" + k, sections: { [sec.id]: { rules: Object.fromEntries(rid.map(x => [x, x])), sheets, drills: sets } } });
   });
 
   const fails = [], notes = [];

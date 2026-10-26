@@ -640,7 +640,27 @@ spelling" and was credited on the retry (now a mistake, its rule named); the che
 out of *bis heute*; a sheet missed in Today brought a drill on the whole lesson (now that sheet's
 rules: Stage 0's two-sheet lessons had it too); 28•9 asked for dative words before the dative
 (now prepositional phrases come as chunks); a few proofreading fixes, small first tiles, two tables
-narrowed. New: `t-stage1.mjs` (Stage 1 in the real app, day by day, the lessons as built).
+narrowed. New: `t-stage1.mjs` (Stage 1 in the real app, day by day, the lessons as built). Also
+(an older bug, Session 1's): an answer wrong all the way through, in the nicht/kein lesson, was
+blamed on *kein* ("it needs its negative") — a *missing* or *extra* detector now names its rule only
+when that word is (nearly) all that differs; otherwise the item's own rule takes the miss.
+That bug also flattered the sim: its placeholder lessons (copies of the pilot) carried the pilot's
+detectors, so every miss on them went to *kein* and the placeholder rules never took one — the
+"struggling (60 %)" scenario passed at 98 % Known only because of it. Without it the sim showed a
+real planner bug (older, Session 1's): with more rules waiting than a day holds, the slips came in the
+course's order every day and the rules due lowest stage first, so some waited weeks unasked (0 of 17
+review places went to rules due). Now the longest waiting come first (slips by when last asked, rules
+due by their due date) and the rules due keep a third of the review. A learner who stays near 60 %
+can't have every rule Known by the finish date: the sim asks of them half Known at least and none
+waiting unasked for two weeks; 75 % and up still have to have every rule Known (98 %).
+And two older bugs of the day's plan, which `sim-app` only meets after about four months (it now
+runs 150 days and names each failing day's cards): the plan sized the course's reviews against the
+morning's bare scan, every session afterwards against the plan's own reviews (the verb items' too) —
+up to 15 questions apart; now the course makes its morning numbers against the plan's figures. And a
+review cut over two sessions counted, in the plan, only up to the longer card (the second card's own
+length) — now each card's questions count; a card left and opened again still counts once.
+(The drill kept to the sheets read is sometimes shorter than 14: the plan now counts a drill by its
+real length.)
 
 ### Session 4 — Stage 1B
 

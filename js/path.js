@@ -508,8 +508,15 @@ function pathEnsurePlan(scan) {
     // items and coverage drills add their own right answers.
     vx = typeof vxPlanNumbers === "function" ? vxPlanNumbers(scan) : null;
     if (vx) reviews += vx.due;
-    // The course's grammar block (course-de.js): its questions add theirs.
-    cx = typeof cxPlanNumbers === "function" ? cxPlanNumbers(scan) : null;
+    // The course's grammar block (course-de.js): its questions add theirs —
+    // sized against the reviews and pace this plan holds (cxBudget reads
+    // today's plan), as every session of the day will size them; against
+    // the bare scan the morning's count and the day's reviews could differ.
+    if (typeof cxPlanNumbers === "function") {
+      const was = P.plan;
+      P.plan = { day: today, reviews, pace };
+      try { cx = cxPlanNumbers(scan); } finally { P.plan = was; }
+    }
   }
   const plan = { v: 5, day: today, deadline: P.deadline, pace, reviews, leave, kw, kv, ...(vx ? { vx } : {}), ...(cx ? { cx } : {}) };
   plan.target = plan.goal = planTargetOf(plan);

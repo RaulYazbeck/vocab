@@ -73,6 +73,8 @@ a later session that uploads its chapter.
      a drill has room for gives the least-asked ones in turn, its production last.
    - `diag`: detectors that name the rule a wrong answer broke (swap · ending · seq ·
      pos · missing · extra) — a verb lesson's pack has them too (its rules are `gs:` points).
+     `missing` / `extra` fire only when that word is (nearly) all that differs — at most one
+     other word off — so a sentence wrong all the way through keeps the item's own rule.
      A `pos` message can't use `{right}` (only `{where}`). Add a typical mistake or two per
      lesson to the validator's "the checker on typical mistakes" list.
    - `testout: { n, miss }` is offered for Stage 0 sections only; later lessons still need
@@ -140,7 +142,8 @@ a later session that uploads its chapter.
                                       # the whole journey to the finish date on the real scheduler (fake clock),
                                       # every section filled with synthetic packs; checked every day: no new
                                       # section before the pace allows, never two unless behind, one text at
-                                      # most; at the end: done by the target, every rule Known, no long gaps
+                                      # most; at the end: done by the target, every rule Known (a learner
+                                      # under 75 %: half, none waiting unasked two weeks), no long gaps
     node sim.mjs --matrix             # 18 scenarios × 3 seeds (struggling, strong, skipped days, breaks, a late
                                       # start, earlier / later dates, heavy word days, the lessons arriving with
                                       # their build sessions with 30 % more / fewer sheets than estimated),
@@ -152,6 +155,8 @@ a later session that uploads its chapter.
                                       # every Today session played card by card — the count never grows, the
                                       # course is done each day, the plan is met when every answer is right,
                                       # the state and the cloud docs round-trip, the logs agree with what was done
+                                      # (run --days 150 too: the plan's bugs showed only after ~4 months; a day
+                                      # short of its plan names its course cards, cut or whole)
 
     REAL_STATE=state.json TZID=Europe/Berlin node sim-journey.mjs [--days 300 --seed 7 --skip 0.1 --breaks 60:5
                        --accScale 0.9 --typed 0.86 --verb 0.8 --len long --out run.json]

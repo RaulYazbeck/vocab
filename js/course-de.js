@@ -207,8 +207,13 @@ function cxDueRules(now = Date.now()) {
     if (ws.rp || ws.fl || ws.lrn) fix.push(r);
     else if (ws.dueAt && ws.dueAt <= now) due.push(r);
   });
-  const st = r => cxRuleWS(r).st || 0;
-  due.sort((a, b) => st(a) - st(b) || cxRuleWS(a).dueAt - cxRuleWS(b).dueAt);
+  const last = r => cxRuleWS(r).lastAnsweredAt || 0;
+  // The longest waiting first — the rules due (by their due date: it was the
+  // lowest stage first, which left the higher ones unasked for weeks behind
+  // a pile) and the slips (the longest unasked): more than a day holds take
+  // turns, never the same first ones in the course's order every day.
+  due.sort((a, b) => cxRuleWS(a).dueAt - cxRuleWS(b).dueAt);
+  fix.sort((a, b) => last(a) - last(b));
   return { fix, due };
 }
 
@@ -434,11 +439,13 @@ function cxDiagnose(item, T, A, sec, orig = null) {
       const re = cxRx(d.tok);
       if (cxBagEq(T, A) && T.some(x => re.test(x)) && T.findIndex(x => re.test(x)) !== A.findIndex(x => re.test(x))) o = { where: cxWhere(A, d.tok, orig) };
     } else if (d.t === "missing") {
+      // (only when that word is what's missing — another sentence altogether
+      // is not "a missing nicht": it stays the item's own rule)
       const re = cxRx(d.tok);
-      if (A.some(x => re.test(x)) && !T.some(x => re.test(x))) o = {};
+      if (A.some(x => re.test(x)) && !T.some(x => re.test(x)) && cxMinus(A, T).filter(x => !re.test(x)).length <= 1) o = {};
     } else if (d.t === "extra") {
       const re = cxRx(d.tok);
-      if (T.some(x => re.test(x)) && !A.some(x => re.test(x))) o = {};
+      if (T.some(x => re.test(x)) && !A.some(x => re.test(x)) && cxMinus(T, A).filter(x => !re.test(x)).length <= 1) o = {};
     }
     if (o) {
       const rule = d.rule && (!item.r || item.r.includes(d.rule) || cxRule(d.rule)) ? d.rule : (item.r || [])[0];
@@ -1018,7 +1025,10 @@ function cxTodayParts(scan) {
   // — and the reviews stop where the day reaches CX_DAY_Q questions.
   const asked = parts.reduce((n, p) => n + cxPartSize(p), 0);
   const revN = Math.min(Math.max(B.review, Math.min(CX_REVIEW[1], Math.ceil(pile / 3))), Math.max(CX_REVIEW[0], CX_DAY_Q - asked));
-  const rev = [...(dd.warm ? fix : fix.slice(CX_WARM_MAX)), ...due].slice(0, revN);
+  // (slips first — but more slips than room never shut out the rules due:
+  // they keep a third of the reviews)
+  const slips = dd.warm ? fix : fix.slice(CX_WARM_MAX), dueN = Math.min(due.length, Math.max(revN - slips.length, Math.floor(revN / 3)));
+  const rev = [...slips.slice(0, revN - dueN), ...due.slice(0, dueN)];
   // A contrast day: the due reviews and a few mixed items on top.
   if (contrast && !dd.contrast) parts.push({ part: "review", rules: rev, contrast: true });
   else if (rev.length && !dd.review) parts.push({ part: "review", rules: rev });
@@ -1089,7 +1099,15 @@ function cxPartSize(p) {
   if (p.part === "testout") { const s = cxSection(p.sec); return Math.min((s && s.testout && s.testout.n) || CX_TESTOUT.n, cxTestoutPlan(p.sec).length); }
   if (p.part === "checkpoint") return cxCheckpointPlan(p.sec).length;
   if (p.part === "sheet") { const sh = cxSheet(p.sheet); return sh && typeof gqSheetSize === "function" ? gqSheetSize(sh) : 3; }
-  if (p.part === "drill") return CX_DRILL_N[1];
+  if (p.part === "drill") {
+    // (its real length: a drill kept to the sheets read can be shorter —
+    // counted without moving the sets' turns, cxSetPick)
+    if (!cxSection(p.sec)) return CX_DRILL_N[1];
+    const ds = (S.course && S.course.ds) || {}, turn = new Map(Object.entries(ds).map(([k, v]) => [k, v[2]]));
+    const n = cxPartList(p).length;
+    Object.keys(ds).forEach(k => { if (!turn.has(k)) delete ds[k]; else ds[k][2] = turn.get(k); });
+    return Math.max(1, n);
+  }
   if (p.part === "review") return p.rules.length + (p.contrast ? CX_CONTRAST_MIX : 0);
   if (p.part === "write") return 1;
   return 0;
@@ -1133,6 +1151,7 @@ function cxPartList(p) {
     // that sheet too (its drill still comes, as practice). Never a sheet not
     // read yet: with none passed, the first sheet's rules.
     const sec = cxSection(p.sec), st = cxSecState(p.sec) || {}, dd = (S.course && S.course.dd) || {};
+    if (!sec) return [];
     let allow = null;
     if (!(st.st >= 2) && sec.sheets.length > 1) {
       const k = sec.sheets.findIndex(id => !cxSheetPassed(id));
@@ -1158,6 +1177,9 @@ function cxPartDone(p) {
   cxRollDay();
   // (a card cut to fit its session — path.js pathGrammarFit — leaves its
   // other rules for the next session: the part stays open)
+  // (and what it counted in the plan carries over: the part's next card
+  // counts its own questions on top — cxPlanTake)
+  if (p.cut && (p.part === "warm" || p.part === "review") && !p.dues) { const k = p.part + ":" + (p.sec || ""); C.dd["cut:" + k] = C.dq[k] || 0; }
   if (p.part === "warm") { if (!p.cut) C.dd.warm = 1; }
   // (✅ Due today doesn't close Today's reviews: rules it left, or due later
   // today, still come — Today's card only holds the rules still due)
@@ -1354,10 +1376,13 @@ function cxQuizAnswer(Q, ok, first) {
   m[ok ? 1 : 0]++;
 }
 // May this answer count in the day's plan? Each part counts its own
-// questions once a day (as the verb sheets do).
+// questions once a day (as the verb sheets do) — a part cut over two
+// sessions, each card's (the first card's counted questions, then the
+// next card's on top: a run left and opened again still counts once).
 function cxPlanTake(key, n, ok) {
   migrateCourse();
   cxRollDay();
+  n += S.course.dd["cut:" + key] || 0;
   const k = S.course.dq[key] || 0;
   if (k >= n) return false;
   if (ok) S.course.dq[key] = k + 1;

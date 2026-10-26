@@ -601,6 +601,11 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   C.cxSheetResult("cx.front1", 0, false, "path");
   const miss = C.cxPartList({ part: "drill", sec: "s1.front" }), r1 = new Set(C.cxSheet("cx.front1").rid);
   ok(!C.cxSheetPassed("cx.front1") && miss.length >= 10 && miss.every(e => e.item.r.every(rr => r1.has(rr))), `sheet 1 missed: its drill keeps to sheet 1's rules (${[...new Set(miss.flatMap(e => e.item.r))].join(" ")})`);
+  // the plan counts that drill as long as it is — and counting it moves no set's turn
+  const turns = J(C.S.course.ds), size = C.cxPartSize({ part: "drill", sec: "s1.front" });
+  ok(size === C.cxPartList({ part: "drill", sec: "s1.front" }).length && J(C.S.course.ds) !== turns, `the drill's size is its length (${size})`);
+  const turns2 = J(C.S.course.ds); C.cxPartSize({ part: "drill", sec: "s1.front" });
+  ok(J(C.S.course.ds) === turns2, "counting a drill moves no set's turn");
   // the generated Perfekt: the auxiliary and the participle, as the engine has them
   const pf = C.cxGenItems(C.cxSet("d10.9"), 10);
   ok(pf.length === 10 && pf.every(it => it.t === "pf" && /^er\/sie\/es ___ \(/.test(it.q) && it.a.includes(C.vxForm(C.vxVerb(it.inf), "pf", "er").ans) && /^(hat|ist) /.test(it.a[0])),
@@ -618,6 +623,39 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   ok(C.cxSecDone("s1.pf") && C.cxMixSections().some(s => s.id === "s1.pf"), "the Perfekt lesson passed: its drills join the mixed days");
   const pp = C.cxDrillPlan("s1.pf", 12);
   ok(pp.length === 12 && ["compose", "translate", "write"].includes(C.cxItemKind(C.cxSet(pp[pp.length - 1].set), pp[pp.length - 1].item)), `its practice: 12 items, production last (${pp.map(e => e.set).join(" ")})`);
+}
+
+// ── a pile bigger than a day: the reviews take turns ──
+// (Session 3's review: the slips came in the course's order every day and
+// the rules due by lowest stage, so a pile left some unasked for weeks)
+{
+  fresh();
+  const R = Object.keys(C.CX.rules), slips = R.slice(0, 60), dueR = R.slice(60, 100);
+  const W = r => C.getWS(C.CX_DECK, r);
+  slips.forEach((r, i) => Object.assign(W(r), { st: 2, lrn: 1, wrong: 1, metOn: "2026-10-01", lastAnsweredAt: 1e12 + (60 - i) * 1e6, dueAt: 1 }));
+  dueR.forEach((r, i) => Object.assign(W(r), { st: 4 - (i % 3), lrn: 0, metOn: "2026-10-01", lastAnsweredAt: 1e12, dueAt: 1e12 + (40 - i) * 1e6 }));
+  const { fix, due } = C.cxDueRules();
+  ok(fix[0] === slips[59] && fix[59] === slips[0], "slips: the longest unasked first, not the course's order", J([fix[0], fix[59]]));
+  ok(due[0] === dueR[39] && due[39] === dueR[0], "rules due: the longest waiting first, whatever their stage", J([due[0], due[39]]));
+  const parts = C.cxTodayParts(), warm = parts.find(p => p.part === "warm"), rev = parts.find(p => p.part === "review");
+  ok(warm && J(warm.rules) === J(fix.slice(0, C.CX_WARM_MAX)), "the warm-up: the longest-waiting slips", J(warm && warm.rules));
+  const dueIn = rev ? rev.rules.filter(r => dueR.includes(r)).length : 0;
+  ok(rev && dueIn >= Math.floor(rev.rules.length / 3) && rev.rules.filter(r => slips.includes(r)).every(r => fix.indexOf(r) >= C.CX_WARM_MAX),
+    `more slips than room: the rules due still get a third of the review (${dueIn}/${rev && rev.rules.length})`);
+}
+
+// ── a review cut over two sessions counts both cards in the plan ──
+// (Session 3's review: the second card counted only up to its own length,
+// on top of what the first had counted — 1–2 short on long review days)
+{
+  fresh();
+  const take = (n, k) => Array.from({ length: k }, () => C.cxPlanTake("review:", n, true)).filter(Boolean).length;
+  ok(take(8, 8) === 8, "the first card (cut to 8): its 8 count");
+  C.cxPartDone({ part: "review", rules: Array(8).fill("neg.kein"), cut: 1 });
+  ok(take(10, 11) === 10 && C.S.course.dq["review:"] === 18, "the next card's 10 count on top (18), and no more", J(C.S.course.dq));
+  // a card left half-way and opened again: its questions count once
+  fresh();
+  ok(take(10, 4) === 4 && take(10, 10) === 6, "a card left and opened again: 10 in all, not 14");
 }
 
 console.log(`course unit: ${pass} passed, ${fail} failed`);

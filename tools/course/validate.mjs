@@ -281,6 +281,14 @@ if (neg && neg.built) {
   });
   // a time word that belongs to a preposition never moves on its own
   ok(!C.cxCheck(CX.sets["d10.19"].items[8], "Heute ist er bis in Thun geblieben.").ok, "«bis heute» stays together: no «Heute ist er bis in Thun geblieben»");
+  // "missing nicht" only when the negative is what's missing: another
+  // sentence altogether stays the item's own rule (not a kein mistake)
+  {
+    const set = Object.values(CX.sets).find(s => s.sec === "s0.neg" && (s.items || []).some(it => (it.a || [])[0] === "Der Zug ist nicht pünktlich."));
+    const it = set && set.items.find(it => it.a[0] === "Der Zug ist nicht pünktlich."), sec = set && C.cxSection(set.sec);
+    ok(it && C.cxCheck(it, "Das Wetter ist heute schön.", sec).rule === "neg.nicht-pos", "another sentence altogether: the item's rule, not neg.kein");
+    ok(it && C.cxCheck(it, "Der Zug ist pünktlich.", sec).rule === "neg.kein", "the negative left out: «it needs its negative»");
+  }
 }
 
 // ── the book's table of contents: every line has its lesson ──
