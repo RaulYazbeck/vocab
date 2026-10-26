@@ -314,8 +314,22 @@ function cxAnswers(item) {
   const full = a.map(x => m[1] + x + m[2]).filter(x => !a.includes(x));
   return [...a, ...full];
 }
+// A sentence item shown with a bare gap — "(Museum) ___ ist am Montag zu." —
+// also accepts just what fills the gap ("das Museum"): the words of the
+// answer that sit where the ___ is, the rest of the sentence being given.
+function cxGapFills(item) {
+  if (item.k === "order" || typeof item.q !== "string" || !/(^|[^A-Za-zÄÖÜäöüß])___([^A-Za-zÄÖÜäöüß]|$)/.test(item.q)) return [];
+  const tpl = item.q.replace(/\([^)]*\)/g, " ").replace(/\s+/g, " ").trim();
+  const parts = tpl.split("___");
+  if (parts.length !== 2 || !(parts[0].trim() || parts[1].trim())) return [];
+  const esc = s => s.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re = new RegExp("^" + (esc(parts[0]) ? esc(parts[0]) + "\\s+" : "") + "(.+?)" + (esc(parts[1]) ? "\\s+" + esc(parts[1]) : "") + "$", "i");
+  const out = [];
+  (item.a || []).map(String).forEach(a => { const m = re.exec(a.trim()); if (m && m[1] && !out.includes(m[1])) out.push(m[1]); });
+  return out;
+}
 function cxCheck(item, typed, sec) {
-  const answers = [...cxAnswers(item), ...(item.k === "order" || item.fixed ? [] : cxOrders(item))], t = String(typed || "").trim();
+  const fills = cxGapFills(item), answers = [...cxAnswers(item), ...fills, ...(item.k === "order" || item.fixed ? [] : cxOrders(item))], t = String(typed || "").trim();
   if (!t) return { ok: false, empty: true, soft: [], right: answers[0] || "" };
   for (const a of answers) {
     if (cxStrict(a) === cxStrict(t)) {
@@ -333,7 +347,7 @@ function cxCheck(item, typed, sec) {
   // The closest accepted answer, for the feedback and the diagnosis.
   const T = cxToks(t);
   let best = answers[0] || "", bestD = Infinity;
-  answers.forEach(a => { const A = cxToks(a); const d = cxMinus(A, T).length + cxMinus(T, A).length; if (d < bestD) { bestD = d; best = a; } });
+  answers.filter(a => !fills.includes(a)).forEach(a => { const A = cxToks(a); const d = cxMinus(A, T).length + cxMinus(T, A).length; if (d < bestD) { bestD = d; best = a; } });
   const A = cxToks(best);
   const res = { ok: false, soft: [], right: best };
   // One letter off in an ordinary word (not one that carries the grammar):
