@@ -166,7 +166,7 @@ cxPack({
         ] },
         // ── Production: say it ──
         { id: "dp.neg2", t: "translate", end: true, title: "Say it in German", how: "Translate — one negative word is enough.", items: [
-          { q: "Nobody is at home.", a: ["Niemand ist zu Hause.", "Keiner ist zu Hause.", "Es ist niemand zu Hause."], r: ["neg2.who"] },
+          { q: "Nobody is at home.", a: ["Niemand ist zu Hause.", "Keiner ist zu Hause.", "Es ist niemand zu Hause.", "Niemand ist daheim.", "Es ist niemand daheim."], r: ["neg2.who"] },
           { q: "I didn't buy anything.", a: ["Ich habe nichts gekauft."], r: ["neg2.who", "neg2.one"] },
           { q: "She never drinks coffee.", a: ["Sie trinkt nie Kaffee.", "Sie trinkt niemals Kaffee."], r: ["neg2.nie"] },
           { q: "I've never been to Geneva.", a: ["Ich war noch nie in Genf.", "Ich bin noch nie in Genf gewesen."], r: ["neg2.nie"] },

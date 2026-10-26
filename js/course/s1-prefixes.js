@@ -62,7 +62,7 @@ cxPack({
           { q: "Der Zug kommt um acht an. (die Züge)", a: ["Die Züge kommen um acht an."], r: ["gs:pr6.r1"], vf: [["ankommen", "pr", "sie"]] },
         ] },
         // ── Übung 12•8: build it — separable verbs ──
-        { id: "d12.8", ex: "12.8", t: "compose", title: "Build it: the prefix last", how: "Make a sentence in the present — the prefix goes to the end.", d: ["an", "auf"], items: [
+        { id: "d12.8", ex: "12.8", t: "compose", low: true, title: "Build it: the prefix last", how: "Make a sentence in the present — the prefix goes to the end.", d: ["an", "auf"], items: [
           { w: ["die Kinder", "aufstehen", "um sieben Uhr"], a: ["Die Kinder stehen um sieben Uhr auf.", "Um sieben Uhr stehen die Kinder auf."], r: ["gs:pr6.r1"], vf: [["aufstehen", "pr", "sie"]] },
           { w: ["warum", "aufmachen", "du", "das Fenster", "?"], a: ["Warum machst du das Fenster auf?"], r: ["gs:pr6.r1"], vf: [["aufmachen", "pr", "du"]] },
           { w: ["die Schüler", "zuhören", "gut"], a: ["Die Schüler hören gut zu."], r: ["gs:pr6.r1"], vf: [["zuhören", "pr", "sie"]] },
@@ -98,7 +98,7 @@ cxPack({
         ] },
 
         // ── Production · Übung 12•10: build it — separable or not ──
-        { id: "d12.10", ex: "12.10", t: "compose", end: true, title: "Build it: split or not?", how: "Make a sentence in the present — split the verb only if its prefix is separable.", d: ["ver", "be"], items: [
+        { id: "d12.10", ex: "12.10", t: "compose", end: true, low: true, title: "Build it: split or not?", how: "Make a sentence in the present — split the verb only if its prefix is separable.", d: ["ver", "be"], items: [
           { w: ["meine Schwester", "aufwachen", "sehr früh"], a: ["Meine Schwester wacht sehr früh auf."], r: ["gs:pr6.r1"], vf: [["aufwachen", "pr", "er"]] },
           { w: ["wir", "besuchen", "unsere Tante", "in Basel"], a: ["Wir besuchen unsere Tante in Basel."], r: ["gs:pr6.r2"], vf: [["besuchen", "pr", "wir"]] },
           { w: ["ich", "verstehen", "die Frage", "nicht"], a: ["Ich verstehe die Frage nicht."], r: ["gs:pr6.r2"], vf: [["verstehen", "pr", "ich"]] },

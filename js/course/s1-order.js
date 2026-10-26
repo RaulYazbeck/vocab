@@ -199,17 +199,17 @@ cxPack({
           { w: ["sie", "wollen", "im Sommer", "mit dem Zelt", "nach Schweden", "reisen"], a: ["Sie wollen im Sommer mit dem Zelt nach Schweden reisen."], r: ["tmp.order", "tmp.end"] },
         ] },
         // ── Production · Übung 28•9: build it, adding the little words ──
-        { id: "d28.9", ex: "28.9", t: "compose", end: true, title: "Build it — add the little words", how: "Make a sentence from the words: conjugate, and add the articles and prepositions it needs.", d: ["der", "den", "im"], items: [
-          { w: ["morgen", "wir", "fahren", "mit", "Auto", "nach", "Lugano"], a: ["Morgen fahren wir mit dem Auto nach Lugano."], r: ["front.one", "tmp.order"] },
-          { w: ["am", "Abend", "ich", "gehen", "mit", "meine", "Freundin", "in", "Kino"], a: ["Am Abend gehe ich mit meiner Freundin ins Kino."], r: ["front.one", "tmp.order"] },
-          { w: ["im", "Sommer", "die Kinder", "schwimmen", "jeden Tag", "in", "See"], a: ["Im Sommer schwimmen die Kinder jeden Tag im See.", "Die Kinder schwimmen im Sommer jeden Tag im See."], r: ["front.one", "tmp.order"] },
-          { w: ["gestern", "ich", "sein", "mit", "Bus", "zu", "Arbeit", "fahren"], a: ["Gestern bin ich mit dem Bus zur Arbeit gefahren."], r: ["front.one", "tmp.order", "tmp.end"], vf: [["fahren", "pf", "ich"]] },
-          { w: ["den", "Film", "ich", "haben", "schon", "zweimal", "sehen"], a: ["Den Film habe ich schon zweimal gesehen.", "Ich habe den Film schon zweimal gesehen."], r: ["front.obj"], vf: [["sehen", "pf", "ich"]] },
-          { w: ["nach", "Arbeit", "Anna", "gehen", "oft", "in", "Park"], a: ["Nach der Arbeit geht Anna oft in den Park.", "Anna geht nach der Arbeit oft in den Park."], r: ["front.one"] },
+        { id: "d28.9", ex: "28.9", t: "compose", end: true, low: true, title: "Build it — add the little words", how: "Make a sentence from the words: conjugate, put them in order, and add the article or kein the noun needs.", d: ["der", "einen", "ein"], items: [
+          { w: ["morgen", "wir", "fahren", "mit dem Auto", "nach Lugano"], a: ["Morgen fahren wir mit dem Auto nach Lugano."], r: ["front.one", "tmp.order"] },
+          { w: ["am Abend", "ich", "sehen", "Film", "im Kino"], a: ["Am Abend sehe ich einen Film im Kino.", "Am Abend sehe ich im Kino einen Film."], r: ["front.one"] },
+          { w: ["im Sommer", "die Kinder", "schwimmen", "jeden Tag", "im See"], a: ["Im Sommer schwimmen die Kinder jeden Tag im See.", "Die Kinder schwimmen im Sommer jeden Tag im See."], r: ["front.one", "tmp.order"] },
+          { w: ["gestern", "ich", "sein", "mit dem Bus", "zur Arbeit", "fahren"], a: ["Gestern bin ich mit dem Bus zur Arbeit gefahren."], r: ["front.one", "tmp.order", "tmp.end"], vf: [["fahren", "pf", "ich"]] },
+          { w: ["Film", "ich", "haben", "schon", "zweimal", "sehen"], a: ["Den Film habe ich schon zweimal gesehen.", "Ich habe den Film schon zweimal gesehen."], r: ["front.obj"], vf: [["sehen", "pf", "ich"]] },
+          { w: ["nach der Arbeit", "Anna", "kaufen", "Geschenk", "für ihre Mutter"], a: ["Nach der Arbeit kauft Anna ein Geschenk für ihre Mutter.", "Nach der Arbeit kauft Anna für ihre Mutter ein Geschenk.", "Anna kauft nach der Arbeit ein Geschenk für ihre Mutter.", "Anna kauft nach der Arbeit für ihre Mutter ein Geschenk."], r: ["front.one"] },
           { w: ["es", "regnen", "deshalb", "wir", "bleiben", "zu Hause"], a: ["Es regnet, deshalb bleiben wir zu Hause."], r: ["front.conn"] },
-          { w: ["am", "Wochenende", "mein", "Bruder", "fahren", "mit", "Velo", "in", "Berge"], a: ["Am Wochenende fährt mein Bruder mit dem Velo in die Berge.", "Mein Bruder fährt am Wochenende mit dem Velo in die Berge."], r: ["front.one", "tmp.order"] },
+          { w: ["am Wochenende", "mein Bruder", "fahren", "mit dem Velo", "in die Berge"], a: ["Am Wochenende fährt mein Bruder mit dem Velo in die Berge.", "Mein Bruder fährt am Wochenende mit dem Velo in die Berge."], r: ["front.one", "tmp.order"] },
           { w: ["leider", "ich", "haben", "heute", "kein", "Zeit"], a: ["Leider habe ich heute keine Zeit.", "Ich habe heute leider keine Zeit."], r: ["front.conn"] },
-          { w: ["um", "acht", "Uhr", "der", "Zug", "abfahren", "von", "Gleis", "drei"], a: ["Um acht Uhr fährt der Zug von Gleis drei ab.", "Der Zug fährt um acht Uhr von Gleis drei ab."], r: ["front.one", "tmp.end"] },
+          { w: ["um acht Uhr", "Zug", "abfahren", "von Gleis drei"], a: ["Um acht Uhr fährt der Zug von Gleis drei ab.", "Der Zug fährt um acht Uhr von Gleis drei ab."], r: ["front.one", "tmp.end"] },
         ] },
         // ── Production: say it ──
         { id: "dp.front", t: "translate", end: true, title: "Say it in German", how: "Translate — the verb second, the details in their order.", items: [
@@ -220,7 +220,7 @@ cxPack({
           { q: "I'm going to Basel by train tomorrow.", a: ["Ich fahre morgen mit dem Zug nach Basel.", "Morgen fahre ich mit dem Zug nach Basel."], r: ["tmp.order"] },
           { q: "She walks to work every day.", a: ["Sie geht jeden Tag zu Fuß zur Arbeit.", "Jeden Tag geht sie zu Fuß zur Arbeit."], r: ["tmp.order"] },
           { q: "Yesterday I went home by bus.", a: ["Gestern bin ich mit dem Bus nach Hause gefahren.", "Ich bin gestern mit dem Bus nach Hause gefahren."], r: ["tmp.order", "tmp.end"] },
-          { q: "We're eating at my parents' on Sunday.", a: ["Wir essen am Sonntag bei meinen Eltern.", "Am Sonntag essen wir bei meinen Eltern."], r: ["tmp.order"] },
+          { q: "We're eating at home with friends on Sunday.", a: ["Wir essen am Sonntag mit Freunden zu Hause.", "Am Sonntag essen wir mit Freunden zu Hause.", "Wir essen am Sonntag mit Freunden daheim.", "Am Sonntag essen wir mit Freunden daheim."], r: ["tmp.order"] },
           { q: "The cake — my brother baked it. (Start with the cake.)", a: ["Den Kuchen hat mein Bruder gebacken."], r: ["front.obj"] },
           { q: "Luckily the train was on time.", a: ["Zum Glück war der Zug pünktlich.", "Der Zug war zum Glück pünktlich."], r: ["front.conn"] },
         ] },

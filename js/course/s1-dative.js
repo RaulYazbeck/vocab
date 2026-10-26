@@ -374,7 +374,7 @@ cxPack({
           { q: "He explained it to us.", a: ["Er hat es uns erklärt."], r: ["ord.both"] },
           { q: "We're lending them our car.", a: ["Wir leihen ihnen unser Auto."], r: ["datp.3", "ord.pron"] },
           { q: "I'm giving him the key.", a: ["Ich gebe ihm den Schlüssel."], r: ["datp.3", "ord.pron"] },
-          { q: "She visits me, and I cook for her. (Ich koche ihr …)", a: ["Sie besucht mich, und ich koche ihr etwas.", "Sie besucht mich und ich koche ihr etwas.", "Sie besucht mich, und ich koche ihr ein Essen."], r: ["datp.vs"] },
+          { q: "She visits me, and I show her the town.", a: ["Sie besucht mich, und ich zeige ihr die Stadt."], r: ["datp.vs"] },
         ] },
         { id: "dw.datp", t: "write", end: true, title: "Write your own", how: "In your own words — saved for Claude to correct.", items: [
           { q: "A friend's birthday: what do you give him or her? Use ihm / ihr.", model: ["Mein Freund Paul hat Geburtstag. Ich schenke ihm ein Buch und schreibe ihm eine Karte."], r: ["datp.3"] },
@@ -602,7 +602,7 @@ cxPack({
           { q: "(sie — she) Ich treffe ___ im Café.", a: ["sie"], r: ["ad.role", "ad.forms"] },
         ] },
         // ── Production: build it, say it ──
-        { id: "dp.ad", t: "compose", end: true, title: "Build it yourself", how: "Make a sentence — ask wen? or wem? for each object.", d: ["dem", "den", "mich", "mir"], items: [
+        { id: "dp.ad", t: "compose", end: true, low: true, title: "Build it yourself", how: "Make a sentence — ask wen? or wem? for each object.", d: ["dem", "den", "mich", "mir"], items: [
           { w: ["ich", "schenken", "mein", "Vater", "ein", "Buch"], a: ["Ich schenke meinem Vater ein Buch."], r: ["ad.forms"] },
           { w: ["wir", "fragen", "der", "Lehrer"], a: ["Wir fragen den Lehrer."], r: ["ad.verbs"] },
           { w: ["der", "Lehrer", "antworten", "wir"], a: ["Der Lehrer antwortet uns."], r: ["ad.verbs"] },

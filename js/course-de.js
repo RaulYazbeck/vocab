@@ -238,6 +238,14 @@ function cxLev(a, b) {
 const CX_GRAMMAR_TOK = /^(k?ein\w*|d(er|ie|as|en|em|es)|mein\w*|dein\w*|sein\w*|ihr\w*|unser\w*|eu(er|r)\w*|dies\w*|jed\w*|welch\w*|nicht\w*|nie\w*|sondern|aber|doch|ja|nein|und|oder)$/;
 function cxBag(toks) { const m = new Map(); toks.forEach(t => m.set(t, (m.get(t) || 0) + 1)); return m; }
 function cxBagEq(a, b) { if (a.length !== b.length) return false; const A = cxBag(a); for (const t of b) { const k = A.get(t); if (!k) return false; A.set(t, k - 1); } return true; }
+// Two spellings that differ only in their last letter or two, and only by
+// ending letters (Leute / Leuten · nette / netten · spielst / spielt): an
+// ending — the grammar itself, so never "almost, check the spelling".
+function cxEndingSlip(a, b) {
+  let i = 0;
+  while (i < a.length && i < b.length && a[i] === b[i]) i++;
+  return /^[enrmst]{0,2}$/.test(a.slice(i)) && /^[enrmst]{0,2}$/.test(b.slice(i));
+}
 // Tokens of `a` not matched in `b` (multiset difference).
 function cxMinus(a, b) { const B = cxBag(b), out = []; a.forEach(t => { const k = B.get(t); if (k) B.set(t, k - 1); else out.push(t); }); return out; }
 
@@ -279,7 +287,8 @@ function cxOrders(item) {
     if (CX_PRON_SUBJ.test(w[0].toLowerCase())) {
       for (let j = 2; j < w.length; j++) {
         const n = cxTimeLen(w, j);
-        if (!n || /^nicht$/i.test(w[j - 1])) continue;
+        // (nor a time word that belongs to a preposition: bis heute, seit gestern, ab morgen)
+        if (!n || /^(nicht|bis|seit|ab|von|für|vor|nach|zu)$/i.test(w[j - 1])) continue;
         const chunk = w.slice(j, j + n), rest = [...w.slice(2, j), ...w.slice(j + n)];
         if (!rest.length) continue;
         out.push(join([...chunk.map((x, i) => i ? x : x), w[1], small(w[0]), ...rest]));
@@ -353,7 +362,7 @@ function cxCheck(item, typed, sec) {
   // One letter off in an ordinary word (not one that carries the grammar):
   // almost — one more try.
   const miss = cxMinus(A, T), extra = cxMinus(T, A);
-  if (miss.length === 1 && extra.length === 1 && miss[0].length >= 4 && !CX_GRAMMAR_TOK.test(miss[0]) && cxLev(miss[0], extra[0]) === 1) res.near = true;
+  if (miss.length === 1 && extra.length === 1 && miss[0].length >= 4 && !CX_GRAMMAR_TOK.test(miss[0]) && cxLev(miss[0], extra[0]) === 1 && !cxEndingSlip(miss[0], extra[0])) res.near = true;
   const d = cxDiagnose(item, T, A, sec, String(best).normalize("NFC").replace(/[.,!?;:„“"«»‚‘’()…–—]/g, " ").split(/\s+/).filter(Boolean));
   if (d) { res.rule = d.rule; res.msg = d.msg; }
   if (!res.rule) res.rule = (item.r || [])[0] || null;

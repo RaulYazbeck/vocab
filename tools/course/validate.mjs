@@ -274,6 +274,13 @@ if (neg && neg.built) {
     const s = CX.sets[set], r = s && C.cxCheck(s.items[i], typed, C.cxSection(s.sec));
     ok(r && !r.ok && r.rule === rule && String(r.msg || "").includes(word), `diagnosis: "${typed}" → ${rule}, «${word}» (got ${r && r.rule}: ${r && r.msg})`);
   });
+  // a wrong ending is grammar, never "almost — check the spelling" (that would hand the answer over)
+  [["d15.1", 3, "den Leute"], ["d15.9", 0, "unseren nette Nachbarn"], ["d15.2", 3, "seinen Kinder"], ["d10.3", 5, "Ihr habt lange auf den Bus gewartt."]].forEach(([set, i, typed]) => {
+    const r = C.cxCheck(CX.sets[set].items[i], typed, C.cxSection(CX.sets[set].sec));
+    ok(!r.ok && !r.near, `"${typed}": a wrong ending — a mistake, not almost`);
+  });
+  // a time word that belongs to a preposition never moves on its own
+  ok(!C.cxCheck(CX.sets["d10.19"].items[8], "Heute ist er bis in Thun geblieben.").ok, "«bis heute» stays together: no «Heute ist er bis in Thun geblieben»");
 }
 
 // ── the book's table of contents: every line has its lesson ──

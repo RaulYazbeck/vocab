@@ -177,7 +177,7 @@ cxPack({
         { id: "d10.13", ex: "10.13", t: "type", title: "gedacht, gebracht, gewusst", how: "Write the participle — the mixed verbs: a new stem and -t.", items: [
           { q: "Ich habe oft an dich ___. (denken)", a: ["gedacht"], r: ["gs:pf3.r3"], vf: [["denken", "p2only", "er"]] },
           { q: "Du hast mir Blumen ___. (bringen)", a: ["gebracht"], r: ["gs:pf3.r3"], vf: [["bringen", "p2only", "er"]] },
-          { q: "Wir haben uns lange ___. (kennen)", a: ["gekannt"], r: ["gs:pf3.r3"], vf: [["kennen", "p2only", "er"]] },
+          { q: "Hast du ihn schon als Kind ___? (kennen)", a: ["gekannt"], r: ["gs:pf3.r3"], vf: [["kennen", "p2only", "er"]] },
           { q: "Hast du das ___? (wissen)", a: ["gewusst"], r: ["gs:pf3.r3"], vf: [["wissen", "p2only", "er"]] },
           { q: "Er ist schnell zum Zug ___. (rennen)", a: ["gerannt"], r: ["gs:pf3.r3"], vf: [["rennen", "p2only", "er"]] },
           { q: "Sie haben ihr Baby Luca ___. (nennen)", a: ["genannt"], r: ["gs:pf3.r3"], vf: [["nennen", "p2only", "er"]] },
@@ -238,7 +238,7 @@ cxPack({
           { q: "Wir bezahlen das Hotel mit Karte.", a: ["Wir haben das Hotel mit Karte bezahlt."], r: ["gs:pf4.r2"], vf: [["bezahlen", "pf", "wir"]] },
         ] },
         // ── Übung 10•18: the bike is gone — no ge- after be-, ver-… ──
-        { id: "d10.18", ex: "10.18", t: "transform", title: "The bike is gone!", how: "Say it in the Perfekt — be-, ver-, er-, ent-, zer-, ge-: no ge- in front.", items: [
+        { id: "d10.18", ex: "10.18", t: "transform", low: true, title: "The bike is gone!", how: "Say it in the Perfekt — be-, ver-, er-, ent-, zer-, ge-: no ge- in front.", items: [
           { q: "Wir verlieren den Schlüssel.", a: ["Wir haben den Schlüssel verloren."], r: ["gs:pf4.r2"], vf: [["verlieren", "pf", "wir"]] },
           { q: "Mein Velo verschwindet.", a: ["Mein Velo ist verschwunden."], r: ["gs:pf4.r2", "gs:pf2.r2"], vf: [["verschwinden", "pf", "er"]] },
           { q: "Ich verstehe das nicht.", a: ["Ich habe das nicht verstanden."], r: ["gs:pf4.r2"], vf: [["verstehen", "pf", "ich"]] },

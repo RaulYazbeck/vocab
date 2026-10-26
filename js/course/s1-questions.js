@@ -207,7 +207,7 @@ cxPack({
           { q: "Who are you writing to? (du)", a: ["Wem schreibst du?"], r: ["wer.case"] },
           { q: "Who are you going to the cinema with? (du)", a: ["Mit wem gehst du ins Kino?"], r: ["wer.prep"] },
           { q: "Who did you buy the cake for? (du)", a: ["Für wen hast du den Kuchen gekauft?"], r: ["wer.prep"] },
-          { q: "Whose phone is that?", a: ["Wessen Handy ist das?", "Wem gehört das Handy?"], r: ["wer.wessen"] },
+          { q: "Whose phone is that?", a: ["Wessen Handy ist das?", "Wem gehört das Handy?", "Wessen Telefon ist das?", "Wem gehört das Telefon?"], r: ["wer.wessen"] },
           { q: "Which train goes to Zurich?", a: ["Welcher Zug fährt nach Zürich?"], r: ["wer.welch"] },
           { q: "What kind of car do you have? (du)", a: ["Was für ein Auto hast du?"], r: ["wer.wasfur"] },
           { q: "Who's coming tonight?", a: ["Wer kommt heute Abend?"], r: ["wer.was"] },
