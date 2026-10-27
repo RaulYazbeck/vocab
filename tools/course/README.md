@@ -10,6 +10,12 @@ the 📖 Course / 🧩 Practise / 📚 By chapter / ✍️ Writing screens) and 
                                pronouns, questions (verb second · W-questions), numbers,
                                the accusative (articles · pronouns and man), the A1 verb
                                lesson's book exercises (s0-verbs.js) and the checkpoint
+    js/course/s1-*.js          Stage 1A (Session 3): fronting and time–manner–place (s1-order),
+                               niemand / nichts / nie (s1-negation), set responses and greetings
+                               (s1-responses), the dative ×4 — articles, pronouns and two objects,
+                               dative verbs, the contrast with the accusative (s1-dative), wer / wen /
+                               wem, welcher, was für (s1-questions), and the A2 verb lessons' book
+                               exercises: the Perfekt (s1-perfekt) and separable vs inseparable (s1-prefixes)
     js/course/writing.js       the writing themes (cxJournalThemes) and prompts (cxJournal)
 
 German app only (`de/index.html` loads them; the French app never does).
@@ -46,9 +52,14 @@ a later session that uploads its chapter.
      start away) — its items that start with a noun or a name say `cap: true`.
    - Verb forms: `vf: [[inf, tense, person]]` on an item makes the validator check that
      every accepted answer holds the engine's form (`pr` · `pt` · `im`), its words in
-     order — `ruf … an` passes in *Ruf mich morgen an!*. Pure tables are generated, never
-     written: `gen: { kind: "conj", verbs, tense: "pr" | "pt" | "im", persons? }` (a
-     command asks du · ihr · Sie and wants the whole command: *kommen Sie*).
+     order — `ruf … an` passes in *Ruf mich morgen an!*. The Perfekt (`pf`: *ist gegangen*) is
+     checked the same way; a gap that holds only the participle uses `p2only` (it goes to the
+     verb log as the Perfekt). When the auxiliary comes after the participle (*…, weil ich
+     gegangen bin*) check the participle (`p2only`): the words must be in the engine's order.
+     Pure tables are generated, never
+     written: `gen: { kind: "conj", verbs, tense: "pr" | "pt" | "im" | "pf", persons? }` (a
+     command asks du · ihr · Sie and wants the whole command: *kommen Sie*; the Perfekt wants
+     the auxiliary and the participle: *hat gegessen*).
      In the app the same `vf` feeds the learning log's verbs (`learnNoteVerb`): the form
      counts right when it's in what was written, and a miss logs the word written in its
      place. Umlauts are never typed (agreed): a missing one is never a mistake; when the
@@ -61,8 +72,14 @@ a later session that uploads its chapter.
      contrast days and 🔀 Mixed once the lesson is done. A section with more sets than
      a drill has room for gives the least-asked ones in turn, its production last.
    - `diag`: detectors that name the rule a wrong answer broke (swap · ending · seq ·
-     pos · missing · extra).
-   - `testout: { n, miss }` for Stage 0 sections.
+     pos · missing · extra) — a verb lesson's pack has them too (its rules are `gs:` points).
+     `missing` / `extra` fire only when that word is (nearly) all that differs — at most one
+     other word off — so a sentence wrong all the way through keeps the item's own rule.
+     A `pos` message can't use `{right}` (only `{where}`). Add a typical mistake or two per
+     lesson to the validator's "the checker on typical mistakes" list.
+   - `testout: { n, miss }` is offered for Stage 0 sections only; later lessons still need
+     every rule reachable in a test-out plan (the validator checks it) — with 5–7 rules set
+     `n` to the number of rules.
    - Several sheets: list them in order, each with its own `rid`. Each sheet's rules go
      into review when it's passed, that day's drill keeps to them, and the section is done
      after the last sheet and its drill (one sheet a day, on consecutive study days).
@@ -113,13 +130,20 @@ a later session that uploads its chapter.
                                       # exactly 5 in deck order, its undo (and the undo through a sync), the
                                       # count never going down, Shift+Enter 10 a day, no "rules to review"
                                       # line, drag & drop on the tiles (phone + desktop, no listeners left)
+    node t-stage1.mjs [--days 70 --acc 0.9 --seed 5 --partial]
+                                      # Stage 1 in the real app, day by day on a fake clock, the lessons as built
+                                      # (nothing synthetic), from Stage 0 done: no test-out after Stage 0, a lesson's
+                                      # sheets on study days in a row, each day's drill on the sheets read so far,
+                                      # the lessons in course order, their rules in review and in the mixed days,
+                                      # the count, the state round trip (--partial: a slow learner, invariants only)
     node t-edge.mjs                   # edge cases: the real keyboard, ✕ mid-drill, HTML typed in, a damaged
                                       # state, Grandma / Speak mode, another device, the day rolling over, a peek
     node sim.mjs [--acc 0.6 --testout 0 --skip 0.3 --break 60:21 --late 150 --deadline 2027-12-15 --due 40:120]
                                       # the whole journey to the finish date on the real scheduler (fake clock),
                                       # every section filled with synthetic packs; checked every day: no new
                                       # section before the pace allows, never two unless behind, one text at
-                                      # most; at the end: done by the target, every rule Known, no long gaps
+                                      # most; at the end: done by the target, every rule Known (a learner
+                                      # under 75 %: half, none waiting unasked two weeks), no long gaps
     node sim.mjs --matrix             # 18 scenarios × 3 seeds (struggling, strong, skipped days, breaks, a late
                                       # start, earlier / later dates, heavy word days, the lessons arriving with
                                       # their build sessions with 30 % more / fewer sheets than estimated),
@@ -131,6 +155,8 @@ a later session that uploads its chapter.
                                       # every Today session played card by card — the count never grows, the
                                       # course is done each day, the plan is met when every answer is right,
                                       # the state and the cloud docs round-trip, the logs agree with what was done
+                                      # (run --days 150 too: the plan's bugs showed only after ~4 months; a day
+                                      # short of its plan names its course cards, cut or whole)
 
     REAL_STATE=state.json TZID=Europe/Berlin node sim-journey.mjs [--days 300 --seed 7 --skip 0.1 --breaks 60:5
                        --accScale 0.9 --typed 0.86 --verb 0.8 --len long --out run.json]

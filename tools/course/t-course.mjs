@@ -267,7 +267,7 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
   };
   await page.evaluate(() => renderCourse()); await noOverflow("Course");
   await page.evaluate(() => renderCourseSection("s0.neg")); await noOverflow("section");
-  await page.evaluate(() => renderCourseSection("s1.dat")); await noOverflow("a coming section");
+  await page.evaluate(() => renderCourseSection("s1.datprep")); await noOverflow("a coming section");
   await page.evaluate(() => { renderCourseSection("s0.verbs"); ok(/verb track/.test(document.getElementById("main-screen").innerText), "a verb-track section lists its verb sheets"); });
   await page.evaluate(() => renderDrills()); await noOverflow("Drills");
   // every drill set through the runner, right then wrong
@@ -353,13 +353,14 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
     // 📚 a chapter's Übungen: each one on its own, back to the chapter
     renderCourseChapter("c5");
     const exs = [...document.querySelectorAll(".cx-ex .gr-stt")].map(b => b.innerText.split(" · ")[0]);
-    ok(exs.join() === "5.1,5.2,5.4,5.5,5.6,5.7,5.8,5.9,5.10" && /5\.1 · 5\.3 · /.test(document.getElementById("main-screen").innerText), `chapter 5: its Übungen with drills, in the book's order (${exs})`);
-    ok(!/\b5\.11\b|planned|mirrored|generated/.test(document.getElementById("main-screen").innerText), "not built yet: not listed; no build labels");
+    ok(exs.join() === "5.1,5.2,5.4,5.5,5.6,5.7,5.8,5.9,5.10,5.11" && /5\.1 · 5\.3 · /.test(document.getElementById("main-screen").innerText), `chapter 5: its Übungen with drills, in the book's order (${exs})`);
     [...document.querySelectorAll(".cx-ex")].find(b => /^5\.4 /.test(b.querySelector(".gr-stt").innerText)).click();
     ok(_cx && _cx.list.every(e => e.set === "d5.4") && /Chapter 5/.test(document.querySelector(".screen-top .back-btn").textContent), "Übung 5.4 runs on its own; back goes to chapter 5");
-    _cx.opts.onDone(); ok(document.querySelectorAll(".cx-ex").length === 9 && /Chapter 5/.test(document.querySelector(".screen-label").textContent), "done: back on the chapter");
+    _cx.opts.onDone(); ok(document.querySelectorAll(".cx-ex").length === 10 && /Chapter 5/.test(document.querySelector(".screen-label").textContent), "done: back on the chapter");
     renderCourseChapter("c28");
-    ok([...document.querySelectorAll(".cx-ex .gr-stt")].map(b => b.innerText.split(" · ")[0]).join() === "28.2,28.3,28.4,28.11,28.12,28.16,28.17", "chapter 28: 28.2–28.4, and the questions (28.11–12, 28.16–17)");
+    ok([...document.querySelectorAll(".cx-ex .gr-stt")].map(b => b.innerText.split(" · ")[0]).join() === "28.1,28.2,28.3,28.4,28.5,28.6,28.7,28.8,28.9,28.10,28.11,28.12,28.13,28.14,28.16,28.17",
+      "chapter 28: 28.1–28.14 and 28.16–17 (the wo-/da- compounds' 28.15, 28.18–21 come with their lesson)");
+    ok(!/\b28\.15\b|\b28\.18\b|planned|mirrored|generated/.test(document.getElementById("main-screen").innerText), "not built yet: not listed; no build labels");
     // a passed verb lesson: its book exercises, one Practise card on its page
     renderCourseSection("s0.verbs");
     const pr = [...document.querySelectorAll(".gr-mastery")].find(b => /Practise/.test(b.innerText));

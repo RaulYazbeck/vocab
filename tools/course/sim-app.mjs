@@ -45,12 +45,19 @@ const r = await page.evaluate(async ([DAYS, ACC, SEED, SKIP]) => {
     const n = sec.n || 1, rid = Array.from({ length: 4 * n }, (_, i) => "sim." + k + "-r" + (i + 1));
     const sheets = Array.from({ length: n }, (_, j) => ({ id: "cx.sim." + k + j, title: sec.title + (n > 1 ? " " + (j + 1) : ""), qn: 3,
       struct: ps.struct, why: ps.why, rules: ps.rules, ex: ps.ex, trap: ps.trap, quiz: ps.quiz.map(q => ({ ...q })), rid: rid.slice(4 * j, 4 * j + 4) }));
+    // (the pilot's sentences, not its detectors: those would blame its real
+    // rule — kein — for every miss on these placeholder rules)
     const sets = pilot.sets.map(id => CX.sets[id]).filter(s => !s.gen).map((s, i) => ({ ...s, id: "d.sim." + k + "." + i, ex: undefined,
       items: s.items.map((it, j) => ({ ...it, r: [rid[(i * 3 + j) % rid.length]] })) }));
-    cxPack({ id: "sim-" + k, sections: { [sec.id]: { rules: Object.fromEntries(rid.map(x => [x, x])), sheets, drills: sets, diag: pilot.diag } } });
+    cxPack({ id: "sim-" + k, sections: { [sec.id]: { rules: Object.fromEntries(rid.map(x => [x, x])), sheets, drills: sets } } });
   });
 
   const fails = [], log = [];
+  // the day's course cards as they're asked (named when the plan isn't met)
+  let trace = [];
+  const _list = cxPartList, _done = cxPartDone;
+  window.cxPartList = p => { const l = _list(p); if (p.part === "warm" || p.part === "review") trace.push(`${p.part} ${(p.rules || []).length}${p.cut ? " cut" : ""} → ${l.length}`); return l; };
+  window.cxPartDone = p => { trace.push(`✓${p.part}${p.cut ? " cut" : ""}`); return _done(p); };
   const fail = m => { if (fails.length < 40) fails.push(m); };
   const wordKeys0 = Object.keys(S.words).filter(k => !/^cx_/.test(k));
   const stats = { answers: 0, cxAnswers: 0, sessions: 0, sheets: 0, cxSheets: 0, texts: 0, words: 0, metDays: 0, perfectDays: 0, perfectMet: 0, newSecs: 0, shrunk: 0, skipped: 0, wordShort: 0 };
@@ -150,7 +157,7 @@ const r = await page.evaluate(async ([DAYS, ACC, SEED, SKIP]) => {
     if (day > 0) { off += 864e5; to8pm(); }
     const today = studyToday();
     if (SKIP && day > 0 && rnd() < SKIP) { stats.skipped++; continue; }
-    pathRollDay(); pathMarkActive();
+    pathRollDay(); pathMarkActive(); trace = [];
     const plan = pathEnsurePlan(pathScan(true));
     const target = plan ? plan.target : 0;
     const P = cxPlanner(), parts0 = cxTodayParts();
@@ -179,7 +186,7 @@ const r = await page.evaluate(async ([DAYS, ACC, SEED, SKIP]) => {
       const cxPlan = plan && plan.cx ? cxPlanTarget(plan.cx) : 0, cxGot = Object.values(S.course.dq || {}).reduce((a, b) => a + b, 0);
       const more = buildPathQueue("regular").items.filter(isQ).length;
       if (met) stats.perfectMet++;
-      else if (cxGot < cxPlan) fail(`${today}: every answer right, the plan not met (${S.quests.m.ok}/${target}) — the course credited ${cxGot} of its ${cxPlan} — planned ${sizes0}${plan.cx.cut ? " (cut " + JSON.stringify(plan.cx.cut) + ")" : ""}; credited ${JSON.stringify(S.course.dq)}`);
+      else if (cxGot < cxPlan) fail(`${today}: every answer right, the plan not met (${S.quests.m.ok}/${target}) — the course credited ${cxGot} of its ${cxPlan} (the morning's parts: ${(plan.cx.parts || []).join(" ")}) — planned ${sizes0}${plan.cx.cut ? " (cut " + JSON.stringify(plan.cx.cut) + ")" : ""}; credited ${JSON.stringify(S.course.dq)} · ${trace.join(" · ")}`);
       else { stats.wordShort++; log.push(`${today}: every answer right, ${S.quests.m.ok}/${target} — the course gave its ${cxGot}/${cxPlan}; the words side short after ${n - 1} sessions (${more} more cards in Today)`); }
     }
     days.push({ d: today, target, ok: S.quests.m.ok || 0, sessions: n, parts: parts0.map(p => p.part[0] + (p.sec ? ":" + p.sec.slice(3) : "")).join(" "), cx: stats.cxAnswers - cx0, text: texts, gap: cxGap(), status: P.status });

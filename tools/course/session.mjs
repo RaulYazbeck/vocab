@@ -9,7 +9,7 @@ import { loadCourse, ROOT } from "./load.mjs";
 
 // The last build session finished (bump it at the end of each session):
 // every lesson of a session up to here has all its book exercises covered.
-export const DONE = 2;
+export const DONE = 3;
 
 export function sessionPlans(C = loadCourse()) {
   const B = JSON.parse(fs.readFileSync(path.join(ROOT, "tools/book/blueprint.json"), "utf8"));

@@ -207,8 +207,13 @@ function cxDueRules(now = Date.now()) {
     if (ws.rp || ws.fl || ws.lrn) fix.push(r);
     else if (ws.dueAt && ws.dueAt <= now) due.push(r);
   });
-  const st = r => cxRuleWS(r).st || 0;
-  due.sort((a, b) => st(a) - st(b) || cxRuleWS(a).dueAt - cxRuleWS(b).dueAt);
+  const last = r => cxRuleWS(r).lastAnsweredAt || 0;
+  // The longest waiting first — the rules due (by their due date: it was the
+  // lowest stage first, which left the higher ones unasked for weeks behind
+  // a pile) and the slips (the longest unasked): more than a day holds take
+  // turns, never the same first ones in the course's order every day.
+  due.sort((a, b) => cxRuleWS(a).dueAt - cxRuleWS(b).dueAt);
+  fix.sort((a, b) => last(a) - last(b));
   return { fix, due };
 }
 
@@ -238,6 +243,14 @@ function cxLev(a, b) {
 const CX_GRAMMAR_TOK = /^(k?ein\w*|d(er|ie|as|en|em|es)|mein\w*|dein\w*|sein\w*|ihr\w*|unser\w*|eu(er|r)\w*|dies\w*|jed\w*|welch\w*|nicht\w*|nie\w*|sondern|aber|doch|ja|nein|und|oder)$/;
 function cxBag(toks) { const m = new Map(); toks.forEach(t => m.set(t, (m.get(t) || 0) + 1)); return m; }
 function cxBagEq(a, b) { if (a.length !== b.length) return false; const A = cxBag(a); for (const t of b) { const k = A.get(t); if (!k) return false; A.set(t, k - 1); } return true; }
+// Two spellings that differ only in their last letter or two, and only by
+// ending letters (Leute / Leuten · nette / netten · spielst / spielt): an
+// ending — the grammar itself, so never "almost, check the spelling".
+function cxEndingSlip(a, b) {
+  let i = 0;
+  while (i < a.length && i < b.length && a[i] === b[i]) i++;
+  return /^[enrmst]{0,2}$/.test(a.slice(i)) && /^[enrmst]{0,2}$/.test(b.slice(i));
+}
 // Tokens of `a` not matched in `b` (multiset difference).
 function cxMinus(a, b) { const B = cxBag(b), out = []; a.forEach(t => { const k = B.get(t); if (k) B.set(t, k - 1); else out.push(t); }); return out; }
 
@@ -279,7 +292,8 @@ function cxOrders(item) {
     if (CX_PRON_SUBJ.test(w[0].toLowerCase())) {
       for (let j = 2; j < w.length; j++) {
         const n = cxTimeLen(w, j);
-        if (!n || /^nicht$/i.test(w[j - 1])) continue;
+        // (nor a time word that belongs to a preposition: bis heute, seit gestern, ab morgen)
+        if (!n || /^(nicht|bis|seit|ab|von|für|vor|nach|zu)$/i.test(w[j - 1])) continue;
         const chunk = w.slice(j, j + n), rest = [...w.slice(2, j), ...w.slice(j + n)];
         if (!rest.length) continue;
         out.push(join([...chunk.map((x, i) => i ? x : x), w[1], small(w[0]), ...rest]));
@@ -353,7 +367,7 @@ function cxCheck(item, typed, sec) {
   // One letter off in an ordinary word (not one that carries the grammar):
   // almost — one more try.
   const miss = cxMinus(A, T), extra = cxMinus(T, A);
-  if (miss.length === 1 && extra.length === 1 && miss[0].length >= 4 && !CX_GRAMMAR_TOK.test(miss[0]) && cxLev(miss[0], extra[0]) === 1) res.near = true;
+  if (miss.length === 1 && extra.length === 1 && miss[0].length >= 4 && !CX_GRAMMAR_TOK.test(miss[0]) && cxLev(miss[0], extra[0]) === 1 && !cxEndingSlip(miss[0], extra[0])) res.near = true;
   const d = cxDiagnose(item, T, A, sec, String(best).normalize("NFC").replace(/[.,!?;:„“"«»‚‘’()…–—]/g, " ").split(/\s+/).filter(Boolean));
   if (d) { res.rule = d.rule; res.msg = d.msg; }
   if (!res.rule) res.rule = (item.r || [])[0] || null;
@@ -425,11 +439,13 @@ function cxDiagnose(item, T, A, sec, orig = null) {
       const re = cxRx(d.tok);
       if (cxBagEq(T, A) && T.some(x => re.test(x)) && T.findIndex(x => re.test(x)) !== A.findIndex(x => re.test(x))) o = { where: cxWhere(A, d.tok, orig) };
     } else if (d.t === "missing") {
+      // (only when that word is what's missing — another sentence altogether
+      // is not "a missing nicht": it stays the item's own rule)
       const re = cxRx(d.tok);
-      if (A.some(x => re.test(x)) && !T.some(x => re.test(x))) o = {};
+      if (A.some(x => re.test(x)) && !T.some(x => re.test(x)) && cxMinus(A, T).filter(x => !re.test(x)).length <= 1) o = {};
     } else if (d.t === "extra") {
       const re = cxRx(d.tok);
-      if (T.some(x => re.test(x)) && !A.some(x => re.test(x))) o = {};
+      if (T.some(x => re.test(x)) && !A.some(x => re.test(x)) && cxMinus(T, A).filter(x => !re.test(x)).length <= 1) o = {};
     }
     if (o) {
       const rule = d.rule && (!item.r || item.r.includes(d.rule) || cxRule(d.rule)) ? d.rule : (item.r || [])[0];
@@ -448,9 +464,10 @@ function cxDiagnose(item, T, A, sec, orig = null) {
 function cxItemKind(set, item) { return item.k || set.t; }
 // A generated set's items, from the verb engine (grammar-de.js): pure
 // conjugation is never hand-written (PLAN.md §7). gen: { kind: "conj",
-// verbs, tense?: "pr" | "pt" | "im", persons? } — a command (im) asks
-// du · ihr · Sie and its answer is the whole command (komm · kommt · kommen Sie).
-const CX_GEN_LABEL = { pr: { er: "er/sie/es", sie: "sie (they)" }, pt: { er: "er/sie/es", sie: "sie (they)" }, im: { du: "du:", ihr: "ihr:", Sie: "Sie:" } };
+// verbs, tense?: "pr" | "pt" | "im" | "pf", persons? } — a command (im) asks
+// du · ihr · Sie and its answer is the whole command (komm · kommt · kommen Sie);
+// the Perfekt (pf) wants the auxiliary and the participle (hat gegessen).
+const CX_GEN_LABEL = { pr: { er: "er/sie/es", sie: "sie (they)" }, pt: { er: "er/sie/es", sie: "sie (they)" }, pf: { er: "er/sie/es", sie: "sie (they)" }, im: { du: "du:", ihr: "ihr:", Sie: "Sie:" } };
 function cxGenItems(set, n = 10) {
   const g = set.gen;
   if (!g || g.kind !== "conj" || typeof vxVerb !== "function") return [];
@@ -1008,7 +1025,10 @@ function cxTodayParts(scan) {
   // — and the reviews stop where the day reaches CX_DAY_Q questions.
   const asked = parts.reduce((n, p) => n + cxPartSize(p), 0);
   const revN = Math.min(Math.max(B.review, Math.min(CX_REVIEW[1], Math.ceil(pile / 3))), Math.max(CX_REVIEW[0], CX_DAY_Q - asked));
-  const rev = [...(dd.warm ? fix : fix.slice(CX_WARM_MAX)), ...due].slice(0, revN);
+  // (slips first — but more slips than room never shut out the rules due:
+  // they keep a third of the reviews)
+  const slips = dd.warm ? fix : fix.slice(CX_WARM_MAX), dueN = Math.min(due.length, Math.max(revN - slips.length, Math.floor(revN / 3)));
+  const rev = [...slips.slice(0, revN - dueN), ...due.slice(0, dueN)];
   // A contrast day: the due reviews and a few mixed items on top.
   if (contrast && !dd.contrast) parts.push({ part: "review", rules: rev, contrast: true });
   else if (rev.length && !dd.review) parts.push({ part: "review", rules: rev });
@@ -1079,7 +1099,15 @@ function cxPartSize(p) {
   if (p.part === "testout") { const s = cxSection(p.sec); return Math.min((s && s.testout && s.testout.n) || CX_TESTOUT.n, cxTestoutPlan(p.sec).length); }
   if (p.part === "checkpoint") return cxCheckpointPlan(p.sec).length;
   if (p.part === "sheet") { const sh = cxSheet(p.sheet); return sh && typeof gqSheetSize === "function" ? gqSheetSize(sh) : 3; }
-  if (p.part === "drill") return CX_DRILL_N[1];
+  if (p.part === "drill") {
+    // (its real length: a drill kept to the sheets read can be shorter —
+    // counted without moving the sets' turns, cxSetPick)
+    if (!cxSection(p.sec)) return CX_DRILL_N[1];
+    const ds = (S.course && S.course.ds) || {}, turn = new Map(Object.entries(ds).map(([k, v]) => [k, v[2]]));
+    const n = cxPartList(p).length;
+    Object.keys(ds).forEach(k => { if (!turn.has(k)) delete ds[k]; else ds[k][2] = turn.get(k); });
+    return Math.max(1, n);
+  }
   if (p.part === "review") return p.rules.length + (p.contrast ? CX_CONTRAST_MIX : 0);
   if (p.part === "write") return 1;
   return 0;
@@ -1118,11 +1146,20 @@ function cxPartList(p) {
   if (p.part === "testout") return cxTestoutPlan(p.sec);
   if (p.part === "checkpoint") return cxCheckpointPlan(p.sec);
   if (p.part === "drill") {
-    // A section of several sheets, not all passed yet: today's drill
-    // keeps to the rules of the sheets passed.
-    const sec = cxSection(p.sec), st = cxSecState(p.sec) || {};
-    const allow = !(st.st >= 2) && sec.sheets.length > 1 ? new Set(sec.sheets.filter(cxSheetPassed).flatMap(id => cxSheet(id).rid || [])) : null;
-    return cxDrillPlan(p.sec, CX_DRILL_N[1], allow && allow.size ? allow : null);
+    // A section of several sheets, not all passed yet: today's drill keeps
+    // to the sheets passed — and, when today's sheet was tried and missed,
+    // that sheet too (its drill still comes, as practice). Never a sheet not
+    // read yet: with none passed, the first sheet's rules.
+    const sec = cxSection(p.sec), st = cxSecState(p.sec) || {}, dd = (S.course && S.course.dd) || {};
+    if (!sec) return [];
+    let allow = null;
+    if (!(st.st >= 2) && sec.sheets.length > 1) {
+      const k = sec.sheets.findIndex(id => !cxSheetPassed(id));
+      const missedToday = dd["try:" + p.sec] && !dd["sheet:" + p.sec];
+      const upTo = k < 0 ? sec.sheets.length : (missedToday || k === 0 ? k + 1 : k);
+      allow = new Set(sec.sheets.slice(0, upTo).flatMap(id => cxSheet(id).rid || []));
+    }
+    return cxDrillPlan(p.sec, CX_DRILL_N[1], allow);
   }
   const reviews = () => { const avoid = new Set(); return (p.rules || []).map(r => { const e = cxReviewFor(r, avoid); if (e) avoid.add(e.set + "#" + e.i); return e; }).filter(Boolean); };
   if (p.part === "warm" || (p.part === "review" && !p.contrast)) return reviews();
@@ -1140,6 +1177,9 @@ function cxPartDone(p) {
   cxRollDay();
   // (a card cut to fit its session — path.js pathGrammarFit — leaves its
   // other rules for the next session: the part stays open)
+  // (and what it counted in the plan carries over: the part's next card
+  // counts its own questions on top — cxPlanTake)
+  if (p.cut && (p.part === "warm" || p.part === "review") && !p.dues) { const k = p.part + ":" + (p.sec || ""); C.dd["cut:" + k] = C.dq[k] || 0; }
   if (p.part === "warm") { if (!p.cut) C.dd.warm = 1; }
   // (✅ Due today doesn't close Today's reviews: rules it left, or due later
   // today, still come — Today's card only holds the rules still due)
@@ -1316,11 +1356,12 @@ function cxRecordAnswer(e, ok, res, opts = {}) {
     const W = String(opts.given || "").replace(/[.,!?;:„“"«»()…–—]/g, " ").split(/\s+/).filter(Boolean), T = W.map(w => cxToks(w)[0] || "");
     const has = a => { let i = 0; return cxToks(a).every(w => { while (i < T.length && T[i] !== w) i++; return i++ < T.length; }); };
     const head = cxToks(f.ans)[0] || "";
-    if (res && res.umlaut && cxLoose(res.umlaut) === head) { learnNoteVerb(x.F, t, p, false, res.umlaut, f.ans); return; }
+    if (res && res.umlaut && cxLoose(res.umlaut) === head) { learnNoteVerb(x.F, t === "p2only" ? "pf" : t, p, false, res.umlaut, f.ans); return; }
     const right = W.length ? (f.acc || [f.ans]).some(has) : !!ok;
     let k = 0;
     T.forEach((w, i) => { if (cxLev(w, head) < cxLev(T[k], head)) k = i; });
-    learnNoteVerb(x.F, t, p, right, W.length && cxLev(T[k], head) <= 2 ? W[k] : opts.given || "", f.ans);
+    // (a participle on its own, p2only, counts as the Perfekt there)
+    learnNoteVerb(x.F, t === "p2only" ? "pf" : t, p, right, W.length && cxLev(T[k], head) <= 2 ? W[k] : opts.given || "", f.ans);
   });
   if (!ok && typeof _learnDay === "function") _learnDay("mk", "grammar");
   if (typeof logEvent === "function") logEvent("answer", { m: "course:" + (opts.where || "drill"), ok: !!ok, typed: !!opts.typed, set: e.set, rule: out.rule || "", ...(opts.ms > 0 ? { ms: opts.ms } : {}) });
@@ -1335,10 +1376,13 @@ function cxQuizAnswer(Q, ok, first) {
   m[ok ? 1 : 0]++;
 }
 // May this answer count in the day's plan? Each part counts its own
-// questions once a day (as the verb sheets do).
+// questions once a day (as the verb sheets do) — a part cut over two
+// sessions, each card's (the first card's counted questions, then the
+// next card's on top: a run left and opened again still counts once).
 function cxPlanTake(key, n, ok) {
   migrateCourse();
   cxRollDay();
+  n += S.course.dd["cut:" + key] || 0;
   const k = S.course.dq[key] || 0;
   if (k >= n) return false;
   if (ok) S.course.dq[key] = k + 1;

@@ -2,8 +2,9 @@
 // Book: chapter 7 (Übung 7•1–7•9, 7•11, 7•12, 7•14, 7•16; 7•15 is with
 // the pronouns lesson). Two lessons: the articles of the object (two
 // sheets) — then mich, dich, ihn and man (two sheets). 7•10 (accusative
-// prepositions) and 7•13 (wer / was with every tense) wait for their
-// lessons in Sessions 4 and 3.
+// prepositions) waits for its lesson in Session 4; 7•13 (wer / was with
+// every tense) is drilled by the wer / wen / wem lesson (s1-questions.js).
+// d7.4 also covers 13•2 (the accusative pronouns, chapter 13).
 cxPack({
   id: "s0-accusative",
   sections: {
@@ -275,7 +276,7 @@ cxPack({
       ],
       drills: [
         // ── Übung 7•4 · 7•9: the object pronoun ──
-        { id: "d7.4", ex: "7.4", also: ["7.9"], t: "type", title: "mich, dich, ihn…", how: "Write the pronoun in brackets as the object.", items: [
+        { id: "d7.4", ex: "7.4", also: ["7.9", "13.2"], t: "type", title: "mich, dich, ihn…", how: "Write the pronoun in brackets as the object.", items: [
           { q: "Kennst du ___? (ich)", a: ["mich"], r: ["accp.forms"] },
           { q: "Ich rufe ___ heute Abend an. (du)", a: ["dich"], r: ["accp.forms"] },
           { q: "Siehst du ___? (er)", a: ["ihn"], r: ["accp.forms"] },
@@ -398,6 +399,6 @@ cxPack({
 
 cxCover({
   "7.1": "d7.1", "7.2": "d7.2", "7.3": "d7.3", "7.4": "d7.4", "7.5": "d7.5", "7.6": "d7.6", "7.7": "d7.5", "7.8": "d7.8", "7.9": "d7.4",
-  "7.10": { st: "planned", sec: "s1.accprep" }, "7.11": "d7.11", "7.12": "d7.12", "7.13": { st: "planned", sec: "s1.wer" },
+  "7.10": { st: "planned", sec: "s1.accprep" }, "7.11": "d7.11", "7.12": "d7.12",
   "7.14": "d7.14", "7.16": "d7.16",
 });

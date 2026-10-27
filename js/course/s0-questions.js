@@ -339,7 +339,7 @@ cxPack({
           { q: "Er kauft eine teure Uhr.", hl: "eine teure", a: ["Was für eine Uhr kauft er?", "Welche Uhr kauft er?"], r: ["wq.words"] },
         ] },
         // ── Übung 28•17: wie alt, wie groß, wie oft, wie viel ──
-        { id: "d28.17", ex: "28.17", t: "transform", low: true, title: "How old, how big, how often?", how: "Ask about the highlighted part with wie + a word.", items: [
+        { id: "d28.17", ex: "28.17", also: ["13.7"], t: "transform", low: true, title: "How old, how big, how often?", how: "Ask about the highlighted part with wie + a word.", items: [
           { q: "Die Wohnung hat achtzig Quadratmeter.", hl: "achtzig Quadratmeter", a: ["Wie groß ist die Wohnung?"], r: ["wq.wie"] },
           { q: "Ihr Sohn ist acht.", hl: "acht", a: ["Wie alt ist ihr Sohn?"], r: ["wq.wie"] },
           { q: "Er hat drei Geschwister.", hl: "drei", a: ["Wie viele Geschwister hat er?"], r: ["wq.wie"] },

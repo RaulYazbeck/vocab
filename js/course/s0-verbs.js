@@ -415,10 +415,7 @@ cxCover({
   "9.1": { st: "generated", set: "d9.1" }, "9.6": { st: "generated", set: "d9.1" }, "12.17": { st: "generated", set: "d9.1" },
   "9.2": "d9.2", "9.3": "d9.3", "9.4": "d9.4", "9.5": "d9.5", "9.7": "d9.7", "9.8": "d9.8",
   "12.12": "d12.12", "12.13": "d12.13", "12.14": "d12.14", "12.15": "d9.4", "12.16": "d12.16", "12.18": "d12.16",
-  // chapter 12's prefixes: the separable/inseparable lesson (pr6, Session 3); both kinds at once: post-B1
-  "12.1": { st: "planned", sec: "s1.sep" }, "12.2": { st: "planned", sec: "s1.sep" }, "12.3": { st: "planned", sec: "s1.sep" }, "12.4": { st: "planned", sec: "s1.sep" },
-  "12.5": { st: "planned", sec: "s1.sep" }, "12.6": { st: "planned", sec: "s1.sep" }, "12.7": { st: "planned", sec: "s1.sep" }, "12.8": { st: "planned", sec: "s1.sep" },
-  "12.9": { st: "planned", sec: "s1.sep" }, "12.10": { st: "planned", sec: "s1.sep" }, "12.11": { st: "planned", sec: "s4.prefix" },
+  // (chapter 12's prefixes: the separable/inseparable lesson's drills, s1-prefixes.js)
   "17.1": { st: "generated", set: "d17.1" }, "17.2": { st: "generated", set: "d17.1" }, "17.3": "d17.3", "17.4": "d17.4", "17.7": "d17.7",
   // lassen, sehen, hören + infinitive: the lassen lesson (Session 7); the rest of chapter 17: modal position (Session 4) and the double infinitive (Session 7)
   "17.5": { st: "planned", sec: "s2.lassen" }, "17.6": { st: "planned", sec: "s2.lassen" },
