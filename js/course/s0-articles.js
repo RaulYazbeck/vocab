@@ -208,7 +208,7 @@ cxPack({
           { q: "Is that your bag, Mrs Keller?", a: ["Ist das Ihre Tasche, Frau Keller?", "Frau Keller, ist das Ihre Tasche?"], r: ["art.ihr"] },
           { q: "Every day is different.", a: ["Jeder Tag ist anders."], r: ["art.dies"] },
           { q: "She is a doctor.", a: ["Sie ist Ärztin."], r: ["art.job"] },
-          { q: "There's a café here.", a: ["Hier ist ein Café.", "Hier gibt es ein Café.", "Es gibt hier ein Café."], r: ["art.ein"] },
+          { q: "There's a café here.", a: ["Hier ist ein Café.", "Hier gibt es ein Café.", "Es gibt hier ein Café.", "Es gibt ein Café hier."], r: ["art.ein"] },
           { q: "The children are at school.", a: ["Die Kinder sind in der Schule."], r: ["art.def"] },
           { q: "That's not a problem.", a: ["Das ist kein Problem."], r: ["art.kein"] },
           { q: "Her brother is a cook.", a: ["Ihr Bruder ist Koch."], r: ["art.ihr", "art.job"] },

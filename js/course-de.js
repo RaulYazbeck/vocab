@@ -225,7 +225,8 @@ function cxDueRules(now = Date.now()) {
 function cxStrict(s) {
   return String(s || "").normalize("NFC").toLowerCase().replace(/[.,!?;:„“"«»‚‘’()…–—]/g, " ").replace(/\s+/g, " ").trim();
 }
-function cxLoose(s) { return cxStrict(s).replace(/ß/g, "ss").replace(/ä/g, "a").replace(/ö/g, "o").replace(/ü/g, "u"); }
+// (any accent, as everywhere in the app: cafe = Café, Muller = Müller)
+function cxLoose(s) { return cxStrict(s).replace(/ß/g, "ss").normalize("NFD").replace(/[\u0300-\u036f]/g, "").normalize("NFC"); }
 function cxToks(s) { return cxLoose(s).split(" ").filter(Boolean); }
 function cxLev(a, b) {
   if (a === b) return 0;
@@ -356,12 +357,19 @@ function cxCheck(item, typed, sec) {
     }
   }
   for (const a of answers) {
-    if (cxLoose(a) === cxLoose(t)) return { ok: true, soft: [/ß/.test(a) && !/ß/.test(t) ? "ss" : "umlaut"], right: a };
+    if (cxLoose(a) === cxLoose(t)) {
+      const plain = s => cxStrict(s).replace(/ß/g, "ss").replace(/ä/g, "a").replace(/ö/g, "o").replace(/ü/g, "u");
+      // (a missing é is no mistake worth a note — only ß and the umlauts)
+      return { ok: true, soft: plain(a) !== plain(t) ? [] : [/ß/.test(a) && !/ß/.test(t) ? "ss" : "umlaut"], right: a };
+    }
   }
   // The closest accepted answer, for the feedback and the diagnosis.
   const T = cxToks(t);
   let best = answers[0] || "", bestD = Infinity;
-  answers.filter(a => !fills.includes(a)).forEach(a => { const A = cxToks(a); const d = cxMinus(A, T).length + cxMinus(T, A).length; if (d < bestD) { bestD = d; best = a; } });
+  // (a tie: the one in your word order — the diff then marks only the slip)
+  let bestL = -1;
+  const lcs = (X, Y) => { const L = Array.from({ length: X.length + 1 }, () => new Array(Y.length + 1).fill(0)); for (let i = 1; i <= X.length; i++) for (let j = 1; j <= Y.length; j++) L[i][j] = X[i - 1] === Y[j - 1] ? L[i - 1][j - 1] + 1 : Math.max(L[i - 1][j], L[i][j - 1]); return L[X.length][Y.length]; };
+  answers.filter(a => !fills.includes(a)).forEach(a => { const A = cxToks(a); const d = cxMinus(A, T).length + cxMinus(T, A).length; const l = d === bestD || d < bestD ? lcs(A, T) : 0; if (d < bestD || (d === bestD && l > bestL)) { bestD = d; best = a; bestL = l; } });
   const A = cxToks(best);
   const res = { ok: false, soft: [], right: best };
   // One letter off in an ordinary word (not one that carries the grammar):
@@ -419,6 +427,25 @@ function cxWhere(A, tok, orig = null) {
   const W = orig && orig.length === A.length ? orig : A;
   return `right before «${W.slice(i + 1, i + 3).join(" ")}${A.length > i + 3 ? " …" : ""}»`;
 }
+// A noun's article, from the word decks (das Café) — null if unknown.
+const CX_GENDER_NAME = { der: "masculine", die: "feminine", das: "neuter" };
+let _cxGender = null;
+function cxNounGender(noun) {
+  if (!_cxGender) {
+    _cxGender = new Map();
+    try {
+      for (const g of ALL_GROUPS) for (const d of g.decks) for (const w of d.words || []) {
+        const np = typeof nounParts === "function" ? nounParts(w) : null;
+        const key = np && np.noun && normalize(np.noun);
+        if (!key || !CX_GENDER_NAME[np.answer]) continue;
+        // (two genders for one spelling — der/das See… — : say nothing)
+        if (_cxGender.has(key) && _cxGender.get(key) !== np.answer) _cxGender.set(key, null);
+        else _cxGender.set(key, np.answer);
+      }
+    } catch (e) {}
+  }
+  return _cxGender.get(normalize(String(noun || "").replace(/[.,!?;:]+$/, ""))) || null;
+}
 function cxDiagnose(item, T, A, sec, orig = null) {
   const list = [...(item.diag || []), ...((sec && sec.diag) || [])];
   const fill = (m, o) => String(m || "").replace(/\{(\w+)\}/g, (s, k) => o[k] !== undefined ? o[k] : s);
@@ -431,7 +458,14 @@ function cxDiagnose(item, T, A, sec, orig = null) {
     } else if (d.t === "ending") {
       const re = new RegExp("^" + d.stem + "\\w*$");
       const tf = cxMinus(T, A).find(x => re.test(x)), at = cxMinus(A, T).find(x => re.test(x));
-      if (tf && at) o = { typed: tf, right: at };
+      if (tf && at) {
+        o = { typed: tf, right: at };
+        // The noun it goes with, and its gender when the decks know it:
+        // "ein Café … It's das Café (neuter)" says why at once.
+        const k = A.indexOf(at), W = orig && orig.length === A.length ? orig : null;
+        const noun = W && W[k + 1] && /^[A-ZÄÖÜ]/.test(W[k + 1]) ? W[k + 1] : "";
+        if (noun) { o.right = `${at} ${noun}`; const g = cxNounGender(noun); if (g) o.gender = `It's **${g} ${noun}** (${CX_GENDER_NAME[g]}).`; }
+      }
     } else if (d.t === "seq") {
       const [a, b] = d.seq.map(cxRx);
       for (let i = 0; i + 1 < T.length; i++) if (a.test(T[i]) && b.test(T[i + 1])) { o = { typed: T[i] + " " + T[i + 1] }; break; }
@@ -449,7 +483,7 @@ function cxDiagnose(item, T, A, sec, orig = null) {
     }
     if (o) {
       const rule = d.rule && (!item.r || item.r.includes(d.rule) || cxRule(d.rule)) ? d.rule : (item.r || [])[0];
-      return { rule, msg: fill(d.msg, o) };
+      return { rule, msg: fill(d.msg, o) + (o.gender ? " " + o.gender : "") };
     }
   }
   if (cxBagEq(T, A)) return { rule: (item.r || [])[0], msg: "The right words, another order." };
