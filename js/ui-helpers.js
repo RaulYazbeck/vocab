@@ -126,6 +126,7 @@ document.addEventListener("pointerdown", e => {
   if (typeof haptic === "function") haptic("select");
 });
 
+const DF_PUNCT = /[.,!?;:„“”"«»‚‘’()…–—¿¡]/;
 // Letter-by-letter comparison of what was typed against the answer:
 // matching letters plain, wrong ones red, missing ones underlined.
 function diffHtml(typed, answer) {
@@ -138,13 +139,18 @@ function diffHtml(typed, answer) {
     if (alts.length) b = alts.reduce((best, x) => levenshtein(a.toLowerCase(), x.toLowerCase()) < levenshtein(a.toLowerCase(), best.toLowerCase()) ? x : best, alts[0]);
   }
   if (a.length > 80 || b.length > 80) return escapeHtml(b);
-  const la = a.toLowerCase(), lb = b.toLowerCase();
+  // Only what the checker counts is marked: punctuation, case and accents
+  // (cafe = Café, a missing full stop) are never shown as a mistake.
+  const aa = [...a].filter(ch => !DF_PUNCT.test(ch)).join("").replace(/\s+/g, " ").trim();
+  const la = aa.toLowerCase(), lb = b.toLowerCase();
+  const key = ch => stripAccents(ch);
   const n = la.length, m = lb.length;
+  const free = j => DF_PUNCT.test(lb[j - 1]); // an answer's punctuation: free to leave out
   const dp = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
   for (let i = 0; i <= n; i++) dp[i][0] = i;
-  for (let j = 0; j <= m; j++) dp[0][j] = j;
+  for (let j = 1; j <= m; j++) dp[0][j] = dp[0][j - 1] + (free(j) ? 0 : 1);
   for (let i = 1; i <= n; i++) for (let j = 1; j <= m; j++)
-    dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + (la[i - 1] === lb[j - 1] ? 0 : 1));
+    dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + (free(j) ? 0 : 1), dp[i - 1][j - 1] + (key(la[i - 1]) === key(lb[j - 1]) ? 0 : 1));
   // A totally different word: a letter diff is noise — just show
   // what was typed, struck through (the answer is shown next to it).
   if (dp[n][m] > Math.max(2, Math.ceil(m * 0.4))) return `<span class="df-typed">you typed <s>${escapeHtml(a)}</s></span>`;
@@ -152,14 +158,43 @@ function diffHtml(typed, answer) {
   const out = [];
   let i = n, j = m;
   while (i > 0 || j > 0) {
-    if (i > 0 && j > 0 && la[i - 1] === lb[j - 1] && dp[i][j] === dp[i - 1][j - 1]) { out.push(["ok", b[j - 1]]); i--; j--; }
+    if (i > 0 && j > 0 && key(la[i - 1]) === key(lb[j - 1]) && dp[i][j] === dp[i - 1][j - 1]) { out.push(["ok", b[j - 1]]); i--; j--; }
+    else if (j > 0 && free(j) && dp[i][j] === dp[i][j - 1]) { out.push(["ok", b[j - 1]]); j--; }
     else if (i > 0 && j > 0 && dp[i][j] === dp[i - 1][j - 1] + 1) { out.push(["bad", b[j - 1]]); i--; j--; }
     else if (j > 0 && dp[i][j] === dp[i][j - 1] + 1) { out.push(["miss", b[j - 1]]); j--; }
-    else { out.push(["extra", a[i - 1]]); i--; }
+    else { out.push(["extra", aa[i - 1]]); i--; }
   }
   out.reverse();
   return out.map(([k, ch]) => k === "ok" ? escapeHtml(ch) : k === "extra" ? `<span class="df-extra">${escapeHtml(ch)}</span>`
     : `<span class="df-${k}">${escapeHtml(ch === " " ? "·" : ch)}</span>`).join("");
+}
+
+// Word by word, for a sentence: the answer with the words you got wrong
+// or left out marked, and what you wrote with its wrong words marked.
+// Punctuation, case and accents never count (as in the checker); a word
+// that's right but in another place is marked "moved", not wrong.
+// → { ans, typed, same } (HTML; same: nothing but punctuation differs).
+function wordDiffHtml(typed, answer) {
+  const split = s => String(s || "").trim().split(/\s+/).filter(Boolean);
+  const key = w => normalize([...w].filter(ch => !DF_PUNCT.test(ch)).join(""));
+  const A = split(answer), T = split(typed).filter(w => key(w));
+  const ka = A.map(key), kt = T.map(key);
+  const n = kt.length, m = ka.length;
+  const L = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--)
+    L[i][j] = kt[i] && kt[i] === ka[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+  const okA = new Array(m).fill(false), okT = new Array(n).fill(false);
+  for (let i = 0, j = 0; i < n && j < m;) {
+    if (kt[i] && kt[i] === ka[j]) { okT[i] = okA[j] = true; i++; j++; }
+    else if (L[i + 1][j] >= L[i][j + 1]) i++; else j++;
+  }
+  // (a word left over on both sides is one that moved)
+  const leftA = ka.filter((k, j) => !okA[j]), leftT = kt.filter((k, i) => !okT[i]);
+  const ans = A.map((w, j) => okA[j] || !ka[j] ? escapeHtml(w)
+    : `<span class="${leftT.includes(ka[j]) ? "dw-moved" : "dw-fix"}">${escapeHtml(w)}</span>`).join(" ");
+  const typ = T.map((w, i) => okT[i] ? escapeHtml(w)
+    : `<span class="${leftA.includes(kt[i]) ? "dw-moved" : "dw-wrong"}">${escapeHtml(w)}</span>`).join(" ");
+  return { ans, typed: typ || "—", same: okA.every((x, j) => x || !ka[j]) && okT.every(Boolean) };
 }
 
 // One-letter typo on a longer word, away from the article and the

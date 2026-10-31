@@ -127,7 +127,8 @@ const HELP = () => {
           if (!right && kind === "drill" && cur.first) {
             const fb = document.getElementById("cx-fb");
             ruleBox = fb ? fb.innerText : "";
-            drillMissSeen = /✗/.test(ruleBox) && /📏/.test(ruleBox) && !!fb.querySelector(".cx-why") && ruleBox.split("\n").filter(l => l.trim()).length <= 4;
+            // (one card: ✗ · Answer · the answer · You wrote · yours · why · the rule)
+            drillMissSeen = /✗/.test(ruleBox) && /📏/.test(ruleBox) && !!fb.querySelector(".cx-why") && !!fb.querySelector(".cx-miss-ans") && fb.querySelector(".cx-miss-ans").innerText.trim().length > 0 && ruleBox.split("\n").filter(l => l.trim()).length <= 7;
             const btn = fb && fb.querySelector(".cx-see");
             if (btn) { btn.click(); peeked = !!document.getElementById("gs-peek") && _gs && _gs.mode === "peek" && _gs.sh.cx; gsPeekClose(); }
           }
@@ -146,7 +147,7 @@ const HELP = () => {
     }
     plan = S.quests.m.ok - m0;
     ok(toMissed === 2, "the test-out was missed twice");
-    ok(drillMissSeen, `a drill miss, in a few lines: the fix marked, why, the rule (a tap opens its sheet): "${ruleBox.replace(/\n+/g, " · ").slice(0, 160)}"`);
+    ok(drillMissSeen, `a drill miss, one card: the answer with the fix marked, what you wrote, why, the rule (a tap opens its sheet): "${ruleBox.replace(/\n+/g, " · ").slice(0, 160)}"`);
     ok(peeked, "📏 the rule's name opens the course sheet over the exercise");
     ok(reaskSeen, "the missed item came back once at the end");
     ok(totals.size === 1, `counter total never changed (${[...totals]})`);

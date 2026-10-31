@@ -49,9 +49,14 @@ function cxPartAt(it) {
   return _cx.list.slice(0, _cx.i + (_cx.answered ? 1 : 0)).filter(e => e.first).length;
 }
 function cxGapHtml(s) { return gsMd(s).replace(/___/g, `<span class="cx-gap">___</span>`); }
+// The cue in brackets stands out as a chip: "(nehmen)" → a quiet chip,
+// "(→ no)" → what to turn it into, spelt out ("→ no · kein…").
+const CX_ARROW_GLOSS = { a: "a · ein…", no: "no · kein…" };
 function cxQHtml(item) {
   let h = cxGapHtml(item.q || "");
   if (item.hl) { const m = gsMd(item.hl); h = h.replace(m, `<mark class="cx-hl">${m}</mark>`); }
+  h = h.replace(/\(→\s*([^()]+)\)/g, (s, x) => `<span class="cx-arrow">→ ${CX_ARROW_GLOSS[x.trim()] || x.trim()}</span>`)
+    .replace(/\(([^()<>]{1,40})\)/g, (s, x) => `<span class="cx-paren">${x}</span>`);
   return h;
 }
 const CX_PART_LABEL = { testout: "Test-out", checkpoint: "Checkpoint", drill: "Drill", review: "Review", warm: "Warm-up · yesterday's slips", write: "Writing", practice: "Practice", contrast: "Contrast day · mixed" };
@@ -69,7 +74,8 @@ function cxRender() {
   // (the book's exercise number only outside Today — in a session it's noise)
   const src = o.mode !== "path" && set.ex ? "Übung " + set.ex : "";
   const pos = `<div class="gs-qpos">${cur.first ? `${r.i + 1 - r.list.slice(0, r.i).filter(e => !e.first).length} / ${r.n}` : "Once more"}${src ? ` · <span class="cx-src">${escapeHtml(src)}</span>` : ""}</div>`;
-  const how = `<div class="cx-how">${gsMd(set.how || "")}</div>`;
+  // What to do: the set's name in bold, how in a line under it.
+  const how = `<div class="cx-task">${set.title ? `<b>${escapeHtml(set.title)}</b>` : ""}${set.how ? `<span>${gsMd(set.how)}</span>` : ""}</div>`;
   let body = "";
   const input = (ph = "type it…") => `<input type="text" class="german-input gs-input" id="cx-input" placeholder="${ph}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="go"/>${typeof accentBarHtml === "function" ? accentBarHtml("cx-input") : ""}`;
   if (k === "pick" || k === "respond") {
@@ -296,10 +302,18 @@ function cxShowAnswered() {
   let html;
   if (self) html = `<div class="p-ok">✓ Saved for Claude to correct</div>${(item.model || []).length ? `<div class="cx-also">A model: <i>${escapeHtml(item.model[0])}</i></div>` : ""}`;
   else if (ok) html = `<div class="p-ok">✓ Right${res.soft && res.soft.length ? ` <span class="vx-uml">— ${res.soft.map(s => CX_SOFT[s]).join(", ")}: <b>${escapeHtml(res.right)}</b></span>` : ""}</div>${also.length ? `<div class="cx-also">Also right: ${also.map(a => `<i>${escapeHtml(a)}</i>`).join(" · ")}</div>` : ""}${cxMoveHtml(cur)}`;
-  else html = (cur.given && k !== "pick" && k !== "respond" && k !== "order" && String(res.right || "").trim().split(/\s+/).length > 2
-      ? `<div class="p-bad cx-bad">✗ <span class="p-diff">${diffHtml(cur.given, res.right || "")}</span></div>`
-      : `<div class="p-bad">✗ Answer: <strong>${escapeHtml(res.right || (item.a || [])[0] || "")}</strong></div>`)
-    + `${item.note ? `<div class="cx-note">${gsMd(item.note)}</div>` : ""}${why}`;
+  else {
+    // A miss: one card — the right answer, big, with what to fix marked;
+    // under it what you wrote, its wrong words marked; then why.
+    const right = res.right || (item.a || [])[0] || "";
+    const shown = k !== "pick" && k !== "respond" && k !== "order" && cur.given;
+    const d = shown ? wordDiffHtml(cur.given, right) : null;
+    const ansHtml = k === "order" ? (item.a || []).map(l => `<div>${escapeHtml(l)}</div>`).join("") : d ? d.ans : escapeHtml(right);
+    html = `<div class="cx-miss"><div class="cx-miss-head">✗ Not quite</div>
+      <div class="cx-miss-lbl">Answer</div><div class="cx-miss-ans">${ansHtml}</div>
+      ${d ? `<div class="cx-miss-lbl">You wrote</div><div class="cx-miss-you">${d.typed}</div>` : ""}
+      ${item.note ? `<div class="cx-note">${gsMd(item.note)}</div>` : ""}${why ? `<div class="cx-miss-why">${why}</div>` : ""}</div>`;
+  }
   if (fb) fb.innerHTML = html;
   const act = document.getElementById("cx-act");
   if (act) act.innerHTML = `<button class="g-big-btn" id="cx-next" onclick="cxNext()">${r.i + 1 >= r.list.length ? "See result" : "Next ›"}</button>`;

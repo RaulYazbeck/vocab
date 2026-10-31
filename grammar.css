@@ -384,7 +384,16 @@
    grammar screens' rows (.gr-*). A stage carries a hue like a tense. */
 .cx-gap { display:inline-block; min-width:2.6em; border-bottom:2px solid hsl(var(--th) 80% 66%); color:transparent; line-height:1.1; }
 .cx-hl { background:hsl(var(--th) 80% 55% / 0.28); color:inherit; border-radius:5px; padding:0 3px; box-shadow:0 0 0 1px hsl(var(--th) 80% 62% / 0.5); }
-.cx-how { font-size:13px; color:var(--text-2); margin:-4px 0 2px; }
+/* what to do: the set's name, and how, in one quiet card above the question */
+.cx-task { display:flex; flex-direction:column; gap:3px; align-items:center; text-align:center; padding:9px 12px; border-radius:var(--r-sm);
+  background:hsl(var(--th) 70% 50% / 0.09); border:1px solid hsl(var(--th) 70% 60% / 0.28); }
+.cx-task b { font-size:15px; color:hsl(var(--th) 88% 76%); line-height:1.3; }
+.cx-task span { font-size:14px; color:var(--text); line-height:1.4; opacity:0.88; }
+/* the cue in brackets: a chip, not small print */
+.cx-paren { display:inline-block; font-size:0.82em; font-weight:700; padding:1px 8px; margin:0 2px; border-radius:999px; vertical-align:0.08em;
+  background:rgba(255,255,255,0.07); border:1px solid var(--border); color:var(--text-2); }
+.cx-arrow { display:inline-block; font-size:0.85em; font-weight:800; padding:2px 10px; margin-left:4px; border-radius:999px; vertical-align:0.06em;
+  background:hsl(var(--th) 80% 55% / 0.2); border:1px solid hsl(var(--th) 80% 62% / 0.55); color:hsl(var(--th) 90% 80%); white-space:nowrap; }
 .cx-src { color:var(--text-3); }
 .cx-cue { display:flex; flex-wrap:wrap; gap:7px; margin:4px 0 2px; }
 .cx-cue .gs-chip { cursor:default; font-weight:700; }
@@ -458,8 +467,18 @@
 @media (min-width:560px) { .cx-links.four { grid-template-columns:repeat(4, minmax(0, 1fr)); } }
 .cx-plan small { display:block; margin-top:3px; }
 /* a miss: the answer with the fix marked, why in one line, the rule a tap away */
-.cx-bad .p-diff { display:inline; margin:0; }
-.cx-why { font-size:14px; color:var(--text-2); margin-top:6px; line-height:1.45; }
+.cx-miss { text-align:left; padding:12px 14px; border-radius:var(--r-sm); border:1px solid rgba(231,76,60,0.45); background:rgba(231,76,60,0.08);
+  display:flex; flex-direction:column; gap:3px; }
+.cx-miss-head { color:var(--error); font-weight:800; font-size:15px; margin-bottom:4px; }
+.cx-miss-lbl { font-size:11px; font-weight:800; letter-spacing:0.6px; text-transform:uppercase; color:var(--text-3); margin-top:4px; }
+.cx-miss-ans { font-size:18px; font-weight:700; color:var(--text); line-height:1.45; overflow-wrap:anywhere; }
+.cx-miss-you { font-size:15px; color:var(--text-2); line-height:1.45; overflow-wrap:anywhere; }
+.dw-fix { color:var(--success); background:var(--success-dim); border-radius:5px; padding:0 4px; box-shadow:inset 0 -2px 0 var(--success); }
+.dw-wrong { color:var(--error); text-decoration:line-through; text-decoration-thickness:2px; font-weight:700; }
+.dw-moved { text-decoration:underline dashed; text-underline-offset:4px; text-decoration-color:var(--accent); }
+.cx-miss-why { margin-top:8px; padding-top:8px; border-top:1px solid var(--border); display:flex; flex-direction:column; align-items:flex-start; gap:2px; }
+.cx-miss .cx-note { text-align:left; }
+.cx-why { font-size:14.5px; color:var(--text); margin-top:0; line-height:1.45; }
 .cx-see { display:inline-block; margin-top:4px; font-size:13px; }
 .cx-rlist { margin:0 0 6px; padding-left:20px; font-size:14.5px; line-height:1.7; color:var(--text); }
 /* ✍️ Writing: a level, a theme, one Write button */
