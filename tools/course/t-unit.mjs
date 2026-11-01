@@ -571,14 +571,16 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   C.CX.sections.filter(s => s.stage === 0 && !s.verb).forEach(s => { C.S.course.sec[s.id] = { st: 3, at: "2026-10-01" }; });
   VERBS0.forEach(v => { C.S.verb.sh[v] = 100; });
   const order = [];
-  for (let k = 0; k < 12; k++) {
+  for (let k = 0; k < 30; k++) {
     const s = C.cxClockLesson();
     if (!s || s.stage !== 1) break;
     order.push(s.id);
     if (s.verb) s.verb.forEach(v => { C.S.verb.sh[v] = 100; }); else C.S.course.sec[s.id] = { st: 3, at: "2026-10-01" };
   }
   // (the regular Präteritum, a verb lesson, comes where the course puts it: before the dative)
-  ok(J(order) === J(["s1.front", "s1.neg2", "s1.resp", "s1.pf", "s1.sep", "s1.pt21", "s1.dat", "s1.datpron", "s1.datverb", "s1.accdat", "s1.wer"]),
+  // (Session 4's lessons come in among them — this test keeps to Session 3's; Session 4 has its own)
+  const order3 = order.filter(id => C.cxSection(id).ses <= 3 || id === "s1.pt21");
+  ok(J(order3) === J(["s1.front", "s1.neg2", "s1.resp", "s1.pf", "s1.sep", "s1.pt21", "s1.dat", "s1.datpron", "s1.datverb", "s1.accdat", "s1.wer"]),
     "Stage 0 done: the A2 lessons in course order — fronting first, wer/wen/wem after the dative", J(order));
   // a lesson waits for the ones it builds on
   fresh(); C.CX.sections.filter(s => s.stage === 0 && !s.verb).forEach(s => { C.S.course.sec[s.id] = { st: 3 }; }); VERBS0.forEach(v => { C.S.verb.sh[v] = 100; });
@@ -623,6 +625,81 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   ok(C.cxSecDone("s1.pf") && C.cxMixSections().some(s => s.id === "s1.pf"), "the Perfekt lesson passed: its drills join the mixed days");
   const pp = C.cxDrillPlan("s1.pf", 12);
   ok(pp.length === 12 && ["compose", "translate", "write"].includes(C.cxItemKind(C.cxSet(pp[pp.length - 1].set), pp[pp.length - 1].item)), `its practice: 12 items, production last (${pp.map(e => e.set).join(" ")})`);
+}
+
+// ── Session 4: Stage 1B built — the prepositions, the conjunctions, modals, wissen, reflexives, the Präteritum ──
+{
+  const VERBS0 = ["pr1", "pr2", "pr3", "pr4", "pr5", "pr7", "im1", "im2", "im3", "pf1", "pt11", "pt12", "pt13"];
+  const S4 = ["s1.conj1", "s1.accprep", "s1.datprep", "s1.twoway", "s1.wowohin", "s1.conj2", "s1.modal", "s1.wissen", "s1.refl"];
+  ok(S4.every(id => C.cxLearnable(C.cxSection(id))), "the nine Stage 1B lessons are built");
+  ok(C.cxSecSets("s1.pt21").length >= 8 && C.cxSecSets("s1.pt21").some(s => !s.gen), "the regular Präteritum has its book drills");
+  C.vxOn = () => true;
+  // Stage 0 done: every built A2 lesson in course order — Session 3's and Session 4's together
+  fresh(); C.S.course.last = "2026-10-01";
+  C.CX.sections.filter(s => s.stage === 0 && !s.verb).forEach(s => { C.S.course.sec[s.id] = { st: 3, at: "2026-10-01" }; });
+  VERBS0.forEach(v => { C.S.verb.sh[v] = 100; });
+  const order = [];
+  for (let k = 0; k < 30; k++) {
+    const s = C.cxClockLesson();
+    if (!s) break;
+    order.push(s.id);
+    if (s.verb) s.verb.forEach(v => { C.S.verb.sh[v] = 100; }); else C.S.course.sec[s.id] = { st: 3, at: "2026-10-01" };
+    if (s.id === "s1.refl") break;
+  }
+  // (the strong Präteritum — a B1 verb lesson — sits after the two-way prepositions on purpose: Oct 2026)
+  ok(J(order) === J(["s1.front", "s1.conj1", "s1.neg2", "s1.resp", "s1.pf", "s1.sep", "s1.accprep", "s1.pt21", "s1.dat", "s1.datpron", "s1.datverb", "s1.accdat", "s1.wer",
+    "s1.datprep", "s1.twoway", "s2.pt2", "s1.wowohin", "s1.conj2", "s1.modal", "s1.wissen", "s1.refl"]),
+    "Stage 0 done: the A2 lessons in course order — und/aber early, the prepositions after the dative, weil/dass before the modals", J(order));
+  // what waits for what
+  fresh(); C.CX.sections.filter(s => s.stage === 0 && !s.verb).forEach(s => { C.S.course.sec[s.id] = { st: 3 }; }); VERBS0.forEach(v => { C.S.verb.sh[v] = 100; });
+  const ready = id => C.cxLessonReady(C.cxSection(id));
+  ok(ready("s1.accprep") && ready("s1.conj1") && ready("s1.conj2") && ready("s1.wissen"), "with Stage 0 done: the accusative prepositions, und/aber, weil/dass and wissen/kennen are ready");
+  ok(!ready("s1.datprep") && !ready("s1.twoway") && !ready("s1.wowohin") && !ready("s1.modal") && !ready("s1.refl"),
+    "the dative prepositions wait for the dative, the two-way ones for both, wo/wohin for the two-way, the modals for weil/dass, the reflexives for the dative pronouns");
+  ["s1.accprep", "s1.dat"].forEach(id => { C.S.course.sec[id] = { st: 3 }; });
+  ok(ready("s1.datprep") && !ready("s1.twoway"), "the dative done: its prepositions are ready, the two-way ones still wait");
+  C.S.course.sec["s1.datprep"] = { st: 3 };
+  ok(ready("s1.twoway") && !ready("s1.wowohin"), "both prepositions done: the two-way lesson is ready, wo/wohin after it");
+  C.S.course.sec["s1.conj2"] = { st: 3 };
+  ok(ready("s1.modal"), "weil/dass done: the modals are ready");
+  // no test-out after Stage 0: a Session 4 lesson opens with its first sheet
+  fresh(); C.CX.sections.filter(s => s.stage === 0 && !s.verb).forEach(s => { C.S.course.sec[s.id] = { st: 3, at: "2026-10-01" }; });
+  ["s1.front"].forEach(id => { C.S.course.sec[id] = { st: 3, at: "2026-10-01" }; });
+  VERBS0.forEach(v => { C.S.verb.sh[v] = 100; }); C.S.course.last = "2026-10-01";
+  ok(C.cxClockLesson().id === "s1.conj1", `fronting done: und, aber, oder… next (${C.cxClockLesson().id})`);
+  const parts = C.cxTodayParts().filter(p => p.sec === "s1.conj1");
+  ok(!parts.some(p => p.part === "testout") && parts.some(p => p.part === "sheet" && p.sheet === "cx.co1"), "no test-out: its sheet", J(parts));
+  // a lesson already under way keeps going first, whatever Session 4 built
+  fresh(); C.CX.sections.filter(s => s.stage === 0 && !s.verb).forEach(s => { C.S.course.sec[s.id] = { st: 3, at: "2026-10-01" }; });
+  VERBS0.forEach(v => { C.S.verb.sh[v] = 100; }); C.S.course.sec["s1.front"] = { st: 3 }; C.S.course.sec["s1.neg2"] = { st: 1, ok: { "cx.neg2a": 1 } };
+  ok(C.cxClockLesson().id === "s1.neg2", `a lesson under way (niemand, nichts) finishes before und/aber comes (${C.cxClockLesson().id})`);
+  // the generated Präteritum: the engine's -te forms; a prefix after the verb
+  const pt = C.cxGenItems(C.cxSet("d14.1"), 10);
+  ok(pt.length === 10 && pt.every(it => it.t === "pt" && it.a.includes(C.vxForm(C.vxVerb(it.inf), "pt", it.p).ans) && /te(st|n|t)?$/.test(it.a[0])), "generated Präteritum: the engine's -te forms", J(pt.slice(0, 3).map(it => [it.q, it.a])));
+  const sep = C.cxGenItems(C.cxSet("d14.4"), 10).filter(it => ["abholen", "zuhören", "aufhören", "einkaufen", "zumachen", "aufräumen"].includes(it.inf));
+  ok(sep.length > 0 && sep.every(it => / (ab|zu|auf|ein)$/.test(it.a[0])), "a separable verb's Präteritum: the prefix after it (holte ab)", J(sep.map(it => it.a[0])));
+  // its book drills join the mixed days once the lesson is done
+  fresh(); VERBS0.concat(["pt21"]).forEach(v => { C.S.verb.sh[v] = 100; });
+  ok(C.cxSecDone("s1.pt21") && C.cxMixSections().some(s => s.id === "s1.pt21"), "the regular Präteritum passed: its drills join the mixed days");
+  // 18•4 (commands) is the A1 verb lesson's: in its practice, not the wissen lesson's
+  ok(C.cxSet("d18.4").sec === "s0.verbs" && C.cxCovOf("18.4").set === "d18.4", "18•4 (du / ihr / Sie commands) sits with the A1 verb lesson's commands");
+  // the checker: a gap that closes the sentence takes just the missing part
+  const g = C.cxSet("d29.2").items[0];
+  ok(C.cxCheck(g, "meine Frau bleibt im Bett").ok && C.cxCheck(g, g.a[0]).ok, "«…, aber ___.»: the missing part alone is right, and so is the whole sentence");
+  // a modal's vowel is grammar, not a slip; the fix is shown with its umlaut
+  const m = C.cxCheck(C.cxSet("d17.11").items[0], "Mögst", C.cxSection("s1.modal"));
+  ok(!m.ok && !m.near && m.rule === "mod.form", `«Mögst» for magst: a mistake, its rule (${m.rule}, near ${m.near})`);
+  const m2 = C.cxCheck(C.cxSet("d17.10").items[1], "möchtet", C.cxSection("s1.modal"));
+  ok(/möchte\b/.test(m2.msg || "") && !/mochte/.test(m2.msg || ""), `the fix keeps its umlaut (${m2.msg})`);
+  // wo? or wohin? — the verb pair names its rule
+  const w = C.cxCheck(C.cxSet("dp.ww").items[1], "Die Milch stellt im Kühlschrank.", C.cxSection("s1.wowohin"));
+  ok(!w.ok && w.rule === "ww.pairs" && /steht/.test(w.msg || ""), `stellt for steht: the verb pair (${w.rule}: ${w.msg})`);
+  // a day's drill of each new lesson: 10–14 items, production last
+  S4.forEach(id => {
+    fresh();
+    const plan = C.cxDrillPlan(id);
+    ok(plan.length >= 10 && plan.length <= 14 && ["compose", "translate", "write", "answer"].includes(C.cxItemKind(C.cxSet(plan[plan.length - 1].set), plan[plan.length - 1].item)), `${id}: a day's drill of ${plan.length}, production last`);
+  });
 }
 
 // ── a pile bigger than a day: the reviews take turns ──

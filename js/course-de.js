@@ -241,7 +241,8 @@ function cxLev(a, b) {
   return prev[n];
 }
 // Words that carry the grammar: a slip in one of them is a mistake, never "almost".
-const CX_GRAMMAR_TOK = /^(k?ein\w*|d(er|ie|as|en|em|es)|mein\w*|dein\w*|sein\w*|ihr\w*|unser\w*|eu(er|r)\w*|dies\w*|jed\w*|welch\w*|nicht\w*|nie\w*|sondern|aber|doch|ja|nein|und|oder)$/;
+// (the modals and wissen too: mögst for magst is the grammar, not a slip)
+const CX_GRAMMAR_TOK = /^(k?ein\w*|d(er|ie|as|en|em|es)|mein\w*|dein\w*|sein\w*|ihr\w*|unser\w*|eu(er|r)\w*|dies\w*|jed\w*|welch\w*|nicht\w*|nie\w*|sondern|aber|doch|ja|nein|und|oder|ma[gc]\w*|mo[gc]\w*|kann\w*|konn\w*|muss\w*|darf\w*|durf\w*|will\w*|woll\w*|soll\w*|weiss\w*|wiss\w*|wuss\w*)$/;
 function cxBag(toks) { const m = new Map(); toks.forEach(t => m.set(t, (m.get(t) || 0) + 1)); return m; }
 function cxBagEq(a, b) { if (a.length !== b.length) return false; const A = cxBag(a); for (const t of b) { const k = A.get(t); if (!k) return false; A.set(t, k - 1); } return true; }
 // Two spellings that differ only in their last letter or two, and only by
@@ -338,7 +339,9 @@ function cxGapFills(item) {
   const parts = tpl.split("___");
   if (parts.length !== 2 || !(parts[0].trim() || parts[1].trim())) return [];
   const esc = s => s.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const re = new RegExp("^" + (esc(parts[0]) ? esc(parts[0]) + "\\s+" : "") + "(.+?)" + (esc(parts[1]) ? "\\s+" + esc(parts[1]) : "") + "$", "i");
+  // (a gap that closes the sentence — "…, aber ___." — has only the full stop after it, no space)
+  const tail = parts[1].trim(), punct = /^[.!?]+$/.test(tail);
+  const re = new RegExp("^" + (esc(parts[0]) ? esc(parts[0]) + "\\s+" : "") + "(.+?)" + (tail ? (punct ? "\\s*" : "\\s+") + esc(parts[1]) : "") + "$", "i");
   const out = [];
   (item.a || []).map(String).forEach(a => { const m = re.exec(a.trim()); if (m && m[1] && !out.includes(m[1])) out.push(m[1]); });
   return out;
@@ -448,23 +451,26 @@ function cxNounGender(noun) {
 }
 function cxDiagnose(item, T, A, sec, orig = null) {
   const list = [...(item.diag || []), ...((sec && sec.diag) || [])];
+  // the right word as the answer spells it (möchte, not mochte), small
+  const W0 = orig && orig.length === A.length ? orig : null;
+  const spell = t => { const k = A.indexOf(t); return W0 && k >= 0 ? W0[k].toLowerCase() : t; };
   const fill = (m, o) => String(m || "").replace(/\{(\w+)\}/g, (s, k) => o[k] !== undefined ? o[k] : s);
   for (const d of list) {
     let o = null;
     if (d.t === "swap") {
       const f = cxRx(d.from), to = cxRx(d.to);
       const tf = cxMinus(T, A).find(x => f.test(x)), at = cxMinus(A, T).find(x => to.test(x));
-      if (tf && at) o = { typed: tf, right: at };
+      if (tf && at) o = { typed: tf, right: spell(at) };
     } else if (d.t === "ending") {
       const re = new RegExp("^" + d.stem + "\\w*$");
       const tf = cxMinus(T, A).find(x => re.test(x)), at = cxMinus(A, T).find(x => re.test(x));
       if (tf && at) {
-        o = { typed: tf, right: at };
+        o = { typed: tf, right: spell(at) };
         // The noun it goes with, and its gender when the decks know it:
         // "ein Café … It's das Café (neuter)" says why at once.
         const k = A.indexOf(at), W = orig && orig.length === A.length ? orig : null;
         const noun = W && W[k + 1] && /^[A-ZÄÖÜ]/.test(W[k + 1]) ? W[k + 1] : "";
-        if (noun) { o.right = `${at} ${noun}`; const g = cxNounGender(noun); if (g) o.gender = `It's **${g} ${noun}** (${CX_GENDER_NAME[g]}).`; }
+        if (noun) { o.right = `${spell(at)} ${noun}`; const g = cxNounGender(noun); if (g) o.gender = `It's **${g} ${noun}** (${CX_GENDER_NAME[g]}).`; }
       }
     } else if (d.t === "seq") {
       const [a, b] = d.seq.map(cxRx);

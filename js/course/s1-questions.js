@@ -236,8 +236,5 @@ cxPack({
 cxCover({
   "7.13": "d7.13", "28.13": "d28.13", "28.14": "d28.14", "13.6": "d13.6",
   "13.2": "d7.4", "13.7": "d28.17",
-  "13.1": { st: "planned", sec: "s1.accprep" }, "13.3": { st: "planned", sec: "s1.accprep" }, "13.4": { st: "planned", sec: "s1.accprep" },
-  "13.8": { st: "planned", sec: "s1.accprep" }, "13.9": { st: "planned", sec: "s1.accprep" }, "13.10": { st: "planned", sec: "s1.accprep" },
-  "13.11": { st: "planned", sec: "s1.accprep" },
-  "13.5": { st: "planned", sec: "s1.conj1" },
+  // (13•1, 13•3, 13•4, 13•8–13•11: the accusative prepositions, s1-prep.js · 13•5: s1-conj.js)
 });

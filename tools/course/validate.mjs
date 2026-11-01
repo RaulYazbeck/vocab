@@ -291,6 +291,62 @@ if (neg && neg.built) {
   }
 }
 
+// ── the checker on typical mistakes (Session 4's lessons) ──
+{
+  const cases = [
+    ["d7.10", 0, "dem Park", "ap.list", "den"],
+    ["d7.10", 4, "ihm", "ap.pron", "ihn"],
+    ["d13.4", 1, "durch es", "ap.da", "dadurch"],
+    ["d13.4", 0, "dafür", "ap.da", "person"],
+    ["d13.9", 0, "den lange Tunnel", "ap.adj", "langen"],
+    ["d13.8", 1, "Um was bittet der Hauswart?", "ap.da", "worum"],
+    ["d15.4", 0, "den Hauswart", "dpr.list", "dem"],
+    ["d15.14", 1, "ihn", "dpr.pron", "ihm"],
+    ["d15.15", 0, "gegenüber euch", "dpr.gegen", "after"],
+    ["d15.5", 1, "mit ihm", "dpr.da", "damit"],
+    ["dp.dpr", 2, "Die Kinder gehen zu der Schule.", "dpr.short", "zur"],
+    ["dp.dpr", 8, "Ich habe seit zwei Jahren in der Schweiz gewohnt.", "dpr.from", "present"],
+    ["d19.1", 0, "dem Haus", "tw.wohin", "accusative"],
+    ["d19.2", 0, "in dem Garten", "tw.im", "im"],
+    ["dp.tw", 4, "Wir gehen heute im Kino.", "tw.wohin", "accusative"],
+    ["dtw.t", 0, "seit einem Monat", "tw.time", "vor"],
+    ["dp.ww", 1, "Die Milch stellt im Kühlschrank.", "ww.pairs", "steht"],
+    ["dp.ww", 0, "Ich stelle die Milch im Kühlschrank.", "ww.ask", "accusative"],
+    ["d19.5", 4, "Wo springt die Katze?", "ww.ask", "wohin"],
+    ["d14.8", 8, "Tom geht früh ins Bett, denn ist er müde.", "co.denn", "subject"],
+    ["dco.p", 4, "aber", "co.sondern", "sondern"],
+    ["dco.p", 10, "sondern", "co.sondern", "aber"],
+    ["dsub.p", 0, "ich bin krank", "sub.end", "end"],
+    ["dsub.two", 0, "Ich komme heute nicht, weil ich muss arbeiten.", "sub.end", "end"],
+    ["dp.sub", 1, "Ich weiß, das du viel Arbeit hast.", "sub.dass", "dass"],
+    ["d17.13", 0, "Ich gehe früh ins Bett, weil ich muss um fünf aufstehen.", "mod.sub", "last"],
+    ["d17.8", 0, "Ich darf bleiben heute länger.", "mod.end", "end"],
+    ["dmod.p", 4, "darfst", "mod.neg", "musst"],
+    ["d17.10", 1, "möchtet", "mod.form", "möchte"],
+    ["d18.2", 1, "kenne", "wk.fact", "weiß"],
+    ["d18.2", 0, "wissen", "wk.kennen", "kennen"],
+    ["d18.1", 1, "weiße", "wk.forms", "weiß"],
+    ["d23.6", 1, "Ich kaufe mich ein Velo.", "refl.dat", "mir"],
+    ["d23.5", 6, "Ich wasche sich.", "refl.forms", "mich"],
+    ["drefl.p", 7, "sich", "refl.vs", "sie"],
+    ["d14.5", 0, "Ich wohnt in Olten.", "gs:pt21.r2", "wohnte"],
+    ["d14.6", 1, "arbeitte", "gs:pt21.r3", "arbeitete"],
+    ["dp.pt21", 2, "Ich spieltest jeden Tag Fußball.", "gs:pt21.r2", "spielte"],
+  ];
+  cases.forEach(([set, i, typed, rule, word]) => {
+    const s = CX.sets[set], r = s && C.cxCheck(s.items[i], typed, C.cxSection(s.sec));
+    ok(r && !r.ok && r.rule === rule && String(r.msg || "").toLowerCase().includes(word.toLowerCase()), `diagnosis: "${typed}" → ${rule}, «${word}» (got ${r && r.rule}: ${r && r.msg})`);
+  });
+  // a modal's vowel is the grammar — never "almost, check the spelling"
+  [["d17.11", 0, "Mögst"], ["d17.12", 0, "wollst"], ["d18.1", 4, "wesst"]].forEach(([set, i, typed]) => {
+    const r = C.cxCheck(CX.sets[set].items[i], typed, C.cxSection(CX.sets[set].sec));
+    ok(!r.ok && !r.near, `"${typed}": a modal's form — a mistake, not almost`);
+  });
+  // the fix is shown as it's spelt (möchte, not mochte)
+  const r5 = C.cxCheck(CX.sets["d17.10"].items[1], "möchtet", C.cxSection("s1.modal"));
+  ok(/möchte\b/.test(r5.msg || "") && !/\bmochte\b/.test(r5.msg || ""), `the fix keeps its umlaut (${r5.msg})`);
+}
+
 // ── the book's table of contents: every line has its lesson ──
 // (each heading of the blueprint — and a chapter's opening part, when it
 // has exercises — is named by a section: taught there, in the verb track
