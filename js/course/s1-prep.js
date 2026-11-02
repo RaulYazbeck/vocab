@@ -862,5 +862,5 @@ cxCover({
   "19.1": "d19.1", "19.2": "d19.2", "19.3": "d19.3", "19.4": "d19.4", "19.5": "d19.5", "19.6": "d19.6", "19.7": "d19.7",
   // 19•8: questions with worauf / wo / wohin — the wo- / da- compounds' lesson;
   // 19•9: verbs with a preposition (verliebt sich in, denkt an) — its own lesson.
-  "19.8": { st: "planned", sec: "s2.woda" }, "19.9": { st: "planned", sec: "s2.verbprep" },
+  "19.8": { st: "planned", sec: "s2.woda" }, "19.9": { st: "planned", sec: "s1.verbprep" },
 });
