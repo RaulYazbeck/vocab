@@ -259,6 +259,19 @@ function mistakeHeld(fbId) {
   return true;
 }
 
+// "≈ Almost — try again" (one more try): the answer that got it is kept
+// (nearMark), and the same answer sent again — a double Enter, a second
+// tap — is never graded: the input shakes and asks for a change.
+const _nearNorm = v => String(v || "").trim().replace(/\s+/g, " ").toLowerCase();
+function nearMark(cur, val) { cur.near = true; cur.nearVal = _nearNorm(val); }
+function nearSameAgain(cur, val, inp, fb, html) {
+  if (!cur || !cur.near || cur.nearVal === undefined || _nearNorm(val) !== cur.nearVal) return false;
+  if (inp && typeof shakeEl === "function") shakeEl(inp);
+  if (inp && inp.select) try { inp.select(); } catch (e) {}
+  if (fb) fb.innerHTML = html;
+  return true;
+}
+
 // Page blur behind sheets and modals: a body class kept in sync from
 // here, not CSS :has() — iOS home-screen apps sometimes don't
 // re-evaluate :has() when the sheet is removed, and the page stayed
