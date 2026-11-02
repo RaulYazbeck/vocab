@@ -729,6 +729,12 @@ the logs (a miss: what I wrote → right under its rule; Präteritum forms in th
 writing in "My writing"); the clock (the built lessons have the sheets estimated, the pace
 green: all passed ≈ 28 May 2027 for a target of 6 Jul); the size (the course's data ≈ 900 KB,
 170 KB zipped; a day's plan in well under a millisecond).
+The matrix's "half the days skipped" is borderline on its own, not because of Session 4: over 8
+seeds it ends 325–345 rules 🌳 Known of 345 (the same in the old lesson order, seed 6 at 325 in
+both); the rules short are always the last lessons' (Stage 3's conversations, the last of Stage
+2), met in the final weeks — every other day leaves too few review days for them to reach Known.
+Which of the three seeds the matrix runs decides its colour. Left for a later session to decide
+(a bigger margin when attendance is low, or Known counted at the finish date itself).
 
 ### Session 5 — Stage 1C
 
