@@ -379,11 +379,13 @@ function gsQuizCheck() {
   if (Q.k === "type") {
     const inp = document.getElementById("gs-input"), val = inp ? inp.value : "";
     if (!val.trim()) { if (inp) shakeEl(inp); return; }
+    // After "Almost": the same answer again is a stray Enter, never a miss.
+    if (nearSameAgain(cur, val, inp, document.getElementById("gs-qfb"), `<div class="p-near">${vxT("≈ Same answer — change it first: {0}", vxT("check the spelling"))}</div>`)) return;
     // A course question (course-de.js): its own checker — tolerant of
     // capitals, ß/ss and a missing umlaut, strict on the grammar.
     if (Q.cx && typeof cxCheck === "function") {
       const res = cxCheck(Q, val, cxSection(_gs.sh.sec));
-      if (!res.ok && res.near && !cur.near) { cur.near = true; inp.classList.add("near"); document.getElementById("gs-qfb").innerHTML = `<div class="p-near">≈ Almost — check the spelling — try again</div>`; setTimeout(() => { inp.classList.remove("near"); inp.select(); }, 600); return; }
+      if (!res.ok && res.near && !cur.near) { nearMark(cur, val); inp.classList.add("near"); document.getElementById("gs-qfb").innerHTML = `<div class="p-near">≈ Almost — check the spelling — try again</div>`; setTimeout(() => { inp.classList.remove("near"); inp.select(); }, 600); return; }
       cur.uml = res.ok && res.soft.length > 0; cur.extra = false;
       inp.disabled = true; inp.classList.add(res.ok ? "correct" : "wrong");
       gsQuizAnswered(res.ok, val);
@@ -412,7 +414,7 @@ function gsQuizCheck() {
     // conjugation, never "Almost" — as in Today.
     const near = x ? vxNearTryAcc(val, Q.a, x, vxIsCommand(Q)) : isNearMiss(val, Q.a);
     if (!ok && near && !cur.near) {
-      cur.near = true;
+      nearMark(cur, val);
       inp.classList.add("near");
       document.getElementById("gs-qfb").innerHTML = `<div class="p-near">${vxT("≈ Almost — {0} — try again", vxT("check the spelling"))}</div>`;
       setTimeout(() => { inp.classList.remove("near"); inp.select(); }, 600);
