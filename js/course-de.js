@@ -269,7 +269,7 @@ const CX_PRON_SUBJ = /^(ich|du|er|sie|es|wir|ihr|man)$/;
 const CX_PRON_OBJ = /^(mich|dich|ihn|sie|es|uns|euch|ihnen|mir|dir|ihm|sich)$/;
 const CX_TIME1 = /^(heute|morgen|gestern|jetzt|bald|dann|später|sonntags|montags|samstags|abends|morgens|manchmal|oft|immer|leider|hier)$/;
 const CX_TIME2A = /^(am|im|um|nächste[ns]?|letzte[ns]?|diese[ns]?|jeden|heute|morgen|gestern)$/;
-const CX_TIME2B = /^(abend|morgen|mittag|nachmittag|montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag|wochenende|sommer|winter|herbst|frühling|januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember|woche|monat|jahr|acht|neun|zehn|elf|zwölf|eins|zwei|drei|vier|fünf|sechs|sieben|früh)$/;
+const CX_TIME2B = /^(tag|abend|morgen|mittag|nachmittag|montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag|wochenende|sommer|winter|herbst|frühling|januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember|woche|monat|jahr|acht|neun|zehn|elf|zwölf|eins|zwei|drei|vier|fünf|sechs|sieben|früh)$/;
 function cxTimeLen(w, i) {
   const a = (w[i] || "").toLowerCase(), b = (w[i + 1] || "").toLowerCase();
   // (um acht Uhr: the Uhr moves with it)
@@ -281,9 +281,15 @@ function cxOrders(item) {
   if (_cxOrders.has(item)) return _cxOrders.get(item);
   const out = [];
   cxAnswers(item).forEach(ans => {
-    if (/\bsondern\b/i.test(ans) || /,/.test(ans.replace(/^(nein|ja|doch)(, danke)?,/i, ""))) return;
-    const end = (ans.match(/[.!?]+$/) || [""])[0];
-    let w = ans.replace(/[.!?]+$/, "").split(/\s+/), pre = [];
+    if (/\bsondern\b/i.test(ans)) return;
+    // A main clause, then ", weil … / , dass … / , denn …": only the main
+    // clause in front moves (Heute gehe ich nicht joggen, weil es regnet);
+    // the rest goes after it unchanged. (A side clause in front — Wenn …,
+    // Weil … — starts with neither a pronoun nor a time word: nothing moves.)
+    const lead = (/^(nein|ja|doch)(, danke)?,/i.exec(ans) || [""])[0], comma = ans.indexOf(",", lead.length);
+    const tail = comma >= 0 ? ans.slice(comma) : "", head = comma >= 0 ? ans.slice(0, comma) : ans;
+    const end = tail || (head.match(/[.!?]+$/) || [""])[0];
+    let w = head.replace(/[.!?]+$/, "").split(/\s+/), pre = [];
     const m = /^(nein|ja|doch),?$/i.exec(w[0] || "");
     if (m) { pre = [w[0]]; w = w.slice(1); if (/^danke,?$/i.test(w[0] || "")) { pre.push(w[0]); w = w.slice(1); } }
     if (w.length < 3) return;
@@ -346,8 +352,30 @@ function cxGapFills(item) {
   (item.a || []).map(String).forEach(a => { const m = re.exec(a.trim()); if (m && m[1] && !out.includes(m[1])) out.push(m[1]); });
   return out;
 }
+// The other way round: the whole sentence typed where only the gap was
+// asked — "(der Park) Die Kinder rennen durch ___." answered «Die Kinder
+// rennen durch den Park.» — is checked as the words that sit in the gap
+// (the rest must be the sentence as shown). → those words, or null.
+function cxGapInner(item, typed) {
+  if (item.k === "order" || typeof item.q !== "string" || !/(^|[^A-Za-zÄÖÜäöüß])___([^A-Za-zÄÖÜäöüß]|$)/.test(item.q)) return null;
+  const parts = item.q.replace(/\([^)]*\)/g, " ").replace(/\s+/g, " ").trim().split("___");
+  if (parts.length !== 2 || /→/.test(parts[0])) return null;
+  const P0 = cxToks(parts[0]), P1 = cxToks(parts[1]), T = cxToks(typed);
+  if (!P0.length && !P1.length || T.length <= P0.length + P1.length) return null;
+  // (only where the answers are the gap's words: an item whose answers are whole sentences checks those)
+  const holds = a => { const A = cxToks(a); return A.length > P0.length + P1.length && P0.every((x, i) => A[i] === x) && P1.every((x, i) => A[A.length - P1.length + i] === x); };
+  if ((item.a || []).some(holds)) return null;
+  if (P0.some((x, i) => T[i] !== x) || P1.some((x, i) => T[T.length - P1.length + i] !== x)) return null;
+  const W = String(typed).replace(/[.,!?;:„“"«»‚‘’()…–—]/g, " ").split(/\s+/).filter(Boolean);
+  const tpl = item.q.replace(/\([^)]*\)/g, " ").replace(/\s+/g, " ").trim();
+  return { text: (W.length === T.length ? W : T).slice(P0.length, T.length - P1.length).join(" "), whole: fill => tpl.replace("___", fill) };
+}
 function cxCheck(item, typed, sec) {
-  const fills = cxGapFills(item), answers = [...cxAnswers(item), ...fills, ...(item.k === "order" || item.fixed ? [] : cxOrders(item))], t = String(typed || "").trim();
+  const fills = cxGapFills(item), answers = [...cxAnswers(item), ...fills, ...(item.k === "order" || item.fixed ? [] : cxOrders(item))];
+  let t = String(typed || "").trim(), inner = null;
+  if (t && !answers.some(a => cxLoose(a) === cxLoose(t))) { inner = cxGapInner(item, t); if (inner) t = inner.text; }
+  // (the whole sentence typed: the answer shown is the whole sentence too, so a miss marks only the slip)
+  if (inner) { const r = cxCheck(Object.assign({}, item, { q: "" }), t, sec); return Object.assign(r, { right: inner.whole(r.right) }); }
   if (!t) return { ok: false, empty: true, soft: [], right: answers[0] || "" };
   for (const a of answers) {
     if (cxStrict(a) === cxStrict(t)) {

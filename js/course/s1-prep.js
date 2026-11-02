@@ -32,7 +32,7 @@ cxPack({
           why: "A handful of prepositions always take the **accusative** — whatever the verb, whatever else is in the sentence. You know the accusative already: only the masculine changes (**den, einen, meinen**), and the pronouns are **mich, dich, ihn**…",
           rid: ["ap.list", "ap.pron", "ap.adj"],
           rules: [
-            "**durch** (through) · **für** (for) · **gegen** (against) · **ohne** (without) · **um** (around) · **bis** (until) — always the accusative: **für den** Chef · **durch den** Wald · **um den** Tisch. Feminine, neuter and plural look as always: für **die** Kollegin · durch **das** Dorf · ohne **die** Kinder.",
+            "**durch** (through) · **für** (for) · **gegen** (against) · **ohne** (without) · **um** (around) · **bis** (until) — always the accusative: **für den** Chef · **durch den** Wald. Feminine, neuter and plural stay as they are: für **die** Kollegin.",
             "A person after them is an accusative pronoun: für **mich** · ohne **dich** · gegen **ihn** · für **sie** · ohne **uns** · für **euch** · für **Sie**.",
             "Before a masculine noun every word takes **-en**, the adjective too: für **diesen** Hauswart · ohne **meinen** Schirm · durch **einen langen** Tunnel · für **unseren neuen** Chef.",
           ],
@@ -69,7 +69,7 @@ cxPack({
           rules: [
             "**um** + the clock time: **um** acht Uhr · **gegen** = at about: **gegen** acht · **bis** = until, as far as — usually with no article: **bis** Freitag · **bis** morgen · **bis** Bern (with an article it takes **zu**: bis **zum** Bahnhof).",
             "**für** a price or a time: **für** 20 Franken · **für** eine Woche. **entlang** (along) goes after its noun: **den** See **entlang**. Some verbs bring one with them: **bitten um** (ask for) · **danken für** · **sein für / gegen** (be for / against).",
-            "A person: the preposition + a pronoun — **für ihn** · and you ask **für wen?** A thing: **da(r)-** + the preposition — für den Plan → **dafür** · gegen die Idee → **dagegen** · um das Haus → **darum** · durch den Tunnel → **dadurch**; you ask **wofür? · wogegen? · worum?** (ohne has no da- form.)",
+            "A person: the preposition + a pronoun — **für ihn**, asking **für wen?** A thing: **da(r)-** + the preposition — **dafür · dagegen · darum · dadurch**, asking **wofür? worum?** (ohne has no da- form.)",
           ],
           table: { head: ["", "a person", "a thing"], rows: [
             ["für", "für **ihn**", "**dafür**"],
@@ -304,7 +304,7 @@ cxPack({
           why: "English has *to*, *at* and *from*; German picks the word by what follows — a person, a shop, a town. And **seit** says how long something has been going on.",
           rid: ["dpr.use", "dpr.from", "dpr.gegen", "dpr.da"],
           rules: [
-            "**To**: **zu** a person, a shop, a building — **zu** Lisa · **zur** Post · **zum** Arzt; **nach** a town or a country without an article — **nach** Basel · **nach** Italien — and **nach Hause** (home). **At**: **bei** a person or where someone works — **bei** meinen Eltern · **beim** Arzt · **bei** der Post; and **zu Hause** (at home).",
+            "**To**: **zu** a person or a place in town — **zu** Lisa · **zum** Arzt; **nach** a town or a country — **nach** Basel — and **nach Hause**. **At**: **bei** a person or a workplace — **bei** Lisa · **beim** Arzt; at home: **zu Hause**.",
             "**From**: **aus** out of a country, a town, a building — **aus** der Schweiz · **aus** dem Haus; **von** a person or a starting point — **von** meiner Chefin · **vom** Bahnhof. **seit** + the present = *for* or *since*: Ich wohne **seit** zwei Jahren hier (and still do).",
             "**gegenüber** (opposite) comes **after** a pronoun — **mir gegenüber** — and usually before a noun: **gegenüber** dem Bahnhof (also: dem Bahnhof gegenüber).",
             "A thing as a pronoun: **da(r)-** + the preposition — mit dem Velo → **damit** · von der Reise → **davon** · nach dem Essen → **danach** · aus der Flasche → **daraus**; you ask **womit? wovon?** A person stays: mit **ihm** · mit **wem**?",
@@ -472,7 +472,7 @@ cxPack({
           { w: ["nach", "die", "Arbeit", "ich", "gehen", "einkaufen"], a: ["Nach der Arbeit gehe ich einkaufen.", "Ich gehe nach der Arbeit einkaufen."], r: ["dpr.list"] },
           { w: ["die Kinder", "gehen", "zu", "die", "Schule"], a: ["Die Kinder gehen zur Schule."], r: ["dpr.short"] },
           { w: ["ich", "sprechen", "morgen", "mit", "er"], a: ["Ich spreche morgen mit ihm."], r: ["dpr.pron"] },
-          { w: ["wir", "wohnen", "seit", "ein", "Jahr", "in Zürich"], a: ["Wir wohnen seit einem Jahr in Zürich."], r: ["dpr.from"] },
+          { w: ["wir", "wohnen", "seit", "ein", "Jahr", "in Zürich"], a: ["Wir wohnen seit einem Jahr in Zürich.", "Seit einem Jahr wohnen wir in Zürich."], r: ["dpr.from"] },
           { w: ["meine Kollegin", "kommen", "aus", "die", "Türkei"], a: ["Meine Kollegin kommt aus der Türkei."], r: ["dpr.from"] },
           { k: "translate", q: "I'm going to the doctor tomorrow.", a: ["Ich gehe morgen zum Arzt.", "Ich gehe morgen zur Ärztin."], r: ["dpr.use"] },
           { k: "translate", q: "We're at my parents' place.", a: ["Wir sind bei meinen Eltern."], r: ["dpr.use"] },
@@ -701,7 +701,7 @@ cxPack({
           rid: ["ww.ask", "ww.pairs", "ww.stay"],
           rules: [
             "Ask first: **wo?** — where is it, where does it happen → the dative · **wohin?** — where to → the accusative. Wo ist Papa? — **Im** Garten. · Wohin geht Papa? — **In den** Garten.",
-            "Putting → being: **stellen → stehen** (upright: a bottle, a bike) · **legen → liegen** (flat: a book, a phone) · **hängen → hängen** (a picture, a jacket) · **sich setzen → sitzen**. Ich **stelle** die Flasche **in den** Kühlschrank. → Die Flasche **steht im** Kühlschrank.",
+            "Putting → being: **stellen → stehen** (upright) · **legen → liegen** (flat) · **hängen → hängen** · **sich setzen → sitzen**: Ich **stelle** die Flasche **in den** Kühlschrank. → Sie **steht im** Kühlschrank.",
             "Moving *inside* a place is still **wo?**: Wir joggen **im** Park (we're in it) — Wir joggen **in den** Park (into it). **bleiben · wohnen · arbeiten · warten · sein** always ask wo?: Ich bleibe heute **im** Bett.",
           ],
           table: { head: ["putting · wohin?", "being · wo?"], rows: [
@@ -736,6 +736,7 @@ cxPack({
         { t: "swap", from: "^(den|die|das)$", to: "^(dem|der|den)$", rule: "ww.ask", msg: "Wo? — where it is: the dative **{right}**." },
         { t: "swap", from: "^(dem|der)$", to: "^(den|die|das)$", rule: "ww.ask", msg: "Wohin? — where it goes: the accusative **{right}**." },
         { t: "swap", from: "^wohin$", to: "^wo$", rule: "ww.ask", msg: "It's about where it is (or happens): **wo?**" },
+        { t: "missing", tok: "^hin$", rule: "ww.ask", msg: "It's about where it goes: **wohin?** (or wo … hin?)" },
         { t: "swap", from: "^wo$", to: "^wohin$", rule: "ww.ask", msg: "It's about where it goes: **wohin?**" },
         { t: "ending", stem: "(k?ein|mein|dein|sein|ihr|unser|eu|dies|jed)", rule: "ww.ask", msg: "Right word, wrong case: **{right}** — wo? → dative, wohin? → accusative." },
       ],
@@ -817,13 +818,13 @@ cxPack({
           { q: "Wir wohnen neben Familie Meier.", hl: "neben Familie Meier", a: ["Neben wem wohnt ihr?", "Neben wem wohnen wir?"], r: ["ww.ask"] },
           { q: "Die Kinder warten vor der Schule.", hl: "vor der Schule", a: ["Wo warten die Kinder?"], r: ["ww.stay"] },
           { q: "Der Spiegel hängt über dem Lavabo.", hl: "über dem Lavabo", a: ["Wo hängt der Spiegel?"], r: ["ww.pairs"] },
-          { q: "Die Katze springt auf das Sofa.", hl: "auf das Sofa", a: ["Wohin springt die Katze?"], r: ["ww.ask"] },
-          { q: "Ich stelle mein Velo hinter das Haus.", hl: "hinter das Haus", a: ["Wohin stellst du dein Velo?"], r: ["ww.pairs"] },
+          { q: "Die Katze springt auf das Sofa.", hl: "auf das Sofa", a: ["Wohin springt die Katze?", "Wo springt die Katze hin?"], r: ["ww.ask"] },
+          { q: "Ich stelle mein Velo hinter das Haus.", hl: "hinter das Haus", a: ["Wohin stellst du dein Velo?", "Wo stellst du dein Velo hin?"], r: ["ww.pairs"] },
           { q: "Tom sitzt zwischen seinen Schwestern.", hl: "zwischen seinen Schwestern", a: ["Zwischen wem sitzt Tom?"], r: ["ww.ask"] },
           { q: "Die Milch steht im Kühlschrank.", hl: "im Kühlschrank", a: ["Wo steht die Milch?"], r: ["ww.pairs"] },
-          { q: "Wir fahren morgen in die Berge.", hl: "in die Berge", a: ["Wohin fahrt ihr morgen?", "Wohin fahren wir morgen?"], r: ["ww.ask"] },
+          { q: "Wir fahren morgen in die Berge.", hl: "in die Berge", a: ["Wohin fahrt ihr morgen?", "Wohin fahren wir morgen?", "Wo fahrt ihr morgen hin?"], r: ["ww.ask"] },
           { q: "Lena steht hinter ihrem Vater.", hl: "hinter ihrem Vater", a: ["Hinter wem steht Lena?"], r: ["ww.ask"] },
-          { q: "Ich hänge die Jacke an die Garderobe.", hl: "an die Garderobe", a: ["Wohin hängst du die Jacke?"], r: ["ww.pairs"] },
+          { q: "Ich hänge die Jacke an die Garderobe.", hl: "an die Garderobe", a: ["Wohin hängst du die Jacke?", "Wo hängst du die Jacke hin?"], r: ["ww.pairs"] },
         ] },
         // ── Production: build it, say it ──
         { id: "dp.ww", t: "compose", end: true, title: "Build it yourself", how: "Make a sentence — putting it there (accusative) or it is there (dative)?", d: ["dem", "den", "steht", "liegt"], items: [

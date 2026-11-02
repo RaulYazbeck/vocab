@@ -30,7 +30,7 @@ cxPack({
           rules: [
             "The reflexive pronouns are the accusative ones — **mich · dich · uns · euch** — except for er, sie, es, man, sie (they) and Sie, which all take **sich**: Ich wasche **mich**. · Er wäscht **sich**. · Die Kinder freuen **sich**.",
             "Another person → the normal pronoun; the same person → the reflexive: Lea fragt **sie** (her — someone else). · Lea fragt **sich** (herself). · Ich stelle **ihn** vor. · Ich stelle **mich** vor.",
-            "Some verbs always have it — learn them with *sich*: **sich freuen · sich beeilen · sich erkälten · sich setzen · sich ausruhen · sich anziehen · sich treffen · sich irren**. The pronoun comes right after the verb, or after a pronoun subject: Ich **freue mich**. · Heute **freue ich mich**. · …, weil ich **mich** freue.",
+            "Some verbs always have it — learn them with *sich*: **sich freuen · sich beeilen · sich erkälten · sich setzen · sich treffen**. It comes right after the verb (or a pronoun subject): Ich **freue mich**. · Heute **freue ich mich**.",
           ],
           table: { head: ["", "someone else", "the same"], rows: [
             ["ich", "Er sieht **mich**.", "Ich sehe **mich**."],

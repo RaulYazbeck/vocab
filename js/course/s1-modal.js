@@ -27,7 +27,7 @@ cxPack({
           why: "A modal — **können, müssen, dürfen, sollen, wollen, möchten** — sits in second place and sends the main verb to the **end**, as an infinitive. Together they frame the sentence.",
           rid: ["mod.end", "mod.mean", "mod.neg"],
           rules: [
-            "The modal is conjugated in **second** place; the other verb goes to the **end**, in the infinitive: Ich **muss** heute länger **arbeiten**. · **Darfst** du am Abend **ausgehen**? · Am Montag **kann** ich nicht **kommen**. A separable verb stays whole at the end: Ich muss um sechs **aufstehen**.",
+            "The modal is conjugated in **second** place; the other verb goes to the **end**, as an infinitive: Ich **muss** heute länger **arbeiten**. · **Darfst** du **ausgehen**? A separable verb stays whole: Ich muss um sechs **aufstehen**.",
             "What they say: **können** can, be able to · **dürfen** may, be allowed · **müssen** have to · **sollen** be supposed to (someone else wants it) · **wollen** want · **möchten** would like · **mögen** like — mostly on its own: Ich **mag** Käse.",
             "**nicht müssen** = *don't have to* · **nicht dürfen** = *mustn't*: Du **musst** nicht kommen (there's no need). · Hier **darf** man nicht parken (it's not allowed).",
           ],

@@ -646,9 +646,9 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
     if (s.verb) s.verb.forEach(v => { C.S.verb.sh[v] = 100; }); else C.S.course.sec[s.id] = { st: 3, at: "2026-10-01" };
     if (s.id === "s1.refl") break;
   }
-  // (the strong Präteritum — a B1 verb lesson — sits after the two-way prepositions on purpose: Oct 2026)
+  // (the strong Präteritum — a B1 verb lesson — sits after wo? vs wohin? on purpose: Oct 2026, moved one place in Session 4)
   ok(J(order) === J(["s1.front", "s1.conj1", "s1.neg2", "s1.resp", "s1.pf", "s1.sep", "s1.accprep", "s1.pt21", "s1.dat", "s1.datpron", "s1.datverb", "s1.accdat", "s1.wer",
-    "s1.datprep", "s1.twoway", "s2.pt2", "s1.wowohin", "s1.conj2", "s1.modal", "s1.wissen", "s1.refl"]),
+    "s1.datprep", "s1.twoway", "s1.wowohin", "s2.pt2", "s1.conj2", "s1.modal", "s1.wissen", "s1.refl"]),
     "Stage 0 done: the A2 lessons in course order — und/aber early, the prepositions after the dative, weil/dass before the modals", J(order));
   // what waits for what
   fresh(); C.CX.sections.filter(s => s.stage === 0 && !s.verb).forEach(s => { C.S.course.sec[s.id] = { st: 3 }; }); VERBS0.forEach(v => { C.S.verb.sh[v] = 100; });
@@ -694,6 +694,20 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   // wo? or wohin? — the verb pair names its rule
   const w = C.cxCheck(C.cxSet("dp.ww").items[1], "Die Milch stellt im Kühlschrank.", C.cxSection("s1.wowohin"));
   ok(!w.ok && w.rule === "ww.pairs" && /steht/.test(w.msg || ""), `stellt for steht: the verb pair (${w.rule}: ${w.msg})`);
+  // (the Session 4 review) correct German the checker used to reject
+  const chk = (set, i, t) => C.cxCheck(C.cxSet(set).items[i], t, C.cxSection(C.cxSet(set).sec));
+  ok(chk("dp.pt21", 2, "Jeden Tag spielte ich Fußball.").ok, "«jeden Tag» moves like «jeden Morgen»: Jeden Tag spielte ich Fußball.");
+  ok(chk("dp.sub", 0, "Heute gehe ich nicht joggen, weil es regnet.").ok && chk("dsub.two", 0, "Heute komme ich nicht, weil ich arbeiten muss.").ok,
+    "a main clause before «, weil …» moves its time word like any other: Heute gehe ich nicht joggen, weil es regnet.");
+  ok(!chk("dsub.f", 0, "Ich komme mit, wenn ich Zeit habe.").ok, "…but a set where the order is the point (start with wenn) still wants its order");
+  ok(!chk("dp.sub", 0, "Heute gehe ich nicht joggen, weil regnet es.").ok, "and the side clause's verb still goes last");
+  const whole = chk("d7.10", 0, "Die Kinder rennen durch den Park."), wholeBad = chk("d7.10", 0, "Die Kinder rennen durch dem Park.");
+  ok(whole.ok && !wholeBad.ok && wholeBad.rule === "ap.list" && wholeBad.right === "Die Kinder rennen durch den Park.",
+    `a gap answered with the whole sentence: right when it is, its slip named when not, the answer shown whole (${wholeBad.right})`);
+  ok(!chk("d7.10", 0, "Die Kinder laufen durch den Park.").ok, "…another sentence around the gap is not the answer");
+  ok(chk("dsub.two", 0, "Ich komme heute nicht, weil ich arbeiten muss.").ok && chk("dsub.two", 0, "Ich komme heute nicht, weil ich muss arbeiten.").right === "Ich komme heute nicht, weil ich arbeiten muss.",
+    "an item whose answers are whole sentences is checked as before (no gap taken out)");
+  ok(chk("d19.5", 4, "Wo springt die Katze hin?").ok && /wohin/.test(chk("d19.5", 4, "Wo springt die Katze?").msg || ""), "wo … hin? is right too; wo? alone for a movement names wohin");
   // a day's drill of each new lesson: 10–14 items, production last
   S4.forEach(id => {
     fresh();

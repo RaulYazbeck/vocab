@@ -153,9 +153,9 @@ cxPack({
           { q: "I don't drink coffee, but tea.", a: ["Ich trinke keinen Kaffee, sondern Tee."], r: ["co.sondern"] },
           { q: "We'll eat first and then go to the cinema.", a: ["Wir essen zuerst und gehen dann ins Kino.", "Wir essen zuerst, und dann gehen wir ins Kino.", "Zuerst essen wir, und dann gehen wir ins Kino."], r: ["co.drop"] },
           { q: "She speaks German, but she doesn't write it.", a: ["Sie spricht Deutsch, aber sie schreibt es nicht.", "Sie spricht Deutsch, aber schreibt es nicht."], r: ["co.zero"] },
-          { q: "Are you paying cash or by card? (Sie)", a: ["Zahlen Sie bar oder mit Karte?"], r: ["co.zero"] },
+          { q: "Are you paying cash or by card? (Sie)", a: ["Zahlen Sie bar oder mit Karte?", "Bezahlen Sie bar oder mit Karte?"], r: ["co.zero"] },
           { q: "I'm learning German because I want to work here. (denn)", a: ["Ich lerne Deutsch, denn ich will hier arbeiten.", "Ich lerne Deutsch, denn ich möchte hier arbeiten."], r: ["co.denn"] },
-          { q: "He isn't working today — he's sleeping instead. (sondern)", a: ["Er arbeitet heute nicht, sondern schläft.", "Er arbeitet heute nicht, sondern er schläft."], r: ["co.sondern", "co.drop"] },
+          { q: "He isn't working today — he's sleeping instead. (sondern)", a: ["Er arbeitet heute nicht, sondern schläft.", "Er arbeitet heute nicht, sondern er schläft.", "Heute arbeitet er nicht, sondern schläft.", "Heute arbeitet er nicht, sondern er schläft."], r: ["co.sondern", "co.drop"] },
         ] },
         // ── Übung 29•4 and 23•12: your own sentences ──
         { id: "d29.4", ex: "29.4", also: ["23.12"], t: "write", end: true, title: "Write your own", how: "Finish the sentence, or write your own — saved for Claude to correct.", items: [
@@ -366,7 +366,7 @@ cxPack({
           { w: ["wenn", "ich", "Zeit", "haben", "ich", "mitkommen"], a: ["Wenn ich Zeit habe, komme ich mit.", "Ich komme mit, wenn ich Zeit habe."], r: ["sub.first"] },
           { k: "translate", q: "I'm learning German because I want to work here. (weil)", a: ["Ich lerne Deutsch, weil ich hier arbeiten will.", "Ich lerne Deutsch, weil ich hier arbeiten möchte.", "Weil ich hier arbeiten will, lerne ich Deutsch.", "Weil ich hier arbeiten möchte, lerne ich Deutsch."], r: ["sub.two"] },
           { k: "translate", q: "I hope that you're coming. (du)", a: ["Ich hoffe, dass du kommst."], r: ["sub.dass"] },
-          { k: "translate", q: "If it's nice tomorrow, we'll go hiking.", a: ["Wenn es morgen schön ist, gehen wir wandern.", "Wenn das Wetter morgen schön ist, gehen wir wandern.", "Wenn es morgen schön ist, wandern wir.", "Wir gehen wandern, wenn es morgen schön ist."], r: ["sub.first", "sub.wenn"] },
+          { k: "translate", q: "If it's nice tomorrow, we'll go hiking.", a: ["Wenn es morgen schön ist, gehen wir wandern.", "Wenn das Wetter morgen schön ist, gehen wir wandern.", "Wenn es morgen schön ist, wandern wir.", "Wir gehen wandern, wenn es morgen schön ist.", "Wir gehen morgen wandern, wenn es schön ist."], r: ["sub.first", "sub.wenn"] },
           { k: "translate", q: "She says that she can't come today.", a: ["Sie sagt, dass sie heute nicht kommen kann."], r: ["sub.two", "sub.mid"] },
           { k: "translate", q: "Call me when you're at home. (du)", a: ["Ruf mich an, wenn du zu Hause bist."], r: ["sub.wenn"] },
           { k: "translate", q: "Because the lift is broken, we're taking the stairs.", a: ["Weil der Lift kaputt ist, nehmen wir die Treppe.", "Weil der Aufzug kaputt ist, nehmen wir die Treppe."], r: ["sub.first"] },

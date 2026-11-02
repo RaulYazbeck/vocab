@@ -74,6 +74,7 @@ cxDefine({
     { id: "s1.wer", ses: 3, stage: 1, level: "A2", prio: "M", n: 2, after: ["s0.wq", "s0.acc", "s1.dat"], title: "wer / wen / wem, welcher, was für", book: [["c13", ""], ["c28", "Interrogative words"], ["c28", "Wer"], ["c28", "Was"]] },
     { id: "s1.datprep", ses: 4, stage: 1, level: "A2", prio: "M", n: 2, after: ["s1.dat"], title: "Dative prepositions", book: [["c15", "Dative prepositions"], ["appB", "Dative"]] },
     { id: "s1.twoway", ses: 4, stage: 1, level: "A2", prio: "M", n: 2, after: ["s1.accprep", "s1.datprep"], title: "Two-way prepositions", book: [["c19", "Dative-accusative prepositions"], ["c19", ""], ["appB", "Dative/Accusative"]] },
+    { id: "s1.wowohin", ses: 4, stage: 1, level: "A2", prio: "M", n: 1, after: ["s1.twoway"], kind: "contrast", title: "Contrast: wo? vs wohin?", book: [["c19", "Dative case"], ["c19", "Accusative case"]] },
     // A B1 lesson taught here, among the A2 ones (Oct 2026): strong and mixed
     // Präteritum (+ Plusquamperfekt) a month after the regular Präteritum — time
     // to settle the -te forms and the Perfekt first — instead of near the end
@@ -81,10 +82,10 @@ cxDefine({
     // opens with it, so those forms spread over Feb–May at ≈ 5–6 a day instead
     // of ≈ 26 a day crammed into May. The book has it right after the dative
     // (c16); it comes a little later here, after the two-way prepositions, to
-    // leave that month between the two Präteritum lessons. Level and stage stay
+    // leave that month between the two Präteritum lessons. (Session 4: after
+    // wo? vs wohin?, so the contrast comes straight after the two-way lesson.) Level and stage stay
     // B1 (it is listed under B1 in the course map).
     { id: "s2.pt2", ses: 7, stage: 2, level: "B1", prio: "S", after: ["s1.pf", "s1.pt21"], kind: "verb", title: "Strong and mixed Präteritum · Plusquamperfekt", verb: ["pt22", "pt23", "pt24", "pq1", "pq2"], book: [["c11", "Past perfect tense"], ["c16", ""], ["c11", "The past perfect tense"], ["c16", "Strong verbs"], ["c16", "e to a"], ["c16", "a to u"], ["c16", "gehen"], ["c16", "trinken"], ["c16", "tun"], ["c16", "essen"], ["c16", "Mixed verbs"], ["c16", "haben, sein, and werden"], ["c16", "Irregular past tense"], ["c16", "The verbs haben, sein, and werden"]] },
-    { id: "s1.wowohin", ses: 4, stage: 1, level: "A2", prio: "M", n: 1, after: ["s1.twoway"], kind: "contrast", title: "Contrast: wo? vs wohin?", book: [["c19", "Dative case"], ["c19", "Accusative case"]] },
     // weil, dass, wenn before the modals (Session 4): the modal lesson's
     // second sheet puts the modal at the end of a weil / dass clause.
     { id: "s1.conj2", ses: 4, stage: 1, level: "A2", prio: "M", n: 2, after: ["s0.v2q"], title: "weil, dass, wenn — the verb goes last", book: [["c29", "Subordinating conjunctions"], ["c29", "Using subordinating conjunctions"]] },

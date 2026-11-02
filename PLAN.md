@@ -704,7 +704,7 @@ a phone whole — no sideways scrolling to find a column (a browser check from S
 fronting comes und, aber, oder… (built now, earlier in the order: it fills the gap), then
 niemand / nichts, set responses, the Perfekt and prefix lessons, the accusative prepositions,
 the regular Präteritum, the dative ×4, wer / wen / wem, the dative and two-way prepositions,
-the strong Präteritum (B1, there on purpose), wo? or wohin?, weil / dass, the modals, wissen,
+wo? or wohin?, the strong Präteritum (B1, there on purpose), weil / dass, the modals, wissen,
 the reflexives. Tests: a Session 4 block in `t-unit`; `t-course` runs every new drill set
 through the real runner, lists chapters 14, 18 and 19's Übungen and checks the tables fit.
 **Left as found:** `sim.mjs --matrix` — "half the days skipped", seed 2 — ends 7 rules short of
@@ -712,6 +712,23 @@ through the real runner, lists chapters 14, 18 and 19's Übungen and checks the 
 lessons (Stage 3's conversations, adjective endings), met in the final weeks; none of Session
 4's. The code before this session had the same 7 short in seed 3 (350/357) and passed only
 because its placeholders carried more rules. The mark was not lowered.
+**Review (2 Nov 2026):** fixed — the checker turned down right German in three ways: a time word
+in a sentence with a comma never moved (*Heute gehe ich nicht joggen, weil es regnet* was wrong —
+now the main clause in front moves as any other; a side clause in front, and the sets where the
+order is the point, keep theirs), *jeden Tag* didn't move like *jeden Morgen*, and in all 572
+type-the-gap items of the course the whole sentence typed was a mistake even when right (now
+the words in the gap are checked — a slip still names its rule, and the answer is shown whole).
+The answer cards hinted "Nein, …" in every set (in d2.10 even for a *Ja*): now only where every
+answer starts with Nein. A few more right answers listed (*wo … hin?*, *bezahlen*, *Seit einem
+Jahr wohnen wir…*), the six longest rule texts cut back to Session 3's length, one odd sentence
+rewritten. **Order:** the strong Präteritum (B1) moved one place, after wo? vs wohin?, so the
+contrast comes straight after the two-way lesson (it had come two weeks later); the month after
+the regular Präteritum stays. Checked and left as they are: each lesson's day climbs pick →
+type → build → produce and ends in production (day 1 of a two-sheet lesson keeps to sheet 1);
+the logs (a miss: what I wrote → right under its rule; Präteritum forms in the verb log; drill
+writing in "My writing"); the clock (the built lessons have the sheets estimated, the pace
+green: all passed ≈ 28 May 2027 for a target of 6 Jul); the size (the course's data ≈ 900 KB,
+170 KB zipped; a day's plan in well under a millisecond).
 
 ### Session 5 — Stage 1C
 
@@ -798,5 +815,5 @@ screen · coverage report at 100 % (every blueprint exercise *mirrored*,
 - The word-order checker accepts the verb-second reordering of a time phrase and a pronoun subject by rule; other orders are listed per item; `fixed` sets accept only theirs.
 - **Session 2 (21 Oct 2026):** a verb lesson's book exercises are drills of the verb section, tagged with the verb sheets' points (`gs:…`); they don't add review cards of their own (the verb track reviews its verbs) and come in through the lesson's Practise card, By chapter and the mixed days. A test-out asks 6–8 questions covering every rule of the lesson, one miss allowed. Sentences of five words or more that happen to be the book's are rephrased; the book check covers the sheets' rule texts too. *(22 Oct: a short, simple sentence — four words or fewer, like* Wer ist das? — *is anyone's German, not the book's: it's fine.)*
 - **Session 3 (26 Oct 2026):** the question words come after the dative (wer / wen / wem / wessen in one lesson, since *wem?* needs the dative); an exercise goes to the lesson that teaches what it practises even when its heading is another lesson's (chapter 11's time adverbs → the future, chapter 14's conjunctions → Session 4, chapter 13's prepositions → the accusative prepositions), so a session may need fewer chapters than its first list; a verb lesson's pack has its own detectors (`gs:` rules) so a miss in the Perfekt says *sein*, not just the rule's name.
-- **Session 4 (1 Nov 2026):** weil / dass / wenn comes before the modals (their second sheet needs it); an exercise whose heading is a modal's but which practises the future (11•10–11•13) goes to the future lesson; a chapter's last exercise that practises something else (18•4: commands) is mirrored with the lesson that teaches that; a person after a preposition is a pronoun (*für ihn*), a thing *da-* (*dafür*) — taught with each preposition lesson, the wo- / da- compounds' own lesson (Session 6) builds on it; *zu dem* → *zum* is drilled as the usual form (the long form counts as a mistake with its reason, not as wrong German); from Session 4 on a sheet's table fits a phone whole.
+- **Session 4 (1 Nov 2026):** weil / dass / wenn comes before the modals (their second sheet needs it); the strong Präteritum comes after wo? vs wohin? (review, 2 Nov: a contrast follows its lesson at once — the month after the regular Präteritum stays); an exercise whose heading is a modal's but which practises the future (11•10–11•13) goes to the future lesson; a chapter's last exercise that practises something else (18•4: commands) is mirrored with the lesson that teaches that; a person after a preposition is a pronoun (*für ihn*), a thing *da-* (*dafür*) — taught with each preposition lesson, the wo- / da- compounds' own lesson (Session 6) builds on it; *zu dem* → *zum* is drilled as the usual form (the long form counts as a mistake with its reason, not as wrong German); from Session 4 on a sheet's table fits a phone whole.
 - **Session 2 audit (21 Oct 2026):** every new sheet and item proofread (15 fixes: a rule that put *die Mutter* among the masculine plurals, a few stiff sentences, missing natural answers in translations). The verb lessons' own sentences now feed the learning log's verbs (before, only generated items did). *(22 Oct: umlauts are never typed, as agreed — a missing one is never a mistake, in the drills or the log; the course's drills now ask the verb track's small 1 / 2 choice when the plain spelling is another real form: fahrt → fährt or fahrt?)* 📚 a chapter's Übungen render their *italics*; on a verb lesson page 🧩 Practise sits right under the sheets. The logs test's fake cloud gained `batch` (its one failure was the test, not the app). Known and left as agreed: the quest test's late-deficit stress day can end one ledger form short (extra practice asks for exactly what a quest lacks).

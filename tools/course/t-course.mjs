@@ -295,6 +295,9 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
         seen.add(cxItemKind(cxSet(cur.set), cur.item) + ":" + cur.mode);
         const html = document.getElementById("cx-run").innerHTML;
         if (/undefined|NaN|\[object/.test(html)) ok(false, `${id}: broken text in the card`);
+        // an answer card hints "Nein, …" only when its answer starts that way
+        const inp = document.getElementById("cx-input");
+        if (inp && inp.placeholder === "Nein, …" && !/^nein\b/i.test(String((cur.item.a || [])[0] || ""))) ok(false, `${id}: "Nein, …" hinted for an answer that doesn't start with Nein`);
         cxAnswerCur(k % 3 !== 1); cxNext(); k++;
       }
       ok(_cx.done && /right first time|Tested|Nothing/.test(document.getElementById("cx-run").innerText), `${id}: runs to its result`);
