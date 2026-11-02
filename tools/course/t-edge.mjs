@@ -1,6 +1,9 @@
 // Edge cases of the course in the real app (same setup as t-course.mjs):
 //   • the real keyboard: type + Enter checks, Enter goes on, Enter mashed
 //     after a miss never skips its feedback, digits pick an option
+//   • "Almost — try again": the same answer sent again (a double Enter)
+//     is never graded, it asks for a change; after a miss Next shows its
+//     wait (the bar) and Enter spammed during it never skips
 //   • ✕ in the middle of a drill: what was answered stays, the card comes
 //     back in the next session
 //   • HTML typed into an answer is shown as text, never run
@@ -57,6 +60,71 @@ const SETUP = () => {
     void q0;
   });
   report(await page.evaluate(() => ({ log: __log, fails: __fails })), "keyboard · ✕ · HTML");
+  if (errors.length) { console.log("ERRORS", errors.slice(0, 5)); fails++; }
+  await browser.close();
+}
+
+// ── "Almost — try again": a double Enter never grades it; a miss holds Next ──
+{
+  const { browser, page, errors } = await openApp({ course: true });
+  await page.evaluate(SETUP);
+  // Walk to a typed question with an "almost" spelling (one letter off).
+  const near = await page.evaluate(() => {
+    startPathSession("long", { noBonus: true });
+    if (!toCx("testout")) return null;
+    for (let g = 0; g < 40 && !_cx.done; g++) {
+      const r = _cx, cur = r.list[r.i], set = cxSet(cur.set), item = cur.item, k = cxItemKind(set, item);
+      if (document.getElementById("cx-input") && cur.mode !== "tiles") {
+        const a = item.a[0], sec = cxSection(set.sec);
+        for (let i = 2; i < a.length - 2; i++) {
+          if (!/[a-z]/.test(a[i])) continue;
+          const v = a.slice(0, i) + (a[i] === "x" ? "q" : "x") + a.slice(i + 1), res = cxCheck(item, v, sec);
+          if (!res.ok && res.near) return { v, a };
+        }
+      }
+      // not this one: answer it right and go on
+      if (k === "pick" || k === "respond") { const opts = item.o || set.o; cxPick(opts.indexOf(item.a[0])); }
+      else if (k === "order") { cur.picked = cur.bank.map((b, bi) => [b.i, bi]).sort((x, y) => x[0] - y[0]).map(x => x[1]); cxCheckCur(); }
+      else if (cur.mode === "tiles") { cxTypeInstead(); document.getElementById("cx-input").value = item.a[0]; cxCheckCur(); }
+      else if (k === "write" || k === "open") { document.getElementById("cx-text").value = "Ich habe keinen Fernseher und kein Auto."; cxCheckCur(); }
+      else { document.getElementById("cx-input").value = item.a[0]; cxCheckCur(); }
+      _mistakeHoldUntil = 0; cxNext();
+    }
+    return null;
+  });
+  if (!near) { console.log("✗ no typed question with an \"almost\" spelling found"); fails++; }
+  else {
+    await page.click("#cx-input"); await page.keyboard.type(near.v); await page.keyboard.press("Enter");
+    await page.evaluate(() => ok(!_cx.answered && _cx.list[_cx.i].near && /Almost/.test(document.getElementById("cx-fb").textContent), "one letter off: Almost — try again"));
+    // the double Enter: the same answer again, at once and a moment later
+    await page.keyboard.press("Enter"); await page.keyboard.press("Enter");
+    await page.evaluate(() => ok(!_cx.answered && /Same answer/.test(document.getElementById("cx-fb").textContent), "Enter again on the same answer: not graded, asks for a change"));
+    await page.waitForTimeout(900);
+    await page.focus("#cx-input"); await page.keyboard.press("Enter");
+    await page.evaluate(() => ok(!_cx.answered, "…a moment later too: the same answer is never taken"));
+    // changed: graded (still wrong here) — and Next holds, visibly
+    await page.fill("#cx-input", "das ist ganz falsch"); await page.keyboard.press("Enter");
+    await page.evaluate(() => {
+      const b = document.getElementById("cx-next");
+      ok(_cx.answered && _cx.list[_cx.i].ok === false, "a changed answer is graded");
+      ok(b && b.classList.contains("mistake-hold"), "after the miss Next shows the wait, as in Today");
+    });
+    const i0 = await page.evaluate(() => _cx.i);
+    await page.keyboard.press("Enter"); await page.waitForTimeout(250); await page.keyboard.press("Enter");
+    await page.evaluate(i0 => ok(_cx.i === i0 && _cx.answered, "Enter spammed during the wait: the miss stays"), i0);
+    await page.waitForTimeout(900);
+    await page.keyboard.press("Enter");
+    await page.evaluate(i0 => ok(_cx.i === i0 + 1, "after the wait, Enter goes on"), i0);
+  }
+  // the grammar quiz: the same rule for its "Almost"
+  await page.evaluate(() => {
+    const fb = document.createElement("div"), inp = document.createElement("input"), cur = {};
+    nearMark(cur, "Ich habe  ein Hund");
+    ok(nearSameAgain(cur, " ich habe ein hund ", inp, fb, "<b>x</b>") && fb.innerHTML === "<b>x</b>", "nearSameAgain: the same answer (spaces, capitals aside) is caught");
+    ok(!nearSameAgain(cur, "Ich habe einen Hund", inp, fb, ""), "nearSameAgain: a changed answer goes through");
+    ok(!nearSameAgain({}, "x", inp, fb, ""), "nearSameAgain: no Almost yet — nothing caught");
+  });
+  report(await page.evaluate(() => ({ log: __log, fails: __fails })), "almost · double Enter · the hold");
   if (errors.length) { console.log("ERRORS", errors.slice(0, 5)); fails++; }
   await browser.close();
 }

@@ -222,6 +222,8 @@ function cxCheckCur() {
     if (!val.trim()) { if (inp) shakeEl(inp); return; }
   }
   const fb = document.getElementById("cx-fb");
+  // After "Almost": the same answer again is a stray Enter, never a miss.
+  if (nearSameAgain(cur, val, document.getElementById("cx-input") || document.getElementById("cx-built"), fb, `<div class="p-near">≈ Same answer — change it first: check the spelling</div>`)) return;
   if (typeof vxUmlautAsking === "function" && vxUmlautAsking(fb)) return;
   const res = cxCheck(item, val, sec);
   // Umlauts are never typed (agreed): a missing one is forgiven, and only
@@ -242,7 +244,7 @@ function cxCheckCur() {
     return;
   }
   if (!res.ok && res.near && !cur.near) {
-    cur.near = true;
+    nearMark(cur, val);
     const inp = document.getElementById("cx-input");
     if (inp) { inp.classList.add("near"); setTimeout(() => { inp.classList.remove("near"); inp.select(); }, 600); }
     document.getElementById("cx-fb").innerHTML = `<div class="p-near">≈ Almost — check the spelling and try again</div>`;
@@ -285,8 +287,10 @@ function cxAnswered(ok, given, res, typed, self = false) {
     }
   }
   if (ok) { if (typeof playSuccess === "function") playSuccess(); if (typeof haptic === "function") haptic("select"); }
-  else { if (typeof playFailure === "function") playFailure(); if (typeof haptic === "function") haptic("miss"); if (typeof holdAfterMistake === "function") holdAfterMistake("cx-next"); }
+  else { if (typeof playFailure === "function") playFailure(); if (typeof haptic === "function") haptic("miss"); }
   cxShowAnswered();
+  // (after the Next button is drawn, so it shows the wait — as in Today)
+  if (!ok && typeof holdAfterMistake === "function") holdAfterMistake("cx-next");
   if (o.mode === "path" && typeof pathProgress === "function" && typeof pathSession !== "undefined" && pathSession) pathProgress();
 }
 const CX_SOFT = { umlaut: "mind the umlaut", ss: "mind the ß", caps: "nouns and Sie take a capital" };

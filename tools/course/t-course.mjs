@@ -52,7 +52,8 @@ const HELP = () => {
     inp.value = right ? item.a[0] : (/\bkein\w*\b/i.test(item.a[0]) ? item.a[0].replace(/\bkein\w*\b/i, "nicht") : item.a[0].replace(/\bnicht\b/, "kein"));
     if (!right && inp.value === item.a[0]) inp.value = "Das ist falsch";
     cxCheckCur();
-    if (!r.answered) cxCheckCur(); // an "almost" gets one more try
+    // an "almost" gets one more try (the same answer again is never taken)
+    if (!r.answered) { inp.value = "Das ist falsch"; cxCheckCur(); }
   };
   window.gsAnswerCur = right => {
     const g = _gs, cur = g.quiz.list[g.quiz.i], Q = cur.q;

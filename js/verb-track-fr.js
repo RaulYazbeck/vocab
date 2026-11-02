@@ -683,7 +683,7 @@ const VXF_ES = {
   "Question {0} of {1}": "Pregunta {0} de {1}", "Once more — the one you missed": "Otra vez — la que fallaste", "type it…": "escríbelo…",
   "tap the words in order": "toca las palabras en orden", "Your sentence": "Tu oración", "Check": "Revisar",
   "check the spelling": "revisa la ortografía",
-  "≈ Almost — {0} — try again": "≈ Casi — {0} — inténtalo otra vez", "✓ Right": "✓ Correcto", "✗ Answer:": "✗ Respuesta:",
+  "≈ Almost — {0} — try again": "≈ Casi — {0} — inténtalo otra vez", "≈ Same answer — change it first: {0}": "≈ La misma respuesta — cámbiala primero: {0}", "✓ Right": "✓ Correcto", "✗ Answer:": "✗ Respuesta:",
   "📖 See it in the sheet — {0}": "📖 Verlo en la ficha — {0}", "This question comes back once at the end.": "Esta pregunta vuelve una vez al final.",
   "See result": "Ver resultado", "To look at again": "Para repasar", "Mastery quiz": "Quiz de dominio", "{0} mastered!": "¡{0} dominado!",
   "Not yet": "Todavía no", "{0}/{1} right first time": "{0}/{1} correctas a la primera", " · mastery takes every question right the first time": " · el dominio pide todas las preguntas bien a la primera",
