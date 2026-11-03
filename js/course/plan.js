@@ -73,7 +73,12 @@ cxDefine({
     // question words come once it is taught — wer / wen / wem / wessen together.
     { id: "s1.wer", ses: 3, stage: 1, level: "A2", prio: "M", n: 2, after: ["s0.wq", "s0.acc", "s1.dat"], title: "wer / wen / wem, welcher, was für", book: [["c13", ""], ["c28", "Interrogative words"], ["c28", "Wer"], ["c28", "Was"]] },
     { id: "s1.datprep", ses: 4, stage: 1, level: "A2", prio: "M", n: 2, after: ["s1.dat"], title: "Dative prepositions", book: [["c15", "Dative prepositions"], ["appB", "Dative"]] },
+    // 💬 Greetings and introductions: ich komme aus …, wohne seit …, arbeite bei … — after the dative prepositions.
+    { id: "s3.greet", ses: 8, stage: 3, level: "A2", prio: "M", n: 2, after: ["s1.resp", "s1.datprep"], kind: "scenario", title: "Greetings and introductions", book: [["c30", "Greetings and introductions"]] },
     { id: "s1.twoway", ses: 4, stage: 1, level: "A2", prio: "M", n: 2, after: ["s1.accprep", "s1.datprep"], title: "Two-way prepositions", book: [["c19", "Dative-accusative prepositions"], ["c19", ""], ["appB", "Dative/Accusative"]] },
+    { id: "s1.wowohin", ses: 4, stage: 1, level: "A2", prio: "M", n: 1, after: ["s1.twoway"], kind: "contrast", title: "Contrast: wo? vs wohin?", book: [["c19", "Dative case"], ["c19", "Accusative case"]] },
+    // 💬 Asking the way: commands, in / an / neben …, links, geradeaus — after wo? vs wohin?
+    { id: "s3.way", ses: 8, stage: 3, level: "A2", prio: "M", n: 2, after: ["s1.wowohin"], kind: "scenario", title: "Asking the way", book: [["c30", "Conversation: In der Hauptstraße (On Main"], ["c30", "Commands"]] },
     // A B1 lesson taught here, among the A2 ones (Oct 2026): strong and mixed
     // Präteritum (+ Plusquamperfekt) a month after the regular Präteritum — time
     // to settle the -te forms and the Perfekt first — instead of near the end
@@ -81,29 +86,45 @@ cxDefine({
     // opens with it, so those forms spread over Feb–May at ≈ 5–6 a day instead
     // of ≈ 26 a day crammed into May. The book has it right after the dative
     // (c16); it comes a little later here, after the two-way prepositions, to
-    // leave that month between the two Präteritum lessons. Level and stage stay
+    // leave that month between the two Präteritum lessons. (Session 4: after
+    // wo? vs wohin?, so the contrast comes straight after the two-way lesson.) Level and stage stay
     // B1 (it is listed under B1 in the course map).
     { id: "s2.pt2", ses: 7, stage: 2, level: "B1", prio: "S", after: ["s1.pf", "s1.pt21"], kind: "verb", title: "Strong and mixed Präteritum · Plusquamperfekt", verb: ["pt22", "pt23", "pt24", "pq1", "pq2"], book: [["c11", "Past perfect tense"], ["c16", ""], ["c11", "The past perfect tense"], ["c16", "Strong verbs"], ["c16", "e to a"], ["c16", "a to u"], ["c16", "gehen"], ["c16", "trinken"], ["c16", "tun"], ["c16", "essen"], ["c16", "Mixed verbs"], ["c16", "haben, sein, and werden"], ["c16", "Irregular past tense"], ["c16", "The verbs haben, sein, and werden"]] },
-    { id: "s1.wowohin", ses: 4, stage: 1, level: "A2", prio: "M", n: 1, after: ["s1.twoway"], kind: "contrast", title: "Contrast: wo? vs wohin?", book: [["c19", "Dative case"], ["c19", "Accusative case"]] },
-    { id: "s1.modal", ses: 4, stage: 1, level: "A2", prio: "M", n: 2, after: ["s0.verbs", "s0.v2q"], title: "Modals: position, and in subordinate clauses", book: [["c17", "Modals used with infinitives"], ["c17", "Modal position in a subordinate clause"], ["c17", "Omission of the infinitive"], ["c11", "Position and form of modals"]] },
+    // weil, dass, wenn before the modals (Session 4): the modal lesson's
+    // second sheet puts the modal at the end of a weil / dass clause.
     { id: "s1.conj2", ses: 4, stage: 1, level: "A2", prio: "M", n: 2, after: ["s0.v2q"], title: "weil, dass, wenn — the verb goes last", book: [["c29", "Subordinating conjunctions"], ["c29", "Using subordinating conjunctions"]] },
+    // (chapter 11's "Position and form of modals" — 11•10–11•13 — is the
+    // future with werden: it went to the future lesson in Session 4)
+    { id: "s1.modal", ses: 4, stage: 1, level: "A2", prio: "M", n: 2, after: ["s0.verbs", "s0.v2q", "s1.conj2"], title: "Modals: position, and in subordinate clauses", book: [["c17", "Modals used with infinitives"], ["c17", "Modal position in a subordinate clause"], ["c17", "Omission of the infinitive"]] },
+    // 💬 Shopping and prices: ich möchte …, Kann ich Ihnen helfen?, numbers — after the modals.
+    { id: "s3.shop", ses: 8, stage: 3, level: "A2", prio: "M", n: 2, after: ["s1.modal", "s1.datpron"], kind: "scenario", title: "Shopping and prices", book: [["c31", "Shopping"], ["c31", "Euro und Cent"], ["c31", "Einkaufen"], ["c31", "Im Kaufhaus"]] },
     { id: "s1.poss", ses: 5, stage: 1, level: "A2", prio: "M", n: 2, after: ["s1.datprep"], title: "Possessives; von + dative", book: [["c2", "Ein-words"], ["c20", "Possession"]] },
     { id: "s1.wissen", ses: 4, stage: 1, level: "A2", prio: "M", n: 1, after: ["s0.verbs"], title: "wissen vs kennen", book: [["c18", ""], ["c18", "Conjugation of wissen"], ["c18", "Meanings of wissen and kennen"]] },
     { id: "s1.refl", ses: 4, stage: 1, level: "A2", prio: "M", n: 2, after: ["s1.datpron"], title: "Reflexive pronouns (accusative and dative)", book: [["c23", "Reflexive pronouns"]] },
-    { id: "s1.fu", ses: 5, stage: 1, level: "A2", prio: "S", after: ["s0.verbs"], kind: "verb", title: "Future with werden", verb: ["fu1", "fu2"], book: [["c11", "Future tense"], ["c11", "The future tense"], ["c11", "Modal auxiliaries in the future tense"], ["c11", "Adverbs of time"]] },
+    // Moved into Stage 1 as A2 (2 Nov 2026, after the Session 4 review): warten auf,
+    // sich freuen auf, denken an are everyday spoken A2. After the two-way
+    // prepositions (auf den Bus) and the reflexives (sich freuen). Still built in
+    // Session 6, with the wo- / da- compounds, which stay in Stage 2 right after it.
+    { id: "s1.verbprep", ses: 6, stage: 1, level: "A2", prio: "M", n: 2, after: ["s1.twoway", "s1.refl"], title: "Verb + preposition (warten auf, denken an…)", book: [] },
+    // 💬 At the bus stop: warten auf den Bus, Wann fährt …? — after verb + preposition.
+    { id: "s3.bus", ses: 8, stage: 3, level: "A2", prio: "M", n: 2, after: ["s1.verbprep"], kind: "scenario", title: "At the bus stop", book: [["c31", "Conversation: An der Bushaltestelle (At the bus"]] },
+    { id: "s1.fu", ses: 5, stage: 1, level: "A2", prio: "S", after: ["s0.verbs"], kind: "verb", title: "Future with werden", verb: ["fu1", "fu2"], book: [["c11", "Future tense"], ["c11", "The future tense"], ["c11", "Modal auxiliaries in the future tense"], ["c11", "Adverbs of time"], ["c11", "Position and form of modals"]] },
     { id: "s1.comp", ses: 5, stage: 1, level: "A2", prio: "M", n: 2, after: ["s0.art"], title: "Comparative and superlative", book: [["c20", "Comparative and superlative"], ["c31", "Comparatives and superlatives"]] },
     { id: "s1.adj", ses: 5, stage: 1, level: "A2", prio: "M", n: 3, after: ["s1.dat", "s0.acc"], title: "Adjective endings (after der-words · after ein-words · no article)", book: [["c23", "Modifiers"], ["appC", "Declension with der-words"], ["appC", "Declension with ein-words"]] },
     { id: "s1.zu", ses: 5, stage: 1, level: "A2", prio: "M", n: 2, after: ["s1.modal", "s1.conj2"], title: "zu + infinitive · um…zu, ohne…zu, anstatt…zu", book: [["c24", ""], ["c24", "Infinitive clauses"], ["c24", "Formation of infinitive clauses"], ["c24", "Verbs that introduce infinitive clauses"], ["c24", "Infinitive clauses as nouns"], ["c24", "Prepositions commonly used with infinitive"], ["c24", "Anstatt zu"], ["c24", "Ohne zu"], ["c24", "Um zu"]] },
     { id: "s1.recap", ses: 5, stage: 1, level: "A2", prio: "M", kind: "recap", title: "Checkpoint: building sentences" },
+    // 💬 School and study (studieren vs lernen) — once Stage 1 is done.
+    { id: "s3.school", ses: 8, stage: 3, level: "B1", prio: "S", n: 2, after: ["s1.recap"], kind: "scenario", title: "School and study (studieren vs lernen)", book: [["c31", "Schulen"], ["c31", "Studieren and lernen"], ["c31", "Im Klassenzimmer"]] },
 
     // ── Stage 2 — B1 ──
     { id: "s2.conj3", ses: 6, stage: 2, level: "B1", prio: "M", n: 2, after: ["s1.conj2"], title: "obwohl, bevor, nachdem, während, damit, bis, seit", book: [["c23", "Conjunctions"], ["c29", "Subordinating conjunctions"]] },
     { id: "s2.alswenn", ses: 6, stage: 2, level: "B1", prio: "M", n: 1, after: ["s2.conj3"], kind: "contrast", title: "als vs wenn vs wann", book: [["c29", "When as a conjunction"]] },
     { id: "s2.k2", ses: 7, stage: 2, level: "B1", prio: "M", after: ["s1.pt21", "s1.modal"], kind: "verb", title: "Konjunktiv II", verb: ["k21", "k22", "k23", "k25", "k24"], book: [["c26", "The Present-Time Subjunctive II"], ["c27", "Subjunctive II"], ["c26", "Forming the subjunctive"], ["c26", "Mood: Indicative and Subjunctive"], ["c26", "Modal Verbs in the Subjunctive II"], ["c26", "The würde Construction"], ["c27", "The subjunctive mood"], ["c27", "Subjunctive conjugations"], ["c31", "Subjunctive review"]] },
+    // 💬 Travel: ich hätte gern …, ich würde gern … — after Konjunktiv II.
+    { id: "s3.travel", ses: 8, stage: 3, level: "B1", prio: "M", n: 2, after: ["s2.k2"], kind: "scenario", title: "Travel", book: [["c31", "Travel"]] },
     { id: "s2.cond", ses: 7, stage: 2, level: "B1", prio: "M", n: 2, after: ["s2.k2", "s1.conj2"], title: "If and wishes (wenn-clauses · wishes and als ob)", book: [["c27", "Subjunctive II with wenn-clauses"], ["c27", "Wenn"], ["c26", "Conditional Sentences"], ["c26", "Conditions of Fact"], ["c26", "Present"], ["c26", "Starting with the Conclusion"], ["c26", "Omitting wenn"], ["c26", "Expressing a Wish"], ["c27", "or"], ["c27", "Als ob, als wenn"]] },
     { id: "s2.indq", ses: 6, stage: 2, level: "B1", prio: "M", n: 2, after: ["s1.conj2", "s0.wq"], title: "Indirect questions · dass vs ob", book: [["c29", "Interrogatives"], ["c26", "Indirect Questions"], ["c26", "sollen in Commands"]] },
-    { id: "s2.verbprep", ses: 6, stage: 2, level: "B1", prio: "M", n: 2, after: ["s1.twoway"], title: "Verb + preposition (warten auf, denken an…)", book: [] },
-    { id: "s2.woda", ses: 6, stage: 2, level: "B1", prio: "M", n: 1, after: ["s2.verbprep"], title: "wo- / da- compounds (woran, daran)", book: [["c19", "Pronouns and prepositional adverbs"], ["c28", "Prepositional adverbs"]] },
+    { id: "s2.woda", ses: 6, stage: 2, level: "B1", prio: "M", n: 1, after: ["s1.verbprep"], title: "wo- / da- compounds (woran, daran)", book: [["c19", "Pronouns and prepositional adverbs"], ["c28", "Prepositional adverbs"]] },
     { id: "s2.rel", ses: 6, stage: 2, level: "B1", prio: "M", n: 2, after: ["s1.dat", "s1.conj2"], title: "Relative pronouns (nominative/accusative · dative)", book: [["c22", "Definite article form of relative pronouns"], ["c22", "Der/die/das"], ["c22", ""], ["c22", "Relative pronouns that replace nouns in the"], ["c22", "Nominative masculine singular"]] },
     { id: "s2.relprep", ses: 6, stage: 2, level: "B1", prio: "M", n: 2, after: ["s2.rel", "s1.twoway"], title: "Relative clauses with prepositions; wo, was, wer, welcher", book: [["c22", "Was"], ["c22", "Wer and der"], ["c22", "Using welcher as a relative pronoun"], ["c22", "Welcher"], ["c22", "Two types of relative pronouns"]] },
     { id: "s2.modpf", ses: 7, stage: 2, level: "B1", prio: "S", n: 1, after: ["s1.pf", "s1.modal"], title: "Modals in the Perfekt (double infinitive basics)", book: [["c17", "Modal auxiliaries and double infinitives"], ["c10", "Present perfect tense of modal auxiliaries and of"]] },
@@ -120,12 +141,9 @@ cxDefine({
     { id: "s2.recap", ses: 7, stage: 2, level: "B1", prio: "M", kind: "recap", title: "Checkpoint: longer sentences" },
 
     // ── Stage 3 — conversation ──
-    { id: "s3.greet", ses: 8, stage: 3, level: "B1", prio: "M", n: 2, after: ["s1.recap"], kind: "scenario", title: "Greetings and introductions", book: [["c30", "Greetings and introductions"]] },
-    { id: "s3.way", ses: 8, stage: 3, level: "B1", prio: "M", n: 2, after: ["s1.recap"], kind: "scenario", title: "Asking the way", book: [["c30", "Conversation: In der Hauptstraße (On Main"], ["c30", "Commands"]] },
-    { id: "s3.bus", ses: 8, stage: 3, level: "B1", prio: "M", n: 2, after: ["s1.recap"], kind: "scenario", title: "At the bus stop", book: [["c31", "Conversation: An der Bushaltestelle (At the bus"]] },
-    { id: "s3.school", ses: 8, stage: 3, level: "B1", prio: "S", n: 2, after: ["s1.recap"], kind: "scenario", title: "School and study (studieren vs lernen)", book: [["c31", "Schulen"], ["c31", "Studieren and lernen"], ["c31", "Im Klassenzimmer"]] },
-    { id: "s3.shop", ses: 8, stage: 3, level: "B1", prio: "M", n: 2, after: ["s1.recap"], kind: "scenario", title: "Shopping and prices", book: [["c31", "Shopping"], ["c31", "Euro und Cent"], ["c31", "Einkaufen"], ["c31", "Im Kaufhaus"]] },
-    { id: "s3.travel", ses: 8, stage: 3, level: "B1", prio: "M", n: 2, after: ["s1.recap"], kind: "scenario", title: "Travel", book: [["c31", "Travel"]] },
+    // (2 Nov 2026: the six scenario units no longer wait for the end — each comes
+    // right after the grammar its dialogue needs, among the Stage 1 and 2 lessons;
+    // they stay their own part, 💬, outside the stages' checkpoints.)
 
     // ── Post-B1 (Could) ──
     { id: "s4.k1", ses: 9, stage: 4, level: "B2", prio: "C", n: 2, after: ["s2.recap"], title: "Konjunktiv I and indirect speech", book: [["c26", "Subjunctive I"], ["c27", "Indirect discourse"], ["c26", "Use and Formation of the Subjunctive I"], ["c26", "Present-Time Subjunctive I"], ["c26", "Past-Time Subjunctive I"], ["c27", "Subjunctive I"]] },

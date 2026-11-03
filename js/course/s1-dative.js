@@ -3,8 +3,8 @@
 // the dative's articles and the indirect object (two sheets) — its
 // pronouns and the order of two objects (two sheets) — the dative verbs
 // (helfen, gefallen, gehören…) — and the contrast with the accusative.
-// The dative prepositions (15•4 · 15•5 · 15•13–15•16) wait for their
-// lesson (Session 4).
+// The dative prepositions (15•4 · 15•5 · 15•13–15•16) are their own
+// lesson (Session 4, s1-prep.js).
 cxPack({
   id: "s1-dative",
   sections: {
@@ -639,7 +639,5 @@ cxCover({
   "15.1": "d15.1", "15.2": "d15.2", "15.8": "d15.8", "15.9": "d15.9",
   "15.3": "d15.3", "15.10": "d15.10", "15.11": "d15.11", "15.12": "d15.12",
   "15.6": "d15.6", "15.17": "d15.17", "15.7": "d15.7",
-  "15.4": { st: "planned", sec: "s1.datprep" }, "15.5": { st: "planned", sec: "s1.datprep" },
-  "15.13": { st: "planned", sec: "s1.datprep" }, "15.14": { st: "planned", sec: "s1.datprep" },
-  "15.15": { st: "planned", sec: "s1.datprep" }, "15.16": { st: "planned", sec: "s1.datprep" },
+  // (15•4, 15•5, 15•13–15•16: the dative prepositions, s1-prep.js)
 });

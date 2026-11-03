@@ -172,7 +172,7 @@ cxPack({
 // for the lessons that teach them (all of them upload chapter 29).
 cxCover({
   "29.20": "d29.20", "29.21": "d29.21",
-  "29.1": { st: "planned", sec: "s1.conj1" }, "29.2": { st: "planned", sec: "s1.conj1" }, "29.3": { st: "planned", sec: "s1.conj1" }, "29.4": { st: "planned", sec: "s1.conj1" },
+  // (29•1–29•4: und, aber, oder, denn, sondern — s1-conj.js)
   "29.5": { st: "planned", sec: "s2.alswenn" }, "29.6": { st: "planned", sec: "s2.alswenn" }, "29.7": { st: "planned", sec: "s2.alswenn" }, "29.8": { st: "planned", sec: "s2.alswenn" },
   "29.9": { st: "planned", sec: "s2.indq" }, "29.10": { st: "planned", sec: "s2.indq" },
   "29.11": { st: "planned", sec: "s2.ptadj" }, "29.12": { st: "planned", sec: "s2.ptadj" }, "29.13": { st: "planned", sec: "s2.ptadj" }, "29.14": { st: "planned", sec: "s2.ptadj" },

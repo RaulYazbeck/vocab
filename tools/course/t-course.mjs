@@ -269,7 +269,20 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
   };
   await page.evaluate(() => renderCourse()); await noOverflow("Course");
   await page.evaluate(() => renderCourseSection("s0.neg")); await noOverflow("section");
-  await page.evaluate(() => renderCourseSection("s1.datprep")); await noOverflow("a coming section");
+  await page.evaluate(() => renderCourseSection("s1.poss")); await noOverflow("a coming section");
+  // (Session 4 on) a sheet's table fits the phone whole — no sideways scrolling to find a column
+  if (tag === "phone") await page.evaluate(() => {
+    const wide = [], seen = [];
+    CX.sections.filter(s => s.ses >= 4).forEach(s => s.sheets.forEach(id => {
+      renderCourseSheet(id);
+      for (let k = 0; k < 6; k++) {
+        const w = document.querySelector("#main-screen .gs-table-wrap");
+        if (w) { seen.push(id); const t = w.querySelector(".gs-table"); if (t.scrollWidth > w.clientWidth + 1) wide.push(`${id} ${t.scrollWidth}/${w.clientWidth}`); break; }
+        const n = document.querySelector("#main-screen .gs-next:not([disabled])"); if (!n) break; n.click();
+      }
+    }));
+    ok(seen.length >= 15 && !wide.length, `Session 4 on: every sheet's table fits the phone (${seen.length} tables${wide.length ? "; too wide: " + wide : ""})`);
+  });
   await page.evaluate(() => { renderCourseSection("s0.verbs"); ok(/verb track/.test(document.getElementById("main-screen").innerText), "a verb-track section lists its verb sheets"); });
   await page.evaluate(() => renderDrills()); await noOverflow("Drills");
   // every drill set through the runner, right then wrong
@@ -283,6 +296,9 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
         seen.add(cxItemKind(cxSet(cur.set), cur.item) + ":" + cur.mode);
         const html = document.getElementById("cx-run").innerHTML;
         if (/undefined|NaN|\[object/.test(html)) ok(false, `${id}: broken text in the card`);
+        // an answer card hints "Nein, …" only when its answer starts that way
+        const inp = document.getElementById("cx-input");
+        if (inp && inp.placeholder === "Nein, …" && !/^nein\b/i.test(String((cur.item.a || [])[0] || ""))) ok(false, `${id}: "Nein, …" hinted for an answer that doesn't start with Nein`);
         cxAnswerCur(k % 3 !== 1); cxNext(); k++;
       }
       ok(_cx.done && /right first time|Tested|Nothing/.test(document.getElementById("cx-run").innerText), `${id}: runs to its result`);
@@ -363,6 +379,17 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
     ok([...document.querySelectorAll(".cx-ex .gr-stt")].map(b => b.innerText.split(" · ")[0]).join() === "28.1,28.2,28.3,28.4,28.5,28.6,28.7,28.8,28.9,28.10,28.11,28.12,28.13,28.14,28.16,28.17",
       "chapter 28: 28.1–28.14 and 28.16–17 (the wo-/da- compounds' 28.15, 28.18–21 come with their lesson)");
     ok(!/\b28\.15\b|\b28\.18\b|planned|mirrored|generated/.test(document.getElementById("main-screen").innerText), "not built yet: not listed; no build labels");
+    // Session 4's chapters: their built Übungen, the later lessons' not yet
+    renderCourseChapter("c19");
+    ok([...document.querySelectorAll(".cx-ex .gr-stt")].map(b => b.innerText.split(" · ")[0]).join() === "19.1,19.2,19.3,19.4,19.5,19.6,19.7",
+      "chapter 19: 19.1–19.7 (19.8 with the wo-/da- compounds, 19.9 with verb + preposition, later)");
+    renderCourseChapter("c18");
+    ok([...document.querySelectorAll(".cx-ex .gr-stt")].map(b => b.innerText.split(" · ")[0]).join() === "18.1,18.2,18.3,18.4", "chapter 18: all four (18.4, its commands, with the A1 verb lesson)");
+    [...document.querySelectorAll(".cx-ex")].find(b => /^18\.4 /.test(b.querySelector(".gr-stt").innerText)).click();
+    ok(_cx && _cx.list.every(e => e.set === "d18.4") && /Chapter 18/.test(document.querySelector(".screen-top .back-btn").textContent), "Übung 18.4 runs on its own; back goes to chapter 18");
+    cxClose();
+    renderCourseChapter("c14");
+    ok([...document.querySelectorAll(".cx-ex .gr-stt")].map(b => b.innerText.split(" · ")[0]).join() === "14.1,14.2,14.3,14.4,14.5,14.6,14.7,14.8,14.9,14.10", "chapter 14: every Übung now has its drill");
     // a passed verb lesson: its book exercises, one Practise card on its page
     renderCourseSection("s0.verbs");
     const pr = [...document.querySelectorAll(".gr-mastery")].find(b => /Practise/.test(b.innerText));

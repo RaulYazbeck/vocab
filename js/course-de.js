@@ -241,7 +241,8 @@ function cxLev(a, b) {
   return prev[n];
 }
 // Words that carry the grammar: a slip in one of them is a mistake, never "almost".
-const CX_GRAMMAR_TOK = /^(k?ein\w*|d(er|ie|as|en|em|es)|mein\w*|dein\w*|sein\w*|ihr\w*|unser\w*|eu(er|r)\w*|dies\w*|jed\w*|welch\w*|nicht\w*|nie\w*|sondern|aber|doch|ja|nein|und|oder)$/;
+// (the modals and wissen too: mögst for magst is the grammar, not a slip)
+const CX_GRAMMAR_TOK = /^(k?ein\w*|d(er|ie|as|en|em|es)|mein\w*|dein\w*|sein\w*|ihr\w*|unser\w*|eu(er|r)\w*|dies\w*|jed\w*|welch\w*|nicht\w*|nie\w*|sondern|aber|doch|ja|nein|und|oder|ma[gc]\w*|mo[gc]\w*|kann\w*|konn\w*|muss\w*|darf\w*|durf\w*|will\w*|woll\w*|soll\w*|weiss\w*|wiss\w*|wuss\w*)$/;
 function cxBag(toks) { const m = new Map(); toks.forEach(t => m.set(t, (m.get(t) || 0) + 1)); return m; }
 function cxBagEq(a, b) { if (a.length !== b.length) return false; const A = cxBag(a); for (const t of b) { const k = A.get(t); if (!k) return false; A.set(t, k - 1); } return true; }
 // Two spellings that differ only in their last letter or two, and only by
@@ -268,7 +269,7 @@ const CX_PRON_SUBJ = /^(ich|du|er|sie|es|wir|ihr|man)$/;
 const CX_PRON_OBJ = /^(mich|dich|ihn|sie|es|uns|euch|ihnen|mir|dir|ihm|sich)$/;
 const CX_TIME1 = /^(heute|morgen|gestern|jetzt|bald|dann|später|sonntags|montags|samstags|abends|morgens|manchmal|oft|immer|leider|hier)$/;
 const CX_TIME2A = /^(am|im|um|nächste[ns]?|letzte[ns]?|diese[ns]?|jeden|heute|morgen|gestern)$/;
-const CX_TIME2B = /^(abend|morgen|mittag|nachmittag|montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag|wochenende|sommer|winter|herbst|frühling|januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember|woche|monat|jahr|acht|neun|zehn|elf|zwölf|eins|zwei|drei|vier|fünf|sechs|sieben|früh)$/;
+const CX_TIME2B = /^(tag|abend|morgen|mittag|nachmittag|montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag|wochenende|sommer|winter|herbst|frühling|januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember|woche|monat|jahr|acht|neun|zehn|elf|zwölf|eins|zwei|drei|vier|fünf|sechs|sieben|früh)$/;
 function cxTimeLen(w, i) {
   const a = (w[i] || "").toLowerCase(), b = (w[i + 1] || "").toLowerCase();
   // (um acht Uhr: the Uhr moves with it)
@@ -280,9 +281,15 @@ function cxOrders(item) {
   if (_cxOrders.has(item)) return _cxOrders.get(item);
   const out = [];
   cxAnswers(item).forEach(ans => {
-    if (/\bsondern\b/i.test(ans) || /,/.test(ans.replace(/^(nein|ja|doch)(, danke)?,/i, ""))) return;
-    const end = (ans.match(/[.!?]+$/) || [""])[0];
-    let w = ans.replace(/[.!?]+$/, "").split(/\s+/), pre = [];
+    if (/\bsondern\b/i.test(ans)) return;
+    // A main clause, then ", weil … / , dass … / , denn …": only the main
+    // clause in front moves (Heute gehe ich nicht joggen, weil es regnet);
+    // the rest goes after it unchanged. (A side clause in front — Wenn …,
+    // Weil … — starts with neither a pronoun nor a time word: nothing moves.)
+    const lead = (/^(nein|ja|doch)(, danke)?,/i.exec(ans) || [""])[0], comma = ans.indexOf(",", lead.length);
+    const tail = comma >= 0 ? ans.slice(comma) : "", head = comma >= 0 ? ans.slice(0, comma) : ans;
+    const end = tail || (head.match(/[.!?]+$/) || [""])[0];
+    let w = head.replace(/[.!?]+$/, "").split(/\s+/), pre = [];
     const m = /^(nein|ja|doch),?$/i.exec(w[0] || "");
     if (m) { pre = [w[0]]; w = w.slice(1); if (/^danke,?$/i.test(w[0] || "")) { pre.push(w[0]); w = w.slice(1); } }
     if (w.length < 3) return;
@@ -338,13 +345,37 @@ function cxGapFills(item) {
   const parts = tpl.split("___");
   if (parts.length !== 2 || !(parts[0].trim() || parts[1].trim())) return [];
   const esc = s => s.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const re = new RegExp("^" + (esc(parts[0]) ? esc(parts[0]) + "\\s+" : "") + "(.+?)" + (esc(parts[1]) ? "\\s+" + esc(parts[1]) : "") + "$", "i");
+  // (a gap that closes the sentence — "…, aber ___." — has only the full stop after it, no space)
+  const tail = parts[1].trim(), punct = /^[.!?]+$/.test(tail);
+  const re = new RegExp("^" + (esc(parts[0]) ? esc(parts[0]) + "\\s+" : "") + "(.+?)" + (tail ? (punct ? "\\s*" : "\\s+") + esc(parts[1]) : "") + "$", "i");
   const out = [];
   (item.a || []).map(String).forEach(a => { const m = re.exec(a.trim()); if (m && m[1] && !out.includes(m[1])) out.push(m[1]); });
   return out;
 }
+// The other way round: the whole sentence typed where only the gap was
+// asked — "(der Park) Die Kinder rennen durch ___." answered «Die Kinder
+// rennen durch den Park.» — is checked as the words that sit in the gap
+// (the rest must be the sentence as shown). → those words, or null.
+function cxGapInner(item, typed) {
+  if (item.k === "order" || typeof item.q !== "string" || !/(^|[^A-Za-zÄÖÜäöüß])___([^A-Za-zÄÖÜäöüß]|$)/.test(item.q)) return null;
+  const parts = item.q.replace(/\([^)]*\)/g, " ").replace(/\s+/g, " ").trim().split("___");
+  if (parts.length !== 2 || /→/.test(parts[0])) return null;
+  const P0 = cxToks(parts[0]), P1 = cxToks(parts[1]), T = cxToks(typed);
+  if (!P0.length && !P1.length || T.length <= P0.length + P1.length) return null;
+  // (only where the answers are the gap's words: an item whose answers are whole sentences checks those)
+  const holds = a => { const A = cxToks(a); return A.length > P0.length + P1.length && P0.every((x, i) => A[i] === x) && P1.every((x, i) => A[A.length - P1.length + i] === x); };
+  if ((item.a || []).some(holds)) return null;
+  if (P0.some((x, i) => T[i] !== x) || P1.some((x, i) => T[T.length - P1.length + i] !== x)) return null;
+  const W = String(typed).replace(/[.,!?;:„“"«»‚‘’()…–—]/g, " ").split(/\s+/).filter(Boolean);
+  const tpl = item.q.replace(/\([^)]*\)/g, " ").replace(/\s+/g, " ").trim();
+  return { text: (W.length === T.length ? W : T).slice(P0.length, T.length - P1.length).join(" "), whole: fill => tpl.replace("___", fill) };
+}
 function cxCheck(item, typed, sec) {
-  const fills = cxGapFills(item), answers = [...cxAnswers(item), ...fills, ...(item.k === "order" || item.fixed ? [] : cxOrders(item))], t = String(typed || "").trim();
+  const fills = cxGapFills(item), answers = [...cxAnswers(item), ...fills, ...(item.k === "order" || item.fixed ? [] : cxOrders(item))];
+  let t = String(typed || "").trim(), inner = null;
+  if (t && !answers.some(a => cxLoose(a) === cxLoose(t))) { inner = cxGapInner(item, t); if (inner) t = inner.text; }
+  // (the whole sentence typed: the answer shown is the whole sentence too, so a miss marks only the slip)
+  if (inner) { const r = cxCheck(Object.assign({}, item, { q: "" }), t, sec); return Object.assign(r, { right: inner.whole(r.right) }); }
   if (!t) return { ok: false, empty: true, soft: [], right: answers[0] || "" };
   for (const a of answers) {
     if (cxStrict(a) === cxStrict(t)) {
@@ -448,23 +479,26 @@ function cxNounGender(noun) {
 }
 function cxDiagnose(item, T, A, sec, orig = null) {
   const list = [...(item.diag || []), ...((sec && sec.diag) || [])];
+  // the right word as the answer spells it (möchte, not mochte), small
+  const W0 = orig && orig.length === A.length ? orig : null;
+  const spell = t => { const k = A.indexOf(t); return W0 && k >= 0 ? W0[k].toLowerCase() : t; };
   const fill = (m, o) => String(m || "").replace(/\{(\w+)\}/g, (s, k) => o[k] !== undefined ? o[k] : s);
   for (const d of list) {
     let o = null;
     if (d.t === "swap") {
       const f = cxRx(d.from), to = cxRx(d.to);
       const tf = cxMinus(T, A).find(x => f.test(x)), at = cxMinus(A, T).find(x => to.test(x));
-      if (tf && at) o = { typed: tf, right: at };
+      if (tf && at) o = { typed: tf, right: spell(at) };
     } else if (d.t === "ending") {
       const re = new RegExp("^" + d.stem + "\\w*$");
       const tf = cxMinus(T, A).find(x => re.test(x)), at = cxMinus(A, T).find(x => re.test(x));
       if (tf && at) {
-        o = { typed: tf, right: at };
+        o = { typed: tf, right: spell(at) };
         // The noun it goes with, and its gender when the decks know it:
         // "ein Café … It's das Café (neuter)" says why at once.
         const k = A.indexOf(at), W = orig && orig.length === A.length ? orig : null;
         const noun = W && W[k + 1] && /^[A-ZÄÖÜ]/.test(W[k + 1]) ? W[k + 1] : "";
-        if (noun) { o.right = `${at} ${noun}`; const g = cxNounGender(noun); if (g) o.gender = `It's **${g} ${noun}** (${CX_GENDER_NAME[g]}).`; }
+        if (noun) { o.right = `${spell(at)} ${noun}`; const g = cxNounGender(noun); if (g) o.gender = `It's **${g} ${noun}** (${CX_GENDER_NAME[g]}).`; }
       }
     } else if (d.t === "seq") {
       const [a, b] = d.seq.map(cxRx);
@@ -623,7 +657,8 @@ function cxTestoutPlan(secId) {
 // ── THE ORDER ─────────────────────────────────
 // A checkpoint opens once every other section of its stage is done.
 function cxCheckpointReady(sec) {
-  return CX.sections.filter(s => s.stage === sec.stage && s !== sec && !(s.kind === "recap")).every(s => cxSecDone(s.id));
+  const late = cxLate();
+  return CX.sections.filter(s => s.stage === sec.stage && s !== sec && !(s.kind === "recap")).every(s => cxSecDone(s.id) || cxGivesWay(s, late));
 }
 // The stage's lesson sections done, and the rules they taught.
 function cxStageRules(stage) {
@@ -698,6 +733,20 @@ function cxLessonBuilt(s) {
 }
 // The post-B1 bonus waits for every other lesson.
 function cxBonusOpen() { return CX.sections.every(s => s.prio === "C" || cxSecDone(s.id)); }
+// ── BEHIND: WHAT GIVES WAY (PLAN.md §5) ──
+// Behind — red: more sheets left than study days — a Should lesson not
+// begun gives its place to the Must ones: it comes as soon as no Must
+// lesson is ready, so nothing is ever skipped; if the date comes first,
+// it is what's left. A stage's checkpoint stops waiting for it. Never a
+// verb lesson (it paces the verb track), never a checkpoint, never a
+// lesson under way. Caught up again: the usual order.
+function cxLate(today = studyToday()) { return cxStatusOf(cxClock(today)) === "red"; }
+function cxGivesWay(s, late) { return !!late && s.prio === "S" && !cxIsVerb(s) && !cxIsRecap(s) && !cxLessonStarted(s); }
+// The lessons ready now, in the order the clock takes them.
+function cxReadyInOrder(late = cxLate()) {
+  const r = CX.sections.filter(cxLessonReady);
+  return late ? [...r.filter(s => !cxGivesWay(s, true)), ...r.filter(s => cxGivesWay(s, true))] : r;
+}
 // Can it be learned now: built, not done, every lesson it builds on
 // (`after`) done; a checkpoint once its stage is; the bonus after the rest.
 function cxLessonReady(s) {
@@ -722,12 +771,12 @@ function cxCurrentLesson() {
 // The lesson the clock takes next: the one under way, else the first
 // ready one in course order (an earlier lesson built later comes first).
 function cxClockLesson() {
-  return cxCurrentLesson() || CX.sections.find(cxLessonReady) || null;
+  return cxCurrentLesson() || cxReadyInOrder()[0] || null;
 }
 // The next lessons in the clock's order (built and ready).
 function cxNextSections(n = 1) {
   const cur = cxCurrentLesson(), out = cur ? [cur] : [];
-  for (const s of CX.sections) { if (out.length >= n) break; if (s !== cur && cxLessonReady(s)) out.push(s); }
+  for (const s of cxReadyInOrder()) { if (out.length >= n) break; if (s !== cur) out.push(s); }
   return out.slice(0, n);
 }
 // My rhythm: the share of days I opened the app over the last 4 weeks
@@ -824,7 +873,7 @@ function cxDayLessons(scan) {
   // A lesson finished today (its break starts) brings no other one today
   // unless behind.
   if (!cur && cxLearnedToday() && allow < 2) return [];
-  const list = cur ? [cur, ...CX.sections.filter(s => s !== cur && cxLessonReady(s))] : CX.sections.filter(cxLessonReady);
+  const list = cur ? [cur, ...cxReadyInOrder().filter(s => s !== cur)] : cxReadyInOrder();
   for (const s of list) {
     const left = cxLessonLeft(s), k = Math.min(left, room);
     out.push({ s, sheets: k });
@@ -872,14 +921,17 @@ function cxVerbSheetLearned(id) {
 let _cxSimMemo = null;
 function cxClockSim(n = 400, complete = true) {
   const today = studyToday();
-  const key = [today, complete, n, CX.packs.length, S.course && S.course.last, cxSheetsToday(), cxLessonsDone(), cxSheetsLeft(), S.path && S.path.deadline, Object.keys((S.course && S.course.dd) || {}).length].join("|");
+  const late = cxLate(today);
+  const key = [today, complete, n, CX.packs.length, S.course && S.course.last, cxSheetsToday(), cxLessonsDone(), cxSheetsLeft(), S.path && S.path.deadline, Object.keys((S.course && S.course.dd) || {}).length, late].join("|");
   if (_cxSimMemo && _cxSimMemo.key === key) return _cxSimMemo.out;
   const G = cxClock(today).G, done = new Set(CX.sections.filter(s => cxSecDone(s.id)).map(s => s.id));
   const left = {};
   CX.sections.forEach(s => { if (!done.has(s.id)) left[s.id] = cxLessonLeft(s); });
   const isDone = id => done.has(id);
+  // (behind: a Should lesson not begun gives way — as cxReadyInOrder)
+  const gives = s => cxGivesWay(s, late);
   const ready = s => !isDone(s.id) && (complete || cxLessonBuilt(s)) && (s.after || []).every(isDone)
-    && (!cxIsRecap(s) || CX.sections.filter(x => x.stage === s.stage && x !== s && !cxIsRecap(x)).every(x => isDone(x.id)))
+    && (!cxIsRecap(s) || CX.sections.filter(x => x.stage === s.stage && x !== s && !cxIsRecap(x)).every(x => isDone(x.id) || gives(x)))
     && (s.prio !== "C" || CX.sections.every(x => x.prio === "C" || isDone(x.id)));
   let k = done.size, last = (S.course && S.course.last) || "", cur = cxCurrentLesson();
   const out = { days: [], start: {}, end: {}, last: "" };
@@ -899,7 +951,7 @@ function cxClockSim(n = 400, complete = true) {
     const d = addDays(today, i);
     let id = null;
     if (!cur && (!last || daysBetween(last, d) > cxBreakAfter(k, G))) {
-      cur = CX.sections.find(ready) || null;
+      cur = CX.sections.find(s => ready(s) && !gives(s)) || CX.sections.find(ready) || null;
       if (cur && !out.start[cur.id]) out.start[cur.id] = d;
     }
     if (cur) {

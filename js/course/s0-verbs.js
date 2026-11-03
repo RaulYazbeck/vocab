@@ -236,6 +236,22 @@ cxPack({
           { q: "(Anna) Sie liest den Text laut.", a: ["Lies den Text laut!"], r: ["gs:im2.r1"], vf: [["lesen", "im", "du"]] },
           { q: "(Paul) Er hat keine Angst.", a: ["Hab keine Angst!", "Habe keine Angst!"], r: ["gs:im2.r3"], vf: [["haben", "im", "du"]] },
         ] },
+        // ── Übung 18•4 (Session 4): one sentence, a command for du, ihr or Sie ──
+        // (chapter 18 is wissen and kennen; its last exercise practises commands)
+        { id: "d18.4", ex: "18.4", t: "transform", low: true, title: "du, ihr or Sie?", how: "Turn the sentence into a command — for du, ihr or Sie, as the brackets say.", items: [
+          { q: "(du) Lisa erklärt es auf Deutsch.", a: ["Erklär es auf Deutsch!", "Erkläre es auf Deutsch!"], r: ["gs:im1.r1"], vf: [["erklären", "im", "du"]] },
+          { q: "(ihr) Wir empfehlen ein Hotel.", a: ["Empfehlt ein Hotel!"], r: ["gs:im1.r2"], vf: [["empfehlen", "im", "ihr"]] },
+          { q: "(Sie) Wir bleiben in der Stadt.", a: ["Bleiben Sie in der Stadt!"], r: ["gs:im1.r3"], vf: [["bleiben", "im", "Sie"]] },
+          { q: "(du) Tom probiert die Suppe.", a: ["Probier die Suppe!", "Probiere die Suppe!"], r: ["gs:im1.r1"], vf: [["probieren", "im", "du"]] },
+          { q: "(du) Tom probiert die Jacke an.", a: ["Probier die Jacke an!", "Probiere die Jacke an!"], r: ["gs:im3.r1"] },
+          { q: "(ihr) Wir fahren nach Hause.", a: ["Fahrt nach Hause!"], r: ["gs:im1.r2"], vf: [["fahren", "im", "ihr"]] },
+          { q: "(Sie) Er macht das Fenster zu.", a: ["Machen Sie das Fenster zu!"], r: ["gs:im1.r3", "gs:im3.r1"], vf: [["zumachen", "im", "Sie"]] },
+          { q: "(ihr) Die Kinder sprechen leiser.", a: ["Sprecht leiser!"], r: ["gs:im1.r2"], vf: [["sprechen", "im", "ihr"]] },
+          { q: "(du) Ich lese den Brief vor.", a: ["Lies den Brief vor!"], r: ["gs:im2.r1", "gs:im3.r1"], vf: [["vorlesen", "im", "du"]] },
+          { q: "(du) Er ist pünktlich.", a: ["Sei pünktlich!"], r: ["gs:im2.r2"], vf: [["sein", "im", "du"]] },
+          { q: "(Sie) Sie ist geduldig.", a: ["Seien Sie geduldig!"], r: ["gs:im2.r2"], vf: [["sein", "im", "Sie"]] },
+          { q: "(du) Sie gibt mir das Salz.", a: ["Gib mir das Salz!"], r: ["gs:im2.r1"], vf: [["geben", "im", "du"]] },
+        ] },
         // ── Übung 12•12: Sie-commands at the office ──
         { id: "d12.12", ex: "12.12", t: "transform", low: true, title: "First day at the office", how: "The boss's instructions: make Sie-commands.", items: [
           { q: "die E-Mails beantworten", a: ["Beantworten Sie die E-Mails!", "Beantworten Sie bitte die E-Mails!"], r: ["gs:im1.r3"], vf: [["beantworten", "im", "Sie"]] },
@@ -417,9 +433,10 @@ cxCover({
   "12.12": "d12.12", "12.13": "d12.13", "12.14": "d12.14", "12.15": "d9.4", "12.16": "d12.16", "12.18": "d12.16",
   // (chapter 12's prefixes: the separable/inseparable lesson's drills, s1-prefixes.js)
   "17.1": { st: "generated", set: "d17.1" }, "17.2": { st: "generated", set: "d17.1" }, "17.3": "d17.3", "17.4": "d17.4", "17.7": "d17.7",
-  // lassen, sehen, hören + infinitive: the lassen lesson (Session 7); the rest of chapter 17: modal position (Session 4) and the double infinitive (Session 7)
+  // lassen, sehen, hören + infinitive: the lassen lesson (Session 7); 17•8–17•15, modal
+  // position: s1-modal.js (Session 4); the double infinitive: Session 7
   "17.5": { st: "planned", sec: "s2.lassen" }, "17.6": { st: "planned", sec: "s2.lassen" },
-  "17.8": { st: "planned", sec: "s1.modal" }, "17.9": { st: "planned", sec: "s1.modal" }, "17.10": { st: "planned", sec: "s1.modal" }, "17.11": { st: "planned", sec: "s1.modal" },
-  "17.12": { st: "planned", sec: "s1.modal" }, "17.13": { st: "planned", sec: "s1.modal" }, "17.14": { st: "planned", sec: "s1.modal" }, "17.15": { st: "planned", sec: "s1.modal" },
   "17.16": { st: "planned", sec: "s2.modpf" }, "17.17": { st: "planned", sec: "s2.modpf" },
+  // chapter 18's commands (Session 4)
+  "18.4": "d18.4",
 });

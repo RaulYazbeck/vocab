@@ -99,7 +99,8 @@ function cxRender() {
   } else if (k === "translate") {
     body = `<div class="gs-qtext cx-en">🇬🇧 ${gsMd(item.q)}</div>${input("in German…")}`;
   } else if (k === "answer") {
-    body = `<div class="gs-qtext">💬 ${gsMd(item.q)}</div>${input("Nein, …")}`;
+    // ("Nein, …" only where every answer starts that way — elsewhere it would mislead)
+    body = `<div class="gs-qtext">💬 ${gsMd(item.q)}</div>${input((item.a || []).length && item.a.every(a => /^nein\b/i.test(a)) ? "Nein, …" : "your answer…")}`;
   } else {
     body = `<div class="gs-qtext">${cxQHtml(item)}</div>${input(k === "type" ? "type it…" : "the whole sentence…")}`;
   }

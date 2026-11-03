@@ -16,6 +16,11 @@ the 📖 Course / 🧩 Practise / 📚 By chapter / ✍️ Writing screens) and 
                                dative verbs, the contrast with the accusative (s1-dative), wer / wen /
                                wem, welcher, was für (s1-questions), and the A2 verb lessons' book
                                exercises: the Perfekt (s1-perfekt) and separable vs inseparable (s1-prefixes)
+                               Stage 1B (Session 4): the prepositions — accusative, dative, two-way, and
+                               wo? or wohin? (s1-prep) · und, aber, oder, denn, sondern and weil, dass,
+                               wenn (s1-conj) · the modals' position (s1-modal) · wissen or kennen
+                               (s1-wissen) · reflexive pronouns (s1-reflexive) · the regular Präteritum's
+                               book exercises (s1-praeteritum)
     js/course/writing.js       the writing themes (cxJournalThemes) and prompts (cxJournal)
 
 German app only (`de/index.html` loads them; the French app never does).
@@ -71,6 +76,8 @@ a later session that uploads its chapter.
      practised from the lesson's page (🧩 Practise), 📚 By chapter, and mixed into the
      contrast days and 🔀 Mixed once the lesson is done. A section with more sets than
      a drill has room for gives the least-asked ones in turn, its production last.
+   - Tables: keep a sheet's table narrow enough for a phone (360px: two or three short
+     columns, phrases not sentences) — t-course checks every table from Session 4 on.
    - `diag`: detectors that name the rule a wrong answer broke (swap · ending · seq ·
      pos · missing · extra) — a verb lesson's pack has them too (its rules are `gs:` points).
      `missing` / `extra` fire only when that word is (nearly) all that differs — at most one
@@ -94,7 +101,8 @@ a later session that uploads its chapter.
    - A stage's recap section: `checkpoint: { n: 20, pass: 0.8 }` (a sheet is optional). It
      opens once every other section of the stage is done, asks the stage's rules mixed,
      and comes back the next day when missed — after 3 tries the stage moves on anyway.
-   - Scenario units (Stage 3): a sheet holding the dialogue (`lines`), key phrases as
+   - Scenario units (Stage 3 — each placed right after the lesson its dialogue needs, so its
+     sentences use only the grammar taught by then; see PLAN.md §6): a sheet holding the dialogue (`lines`), key phrases as
      rules, drill sets of kinds `order` (the conversation), `respond` and `type`, and a
      `write` set — no new code needed.
    - Writing prompts tied to the section (optional): `cxJournal([{ id: "w.<name>", th, lv, de,
@@ -117,7 +125,8 @@ a later session that uploads its chapter.
     node t-course.mjs                 # the real app (serve the repo root on :8765 first, and
                                       # npm install once in tools/audio/tests): progress intact,
                                       # Today with the course (test-out → sheet → drill, the count),
-                                      # a test-out passed, every format and screen on phone + desktop,
+                                      # a test-out passed, every format and screen on phone + desktop
+                                      # (from Session 4 on, every sheet's table fits the phone whole),
                                       # the parts opening in place, By chapter and its Übungen, back
                                       # buttons, ✍️ Writing, 📚 My dues (list + a round of only
                                       # what's due), the Journey's grammar block and days,
