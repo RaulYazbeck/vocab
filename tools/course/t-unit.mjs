@@ -716,6 +716,49 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   });
 }
 
+// ── behind: a Should lesson not begun gives way to the Must ones (PLAN.md §5) ──
+{
+  C.vxOn = () => true;
+  const VERBS0 = ["pr1", "pr2", "pr3", "pr4", "pr5", "pr7", "im1", "im2", "im3", "pf1", "pt11", "pt12", "pt13"];
+  // on time (15 Aug 2027): the course's own order — Sounds and spelling (Should) first
+  fresh();
+  ok(C.cxStatusOf(C.cxClock()) !== "red" && !C.cxLate() && C.cxClockLesson().id === "s0.sounds", `on time: the usual order, Sounds first (${C.cxClockLesson().id})`);
+  // behind (a date the course can't make at a sheet a day): the Must lessons first
+  fresh({ path: { deadline: "2026-12-01", newPerDay: 10 } });
+  ok(C.cxLate() && C.cxClockLesson().id === "s0.gender", `behind: Sounds (Should) gives way — Gender first (${C.cxClockLesson().id})`);
+  const nx0 = C.cxNextSections(30).map(s => s.id);
+  ok(nx0[0] === "s0.gender" && nx0.indexOf("s0.sounds") > 0 && nx0.slice(0, nx0.indexOf("s0.sounds")).every(id => C.cxSection(id).prio === "M"),
+    `…and the coming lessons list it after the Must ones ready now (${nx0.join(" ")})`);
+  const sim = C.cxClockSim(400, false);
+  ok(sim.start["s0.gender"] && sim.start["s0.sounds"] && sim.start["s0.sounds"] > sim.start["s0.gender"], `the forecast agrees: Sounds starts after Gender (${sim.start["s0.gender"]} · ${sim.start["s0.sounds"]})`);
+  // nothing is skipped: once no Must lesson is ready, it comes
+  C.CX.sections.filter(s => s.stage === 0 && !s.verb && s.prio === "M" && !s.checkpoint).forEach(s => { C.S.course.sec[s.id] = { st: 3 }; });
+  VERBS0.forEach(v => { C.S.verb.sh[v] = 100; });
+  ok(C.cxCheckpointReady(C.cxSection("s0.recap")), "behind: the Stage 0 checkpoint doesn't wait for Sounds");
+  const nx = C.cxNextSections(40).map(s => s.id);
+  ok(nx.indexOf("s0.recap") >= 0 && nx.indexOf("s0.sounds") > nx.indexOf("s0.recap") && nx.indexOf("s0.sounds") > nx.indexOf("s1.front"), `behind: the checkpoint and the A2 lessons first, Sounds still in the list (${nx.slice(0, 4).join(" ")} … s0.sounds at ${nx.indexOf("s0.sounds")})`);
+  // a lesson under way is never put off
+  C.S.course.sec["s0.sounds"] = { st: 1 };
+  ok(C.cxClockLesson().id === "s0.sounds", "behind, but Sounds already begun: it finishes first");
+  // on time again: the usual order (and the checkpoint waits for every lesson of its stage)
+  fresh(); C.CX.sections.filter(s => s.stage === 0 && !s.verb && s.prio === "M" && !s.checkpoint).forEach(s => { C.S.course.sec[s.id] = { st: 3 }; });
+  VERBS0.forEach(v => { C.S.verb.sh[v] = 100; });
+  ok(!C.cxCheckpointReady(C.cxSection("s0.recap")) && C.cxClockLesson().id === "s0.sounds", "on time: the checkpoint waits for Sounds, which comes next");
+  // a verb lesson never gives way (it paces the verb track): Stage 1 behind keeps the regular Präteritum where it is
+  fresh({ path: { deadline: "2026-12-01", newPerDay: 10 } });
+  C.CX.sections.filter(s => s.stage === 0 && !s.verb).forEach(s => { C.S.course.sec[s.id] = { st: 3 }; }); VERBS0.forEach(v => { C.S.verb.sh[v] = 100; });
+  const order = [];
+  for (let k = 0; k < 30; k++) { const s = C.cxClockLesson(); if (!s) break; order.push(s.id); if (s.verb) s.verb.forEach(v => { C.S.verb.sh[v] = 100; }); else C.S.course.sec[s.id] = { st: 3 }; if (s.id === "s1.refl") break; }
+  ok(C.cxLate() && order.indexOf("s1.pt21") === order.indexOf("s1.accprep") + 1, `behind: the regular Präteritum (a verb lesson) keeps its place (${order.join(" ")})`);
+  // the conversation units sit right after the grammar they need, in their own part
+  const pos = id => C.CX.sections.indexOf(C.cxSection(id));
+  ok(pos("s3.greet") === pos("s1.datprep") + 1 && pos("s3.way") === pos("s1.wowohin") + 1 && pos("s3.shop") === pos("s1.modal") + 1
+    && pos("s3.bus") === pos("s1.verbprep") + 1 && pos("s3.school") === pos("s1.recap") + 1 && pos("s3.travel") === pos("s2.k2") + 1,
+    "the six conversation units: each right after the lesson its dialogue needs");
+  ok(["s3.greet", "s3.way", "s3.bus", "s3.school", "s3.shop", "s3.travel"].every(id => C.cxSection(id).stage === 3) && !C.cxStageRules(1).some(r => /^s3/.test(r)),
+    "…still their own part (💬), not in Stage 1's or 2's checkpoint");
+}
+
 // ── a pile bigger than a day: the reviews take turns ──
 // (Session 3's review: the slips came in the course's order every day and
 // the rules due by lowest stage, so a pile left some unasked for weeks)

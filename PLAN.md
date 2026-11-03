@@ -141,7 +141,13 @@ Stage (0 = A1 sweep · 1 = A2 · 2 = B1 · 3 = conversation · post-B1)
 
 **What the learner sees is the order.** Priority lives in the background
 (MoSCoW: *Must* / *Should* / *Could*) and is used only by the planner: if time
-runs short it drops from the bottom, *Could* first. *Could* = post-B1.
+runs short it drops from the bottom, *Could* first. *Could* = post-B1 (it waits
+for every other lesson). *Should*, when behind (since 2 Nov 2026): while the
+pace is red (more sheets left than study days), a *Should* lesson not begun
+gives its place to the *Must* ones — it comes as soon as no *Must* lesson is
+ready, so nothing is skipped; if the date comes first, it is what's left. A
+stage's checkpoint stops waiting for it. Never a verb lesson (it paces the verb
+track), never a lesson under way; caught up, the usual order returns.
 
 Order rule: foundations and the most-used structures first; within a level,
 what the next sections build on comes first; speaking-useful phrases early.
@@ -237,7 +243,18 @@ review only; miss → the sheet is scheduled.
 Six **scenario units** — greetings and introductions · asking the way · at the
 bus stop · school and study (studieren vs lernen) · shopping and prices ·
 travel. Each: a dialogue, key phrases, drills (order the conversation, pick the
-response, fill the missing line) and a short writing prompt.
+response, fill the missing line) and a short writing prompt. Small — about two
+sheets each.
+
+**Where they come (since 2 Nov 2026):** not at the end — each right after the
+grammar its dialogue needs, among the Stage 1 and 2 lessons: greetings and
+introductions after the dative prepositions (*ich komme aus …, wohne seit …*,
+≈ early Jan) · asking the way after wo? vs wohin? (≈ mid Jan) · shopping after
+the modals (*ich möchte …, Kann ich Ihnen helfen?*, ≈ Feb) · the bus stop after
+verb + preposition (*warten auf den Bus*, ≈ Mar) · school and study after the
+Stage 1 checkpoint · travel after Konjunktiv II (*ich hätte gern …*). They stay
+their own part (💬) and outside the stages' checkpoints; five are *Must*,
+school and study *Should*.
 
 ### Post-B1 (background, *Could*)
 
@@ -761,6 +778,10 @@ n-declension and adjectives as nouns · Stage 2 recap and checkpoint.
 
 **Upload:** chapters 30, 31. *(from the course map: `node tools/course/session.mjs 8`)*
 **Builds:** the 6 scenario units (dialogue, key phrases, drills, a writing prompt each).
+Each unit's dialogue and drills use only the grammar taught before its slot (§6,
+Stage 3: greetings and the way and shopping and the bus stop are A2 — no
+Präteritum of strong verbs, no Konjunktiv II, no relative clauses; travel may use
+*hätte gern / würde gern*).
 
 ### Session 9 — polish
 
@@ -822,6 +843,7 @@ screen · coverage report at 100 % (every blueprint exercise *mirrored*,
 - **Session 2 (21 Oct 2026):** a verb lesson's book exercises are drills of the verb section, tagged with the verb sheets' points (`gs:…`); they don't add review cards of their own (the verb track reviews its verbs) and come in through the lesson's Practise card, By chapter and the mixed days. A test-out asks 6–8 questions covering every rule of the lesson, one miss allowed. Sentences of five words or more that happen to be the book's are rephrased; the book check covers the sheets' rule texts too. *(22 Oct: a short, simple sentence — four words or fewer, like* Wer ist das? — *is anyone's German, not the book's: it's fine.)*
 - **Session 3 (26 Oct 2026):** the question words come after the dative (wer / wen / wem / wessen in one lesson, since *wem?* needs the dative); an exercise goes to the lesson that teaches what it practises even when its heading is another lesson's (chapter 11's time adverbs → the future, chapter 14's conjunctions → Session 4, chapter 13's prepositions → the accusative prepositions), so a session may need fewer chapters than its first list; a verb lesson's pack has its own detectors (`gs:` rules) so a miss in the Perfekt says *sein*, not just the rule's name.
 - **Session 4 (1 Nov 2026):** weil / dass / wenn comes before the modals (their second sheet needs it); the strong Präteritum comes after wo? vs wohin? (review, 2 Nov: a contrast follows its lesson at once — the month after the regular Präteritum stays); an exercise whose heading is a modal's but which practises the future (11•10–11•13) goes to the future lesson; a chapter's last exercise that practises something else (18•4: commands) is mirrored with the lesson that teaches that; a person after a preposition is a pronoun (*für ihn*), a thing *da-* (*dafür*) — taught with each preposition lesson, the wo- / da- compounds' own lesson (Session 6) builds on it; *zu dem* → *zum* is drilled as the usual form (the long form counts as a mistake with its reason, not as wrong German); from Session 4 on a sheet's table fits a phone whole.
+- **Conversations earlier, Should gives way when behind (2 Nov 2026):** the six scenario units come right after the grammar each needs (§6 Stage 3), not after Stage 2 — they are the closest thing to the oral exam and are small. When behind, what gives way first is the *Should* grammar (modal particles, participles as adjectives, n-declension, genitive prepositions, the Perfekt of modals, lassen, man, adverbs, short answers; and school and study), not the conversations (§5). I suggested the conversations should fall off first and asked Claude's view; Claude chose *Should* instead (reason above) — mine to confirm or change.
 - **Known shortcoming, parked (2 Nov 2026):** with low attendance (every other day) the lessons met in the last weeks can't all reach 🌳 Known by the date — up to 20 of 345 rules short in the simulation, the last lessons'. The app does warn (pace red) and shortens the breaks. The fix, if ever needed: a margin that grows when attendance drops (40 days at full attendance, ≈ 70 at every other day, capped), verified on 8 seeds of "half the days skipped", the matrix, t-stage1 and the 150-day sim-app. Not done: I study every day and I'm the only user.
 - **Verb + preposition in Stage 1 (2 Nov 2026):** *warten auf, sich freuen auf, denken an* are everyday spoken A2 — the lesson (now `s1.verbprep`, A2) comes right after the reflexive pronouns (≈ late Feb) instead of mid-April in Stage 2; still built in Session 6, the wo- / da- compounds stay in Stage 2 right after it.
 - **Session 2 audit (21 Oct 2026):** every new sheet and item proofread (15 fixes: a rule that put *die Mutter* among the masculine plurals, a few stiff sentences, missing natural answers in translations). The verb lessons' own sentences now feed the learning log's verbs (before, only generated items did). *(22 Oct: umlauts are never typed, as agreed — a missing one is never a mistake, in the drills or the log; the course's drills now ask the verb track's small 1 / 2 choice when the plain spelling is another real form: fahrt → fährt or fahrt?)* 📚 a chapter's Übungen render their *italics*; on a verb lesson page 🧩 Practise sits right under the sheets. The logs test's fake cloud gained `batch` (its one failure was the test, not the app). Known and left as agreed: the quest test's late-deficit stress day can end one ledger form short (extra practice asks for exactly what a quest lacks).

@@ -101,7 +101,8 @@ a later session that uploads its chapter.
    - A stage's recap section: `checkpoint: { n: 20, pass: 0.8 }` (a sheet is optional). It
      opens once every other section of the stage is done, asks the stage's rules mixed,
      and comes back the next day when missed — after 3 tries the stage moves on anyway.
-   - Scenario units (Stage 3): a sheet holding the dialogue (`lines`), key phrases as
+   - Scenario units (Stage 3 — each placed right after the lesson its dialogue needs, so its
+     sentences use only the grammar taught by then; see PLAN.md §6): a sheet holding the dialogue (`lines`), key phrases as
      rules, drill sets of kinds `order` (the conversation), `respond` and `type`, and a
      `write` set — no new code needed.
    - Writing prompts tied to the section (optional): `cxJournal([{ id: "w.<name>", th, lv, de,

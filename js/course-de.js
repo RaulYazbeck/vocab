@@ -657,7 +657,8 @@ function cxTestoutPlan(secId) {
 // ── THE ORDER ─────────────────────────────────
 // A checkpoint opens once every other section of its stage is done.
 function cxCheckpointReady(sec) {
-  return CX.sections.filter(s => s.stage === sec.stage && s !== sec && !(s.kind === "recap")).every(s => cxSecDone(s.id));
+  const late = cxLate();
+  return CX.sections.filter(s => s.stage === sec.stage && s !== sec && !(s.kind === "recap")).every(s => cxSecDone(s.id) || cxGivesWay(s, late));
 }
 // The stage's lesson sections done, and the rules they taught.
 function cxStageRules(stage) {
@@ -732,6 +733,20 @@ function cxLessonBuilt(s) {
 }
 // The post-B1 bonus waits for every other lesson.
 function cxBonusOpen() { return CX.sections.every(s => s.prio === "C" || cxSecDone(s.id)); }
+// ── BEHIND: WHAT GIVES WAY (PLAN.md §5) ──
+// Behind — red: more sheets left than study days — a Should lesson not
+// begun gives its place to the Must ones: it comes as soon as no Must
+// lesson is ready, so nothing is ever skipped; if the date comes first,
+// it is what's left. A stage's checkpoint stops waiting for it. Never a
+// verb lesson (it paces the verb track), never a checkpoint, never a
+// lesson under way. Caught up again: the usual order.
+function cxLate(today = studyToday()) { return cxStatusOf(cxClock(today)) === "red"; }
+function cxGivesWay(s, late) { return !!late && s.prio === "S" && !cxIsVerb(s) && !cxIsRecap(s) && !cxLessonStarted(s); }
+// The lessons ready now, in the order the clock takes them.
+function cxReadyInOrder(late = cxLate()) {
+  const r = CX.sections.filter(cxLessonReady);
+  return late ? [...r.filter(s => !cxGivesWay(s, true)), ...r.filter(s => cxGivesWay(s, true))] : r;
+}
 // Can it be learned now: built, not done, every lesson it builds on
 // (`after`) done; a checkpoint once its stage is; the bonus after the rest.
 function cxLessonReady(s) {
@@ -756,12 +771,12 @@ function cxCurrentLesson() {
 // The lesson the clock takes next: the one under way, else the first
 // ready one in course order (an earlier lesson built later comes first).
 function cxClockLesson() {
-  return cxCurrentLesson() || CX.sections.find(cxLessonReady) || null;
+  return cxCurrentLesson() || cxReadyInOrder()[0] || null;
 }
 // The next lessons in the clock's order (built and ready).
 function cxNextSections(n = 1) {
   const cur = cxCurrentLesson(), out = cur ? [cur] : [];
-  for (const s of CX.sections) { if (out.length >= n) break; if (s !== cur && cxLessonReady(s)) out.push(s); }
+  for (const s of cxReadyInOrder()) { if (out.length >= n) break; if (s !== cur) out.push(s); }
   return out.slice(0, n);
 }
 // My rhythm: the share of days I opened the app over the last 4 weeks
@@ -858,7 +873,7 @@ function cxDayLessons(scan) {
   // A lesson finished today (its break starts) brings no other one today
   // unless behind.
   if (!cur && cxLearnedToday() && allow < 2) return [];
-  const list = cur ? [cur, ...CX.sections.filter(s => s !== cur && cxLessonReady(s))] : CX.sections.filter(cxLessonReady);
+  const list = cur ? [cur, ...cxReadyInOrder().filter(s => s !== cur)] : cxReadyInOrder();
   for (const s of list) {
     const left = cxLessonLeft(s), k = Math.min(left, room);
     out.push({ s, sheets: k });
@@ -906,14 +921,17 @@ function cxVerbSheetLearned(id) {
 let _cxSimMemo = null;
 function cxClockSim(n = 400, complete = true) {
   const today = studyToday();
-  const key = [today, complete, n, CX.packs.length, S.course && S.course.last, cxSheetsToday(), cxLessonsDone(), cxSheetsLeft(), S.path && S.path.deadline, Object.keys((S.course && S.course.dd) || {}).length].join("|");
+  const late = cxLate(today);
+  const key = [today, complete, n, CX.packs.length, S.course && S.course.last, cxSheetsToday(), cxLessonsDone(), cxSheetsLeft(), S.path && S.path.deadline, Object.keys((S.course && S.course.dd) || {}).length, late].join("|");
   if (_cxSimMemo && _cxSimMemo.key === key) return _cxSimMemo.out;
   const G = cxClock(today).G, done = new Set(CX.sections.filter(s => cxSecDone(s.id)).map(s => s.id));
   const left = {};
   CX.sections.forEach(s => { if (!done.has(s.id)) left[s.id] = cxLessonLeft(s); });
   const isDone = id => done.has(id);
+  // (behind: a Should lesson not begun gives way — as cxReadyInOrder)
+  const gives = s => cxGivesWay(s, late);
   const ready = s => !isDone(s.id) && (complete || cxLessonBuilt(s)) && (s.after || []).every(isDone)
-    && (!cxIsRecap(s) || CX.sections.filter(x => x.stage === s.stage && x !== s && !cxIsRecap(x)).every(x => isDone(x.id)))
+    && (!cxIsRecap(s) || CX.sections.filter(x => x.stage === s.stage && x !== s && !cxIsRecap(x)).every(x => isDone(x.id) || gives(x)))
     && (s.prio !== "C" || CX.sections.every(x => x.prio === "C" || isDone(x.id)));
   let k = done.size, last = (S.course && S.course.last) || "", cur = cxCurrentLesson();
   const out = { days: [], start: {}, end: {}, last: "" };
@@ -933,7 +951,7 @@ function cxClockSim(n = 400, complete = true) {
     const d = addDays(today, i);
     let id = null;
     if (!cur && (!last || daysBetween(last, d) > cxBreakAfter(k, G))) {
-      cur = CX.sections.find(ready) || null;
+      cur = CX.sections.find(s => ready(s) && !gives(s)) || CX.sections.find(ready) || null;
       if (cur && !out.start[cur.id]) out.start[cur.id] = d;
     }
     if (cur) {
