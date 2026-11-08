@@ -204,6 +204,14 @@ function askHintText(w) {
   }
   const pair = /\(\s*(\p{L}+)\s*·\s*(\p{L}+)\s*\)/gu;
   while ((m = pair.exec(hint))) inRange(m.index, m.index + m[0].length);
+  // 3. A noun is asked with its article, so the hint must not tell the
+  // gender: "masculine noun — no plural" → "noun — no plural", and the
+  // answer's own article elsewhere in it ("short for der …") is hidden.
+  const art = (form.match(/^(der|die|das)\s/i) || [])[1];
+  if (art && /n-declension/i.test(hint)) hide.add({ s: -1, e: -1, t: "" }); // the rebuild drops it below
+  if (art) parts.forEach(p => {
+    if (/^(masculine|feminine|neuter|masc|fem|neut)$/i.test(p.t) || p.t.toLowerCase() === art.toLowerCase()) hide.add(p);
+  });
   if (!hide.size) return hint;
   // Rebuild, one "…" for a run of hidden words ("lebte getrennt" → "…").
   let out = "", pos = 0, lastHidden = false;
@@ -215,7 +223,10 @@ function askHintText(w) {
     } else { out += gap + p.t; lastHidden = false; }
     pos = p.e;
   });
-  return out + hint.slice(pos);
+  out += hint.slice(pos);
+  // "… noun" reads oddly: a hidden gender before "noun" is just dropped.
+  // "n-declension" all but says masculine: it waits for the answer too.
+  return art ? out.replace(/…\s+(?=noun\b)/gi, "").replace(/\s*[—·]\s*n-declension\b/gi, "").replace(/(^|[·—]\s*)…,\s*/g, "$1") : out;
 }
 // The hint as HTML for a card that is being asked; revealAskHints()
 // shows the full one in its place after the answer.

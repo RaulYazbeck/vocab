@@ -864,7 +864,8 @@ function collectAttr(w, kind) {
 // gender game never shows hints for that reason).
 const HINT_GENDER_RE = /\b(masculine|feminine|neuter|masc|fem|neut|masculin[oe]?|f[ée]minin[oe]?|femenin[oa]|neutr[oa])\b|\b(der|die|das|le|la|un|une)\s+_{2,}/i;
 function hintGivesGender(w, np) {
-  const h = String(w.hint || "");
+  // What the card showed while it was asked (askHintText hides the gender).
+  const h = typeof askHintText === "function" ? askHintText(w) : String(w.hint || "");
   return !!h && (HINT_GENDER_RE.test(h) || isCorrect(h, np.full));
 }
 function typedGenderOk(val, w) {
