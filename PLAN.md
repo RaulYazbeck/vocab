@@ -803,9 +803,11 @@ Freund*, *die am größten Stadt*, *zu anrufen*, *Ich muss zu arbeiten*, *Um Gel
 `t-fixes` failed before this session's changes, on today's date: its check of the Journey's daily number
 used fixed answer rates where the app uses the ones it measures (`planRate`) — the test now uses the
 app's rates (the app was right). **My progress:** nothing reset. The new lessons come where the course
-puts them: the possessives right after the modals (before wissen / kennen and the reflexives), then — after
-verb + preposition and the bus stop, not built yet — the future, comparison, adjective endings, zu + the
-infinitive; a lesson under way always finishes first. Tests: a Session 5 block in `t-unit` (the order,
+puts them: the possessives right after the modals (before wissen / kennen and the reflexives); after the
+reflexives the future, comparison, adjective endings, zu + the infinitive (verb + preposition and the bus
+stop sit before them in the course but aren't built yet, so the clock takes the built ones; once built —
+Sessions 6 and 8 — they come in wherever I am then, as an earlier lesson built later does); a lesson under
+way always finishes first. Tests: a Session 5 block in `t-unit` (the order,
 what waits for what, the checkpoint waiting for verb + preposition and then asking 24 different rules,
 each sheet's day on the sheets read with production last — six days of the rotation each, the future's
 forms in the verb log, the hard detectors); `t-course` checks every new table fits the phone (two were
