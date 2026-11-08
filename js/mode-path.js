@@ -385,7 +385,7 @@ function renderPathTyped(it) {
     placeholder = WORD_KEY === "fr" ? "type the meaning…" : "type the meaning in English…";
   } else {
     body = `<div class="english-word">${escapeHtml(w.en)}</div>
-      <div class="word-hint">${escapeHtml(hintAsked(w))}</div>`;
+      <div class="word-hint">${askHintHtml(w)}</div>`;
   }
   document.getElementById("p-card").innerHTML = `${pathWordHeader(w, it.fresh ? null : ws)}${kicker}<div class="word-display p-word">${body}</div><div id="p-hint"></div>`;
   pathShowTyped(true, placeholder, it.t !== "reverse");
@@ -429,7 +429,7 @@ function renderPathSay(it) {
          ${sayStepsHtml("meaning", w)}`;
   } else {
     body = `<div class="english-word">${escapeHtml(w.en)}</div>
-      <div class="word-hint">${escapeHtml(hintAsked(w))}</div>
+      <div class="word-hint">${askHintHtml(w)}</div>
       ${sayStepsHtml("word", w)}`;
   }
   document.getElementById("p-card").innerHTML = `${pathWordHeader(w, it.fresh ? null : ws)}${pathKickerHtml(it, ws)}<div class="word-display p-word">${body}</div><div id="p-hint"></div>`;
@@ -470,6 +470,7 @@ function pathSayReveal(heard = "") {
   it.fast = !heard && !it.spoken && it.revealedAt - s.shownAt < SAY_MIN_MS;
   stopPathVoice();
   document.querySelectorAll("#p-card .say-steps").forEach(el => el.remove()); // done: said it, tapped Show
+  revealAskHints(document.getElementById("p-card"));
   const form = gameForm(w);
   let opts;
   if (it.t === "cloze") opts = { answer: it.cloze.answer, sub: normalize(it.cloze.answer) !== normalize(form) ? `${colorArticleHtml(form)} — in this sentence: <strong>${escapeHtml(it.cloze.answer)}</strong>` : "", audio: it.cloze.example[WORD_KEY] || it.cloze.answer, noSentence: true };
@@ -663,6 +664,7 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
   if (s.answered && !fromReverse) return;
   s.answered = true;
   stopPathVoice();
+  revealAskHints(document.getElementById("p-card"));
   const ws = getWS(w.deckId, w.idx);
   const from = stageOf(ws);
   const prevAt = ws.lastAnsweredAt;
@@ -773,7 +775,7 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     : `<div class="p-bad">${typoOk ? `<span class="p-typo" onpointerdown="event.preventDefault();pathSecretTap()">✗</span> Answer:` : val.trim() ? "✗ Answer:" : "Answer:"} <strong${ansTap}>${colorArticleHtml(answerText)}</strong></div>${val.trim() ? `<div class="p-diff">${diffHtml(val, answerText)}</div>` : ""}${note ? `<div class="p-sub">${note}</div>` : ""}`;
   const fb = document.getElementById("p-fb");
   if (fb) fb.innerHTML = `
-    <div class="p-fb-main">${head}${chip}${collectChip}${it.t !== "reverse" ? hintPartsHtml(w) : ""}${it.said && it.t !== "reverse" ? frGenderNoteHtml(w) : ""}${w.pl && it.t !== "cloze" && it.t !== "reverse" && !it.plural ? `<div class="p-sub">plural: ${escapeHtml(w.pl)}</div>` : ""}</div>
+    <div class="p-fb-main">${head}${chip}${collectChip}${it.said && it.t !== "reverse" ? frGenderNoteHtml(w) : ""}${w.pl && it.t !== "cloze" && it.t !== "reverse" && !it.plural ? `<div class="p-sub">plural: ${escapeHtml(w.pl)}</div>` : ""}</div>
     ${it.t === "reverse" ? `<div class="p-sub">${colorArticleHtml(gameForm(w))} = ${escapeHtml(gamePrompt(w))}</div>` : ""}
     ${pathCaseNote(it)}${it.plural && typeof pluralRuleHtml === "function" && pluralRuleHtml(pluralItem(w).np.full, it.plural.replace(/^die /, "")) ? `<div class="p-sub">${pluralRuleHtml(pluralItem(w).np.full, it.plural.replace(/^die /, ""))}</div>` : ""}
     ${examplesHtml(w, "first")}`;

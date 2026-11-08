@@ -51,7 +51,7 @@ function miniStats(ws) {
 // The prompt (word + hint) shown on timer screens.
 function timerWordHtml(word) {
   return `<div class="english-word">${word.en}</div>
-      <div class="word-hint word-hint-lg">${typeof hintAsked === "function" ? hintAsked(word) : word.hint}</div>`;
+      <div class="word-hint word-hint-lg">${askHintHtml(word)}</div>`;
 }
 
 // Example sentences. Variants match the three historical layouts:

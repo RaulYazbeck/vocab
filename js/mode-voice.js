@@ -83,6 +83,7 @@ function stopVoiceSession() {
 }
 
 function showVoiceFeedback(correct, heard, isSkip) {
+  revealAskHints();
   const el = document.getElementById("voice-feedback-area");
   if (!el) return;
   const cls      = correct ? "correct" : "wrong";
@@ -90,7 +91,7 @@ function showVoiceFeedback(correct, heard, isSkip) {
   const heardHtml = heard && !isSkip ? `<div class="voice-feedback-heard">you said: "${escapeHtml(heard)}"</div>` : "";
   const skipHtml  = isSkip ? `<div class="voice-feedback-heard">skipped</div>` : "";
   el.innerHTML = `<div class="voice-feedback ${cls}">
-    <div class="voice-feedback-answer">${icon} <span${sayTapAttrs(currentWord[WORD_KEY])}>${currentWord[WORD_KEY]}</span></div>${hintPartsHtml(currentWord, "voice-feedback-heard")}
+    <div class="voice-feedback-answer">${icon} <span${sayTapAttrs(currentWord[WORD_KEY])}>${currentWord[WORD_KEY]}</span></div>
     ${heardHtml}${skipHtml}
     ${currentWord.pl ? `<div style="font-size:12px;color:#888;margin-top:2px;">plural: ${currentWord.pl}</div>` : ""}
   </div>
@@ -111,7 +112,7 @@ function renderVoiceDrill() {
       </div>
       <div class="word-display">
         <div class="english-word">${currentWord.en}</div>
-        <div class="word-hint">${hintAsked(currentWord)} ${badges}</div>
+        <div class="word-hint">${askHintHtml(currentWord)} ${badges}</div>
       </div>
       <div class="voice-indicator">
         <button class="mic-btn" id="voice-mic-btn" onclick="toggleMic()">🎤</button>
