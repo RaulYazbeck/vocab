@@ -228,8 +228,8 @@ const DECKS_A2 = {
         { en:"the sausage", de:"die Wurst", pl:"die Würste", hint:"noun", examples:[{de:"Eine Wurst mit Pommes, bitte.",en:"A sausage with chips, please."}] },
         { en:"the cream (for skin, or on a cake)", de:"die Creme", pl:"die Cremes", hint:"noun", examples:[{de:"Ich suche eine Creme für die Hände.",en:"I am looking for a cream for the hands."}] },
         { en:"the recipe / prescription", de:"das Rezept", pl:"die Rezepte", hint:"noun", examples:[{de:"Kannst du mir das Rezept für den Kuchen geben?",en:"Can you give me the recipe for the cake?"}] },
-        { en:"the pig", de:"das Schwein", pl:"die Schweine", hint:"noun", examples:[{de:"Auf dem Bauernhof gibt es Schweine und Kühe.",en:"There are pigs and cows on the farm."},{de:"Ich esse kein Schweinefleisch.",en:"I do not eat pork."}] },
-        { en:"the cow / cattle (the animal)", de:"das Rind", pl:"die Rinder", hint:"noun", examples:[{de:"Die Rinder stehen auf der Wiese.",en:"The cattle are standing in the meadow."},{de:"Ich esse nur Rindfleisch.",en:"I only eat beef."}] },
+        { en:"the pig", de:"das Schwein", pl:"die Schweine", hint:"noun — pork = das Schweinefleisch", examples:[{de:"Auf dem Bauernhof gibt es Schweine und Kühe.",en:"There are pigs and cows on the farm."},{de:"Ich esse kein Schweinefleisch.",en:"I do not eat pork."}] },
+        { en:"the cow / cattle (the animal)", de:"das Rind", pl:"die Rinder", hint:"noun — beef = das Rindfleisch", examples:[{de:"Die Rinder stehen auf der Wiese.",en:"The cattle are standing in the meadow."},{de:"Ich esse nur Rindfleisch.",en:"I only eat beef."}] },
       ]
     },
 
@@ -271,7 +271,7 @@ const DECKS_A2 = {
         { en:"the coat", de:"der Mantel", pl:"die Mäntel", hint:"noun", examples:[{de:"Es ist kalt. Zieh deinen Mantel an!",en:"It is cold. Put your coat on!"}] },
         { en:"the cap / woolly hat", de:"die Mütze", pl:"die Mützen", hint:"noun", examples:[{de:"Haben Sie rote Mützen?",en:"Do you have red caps?"}] },
         { en:"the boot", de:"der Stiefel", pl:"die Stiefel", hint:"noun", examples:[{de:"Wie viel kosten die roten Stiefel?",en:"How much do the red boots cost?"}] },
-        { en:"the jeans", de:"die Jeans", hint:"noun — used as singular or plural", examples:[{de:"Ich mag Jeans lieber als Röcke.",en:"I like jeans better than skirts."}] },
+        { en:"the jeans", de:"die Jeans", hint:"noun — used as singular or plural (die Jeans ist / sind)", examples:[{de:"Ich mag Jeans lieber als Röcke.",en:"I like jeans better than skirts."}] },
         { en:"the T-shirt", de:"das T-Shirt", pl:"die T-Shirts", hint:"noun", examples:[{de:"Haben Sie dieses T-Shirt auch in M?",en:"Do you have this T-shirt in M as well?"}] },
         { en:"the sweater / jumper", de:"der Pullover", pl:"die Pullover", hint:"noun", examples:[{de:"Ich brauche einen warmen Pullover.",en:"I need a warm sweater."}] },
         { en:"the glasses", de:"die Brille", pl:"die Brillen", hint:"noun — singular in German", examples:[{de:"Wo ist meine Brille?",en:"Where are my glasses?"}] },
@@ -697,7 +697,7 @@ const DECKS_A2 = {
         { en:"last / most recently", de:"zuletzt", hint:"adverb", examples:[{de:"Wir haben uns vor drei Jahren zuletzt gesehen.",en:"We last saw each other three years ago."}] },
         { en:"a few / a couple of", de:"ein paar", hint:"pronoun — written lowercase", examples:[{de:"Wir fahren ein paar Tage ans Meer.",en:"We are going to the sea for a few days."}] },
         { en:"away / gone", de:"weg", hint:"adverb", examples:[{de:"Meine Brille ist weg. Ich finde sie nicht mehr.",en:"My glasses are gone. I can't find them anymore."}] },
-        { en:"further / onwards", de:"weiter", hint:"adverb", examples:[{de:"Der Bus fährt nicht weiter.",en:"The bus does not go any further."}] },
+        { en:"further / onwards", de:"weiter", hint:"adverb — also weitermachen", examples:[{de:"Der Bus fährt nicht weiter.",en:"The bus does not go any further."}] },
         { en:"towards the speaker (hither)", de:"her", hint:"direction particle", examples:[{de:"Komm bitte mal her!",en:"Please come here!"}] },
         { en:"away from the speaker (thither)", de:"hin", hint:"direction particle", examples:[{de:"Wo gehst du hin?",en:"Where are you going (to)?"}] },
       ]

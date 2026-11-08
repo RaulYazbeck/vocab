@@ -190,7 +190,9 @@ function askHintText(w) {
   const stemOf = (n, a) => n === a || (a.length >= 4 && n.includes(a)) || (commonPrefixLen(n, a) >= 4 && commonPrefixLen(n, a) >= a.length - 2);
   parts.forEach((p, i) => {
     const n = normalize(p.t);
-    if (ASK_HINT_KEEP.test(p.t) || enToks.has(n) || /ing$/.test(n) || (i > 0 && /^to$/i.test(parts[i - 1].t))) return;
+    if (ASK_HINT_KEEP.test(p.t)) return;
+    if (ans.some(a => normalize(a) === n)) { hide.add(p); return; } // the answer itself, even if English has it too (die Jeans)
+    if (enToks.has(n) || /ing$/.test(n) || (i > 0 && /^to$/i.test(parts[i - 1].t))) return;
     if (ans.some(a => stemOf(n, normalize(a)))) hide.add(p);
   });
   // 2. Principal parts: "<Präteritum> · hat|ist [sich] <Partizip II>" and "(hing · gehangen)".
