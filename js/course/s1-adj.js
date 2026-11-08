@@ -60,7 +60,7 @@ cxPack({
             { at: "table", k: "pick", q: "der as the object: den ___ Bahnhof (alt)", o: ["alten", "alte", "alter"], a: 0, why: "den → **-en**." },
             { at: "trap", k: "pick", q: "Which is right?", o: ["Das Wetter ist schön.", "Das Wetter ist schönes.", "Das Wetter ist schöne."], a: 0, why: "After sein: no ending." },
           ] },
-        { id: "cx.adj2", title: "After ein, mein, kein: -er, -es where ein says nothing", qn: 3,
+        { id: "cx.adj2", title: "After ein, mein, kein: -er, -es", qn: 3,
           struct: [["ein · mein", "who"], ["adjective + er / es / e / en", "end"], ["noun", "thing"]],
           why: "Where **ein** has no ending (ein Mann, ein Haus), the **adjective** shows what der or das would: ein alt**er** Mann, ein alt**es** Haus. Elsewhere: as after der. kein, mein, unser… the same.",
           rid: ["adj.ein", "adj.eine", "adj.kein"],

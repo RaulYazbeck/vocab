@@ -249,9 +249,10 @@ sheets each.
 **Where they come (since 2 Nov 2026):** not at the end — each right after the
 grammar its dialogue needs, among the Stage 1 and 2 lessons: greetings and
 introductions after the dative prepositions (*ich komme aus …, wohne seit …*,
-≈ early Jan) · asking the way after wo? vs wohin? (≈ mid Jan) · shopping after
-the modals (*ich möchte …, Kann ich Ihnen helfen?*, ≈ Feb) · the bus stop after
-verb + preposition (*warten auf den Bus*, ≈ Mar) · school and study after the
+≈ early Jan) · asking the way after wo? vs wohin? (≈ mid Jan) · the bus stop after
+verb + preposition (*warten auf den Bus*, ≈ Feb) · shopping after the adjective
+endings (*ich möchte …, eine Nummer größer, die rote Jacke, Ist das Ihrer?* — moved
+there on 8 Nov 2026 from after the modals, ≈ Mar) · school and study after the
 Stage 1 checkpoint · travel after Konjunktiv II (*ich hätte gern …*). They stay
 their own part (💬) and outside the stages' checkpoints; five are *Must*,
 school and study *Should*.
@@ -842,6 +843,24 @@ days skipped", seed 2, 331/338 Known (the mark is 331.2); the 7 short are the la
 (genitive 1, its prepositions 1, adverbs 2, n-declension 3), none of Session 5's — `sim.mjs` now names
 them when it fails. (The same matrix passed 54/54 earlier the same day: it flips with the seed, as noted
 on 2 Nov.)
+
+**UI review (8 Nov 2026):** every card of the new lessons looked at on a phone (390 px) — each format
+(pick, type, build-it tiles, answer, translate, write), right, wrong, "almost", the extra umlaut, a
+sheet's steps, its quiz, the drill's result. Fixed: a gap answered alone with a slip (*um fünf Uhr zu
+aufstehen*) was compared with the whole sentence — the sentence's other words showed as missing and a
+wrong rule fired ("no zu after a modal"); now the gap's own words are compared (*um fünf Uhr
+aufzustehen*, zu goes inside) — every lesson's gap items with whole-sentence answers (Session 4's
+*…, aber ___.* too). Two titles cut to one line (*Adjective endings*, *zu + infinitive; um … zu*;
+the lesson ids are unchanged, so is the progress), one sheet title shortened, one instruction that
+split at a hyphen reworded. **Order:** shopping (Session 8's unit) moved from after the modals to right
+after the adjective endings — *eine Nummer größer, die rote Jacke, billiger, Ist das Ihrer?* need
+comparison, the possessives and the endings.
+**Found on the way (older, the vocabulary's):** on some days "+5 new" brought 4 new words plus a
+review: with the brake on (🐢), the day's base drops a little as words are met (its pace floor follows the
+words left), so the base could fall under what was already met and the +5 filled that gap first. Now a
++5 counts from the words met when it was first pressed (`extraAt`, path.js) — exactly 5, as agreed on 21
+Oct. `t-fixes2` caught it once the date rolled over (its test profile has fixed dates); the quests,
+sync, plan, session, flows, logs, umlaut, review and typing suites pass with it.
 
 ### Session 6 — Stage 2A
 

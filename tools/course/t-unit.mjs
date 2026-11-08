@@ -823,6 +823,12 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   // detectors that fired too widely (fuzzed in the review): the right message, or none
   ok(!/one word/.test(chk("dzu.um", 4, "Lea braucht einen Laptop, um zu Haus zu arbeiten.").msg || "") && !/-el and -er/.test(chk("d23.2", 9, "unsere großen Garten").msg || "") && !/infinitive/.test(chk("d11.11", 1, "Am erst Tag schlafen alle lange.").msg || ""),
     "«um zu Haus», «unsere großen Garten», «Am erst Tag»: no misleading message");
+  // a gap answered alone, with a slip: compared with the gap's words, not the whole sentence
+  // (the sentence's other words were never asked for — they showed as missing, and a wrong rule fired)
+  const ga = chk("d24.8", 3, "um fünf Uhr zu aufstehen");
+  ok(!ga.ok && ga.right === "um fünf Uhr aufzustehen" && ga.rule === "zu.sep", `a gap answered alone: its own words compared, its own slip named (${ga.right} · ${ga.rule})`);
+  const gw = chk("d24.8", 3, "Es ist schwierig, um fünf Uhr zu aufstehen.");
+  ok(!gw.ok && gw.right === "Es ist schwierig, um fünf Uhr aufzustehen." && gw.rule === "zu.sep", "…the whole sentence typed: shown whole, the same slip");
 }
 
 // ── behind: a Should lesson not begun gives way to the Must ones (PLAN.md §5) ──
@@ -861,7 +867,7 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   ok(C.cxLate() && order.indexOf("s1.pt21") === order.indexOf("s1.accprep") + 1, `behind: the regular Präteritum (a verb lesson) keeps its place (${order.join(" ")})`);
   // the conversation units sit right after the grammar they need, in their own part
   const pos = id => C.CX.sections.indexOf(C.cxSection(id));
-  ok(pos("s3.greet") === pos("s1.datprep") + 1 && pos("s3.way") === pos("s1.wowohin") + 1 && pos("s3.shop") === pos("s1.modal") + 1
+  ok(pos("s3.greet") === pos("s1.datprep") + 1 && pos("s3.way") === pos("s1.wowohin") + 1 && pos("s3.shop") === pos("s1.adj") + 1
     && pos("s3.bus") === pos("s1.verbprep") + 1 && pos("s3.school") === pos("s1.recap") + 1 && pos("s3.travel") === pos("s2.k2") + 1,
     "the six conversation units: each right after the lesson its dialogue needs");
   ok(["s3.greet", "s3.way", "s3.bus", "s3.school", "s3.shop", "s3.travel"].every(id => C.cxSection(id).stage === 3) && !C.cxStageRules(1).some(r => /^s3/.test(r)),

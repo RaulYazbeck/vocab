@@ -421,7 +421,10 @@ function cxCheck(item, typed, sec) {
   // (a tie: the one in your word order — the diff then marks only the slip)
   let bestL = -1;
   const lcs = (X, Y) => { const L = Array.from({ length: X.length + 1 }, () => new Array(Y.length + 1).fill(0)); for (let i = 1; i <= X.length; i++) for (let j = 1; j <= Y.length; j++) L[i][j] = X[i - 1] === Y[j - 1] ? L[i - 1][j - 1] + 1 : Math.max(L[i - 1][j], L[i][j - 1]); return L[X.length][Y.length]; };
-  answers.filter(a => !fills.includes(a)).forEach(a => { const A = cxToks(a); const d = cxMinus(A, T).length + cxMinus(T, A).length; const l = d === bestD || d < bestD ? lcs(A, T) : 0; if (d < bestD || (d === bestD && l > bestL)) { bestD = d; best = a; bestL = l; } });
+  // (the gap's own words count too: a gap answered alone, with a slip, is
+  // compared with what fills the gap — not with the whole sentence, whose
+  // other words were never asked for)
+  answers.forEach(a => { const A = cxToks(a); const d = cxMinus(A, T).length + cxMinus(T, A).length; const l = d === bestD || d < bestD ? lcs(A, T) : 0; if (d < bestD || (d === bestD && l > bestL)) { bestD = d; best = a; bestL = l; } });
   const A = cxToks(best);
   const res = { ok: false, soft: [], right: best };
   // One letter off in an ordinary word (not one that carries the grammar):

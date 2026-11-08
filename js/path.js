@@ -213,7 +213,7 @@ function pathMeetWord(w) {
 // ── PACE ──────────────────────────────────────
 function pathRollDay() {
   const P = S.path, today = studyToday();
-  if (P.day !== today) { P.day = today; P.extraToday = 0; P.extraBtn = 0; P.extraUndo = 0; P.spotToday = 0; }
+  if (P.day !== today) { P.day = today; P.extraToday = 0; P.extraBtn = 0; P.extraUndo = 0; P.extraAt = 0; P.spotToday = 0; }
 }
 // Auto-pause after AUTO_PAUSE_DAYS missed days with reviews waiting;
 // it lifts by itself once the backlog is back under THROTTLE_HALF —
@@ -283,7 +283,12 @@ function pathNewQuota(scan = pathScan()) {
   const held = plan && reason !== "paused" ? full - base : 0;
   if (plan && typeof usageNoteBrake === "function") usageNoteBrake(reason, scan.overdue);
   // (extraUndo: "+5"s taken back — counted apart so a sync never brings them back)
-  const quota = base + Math.max(0, (P.extraToday || 0) - (P.extraUndo || 0));
+  // A "+5" counts from the words already met when it was first pressed
+  // (extraAt): the brake's pace floor drops a little as words are met, and
+  // the day's base must not shrink under them — else the +5 first fills
+  // that gap and brings 4 (seen on 8 Nov 2026).
+  const extras = Math.max(0, (P.extraToday || 0) - (P.extraUndo || 0));
+  const quota = ((P.extraBtn || 0) > (P.extraUndo || 0) ? Math.max(base, P.extraAt || 0) : base) + extras;
   return { quota, left: Math.max(0, quota - scan.metToday), reason, base, held };
 }
 // Today's plan in words. When the brake holds new words back, the room
@@ -301,8 +306,11 @@ function planToday(scan = pathScan()) {
 // words still waiting. Its session brings exactly those words.
 function pathLearnExtra() {
   pathRollDay();
-  if (pathNewQuota(pathScan(true)).left > 0) return false;
+  const scan = pathScan(true);
+  if (pathNewQuota(scan).left > 0) return false;
   const P = S.path;
+  // (the first +5 of the day: the words met so far are the day's base from now on)
+  if (!(P.extraBtn > 0)) P.extraAt = scan.metToday;
   P.extraToday = (P.extraToday || 0) + PATH.EXTRA_NEW;
   P.extraBtn = (P.extraBtn || 0) + PATH.EXTRA_NEW;
   saveState();

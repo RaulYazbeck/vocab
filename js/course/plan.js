@@ -96,8 +96,6 @@ cxDefine({
     // (chapter 11's "Position and form of modals" — 11•10–11•13 — is the
     // future with werden: it went to the future lesson in Session 4)
     { id: "s1.modal", ses: 4, stage: 1, level: "A2", prio: "M", n: 2, after: ["s0.verbs", "s0.v2q", "s1.conj2"], title: "Modals: position, and in subordinate clauses", book: [["c17", "Modals used with infinitives"], ["c17", "Modal position in a subordinate clause"], ["c17", "Omission of the infinitive"]] },
-    // 💬 Shopping and prices: ich möchte …, Kann ich Ihnen helfen?, numbers — after the modals.
-    { id: "s3.shop", ses: 8, stage: 3, level: "A2", prio: "M", n: 2, after: ["s1.modal", "s1.datpron"], kind: "scenario", title: "Shopping and prices", book: [["c31", "Shopping"], ["c31", "Euro und Cent"], ["c31", "Einkaufen"], ["c31", "Im Kaufhaus"]] },
     { id: "s1.poss", ses: 5, stage: 1, level: "A2", prio: "M", n: 2, after: ["s1.datprep"], title: "Possessives; von + dative", book: [["c2", "Ein-words"], ["c20", "Possession"]] },
     { id: "s1.wissen", ses: 4, stage: 1, level: "A2", prio: "M", n: 1, after: ["s0.verbs"], title: "wissen vs kennen", book: [["c18", ""], ["c18", "Conjugation of wissen"], ["c18", "Meanings of wissen and kennen"]] },
     { id: "s1.refl", ses: 4, stage: 1, level: "A2", prio: "M", n: 2, after: ["s1.datpron"], title: "Reflexive pronouns (accusative and dative)", book: [["c23", "Reflexive pronouns"]] },
@@ -112,8 +110,12 @@ cxDefine({
     { id: "s1.comp", ses: 5, stage: 1, level: "A2", prio: "M", n: 2, after: ["s0.art"], title: "Comparative and superlative", book: [["c20", "Comparative and superlative"], ["c31", "Comparatives and superlatives"]] },
     // (Session 5: after the comparative too — its third sheet puts der bessere,
     // das größte before a noun; Übung 31•14 is drilled there)
-    { id: "s1.adj", ses: 5, stage: 1, level: "A2", prio: "M", n: 3, after: ["s1.dat", "s0.acc", "s1.comp"], title: "Adjective endings (after der-words · after ein-words · no article)", book: [["c23", "Modifiers"], ["appC", "Declension with der-words"], ["appC", "Declension with ein-words"]] },
-    { id: "s1.zu", ses: 5, stage: 1, level: "A2", prio: "M", n: 2, after: ["s1.modal", "s1.conj2"], title: "zu + infinitive · um…zu, ohne…zu, anstatt…zu", book: [["c24", "Infinitive clauses"], ["c24", "Formation of infinitive clauses"], ["c24", "Verbs that introduce infinitive clauses"], ["c24", "Infinitive clauses as nouns"], ["c24", "Prepositions commonly used with infinitive"], ["c24", "Anstatt zu"], ["c24", "Ohne zu"], ["c24", "Um zu"]] },
+    { id: "s1.adj", ses: 5, stage: 1, level: "A2", prio: "M", n: 3, after: ["s1.dat", "s0.acc", "s1.comp"], title: "Adjective endings", book: [["c23", "Modifiers"], ["appC", "Declension with der-words"], ["appC", "Declension with ein-words"]] },
+    // 💬 Shopping and prices: ich möchte …, Kann ich Ihnen helfen?, numbers — after the adjective
+    // endings (8 Nov 2026; it came after the modals): eine Nummer größer, die rote Jacke, billiger,
+    // Ist das Ihrer? — comparison, the possessives and the endings are taught by then.
+    { id: "s3.shop", ses: 8, stage: 3, level: "A2", prio: "M", n: 2, after: ["s1.modal", "s1.datpron", "s1.adj"], kind: "scenario", title: "Shopping and prices", book: [["c31", "Shopping"], ["c31", "Euro und Cent"], ["c31", "Einkaufen"], ["c31", "Im Kaufhaus"]] },
+    { id: "s1.zu", ses: 5, stage: 1, level: "A2", prio: "M", n: 2, after: ["s1.modal", "s1.conj2"], title: "zu + infinitive; um … zu", book: [["c24", "Infinitive clauses"], ["c24", "Formation of infinitive clauses"], ["c24", "Verbs that introduce infinitive clauses"], ["c24", "Infinitive clauses as nouns"], ["c24", "Prepositions commonly used with infinitive"], ["c24", "Anstatt zu"], ["c24", "Ohne zu"], ["c24", "Um zu"]] },
     { id: "s1.recap", ses: 5, stage: 1, level: "A2", prio: "M", kind: "recap", title: "Checkpoint: building sentences" },
     // 💬 School and study (studieren vs lernen) — once Stage 1 is done.
     { id: "s3.school", ses: 8, stage: 3, level: "B1", prio: "S", n: 2, after: ["s1.recap"], kind: "scenario", title: "School and study (studieren vs lernen)", book: [["c31", "Schulen"], ["c31", "Studieren and lernen"], ["c31", "Im Klassenzimmer"]] },

@@ -149,7 +149,7 @@ cxPack({
           { q: "(spät) Der Zug kommt heute zehn Minuten ___.", a: ["später"], r: ["comp.er"] },
         ] },
         // ── our own: the most — am …sten ──
-        { id: "dcomp.am", t: "type", title: "am …sten", how: "Write the superlative after am — -sten, or -esten after -t, -d, -s, -ß, -z.", items: [
+        { id: "dcomp.am", t: "type", title: "am …sten", how: "Write the superlative after am: …sten (…esten after -t, -d, -s, -ß, -z).", items: [
           { q: "(heiß) Im Juli ist es am ___.", a: ["heißesten"], r: ["comp.am"] },
           { q: "(bequem) Mit dem Zug reist man am ___.", a: ["bequemsten"], r: ["comp.am"] },
           { q: "(alt) In unserer Familie ist mein Opa am ___.", a: ["ältesten"], r: ["comp.am", "comp.uml"] },
