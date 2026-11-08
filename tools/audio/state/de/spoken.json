@@ -19867,7 +19867,7 @@
  "3bujvem6yf": "last",
  "kkurn8s2bi": "lesen Sie",
  "eqgfj4n9en": "lasen",
- "25jfo5oycxa": "lies",
+ "25jfo5oycxa": "lies {\"lies\": \"liːs\"}",
  "13jx5e99mat": "muss gelesen werden",
  "247dbk3ykqk": "müssen gelesen werden",
  "1a24mj0h2v1": "sie haben gelesen",
@@ -34321,5 +34321,6 @@
  "2ajjxwimv12": "ist geöffnet worden",
  "xqeqo6yknt": "sind geöffnet worden",
  "yzk0dy7jiu": "ist übersetzt worden",
- "pi6nw4wceo": "sind übersetzt worden"
+ "pi6nw4wceo": "sind übersetzt worden",
+ "1v65n921txp": "was ist los"
 }

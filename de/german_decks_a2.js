@@ -25,7 +25,7 @@ const DECKS_A2 = {
         { en:"that doesn't matter / no harm done", de:"das macht nichts", hint:"phrase", examples:[{de:"Entschuldigung! – Das macht nichts.",en:"Sorry! – That doesn't matter."}] },
         { en:"no problem", de:"kein Problem", hint:"phrase", examples:[{de:"Kannst du mir helfen? – Kein Problem!",en:"Can you help me? – No problem!"}] },
         { en:"agreed / it's a deal", de:"einverstanden", hint:"phrase", examples:[{de:"Treffen wir uns um acht? – Einverstanden!",en:"Shall we meet at eight? – Agreed!"}] },
-        { en:"what's wrong / what's going on?", de:"was ist los?", hint:"phrase", examples:[{de:"Was ist los? Du siehst traurig aus.",en:"What's wrong? You look sad."}] },
+        { en:"what's wrong / what's going on", de:"was ist los", hint:"phrase", examples:[{de:"Was ist los? Du siehst traurig aus.",en:"What's wrong? You look sad."}] },
         { en:"too bad / what a pity", de:"schade", hint:"exclamation", examples:[{de:"Schade, dass du nicht kommen kannst.",en:"Too bad that you cannot come."}] },
         { en:"see you soon", de:"bis bald", hint:"farewell", examples:[{de:"Tschüss, bis bald!",en:"Bye, see you soon!"}] },
         { en:"see you in a moment", de:"bis gleich", hint:"farewell", examples:[{de:"Ich bin in fünf Minuten da. Bis gleich!",en:"I'll be there in five minutes. See you in a moment!"}] },
@@ -79,7 +79,7 @@ const DECKS_A2 = {
     {
       id: "a2_professions", name: "Professions & Jobs", icon: "👷",
       words: [
-        { en:"the employee (office worker)", de:"der Angestellte", hint:"noun — adjective noun: ein Angestellter", examples:[{de:"Herr Braun ist Angestellter bei einer Bank.",en:"Mr Braun is an employee at a bank."}] },
+        { en:"the employee (office worker)", de:"der Angestellte", hint:"noun", examples:[{de:"Herr Braun ist Angestellter bei einer Bank.",en:"Mr Braun is an employee at a bank."}] },
         { en:"the apprentice / trainee", de:"der Auszubildende", hint:"noun — adjective noun", examples:[{de:"Die Firma hat zehn Auszubildende.",en:"The company has ten apprentices."}] },
         { en:"the author", de:"der Autor", pl:"die Autoren", hint:"noun", examples:[{de:"Der Autor liest heute aus seinem Buch.",en:"The author is reading from his book today."}] },
         { en:"the babysitter", de:"der Babysitter", pl:"die Babysitter", hint:"noun", examples:[{de:"Der Babysitter passt heute Abend auf die Kinder auf.",en:"The babysitter is looking after the children tonight."}] },
@@ -138,7 +138,7 @@ const DECKS_A2 = {
     {
       id: "a2_school", name: "School & Education", icon: "🎓",
       words: [
-        { en:"the school-leaving exam (Abitur)", de:"das Abitur", hint:"noun", examples:[{de:"Nach dem Abitur möchte sie studieren.",en:"After the Abitur she wants to go to university."}] },
+        { en:"the school-leaving exam", de:"das Abitur", hint:"noun", examples:[{de:"Nach dem Abitur möchte sie studieren.",en:"After the Abitur she wants to go to university."}] },
         { en:"the headmaster / director", de:"der Direktor", pl:"die Direktoren", hint:"noun", examples:[{de:"Der Direktor spricht mit den Eltern.",en:"The headmaster is talking to the parents."}] },
         { en:"the class trip", de:"die Klassenfahrt", pl:"die Klassenfahrten", hint:"noun", examples:[{de:"Nächste Woche machen wir eine Klassenfahrt nach Wien.",en:"Next week we are going on a class trip to Vienna."}] },
         { en:"the school office / secretariat", de:"das Sekretariat", pl:"die Sekretariate", hint:"noun", examples:[{de:"Das Formular bekommen Sie im Sekretariat.",en:"You get the form at the school office."}] },
@@ -228,8 +228,8 @@ const DECKS_A2 = {
         { en:"the sausage", de:"die Wurst", pl:"die Würste", hint:"noun", examples:[{de:"Eine Wurst mit Pommes, bitte.",en:"A sausage with chips, please."}] },
         { en:"the cream (for skin, or on a cake)", de:"die Creme", pl:"die Cremes", hint:"noun", examples:[{de:"Ich suche eine Creme für die Hände.",en:"I am looking for a cream for the hands."}] },
         { en:"the recipe / prescription", de:"das Rezept", pl:"die Rezepte", hint:"noun", examples:[{de:"Kannst du mir das Rezept für den Kuchen geben?",en:"Can you give me the recipe for the cake?"}] },
-        { en:"the pig", de:"das Schwein", pl:"die Schweine", hint:"noun — pork = das Schweinefleisch", examples:[{de:"Auf dem Bauernhof gibt es Schweine und Kühe.",en:"There are pigs and cows on the farm."},{de:"Ich esse kein Schweinefleisch.",en:"I do not eat pork."}] },
-        { en:"the cow / cattle (the animal)", de:"das Rind", pl:"die Rinder", hint:"noun — beef = das Rindfleisch", examples:[{de:"Die Rinder stehen auf der Wiese.",en:"The cattle are standing in the meadow."},{de:"Ich esse nur Rindfleisch.",en:"I only eat beef."}] },
+        { en:"the pig", de:"das Schwein", pl:"die Schweine", hint:"noun", examples:[{de:"Auf dem Bauernhof gibt es Schweine und Kühe.",en:"There are pigs and cows on the farm."},{de:"Ich esse kein Schweinefleisch.",en:"I do not eat pork."}] },
+        { en:"the cow / cattle (the animal)", de:"das Rind", pl:"die Rinder", hint:"noun", examples:[{de:"Die Rinder stehen auf der Wiese.",en:"The cattle are standing in the meadow."},{de:"Ich esse nur Rindfleisch.",en:"I only eat beef."}] },
       ]
     },
 
@@ -271,7 +271,7 @@ const DECKS_A2 = {
         { en:"the coat", de:"der Mantel", pl:"die Mäntel", hint:"noun", examples:[{de:"Es ist kalt. Zieh deinen Mantel an!",en:"It is cold. Put your coat on!"}] },
         { en:"the cap / woolly hat", de:"die Mütze", pl:"die Mützen", hint:"noun", examples:[{de:"Haben Sie rote Mützen?",en:"Do you have red caps?"}] },
         { en:"the boot", de:"der Stiefel", pl:"die Stiefel", hint:"noun", examples:[{de:"Wie viel kosten die roten Stiefel?",en:"How much do the red boots cost?"}] },
-        { en:"the jeans", de:"die Jeans", hint:"noun — used as singular or plural (die Jeans ist / sind)", examples:[{de:"Ich mag Jeans lieber als Röcke.",en:"I like jeans better than skirts."}] },
+        { en:"the jeans", de:"die Jeans", hint:"noun — used as singular or plural", examples:[{de:"Ich mag Jeans lieber als Röcke.",en:"I like jeans better than skirts."}] },
         { en:"the T-shirt", de:"das T-Shirt", pl:"die T-Shirts", hint:"noun", examples:[{de:"Haben Sie dieses T-Shirt auch in M?",en:"Do you have this T-shirt in M as well?"}] },
         { en:"the sweater / jumper", de:"der Pullover", pl:"die Pullover", hint:"noun", examples:[{de:"Ich brauche einen warmen Pullover.",en:"I need a warm sweater."}] },
         { en:"the glasses", de:"die Brille", pl:"die Brillen", hint:"noun — singular in German", examples:[{de:"Wo ist meine Brille?",en:"Where are my glasses?"}] },
@@ -482,7 +482,7 @@ const DECKS_A2 = {
       words: [
         { en:"Germany", de:"Deutschland", hint:"country — no article", examples:[{de:"Berlin ist die Hauptstadt von Deutschland.",en:"Berlin is the capital of Germany."}] },
         { en:"Austria", de:"Österreich", hint:"country — no article", examples:[{de:"Wir machen eine Reise nach Österreich.",en:"We are taking a trip to Austria."}] },
-        { en:"Switzerland", de:"die Schweiz", hint:"country — with article!", examples:[{de:"Ich komme aus der Schweiz.",en:"I come from Switzerland."}] },
+        { en:"the Switzerland", de:"die Schweiz", hint:"country — with article!", examples:[{de:"Ich komme aus der Schweiz.",en:"I come from Switzerland."}] },
         { en:"Luxembourg", de:"Luxemburg", hint:"country — no article", examples:[{de:"Luxemburg ist ein kleines Land.",en:"Luxembourg is a small country."}] },
         { en:"Europe", de:"Europa", hint:"continent — no article", examples:[{de:"Die Studenten kommen aus ganz Europa.",en:"The students come from all over Europe."}] },
         { en:"the German (person)", de:"der Deutsche", hint:"noun — adjective noun", examples:[{de:"Viele Deutsche machen Urlaub in Italien.",en:"Many Germans go on holiday in Italy."}] },
@@ -695,9 +695,9 @@ const DECKS_A2 = {
         { en:"really", de:"wirklich", hint:"adverb", examples:[{de:"Du glaubst mir nicht? Es ist aber wirklich so.",en:"You don't believe me? But it really is so."}] },
         { en:"at first / first of all", de:"zuerst", hint:"adverb", examples:[{de:"Zuerst müsst ihr die Hausaufgaben machen.",en:"First you have to do your homework."}] },
         { en:"last / most recently", de:"zuletzt", hint:"adverb", examples:[{de:"Wir haben uns vor drei Jahren zuletzt gesehen.",en:"We last saw each other three years ago."}] },
-        { en:"a few / a couple of", de:"ein paar", hint:"pronoun — lowercase paar", examples:[{de:"Wir fahren ein paar Tage ans Meer.",en:"We are going to the sea for a few days."}] },
+        { en:"a few / a couple of", de:"ein paar", hint:"pronoun — written lowercase", examples:[{de:"Wir fahren ein paar Tage ans Meer.",en:"We are going to the sea for a few days."}] },
         { en:"away / gone", de:"weg", hint:"adverb", examples:[{de:"Meine Brille ist weg. Ich finde sie nicht mehr.",en:"My glasses are gone. I can't find them anymore."}] },
-        { en:"further / onwards", de:"weiter", hint:"adverb — also weitermachen", examples:[{de:"Der Bus fährt nicht weiter.",en:"The bus does not go any further."}] },
+        { en:"further / onwards", de:"weiter", hint:"adverb", examples:[{de:"Der Bus fährt nicht weiter.",en:"The bus does not go any further."}] },
         { en:"towards the speaker (hither)", de:"her", hint:"direction particle", examples:[{de:"Komm bitte mal her!",en:"Please come here!"}] },
         { en:"away from the speaker (thither)", de:"hin", hint:"direction particle", examples:[{de:"Wo gehst du hin?",en:"Where are you going (to)?"}] },
       ]
@@ -1165,7 +1165,7 @@ const DECKS_A2 = {
     {
       id: "a2_futur", name: "Futur I — werden + Infinitiv", icon: "🔮",
       words: [
-        { en:"I will come (Futur I)", de:"ich werde kommen", hint:"Futur I = werden + infinitive at the end", examples:[{de:"Ich werde morgen kommen.",en:"I will come tomorrow."}] },
+        { en:"I will come (Futur I)", de:"ich werde kommen", hint:"Futur I = present of the auxiliary + infinitive at the end", examples:[{de:"Ich werde morgen kommen.",en:"I will come tomorrow."}] },
         { en:"you will see (Futur I, informal)", de:"du wirst sehen", hint:"Futur I, 2nd sg.", examples:[{de:"Du wirst sehen, alles wird gut.",en:"You will see, everything will be fine."}] },
         { en:"he will work (Futur I)", de:"er wird arbeiten", hint:"Futur I, 3rd sg.", examples:[{de:"Er wird am Samstag arbeiten.",en:"He will work on Saturday."}] },
         { en:"she will help (Futur I)", de:"sie wird helfen", hint:"Futur I, 3rd sg.", examples:[{de:"Sie wird dir bestimmt helfen.",en:"She will certainly help you."}] },

@@ -835,7 +835,7 @@ const DECKS_A1 = {
         { en:"to have to / must", de:"gemusst", hint:"Partizip II — haben (next to another verb: müssen)", examples:[{de:"Das habe ich nicht gemusst.",en:"I didn't have to."}] },
         { en:"to be supposed to / should", de:"gesollt", hint:"Partizip II — haben (next to another verb: sollen)", examples:[{de:"Das hat er nicht gesollt.",en:"He wasn't supposed to."}] },
         { en:"to like", de:"gemocht", hint:"Partizip II — haben", examples:[{de:"Ich habe ihn immer gemocht.",en:"I have always liked him."}] },
-        { en:"to want (polite)", de:"gewollt", hint:"Partizip II — haben (möchten has none of its own: it borrows gewollt from wollen)", examples:[{de:"Sie hat nur einen Kaffee gewollt.",en:"She only wanted a coffee."}] },
+        { en:"to want (polite)", de:"gewollt", hint:"Partizip II — haben (möchten has none of its own: it borrows the one of wollen)", examples:[{de:"Sie hat nur einen Kaffee gewollt.",en:"She only wanted a coffee."}] },
         { en:"to give", de:"gegeben", hint:"Partizip II — haben", examples:[{de:"Er hat mir den Schlüssel gegeben.",en:"He gave me the key."}] },
         { en:"to take", de:"genommen", hint:"Partizip II — haben", examples:[{de:"Ich habe den Bus genommen.",en:"I took the bus."}] },
         { en:"to bring", de:"gebracht", hint:"Partizip II — haben", examples:[{de:"Er hat mir einen Kaffee gebracht.",en:"He brought me a coffee."}] },
@@ -964,7 +964,7 @@ const DECKS_A1 = {
         { en:"in order / fine", de:"in Ordnung", hint:"phrase", examples:[{de:"Das ist in Ordnung.",en:"That is fine."}] },
         { en:"for example", de:"zum Beispiel", hint:"phrase (abbr. z.B.)", examples:[{de:"Viele Verwandte, zum Beispiel meine Brüder.",en:"Many relatives, for example my brothers."}] },
         { en:"approximately", de:"circa", hint:"adverb (abbr. ca.)", examples:[{de:"Von Mainz nach Frankfurt sind es circa fünfzig Kilometer.",en:"It is approximately fifty kilometres from Mainz to Frankfurt."}] },
-        { en:"morning! (casual greeting)", de:"Morgen", hint:"greeting — short for guten Morgen", examples:[{de:"Morgen! Hast du gut geschlafen?",en:"Morning! Did you sleep well?"}] },
+        { en:"morning! (casual greeting)", de:"Morgen", hint:"greeting — the short form", examples:[{de:"Morgen! Hast du gut geschlafen?",en:"Morning! Did you sleep well?"}] },
       ]
     },
 
