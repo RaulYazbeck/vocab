@@ -282,7 +282,7 @@ registerGame({
       // The colour split.
       const formEl = document.getElementById("vt-form");
       const samePT = VL_PERSONS.filter(p => it.valid.some(x => x.p === p && x.t === it.t));
-      if (formEl) { formEl.classList.remove("vt-hidden"); formEl.removeAttribute("aria-hidden"); formEl.innerHTML = vlPartsHtml(it.parts, it.t, it.p, true, samePT); formEl.classList.add("split"); }
+      if (formEl) { formEl.classList.remove("vt-hidden"); formEl.removeAttribute("aria-hidden"); formEl.innerHTML = vlPartsHtml(it.parts, it.t, it.p, true, samePT); formEl.classList.add("split"); if (sayTapOn()) { formEl.dataset.tapSay = it.full; formEl.title = "Tap to hear"; } }
       const ear = document.getElementById("vt-ear"); if (ear) ear.remove();
       const card = document.getElementById("vt-card"); if (card) card.classList.add(perfect ? "ok" : "bad");
       speak(it.full);

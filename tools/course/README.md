@@ -120,6 +120,11 @@ a later session that uploads its chapter.
    - Writing prompts tied to the section (optional): `cxJournal([{ id: "w.<name>", th, lv, de,
      t, help, sec: "<section id>" }])` — they open once the section is done. Free writing,
      never graded: saved to `S.writing` (kept forever, one cloud doc a year) and listed in the learning log for correction.
+   - What is said: once a question is answered, the app says the item's whole right
+     sentence (`cxSayText`: the gap filled in, cues in brackets and English labels left
+     out; `cxSayAll` lists every one an item can say) and the voice pack records them
+     (`tools/audio/runtime.mjs`). The validator checks each is clean German. After adding a
+     lesson: `node tools/audio/runtime.mjs --lang de`, then record (tools/audio/README.md).
 2. Add its `<script>` tag to `de/index.html`, after `js/course/plan.js` and before
    `js/course-ui.js`.
 3. Run the checks below.

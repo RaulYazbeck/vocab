@@ -18,6 +18,18 @@ function speakBtnAttrs(text) {
   return `data-say="${escapeHtml(text)}" onclick="speak(this.dataset.say)"`;
 }
 
+// Tap to hear (feedback.js, sayTapInstall): attributes for a revealed
+// German word or sentence, so a tap plays it. German app only (the French
+// app is left as it is); "" when there's nothing to say. Never on anything
+// shown while a question is still being asked.
+function sayTapOn() { return typeof WORD_KEY === "string" && WORD_KEY === "de"; }
+function sayTapAttrs(text) {
+  const t = String(text == null ? "" : text).replace(/\s+/g, " ").trim();
+  return t && sayTapOn() ? ` data-tap-say="${escapeHtml(t)}" title="Tap to hear"` : "";
+}
+// The selection-to-hear zone (a sheet, an answered question's feedback).
+function sayZoneAttr() { return sayTapOn() ? " data-say-zone" : ""; }
+
 // Stage badge + pips shown next to the hint in drill and voice modes.
 function wordBadgesHtml(ws) {
   return [
@@ -54,7 +66,7 @@ function examplesHtml(word, variant) {
         <div class="examples-title">Examples</div>
         ${word.examples.map(ex => `
           <div class="example-row-big">
-            <div class="example-de">${ex[WORD_KEY]}</div>
+            <div class="example-de"${sayTapAttrs(ex[WORD_KEY])}>${ex[WORD_KEY]}</div>
             <div class="example-en">${ex.en}</div>
           </div>`).join("")}
       </div>`;
@@ -65,14 +77,14 @@ function examplesHtml(word, variant) {
     <div class="examples-wrap">
       <div class="examples-title">Example</div>
       <div class="example-row">
-        <div class="example-de">${ex[WORD_KEY]}</div>
+        <div class="example-de"${sayTapAttrs(ex[WORD_KEY])}>${ex[WORD_KEY]}</div>
         <div class="example-en">${ex.en}</div>
       </div>
     </div>`;
   }
   return `<div class="examples-wrap" style="text-align:left;margin-top:12px">
         <div class="examples-title">Examples</div>
-        ${word.examples.map(ex=>`<div class="example-row"><div class="example-de">${ex[WORD_KEY]}</div><div class="example-en">${ex.en}</div></div>`).join("")}
+        ${word.examples.map(ex=>`<div class="example-row"><div class="example-de"${sayTapAttrs(ex[WORD_KEY])}>${ex[WORD_KEY]}</div><div class="example-en">${ex.en}</div></div>`).join("")}
       </div>`;
 }
 

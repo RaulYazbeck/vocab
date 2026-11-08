@@ -9,6 +9,9 @@
 //           recording, every clip decodes, sound starts fast, no page errors
 //   games   every game in both languages runs with the packs, no page errors
 //   flag    the ⚑ flag and the "Copy voice log" row
+//   say     hearing German inside the exercises: said once answered, never
+//           before; revealed words and sentences play on a tap; selections
+//           in a sheet; principal-part hints shortened while asked; French untouched
 //   logs    usage and learning logs: day attribution, quits and abandoned runs,
 //           history kept through a cloud load, mistake types, report building
 //   runtime the phrases the app makes while it runs (verb forms, grammar
@@ -31,7 +34,7 @@ import { fileURLToPath } from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "../../..");
-const ALL = ["pack", "games", "flag", "logs", "runtime", "update"];
+const ALL = ["pack", "games", "flag", "say", "logs", "runtime", "update"];
 const want = process.argv.slice(2).length ? process.argv.slice(2) : ALL;
 for (const w of want) if (!ALL.includes(w)) { console.error(`unknown test "${w}" (choose from ${ALL.join(", ")})`); process.exit(2); }
 
@@ -88,7 +91,7 @@ try {
   const { srv, base } = await serve(siteFrom(ROOT, path.join(TMP, "site")));
   servers.push(srv);
   const env = { ...process.env, BASE: base, OUT };
-  for (const name of ["pack", "games", "flag", "logs"].filter(n => want.includes(n))) {
+  for (const name of ["pack", "games", "flag", "say", "logs"].filter(n => want.includes(n))) {
     console.log(`\n━━ ${name} ━━`);
     const r = await run("node", [path.join(HERE, `test_${name}.mjs`)], { env });
     results.push([name, r.code === 0]);

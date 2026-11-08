@@ -25,9 +25,11 @@ function ttsAvailable() {
 // Reads text aloud: the recorded natural voice when the pack has it,
 // otherwise the browser's own voice. rate: 0.85 is normal speed, 0.55
 // is the "🐢 Slower" button.
-function speak(text, rate = 0.85) {
+// opts.quiet: a phrase picked by the learner (a selection) that has no
+// recording isn't noted in the voice log (it's no phrase the app says).
+function speak(text, rate = 0.85, opts = {}) {
   if (!ttsOn()) return;
-  if (typeof audioSpeak === "function" && audioSpeak(text, rate)) return;
+  if (typeof audioSpeak === "function" && audioSpeak(text, rate, opts)) return;
   speakSystem(text, rate);
 }
 function speakSystem(text, rate = 0.85) {
@@ -41,6 +43,65 @@ function speakSystem(text, rate = 0.85) {
   speechSynthesis.speak(u);
 }
 
+
+// Silences whatever is being said (moving on to the next question).
+function speakStop() {
+  if (typeof audioStop === "function") audioStop();
+  try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {}
+}
+// ── TAP TO HEAR (German app) ──────────────────
+// A German word or sentence the app has revealed — a right answer, a miss
+// card, a sheet's example, a game's lesson — carries data-tap-say (its
+// text, sayTapAttrs in ui-helpers.js): a tap plays its recording, the
+// phone's voice when there is none. Selecting German text inside a
+// data-say-zone (a sheet's reading, an answered question's feedback) says
+// the selection. Nothing is ever marked while a question is being asked:
+// only right German is recorded, so hearing a candidate in the natural
+// voice would give the answer away. No setting: the Sound switch rules.
+function sayTapInstall() {
+  if (typeof sayTapOn !== "function" || !sayTapOn() || window._sayTapOn) return;
+  window._sayTapOn = true;
+  // (capture: a tap that says a word never also moves a game on — the
+  // teaching card of 🧵 Verb Thread and ⏳ Timeline skips ahead on a tap)
+  document.addEventListener("click", e => {
+    const el = e.target && e.target.closest && e.target.closest("[data-tap-say]");
+    if (!el) return;
+    const b = e.target.closest("button, a, input, textarea, select");
+    if (b && b !== el && el.contains(b)) return;
+    e.stopPropagation();
+    if (el.tagName !== "BUTTON") e.preventDefault();
+    tappedAt = Date.now();
+    speak(el.dataset.tapSay);
+    el.classList.remove("say-pop"); void el.offsetWidth; el.classList.add("say-pop");
+  }, true);
+  let timer = 0, down = false, last = "", lastAt = 0, tappedAt = 0;
+  const check = () => {
+    timer = 0;
+    if (down) return;
+    // (a double tap on a word that plays already selects it: not said twice more)
+    if (Date.now() - tappedAt < 900) return;
+    const sel = window.getSelection && window.getSelection();
+    if (!sel || sel.isCollapsed || !sel.rangeCount) return;
+    const zone = n => { const el = n && (n.nodeType === 1 ? n : n.parentElement); return el && el.closest ? el.closest("[data-say-zone]") : null; };
+    const z = zone(sel.anchorNode);
+    if (!z || z !== zone(sel.focusNode)) return;
+    if (sel.anchorNode && (sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentElement).closest("input, textarea")) return;
+    const t = String(sel.toString()).replace(/[🔊⚑]/gu, " ").replace(/\s+/g, " ").trim();
+    if (t.length < 2 || t.length > 300 || !/[A-Za-zÄÖÜäöüß]{2}/.test(t)) return;
+    if (t === last && Date.now() - lastAt < 4000) return;
+    last = t; lastAt = Date.now();
+    speak(t, 0.85, { quiet: true });
+  };
+  const soon = ms => { clearTimeout(timer); timer = setTimeout(check, ms); };
+  document.addEventListener("pointerdown", () => { down = true; }, true);
+  document.addEventListener("pointerup", () => { down = false; soon(350); }, true);
+  document.addEventListener("pointercancel", () => { down = false; soon(350); }, true);
+  // (a phone's long-press selection, and its handles, end without a pointerup)
+  document.addEventListener("selectionchange", () => soon(down ? 900 : 700));
+}
+if (typeof document !== "undefined" && document.addEventListener) {
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", sayTapInstall); else setTimeout(sayTapInstall, 0);
+}
 
 // ── SOUNDS ────────────────────────────────────
 // One shared AudioContext — creating a new one per answer leaks

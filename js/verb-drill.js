@@ -200,7 +200,7 @@ function vdGrade(val, ok, said = false) {
     if (right && v.usedHint) chips.push(`<span class="p-chip">${vxT("💡 with hint — no step up")}</span>`);
   }
   document.getElementById("vd-fb").innerHTML = `<div class="vx-fb">
-    ${head}<div class="vx-answer">${vxFormHtml(ex)}</div>
+    ${head}<div class="vx-answer"${sayTapAttrs(vxSayText(ex))}>${vxFormHtml(ex)}</div>
     ${!right && val.trim() ? `<div class="p-diff">${vxDiffHtml(val, ex.form.ans)}</div>` : ""}
     ${chips.length ? `<div class="vx-chip">${chips.join("")}</div>` : ""}
     ${why ? `<div class="vx-why">${why}</div>` : ""}${row}</div>`;

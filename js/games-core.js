@@ -363,6 +363,12 @@ function mcChoices(w, cfg) {
 // Remember a wrong pick so it returns as a trap.
 function noteWrongPick(w, opt) { if (opt && opt.word && !opt.correct) recordConfusion(w, opt.word); }
 
+// After the answer, the card's whole hint when it was shortened while
+// asking (askHintText, hint.js: a verb's principal parts, the gender).
+function wordLessonHintHtml(w) {
+  const full = String((w && w.hint) || "");
+  return full && typeof askHintText === "function" && askHintText(w) !== full ? `<div class="g-teach-sub">${escapeHtml(full)}</div>` : "";
+}
 // The lesson after a miss: the right word, what you picked, an example.
 function wordLessonHtml(w, picked = null, extra = "") {
   const ex = (w.examples || [])[0];
@@ -376,10 +382,11 @@ function wordLessonHtml(w, picked = null, extra = "") {
   // verb, its tense and what it means.
   if (w.vx && typeof vxFormHtml === "function") {
     const v = w.vx, gloss = typeof vxMeaning === "function" ? vxMeaning(v.x) : "";
-    return `<div class="g-teach-main">${vxFormHtml(v)}</div><div class="g-teach-sub">${escapeHtml(v.x.inf)} · ${escapeHtml(vxGameTense(v))}${gloss ? ` · ${escapeHtml(gloss)}` : ""}</div>${pick}${extra}`;
+    return `<div class="g-teach-main"${sayTapAttrs(typeof vxSayText === "function" ? vxSayText(v) : "")}>${vxFormHtml(v)}</div><div class="g-teach-sub">${escapeHtml(v.x.inf)} · ${escapeHtml(vxGameTense(v))}${gloss ? ` · ${escapeHtml(gloss)}` : ""}</div>${pick}${extra}`;
   }
-  return `<div class="g-teach-main">${colorArticleHtml(gameForm(w))} = ${escapeHtml(gamePrompt(w))}${pl}</div>${pick}${extra}
-    ${ex && ex[WORD_KEY] ? `<div class="g-teach-ex">${escapeHtml(ex[WORD_KEY])}${ex.en ? `<span>${escapeHtml(ex.en)}</span>` : ""}</div>` : ""}`;
+  // (a tap on the word or the sentence plays it: sayTapAttrs, German app)
+  return `<div class="g-teach-main"><span${sayTapAttrs(gameForm(w))}>${colorArticleHtml(gameForm(w))}</span> = ${escapeHtml(gamePrompt(w))}${pl}</div>${wordLessonHintHtml(w)}${pick}${extra}
+    ${ex && ex[WORD_KEY] ? `<div class="g-teach-ex"><span${sayTapAttrs(ex[WORD_KEY])}>${escapeHtml(ex[WORD_KEY])}</span>${ex.en ? `<span>${escapeHtml(ex.en)}</span>` : ""}</div>` : ""}`;
 }
 
 // Number of distinct words (by display form and prompt) in a list.
@@ -1505,7 +1512,7 @@ function missedListHtml(words, title = "") {
     <div class="examples-title">${title || `Words to review (${words.length})`}</div>
     ${words.map(w => `<div class="g-missed-row">
       <span class="g-missed-en">${escapeHtml(gamePrompt(w))}</span>
-      <span class="g-missed-target">${escapeHtml(gameForm(w))}</span>
+      <span class="g-missed-target"${sayTapAttrs(gameForm(w))}>${escapeHtml(gameForm(w))}</span>
       <button class="audio-btn g-missed-say" ${speakBtnAttrs(gameForm(w))} aria-label="Listen">🔊</button>
     </div>`).join("")}
   </div>`;

@@ -1084,3 +1084,14 @@ tr:hover td { background:rgba(255,255,255,0.03); }
 }
 .af-note::placeholder { color:var(--text-3); }
 .af-note:focus { outline:none; border-color:var(--accent); }
+
+/* ── Tap to hear (German app: sayTapAttrs, feedback.js) ── */
+[data-tap-say] { cursor: pointer; -webkit-tap-highlight-color: transparent; border-radius: 6px; }
+[data-tap-say]::after { content: "🔊"; font-size: 0.7em; margin-left: 0.35em; opacity: 0.5; vertical-align: 0.1em; font-style: normal; }
+[data-tap-say]:hover::after { opacity: 0.9; }
+[data-tap-say].say-pop { animation: say-pop 0.35s ease-out; }
+@keyframes say-pop { 0% { background: var(--accent-dim); } 100% { background: transparent; } }
+@media (prefers-reduced-motion: reduce) { [data-tap-say].say-pop { animation: none; } }
+/* (in a sheet's table every pixel counts: a dotted underline instead of the 🔊) */
+.gs-table [data-tap-say]::after { content: none; }
+.gs-table [data-tap-say] { text-decoration: underline dotted; text-decoration-color: var(--text-2, rgba(255,255,255,0.4)); text-underline-offset: 3px; }

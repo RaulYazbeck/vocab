@@ -464,6 +464,25 @@ if (neg && neg.built) {
   ok(C.cxWordCount("Ich wohne seit 2021 in Zürich — es gefällt mir, z.B. der See.") === 12, "the word count (numbers and abbreviations count once)");
 }
 
+// ── what the course says (course-de.js cxSayAll / cxQuizSayText) ──
+// Said once a question is answered and recorded by the voice pack
+// (tools/audio/runtime.mjs): only whole, clean German — no gap, no cue in
+// brackets, no arrow, no English instruction.
+{
+  const clean = t => !/___|→|[()[\]{}<>=\/]|\*/.test(t) && !C.cxEnglish(t) && t === t.trim() && !/\s[.,!?]/.test(t);
+  let n = 0;
+  Object.values(CX.sets).forEach(set => C.cxSayItems(set).forEach(it => C.cxSayAll(it, set).forEach(t => { n++; ok(clean(t), `${set.id}: says clean German «${t}»`); })));
+  // every sheet's quiz, the course's and the verb track's (its fixed questions; the ones
+  // made from your verbs say the verb track's own form)
+  [...Object.values(CX.sheets), ...(C.GS_SHEETS || [])].forEach(sh => (sh.quiz || []).filter(Q => !Q.g).forEach(Q => { const t = C.cxQuizSayText(Q); if (t) { n++; ok(clean(t) && C.cxGermanish(t), `${sh.id}: its quiz says clean German «${t}»`); } }));
+  // an English option is never said (it would be read with the German voice)
+  ["mixed", "oy", "soft, as in huge", "neither — same time, different habit"].forEach(o => ok(C.cxQuizSayText({ k: "pick", q: "Which?", o: [o], a: 0 }) === "", `an English option says nothing («${o}»)`));
+  ok(C.cxQuizSayText({ k: "pick", q: "Which?", o: ["Advice: An deiner Stelle würde ich warten."], a: 0 }) === "An deiner Stelle würde ich warten.", "an English label before a sentence is left out");
+  // a production item always has something to say once answered
+  Object.values(CX.sets).forEach(set => (set.items || []).forEach(it => { const k = C.cxItemKind(set, it); if (["transform", "compose", "translate", "answer", "respond"].includes(k)) ok(!!C.cxSayText(it, set), `${set.id}: «${it.q || (it.w || []).join(" ")}» says its answer`); }));
+  ok(n > 5000, `the course says ${n} texts`);
+}
+
 // ── no book text ──
 // The rule: no book text in the repo — our sheets, sentences and stories
 // are our own. But the book doesn't own the German language: a simple,

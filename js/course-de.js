@@ -384,6 +384,146 @@ function cxGapInner(item, typed) {
   const tpl = item.q.replace(/\([^)]*\)/g, " ").replace(/\s+/g, " ").trim();
   return { text: (W.length === T.length ? W : T).slice(P0.length, T.length - P1.length).join(" "), whole: fill => tpl.replace("___", fill) };
 }
+// ── WHAT IS SAID AFTER AN ANSWER ──────────────
+// The one place that says what the course speaks (course-ui.js after an
+// answer, the sheet quiz in grammar-ui.js) — and what the voice packs
+// record (tools/audio/runtime.mjs calls these very functions).
+// It is always the WHOLE right sentence: a gap filled in, the cue in
+// brackets and the instruction left out — "Wir haben ___ Hund. (der Hund ·
+// einen Hund)" + keinen → "Wir haben keinen Hund." Spoken only once the
+// question is answered (a recording exists only for right German, so
+// hearing it earlier would give the answer away). "" = nothing German to say
+// (an English prompt around a bare answer: "your mother: ___" + du).
+// English words that never stand in a German sentence (an, so, will, was,
+// her, die, man are German too, so they're not on the list).
+const CX_EN_WORDS = new Set("the your his their its it is are object subject sounds like word words verb not allowed they you he she we of to with and or what which who me him them us this that at end says my our a plural singular polite formal friend friends someone something question answer yes no one two three how why when where after before let lets would should could couldn wouldn find almost hungry ill but working now greet politely conversation dative accusative nominative genitive umlaut both then i m t ll re ve don can".split(" "));
+function cxEnglish(s) { return String(s || "").toLowerCase().split(/[^a-zäöüß]+/).some(w => CX_EN_WORDS.has(w)); }
+function cxSayClean(s) {
+  return String(s == null ? "" : s).replace(/\*+|\{\{|\}\}|\(\(|\)\)|\[\[|\]\]|~~/g, "")
+    .replace(/[«»„“”]/g, "").replace(/\([^()]*\)/g, " ").replace(/\s+([.,!?;:])/g, "$1").replace(/\s+/g, " ").trim();
+}
+const cxSaySentence = s => /^[A-ZÄÖÜ]/.test(s) && /[.!?]$/.test(s) && s.split(" ").length > 1;
+// A template with one ___ and the answer that fills it → the sentence, or "".
+function cxSayFill(q, ans) {
+  ans = cxSayClean(ans);
+  if (!ans) return "";
+  if (typeof q !== "string" || !q.includes("___")) return ans;
+  let t = cxSayClean(q);
+  if (t.split("___").length !== 2) return cxSaySentence(ans) ? ans : "";
+  // "Ich habe einen Termin. → Ich habe ___ Termin." : the part with the gap.
+  if (t.includes("→")) t = t.split("→").map(x => x.trim()).find(x => x.includes("___")) || "";
+  // "100 − 1 = ___", "Er ist kaputt. Er = ___": what the gap equals is said alone.
+  if (/=\s*[^=]*___[^=]*$/.test(t)) t = t.slice(t.lastIndexOf("=") + 1).trim();
+  // "___ ist das? — Das ist eine Steckdose.": German on both sides, both said;
+  // an English side ("Den Bus nehme ich nicht. — the object: ___") goes.
+  // An English label before the gap goes too ("die Rechnung → a: ___ Rechnung").
+  let parts = t.split(/\s+[—–]\s+/).filter(Boolean).filter(p => p.includes("___") || !cxEnglish(p))
+    .map(p => p.includes("___") ? p.replace(/^([^:]*):\s*(?=.*___)/, (m, l) => cxEnglish(l) ? "" : m) : p);
+  const gp = parts.find(p => p.includes("___"));
+  const others = parts.filter(p => p !== gp);
+  // The gap stands alone after its cue ("mit — ein, alt, Freund: ___",
+  // "Den Bus nehme ich nicht. — the object: ___"): the German sentence
+  // beside it is said, else the answer alone (mit einem alten Freund).
+  if (gp && /^([^:]*:\s*)?___$/.test(gp.trim())) { const full = others.filter(cxSaySentence); return full.length ? full.join(" ") : ans; }
+  // The gap sits in English ("Every Sunday we call grandma. ___"): only an
+  // answer that is a sentence of its own is said.
+  if (!gp || cxEnglish(gp.replace("___", " "))) return others.length ? others.join(" ") : cxSaySentence(ans) ? ans : "";
+  const [p0, p1] = gp.split("___");
+  // The answer may already hold the words around the gap ("Ich weiß, dass ___" + the whole sentence).
+  const tk = x => x.toLowerCase().replace(/[.,!?;:]/g, " ").split(/\s+/).filter(Boolean);
+  const A = tk(ans), P0 = tk(p0), P1 = tk(p1);
+  const whole = P0.length + P1.length > 0 && A.length > P0.length + P1.length
+    && P0.every((x, i) => A[i] === x) && P1.every((x, i) => A[A.length - P1.length + i] === x);
+  let s = (whole ? ans : p0 + ans + p1).replace(/\s+/g, " ").replace(/\s+([.,!?;:])/g, "$1").trim();
+  // A gap that opens a sentence: its first word takes the capital (am → Am Wochenende …).
+  if (!p0.trim() && cxSaySentence(s.charAt(0).toUpperCase() + s.slice(1))) s = s.charAt(0).toUpperCase() + s.slice(1);
+  return parts.map(p => p === gp ? s : p).join(" ");
+}
+// What the course says once an item is answered: the whole sentence of
+// `ans` (an accepted answer — default the first). Kinds: write / open say
+// their model; order says its lines one after another (the caller speaks
+// each); a sounds or English-only item says "".
+function cxSayText(item, set, ans) {
+  const k = cxItemKind(set || {}, item);
+  // (a model of loose endings — "…, um … zu · …" — is no sentence to say)
+  if (k === "write" || k === "open") { const m = cxSayClean((item.model || [])[0] || ""); return /…|\.\.\.| · /.test(m) ? "" : m; }
+  if (k === "order") return "";
+  const a = ans != null ? ans : (item.a || [])[0];
+  // A generated conjugation item: the person and its form (er ist), a command as said (Komm!).
+  if (item.gen && a) return item.t === "im" ? cxSayClean(a).replace(/^./, c => c.toUpperCase()) + "!" : `${item.p === "er" ? "er" : item.p} ${cxSayClean(a)}`;
+  const s = cxSayFill(k === "compose" ? "" : item.q, a);
+  // Nothing German to say: a lone letter or sound ("k", "ei")
+  return s.replace(/[^A-Za-zÄÖÜäöüß]/g, "").length < 2 ? "" : s;
+}
+// Every text an item can say (all its accepted answers' sentences, the
+// lines of a conversation, a respond item's line, the write model) — the
+// list the voice pack records.
+function cxSayAll(item, set) {
+  const k = cxItemKind(set || {}, item), out = [];
+  if (k === "order") (item.a || []).forEach(l => out.push(cxSayClean(l)));
+  else if (k === "write" || k === "open") out.push(cxSayText(item, set));
+  else {
+    (item.a || []).forEach(a => out.push(cxSayText(item, set, a)));
+    // (the line you answer or transform, when it is a German sentence of its own)
+    if ((k === "respond" || k === "answer" || k === "transform") && typeof item.q === "string" && !/___|…/.test(item.q)) out.push(cxSayClean(item.q));
+  }
+  return [...new Set(out.filter(t => t && !cxEnglish(t)))];
+}
+// Every item a set can ask: its own, or every verb × person a generated set can draw.
+function cxSayItems(set) {
+  if (!set.gen) return set.items || [];
+  const g = set.gen, t = g.tense || "pr", out = [];
+  if (g.kind !== "conj" || typeof vxVerb !== "function") return out;
+  const persons = g.persons || (t === "im" ? ["du", "ihr", "Sie"] : ["ich", "du", "er", "wir", "ihr", "sie"]);
+  g.verbs.map(vxVerb).filter(Boolean).forEach(x => persons.forEach(p => { const f = vxForm(x, t, p); if (f) out.push({ k: "type", q: "", a: f.acc || [f.ans], gen: true, inf: x.inf, p, t }); }));
+  return out;
+}
+// German words the decks know (lowercase): an option made of words that
+// mostly aren't German ("mixed", "oy", "soft, as in huge") isn't said.
+let _cxDeWords = null;
+function cxGermanish(s) {
+  if (!_cxDeWords) {
+    _cxDeWords = new Set();
+    try {
+      for (const g of ALL_GROUPS) for (const d of g.decks) for (const w of d.words || []) {
+        [w.de, ...(w.examples || []).map(e => e && e.de)].forEach(t => String(t || "").toLowerCase().split(/[^a-zäöüß]+/).forEach(x => x && _cxDeWords.add(x)));
+      }
+      // (and every answer of the course's own drills, and the verbs' forms the track asks)
+      const put = t => String(t || "").toLowerCase().split(/[^a-zäöüß]+/).forEach(x => x && _cxDeWords.add(x));
+      // (not the sounds lesson's: its answers are English sound names — "oy", "shp")
+      Object.values(CX.sets).filter(set => !/sound|snd/.test(set.sec)).forEach(set => (set.items || []).forEach(it => (it.a || []).forEach(put)));
+      if (typeof vxVerbs === "function") vxVerbs().forEach(x => { put(x.inf); ["pr", "pt", "im", "pf"].forEach(t => (typeof VX_PERSONS !== "undefined" ? VX_PERSONS : []).forEach(p => { try { const f = vxForm(x, t, p); if (f) put(f.ans); } catch (e) {} })); });
+    } catch (e) {}
+  }
+  // (names and nouns, capitalised, are left out of the count: "Lea", "Velo")
+  const toks = String(s || "").split(/[^A-Za-zÄÖÜäöüß]+/).filter(t => t && /^[a-zäöüß]/.test(t));
+  if (!toks.length) return !cxEnglish(s);
+  // (a number written out is German: fünfundvierzig, zweitausendfünfundzwanzig, am zwölften)
+  const num = t => /^(ein|eins|zwei|drei|vier|fünf|sechs|sieben|sieb|acht|neun|zehn|elf|zwölf|zwan|dreißig|zig|hundert|tausend|und)+(s?te[nrms]?|ste[nrms]?)?$/.test(t);
+  return !cxEnglish(s) && toks.filter(t => _cxDeWords.has(t) || num(t)).length * 2 >= toks.length;
+}
+// "Advice: An deiner Stelle …", "Plusquamperfekt: wir waren …": the label goes.
+const CX_SAY_LABEL = /^(advice|example|note|tip|answer|polite|formal|informal|spoken|written|präsens|präteritum|perfekt|plusquamperfekt|futur|imperativ|konjunktiv|passiv|nominativ|akkusativ|dativ|genitiv)\s*:\s+/i;
+// The sheet quiz (grammar-ui.js): the whole right sentence, or "".
+function cxQuizSayText(Q) {
+  if (!Q || Q.k === "why") return "";
+  // A question made from one of your verbs (grammar-quiz.js gqResolve: "du ___ (fahren)",
+  // "ich ___ gefahren (fahren) · Perfekt"): the form as the verb track says it (vxSayText) —
+  // its label and context aren't a sentence, and the track's clip is recorded.
+  if (!Q.cx && Q.inf && Q.t && Q.p && typeof vxVerb === "function" && typeof vxSayText === "function") {
+    const x = vxVerb(Q.inf), t = Q.t === "p2only" ? "p2only" : Q.t;
+    const form = x && vxForm(x, t, Q.p, { modal: Q.modal || "" });
+    return form ? vxSayText({ kind: t, x, p: Q.p, form }) : "";
+  }
+  const right = Q.k === "type" ? (Q.a || [])[0] : Q.k === "order" ? (Q.a || []).join(" ") : (Q.o || [])[Q.a];
+  // (built from tiles, with the full stop or question mark of its English)
+  const end = (String(Q.q || "").trim().match(/[.?!]$/) || ["."])[0];
+  let s = Q.k === "order" ? cxSayClean(right).replace(/([^.?!])$/, "$1" + end) : cxSayFill(Q.q, right);
+  s = s.replace(CX_SAY_LABEL, "");
+  if (/^[a-zäöü]/.test(s) && cxSaySentence(s.charAt(0).toUpperCase() + s.slice(1)) && Q.k !== "order") s = s.charAt(0).toUpperCase() + s.slice(1);
+  // (an English option — "he works and he is working — both", "mixed" — says nothing)
+  return s.replace(/[^A-Za-zÄÖÜäöüß]/g, "").length < 2 || !cxGermanish(s) ? "" : s;
+}
 function cxCheck(item, typed, sec) {
   const fills = cxGapFills(item), answers = [...cxAnswers(item), ...fills, ...(item.k === "order" || item.fixed ? [] : cxOrders(item))];
   let t = String(typed || "").trim(), inner = null;

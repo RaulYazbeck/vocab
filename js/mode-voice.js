@@ -91,7 +91,7 @@ function showVoiceFeedback(correct, heard, isSkip) {
   const heardHtml = heard && !isSkip ? `<div class="voice-feedback-heard">you said: "${escapeHtml(heard)}"</div>` : "";
   const skipHtml  = isSkip ? `<div class="voice-feedback-heard">skipped</div>` : "";
   el.innerHTML = `<div class="voice-feedback ${cls}">
-    <div class="voice-feedback-answer">${icon} ${currentWord[WORD_KEY]}</div>
+    <div class="voice-feedback-answer">${icon} <span${sayTapAttrs(currentWord[WORD_KEY])}>${currentWord[WORD_KEY]}</span></div>
     ${heardHtml}${skipHtml}
     ${currentWord.pl ? `<div style="font-size:12px;color:#888;margin-top:2px;">plural: ${currentWord.pl}</div>` : ""}
   </div>

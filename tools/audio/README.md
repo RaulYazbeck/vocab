@@ -175,8 +175,20 @@ phrases on the fly. `runtime.mjs` loads the app in a browser and lists every
 one of them in `state/<lang>/runtime.tsv`, which `extract` / `synth` / `pack`
 then treat like deck texts.
 
+The 📖 course is listed too (German): every drill item's whole right sentence
+for each accepted answer, a conversation's lines, the line answered or
+transformed, a writing model, and each course sheet's examples; and for every
+sheet (the verb track's too) the German sentences of its table and its quiz's
+right sentences — a quiz question made from your verbs ("du ___ (fahren)")
+says the form as the verb track does, and an English option says nothing.
+One deck per lesson (`_course:<section>`) or sheet (`_sheet:<id>`), so new
+clips land in a few shards. `tests/run.mjs say` checks in the app that
+everything a drill or a quiz says (each verb sheet's quiz drawn several
+times) is in the pack.
+
 It never copies the app's wording: each feature has one function that says
-what is spoken (`conjSayText`, `threadSayText`, `vxSayText`, `gsSayText`), the
+what is spoken (`conjSayText`, `threadSayText`, `vxSayText`, `gsSayText`; for
+the course `cxSayText` / `cxSayAll`, `cxQuizSayText` and `gsCellSays`), the
 app speaks through it and `runtime.mjs` calls the same one. Change how a game
 speaks there, re-run `runtime.mjs`, and the list follows. It is rebuilt in full
 each time, like the decks: a phrase the app no longer says is dropped, and
@@ -202,6 +214,23 @@ the count from the published manifest).
 
 A long run inside a Claude session can hit its 2-hour limit for one
 command: `synth.py` simply carries on where it stopped when run again.
+
+### Hearing German inside the exercises (German app)
+Once a question is answered — never before — the whole right sentence plays
+once (a gap filled in: "Wir haben ___ Hund." + keinen → "Wir haben keinen
+Hund."), most usefully after a miss; Next stops it. Every German word or
+sentence the app has revealed carries `data-tap-say` (`sayTapAttrs`,
+ui-helpers.js) and plays again on a tap, from the pack or the phone's voice:
+the course's miss card, "Also right", models and conversation lines, the
+sheet quiz's answer, a sheet's table sentences, the games' lesson card (word
+and example), the miss list after a game, Today's answer and the verb track's
+form. Selecting German text in a sheet or an answered question's feedback
+(`data-say-zone`) says the selection (a selection with no recording is not
+put in the voice log). Why never before the answer: only right German is
+recorded, so hearing a candidate in the natural voice would give it away; a
+spelling exercise checks first and speaks after. No setting: the Sound switch
+rules it. One listener (`sayTapInstall`, feedback.js) handles every tap. The
+French app is unchanged. Tested by `tests/run.mjs say`.
 
 ### Fixing one clip or a pronunciation
 - **Flagging in the app:** after a recording plays, a small ⚑ shows at the
@@ -308,7 +337,7 @@ change, and a browser that can't play it simply keeps the phone voice.
 
 ## Tests
 ```bash
-node tools/audio/tests/run.mjs          # all of them, about 10 minutes; or name some: pack games flag logs runtime update
+node tools/audio/tests/run.mjs          # all of them, about 10 minutes; or name some: pack games flag say logs runtime update
 ```
 They run the app in a real browser (Chromium, through Playwright, installed in
 `tools/audio/tests/` on the first run) and never call the real Google: the
@@ -318,6 +347,11 @@ misbehaves on purpose (rate limits, errors, near-silence, cut-off clips).
   recording, every clip decodes, sound starts fast, no page errors.
 - **games:** every game in both languages, no page errors.
 - **flag:** the ⚑ flag and the "Copy voice log" row.
+- **say:** hearing German in the exercises: nothing said or tappable while a
+  question is asked; after it, the whole right sentence said once and tappable
+  (course drill, sheet quiz, a sheet's tables, the games' lesson card); a
+  selection said without a voice-log entry; a tap never also moves a game on;
+  principal-part hints shortened while a card asks; the French app untouched.
 - **runtime:** `runtime.tsv` is exactly what the app says now (`--check`), and
   the published pack has a recording for every text (`status --strict`).
 - **update:** adding decks later on a fresh copy with no work folder. The update

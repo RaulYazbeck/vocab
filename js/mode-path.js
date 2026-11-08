@@ -333,8 +333,10 @@ function pathAnswerChoice(i) {
   s.stats.answered++;
   saveState();
   const fb = document.getElementById("p-fb");
-  if (fb) fb.innerHTML = ok ? `<div class="p-ok">✓ ${colorArticleHtml(gameForm(w))} — ${escapeHtml(gamePrompt(w))}</div>`
-    : `<div class="p-bad">✗ ${colorArticleHtml(gameForm(w))} — ${escapeHtml(gamePrompt(w))}</div>`;
+  // (the word plays again on a tap: sayTapAttrs)
+  const tapW = `<span${sayTapAttrs(gameForm(w))}>${colorArticleHtml(gameForm(w))}</span>`;
+  if (fb) fb.innerHTML = ok ? `<div class="p-ok">✓ ${tapW} — ${escapeHtml(gamePrompt(w))}</div>`
+    : `<div class="p-bad">✗ ${tapW} — ${escapeHtml(gamePrompt(w))}</div>`;
   pathSetActions(`<button class="g-big-btn p-main" id="p-go" onclick="pathGo()">Next →</button>`);
   if (!ok) holdAfterMistake("p-go");
   // Never auto-skip: you always move on yourself (Enter or Next).
@@ -748,6 +750,8 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
   // Feedback
   const answerText = it.t === "cloze" ? it.cloze.answer : it.t === "reverse" ? gamePrompt(w) : it.plural || w[WORD_KEY];
   const evs = res ? res.events : [];
+  // The German answer plays again on a tap (not the English of a reversed card).
+  const ansTap = it.t === "reverse" ? "" : sayTapAttrs(it.t === "cloze" ? it.cloze.answer : it.plural || w[WORD_KEY]);
   const chip = evs.includes("locked") ? `<span class="p-chip gold">💎 Locked in!</span>`
     : evs.includes("strong") ? `<span class="p-chip gold">⭐ Strong!</span>`
     : evs.includes("known") ? `<span class="p-chip ok">🌳 Known!</span>`
@@ -765,10 +769,10 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     : it.usedHint && ok === true ? `<span class="p-chip">💡 with hint — no step up</span>`
     : it.said && it.fast && ok === true ? `<span class="p-chip">⚡ Shown straight away — counts as a look, no step up</span>` : "";
   const collectChip = genderCollected ? ` <span class="p-chip gold">🎨 Added to your Gender collection</span>` : "";
-  const head = ok === true ? `<div class="p-ok">✓ Correct! <strong>${colorArticleHtml(answerText)}</strong></div>`
+  const head = ok === true ? `<div class="p-ok">✓ Correct! <strong${ansTap}>${colorArticleHtml(answerText)}</strong></div>`
     : ok === "near" && it.said ? `<div class="p-near">≈ Close — say it once more: <strong>${colorArticleHtml(answerText)}</strong></div><div class="p-sub">No step up, no step down — one more try at the end of this session.</div>`
     : ok === "near" ? `<div class="p-near">${nearOk ? `<span class="p-typo" onpointerdown="event.preventDefault();pathSecretTap()">≈</span>` : "≈"} Almost — check the spelling</div><div class="p-diff">${diffHtml(val, answerText)}</div>${note ? `<div class="p-sub">${note}</div>` : ""}<div class="p-sub">No step up, no step down — one more try at the end of this session.</div>`
-    : `<div class="p-bad">${typoOk ? `<span class="p-typo" onpointerdown="event.preventDefault();pathSecretTap()">✗</span> Answer:` : val.trim() ? "✗ Answer:" : "Answer:"} <strong>${colorArticleHtml(answerText)}</strong></div>${val.trim() ? `<div class="p-diff">${diffHtml(val, answerText)}</div>` : ""}${note ? `<div class="p-sub">${note}</div>` : ""}`;
+    : `<div class="p-bad">${typoOk ? `<span class="p-typo" onpointerdown="event.preventDefault();pathSecretTap()">✗</span> Answer:` : val.trim() ? "✗ Answer:" : "Answer:"} <strong${ansTap}>${colorArticleHtml(answerText)}</strong></div>${val.trim() ? `<div class="p-diff">${diffHtml(val, answerText)}</div>` : ""}${note ? `<div class="p-sub">${note}</div>` : ""}`;
   const fb = document.getElementById("p-fb");
   if (fb) fb.innerHTML = `
     <div class="p-fb-main">${head}${chip}${collectChip}${it.said && it.t !== "reverse" ? frGenderNoteHtml(w) : ""}${w.pl && it.t !== "cloze" && it.t !== "reverse" && !it.plural ? `<div class="p-sub">plural: ${escapeHtml(w.pl)}</div>` : ""}</div>
