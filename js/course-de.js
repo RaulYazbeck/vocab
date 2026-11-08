@@ -408,7 +408,7 @@ function cxCheck(item, typed, sec) {
   const miss = cxMinus(A, T), extra = cxMinus(T, A);
   if (miss.length === 1 && extra.length === 1 && miss[0].length >= 4 && !CX_GRAMMAR_TOK.test(miss[0]) && cxLev(miss[0], extra[0]) === 1 && !cxEndingSlip(miss[0], extra[0])) res.near = true;
   const d = cxDiagnose(item, T, A, sec, String(best).normalize("NFC").replace(/[.,!?;:„“"«»‚‘’()…–—]/g, " ").split(/\s+/).filter(Boolean));
-  if (d) { res.rule = d.rule; res.msg = d.msg; }
+  if (d) { res.rule = d.rule; res.msg = d.msg; if (d.hard) delete res.near; }
   if (!res.rule) res.rule = (item.r || [])[0] || null;
   return res;
 }
@@ -447,6 +447,8 @@ function cxUmlautChoice(item, typed) {
 //   seq     { seq: [a, b] } you wrote a, then b (nicht ein…)
 //   pos     { tok }       the same words, `tok` in another place
 //   missing { tok } / extra { tok }
+// hard: true on a detector — what it finds is the grammar, never "almost,
+// check the spelling" (teuerer for teurer is one letter off, but it's the rule)
 // Messages fill {right} (the word that goes there), {typed} and {where}
 // (where tok goes: "before «in die Stadt»" / "at the end").
 const cxRx = x => x instanceof RegExp ? x : new RegExp("^" + String(x) + "$");
@@ -516,8 +518,9 @@ function cxDiagnose(item, T, A, sec, orig = null) {
       if (T.some(x => re.test(x)) && !A.some(x => re.test(x)) && cxMinus(T, A).filter(x => !re.test(x)).length <= 1) o = {};
     }
     if (o) {
-      const rule = d.rule && (!item.r || item.r.includes(d.rule) || cxRule(d.rule)) ? d.rule : (item.r || [])[0];
-      return { rule, msg: fill(d.msg, o) + (o.gender ? " " + o.gender : "") };
+      // (a rule that exists: the course's own, or a verb sheet's point — gs:fu1.r1)
+      const rule = d.rule && (!item.r || item.r.includes(d.rule) || cxRule(d.rule) || cxRuleView(d.rule)) ? d.rule : (item.r || [])[0];
+      return { rule, msg: fill(d.msg, o) + (o.gender ? " " + o.gender : ""), hard: !!d.hard };
     }
   }
   if (cxBagEq(T, A)) return { rule: (item.r || [])[0], msg: "The right words, another order." };

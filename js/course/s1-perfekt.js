@@ -358,9 +358,7 @@ cxCover({
 cxCover({
   "11.1": { st: "planned", sec: "s2.pt2" }, "11.2": { st: "planned", sec: "s2.pt2" }, "11.3": { st: "planned", sec: "s2.pt2" },
   "11.4": { st: "planned", sec: "s2.pt2" }, "11.5": { st: "planned", sec: "s2.pt2" },
-  "11.6": { st: "planned", sec: "s1.fu" }, "11.7": { st: "planned", sec: "s1.fu" },
-  // (11•10–11•13 put modals in the future — werden … gehen wollen, wird wohl
-  // … sein: the future lesson's, Session 5; moved there in Session 4)
-  "11.10": { st: "planned", sec: "s1.fu" }, "11.11": { st: "planned", sec: "s1.fu" }, "11.12": { st: "planned", sec: "s1.fu" }, "11.13": { st: "planned", sec: "s1.fu" },
+  // (11•6–11•13, the future with werden — modals in the future, wird wohl …
+  // sein too: the future lesson's drills, s1-future.js, Session 5)
   // (14•1–14•6: the regular Präteritum's drills, s1-praeteritum.js)
 });

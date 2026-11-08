@@ -257,5 +257,5 @@ cxCover({
   "14.7": "d14.7",
   // (14•8–14•10: the conjunction lessons, s1-conj.js)
   "28.6": "d28.6", "28.7": "d28.7", "28.8": "d28.8", "28.9": "d28.9", "28.10": "d28.10",
-  "11.8": { st: "planned", sec: "s1.fu" }, "11.9": { st: "planned", sec: "s1.fu" },
+  // (11•8 · 11•9: the future lesson's drills, s1-future.js)
 });

@@ -269,7 +269,8 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
   };
   await page.evaluate(() => renderCourse()); await noOverflow("Course");
   await page.evaluate(() => renderCourseSection("s0.neg")); await noOverflow("section");
-  await page.evaluate(() => renderCourseSection("s1.poss")); await noOverflow("a coming section");
+  // (a lesson not built yet: verb + preposition, Session 6's — the possessives, used here until Session 5, are built)
+  await page.evaluate(() => renderCourseSection("s1.verbprep")); await noOverflow("a coming section");
   // (Session 4 on) a sheet's table fits the phone whole — no sideways scrolling to find a column
   if (tag === "phone") await page.evaluate(() => {
     const wide = [], seen = [];
@@ -390,6 +391,16 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
     cxClose();
     renderCourseChapter("c14");
     ok([...document.querySelectorAll(".cx-ex .gr-stt")].map(b => b.innerText.split(" · ")[0]).join() === "14.1,14.2,14.3,14.4,14.5,14.6,14.7,14.8,14.9,14.10", "chapter 14: every Übung now has its drill");
+    // Session 5's chapters: their built Übungen — the later lessons' (and the one skipped) not listed
+    const exOf = ch => { renderCourseChapter(ch); return [...document.querySelectorAll(".cx-ex .gr-stt")].map(b => b.innerText.split(" · ")[0]).join(); };
+    ok(exOf("c11") === "11.6,11.7,11.8,11.9,11.10,11.11,11.12,11.13", "chapter 11: the future's 11.6–11.13 (the past perfect's 11.1–11.5 with the strong Präteritum, later)");
+    ok(exOf("c20") === "20.4,20.8,20.9", "chapter 20: 20.4 (possessives), 20.8–20.9 (comparison) — the genitive's later");
+    ok(exOf("c24") === "24.5,24.6,24.8,24.9,24.10,24.11,24.12,24.13,24.14", "chapter 24: the zu-infinitive's (24.1–24.4 with modals in the Perfekt, later; 24.7 skipped)");
+    ok(exOf("c31") === "31.14" && exOf("c23") === "23.1,23.2,23.4,23.5,23.6,23.7,23.8,23.9,23.10,23.12", "chapter 31: 31.14 (with the adjective endings) · chapter 23: 23.1–23.2 added");
+    renderCourseChapter("c24");
+    [...document.querySelectorAll(".cx-ex")].find(b => /^24\.9 /.test(b.querySelector(".gr-stt").innerText)).click();
+    ok(_cx && _cx.list.every(e => e.set === "d24.9") && /Chapter 24/.test(document.querySelector(".screen-top .back-btn").textContent), "Übung 24.9 runs on its own; back goes to chapter 24");
+    cxClose();
     // a passed verb lesson: its book exercises, one Practise card on its page
     renderCourseSection("s0.verbs");
     const pr = [...document.querySelectorAll(".gr-mastery")].find(b => /Practise/.test(b.innerText));
