@@ -957,24 +957,53 @@ screen · coverage report at 100 % (every blueprint exercise *mirrored*,
 
 *(kept up to date by the voice sessions; the pipeline is in `tools/audio/README.md`)*
 
-**8 Nov 2026 — the course and the sheets recorded; voice inside the exercises.**
+**8 Nov 2026 — the course, the sheets and every B1 verb recorded; voice inside the exercises.**
 
-- **Recorded:** everything the 📖 course says once a question is answered — every drill
-  item's whole right sentence for each accepted answer (the gap filled in, cues left out),
-  the conversations' lines, the lines you answer or transform, the writing models, the
-  generated conjugation items — plus every course sheet's examples, and for every sheet
-  (the verb track's too) the German sentences of its table and its quiz's right
-  sentences: **5,763 new clips, 183,361 characters, 0 refused**. The German pack now has
-  **39,238 / 39,238** texts (status --strict passes): all decks A1–B1, the A1 + A2 verb
-  forms, 17 single B1 verbs, the grammar sheets, idioms, the course (Stages 0 and 1).
-- **Characters this month (November 2026):** 184,022 of the 900,000 cap
-  (`tools/audio/state/usage.json`).
+- **Recorded this session (German, Google Chirp 3 HD "Aoede"), 0 refused:**
+  1. everything the 📖 course says once a question is answered — every drill item's
+     whole right sentence for each accepted answer (the gap filled in, cues left out), the
+     conversations' lines, the lines you answer or transform, the writing models, the
+     generated conjugation items — plus every course sheet's examples, and for every
+     sheet (the verb track's too) the German sentences of its table and its quiz's right
+     sentences: **5,763 clips, 183,361 characters**;
+  2. **every B1 verb's forms** (verb cards, 🎰 Conjugation Slots, 🧵 Verb Thread and its 🎧
+     rounds — `runtime.mjs --levels a1,a2,b1`): **24,375 clips, ≈381,000 characters**;
+  3. main's re-take of *lies* (its new IPA hint) and its new phrase *was ist los*.
+- **The German pack now has 63,613 / 63,613 texts** (`status.mjs --strict` passes): every
+  deck A1–B1, every verb form A1–B1, the grammar sheets and their tables and quizzes, the
+  idioms, the course as built (Stages 0 and 1). The update is big (81 of 95 shards,
+  ≈165 MB for a phone that has the old pack): the app offers it with the banner, on Wi-Fi.
+- **Characters this month (November 2026):** **581,538 of the 900,000 cap**
+  (`tools/audio/state/usage.json`; includes main's 36). ≈318,000 left this month.
+- **Still missing, in priority order:** nothing the app says today. What will be missing next:
+  1. **Session 6's lessons** (Stage 2A: conjunctions II, als / wenn / wann, indirect questions,
+     relative clauses, genitive, verb + preposition, wo- / da-, adverbs) — about as much as
+     Stage 1C per lesson: **≈20–30k characters a lesson, ≈180k for the session**. Record right
+     after they're built (fits this month's leftover).
+  2. **Sessions 7 and 8** (Stage 2B, the conversation units): ≈150k + ≈40k.
+  3. New words or verbs added to the decks: a few hundred characters each.
+  4. Phrases in the voice log (Settings → Sound & voice → Copy voice log) — e.g. a gap item
+     whose prompt has two gaps or English inside the word ("ei or ie? dr___ (three)") says
+     nothing on purpose; anything a game makes up falls back to the phone voice and lands there.
+- **Resume / routine** (after building lessons or editing decks):
+
+  ```bash
+  node tools/audio/runtime.mjs --lang de            # the course, sheets and verbs as the app says them now
+  node tools/audio/extract.mjs --lang de            # what's new; ⚠ warns about texts read literally
+  python tools/audio/run_all.py full --langs de     # record only the new ones, pack (resumable; >2 h: run again)
+  node tools/audio/status.mjs --lang de --strict
+  node tools/audio/tests/run.mjs pack games flag say runtime
+  git add audio tools/audio/state && git commit -m "Update voice packs"
+  ```
+  A run longer than a session's 2-hour command limit stops mid-way: run the same command
+  again (made clips are kept; `run_all.py pack --langs de` if only the pack step was cut).
 - **In the exercises (German app):** once answered — never before — the whole right
   sentence plays once (Next stops it), and every revealed German word or sentence plays
   again on a tap (🔊 after it): the course's miss card, "Also right", models, conversation
   lines, the sheet quiz, the sheets' table sentences, the games' lesson card and miss list,
   Today's answer, the verb track's form. Selecting German in a sheet or an answered
   question's feedback says the selection. The French app is unchanged.
-- **Principal-part hints** ("verb regular · trennte · hat getrennt") are left out while a
-  card asks for the verb and shown with the answer (display only; 503 hints; the decks
-  are unchanged).
+- **Principal-part hints:** main's `askHintText` (hint.js, merged 8 Nov) masks them — and a
+  word's stem or gender — while a card asks, and puts the whole hint back after the answer;
+  this branch's own shortening was dropped in its favour. The games' lesson card after a
+  miss now shows the whole hint when it was masked.
