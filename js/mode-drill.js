@@ -62,7 +62,7 @@ function updateDrillWord() {
 
   document.getElementById('drill-deck-label').textContent = currentWord.deckName;
   document.getElementById('drill-english').textContent    = currentWord.en;
-  document.getElementById('drill-hint').innerHTML         = `${currentWord.hint} ${badges}`;
+  document.getElementById('drill-hint').innerHTML         = `${answered ? escapeHtml(currentWord.hint || "") : askHintHtml(currentWord)} ${badges}`;
 
   const wordDisplay = document.querySelector('.drill-word-card .word-display');
   if (wordDisplay) {
@@ -299,12 +299,13 @@ function editCurrentDrillWord() {
     const en = document.getElementById("drill-english");
     if (en) en.textContent = currentWord.en;
     const hint = document.getElementById("drill-hint");
-    if (hint) hint.innerHTML = `${currentWord.hint} ${wordBadgesHtml(ws)}`;
+    if (hint) hint.innerHTML = `${answered ? escapeHtml(currentWord.hint || "") : askHintHtml(currentWord)} ${wordBadgesHtml(ws)}`;
     if (answered) showDrillFeedback(lastDrillCorrect, ws);
   });
 }
 function showDrillFeedback(correct, ws) {
   lastDrillCorrect = correct;
+  revealAskHints(document.getElementById("drill-hint"));
   const near = correct === "near";
   const cls  = near ? "near" : correct ? "correct" : "wrong";
   const icon = near ? "≈" : correct ? "✓" : "✗";

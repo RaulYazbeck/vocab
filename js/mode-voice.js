@@ -83,6 +83,7 @@ function stopVoiceSession() {
 }
 
 function showVoiceFeedback(correct, heard, isSkip) {
+  revealAskHints();
   const el = document.getElementById("voice-feedback-area");
   if (!el) return;
   const cls      = correct ? "correct" : "wrong";
@@ -111,7 +112,7 @@ function renderVoiceDrill() {
       </div>
       <div class="word-display">
         <div class="english-word">${currentWord.en}</div>
-        <div class="word-hint">${currentWord.hint} ${badges}</div>
+        <div class="word-hint">${askHintHtml(currentWord)} ${badges}</div>
       </div>
       <div class="voice-indicator">
         <button class="mic-btn" id="voice-mic-btn" onclick="toggleMic()">🎤</button>

@@ -162,3 +162,71 @@ function redactTranslation(sentence, prompt) {
   }).join("");
   return hit ? html : null;
 }
+
+// ── THE CARD'S HINT WHILE IT IS ASKED ─────────
+// A hint is for the rule ("verb regular", "+ Dativ"), not the word, but
+// some name a form of the answer: a verb's principal parts ("lebte
+// getrennt · hat getrennt gelebt", "ging · ist gegangen"), a word built
+// on it. While the card asks for the German those forms are shown as
+// "…"; once it is answered, revealAskHints() puts the whole hint back
+// (the forms are worth reading then). The deck data stays as it is: the
+// app reads the principal parts to build the verb's forms.
+const ASK_HINT_KEEP = /^(verb|verbs|regular|irregular|separable|inseparable|reflexive|phrase|idiom|noun|adjective|adverb|sich|hat|ist|takes|haben|sein|präteritum|partizip|ii|no|not|also|the|and|or|with|ge)$/i;
+function askHintText(w) {
+  const hint = String((w && w.hint) || "");
+  if (!hint || typeof WORD_KEY === "undefined" || WORD_KEY !== "de") return hint;
+  const form = typeof gameForm === "function" ? gameForm(w) : String(w[WORD_KEY] || "");
+  const ans = hintAnswerTokens(form).filter(t => t.length >= 3 && !/^(der|die|das|den|dem|des|ein|eine|einen|einem|sich|etwas|jemandem|jemanden)$/.test(t));
+  const hide = new Set(); // character ranges [start, end) as "s:e"
+  const parts = [];
+  const re = /\p{L}+/gu;
+  let m;
+  while ((m = re.exec(hint))) parts.push({ t: m[0], s: m.index, e: m.index + m[0].length });
+  // 1. A word that is a form of the answer: the same stem ("fürchtete",
+  // "verletzen" for die Verletzung) or a compound with it ("Nachtdienst").
+  // Not by likeness alone: the English meaning in a hint ("to help, 1st
+  // sg." for helfe) must stay.
+  const enToks = new Set(String(w.en || "").split(/[^\p{L}]+/u).map(t => normalize(t)).filter(Boolean));
+  const stemOf = (n, a) => n === a || (a.length >= 4 && n.includes(a)) || (commonPrefixLen(n, a) >= 4 && commonPrefixLen(n, a) >= a.length - 2);
+  parts.forEach((p, i) => {
+    const n = normalize(p.t);
+    if (ASK_HINT_KEEP.test(p.t) || enToks.has(n) || /ing$/.test(n) || (i > 0 && /^to$/i.test(parts[i - 1].t))) return;
+    if (ans.some(a => stemOf(n, normalize(a)))) hide.add(p);
+  });
+  // 2. Principal parts: "<Präteritum> · hat|ist [sich] <Partizip II>" and "(hing · gehangen)".
+  const inRange = (s, e) => parts.filter(p => p.s >= s && p.e <= e && !ASK_HINT_KEEP.test(p.t)).forEach(p => hide.add(p));
+  const pp = /(?:^|·|—|\()\s*([^·—()]*?)\s*·\s*(?:hat|ist)\s+(?:sich\s+)?([^·—()]+?)\s*(?=$|·|\)|,)/gu;
+  while ((m = pp.exec(hint))) {
+    const at = m.index + m[0].indexOf(m[1]);
+    if (m[1] && !/\b(verb|regular|irregular|separable|phrase|idiom|noun|präteritum|partizip)\b/i.test(m[1])) inRange(at, at + m[1].length);
+    const at2 = m.index + m[0].lastIndexOf(m[2]);
+    inRange(at2, at2 + m[2].length);
+  }
+  const pair = /\(\s*(\p{L}+)\s*·\s*(\p{L}+)\s*\)/gu;
+  while ((m = pair.exec(hint))) inRange(m.index, m.index + m[0].length);
+  if (!hide.size) return hint;
+  // Rebuild, one "…" for a run of hidden words ("lebte getrennt" → "…").
+  let out = "", pos = 0, lastHidden = false;
+  parts.forEach(p => {
+    const gap = hint.slice(pos, p.s);
+    if (hide.has(p)) {
+      if (lastHidden && /^\s*$/.test(gap)) { pos = p.e; return; }
+      out += gap + "…"; lastHidden = true;
+    } else { out += gap + p.t; lastHidden = false; }
+    pos = p.e;
+  });
+  return out + hint.slice(pos);
+}
+// The hint as HTML for a card that is being asked; revealAskHints()
+// shows the full one in its place after the answer.
+function askHintHtml(w) {
+  const full = String((w && w.hint) || ""), shown = askHintText(w);
+  if (shown === full) return escapeHtml(full);
+  return `<span class="ask-hint" data-full="${escapeHtml(full)}">${escapeHtml(shown)}</span>`;
+}
+function revealAskHints(root) {
+  (root || document).querySelectorAll(".ask-hint[data-full]").forEach(el => {
+    el.textContent = el.getAttribute("data-full");
+    el.removeAttribute("data-full");
+  });
+}

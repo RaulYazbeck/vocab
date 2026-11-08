@@ -343,7 +343,7 @@ registerGame({
       ctx.teach("");
       const w = queue[0];
       document.getElementById("bb-en").innerHTML = escapeHtml(gamePrompt(w)) + ctx.tag(w);
-      document.getElementById("bb-hint").textContent = w.hint || "";
+      document.getElementById("bb-hint").textContent = askHintText(w);
       input.value = "";
       input.className = "german-input";
       fb.innerHTML = "";
