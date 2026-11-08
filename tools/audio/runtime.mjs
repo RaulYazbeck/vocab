@@ -128,8 +128,22 @@ const found = await page.evaluate(() => {
   // course-de.js: said once a question is answered; a quiz item made from
   // your verbs — g — is a verb form, listed with the verb cards below).
   const tables = sh => ((sh.table && sh.table.rows) || []).forEach(r => r.slice(1).forEach(c => typeof gsCellSays === "function" && gsCellSays(c).forEach(([, t]) => add(t, "s", "_sheet:" + sh.id, "", "tables"))));
-  const quiz = sh => typeof cxQuizSayText === "function" && (sh.quiz || []).filter(Q => !Q.g).forEach(Q => add(cxQuizSayText(Q), "s", "_sheet:" + sh.id, "", "quiz"));
+  const quiz = sh => typeof cxQuizSayText === "function" && (sh.quiz || []).forEach(Q => {
+    if (!Q.g) return add(cxQuizSayText(Q), "s", "_sheet:" + sh.id, "", "quiz");
+    // A question made from your verbs (gqResolve): any verb of its set, any of its persons
+    // (and, in the modal passive, any modal) — said as the verb track says the form.
+    if (typeof GQ_SETS === "undefined" || typeof gqPersons !== "function") return;
+    const set = GQ_SETS[Q.v || "any"] || GQ_SETS.any;
+    const modals = Q.t === "pvmod" && !Q.modal && typeof VX_PV_MODALS !== "undefined" ? Object.keys(VX_PV_MODALS) : [Q.modal || ""];
+    vxVerbs().filter(x => set(x)).forEach(x => gqPersons(Q, x).forEach(p => modals.forEach(modal =>
+      // (filed under the sheet: a form the verb cards don't already say lands in that
+      // sheet's shard, so adding these changes a few shards, not one per verb)
+      add(cxQuizSayText({ inf: x.inf, t: Q.t, p, modal }), "w", "_sheet:" + sh.id, x.level, "quiz"))));
+  });
   if (typeof GS_SHEETS !== "undefined") GS_SHEETS.forEach(sh => { tables(sh); quiz(sh); });
+  // A sheet's "your verbs that do this" chips (gsMineHtml): the infinitive, on a tap.
+  // (German: the French list is left as it is)
+  if (WORD_KEY === "de" && typeof vxVerbs === "function" && typeof GS_SHEETS !== "undefined") vxVerbs().forEach(x => add(x.inf, "w", "_sheet:mine", x.level, "sheets"));
   // (last: a phrase another source already lists keeps that one's deck,
   // so its recording stays in the shard it is in)
   // 📖 The course (course-de.js / course-ui.js, German): every drill item's

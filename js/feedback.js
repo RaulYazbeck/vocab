@@ -70,13 +70,16 @@ function sayTapInstall() {
     if (b && b !== el && el.contains(b)) return;
     e.stopPropagation();
     if (el.tagName !== "BUTTON") e.preventDefault();
+    tappedAt = Date.now();
     speak(el.dataset.tapSay);
     el.classList.remove("say-pop"); void el.offsetWidth; el.classList.add("say-pop");
   }, true);
-  let timer = 0, down = false, last = "", lastAt = 0;
+  let timer = 0, down = false, last = "", lastAt = 0, tappedAt = 0;
   const check = () => {
     timer = 0;
     if (down) return;
+    // (a double tap on a word that plays already selects it: not said twice more)
+    if (Date.now() - tappedAt < 900) return;
     const sel = window.getSelection && window.getSelection();
     if (!sel || sel.isCollapsed || !sel.rangeCount) return;
     const zone = n => { const el = n && (n.nodeType === 1 ? n : n.parentElement); return el && el.closest ? el.closest("[data-say-zone]") : null; };

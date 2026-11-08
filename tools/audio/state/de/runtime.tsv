@@ -5512,7 +5512,6 @@ s	_sheet:cx.num2	Viertel vor sieben
 s	_sheet:cx.num2	am ersten August
 s	_sheet:cx.num2	halb neun
 s	_sheet:cx.pl1	die Lehrerinnen
-s	_sheet:cx.pl1	still masculine tables
 s	_sheet:cx.pl2	drei Stunden
 s	_sheet:cx.pl2	zwei Kinder
 s	_sheet:cx.poss1	Das Kind spielt mit seinem Ball.
@@ -5591,10 +5590,6 @@ s	_sheet:cx.resp2	Gehst du morgen joggen? Das kommt darauf an.
 s	_sheet:cx.resp2	Jemand hat mein Velo gestohlen.
 s	_sheet:cx.resp2	Möchtest du einen Kaffee?
 s	_sheet:cx.snd1	Wien
-s	_sheet:cx.snd1	feer
-s	_sheet:cx.snd1	oy
-s	_sheet:cx.snd1	shp, sht
-s	_sheet:cx.snd1	soft, as in huge
 s	_sheet:cx.sub1	Ich bleibe zu Hause, weil ich krank bin.
 s	_sheet:cx.sub1	Ich esse jetzt, weil ich Hunger habe.
 s	_sheet:cx.sub1	Ich glaube, dass der Bus schon weg ist.
@@ -5766,8 +5761,8 @@ s	_sheet:k23	Könnten Sie das wiederholen?
 s	_sheet:k23	Könnten Sie mir helfen?
 s	_sheet:k23	Könntest du mir das Salz geben?
 s	_sheet:k23	Wir konnten nicht kommen.
-s	_sheet:k24	Advice: An deiner Stelle würde ich zum Arzt gehen.
 s	_sheet:k24	An deiner Stelle würde ich warten.
+s	_sheet:k24	An deiner Stelle würde ich zum Arzt gehen.
 s	_sheet:k24	Du sollst pünktlich sein.
 s	_sheet:k24	Du solltest mehr schlafen.
 s	_sheet:k24	Ich hätte gern ein Wasser.
@@ -5819,6 +5814,7 @@ s	_sheet:k2p2	Wir hätten gewinnen können.
 s	_sheet:k2p2	dass ich hätte kommen müssen.
 s	_sheet:k2p2	weil ich hätte arbeiten müssen.
 s	_sheet:k2p2	…, dass er hätte warten müssen.
+w	_sheet:mine	sich verhalten
 s	_sheet:pf1	Ich habe es gestern vergessen.
 s	_sheet:pf1	Ich habe es vergessen.
 s	_sheet:pf1	Ich habe gestern Pizza gegessen.
@@ -5841,11 +5837,160 @@ s	_sheet:pf2	Wir sind nach Wien gefahren.
 s	_sheet:pf3	Er hat Blumen gebracht.
 s	_sheet:pf3	Hast du schon gekocht?
 s	_sheet:pf3	Ich habe den Brief geschrieben.
-s	_sheet:pf3	mixed
+w	_sheet:pf3	geachtet
+w	_sheet:pf3	geantwortet
+w	_sheet:pf3	geatmet
+w	_sheet:pf3	gebadet
+w	_sheet:pf3	gebeten
+w	_sheet:pf3	geblitzt
+w	_sheet:pf3	gebloggt
+w	_sheet:pf3	geblutet
+w	_sheet:pf3	geblüht
+w	_sheet:pf3	gebrannt
+w	_sheet:pf3	gebremst
+w	_sheet:pf3	gecampt
+w	_sheet:pf3	gecheckt
+w	_sheet:pf3	gedankt
+w	_sheet:pf3	gedient
+w	_sheet:pf3	gedonnert
+w	_sheet:pf3	gedreht
+w	_sheet:pf3	gedruckt
+w	_sheet:pf3	gedrückt
+w	_sheet:pf3	geduscht
+w	_sheet:pf3	geduzt
+w	_sheet:pf3	gefasst
+w	_sheet:pf3	gefaulenzt
+w	_sheet:pf3	gefaxt
+w	_sheet:pf3	gefeiert
+w	_sheet:pf3	geflossen
+w	_sheet:pf3	gefolgt
+w	_sheet:pf3	gefordert
+w	_sheet:pf3	gefrühstückt
+w	_sheet:pf3	gefördert
+w	_sheet:pf3	geführt
+w	_sheet:pf3	gefüttert
+w	_sheet:pf3	gegossen
+w	_sheet:pf3	gegrillt
+w	_sheet:pf3	gegrüßt
+w	_sheet:pf3	geguckt
+w	_sheet:pf3	gehagelt
+w	_sheet:pf3	gehandelt
+w	_sheet:pf3	gehasst
+w	_sheet:pf3	geheiratet
+w	_sheet:pf3	geheizt
+w	_sheet:pf3	gehupt
+w	_sheet:pf3	gejobbt
+w	_sheet:pf3	geklagt
+w	_sheet:pf3	geklebt
+w	_sheet:pf3	geklickt
+w	_sheet:pf3	geklopft
+w	_sheet:pf3	geklärt
+w	_sheet:pf3	gekostet
+w	_sheet:pf3	gekämpft
+w	_sheet:pf3	geküsst
+w	_sheet:pf3	geleistet
+w	_sheet:pf3	geleitet
+w	_sheet:pf3	gelitten
+w	_sheet:pf3	gelobt
+w	_sheet:pf3	gelächelt
+w	_sheet:pf3	gelöscht
+w	_sheet:pf3	gelöst
+w	_sheet:pf3	gemailt
+w	_sheet:pf3	gemeldet
+w	_sheet:pf3	gemietet
+w	_sheet:pf3	gemischt
+w	_sheet:pf3	genutzt
+w	_sheet:pf3	genäht
+w	_sheet:pf3	genützt
+w	_sheet:pf3	gepflanzt
+w	_sheet:pf3	gepflegt
+w	_sheet:pf3	gerannt
+w	_sheet:pf3	geregelt
+w	_sheet:pf3	gereicht
+w	_sheet:pf3	gereinigt
+w	_sheet:pf3	gerettet
+w	_sheet:pf3	gesandt
+w	_sheet:pf3	geschaltet
+w	_sheet:pf3	geschaut
+w	_sheet:pf3	geschmeckt
+w	_sheet:pf3	geschätzt
+w	_sheet:pf3	geschüttelt
+w	_sheet:pf3	geschützt
+w	_sheet:pf3	gesichert
+w	_sheet:pf3	gesiegt
+w	_sheet:pf3	gesiezt
+w	_sheet:pf3	gesorgt
+w	_sheet:pf3	gespült
+w	_sheet:pf3	gespürt
+w	_sheet:pf3	gestammt
+w	_sheet:pf3	gestaubsaugt
+w	_sheet:pf3	gesteckt
+w	_sheet:pf3	gestimmt
+w	_sheet:pf3	gestreikt
+w	_sheet:pf3	gestritten
+w	_sheet:pf3	gestürzt
+w	_sheet:pf3	getankt
+w	_sheet:pf3	getanzt
+w	_sheet:pf3	getestet
+w	_sheet:pf3	getippt
+w	_sheet:pf3	getrieben
+w	_sheet:pf3	getwittert
+w	_sheet:pf3	gewandt
+w	_sheet:pf3	gewarnt
+w	_sheet:pf3	gewinkt
+w	_sheet:pf3	gewirkt
+w	_sheet:pf3	gezweifelt
+w	_sheet:pf3	gezählt
 s	_sheet:pf4	Ich habe dich angerufen.
 s	_sheet:pf4	Sie hat in Wien studiert.
 s	_sheet:pf4	Wir haben Oma besucht.
-s	_sheet:pf4	eingekauft
+w	_sheet:pf4	abgefahren
+w	_sheet:pf4	abgeflogen
+w	_sheet:pf4	abgelehnt
+w	_sheet:pf4	abgemacht
+w	_sheet:pf4	abgesagt
+w	_sheet:pf4	abgestimmt
+w	_sheet:pf4	angehabt
+w	_sheet:pf4	angeklickt
+w	_sheet:pf4	angekreuzt
+w	_sheet:pf4	angekündigt
+w	_sheet:pf4	angeschnallt
+w	_sheet:pf4	angestellt
+w	_sheet:pf4	angezeigt
+w	_sheet:pf4	aufgefordert
+w	_sheet:pf4	aufgeführt
+w	_sheet:pf4	aufgelöst
+w	_sheet:pf4	aufgeregt
+w	_sheet:pf4	ausgedruckt
+w	_sheet:pf4	ausgefüllt
+w	_sheet:pf4	ausgereicht
+w	_sheet:pf4	ausgerichtet
+w	_sheet:pf4	ausgetragen
+w	_sheet:pf4	ausgewählt
+w	_sheet:pf4	dargestellt
+w	_sheet:pf4	eingefügt
+w	_sheet:pf4	eingeführt
+w	_sheet:pf4	eingekauft
+w	_sheet:pf4	eingesetzt
+w	_sheet:pf4	eingestellt
+w	_sheet:pf4	ferngesehen
+w	_sheet:pf4	festgelegt
+w	_sheet:pf4	fortgesetzt
+w	_sheet:pf4	kaputtgegangen
+w	_sheet:pf4	mitgenommen
+w	_sheet:pf4	mitgeteilt
+w	_sheet:pf4	nachgedacht
+w	_sheet:pf4	umgedreht
+w	_sheet:pf4	umgetauscht
+w	_sheet:pf4	verbracht
+w	_sheet:pf4	verbrannt
+w	_sheet:pf4	vorgehabt
+w	_sheet:pf4	zubereitet
+w	_sheet:pf4	zugeordnet
+w	_sheet:pf4	zugesagt
+w	_sheet:pf4	zugeschaut
+w	_sheet:pf4	zugestimmt
+w	_sheet:pf4	zusammengefasst
 s	_sheet:pf5	Bist du schon mal in Rom gewesen?
 s	_sheet:pf5	Er hat mich nach Hause gefahren.
 s	_sheet:pf5	Er ist früh aufgewacht.
@@ -5870,7 +6015,7 @@ s	_sheet:pf6	…, weil ich krank gewesen bin.
 s	_sheet:pq1	Du hattest es doch gesagt!
 s	_sheet:pq1	Er hatte schon gegessen.
 s	_sheet:pq1	Ich hatte die Arbeit schon gemacht.
-s	_sheet:pq1	Plusquamperfekt: wir waren schon gegangen.
+s	_sheet:pq1	Wir waren schon gegangen.
 s	_sheet:pq1	Wir waren schon nach Hause gegangen.
 s	_sheet:pq2	Als ich ankam, war der Zug schon abgefahren.
 s	_sheet:pq2	Ich bin aufgestanden und habe gefrühstückt.
@@ -5899,6 +6044,7 @@ s	_sheet:pr5	Ich möchte einen Kaffee.
 s	_sheet:pr5	Wir müssen jetzt gehen.
 s	_sheet:pr5	Wir wollen jetzt essen.
 s	_sheet:pr6	Der Zug kommt um acht an.
+s	_sheet:pr6	Er versteht dich.
 s	_sheet:pr6	Ich bezahle mit Karte.
 s	_sheet:pr6	Ich muss früh aufstehen.
 s	_sheet:pr6	Ich rufe dich morgen an.
@@ -5906,7 +6052,6 @@ s	_sheet:pr6	Ich will heute einkaufen.
 s	_sheet:pr6	Kannst du mich abholen?
 s	_sheet:pr6	Wann stehst du auf?
 s	_sheet:pr6	dass der Zug um acht ankommt.
-s	_sheet:pr6	er versteht dich.
 s	_sheet:pr6	weil ich dich anrufe.
 s	_sheet:pr6	…, weil ich früh aufstehe.
 s	_sheet:pr7	Ich freue mich auf das Wochenende.
@@ -5927,7 +6072,6 @@ s	_sheet:pt13	Ich war müde und bin früh ins Bett gegangen.
 s	_sheet:pt13	Sie öffnete das Fenster und sah hinaus.
 s	_sheet:pt13	Wir hatten keine Lust.
 s	_sheet:pt13	es gab
-s	_sheet:pt13	neither — same time, different habit
 s	_sheet:pt21	Er kaufte ein neues Auto.
 s	_sheet:pt21	Sie arbeitete bei einer Bank.
 s	_sheet:pt21	Wir wohnten damals in Bonn.

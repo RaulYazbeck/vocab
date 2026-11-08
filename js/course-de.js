@@ -478,15 +478,51 @@ function cxSayItems(set) {
   g.verbs.map(vxVerb).filter(Boolean).forEach(x => persons.forEach(p => { const f = vxForm(x, t, p); if (f) out.push({ k: "type", q: "", a: f.acc || [f.ans], gen: true, inf: x.inf, p, t }); }));
   return out;
 }
+// German words the decks know (lowercase): an option made of words that
+// mostly aren't German ("mixed", "oy", "soft, as in huge") isn't said.
+let _cxDeWords = null;
+function cxGermanish(s) {
+  if (!_cxDeWords) {
+    _cxDeWords = new Set();
+    try {
+      for (const g of ALL_GROUPS) for (const d of g.decks) for (const w of d.words || []) {
+        [w.de, ...(w.examples || []).map(e => e && e.de)].forEach(t => String(t || "").toLowerCase().split(/[^a-zäöüß]+/).forEach(x => x && _cxDeWords.add(x)));
+      }
+      // (and every answer of the course's own drills, and the verbs' forms the track asks)
+      const put = t => String(t || "").toLowerCase().split(/[^a-zäöüß]+/).forEach(x => x && _cxDeWords.add(x));
+      // (not the sounds lesson's: its answers are English sound names — "oy", "shp")
+      Object.values(CX.sets).filter(set => !/sound|snd/.test(set.sec)).forEach(set => (set.items || []).forEach(it => (it.a || []).forEach(put)));
+      if (typeof vxVerbs === "function") vxVerbs().forEach(x => { put(x.inf); ["pr", "pt", "im", "pf"].forEach(t => (typeof VX_PERSONS !== "undefined" ? VX_PERSONS : []).forEach(p => { try { const f = vxForm(x, t, p); if (f) put(f.ans); } catch (e) {} })); });
+    } catch (e) {}
+  }
+  // (names and nouns, capitalised, are left out of the count: "Lea", "Velo")
+  const toks = String(s || "").split(/[^A-Za-zÄÖÜäöüß]+/).filter(t => t && /^[a-zäöüß]/.test(t));
+  if (!toks.length) return !cxEnglish(s);
+  // (a number written out is German: fünfundvierzig, zweitausendfünfundzwanzig, am zwölften)
+  const num = t => /^(ein|eins|zwei|drei|vier|fünf|sechs|sieben|sieb|acht|neun|zehn|elf|zwölf|zwan|dreißig|zig|hundert|tausend|und)+(s?te[nrms]?|ste[nrms]?)?$/.test(t);
+  return !cxEnglish(s) && toks.filter(t => _cxDeWords.has(t) || num(t)).length * 2 >= toks.length;
+}
+// "Advice: An deiner Stelle …", "Plusquamperfekt: wir waren …": the label goes.
+const CX_SAY_LABEL = /^(advice|example|note|tip|answer|polite|formal|informal|spoken|written|präsens|präteritum|perfekt|plusquamperfekt|futur|imperativ|konjunktiv|passiv|nominativ|akkusativ|dativ|genitiv)\s*:\s+/i;
 // The sheet quiz (grammar-ui.js): the whole right sentence, or "".
 function cxQuizSayText(Q) {
   if (!Q || Q.k === "why") return "";
+  // A question made from one of your verbs (grammar-quiz.js gqResolve: "du ___ (fahren)",
+  // "ich ___ gefahren (fahren) · Perfekt"): the form as the verb track says it (vxSayText) —
+  // its label and context aren't a sentence, and the track's clip is recorded.
+  if (!Q.cx && Q.inf && Q.t && Q.p && typeof vxVerb === "function" && typeof vxSayText === "function") {
+    const x = vxVerb(Q.inf), t = Q.t === "p2only" ? "p2only" : Q.t;
+    const form = x && vxForm(x, t, Q.p, { modal: Q.modal || "" });
+    return form ? vxSayText({ kind: t, x, p: Q.p, form }) : "";
+  }
   const right = Q.k === "type" ? (Q.a || [])[0] : Q.k === "order" ? (Q.a || []).join(" ") : (Q.o || [])[Q.a];
   // (built from tiles, with the full stop or question mark of its English)
   const end = (String(Q.q || "").trim().match(/[.?!]$/) || ["."])[0];
-  const s = Q.k === "order" ? cxSayClean(right).replace(/([^.?!])$/, "$1" + end) : cxSayFill(Q.q, right);
-  // (an English option — "he works and he is working — both" — says nothing)
-  return s.replace(/[^A-Za-zÄÖÜäöüß]/g, "").length < 2 || cxEnglish(s) ? "" : s;
+  let s = Q.k === "order" ? cxSayClean(right).replace(/([^.?!])$/, "$1" + end) : cxSayFill(Q.q, right);
+  s = s.replace(CX_SAY_LABEL, "");
+  if (/^[a-zäöü]/.test(s) && cxSaySentence(s.charAt(0).toUpperCase() + s.slice(1)) && Q.k !== "order") s = s.charAt(0).toUpperCase() + s.slice(1);
+  // (an English option — "he works and he is working — both", "mixed" — says nothing)
+  return s.replace(/[^A-Za-zÄÖÜäöüß]/g, "").length < 2 || !cxGermanish(s) ? "" : s;
 }
 function cxCheck(item, typed, sec) {
   const fills = cxGapFills(item), answers = [...cxAnswers(item), ...fills, ...(item.k === "order" || item.fixed ? [] : cxOrders(item))];

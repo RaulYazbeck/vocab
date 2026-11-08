@@ -88,6 +88,20 @@ if (q3.say) {
   ok((await taps("#gs-qfb")).includes(q3.say), "and shows it to tap");
 } else ok((await said()).length === 0, `an English quiz question (${q3.k}) says nothing`);
 
+console.log("3b. everything a quiz or a drill says has its recording in the pack");
+// Every verb sheet's quiz drawn 6 times (its questions come from your verbs:
+// another verb, another person each time), every course sheet's quiz, and
+// every course drill item's sentence for each accepted answer.
+const gaps = await page.evaluate(() => {
+  const out = new Set();
+  const chk = t => { if (t && !audioFind(t)) out.add(t); };
+  GS_SHEETS.forEach(sh => { for (let i = 0; i < 6; i++) gqSheetQuiz(sh).forEach(Q => chk(cxQuizSayText(Q))); });
+  Object.values(CX.sheets).forEach(sh => (sh.quiz || []).forEach(Q => chk(cxQuizSayText(Q))));
+  Object.values(CX.sets).forEach(set => cxSayItems(set).forEach(it => cxSayAll(it, set).forEach(chk)));
+  return [...out];
+});
+ok(gaps.length === 0, `nothing said without a recording (${gaps.length})`, gaps.slice(0, 8).join(" | "));
+
 console.log("4. a sheet: examples, table sentences, a selection");
 await clear();
 await page.evaluate(() => { const host = document.getElementById("game-screen") || document.body; gsOpen(host, "cx.neg1", { mode: "menu" }); _gs.step = _gs.steps.findIndex(s => s.id === "table"); gsRender(); });

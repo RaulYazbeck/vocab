@@ -472,7 +472,12 @@ if (neg && neg.built) {
   const clean = t => !/___|→|[()[\]{}<>=\/]|\*/.test(t) && !C.cxEnglish(t) && t === t.trim() && !/\s[.,!?]/.test(t);
   let n = 0;
   Object.values(CX.sets).forEach(set => C.cxSayItems(set).forEach(it => C.cxSayAll(it, set).forEach(t => { n++; ok(clean(t), `${set.id}: says clean German «${t}»`); })));
-  Object.values(CX.sheets).forEach(sh => (sh.quiz || []).forEach(Q => { const t = C.cxQuizSayText(Q); if (t) { n++; ok(clean(t), `${sh.id}: its quiz says clean German «${t}»`); } }));
+  // every sheet's quiz, the course's and the verb track's (its fixed questions; the ones
+  // made from your verbs say the verb track's own form)
+  [...Object.values(CX.sheets), ...(C.GS_SHEETS || [])].forEach(sh => (sh.quiz || []).filter(Q => !Q.g).forEach(Q => { const t = C.cxQuizSayText(Q); if (t) { n++; ok(clean(t) && C.cxGermanish(t), `${sh.id}: its quiz says clean German «${t}»`); } }));
+  // an English option is never said (it would be read with the German voice)
+  ["mixed", "oy", "soft, as in huge", "neither — same time, different habit"].forEach(o => ok(C.cxQuizSayText({ k: "pick", q: "Which?", o: [o], a: 0 }) === "", `an English option says nothing («${o}»)`));
+  ok(C.cxQuizSayText({ k: "pick", q: "Which?", o: ["Advice: An deiner Stelle würde ich warten."], a: 0 }) === "An deiner Stelle würde ich warten.", "an English label before a sentence is left out");
   // a production item always has something to say once answered
   Object.values(CX.sets).forEach(set => (set.items || []).forEach(it => { const k = C.cxItemKind(set, it); if (["transform", "compose", "translate", "answer", "respond"].includes(k)) ok(!!C.cxSayText(it, set), `${set.id}: «${it.q || (it.w || []).join(" ")}» says its answer`); }));
   ok(n > 5000, `the course says ${n} texts`);

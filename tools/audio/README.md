@@ -179,8 +179,12 @@ The 📖 course is listed too (German): every drill item's whole right sentence
 for each accepted answer, a conversation's lines, the line answered or
 transformed, a writing model, and each course sheet's examples; and for every
 sheet (the verb track's too) the German sentences of its table and its quiz's
-right sentences. One deck per lesson (`_course:<section>`), so a lesson's
-clips share a few shards.
+right sentences — a quiz question made from your verbs ("du ___ (fahren)")
+says the form as the verb track does, and an English option says nothing.
+One deck per lesson (`_course:<section>`) or sheet (`_sheet:<id>`), so new
+clips land in a few shards. `tests/run.mjs say` checks in the app that
+everything a drill or a quiz says (each verb sheet's quiz drawn several
+times) is in the pack.
 
 It never copies the app's wording: each feature has one function that says
 what is spoken (`conjSayText`, `threadSayText`, `vxSayText`, `gsSayText`; for

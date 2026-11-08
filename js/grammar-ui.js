@@ -505,7 +505,7 @@ function gsQuizNext() {
   const q = _gs && _gs.quiz;
   if (!q || !q.answered) return;
   if (typeof mistakeHeld === "function" && mistakeHeld("gs-qfb")) return;
-  if (typeof speakStop === "function") speakStop();
+  if (typeof speakStop === "function" && typeof sayTapOn === "function" && sayTapOn()) speakStop();
   q.answered = false;
   q.i++;
   if (q.i >= q.list.length) q.done = true;

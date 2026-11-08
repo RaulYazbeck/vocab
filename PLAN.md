@@ -968,13 +968,26 @@ screen · coverage report at 100 % (every blueprint exercise *mirrored*,
      sentences: **5,763 clips, 183,361 characters**;
   2. **every B1 verb's forms** (verb cards, 🎰 Conjugation Slots, 🧵 Verb Thread and its 🎧
      rounds — `runtime.mjs --levels a1,a2,b1`): **24,375 clips, ≈381,000 characters**;
-  3. main's re-take of *lies* (its new IPA hint) and its new phrase *was ist los*.
-- **The German pack now has 63,613 / 63,613 texts** (`status.mjs --strict` passes): every
+  3. main's re-take of *lies* (its new IPA hint) and its new phrase *was ist los*;
+  4. after an audit of every place the app speaks (below): 154 clips, mostly bare
+     participles a verb sheet's quiz asks ("Partizip II of danken" → *gedankt*).
+- **The German pack now has 63,757 / 63,757 texts** (`status.mjs --strict` passes): every
   deck A1–B1, every verb form A1–B1, the grammar sheets and their tables and quizzes, the
   idioms, the course as built (Stages 0 and 1). The update is big (81 of 95 shards,
   ≈165 MB for a phone that has the old pack): the app offers it with the banner, on Wi-Fi.
-- **Characters this month (November 2026):** **581,538 of the 900,000 cap**
-  (`tools/audio/state/usage.json`; includes main's 36). ≈318,000 left this month.
+- **Characters this month (November 2026):** **582,931 of the 900,000 cap**
+  (`tools/audio/state/usage.json`; includes main's 36). ≈317,000 left this month.
+- **Audit (8 Nov, after the recording):** every place the app speaks or plays on a tap was
+  listed and every text it can produce checked against the pack in the real app — deck
+  words in every form the games use, examples, plurals, cloze answers, conjugation cards,
+  idioms, the verb chips, the course, and every verb sheet's quiz question for every verb ×
+  person (249,240 drawn): **no gaps**. Fixed on the way: a verb sheet's quiz made from your
+  verbs would have said its English label and a wrong word order ("ich habe gedankt
+  Perfekt", "ich werde mich treffen mit Anna") with the phone voice — it now says the form
+  as the verb track does (recorded); English quiz options ("mixed", "oy", "soft, as in
+  huge") were recorded and would have been read with the German voice — they now say
+  nothing and their clips left the pack; "Advice: …" / "Plusquamperfekt: …" labels are left
+  out of what is said.
 - **Still missing, in priority order:** nothing the app says today. What will be missing next:
   1. **Session 6's lessons** (Stage 2A: conjunctions II, als / wenn / wann, indirect questions,
      relative clauses, genitive, verb + preposition, wo- / da-, adverbs) — about as much as
