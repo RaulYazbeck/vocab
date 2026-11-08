@@ -25,7 +25,7 @@ cxPack({
       sheets: [
         { id: "cx.poss1", title: "mein, sein, ihr — in every case", qn: 3,
           struct: [["sein · ihr", "who"], ["+ the ending", "end"], ["noun", "thing"]],
-          why: "A possessive does two jobs. The **word** says whose it is — that's the owner's choice: **sein** for him, **ihr** for her. The **ending** says what the noun is doing in the sentence — exactly like **ein**: meinen, meinem, meiner.",
+          why: "A possessive does two jobs: the **word** says whose — **sein** for him, **ihr** for her; the **ending** says what the noun does in the sentence, exactly like **ein**: meinen, meinem.",
           rid: ["poss.who", "poss.acc", "poss.dat"],
           rules: [
             "The **owner** decides the word: er, es → **sein** · sie (she) → **ihr** · sie (they) → **ihr** · Sie → **Ihr**. Never the thing: Tom und **seine** Mutter · Lea und **ihr** Vater · das Kind und **sein** Zimmer.",
@@ -59,11 +59,11 @@ cxPack({
           ] },
         { id: "cx.poss2", title: "Whose? Annas · von meinem Bruder · meiner", qn: 3,
           struct: [["Annas", "who"], ["noun", "thing"], ["·", "mid"], ["noun", "thing"], ["von + dative", "end"]],
-          why: "Three ways to say **whose**: a name with **-s** in front (Annas Velo), **von** + the dative behind (das Velo von meinem Bruder — how it's mostly spoken), and the possessive **on its own** when the noun is already clear (Ja, das ist meiner).",
+          why: "Three ways to say **whose**: a name + **-s** (Annas Velo), **von** + the dative, as it's mostly spoken (das Velo von meinem Bruder), and the possessive **on its own** (Ja, das ist meiner).",
           rid: ["poss.name", "poss.von", "poss.alone"],
           rules: [
             "A name takes **-s** and goes in front — no apostrophe, no article: **Annas** Velo · **Toms** Eltern · **Frau Hubers** Garten · **Papas** Auto. (English *Anna's* → German **Annas**.)",
-            "Spoken German says it with **von + the dative**, after the thing: das Auto **von meinem Bruder** · die Katze **von der Nachbarin** · die Zimmer **von unseren Kindern** · die Wohnung **von Sara**. **Wessen** Jacke ist das? — Das ist die Jacke **von Lea**.",
+            "Spoken German says it with **von + the dative**, after the thing: das Auto **von meinem Bruder** · die Katze **von der Nachbarin** · die Zimmer **von unseren Kindern**. **Wessen** Jacke ist das? — **Leas**.",
             "On its own the possessive shows the noun's gender: der → **meiner** · die → **meine** · das → **meins** · plural → **meine**: Ist das dein Schirm? — Ja, das ist **meiner**. · Kann ich **deins** nehmen?",
           ],
           table: { head: ["the thing", "on its own"], rows: [
@@ -117,7 +117,7 @@ cxPack({
           { q: "Der Hund wartet auf ___ Futter.", o: ["sein", "ihr"], a: ["sein"], r: ["poss.who"] },
         ] },
         // ── our own: the ending — the subject and the object ──
-        { id: "dposs.acc", t: "type", title: "mein, meine, meinen", how: "Write the possessive in brackets with its ending — the subject, or the object (den → -en).", items: [
+        { id: "dposs.acc", t: "type", title: "mein, meine, meinen", how: "Write the possessive with its ending — the subject, or the object (den → -en).", items: [
           { q: "(mein) Ich suche ___ Schlüssel.", a: ["meinen"], r: ["poss.acc"] },
           { q: "(dein) Hast du ___ Ausweis dabei?", a: ["deinen"], r: ["poss.acc"] },
           { q: "(unser) Wir verkaufen ___ alte Wohnung.", a: ["unsere"], r: ["poss.acc"] },
@@ -146,7 +146,7 @@ cxPack({
           { q: "(unser) Wir sind zufrieden mit ___ neuen Wohnung.", a: ["unserer"], r: ["poss.dat"] },
         ] },
         // ── our own: someone else's ──
-        { id: "dposs.mix", t: "transform", title: "Someone else's", how: "Say it for the person in brackets — the verb and the possessive change, the ending stays with its noun.", items: [
+        { id: "dposs.mix", t: "transform", title: "Someone else's", how: "Say it for the person in brackets — the verb and the possessive change.", items: [
           { q: "Ich besuche meine Oma. (Tom)", a: ["Tom besucht seine Oma."], r: ["poss.who"], vf: [["besuchen", "pr", "er"]], cap: true },
           { q: "Ich rufe meinen Vater an. (Lea)", a: ["Lea ruft ihren Vater an."], r: ["poss.who", "poss.acc"], vf: [["anrufen", "pr", "er"]], cap: true },
           { q: "Ich wohne bei meiner Tante. (wir)", a: ["Wir wohnen bei unserer Tante."], r: ["poss.dat"], vf: [["wohnen", "pr", "wir"]] },
@@ -199,21 +199,21 @@ cxPack({
           { w: ["er", "wollen", "kaufen", "die Gitarre", "Frau Keller"], a: ["Er will Frau Kellers Gitarre kaufen.", "Er will die Gitarre von Frau Keller kaufen."], r: ["poss.name"], vf: [["wollen", "pr", "er"]] },
         ] },
         // ── our own: mine, yours ──
-        { id: "dposs.alone", t: "type", title: "meiner, meins, meine", how: "Write the possessive on its own — it shows the noun's gender (der → meiner · das → meins · die → meine).", items: [
+        { id: "dposs.alone", t: "type", title: "meiner, meins, meine", how: "Write the possessive on its own: der → meiner · die → meine · das → meins.", items: [
           { q: "Ist das dein Schirm? — Ja, das ist ___.", a: ["meiner"], r: ["poss.alone"] },
-          { q: "Ist das deine Tasche? — Ja, das ist ___.", a: ["meine"], r: ["poss.alone"], diag: [{ t: "ending", stem: "(mein|dein|sein|ihr|unser|eur)", rule: "poss.alone", msg: "On its own it still shows the noun: die → **{right}**." }] },
+          { q: "Ist das deine Tasche? — Ja, das ist ___.", a: ["meine"], r: ["poss.alone"] },
           { q: "Ist das dein Handy? — Ja, das ist ___.", a: ["meins", "meines"], r: ["poss.alone"] },
-          { q: "Sind das deine Schlüssel? — Ja, das sind ___.", a: ["meine"], r: ["poss.alone"], diag: [{ t: "ending", stem: "(mein|dein|sein|ihr|unser|eur)", rule: "poss.alone", msg: "On its own it still shows the noun: a plural → **{right}**." }] },
-          { q: "Ist das Toms Jacke? — Ja, das ist ___.", a: ["seine"], r: ["poss.alone", "poss.who"], diag: [{ t: "ending", stem: "(mein|dein|sein|ihr|unser|eur)", rule: "poss.alone", msg: "On its own it still shows the noun: die Jacke → **{right}**." }] },
+          { q: "Sind das deine Schlüssel? — Ja, das sind ___.", a: ["meine"], r: ["poss.alone"] },
+          { q: "Ist das Toms Jacke? — Ja, das ist ___.", a: ["seine"], r: ["poss.alone", "poss.who"] },
           { q: "Ist das Leas Velo? — Nein, ___ ist rot.", a: ["ihres", "ihrs"], r: ["poss.alone", "poss.who"] },
           { q: "Mein Auto ist kaputt. Kann ich ___ nehmen? (yours, du)", a: ["deins", "deines"], r: ["poss.alone"] },
           { q: "Ich habe keinen Stift. Kannst du mir ___ leihen? (yours, du)", a: ["deinen"], r: ["poss.alone"] },
           { q: "Wessen Koffer ist das? — Das ist ___. (ours)", a: ["unserer"], r: ["poss.alone"] },
-          { q: "Ist das eure Katze? — Nein, ___ ist schwarz. (ours)", a: ["unsere"], r: ["poss.alone"], diag: [{ t: "ending", stem: "(mein|dein|sein|ihr|unser|eur)", rule: "poss.alone", msg: "On its own it still shows the noun: die Katze → **{right}**." }] },
+          { q: "Ist das eure Katze? — Nein, ___ ist schwarz. (ours)", a: ["unsere"], r: ["poss.alone"] },
           { q: "Frau Graf, ist das Ihr Mantel? — Ja, das ist ___.", a: ["meiner"], r: ["poss.alone"] },
-        ] },
+        ].map(it => ({ ...it, diag: [{ t: "ending", stem: "(mein|dein|sein|ihr|unser|eur)", rule: "poss.alone", msg: "On its own it shows the noun it stands for: **{right}** — der → meiner · die → meine · das → meins (as the object, der → meinen)." }] })) },
         // ── Production: whose is it? ──
-        { id: "dp.poss", t: "translate", end: true, title: "Say it in German", how: "Translate — sein or ihr by the owner, the ending by the noun; whose: a name + s or von + the dative.", items: [
+        { id: "dp.poss", t: "translate", end: true, title: "Say it in German", how: "Translate — sein or ihr by the owner, the ending by the noun.", items: [
           { q: "Is that your bike? (du)", a: ["Ist das dein Velo?", "Ist das dein Fahrrad?"], r: ["poss.acc"] },
           { q: "Lea is visiting her grandparents.", a: ["Lea besucht ihre Großeltern."], r: ["poss.who"] },
           { q: "Tom is going to the cinema with his sister.", a: ["Tom geht mit seiner Schwester ins Kino."], r: ["poss.who", "poss.dat"] },

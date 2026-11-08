@@ -188,7 +188,9 @@ function run(o) {
   // unasked for two weeks.
   // (Before Session 3's review this passed at 98 % only because the placeholder lessons carried
   // the pilot's detectors, which put every miss on kein.)
-  if (feasible && acc >= 0.75 && known < rules.length * 0.98) fail(`${rules.length - known} rules not 🌳 Known by the finish date`);
+  // (which lessons they're from — the last met, as a rule, when attendance is low)
+  const shortBy = () => { const m = {}; Object.keys(C.CX.rules).filter(r => coreRules.has(r)).forEach(r => { const ws = C.cxRuleWS(r); if (ws && ws.st < 5) { const sec = C.CX.rules[r].sec; m[sec] = (m[sec] || 0) + 1; } }); return Object.entries(m).map(([k, v]) => k + " " + v).join(", "); };
+  if (feasible && acc >= 0.75 && known < rules.length * 0.98) fail(`${rules.length - known} rules not 🌳 Known by the finish date (${shortBy()})`);
   if (feasible && acc < 0.75) {
     if (known < rules.length * 0.5) fail(`only ${known}/${rules.length} rules 🌳 Known by the finish date`);
     const end = C.__now, waiting = ws => ws.rp || ws.fl || ws.lrn || ws.dueAt <= end;

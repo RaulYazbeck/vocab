@@ -71,7 +71,9 @@ a later session that uploads its chapter.
      the auxiliary and the participle: *hat gegessen*).
      In the app the same `vf` feeds the learning log's verbs (`learnNoteVerb`): the form
      counts right when it's in what was written, and a miss logs the word written in its
-     place. Umlauts are never typed (agreed): a missing one is never a mistake; when the
+     place. Umlauts are never typed (agreed): a missing one is never a mistake (one typed where
+     the answer has none is: *müssten* for *mussten*, *schön* for *schon* — another form, as in the
+     verb track, and the verb log counts it as a miss); when the
      plain spelling is another real form (*fahrt*: fährt or fahrt?) the drill asks the verb
      track's 1 / 2 choice (`cxUmlautChoice`) — picking the other form is the miss.
    - A verb lesson's book exercises (its sheets live in the verb track): a pack for the

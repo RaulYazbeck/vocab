@@ -30,7 +30,7 @@ cxPack({
       sheets: [
         { id: "cx.adj1", title: "After der, dieser, jeder: -e or -en", qn: 3,
           struct: [["der · dieser", "who"], ["adjective + e / en", "end"], ["noun", "thing"]],
-          why: "An adjective right **before a noun** takes an ending. After **der, die, das** (and dieser, jeder, welcher, alle) the article already shows the case, so the adjective needs only **-e** or **-en**. After sein it takes none: Der Tee ist **heiß**.",
+          why: "An adjective **before a noun** takes an ending. After **der, dieser, jeder** the article already shows the case, so the adjective needs only **-e** or **-en**. After sein: none.",
           rid: ["adj.pred", "adj.e", "adj.en"],
           rules: [
             "After **sein, werden, bleiben** — no ending: Die Wohnung ist **hell**. · Es wird **kalt**. Right before a noun — always one: die **helle** Wohnung.",
@@ -62,7 +62,7 @@ cxPack({
           ] },
         { id: "cx.adj2", title: "After ein, mein, kein: -er, -es where ein says nothing", qn: 3,
           struct: [["ein · mein", "who"], ["adjective + er / es / e / en", "end"], ["noun", "thing"]],
-          why: "**ein** has no ending in three places — ein Mann, ein Haus, and ein Haus as the object. There the **adjective** shows what der or das would: ein alt**er** Mann, ein alt**es** Haus. Everywhere else it's as after der: -e or -en. The same after **kein, mein, dein, unser…**",
+          why: "Where **ein** has no ending (ein Mann, ein Haus), the **adjective** shows what der or das would: ein alt**er** Mann, ein alt**es** Haus. Elsewhere: as after der. kein, mein, unser… the same.",
           rid: ["adj.ein", "adj.eine", "adj.kein"],
           rules: [
             "Where ein has no ending, the adjective takes der's or das's: ein gut**er** Freund (der) · ein neu**es** Handy (das) — das also as the object: Ich habe ein neu**es** Handy. **mein, kein, unser…** the same: mein neu**er** Job · kein gut**es** Wetter.",
@@ -95,11 +95,11 @@ cxPack({
           ] },
         { id: "cx.adj3", title: "No article: frisches Brot · der bessere Wein", qn: 3,
           struct: [["(no article)", "mid"], ["adjective + the article's ending", "end"], ["noun", "thing"]],
-          why: "With **no article** at all, the adjective does the article's job and takes its ending: heiß**er** Tee (der), kalt**e** Milch (die), frisch**es** Brot (das), nett**e** Leute. And a comparative or superlative before a noun takes the same endings as any adjective: der **bessere** Wein, das **größte** Zimmer.",
+          why: "With **no article**, the adjective does the article's job: heiß**er** Tee, kalt**e** Milch, frisch**es** Brot. And before a noun a comparative or superlative takes endings like any adjective: der **bessere** Wein.",
           rid: ["adj.zero", "adj.zerodat", "adj.comp"],
           rules: [
-            "No article: the adjective takes der / die / das's ending — heiß**er** Tee · kalt**e** Milch · frisch**es** Brot · nett**e** Leute (the plural: -e). As the object: Ich trinke heiß**en** Tee. After numbers, viele, einige the same: zwei nett**e** Kollegen · viele neu**e** Wörter.",
-            "In the dative too, the article's ending: mit frisch**em** Brot (dem) · mit kalt**er** Milch (der) · mit nett**en** Leuten (den). Greetings work the same: Lieb**er** Marco · Lieb**e** Sara · Gut**en** Morgen · Viel**en** Dank!",
+            "No article: the adjective takes der / die / das's ending — heiß**er** Tee · kalt**e** Milch · frisch**es** Brot · nett**e** Leute; as the object: heiß**en** Tee. Greetings too: Lieb**er** Marco · Lieb**e** Sara · Gut**en** Tag (den Tag).",
+            "In the dative too, the article's ending: mit frisch**em** Brot (dem) · mit kalt**er** Milch (der) · mit nett**en** Leuten (den). After numbers and viele the same: zwei nett**e** Kollegen · mit vielen nett**en** Leuten.",
             "A comparative or superlative **before a noun** takes the endings too: der bess**ere** Wein · ein schnell**eres** Auto · die größ**te** Stadt · mit dem best**en** Freund. (After sein it's am …sten: Sie ist am größten.)",
           ],
           table: { head: ["", "der", "die", "das", "pl."], rows: [
@@ -119,7 +119,7 @@ cxPack({
             { at: "r1", k: "type", cx: true, q: "(heiß) Ich trinke morgens ___ Tee.", a: ["heißen"], r: ["adj.zero"], why: "den Tee → **heißen** Tee." },
             { at: "r1", k: "pick", q: "Wir haben ___ Nachbarn. (nett)", o: ["nette", "netten", "netter"], a: 0, why: "Plural, no article: **-e**." },
             { at: "r2", k: "type", cx: true, q: "(kalt) Ich trinke Tee nie mit ___ Milch.", a: ["kalter"], r: ["adj.zerodat"], why: "mit der Milch → mit **kalter** Milch." },
-            { at: "r2", k: "pick", q: "___ Sara, wie geht es dir? (lieb)", o: ["Liebe", "Lieber", "Lieben"], a: 0, why: "die Sara: **Liebe**." },
+            { at: "r1", k: "pick", q: "___ Sara, wie geht es dir? (lieb)", o: ["Liebe", "Lieber", "Lieben"], a: 0, why: "die Sara: **Liebe**." },
             { at: "r2", k: "pick", q: "mit ___ Wasser (warm)", o: ["warmem", "warmen", "warmes"], a: 0, why: "mit dem Wasser → **warmem** Wasser." },
             { at: "r3", k: "pick", q: "Wir suchen eine ___ Wohnung. (größer)", o: ["größere", "größer", "größeren"], a: 0, why: "eine + -e: **größere**." },
             { at: "r3", k: "type", cx: true, q: "(gut) Das ist die ___ Idee!", a: ["beste"], r: ["adj.comp"], why: "gut → best- + die's -e: **beste**." },
@@ -129,7 +129,7 @@ cxPack({
       ],
       diag: [
         { t: "extra", tok: "^am$", rule: "adj.comp", msg: "Before a noun there's no am — the superlative takes an ending: die **größte** Stadt." },
-        { t: "swap", from: "^\\w+(el|er)e[nmrs]?$", to: "^\\w+[lr]e[nmrs]?$", rule: "", hard: true, msg: "-el and -er drop their e before an ending: **{right}** (dunkel → dunklen · teuer → teures)." },
+        { t: "swap", from: "^(dunkel|edel|eitel|nobel|simpel|flexibel|sensibel|plausibel|komfortabel|miserabel|teuer|sauer|ungeheuer)e[nmrs]?$", to: "^(dunkl|edl|eitl|nobl|simpl|flexibl|sensibl|plausibl|komfortabl|miserabl|teur|saur|ungeheur)e[nmrs]?$", rule: "", hard: true, msg: "-el and -er drop their e before an ending: **{right}** (dunkel → dunklen · teuer → teures)." },
         { t: "swap", from: "^(der|die|das|den|dem|des)$", to: "^(der|die|das|den|dem)$", rule: "", msg: "The article first: **{right}** — the case decides it (den = der as the object · dem, der = the dative)." },
         { t: "ending", stem: "(ein|kein|mein|dein|sein|ihr|unser|eur|dies|jed|welch|solch|all|viel)", rule: "", msg: "The article word first: **{right}** — then the adjective's ending follows from it." },
         { t: "ending", stem: "(alt|neu|klein|gross|gut|nett|jung|schon|rot|gelb|frisch|heiss|kalt|warm|lang|teu|dunk|lieb|ruhig|hell|interessant|stark|best|bess|hoh|hoch|hoh|billig|schnell|jung|lieb|ganz|freundlich|warm|stark|schweizerisch|deutsch|wichtig|spannend|letzt|nachst|erst|grun|blau|schwarz|weiss|gemutlich|grosser|grosst|jungst|jungere|alter|altest|neust|neuer|billigst|schnellst|teuerst)", rule: "", msg: "The right adjective, the wrong ending: **{right}**." },
@@ -150,7 +150,7 @@ cxPack({
           { q: "Die ___ Brücke ist gesperrt.", o: ["alte", "alt"], a: ["alte"], r: ["adj.e"] },
         ] },
         // ── our own: after der, dieser, jeder ──
-        { id: "dadj.der", t: "type", title: "der alte · den alten", how: "Write the adjective in brackets with its ending — after der, dieser, jeder: -e or -en.", items: [
+        { id: "dadj.der", t: "type", title: "der alte · den alten", how: "Write the adjective with its ending — after der, dieser, jeder: -e or -en.", items: [
           { q: "(neu) Der ___ Kollege spricht vier Sprachen.", a: ["neue"], r: ["adj.e"] },
           { q: "(klein) Die ___ Bäckerei am Platz ist super.", a: ["kleine"], r: ["adj.e"] },
           { q: "(alt) Das ___ Rathaus ist sehr schön.", a: ["alte"], r: ["adj.e"] },
@@ -167,7 +167,7 @@ cxPack({
           { q: "(schön) Jedes ___ Wochenende fahren wir in die Berge.", a: ["schöne"], r: ["adj.e"] },
         ] },
         // ── our own: after ein, mein, kein ──
-        { id: "dadj.ein", t: "type", title: "ein alter · ein altes", how: "Write the adjective with its ending — after ein, mein, kein: -er, -es where ein has no ending.", items: [
+        { id: "dadj.ein", t: "type", title: "ein alter · ein altes", how: "Write the adjective with its ending — after ein, mein, kein.", items: [
           { q: "(gut) Lukas ist ein ___ Freund.", a: ["guter"], r: ["adj.ein"] },
           { q: "(neu) Ich habe seit gestern ein ___ Handy.", a: ["neues"], r: ["adj.ein"] },
           { q: "(klein) Wir suchen eine ___ Wohnung.", a: ["kleine"], r: ["adj.eine"] },
@@ -185,7 +185,7 @@ cxPack({
           { q: "(neu) Sie hat keine ___ Ideen.", a: ["neuen"], r: ["adj.kein"] },
         ] },
         // ── Übung 23•1: the endings in a phrase ──
-        { id: "d23.1", ex: "23.1", t: "type", title: "mit einem alten …", how: "Write the whole phrase — the article and the adjective with their endings (the preposition decides the case).", items: [
+        { id: "d23.1", ex: "23.1", t: "type", title: "mit einem alten …", how: "Write the whole phrase — the preposition decides the case.", items: [
           { q: "mit — ein, alt, Freund: ___", a: ["mit einem alten Freund"], r: ["adj.eine"] },
           { q: "für — diese, nett, Dame: ___", a: ["für diese nette Dame"], r: ["adj.e"] },
           { q: "ohne — mein, neu, Handy: ___", a: ["ohne mein neues Handy"], r: ["adj.ein"] },
@@ -219,22 +219,22 @@ cxPack({
           { q: "viele neue Wörter → dative: ___", a: ["vielen neuen Wörtern"], r: ["adj.zerodat"] },
         ] },
         // ── our own: no article ──
-        { id: "dadj.zero", t: "type", title: "frisches Brot, mit warmer Milch", how: "Write the adjective with its ending — no article, so the adjective takes the article's ending.", items: [
+        { id: "dadj.zero", t: "type", title: "frisches Brot, mit warmer Milch", how: "Write the adjective with its ending — no article, so it takes the article's.", items: [
           { q: "(frisch) Am Markt kaufe ich ___ Gemüse.", a: ["frisches"], r: ["adj.zero"] },
           { q: "(heiß) Ich trinke morgens ___ Tee.", a: ["heißen"], r: ["adj.zero"] },
           { q: "(kalt) ___ Milch schmeckt im Sommer super.", a: ["Kalte"], r: ["adj.zero"] },
           { q: "(nett) Wir haben sehr ___ Nachbarn.", a: ["nette"], r: ["adj.zero"] },
           { q: "(schön) Wir wünschen euch ___ Ferien!", a: ["schöne"], r: ["adj.zero"] },
           { q: "(viel) ___ Dank für das Geschenk!", a: ["Vielen"], r: ["adj.zero"] },
-          { q: "(lieb) ___ Sara, wie geht es dir?", a: ["Liebe"], r: ["adj.zerodat"] },
+          { q: "(lieb) ___ Sara, wie geht es dir?", a: ["Liebe"], r: ["adj.zero"] },
           { q: "(frisch) Ich backe den Kuchen mit ___ Eiern.", a: ["frischen"], r: ["adj.zerodat"] },
           { q: "(warm) Kinder, wascht euch die Hände mit ___ Wasser!", a: ["warmem"], r: ["adj.zerodat"] },
           { q: "(kalt) Ich trinke Tee nie mit ___ Milch.", a: ["kalter"], r: ["adj.zerodat"] },
           { q: "(neu) Zwei ___ Kolleginnen beginnen am Montag.", a: ["neue"], r: ["adj.zero"] },
-          { q: "(gut) ___ Tag, Herr Meier!", a: ["Guten"], r: ["adj.zerodat"] },
+          { q: "(gut) ___ Tag, Herr Meier!", a: ["Guten"], r: ["adj.zero"] },
           { q: "(groß) Ich habe ___ Hunger!", a: ["großen"], r: ["adj.zero"] },
           { q: "(gut) Hier gibt es ___ Käse aus dem Emmental.", a: ["guten"], r: ["adj.zero"] },
-          { q: "(lieb) ___ Marco, danke für die Einladung!", a: ["Lieber"], r: ["adj.zerodat"] },
+          { q: "(lieb) ___ Marco, danke für die Einladung!", a: ["Lieber"], r: ["adj.zero"] },
         ] },
         // ── Übung 31•14: better and best before a noun ──
         { id: "d31.14", ex: "31.14", t: "transform", title: "The better one, the best one", how: "Say it with the comparative or the superlative before the noun — with its ending.", items: [
@@ -278,14 +278,14 @@ cxPack({
           { q: "Fresh bread, please!", a: ["Frisches Brot, bitte!"], r: ["adj.zero"] },
           { q: "That's the best idea!", a: ["Das ist die beste Idee!"], r: ["adj.comp"] },
           { q: "We're looking for a bigger flat.", a: ["Wir suchen eine größere Wohnung."], r: ["adj.comp"] },
-          { q: "Dear Sara, many thanks for the lovely card.", a: ["Liebe Sara, vielen Dank für die schöne Karte.", "Liebe Sara, vielen Dank für die nette Karte.", "Liebe Sara, vielen Dank für die liebe Karte."], r: ["adj.zerodat", "adj.e"] },
+          { q: "Dear Sara, many thanks for the lovely card.", a: ["Liebe Sara, vielen Dank für die schöne Karte.", "Liebe Sara, vielen Dank für die nette Karte.", "Liebe Sara, vielen Dank für die liebe Karte."], r: ["adj.zero", "adj.e"] },
         ] },
         { id: "dw.adj", t: "write", end: true, title: "Write your own", how: "In your own words — saved for Claude to correct.", items: [
           { q: "Your flat: three rooms or things, each with an adjective.", model: ["Wir haben eine helle Küche, ein kleines Bad und einen großen Balkon mit Blick auf die Berge."], r: ["adj.ein", "adj.eine"] },
           { q: "Your street or your neighbourhood (der alte …, die neue …).", model: ["Die kleine Bäckerei an der Ecke ist super. Der alte Brunnen vor dem Haus ist sehr schön, und die neuen Häuser am Bach sind hell."], r: ["adj.e", "adj.en"] },
           { q: "Describe a person you like — looks and character.", model: ["Meine Nachbarin ist eine nette, ruhige Frau mit kurzen grauen Haaren. Sie hat einen kleinen Hund."], r: ["adj.eine", "adj.zerodat"] },
           { q: "Your shopping list for the weekend — with adjectives (no article).", model: ["Frisches Brot, roter Wein, weicher Käse, grüner Salat und kalte Milch."], r: ["adj.zero"] },
-          { q: "A short card: Liebe … / Lieber … — thank someone for something.", model: ["Lieber Marco, vielen Dank für das schöne Wochenende in Luzern! Liebe Grüße, Ana"], r: ["adj.zerodat"] },
+          { q: "A short card: Liebe … / Lieber … — thank someone for something.", model: ["Lieber Marco, vielen Dank für das schöne Wochenende in Luzern! Liebe Grüße, Ana"], r: ["adj.zero"] },
           { q: "The best, the biggest, the most beautiful — three things in Switzerland.", model: ["Der höchste Berg ist die Dufourspitze. Die größte Stadt ist Zürich. Der schönste See ist für mich der Brienzersee."], r: ["adj.comp"] },
           { q: "What are you wearing today? (Ich trage einen blauen …)", model: ["Heute trage ich eine schwarze Hose, einen warmen Pullover und neue Schuhe."], r: ["adj.eine", "adj.zero"] },
           { q: "Your old job or school and your new one — compare them.", model: ["Mein alter Job war langweilig. Meine neue Stelle ist interessanter, und ich habe nette Kollegen."], r: ["adj.ein", "adj.comp"] },

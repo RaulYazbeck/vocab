@@ -725,7 +725,7 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   const S5 = ["s1.poss", "s1.comp", "s1.adj", "s1.zu"];
   ok(S5.every(id => C.cxLearnable(C.cxSection(id))), "the four Stage 1C lessons are built");
   ok(C.cxSecSets("s1.fu").filter(s => !s.gen).length >= 8, `the future (a verb lesson) has its book drills (${C.cxSecSets("s1.fu").length} sets)`);
-  ok(J(C.cxSection("s1.recap").checkpoint) === J({ n: 24, pass: 0.8 }), "Stage 1's checkpoint: 24 questions, 80 %");
+  ok(J(C.cxSection("s1.recap").checkpoint) === J({ n: 20, pass: 0.8 }), "Stage 1's checkpoint: 20 questions, 80 % (as Stage 0's: it fits a Regular 30)");
   ok(J(S5.map(id => C.cxSection(id).sheets.length)) === J([2, 2, 3, 2]), "their sheets: 2 · 2 · 3 · 2");
   C.vxOn = () => true;
   // Stage 0 done: every built A2 lesson in course order — the Session 5 ones where the course puts them
@@ -748,9 +748,9 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   C.S.course.sec["s1.verbprep"] = { st: 3, at: "2026-10-01" };
   ok(C.cxLessonReady(C.cxSection("s1.recap")) && C.cxClockLesson().id === "s1.recap", "the whole stage done: the checkpoint is next");
   const cp = C.cxCheckpointPlan("s1.recap"), cpRules = cp.map(e => e.rule);
-  ok(cp.length === 24 && new Set(cpRules).size === 24 && cp.every(e => !["write", "open"].includes(C.cxItemKind(C.cxSet(e.set), e.item))) && cp.every(e => C.CX.rules[e.rule] && C.cxSection(C.CX.rules[e.rule].sec).stage === 1),
-    `the checkpoint: 24 Stage 1 rules, one question each, nothing self-graded (${cp.length}, ${new Set(cpRules).size} rules)`);
-  ok(cp.filter(e => (C.CX_LADDER[C.cxItemKind(C.cxSet(e.set), e.item)] || 0) >= 1).length >= 18, "…typed where it can");
+  ok(cp.length === 20 && new Set(cpRules).size === 20 && cp.every(e => !["write", "open"].includes(C.cxItemKind(C.cxSet(e.set), e.item))) && cp.every(e => C.CX.rules[e.rule] && C.cxSection(C.CX.rules[e.rule].sec).stage === 1),
+    `the checkpoint: 20 Stage 1 rules, one question each, nothing self-graded (${cp.length}, ${new Set(cpRules).size} rules)`);
+  ok(cp.filter(e => (C.CX_LADDER[C.cxItemKind(C.cxSet(e.set), e.item)] || 0) >= 1).length >= 15, "…typed where it can");
   // what waits for what
   fresh(); C.CX.sections.filter(s => s.stage === 0 && !s.verb).forEach(s => { C.S.course.sec[s.id] = { st: 3 }; }); VERBS0.forEach(v => { C.S.verb.sh[v] = 100; });
   const ready = id => C.cxLessonReady(C.cxSection(id));
@@ -810,6 +810,19 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   ok(!chk("d11.6", 2, "Wir fahren nächste Woche ins Engadin.").ok, "11•6 says start with Nächste Woche: the order is the point");
   ok(chk("d24.8", 0, "eine Wohnung in Zürich zu finden").ok && chk("d24.8", 0, "Es ist schwierig, eine Wohnung in Zürich zu finden.").ok, "a zu-part: the gap alone or the whole sentence");
   ok(chk("dzu.um", 0, "Um die Prüfung zu bestehen.").ok, "Why? — Um … zu. on its own is a whole answer");
+  // (the Session 5 review) an umlaut typed where none belongs makes another form — a miss, as in the verb track;
+  // one left out stays forgiven (agreed)
+  const xu = chk("d11.7", 6, "Wir müssten früh aufstehen.");
+  ok(!xu.ok && !xu.near && /mussten/.test(xu.msg || ""), `müssten for mussten: a miss, not a forgiven umlaut (${xu.msg})`);
+  ok(chk("d11.7", 6, "Wir mussten fruh aufstehen.").ok && chk("dcomp.als", 4, "grosser").ok, "…a missing umlaut is still right (fruh, grosser)");
+  const vn = []; C.learnNoteVerb = (F, t, p, right, given, want) => vn.push([F.inf, t, right, given]);
+  C.cxRecordAnswer({ set: "d11.7", item: C.cxSet("d11.7").items[6] }, false, xu, { given: "Wir müssten früh aufstehen.", typed: true });
+  C.cxRecordAnswer({ set: "d11.7", item: C.cxSet("d11.7").items[6] }, true, { ok: true }, { given: "Wir mussten fruh aufstehen.", typed: true });
+  ok(vn.length === 2 && vn[0][0] === "müssen" && vn[0][1] === "pt" && !vn[0][2] && vn[0][3] === "müssten" && vn[1][2], "…and the verb log agrees: müssten is a miss of mussten, mussten without its umlaut right", J(vn));
+  delete C.learnNoteVerb;
+  // detectors that fired too widely (fuzzed in the review): the right message, or none
+  ok(!/one word/.test(chk("dzu.um", 4, "Lea braucht einen Laptop, um zu Haus zu arbeiten.").msg || "") && !/-el and -er/.test(chk("d23.2", 9, "unsere großen Garten").msg || "") && !/infinitive/.test(chk("d11.11", 1, "Am erst Tag schlafen alle lange.").msg || ""),
+    "«um zu Haus», «unsere großen Garten», «Am erst Tag»: no misleading message");
 }
 
 // ── behind: a Should lesson not begun gives way to the Must ones (PLAN.md §5) ──

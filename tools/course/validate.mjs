@@ -390,7 +390,7 @@ if (neg && neg.built) {
     ["dp.adj", 3, "Das Wetter ist heute schönes.", "adj.pred", "schön"],
     ["d24.6", 2, "um acht Uhr zu ankommen", "zu.sep", "inside"],
     ["d24.6", 2, "um acht Uhr an zu kommen", "zu.sep", "one"],
-    ["d24.6", 2, "um acht Uhr ankommen", "zu.sep", "anzukommen"],
+    ["d24.6", 2, "um acht Uhr ankommen", "zu.sep", "inside"],
     ["d24.5", 0, "eine neue Sprache lernen", "zu.end", "zu"],
     ["dp.zu", 9, "Ich muss morgen zu arbeiten.", "zu.modal", "no zu"],
     ["dp.zu", 5, "Ich lerne Deutsch, für eine bessere Stelle zu finden.", "zu.um", "um"],

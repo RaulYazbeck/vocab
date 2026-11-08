@@ -228,6 +228,20 @@ function cxStrict(s) {
 // (any accent, as everywhere in the app: cafe = Café, Muller = Müller)
 function cxLoose(s) { return cxStrict(s).replace(/ß/g, "ss").normalize("NFD").replace(/[\u0300-\u036f]/g, "").normalize("NFC"); }
 function cxToks(s) { return cxLoose(s).split(" ").filter(Boolean); }
+// An umlaut in what was typed where the answer has the plain vowel (the
+// two equal otherwise): → { typed, right } — the two words — or null.
+function cxExtraUmlaut(answer, typed) {
+  const n = s => cxStrict(s).replace(/ß/g, "ss");
+  const A = n(answer), T = n(typed);
+  if (A.length !== T.length) return null;
+  for (let i = 0; i < T.length; i++) {
+    if (/[äöü]/.test(T[i]) && A[i] !== T[i]) {
+      const word = (S, k) => { let b = k, e = k; while (b > 0 && S[b - 1] !== " ") b--; while (e < S.length && S[e] !== " ") e++; return S.slice(b, e); };
+      return { typed: word(T, i), right: word(A, i) };
+    }
+  }
+  return null;
+}
 function cxLev(a, b) {
   if (a === b) return 0;
   const m = a.length, n = b.length;
@@ -387,13 +401,20 @@ function cxCheck(item, typed, sec) {
       return { ok: true, soft, right: a };
     }
   }
+  let extraUml = null;
   for (const a of answers) {
     if (cxLoose(a) === cxLoose(t)) {
+      // An umlaut typed where the answer has none is no forgiven slip: it
+      // makes another word (müssten for mussten, schön for schon) — umlauts
+      // are never needed, so one typed is meant (as in the verb track).
+      const x = cxExtraUmlaut(a, t);
+      if (x) { extraUml = extraUml || { a, ...x }; continue; }
       const plain = s => cxStrict(s).replace(/ß/g, "ss").replace(/ä/g, "a").replace(/ö/g, "o").replace(/ü/g, "u");
       // (a missing é is no mistake worth a note — only ß and the umlauts)
       return { ok: true, soft: plain(a) !== plain(t) ? [] : [/ß/.test(a) && !/ß/.test(t) ? "ss" : "umlaut"], right: a };
     }
   }
+  if (extraUml) return { ok: false, soft: [], right: extraUml.a, rule: (item.r || [])[0] || null, msg: `No umlaut here: **${extraUml.right}** (not ${extraUml.typed}).` };
   // The closest accepted answer, for the feedback and the diagnosis.
   const T = cxToks(t);
   let best = answers[0] || "", bestD = Infinity;
@@ -1443,7 +1464,9 @@ function cxRecordAnswer(e, ok, res, opts = {}) {
     const x = vxVerb(inf), f = x && typeof vxForm === "function" ? vxForm(x, t, p) : null;
     if (!f) return;
     const W = String(opts.given || "").replace(/[.,!?;:„“"«»()…–—]/g, " ").split(/\s+/).filter(Boolean), T = W.map(w => cxToks(w)[0] || "");
-    const has = a => { let i = 0; return cxToks(a).every(w => { while (i < T.length && T[i] !== w) i++; return i++ < T.length; }); };
+    // (a word typed with an umlaut the form doesn't have is another form: müssten ≠ mussten)
+    const same = (aw, i) => T[i] === (cxToks(aw)[0] || "") && !cxExtraUmlaut(aw, W[i]);
+    const has = a => { let i = 0; return String(a).split(/\s+/).filter(w => cxToks(w).length).every(aw => { while (i < T.length && !same(aw, i)) i++; return i++ < T.length; }); };
     const head = cxToks(f.ans)[0] || "";
     if (res && res.umlaut && cxLoose(res.umlaut) === head) { learnNoteVerb(x.F, t === "p2only" ? "pf" : t, p, false, res.umlaut, f.ans); return; }
     const right = W.length ? (f.acc || [f.ans]).some(has) : !!ok;
