@@ -21,6 +21,10 @@ the 📖 Course / 🧩 Practise / 📚 By chapter / ✍️ Writing screens) and 
                                wenn (s1-conj) · the modals' position (s1-modal) · wissen or kennen
                                (s1-wissen) · reflexive pronouns (s1-reflexive) · the regular Präteritum's
                                book exercises (s1-praeteritum)
+                               Stage 1C (Session 5): the future with werden's book exercises (s1-future) ·
+                               possessives and von + dative (s1-poss) · comparative and superlative
+                               (s1-comp) · adjective endings (s1-adj) · zu + infinitive, um / ohne /
+                               anstatt … zu (s1-zu) · the Stage 1 checkpoint (s1-recap)
     js/course/writing.js       the writing themes (cxJournalThemes) and prompts (cxJournal)
 
 German app only (`de/index.html` loads them; the French app never does).
@@ -67,7 +71,9 @@ a later session that uploads its chapter.
      the auxiliary and the participle: *hat gegessen*).
      In the app the same `vf` feeds the learning log's verbs (`learnNoteVerb`): the form
      counts right when it's in what was written, and a miss logs the word written in its
-     place. Umlauts are never typed (agreed): a missing one is never a mistake; when the
+     place. Umlauts are never typed (agreed): a missing one is never a mistake (one typed where
+     the answer has none is: *müssten* for *mussten*, *schön* for *schon* — another form, as in the
+     verb track, and the verb log counts it as a miss); when the
      plain spelling is another real form (*fahrt*: fährt or fahrt?) the drill asks the verb
      track's 1 / 2 choice (`cxUmlautChoice`) — picking the other form is the miss.
    - A verb lesson's book exercises (its sheets live in the verb track): a pack for the
@@ -84,6 +90,12 @@ a later session that uploads its chapter.
      other word off — so a sentence wrong all the way through keeps the item's own rule.
      A `pos` message can't use `{right}` (only `{where}`). Add a typical mistake or two per
      lesson to the validator's "the checker on typical mistakes" list.
+     `hard: true` on a detector: what it finds is the grammar, never "almost, check the
+     spelling" — for a slip one letter off that is the rule itself (teuerer → teurer, am
+     altsten → am ältesten). `rule: ""` lets the item's own rule take the miss (a detector
+     that says *what* is wrong, the item *which* rule — the adjective endings). A detector's
+     rule may be a verb sheet's point (`gs:fu1.r1`): the miss goes to it.
+     A set's items can carry their own `diag` too (e.g. `items: […].map(it => ({ ...it, diag }))`).
    - `testout: { n, miss }` is offered for Stage 0 sections only; later lessons still need
      every rule reachable in a test-out plan (the validator checks it) — with 5–7 rules set
      `n` to the number of rules.

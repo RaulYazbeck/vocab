@@ -169,7 +169,7 @@ cxPack({
           { q: "Herr Meier will heute bezahlen.", a: ["Will Herr Meier heute bezahlen?"], r: ["v2.qend"] },
           { q: "Sie haben schon gegessen. (polite)", a: ["Haben Sie schon gegessen?"], r: ["v2.qend"] },
           { q: "Man darf hier parken.", a: ["Darf man hier parken?"], r: ["v2.qend"] },
-          { q: "Die Kinder stehen früh auf.", a: ["Stehen die Kinder früh auf?"], r: ["v2.qend"] },
+          { q: "Die Kinder stehen am Samstag früh auf.", a: ["Stehen die Kinder am Samstag früh auf?"], r: ["v2.qend"] },
         ] },
         // ── Übung 6•10: ask it in German ──
         { id: "d6.10", ex: "6.10", t: "translate", end: true, title: "Ask it in German", how: "Translate the question — no *do* in German.", items: [

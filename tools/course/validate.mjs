@@ -329,7 +329,9 @@ if (neg && neg.built) {
     ["d23.6", 1, "Ich kaufe mich ein Velo.", "refl.dat", "mir"],
     ["d23.5", 6, "Ich wasche sich.", "refl.forms", "mich"],
     ["drefl.p", 7, "sich", "refl.vs", "sie"],
-    ["d14.5", 0, "Ich wohnt in Olten.", "gs:pt21.r2", "wohnte"],
+    // (Session 5: a verb pack's detector names its own verb-sheet rule — the message was
+    // already this rule's, the stem + te; the miss used to go to the item's r2)
+    ["d14.5", 0, "Ich wohnt in Olten.", "gs:pt21.r1", "wohnte"],
     ["d14.6", 1, "arbeitte", "gs:pt21.r3", "arbeitete"],
     ["dp.pt21", 2, "Ich spieltest jeden Tag Fußball.", "gs:pt21.r2", "spielte"],
   ];
@@ -345,6 +347,64 @@ if (neg && neg.built) {
   // the fix is shown as it's spelt (möchte, not mochte)
   const r5 = C.cxCheck(CX.sets["d17.10"].items[1], "möchtet", C.cxSection("s1.modal"));
   ok(/möchte\b/.test(r5.msg || "") && !/\bmochte\b/.test(r5.msg || ""), `the fix keeps its umlaut (${r5.msg})`);
+}
+
+// ── the checker on typical mistakes (Session 5's lessons) ──
+{
+  const cases = [
+    ["d11.8", 0, "Wir werden kaufen ein neues Sofa.", "gs:fu1.r2", "end"],
+    ["d11.8", 1, "Lea werdet die Prüfung machen.", "gs:fu1.r1", "wird"],
+    ["d11.8", 2, "Wirst du genug Zeit hast?", "gs:fu1.r2", "infinitive"],
+    ["d11.10", 0, "Ich werde am Samstag müssen arbeiten.", "gs:fu1.r2", "last"],
+    ["d11.10", 0, "Ich werde am Samstag arbeiten.", "gs:fu1.r2", "müssen"],
+    ["d11.12", 0, "Sie werden in den Ferien sein.", "gs:fu2.r3", "wohl"],
+    ["d11.6", 2, "Nächste Woche wir fahren ins Engadin.", "gs:fu2.r1", "verb stays second"],
+    ["dposs.acc", 0, "mein", "poss.acc", "meinen"],
+    ["dposs.acc", 5, "seinen", "poss.who", "ihren"],
+    ["dposs.dat", 0, "meinen", "poss.dat", "meinem"],
+    ["dposs.dat", 2, "unsere", "poss.dat", "unserer"],
+    ["dposs.who", 7, "ihre", "poss.who", "eure"],
+    ["dposs.alone", 0, "mein", "poss.alone", "meiner"],
+    ["dposs.alone", 2, "mein", "poss.alone", "meins"],
+    ["dposs.name", 0, "Das ist Lea s Handy.", "poss.name", "apostrophe"],
+    ["dposs.name", 0, "Das ist das Leas Handy.", "poss.name", "no article"],
+    ["dposs.von", 2, "unseren Kinder", "poss.dat", "-n"],
+    ["d20.8", 3, "teuerer", "comp.er", "teurer"],
+    ["dcomp.am", 2, "altsten", "comp.am", "ältesten"],
+    ["dcomp.am", 5, "schnellesten", "comp.am", "schnellsten"],
+    ["dcomp.irr", 0, "guter", "comp.irr", "besser"],
+    ["dcomp.irr", 4, "nahsten", "comp.irr", "nächsten"],
+    ["dcomp.gern", 0, "gerner", "comp.gern", "lieber"],
+    ["dp.comp", 0, "Bern ist kleiner wie Zürich.", "comp.er", "als"],
+    ["dp.comp", 1, "Meine Schwester ist so groß als ich.", "comp.wie", "wie"],
+    ["dp.comp", 2, "Der Zug ist mehr schnell als das Auto.", "comp.er", "-er"],
+    ["dp.comp", 4, "Wer läuft schnellsten?", "comp.am", "am"],
+    ["dadj.der", 5, "nette", "adj.en", "netten"],
+    ["dadj.ein", 0, "gute", "adj.ein", "guter"],
+    ["dadj.ein", 1, "neue", "adj.ein", "neues"],
+    ["dadj.ein", 6, "teueres", "adj.ein", "teures"],
+    ["d23.1", 0, "mit einen alten Freund", "adj.eine", "einem"],
+    ["d23.1", 6, "durch den dunkelen Wald", "adj.en", "dunklen"],
+    ["dadj.zero", 8, "warmen", "adj.zerodat", "warmem"],
+    ["d31.14", 4, "Zürich ist die am größten Stadt.", "adj.comp", "no am"],
+    ["dp.adj", 3, "Das Wetter ist heute schönes.", "adj.pred", "schön"],
+    ["d24.6", 2, "um acht Uhr zu ankommen", "zu.sep", "inside"],
+    ["d24.6", 2, "um acht Uhr an zu kommen", "zu.sep", "one"],
+    ["d24.6", 2, "um acht Uhr ankommen", "zu.sep", "inside"],
+    ["d24.5", 0, "eine neue Sprache lernen", "zu.end", "zu"],
+    ["dp.zu", 9, "Ich muss morgen zu arbeiten.", "zu.modal", "no zu"],
+    ["dp.zu", 5, "Ich lerne Deutsch, für eine bessere Stelle zu finden.", "zu.um", "um"],
+    ["dzu.front", 0, "Um Geld zu sparen, ich fahre Velo.", "zu.front", "verb"],
+  ];
+  cases.forEach(([set, i, typed, rule, word]) => {
+    const s = CX.sets[set], r = s && C.cxCheck(s.items[i], typed, C.cxSection(s.sec));
+    ok(r && !r.ok && r.rule === rule && String(r.msg || "").toLowerCase().includes(word.toLowerCase()), `diagnosis: "${typed}" → ${rule}, «${word}» (got ${r && r.rule}: ${r && r.msg})`);
+  });
+  // one letter off, but it's the rule: a mistake, never "almost" (the detectors marked hard)
+  [["d20.8", 3, "teuerer"], ["d20.8", 10, "dunkeler"], ["dcomp.am", 2, "altsten"], ["dcomp.irr", 4, "nahsten"], ["dadj.ein", 6, "teueres"], ["dadj.ein", 0, "gute"], ["dposs.dat", 0, "meinen"]].forEach(([set, i, typed]) => {
+    const r = C.cxCheck(CX.sets[set].items[i], typed, C.cxSection(CX.sets[set].sec));
+    ok(!r.ok && !r.near, `"${typed}": the grammar — a mistake, not almost`);
+  });
 }
 
 // ── the book's table of contents: every line has its lesson ──

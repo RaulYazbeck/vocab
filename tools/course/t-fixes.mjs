@@ -140,7 +140,11 @@ const HELP = () => {
     const i = cxd.findIndex((d, k) => k > 0 && d.lesson);
     const verbDay = i > 0 && cxIsVerb(cxSection(cxd[i].sec));
     ok(i > 0 && f.days[i].cx >= (verbDay ? 3 : 10), `a lesson day counts its sheet${verbDay ? " (a verb lesson's)" : " and drill"} (day ${i}, ${cxd[i] && cxd[i].sec}: +${f.days[i] && f.days[i].cx})`);
-    ok(f.days.slice(1).every(d => d.target === planTarget(d.total, d.newWords, (pathEnsurePlan().vx ? vxPlanTarget({ ...pathEnsurePlan().vx, sheets: 0, sheetQ: 0 }) + Math.round((pathEnsurePlan().vx.due || 0) * 1.1) : 0) + d.cx)), "each day's number: words, verbs and the course, rounded up to 10");
+    // (at the rates the app measures from my last days — planRate — not fixed ones: with
+    // fixed rates the check failed on some dates, the test profile's days being dated)
+    const P = pathEnsurePlan(), vxExtra = P.vx ? vxPlanTarget({ ...P.vx, sheets: 0, sheetQ: 0 }) + (P.vx.due || 0) * planRate("v") : 0;
+    ok(f.days.slice(1).every(d => d.target === planTarget(d.total, d.newWords, vxExtra + d.cx, 0, planRate("w"))), "each day's number: words, verbs and the course, rounded up to 10",
+      JSON.stringify(f.days.slice(1).map(d => [d.target, planTarget(d.total, d.newWords, vxExtra + d.cx, 0, planRate("w"))])));
     renderJourney();
     ok(/grammar/.test(document.querySelector(".jf-legend").innerText) && document.querySelector(".jf-g"), "the bars show the grammar's share");
     ok(pathDeadlineStatus().ok, "15 Aug 2027: in reach");

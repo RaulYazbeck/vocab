@@ -249,9 +249,10 @@ sheets each.
 **Where they come (since 2 Nov 2026):** not at the end — each right after the
 grammar its dialogue needs, among the Stage 1 and 2 lessons: greetings and
 introductions after the dative prepositions (*ich komme aus …, wohne seit …*,
-≈ early Jan) · asking the way after wo? vs wohin? (≈ mid Jan) · shopping after
-the modals (*ich möchte …, Kann ich Ihnen helfen?*, ≈ Feb) · the bus stop after
-verb + preposition (*warten auf den Bus*, ≈ Mar) · school and study after the
+≈ early Jan) · asking the way after wo? vs wohin? (≈ mid Jan) · the bus stop after
+verb + preposition (*warten auf den Bus*, ≈ Feb) · shopping after the adjective
+endings (*ich möchte …, eine Nummer größer, die rote Jacke, Ist das Ihrer?* — moved
+there on 8 Nov 2026 from after the modals, ≈ Mar) · school and study after the
 Stage 1 checkpoint · travel after Konjunktiv II (*ich hätte gern …*). They stay
 their own part (💬) and outside the stages' checkpoints; five are *Must*,
 school and study *Should*.
@@ -760,6 +761,107 @@ Which of the three seeds the matrix runs decides its colour. Left for a later se
 adjective endings ×3 · zu-infinitive ×2 · drills for fu1–fu2 · Stage 1 recap
 and checkpoint.
 
+**Built (7 Nov 2026):** the four Stage 1C lessons and the future's book exercises, in `js/course/s1-*.js` —
+possessives (`s1-poss.js`, 2 sheets: sein or ihr — the owner decides the word, the noun its ending,
+meinen · meinem · meiner · meinen + -n · whose? Annas Velo, das Velo von meinem Bruder, and on its own:
+meiner · meine · meins) · comparison (`s1-comp.js`, 2: -er + als and am …sten, the umlaut of the short
+words, -el / -er drop their e · so … wie, gut → besser, viel → mehr, hoch, nah, gern → lieber → am
+liebsten) · adjective endings (`s1-adj.js`, 3: after der, dieser, jeder: -e or -en, none after sein ·
+after ein, mein, kein: -er, -es where ein says nothing · no article: the article's ending, mit warmer
+Milch, Liebe Sara — and der bessere, das größte before a noun) · zu + infinitive (`s1-zu.js`, 2: zu +
+the infinitive at the end, zu inside a separable verb, never after a modal · um … zu, ohne … zu,
+anstatt … zu, the zu-part first). 9 sheets, 29 rules, 43 drill sets (486 items of our own, Swiss-life
+sentences), each lesson ending with its production drills. The **future's book exercises**
+(`s1-future.js`, 10 sets, 111 items: next week in two ways, past · Perfekt · future, the future only
+where it's needed, a modal in the future — werde … arbeiten müssen, a guess with wohl, building it; every
+verb form checked against the engine — 102 items with `vf`; their rules are fu1 / fu2's points). The
+**Stage 1 checkpoint** (`s1-recap.js`, 20 questions, one rule each, 80 % — as Stage 0's; 24 were tried and fit only a Long 60 session): it waits for every Stage 1
+lesson — verb + preposition too, built in Session 6. Four writing prompts that open with their lesson
+(In fünf Jahren · Hier und dort · Ein Mensch, den ich mag · Warum ich hier bin). Every exercise of the
+uploaded chapters has a status — of their 73: 41 mirrored (23 of them new: 11•6–11•13, 20•4, 20•8,
+20•9, 23•1, 23•2, 24•5, 24•6, 24•8–24•14, 31•14), 31 planned with the later lesson that uploads their
+chapter (20•1–20•3, 20•5–20•7 → the genitive lessons; 31•1–31•13 → the conversation units and
+Konjunktiv II; 24•1–24•4 → modals in the Perfekt; 11•1–11•5 stay with the strong Präteritum), 1 skipped:
+24•7 (a zu-part with a Perfekt or a modal — *gemacht zu haben* — is written German above B1; 24•11's
+frames are mirrored with Präsens sentences); `DONE` = 5. **Changes to the map:** chapter 24's opening
+part (the double infinitive, *habe … kaufen wollen*, 24•1–24•4) went from the zu lesson to modals in the
+Perfekt — so Session 7 now uploads chapter 24; adjective endings wait for comparison (their third sheet
+puts *der bessere, das größte* before a noun — 31•14, chapter 31's comparatives exercise, is drilled
+there); 20•4 (he wants to buy someone's thing) is mirrored the spoken way — a name + s or von + the
+dative; the written genitive is Stage 2's; 23•2 (one phrase through the cases) without the genitive, for
+the same reason; 11•7's past tenses keep to what the learner has (no modal in the Perfekt). **The
+checker:** a detector can be `hard` — what it finds is the grammar, never "almost, check the spelling"
+(*teuerer*, *am altsten*, *nahsten*, *teueres* are one letter off but they're the rule); a verb pack's
+detector now names its own verb-sheet rule (*Lea werdet* → werde · wirst · wird; before, the miss went to
+the item's rule while showing the detector's message — the Präteritum lesson's *Ich wohnt* now goes to
+"stem + te", whose message it already showed). Umlauts stay untyped, as agreed (*alter* for *älter* is
+right, the spelling shown): the comparative's umlaut is asked in its own pick set (*älter or alter?*).
+**Diagnosis:** 43 typical mistakes of the new lessons are now checks in the validator (*Wir werden kaufen
+ein Sofa*, *Lea besucht seinen Vater*, *das Leas Handy*, *kleiner wie*, *mehr schnell*, *ein gute
+Freund*, *die am größten Stadt*, *zu anrufen*, *Ich muss zu arbeiten*, *Um Geld zu sparen, ich fahre*…).
+**Found on the way:** a Session 2 item (*Die Kinder stehen früh auf.*, d28.11) is a sentence of chapter
+24 — the book check couldn't see it before chapter 24 was uploaded; rephrased (*… am Samstag früh auf*).
+`t-fixes` failed before this session's changes, on today's date: its check of the Journey's daily number
+used fixed answer rates where the app uses the ones it measures (`planRate`) — the test now uses the
+app's rates (the app was right). **My progress:** nothing reset. The new lessons come where the course
+puts them: the possessives right after the modals (before wissen / kennen and the reflexives); after the
+reflexives the future, comparison, adjective endings, zu + the infinitive (verb + preposition and the bus
+stop sit before them in the course but aren't built yet, so the clock takes the built ones; once built —
+Sessions 6 and 8 — they come in wherever I am then, as an earlier lesson built later does); a lesson under
+way always finishes first. Tests: a Session 5 block in `t-unit` (the order,
+what waits for what, the checkpoint waiting for verb + preposition and then asking 20 different rules,
+each sheet's day on the sheets read with production last — six days of the rotation each, the future's
+forms in the verb log, the hard detectors); `t-course` checks every new table fits the phone (two were
+too wide at first and were narrowed) and lists chapters 11, 20, 23, 24 and 31's Übungen. All green:
+the validator (with the book check: 5,901 of our sentences against chapters 2, 11, 20, 23, 24, 31 and
+appendix C), `t-unit`, `t-course`, `t-fixes` ×3, `t-stage1`, `t-edge`, `sim.mjs`, `--arrive --grow 1.3`,
+`--matrix` (54/54 — Session 4's borderline "half the days skipped" passes on every seed now) and
+`sim-app` over 45 and 150 days.
+
+**Review (8 Nov 2026):** every new item read again and every detector fuzzed — 13,923 wrong variants of
+the new items (each word's ending changed, zu / am / um / wohl / werden dropped): none accepted, none
+"almost". Fixed: three detectors that fired too widely (*an zu kommen* also fired on *um zu Hause*, *fängt
+an zu regnen*; "-el and -er drop their e" on *unsere*, *bessere*; "the verb at the end is the infinitive"
+on *Am erst Tag*) — narrowed, each with its case in the tests; the possessive on its own took an ending
+slip as "like ein" (now its own rule). **Older, every lesson's:** an umlaut typed where none belongs was
+forgiven as a missing one — *müssten* passed for *mussten*, *schön* for *schon* — and the verb log
+counted *müssten* as a right *mussten*; now it's a miss in both, as in the verb track (a missing umlaut
+stays forgiven, as agreed). Content: the greetings (*Lieber Marco, Guten Tag, Vielen Dank*) were under the
+no-article dative rule — moved to rule 1, where their ending belongs; a few more right answers accepted
+(*Französisch besser als*, *keine Zeit zum Einkaufen*, *Er ging, ohne …*), one unidiomatic sentence
+rewritten (*am meisten Punkte*); the sheets' introductions and the drills' instructions cut back to the
+earlier lessons' length (222 → 164 and 79 → 71 characters on average). The **checkpoint** went back to 20
+questions: 24 fit only a Long 60 session, 20 fit a Regular 30 (checked in the app; a lesson day — sheet 3
++ drill 14 — fits Regular and Long, as before). `t-stage1` run long enough to meet Stage 1C in the real
+app (140 days: possessives 8 Feb · future 22 Feb · comparison 26 Feb · adjective endings 3 Mar · zu 11 Mar,
+121/121 rules in review; a 70 % learner over 160 days: the invariants hold) — its default 70 days stop
+before them. The learning log has a new lesson's miss under its rule (*"nette" → netten*), the verb log
+the future's forms (*werden … haben* as the Futur I). All green again — validator (book check too),
+`t-unit` (322), `t-course`, `t-fixes` ×3, `t-edge`, `t-stage1` (70 and 140 days), `sim.mjs`, `--arrive`,
+`sim-app` (45 and 150 days) — except, in the matrix, the parked low-attendance case once more: "half the
+days skipped", seed 2, 331/338 Known (the mark is 331.2); the 7 short are the last Stage 2 lessons'
+(genitive 1, its prepositions 1, adverbs 2, n-declension 3), none of Session 5's — `sim.mjs` now names
+them when it fails. (The same matrix passed 54/54 earlier the same day: it flips with the seed, as noted
+on 2 Nov.)
+
+**UI review (8 Nov 2026):** every card of the new lessons looked at on a phone (390 px) — each format
+(pick, type, build-it tiles, answer, translate, write), right, wrong, "almost", the extra umlaut, a
+sheet's steps, its quiz, the drill's result. Fixed: a gap answered alone with a slip (*um fünf Uhr zu
+aufstehen*) was compared with the whole sentence — the sentence's other words showed as missing and a
+wrong rule fired ("no zu after a modal"); now the gap's own words are compared (*um fünf Uhr
+aufzustehen*, zu goes inside) — every lesson's gap items with whole-sentence answers (Session 4's
+*…, aber ___.* too). Two titles cut to one line (*Adjective endings*, *zu + infinitive; um … zu*;
+the lesson ids are unchanged, so is the progress), one sheet title shortened, one instruction that
+split at a hyphen reworded. **Order:** shopping (Session 8's unit) moved from after the modals to right
+after the adjective endings — *eine Nummer größer, die rote Jacke, billiger, Ist das Ihrer?* need
+comparison, the possessives and the endings.
+**Found on the way (older, the vocabulary's):** on some days "+5 new" brought 4 new words plus a
+review: with the brake on (🐢), the day's base drops a little as words are met (its pace floor follows the
+words left), so the base could fall under what was already met and the +5 filled that gap first. Now a
++5 counts from the words met when it was first pressed (`extraAt`, path.js) — exactly 5, as agreed on 21
+Oct. `t-fixes2` caught it once the date rolled over (its test profile has fixed dates); the quests,
+sync, plan, session, flows, logs, umlaut, review and typing suites pass with it.
+
 ### Session 6 — Stage 2A
 
 **Upload:** chapters 19, 20, 22, 23, 26, 28, 29, appendix B. *(from the course map: `node tools/course/session.mjs 6`)*
@@ -768,7 +870,7 @@ ob · relative clauses ×3 · genitive ×2 · verb + preposition · wo-/da- comp
 
 ### Session 7 — Stage 2B
 
-**Upload:** chapters 11, 16, 17, 25, 26, 27, 29, 31, appendix C. *(from the course map: `node tools/course/session.mjs 7`)*
+**Upload:** chapters 11, 16, 17, 24, 25, 26, 27, 29, 31, appendix C. *(from the course map: `node tools/course/session.mjs 7` — chapter 24 since Session 5: its double infinitive, 24•1–24•4, is the modals-in-the-Perfekt lesson's)*
 **Builds:** drills for pt22–pt24, pq1–pq2, k21–k25, pv1–pv4 · conditional
 sentences · *man* instead of the passive · modals in the Perfekt · lassen ·
 modal particles · short answers and emphasis · participles as adjectives ·
@@ -845,5 +947,6 @@ screen · coverage report at 100 % (every blueprint exercise *mirrored*,
 - **Session 4 (1 Nov 2026):** weil / dass / wenn comes before the modals (their second sheet needs it); the strong Präteritum comes after wo? vs wohin? (review, 2 Nov: a contrast follows its lesson at once — the month after the regular Präteritum stays); an exercise whose heading is a modal's but which practises the future (11•10–11•13) goes to the future lesson; a chapter's last exercise that practises something else (18•4: commands) is mirrored with the lesson that teaches that; a person after a preposition is a pronoun (*für ihn*), a thing *da-* (*dafür*) — taught with each preposition lesson, the wo- / da- compounds' own lesson (Session 6) builds on it; *zu dem* → *zum* is drilled as the usual form (the long form counts as a mistake with its reason, not as wrong German); from Session 4 on a sheet's table fits a phone whole.
 - **Conversations earlier, Should gives way when behind (2 Nov 2026):** the six scenario units come right after the grammar each needs (§6 Stage 3), not after Stage 2 — they are the closest thing to the oral exam and are small. When behind, what gives way first is the *Should* grammar (modal particles, participles as adjectives, n-declension, genitive prepositions, the Perfekt of modals, lassen, man, adverbs, short answers; and school and study), not the conversations (§5). I suggested the conversations should fall off first and asked Claude's view; Claude chose *Should* instead (reason above) — confirmed 3 Nov 2026: keep it.
 - **Known shortcoming, parked (2 Nov 2026):** with low attendance (every other day) the lessons met in the last weeks can't all reach 🌳 Known by the date — up to 20 of 345 rules short in the simulation, the last lessons'. The app does warn (pace red) and shortens the breaks. The fix, if ever needed: a margin that grows when attendance drops (40 days at full attendance, ≈ 70 at every other day, capped), verified on 8 seeds of "half the days skipped", the matrix, t-stage1 and the 150-day sim-app. Not done: I study every day and I'm the only user.
+- **Session 5 (7 Nov 2026):** an exercise goes to the lesson that teaches what it practises, also across stages — chapter 24's double infinitive (24•1–24•4) to modals in the Perfekt (B1), chapter 31's comparatives with endings (31•14) to the adjective endings, which now wait for comparison; where the book practises a form the learner hasn't met yet, the mirror keeps the exercise's frame with the forms they have (20•4 the spoken *von* + dative instead of the genitive, 23•2 without the genitive, 11•7 without a modal in the Perfekt, 24•11 with Präsens sentences); an exercise is skipped only when its whole point is above B1 and fide doesn't ask it (24•7), with the reason in its status. Stage 1's checkpoint asks 20 questions, one rule each, as Stage 0's (24 fit only a Long 60 session — a Regular 30 has room for 20). A checker detector can be `hard`: a one-letter slip that is the rule itself is a mistake, never "almost".
 - **Verb + preposition in Stage 1 (2 Nov 2026):** *warten auf, sich freuen auf, denken an* are everyday spoken A2 — the lesson (now `s1.verbprep`, A2) comes right after the reflexive pronouns (≈ late Feb) instead of mid-April in Stage 2; still built in Session 6, the wo- / da- compounds stay in Stage 2 right after it.
 - **Session 2 audit (21 Oct 2026):** every new sheet and item proofread (15 fixes: a rule that put *die Mutter* among the masculine plurals, a few stiff sentences, missing natural answers in translations). The verb lessons' own sentences now feed the learning log's verbs (before, only generated items did). *(22 Oct: umlauts are never typed, as agreed — a missing one is never a mistake, in the drills or the log; the course's drills now ask the verb track's small 1 / 2 choice when the plain spelling is another real form: fahrt → fährt or fahrt?)* 📚 a chapter's Übungen render their *italics*; on a verb lesson page 🧩 Practise sits right under the sheets. The logs test's fake cloud gained `batch` (its one failure was the test, not the app). Known and left as agreed: the quest test's late-deficit stress day can end one ledger form short (extra practice asks for exactly what a quest lacks).
