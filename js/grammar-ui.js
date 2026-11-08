@@ -76,10 +76,23 @@ function gsTableHtml(sh) {
   if (sh.table) {
     const t = sh.table;
     return `<div class="gs-table-wrap"><table class="gs-table"><thead><tr>${t.head.map(h => `<th>${gsMd(h)}</th>`).join("")}</tr></thead>
-      <tbody>${t.rows.map(r => `<tr>${r.map((c, i) => i ? `<td>${gsMd(c)}</td>` : `<th scope="row">${gsMd(c)}</th>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+      <tbody>${t.rows.map(r => `<tr>${r.map((c, i) => i ? `<td>${gsCellHtml(c)}</td>` : `<th scope="row">${gsMd(c)}</th>`).join("")}</tr>`).join("")}</tbody></table></div>`;
   }
   if (sh.lines) return `<div class="gs-lines">${sh.lines.map(([l, x]) => `<div class="gs-line"><b>${gsMd(l)}</b><span>${gsMd(x)}</span></div>`).join("")}</div>`;
   return "";
+}
+// A table cell: each whole German sentence in it ("Heute arbeite ich
+// **nicht**. · Sie fährt …") plays on a tap (German app; the voice pack
+// records them: gsCellSays, tools/audio/runtime.mjs).
+function gsCellSays(c) {
+  if (typeof cxSaySentence !== "function") return [];
+  return String(c || "").split(" · ").map(seg => [seg, gsSayText(seg)]).filter(([, t]) => cxSaySentence(t) && !cxEnglish(t) && !/[~→=…]|___/.test(t));
+}
+function gsCellHtml(c) {
+  const says = typeof sayTapOn === "function" && sayTapOn() ? gsCellSays(c) : [];
+  if (!says.length) return gsMd(c);
+  const m = new Map(says);
+  return String(c).split(" · ").map(seg => m.has(seg) ? `<span${sayTapAttrs(m.get(seg))}>${gsMd(seg)}</span>` : gsMd(seg)).join(" · ");
 }
 // What a sheet example's 🔊 says: the sentence without its markup. The
 // voice packs record exactly this (tools/audio/runtime.mjs).
@@ -150,7 +163,7 @@ function gsRender(dir = "") {
       <h2 class="gs-title">${escapeHtml(sh.title)}</h2>
       ${g.mastery ? "" : `<div class="gs-dots" aria-hidden="true">${dots}</div>`}
     </div>`;
-  const body = reading ? `<div class="gs-step ${dir}" id="gs-step"><div class="gs-step-label">${escapeHtml(g.steps[g.step].label)}</div>${g.steps[g.step].html}</div>`
+  const body = reading ? `<div class="gs-step ${dir}" id="gs-step"${typeof sayZoneAttr === "function" ? sayZoneAttr() : ""}><div class="gs-step-label">${escapeHtml(g.steps[g.step].label)}</div>${g.steps[g.step].html}</div>`
     : `<div class="gs-step ${dir}" id="gs-step">${gsQuizHtml()}</div>`;
   const last = g.step === g.steps.length - 1;
   const nav = reading ? `<div class="gs-nav">
@@ -182,7 +195,7 @@ function gsRenderReview(dir = "") {
   g.host.innerHTML = `<div class="gs-viewer" style="${gsStyleOf(sh)}" id="gs-viewer">
     <div class="gs-head"><span class="gs-unit"><span class="gs-sign">${u.sign}</span>${escapeHtml(u.name)} · ${vxT("back to the sheet")}</span>
       <h2 class="gs-title">${escapeHtml(sh.title)}</h2></div>
-    <div class="gs-step ${dir}" id="gs-step"><div class="gs-step-label">${escapeHtml(step.label)}</div>${step.html}</div>
+    <div class="gs-step ${dir}" id="gs-step"${typeof sayZoneAttr === "function" ? sayZoneAttr() : ""}><div class="gs-step-label">${escapeHtml(step.label)}</div>${step.html}</div>
     <div class="gs-nav gs-nav3">
       ${r.steps.length > 1 ? `<button class="g-sec-btn gs-prev" onclick="gsReviewGo(-1)" aria-label="${vxT("Previous part")}" ${r.step ? "" : "disabled"}>‹</button>` : "<span></span>"}
       <button class="g-big-btn gs-next" id="gs-back-quiz" onclick="gsReviewBack()">${vxT("Back to the quiz ▶")}</button>
@@ -475,6 +488,16 @@ function gsQuizShowAnswered() {
     const o = +b.dataset.o; b.disabled = true;
     if (o === Q.a) b.classList.add("right"); else if (!ok && Q.o[o] === cur.given) b.classList.add("wrong");
   });
+  // The whole right sentence, once answered: shown to tap, said once (German app).
+  const say = typeof sayTapOn === "function" && sayTapOn() && typeof cxQuizSayText === "function" ? cxQuizSayText(Q) : "";
+  if (fb && say) {
+    fb.querySelector(".p-ok, .p-bad").insertAdjacentHTML("afterend", `<div class="cx-heard"${sayTapAttrs(say)}>${escapeHtml(say)}</div>`);
+    fb.setAttribute("data-say-zone", "");
+    const my = cur;
+    // (once: not again when the question is redrawn after a look at the sheet)
+    if (!my.said) setTimeout(() => { if (_gs && _gs.quiz === q && q.answered && q.list[q.i] === my) speak(say); }, 300);
+    my.said = true;
+  }
   const act = document.getElementById("gs-qact");
   if (act) act.innerHTML = `<button class="g-big-btn" id="gs-qnext" onclick="gsQuizNext()">${q.i + 1 >= q.list.length ? vxT("See result") : vxT("Next ›")}</button>`;
 }
@@ -482,6 +505,7 @@ function gsQuizNext() {
   const q = _gs && _gs.quiz;
   if (!q || !q.answered) return;
   if (typeof mistakeHeld === "function" && mistakeHeld("gs-qfb")) return;
+  if (typeof speakStop === "function") speakStop();
   q.answered = false;
   q.i++;
   if (q.i >= q.list.length) q.done = true;
@@ -1125,7 +1149,7 @@ function pathGradeVerb(val, ok, said = false) {
   // One centred column: verdict, the form in colour, what you typed,
   // the step it took, the rule, the whole row.
   document.getElementById("p-fb").innerHTML = `<div class="vx-fb">
-    ${head}<div class="vx-answer">${vxFormHtml(ex)}</div>
+    ${head}<div class="vx-answer"${typeof sayTapAttrs === "function" ? sayTapAttrs(vxSayText(ex)) : ""}>${vxFormHtml(ex)}</div>
     ${ok !== true && val.trim() ? `<div class="p-diff">${vxDiffHtml(val, ex.form.ans)}</div>` : ""}
     ${chip ? `<div class="vx-chip">${chip}</div>` : ""}
     ${why ? `<div class="vx-why">${why}</div>` : ""}${row}</div>`;

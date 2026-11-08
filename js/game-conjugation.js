@@ -477,7 +477,7 @@ registerGame({
         score += pts;
         input.classList.add("correct");
         const lowerSie = gen && cur.tense === "im" && cur.person === "Sie" && /\ssie\b/.test(" " + String(val).trim().replace(/!+$/, ""));
-        fb.innerHTML = `<span class="bb-ok">✓ ${shownOf(cur)}</span>${lowerSie ? `<div class="cj-format-note">write Sie with a capital S — it's the polite “you”</div>` : ""}`;
+        fb.innerHTML = `<span class="bb-ok">✓ <span${sayTapAttrs(conjSayText(cur))}>${shownOf(cur)}</span></span>${lowerSie ? `<div class="cj-format-note">write Sie with a capital S — it's the polite “you”</div>` : ""}`;
         floatScore(input, "+" + pts, !gen && ctx.isGolden(cur.w) ? "gold" : "");
         if (combo >= 3) playCombo(combo); else playSuccess();
         haptic("select");
@@ -490,7 +490,7 @@ registerGame({
         score = Math.max(0, score - pen);
         if (!gen) ctx.missed(cur.w, { given: skip ? "" : val, expected: answersOf(cur) }); // deck cards only — generated forms never flag a word
         input.classList.add("wrong");
-        fb.innerHTML = `<span class="bb-bad">${val.trim() ? `<s>${escapeHtml(val.trim())}</s> → ` : ""}${shownOf(cur)}</span>`;
+        fb.innerHTML = `<span class="bb-bad">${val.trim() ? `<s>${escapeHtml(val.trim())}</s> → ` : ""}<span${sayTapAttrs(conjSayText(cur))}>${shownOf(cur)}</span></span>`;
         playMiss(); haptic("miss");
         if (!revealed) speak(conjSayText(cur));
         if (gen) ctx.teach(`<div class="g-teach-main">${escapeHtml(cur.v.inf)} · ${TENSE_BY_ID[cur.tense].name}${cur.v.en ? ` <span class="g-teach-pl">— ${escapeHtml(cur.v.en)}</span>` : ""}</div>${verbRowHtml(cur.v.F, cur.tense, cur.person)}<div class="g-teach-rule">${verbRuleHtml(cur.v.F, cur.tense, cur.person)}</div>`, "bad");

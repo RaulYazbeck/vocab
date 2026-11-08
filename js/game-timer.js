@@ -84,7 +84,7 @@ registerGame({
       cur = queue[qi];
       ctx.teach("");
       promptEl.innerHTML = escapeHtml(gamePrompt(cur)) + ctx.tag(cur);
-      document.getElementById("tm-label").textContent = cur.hint ? cur.hint : "Type it";
+      document.getElementById("tm-label").textContent = hintAsked(cur) || "Type it";
       leftEl.textContent = `${queue.length - qi} left`;
       input.value = ""; input.className = "german-input";
       ctx.busy = false;

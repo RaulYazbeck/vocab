@@ -78,7 +78,7 @@ if (!IS_FRENCH_APP) registerGame({
       recordGrammar(c, ok);
       if (!ok && typeof learnNoteMiss === "function") learnNoteMiss(q.w, { src: "game:cases", type: "case", given: picked && picked.text != null ? picked.text : picked, other: c });
       const sEl = document.getElementById("cs-sentence");
-      if (sEl) { sEl.innerHTML = q.ci.reveal; sEl.classList.add(ok ? "ok" : "bad"); }
+      if (sEl) { sEl.innerHTML = q.ci.reveal; sEl.classList.add(ok ? "ok" : "bad"); if (sayTapOn()) { sEl.dataset.tapSay = q.ci.ex.de; sEl.title = "Tap to hear"; } }
       speak(q.ci.ex.de);
       const np = nounParts(q.w);
       const gender = `<div class="g-teach-sub">${colorArticleHtml(np.full)} = ${escapeHtml(gamePrompt(q.w))}${np.answer === "der" || np.answer === "die" || np.answer === "das" ? " " + genderRuleHtml(np.noun, np.answer) : ""}</div>`;

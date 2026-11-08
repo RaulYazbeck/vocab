@@ -363,6 +363,38 @@ function mcChoices(w, cfg) {
 // Remember a wrong pick so it returns as a trap.
 function noteWrongPick(w, opt) { if (opt && opt.word && !opt.correct) recordConfusion(w, opt.word); }
 
+// ── A HINT WHILE THE CARD ASKS ────────────────
+// A verb's hint names its principal parts ("verb regular · trennte · hat
+// getrennt", "phrase — lebte getrennt · hat getrennt gelebt"): while a card
+// asks for the verb they would spell it out, so they're left out then and
+// shown once it's answered. Display only — the decks keep the hint as it
+// is (grammar-de.js reads the parts from it). German app.
+// → { ask: the hint to show while asking, parts: what was left out ("" if nothing) }
+const HINT_KIND = /\b(verb|phrase|noun|adjective|adverb|regular|irregular|separable|inseparable|reflexive|mixed|strong|weak|modal|plural|feminine|masculine|neuter)\b/i;
+function hintWhileAsked(hint) {
+  const h = String(hint == null ? "" : hint);
+  if (typeof WORD_KEY === "undefined" || WORD_KEY !== "de" || !/(^| · | — )(hat|ist) /.test(h)) return { ask: h, parts: "" };
+  const bits = h.split(/( · | — )/);             // [seg, sep, seg, sep, …]
+  const drop = new Set();
+  for (let i = 0; i < bits.length; i += 2) {
+    if (!/^(hat|ist)\s+(sich\s+)?[a-zäöüß]/.test(bits[i]) || /___|'/.test(bits[i])) continue;
+    drop.add(i);
+    // (the Präteritum before it: one short phrase, not the card's kind)
+    const j = i - 2;
+    if (j >= 0 && !HINT_KIND.test(bits[j]) && !/___|'/.test(bits[j]) && bits[j].trim().split(/\s+/).length <= 4) drop.add(j);
+  }
+  if (!drop.size) return { ask: h, parts: "" };
+  const keep = [], parts = [];
+  for (let i = 0; i < bits.length; i += 2) {
+    if (drop.has(i)) parts.push(bits[i]);
+    else { if (keep.length) keep.push(bits[i - 1]); keep.push(bits[i]); }
+  }
+  return { ask: keep.join("").trim(), parts: parts.join(" · ") };
+}
+function hintAsked(w) { return hintWhileAsked(w && w.hint).ask; }
+// The parts left out while asking, for the answer's feedback ("" if none).
+function hintPartsHtml(w, cls = "p-sub") { const p = hintWhileAsked(w && w.hint).parts; return p ? `<div class="${cls}">${escapeHtml(p)}</div>` : ""; }
+
 // The lesson after a miss: the right word, what you picked, an example.
 function wordLessonHtml(w, picked = null, extra = "") {
   const ex = (w.examples || [])[0];
@@ -376,10 +408,11 @@ function wordLessonHtml(w, picked = null, extra = "") {
   // verb, its tense and what it means.
   if (w.vx && typeof vxFormHtml === "function") {
     const v = w.vx, gloss = typeof vxMeaning === "function" ? vxMeaning(v.x) : "";
-    return `<div class="g-teach-main">${vxFormHtml(v)}</div><div class="g-teach-sub">${escapeHtml(v.x.inf)} · ${escapeHtml(vxGameTense(v))}${gloss ? ` · ${escapeHtml(gloss)}` : ""}</div>${pick}${extra}`;
+    return `<div class="g-teach-main"${sayTapAttrs(typeof vxSayText === "function" ? vxSayText(v) : "")}>${vxFormHtml(v)}</div><div class="g-teach-sub">${escapeHtml(v.x.inf)} · ${escapeHtml(vxGameTense(v))}${gloss ? ` · ${escapeHtml(gloss)}` : ""}</div>${pick}${extra}`;
   }
-  return `<div class="g-teach-main">${colorArticleHtml(gameForm(w))} = ${escapeHtml(gamePrompt(w))}${pl}</div>${pick}${extra}
-    ${ex && ex[WORD_KEY] ? `<div class="g-teach-ex">${escapeHtml(ex[WORD_KEY])}${ex.en ? `<span>${escapeHtml(ex.en)}</span>` : ""}</div>` : ""}`;
+  // (a tap on the word or the sentence plays it: sayTapAttrs, German app)
+  return `<div class="g-teach-main"><span${sayTapAttrs(gameForm(w))}>${colorArticleHtml(gameForm(w))}</span> = ${escapeHtml(gamePrompt(w))}${pl}</div>${hintPartsHtml(w, "g-teach-sub")}${pick}${extra}
+    ${ex && ex[WORD_KEY] ? `<div class="g-teach-ex"><span${sayTapAttrs(ex[WORD_KEY])}>${escapeHtml(ex[WORD_KEY])}</span>${ex.en ? `<span>${escapeHtml(ex.en)}</span>` : ""}</div>` : ""}`;
 }
 
 // Number of distinct words (by display form and prompt) in a list.
@@ -1504,7 +1537,7 @@ function missedListHtml(words, title = "") {
     <div class="examples-title">${title || `Words to review (${words.length})`}</div>
     ${words.map(w => `<div class="g-missed-row">
       <span class="g-missed-en">${escapeHtml(gamePrompt(w))}</span>
-      <span class="g-missed-target">${escapeHtml(gameForm(w))}</span>
+      <span class="g-missed-target"${sayTapAttrs(gameForm(w))}>${escapeHtml(gameForm(w))}</span>
       <button class="audio-btn g-missed-say" ${speakBtnAttrs(gameForm(w))} aria-label="Listen">🔊</button>
     </div>`).join("")}
   </div>`;

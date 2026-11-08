@@ -62,7 +62,7 @@ function updateDrillWord() {
 
   document.getElementById('drill-deck-label').textContent = currentWord.deckName;
   document.getElementById('drill-english').textContent    = currentWord.en;
-  document.getElementById('drill-hint').innerHTML         = `${currentWord.hint} ${badges}`;
+  document.getElementById('drill-hint').innerHTML         = `${hintAsked(currentWord)} ${badges}`;
 
   const wordDisplay = document.querySelector('.drill-word-card .word-display');
   if (wordDisplay) {
@@ -299,7 +299,7 @@ function editCurrentDrillWord() {
     const en = document.getElementById("drill-english");
     if (en) en.textContent = currentWord.en;
     const hint = document.getElementById("drill-hint");
-    if (hint) hint.innerHTML = `${currentWord.hint} ${wordBadgesHtml(ws)}`;
+    if (hint) hint.innerHTML = `${answered ? currentWord.hint : hintAsked(currentWord)} ${wordBadgesHtml(ws)}`;
     if (answered) showDrillFeedback(lastDrillCorrect, ws);
   });
 }
@@ -324,6 +324,8 @@ function showDrillFeedback(correct, ws) {
     </div>`;
   if (!drillRevealed) speak(currentWord[WORD_KEY]); // a Say-it reveal has just said it
   document.getElementById("hint-area").innerHTML = ""; // full examples replace the hint
+  // (answered: the hint in full, its principal parts too — hintAsked left them out)
+  const dh = document.getElementById("drill-hint"); if (dh) dh.innerHTML = `${currentWord.hint} ${wordBadgesHtml(ws)}`;
   const hintBtn = document.getElementById("hint-btn");
   if (hintBtn) hintBtn.style.display = "none";
   document.getElementById("examples-area").innerHTML = examplesHtml(currentWord, "big");

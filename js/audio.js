@@ -469,11 +469,12 @@ function audioFind(text) {
 // true when it took the request (speak() must then stay silent), false
 // when the caller should use the system voice. `rate` is speak()'s rate:
 // 0.85 is normal speed, 0.55 is the "🐢 Slower" button.
-function audioSpeak(text, rate = AUDIO_NATURAL_RATE) {
+// opts.quiet: a miss isn't noted in the voice log (a selection the learner made).
+function audioSpeak(text, rate = AUDIO_NATURAL_RATE, opts = {}) {
   _audioFlagHide();                                    // the ⚑ only ever points at what was just heard
   if (!audioReady()) return false;
   const e = audioFind(text);
-  if (!e) { audioNoteMiss(text); return false; }
+  if (!e) { if (!(opts && opts.quiet)) audioNoteMiss(text); return false; }
   if (!AUDIO.have.has(e[0])) return false;             // that shard isn't downloaded
   AUDIO.lastText = String(text).replace(/\s+/g, " ").trim();
   _audioPlayEntry(e, rate, ++AUDIO.seq, () => _audioFallback(text, rate));

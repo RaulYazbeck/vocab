@@ -413,6 +413,8 @@
 .cx-rtext { font-size:13px; color:var(--text-2); line-height:1.45; }
 .cx-rule .gs-qsee { margin-top:2px; }
 .cx-also, .cx-note, .cx-move { font-size:13px; color:var(--text-2); margin-top:6px; }
+.cx-heard { font-size:15px; color:var(--text); margin-top:8px; line-height:1.45; overflow-wrap:anywhere; }
+.cx-heard-lines > div { margin-top:4px; }
 .cx-move { color:var(--teal-hi); }
 .cx-plan { padding:11px 13px; border-radius:var(--r-sm); margin-bottom:14px; border:1px solid var(--border); background:rgba(255,255,255,0.04); font-size:13.5px; line-height:1.45; display:flex; flex-direction:column; gap:5px; }
 .cx-plan small { color:var(--text-3); font-size:12px; }

@@ -21,7 +21,7 @@
 // level go with the first). The full list is large (German ~700k
 // characters, French ~510k), more than one month of Google's free tier,
 // so it is recorded level by level, a month apart. --skip leaves out
-// sources (cloze, idioms, sheets, track, conj, thread, thread-ear). Both
+// sources (cloze, idioms, sheets, tables, quiz, course, course-sheets, track, conj, thread, thread-ear). Both
 // are remembered in the file's first line, so a plain re-run (after
 // adding verbs or sheets) keeps them. --verbs lists single verbs whose
 // forms go in whatever their level (a month's leftover characters spent on
@@ -123,6 +123,28 @@ const found = await page.evaluate(() => {
     add(c.full, "w", "_v:" + v.inf, v.level, "thread");
     add(threadSayText(c.form), "w", "_v:" + v.inf, v.level, "thread-ear");
   }))));
+  // Sheet tables (grammar-ui.js gsCellSays: each German sentence in a cell
+  // plays on a tap) and the sheet quizzes' right sentences (cxQuizSayText,
+  // course-de.js: said once a question is answered; a quiz item made from
+  // your verbs — g — is a verb form, listed with the verb cards below).
+  const tables = sh => ((sh.table && sh.table.rows) || []).forEach(r => r.slice(1).forEach(c => typeof gsCellSays === "function" && gsCellSays(c).forEach(([, t]) => add(t, "s", "_sheet:" + sh.id, "", "tables"))));
+  const quiz = sh => typeof cxQuizSayText === "function" && (sh.quiz || []).filter(Q => !Q.g).forEach(Q => add(cxQuizSayText(Q), "s", "_sheet:" + sh.id, "", "quiz"));
+  if (typeof GS_SHEETS !== "undefined") GS_SHEETS.forEach(sh => { tables(sh); quiz(sh); });
+  // (last: a phrase another source already lists keeps that one's deck,
+  // so its recording stays in the shard it is in)
+  // 📖 The course (course-de.js / course-ui.js, German): every drill item's
+  // whole right sentence for each accepted answer, a conversation's lines,
+  // the line answered, a writing model (cxSayAll — what course-ui says
+  // after an answer and on a tap), and each course sheet's examples,
+  // tables and quiz. One deck per lesson ("_course:<section>").
+  if (typeof CX !== "undefined" && typeof cxSayAll === "function") {
+    Object.values(CX.sets).forEach(set => cxSayItems(set).forEach(it => cxSayAll(it, set).forEach(t =>
+      add(t, t.split(" ").length <= 3 && !/[.!?]$/.test(t) ? "w" : "s", "_course:" + set.sec, "", "course"))));
+    Object.values(CX.sheets).forEach(sh => {
+      (sh.ex || []).forEach(([t]) => add(gsSayText(t), "s", "_course:" + sh.sec, "", "course-sheets"));
+      tables(sh); quiz(sh);
+    });
+  }
   return out;
 });
 await browser.close(); srv.close();

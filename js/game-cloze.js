@@ -504,7 +504,7 @@ registerGame({
     const reveal = ok => {
       const sEl = document.getElementById("cz-sentence");
       const html = q.step && q.step.kind === "case" ? q.step.ci.reveal : q.info.reveal;
-      if (sEl) { sEl.innerHTML = html; sEl.classList.remove("ok", "bad"); sEl.classList.add(ok ? "ok" : "bad"); }
+      if (sEl) { sEl.innerHTML = html; sEl.classList.remove("ok", "bad"); sEl.classList.add(ok ? "ok" : "bad"); if (sayTapOn()) { sEl.dataset.tapSay = q.info.example[WORD_KEY]; sEl.title = "Tap to hear"; } }
       const tr = document.getElementById("cz-trans"), pk = document.getElementById("cz-peek");
       if (tr) { tr.textContent = q.info.example.en || ""; tr.style.display = ""; }
       if (pk) pk.style.display = "none";

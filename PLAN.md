@@ -950,3 +950,31 @@ screen · coverage report at 100 % (every blueprint exercise *mirrored*,
 - **Session 5 (7 Nov 2026):** an exercise goes to the lesson that teaches what it practises, also across stages — chapter 24's double infinitive (24•1–24•4) to modals in the Perfekt (B1), chapter 31's comparatives with endings (31•14) to the adjective endings, which now wait for comparison; where the book practises a form the learner hasn't met yet, the mirror keeps the exercise's frame with the forms they have (20•4 the spoken *von* + dative instead of the genitive, 23•2 without the genitive, 11•7 without a modal in the Perfekt, 24•11 with Präsens sentences); an exercise is skipped only when its whole point is above B1 and fide doesn't ask it (24•7), with the reason in its status. Stage 1's checkpoint asks 20 questions, one rule each, as Stage 0's (24 fit only a Long 60 session — a Regular 30 has room for 20). A checker detector can be `hard`: a one-letter slip that is the rule itself is a mistake, never "almost".
 - **Verb + preposition in Stage 1 (2 Nov 2026):** *warten auf, sich freuen auf, denken an* are everyday spoken A2 — the lesson (now `s1.verbprep`, A2) comes right after the reflexive pronouns (≈ late Feb) instead of mid-April in Stage 2; still built in Session 6, the wo- / da- compounds stay in Stage 2 right after it.
 - **Session 2 audit (21 Oct 2026):** every new sheet and item proofread (15 fixes: a rule that put *die Mutter* among the masculine plurals, a few stiff sentences, missing natural answers in translations). The verb lessons' own sentences now feed the learning log's verbs (before, only generated items did). *(22 Oct: umlauts are never typed, as agreed — a missing one is never a mistake, in the drills or the log; the course's drills now ask the verb track's small 1 / 2 choice when the plain spelling is another real form: fahrt → fährt or fahrt?)* 📚 a chapter's Übungen render their *italics*; on a verb lesson page 🧩 Practise sits right under the sheets. The logs test's fake cloud gained `batch` (its one failure was the test, not the app). Known and left as agreed: the quest test's late-deficit stress day can end one ledger form short (extra practice asks for exactly what a quest lacks).
+
+---
+
+## Voice: what's left
+
+*(kept up to date by the voice sessions; the pipeline is in `tools/audio/README.md`)*
+
+**8 Nov 2026 — the course and the sheets recorded; voice inside the exercises.**
+
+- **Recorded:** everything the 📖 course says once a question is answered — every drill
+  item's whole right sentence for each accepted answer (the gap filled in, cues left out),
+  the conversations' lines, the lines you answer or transform, the writing models, the
+  generated conjugation items — plus every course sheet's examples, and for every sheet
+  (the verb track's too) the German sentences of its table and its quiz's right
+  sentences: **5,763 new clips, 183,361 characters, 0 refused**. The German pack now has
+  **39,238 / 39,238** texts (status --strict passes): all decks A1–B1, the A1 + A2 verb
+  forms, 17 single B1 verbs, the grammar sheets, idioms, the course (Stages 0 and 1).
+- **Characters this month (November 2026):** 184,022 of the 900,000 cap
+  (`tools/audio/state/usage.json`).
+- **In the exercises (German app):** once answered — never before — the whole right
+  sentence plays once (Next stops it), and every revealed German word or sentence plays
+  again on a tap (🔊 after it): the course's miss card, "Also right", models, conversation
+  lines, the sheet quiz, the sheets' table sentences, the games' lesson card and miss list,
+  Today's answer, the verb track's form. Selecting German in a sheet or an answered
+  question's feedback says the selection. The French app is unchanged.
+- **Principal-part hints** ("verb regular · trennte · hat getrennt") are left out while a
+  card asks for the verb and shown with the answer (display only; 503 hints; the decks
+  are unchanged).

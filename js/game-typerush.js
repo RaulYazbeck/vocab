@@ -63,7 +63,7 @@ registerGame({
       ctx.teach("");
       shown = 0; shownAt = ctx.clock.elapsed();
       promptEl.innerHTML = escapeHtml(gamePrompt(cur)) + ctx.tag(cur);
-      document.getElementById("tr-label").textContent = cur.hint ? cur.hint : "Type it";
+      document.getElementById("tr-label").textContent = hintAsked(cur) || "Type it";
       input.value = ""; input.className = "german-input";
       renderHint();
       ctx.busy = false;

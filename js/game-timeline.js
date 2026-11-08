@@ -162,7 +162,7 @@ registerGame({
       if (pe) pe.innerHTML = "•".repeat(Math.min(pins[right], 6));
       // Reveal: the verb in its colour, the time words underlined, the translation.
       const sentEl = document.getElementById("tl-sent");
-      if (sentEl) { sentEl.classList.remove("vt-hidden"); sentEl.removeAttribute("aria-hidden"); sentEl.innerHTML = vlSentenceHtml(s.r, true); }
+      if (sentEl) { sentEl.classList.remove("vt-hidden"); sentEl.removeAttribute("aria-hidden"); sentEl.innerHTML = vlSentenceHtml(s.r, true); if (sayTapOn() && s.text) { sentEl.dataset.tapSay = s.text; sentEl.title = "Tap to hear"; } }
       const ear = document.getElementById("tl-ear"); if (ear) ear.remove();
       const tr = document.getElementById("tl-trans"); if (tr && s.tr) tr.textContent = s.tr;
       cardEl.classList.add(ok ? "ok" : near ? "near" : "bad");

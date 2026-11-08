@@ -165,7 +165,7 @@ registerGame({
       playMiss(); haptic("miss");
       ctx.say("Here's the sentence.");
       const rule = typeof wordOrderRuleHtml === "function" ? wordOrderRuleHtml(cur.it.ex[WORD_KEY]) : "";
-      ctx.teach(`<div class="g-teach-main">${escapeHtml(cur.it.ex[WORD_KEY])}</div><div class="g-teach-sub">${escapeHtml(cur.it.ex.en || "")}</div>${rule ? `<div class="g-teach-rule">${rule}</div>` : ""}${cur.gd ? `<div class="g-teach-sub">The extra tile <s>${escapeHtml(cur.gd)}</s> was the same article in the wrong case.</div>` : ""}`, "bad");
+      ctx.teach(`<div class="g-teach-main"${sayTapAttrs(cur.it.ex[WORD_KEY])}>${escapeHtml(cur.it.ex[WORD_KEY])}</div><div class="g-teach-sub">${escapeHtml(cur.it.ex.en || "")}</div>${rule ? `<div class="g-teach-rule">${rule}</div>` : ""}${cur.gd ? `<div class="g-teach-sub">The extra tile <s>${escapeHtml(cur.gd)}</s> was the same article in the wrong case.</div>` : ""}`, "bad");
       ctx.waitContinue(ctx.sudden ? done : round);
     };
 

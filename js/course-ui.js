@@ -305,24 +305,67 @@ function cxShowAnswered() {
   // why in one line, and the rule's name — a tap opens its sheet.
   const why = rule ? `<div class="cx-why">${gsMd(res.msg || rule.text)}</div><button class="tc-link cx-see" onclick="gsPeek('${rule.sheet}')">📏 ${escapeHtml(rule.title)} ›</button>` : "";
   let html;
-  if (self) html = `<div class="p-ok">✓ Saved for Claude to correct</div>${(item.model || []).length ? `<div class="cx-also">A model: <i>${escapeHtml(item.model[0])}</i></div>` : ""}`;
-  else if (ok) html = `<div class="p-ok">✓ Right${res.soft && res.soft.length ? ` <span class="vx-uml">— ${res.soft.map(s => CX_SOFT[s]).join(", ")}: <b>${escapeHtml(res.right)}</b></span>` : ""}</div>${also.length ? `<div class="cx-also">Also right: ${also.map(a => `<i>${escapeHtml(a)}</i>`).join(" · ")}</div>` : ""}${cxMoveHtml(cur)}`;
+  const tap = a => typeof sayTapAttrs === "function" ? sayTapAttrs(cxSayText(item, set, a)) : "";
+  if (self) html = `<div class="p-ok">✓ Saved for Claude to correct</div>${(item.model || []).length ? `<div class="cx-also">A model: <i${sayTapAttrs(cxSayText(item, set))}>${escapeHtml(item.model[0])}</i></div>` : ""}`;
+  else if (ok) html = `<div class="p-ok">✓ Right${res.soft && res.soft.length ? ` <span class="vx-uml">— ${res.soft.map(s => CX_SOFT[s]).join(", ")}: <b>${escapeHtml(res.right)}</b></span>` : ""}</div>${also.length ? `<div class="cx-also">Also right: ${also.map(a => `<i${tap(a)}>${escapeHtml(a)}</i>`).join(" · ")}</div>` : ""}${cxMoveHtml(cur)}`;
   else {
     // A miss: one card — the right answer, big, with what to fix marked;
     // under it what you wrote, its wrong words marked; then why.
     const right = res.right || (item.a || [])[0] || "";
     const shown = k !== "pick" && k !== "respond" && k !== "order" && cur.given;
     const d = shown ? wordDiffHtml(cur.given, right) : null;
-    const ansHtml = k === "order" ? (item.a || []).map(l => `<div>${escapeHtml(l)}</div>`).join("") : d ? d.ans : escapeHtml(right);
+    const ansHtml = k === "order" ? (item.a || []).map(l => `<div${sayTapAttrs(cxSayClean(l))}>${escapeHtml(l)}</div>`).join("") : d ? d.ans : escapeHtml(right);
+    // (the answer plays on a tap; a gap's answer plays its whole sentence, shown under the card)
+    const say = k === "order" ? "" : cxSayFor(cur);
     html = `<div class="cx-miss"><div class="cx-miss-head">✗ Not quite</div>
-      <div class="cx-miss-lbl">Answer</div><div class="cx-miss-ans">${ansHtml}</div>
+      <div class="cx-miss-lbl">Answer</div><div class="cx-miss-ans"${say ? sayTapAttrs(say) : ""}>${ansHtml}</div>
+      ${say && cxLoose(say) !== cxLoose(right) ? `<div class="cx-heard"${sayTapAttrs(say)}>${escapeHtml(say)}</div>` : ""}
       ${d ? `<div class="cx-miss-lbl">You wrote</div><div class="cx-miss-you">${d.typed}</div>` : ""}
       ${item.note ? `<div class="cx-note">${gsMd(item.note)}</div>` : ""}${why ? `<div class="cx-miss-why">${why}</div>` : ""}</div>`;
   }
-  if (fb) fb.innerHTML = html;
+  if (fb) { fb.innerHTML = html + cxHeardHtml(cur); if (typeof sayZoneAttr === "function" && sayZoneAttr()) fb.setAttribute("data-say-zone", ""); }
+  cxSayAfter(cur);
   const act = document.getElementById("cx-act");
   if (act) act.innerHTML = `<button class="g-big-btn" id="cx-next" onclick="cxNext()">${r.i + 1 >= r.list.length ? "See result" : "Next ›"}</button>`;
   if (r.opts.mode !== "path") setTimeout(() => { const b = document.getElementById("cx-next"); if (b) try { b.focus({ preventScroll: true }); } catch (e) {} }, 30);
+}
+// ── HEARING IT ────────────────────────────────
+// Once a question is answered (never before: only right German is
+// recorded, so the natural voice would give a right option away) the whole
+// right sentence plays once — after a miss above all — and stays a tap
+// away: the miss card's answer, "Also right", a model, a conversation's
+// lines, the line you answered. What is said: cxSayText (course-de.js),
+// which the voice pack records (tools/audio/runtime.mjs).
+// The sentence to say for an answered item: the answer it was checked
+// against when that is one of the item's own (recorded), else the first.
+function cxSayFor(cur) {
+  const set = cxSet(cur.set), item = cur.item, res = cur.res || {};
+  const all = cxSayAll(item, set), t = res.right != null ? cxSayText(item, set, res.right) : "";
+  const t0 = cxSayText(item, set);
+  return t && all.includes(t) ? t : all.includes(t0) ? t0 : "";
+}
+// The whole sentence under the feedback, when it isn't already there to
+// tap: a gap filled in ("Wir haben keinen Hund."), a right answer's sentence.
+// And the line you answered or transformed becomes tappable.
+function cxHeardHtml(cur) {
+  if (typeof sayTapOn !== "function" || !sayTapOn()) return "";
+  const set = cxSet(cur.set), item = cur.item, k = cxItemKind(set, item);
+  const q = document.querySelector("#cx-run .gs-qtext");
+  if (q && (k === "respond" || k === "answer" || k === "transform")) { const qt = cxSayClean(item.q); if (cxSayAll(item, set).includes(qt)) { q.setAttribute("data-tap-say", qt); q.title = "Tap to hear"; } }
+  if (k === "order") return cur.ok ? `<div class="cx-heard cx-heard-lines">${(item.a || []).map(l => `<div${sayTapAttrs(cxSayClean(l))}>${escapeHtml(l)}</div>`).join("")}</div>` : "";
+  if (k === "write" || k === "open") return "";
+  const t = cxSayFor(cur), right = (cur.res && cur.res.right) || "";
+  // (a miss shows it inside its card, under the answer)
+  if (!t || !cur.ok) return "";
+  return `<div class="cx-heard"${sayTapAttrs(t)}>${escapeHtml(t)}</div>`;
+}
+// Plays it once, a moment after the chime; Next stops it (cxNext).
+function cxSayAfter(cur) {
+  if (typeof sayTapOn !== "function" || !sayTapOn() || typeof speak !== "function") return;
+  const set = cxSet(cur.set), k = cxItemKind(set, cur.item);
+  if (k === "write" || k === "open" || k === "order") return;
+  const t = cxSayFor(cur), r = _cx;
+  if (t) setTimeout(() => { if (_cx === r && r.answered && r.list[r.i] === cur) speak(t); }, 300);
 }
 // A right review: where its rule stands now.
 function cxMoveHtml(cur) {
@@ -338,6 +381,7 @@ function cxNext() {
   const r = _cx;
   if (!r || !r.answered) return;
   if (typeof mistakeHeld === "function" && mistakeHeld("cx-fb")) return;
+  if (typeof speakStop === "function") speakStop();
   r.answered = false;
   r.i++;
   if (r.i >= r.list.length) { r.done = true; cxSettle(); }
