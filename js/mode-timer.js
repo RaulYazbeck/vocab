@@ -128,6 +128,10 @@ function timerCorrectAnswer(voice, kind = "recall") {
 // shownWrongText: the user's rejected answer ("" for a plain skip).
 // sound: the typed skip is historically silent.
 function timerWrongAnswer(shownWrongText, voice, sound) {
+  // A wrong typed answer can be turned around ("my typo", ui-helpers.js)
+  // while the answer shows: snapshot before its bookkeeping.
+  const w = currentWord, typed = !voice && !!shownWrongText;
+  const typo = typed ? { snap: typoSnap(), queue: timerQueue.slice(), wrong: timerWrong, done: timerWordsDone } : null;
   timerWrong++;
   applyWrong(getWS(currentWord.deckId, currentWord.idx), { w: currentWord });
   logEvent("answer", { m: voice ? "timer:voice" : "timer", ok: false, typed: true, voice: !!voice });
@@ -140,14 +144,28 @@ function timerWrongAnswer(shownWrongText, voice, sound) {
   timerWordsDone++;
   const wordEl = document.getElementById("timer-word-display");
   if (wordEl) wordEl.style.opacity = "0.3";
+  let after = null;
+  if (typo) typoArm(typo.snap, { fb: "timer-feedback", m: "timer",
+    live: () => timerPaused && !timerFinished && currentWord === w && !!document.getElementById("timer-feedback"),
+    ok: () => {
+      clearTimeout(after);
+      timerQueue.length = 0; typo.queue.forEach(x => timerQueue.push(x));
+      timerWrong = typo.wrong; timerWordsDone = typo.done;
+      timerPaused = false;
+      clearInterval(timerInterval); timerInterval = setInterval(timerTick, 100);
+      const wordEl = document.getElementById("timer-word-display");
+      if (wordEl) wordEl.style.opacity = "";
+      timerCorrectAnswer(false);
+      typoCounted("#timer-feedback .tfb-ok", "✓ Correct!");
+    } });
   const fb = document.getElementById("timer-feedback");
   if (fb) fb.innerHTML = shownWrongText
-    ? `<span class="tfb-strike">${escapeHtml(shownWrongText)}</span><span class="tfb-arrow"> → </span><span class="tfb-ans">${colorArticleHtml(answer)}</span>`
+    ? `${typo ? typoMark("✗") + " " : ""}<span class="tfb-strike">${escapeHtml(shownWrongText)}</span><span class="tfb-arrow"> → </span><span class="tfb-ans">${colorArticleHtml(answer)}</span>`
     : `<span class="tfb-ans">✗ ${colorArticleHtml(answer)}</span>`;
   const tc = document.getElementById("t-correct"), tw = document.getElementById("t-wrong");
   if (tc) tc.textContent = timerCorrect;
   if (tw) tw.textContent = timerWrong;
-  setTimeout(() => {
+  after = setTimeout(() => {
     if (timerFinished) return;
     timerPaused = false;
     currentWord = timerQueue[timerWordsDone];

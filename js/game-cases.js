@@ -100,7 +100,7 @@ if (!IS_FRENCH_APP) registerGame({
         if (btn) { shakeEl(btn); floatScore(btn, "−" + pen, "bad"); }
         playMiss(); haptic("miss");
         ctx.say(`It's ${q.ci.answer}`);
-        ctx.teach(`${picked ? `✗ Not <s>${escapeHtml(picked)}</s> — ` : ""}${q.ci.reason.html}${gender}`, "bad");
+        ctx.teach(`${picked ? `${ctx.typoPend ? "" : "✗ "}Not <s>${escapeHtml(picked)}</s> — ` : ""}${q.ci.reason.html}${gender}`, "bad");
         ctx.waitContinue(ctx.sudden ? done : round);
       }
       ctx.setScore(score); ctx.setCombo(combo);
@@ -119,6 +119,19 @@ if (!IS_FRENCH_APP) registerGame({
       const input = document.getElementById("g-typed");
       const ok = normalize(v) === normalize(q.ci.answer);
       if (ok) typedOk++;
+      // A typed miss can be taken back ("my typo", gTypoSnap): it counts as typed right.
+      if (!ok && v.trim()) {
+        gTypoSnap(ctx);
+        ctx.typoPend.word = q.w;
+        const cq = q;
+        ctx.onTypoOk = () => {
+          const c = cq.ci.reason.c || cq.ci.cases[0];
+          if (tally[c]) tally[c][0]++;
+          recordGrammar(c, true);
+          wrong--; correct++; typedOk++;
+          if (input) { input.classList.remove("wrong"); input.classList.add("correct"); }
+        };
+      } else ctx.typoPend = null;
       if (input) input.classList.add(ok ? "correct" : "wrong");
       settle(ok, input, ok ? "" : v.trim());
     };

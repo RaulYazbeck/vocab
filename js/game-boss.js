@@ -452,6 +452,31 @@ registerGame({
           gTimeout(() => end(true), 1100);
         } else gTimeout(show, 750);
       } else {
+        // A typed miss can be taken back ("my typo", gTypoSnap): the heart
+        // comes back and the hit lands, as if typed right.
+        if (!sayMode && !skip && val.trim()) {
+          gTypoSnap(ctx);
+          const h0 = hearts, c0 = combo;
+          ctx.onTypoOk = () => {
+            hearts = h0; wrong--; correct++; typedOk++; combo = c0 + 1; maxCombo = Math.max(maxCombo, combo); dealt++;
+            if (!w.anki) {
+              const ws = getWS(w.deckId, w.idx);
+              sessionConsecutive++;
+              addExp(ws.correct === 0 && ws.wrong === 0 ? 10 : 5);
+              applyCorrect(ws, { w, kind: "recall" });
+              questEvent("answer", { mode: mode === "minion" ? "path" : "boss", ok: true, typed: true, w });
+            } else addExp(5);
+            ctx.award(w, 1);
+            const j = queue.lastIndexOf(w); if (j >= 0) queue.splice(j, 1);
+            hp--;
+            if (mode === "world") { world.hp = Math.max(0, hp); questEvent("world", { dmg: 1 }); if (queue.length < 3) queue.push(...sampleWords(ctx.pool, 6)); }
+            input.classList.remove("wrong"); input.classList.add("correct");
+            ctx.setCombo(combo); ctx.setScore(correct * 10);
+            updateHp();
+            saveState();
+            ctx.waiting = hp <= 0 ? () => { bossEl.classList.add("defeated"); gTimeout(() => end(true), 600); } : show;
+          };
+        } else ctx.typoPend = null;
         const cost = flawless ? hearts : mode === "deck" ? 1 : ctx.cost(w);
         wrong++; hearts = Math.max(0, hearts - cost); combo = ctx.comboAfterMiss(combo, w);
         // A brought ❤️ is spent the moment it saves you (so quitting can't

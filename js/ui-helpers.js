@@ -271,6 +271,110 @@ function mistakeHeld(fbId) {
   return true;
 }
 
+// ── PRIVATE "MY TYPO" OVERRIDE (every typed answer) ──
+// Shift+Enter ×3 within 1.5s, or the ✗ tapped ×3, on a wrong typed answer
+// turns it into a right one — honour system. Today's cards (mode-path.js)
+// and the course drills (course-ui.js) have their own; every other screen
+// where you type uses this one. One daily allowance for all of them
+// (S.path.secretOk, 10 a day); an "≈ Almost" is never capped.
+//   1. typoSnap() before a wrong answer's bookkeeping: what it can touch
+//      (word / rule progress, the course, the verb track, the learning
+//      log, quests, the day's mistakes, the session's counters).
+//   2. typoArm(snap, { live, ok, fb, m, near }) once it's shown — live():
+//      still this answer on screen · ok(): grade it right (the screen's
+//      own state first; the snapshot is already put back) · fb: the
+//      feedback's id (shaken when the allowance is spent).
+//   3. typoMark("✗") in the feedback: the tap target.
+const TYPO_PER_DAY = 10;
+let _typo = null, _typoTaps = [];
+function _typoJ(o) { return o === undefined ? null : JSON.stringify(o); }
+function typoSnap() {
+  let mk = null;
+  try { mk = _typoJ(usageDay().mk); } catch (e) {}
+  const Q = S.quests, ps = typeof pathSession !== "undefined" && pathSession;
+  return {
+    words: _typoJ(S.words), course: _typoJ(S.course), learn: _typoJ(S.learn), verb: _typoJ(S.verb), mk,
+    qm: Q ? _typoJ(Q.m) : null, qw: Q ? _typoJ(Q.week) : null, hearts: Q ? Q.hearts : undefined,
+    totalCorrect: S.totalCorrect, cases: S.games ? _typoJ(S.games.cases) : null, vf: S.games ? _typoJ(S.games.vf) : null,
+    sc: typeof sessionCorrect !== "undefined" ? sessionCorrect : 0,
+    consec: typeof sessionConsecutive !== "undefined" ? sessionConsecutive : 0,
+    stats: ps && ps.stats ? { ...ps.stats } : null,
+  };
+}
+// Puts a snapshot back in place (the same objects, so nothing holding one goes stale).
+function _typoPut(obj, src) {
+  if (Array.isArray(obj) && Array.isArray(src)) { obj.length = 0; src.forEach(x => obj.push(x)); return; }
+  Object.keys(obj).forEach(k => { if (!(k in src)) delete obj[k]; });
+  Object.keys(src).forEach(k => {
+    const a = obj[k], b = src[k];
+    if (a && b && typeof a === "object" && typeof b === "object" && Array.isArray(a) === Array.isArray(b)) _typoPut(a, b);
+    else obj[k] = b;
+  });
+}
+function _typoBack(key, json) {
+  if (json === null) { delete S[key]; return; }
+  const v = JSON.parse(json);
+  if (S[key] && typeof S[key] === "object" && v && typeof v === "object") _typoPut(S[key], v); else S[key] = v;
+}
+function typoRestore(u) {
+  ["words", "course", "learn", "verb"].forEach(k => _typoBack(k, u[k]));
+  try { const d = usageDay(); if (u.mk === null) delete d.mk; else d.mk = JSON.parse(u.mk); } catch (e) {}
+  const Q = S.quests;
+  if (Q) {
+    if (u.qm !== null && Q.m) _typoPut(Q.m, JSON.parse(u.qm));
+    if (u.qw !== null && Q.week) _typoPut(Q.week, JSON.parse(u.qw));
+    if (u.hearts !== undefined) Q.hearts = u.hearts;
+  }
+  if (u.totalCorrect !== undefined) S.totalCorrect = u.totalCorrect;
+  if (S.games) ["cases", "vf"].forEach(k => { if (u[k] === null) delete S.games[k]; else S.games[k] = JSON.parse(u[k]); });
+  if (typeof sessionCorrect !== "undefined") sessionCorrect = u.sc;
+  if (typeof sessionConsecutive !== "undefined") sessionConsecutive = u.consec;
+  const ps = typeof pathSession !== "undefined" && pathSession;
+  if (ps && ps.stats && u.stats) Object.assign(ps.stats, u.stats);
+  if (typeof invalidatePathScan === "function") invalidatePathScan();
+}
+function typoArm(snap, opts) { _typo = snap ? { snap, used: false, ...opts } : null; _typoTaps = []; }
+function typoDisarm() { _typo = null; }
+function typoLive() { if (_typo && !_typo.live()) _typo = null; return !!_typo; }
+// The ✗ (or ≈) of the answer just shown, tappable ×3 while the override is open.
+function typoMark(sign) {
+  return typoLive() && !_typo.used ? `<span class="p-typo" onpointerdown="event.preventDefault();event.stopPropagation();typoPress(1200)">${sign}</span>` : sign;
+}
+function typoPress(windowMs) {
+  if (!typoLive() || _typo.used) return;
+  const now = Date.now();
+  _typoTaps = _typoTaps.filter(t => now - t < windowMs).concat(now);
+  if (_typoTaps.length >= 3) { _typoTaps = []; typoFire(); }
+}
+function typoFire() {
+  const t = _typo;
+  if (!t || t.used || !t.live()) return;
+  const P = S.path || (S.path = {}), today = typeof studyToday === "function" ? studyToday() : todayISO();
+  if (!P.secretOk || P.secretOk.d !== today) P.secretOk = { d: today, n: 0 };
+  const cap = typeof SECRET_OK_PER_DAY !== "undefined" ? SECRET_OK_PER_DAY : TYPO_PER_DAY;
+  if (!t.near && P.secretOk.n >= cap) { const fb = t.fb && document.getElementById(t.fb); if (fb && typeof shakeEl === "function") shakeEl(fb); return; }
+  t.used = true;
+  typoRestore(t.snap);
+  if (!t.near) P.secretOk.n++;
+  if (typeof logEvent === "function") logEvent("secretOk", { m: t.m || "", n: P.secretOk.n, near: !!t.near });
+  t.ok();
+  _mistakeHoldUntil = 0; // a success now: Next must not wait on the old miss
+  if (typeof saveState === "function") saveState();
+}
+// "✓ Correct!" → "✓ Counted" in a feedback just drawn by ok().
+function typoCounted(sel, from) {
+  const el = document.querySelector(sel);
+  const to = typeof vxT === "function" ? vxT("✓ Counted") : "✓ Counted";
+  if (el) el.innerHTML = el.innerHTML.replace(from, to);
+}
+// Shift+Enter, ahead of every other key handler: while the override is
+// open (or was just used on this answer) it never also checks or moves on.
+window.addEventListener("keydown", e => {
+  if (e.key !== "Enter" || !e.shiftKey || !typoLive()) return;
+  e.preventDefault(); e.stopImmediatePropagation();
+  if (!_typo.used) typoPress(1500);
+}, true);
+
 // "≈ Almost — try again" (one more try): the answer that got it is kept
 // (nearMark), and the same answer sent again — a double Enter, a second
 // tap — is never graded: the input shakes and asks for a change.

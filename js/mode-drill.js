@@ -255,6 +255,19 @@ function checkDrill() {
   const correct = isCorrect(input.value, currentWord[WORD_KEY]);
   const ws      = getWS(currentWord.deckId, currentWord.idx);
   lastDrillTyped = input.value;
+  // A wrong (or "≈ Almost") typed answer can be turned around ("my typo",
+  // ui-helpers.js): snapshot before its bookkeeping.
+  const snap = correct ? null : typoSnap(), w = currentWord, hint = drillUsedHint;
+  const armTypo = near => typoArm(snap, { fb: "feedback", m: "drill:" + drillSubMode, near,
+    live: () => answered && currentWord === w && !!document.getElementById("german-input"),
+    ok: () => {
+      input.classList.remove("wrong", "near"); input.classList.add("correct");
+      drillUsedHint = hint;
+      applyAnswerState(ws, true);
+      playSuccess();
+      showDrillFeedback(true, ws);
+      typoCounted("#feedback .feedback-text", "✓ Correct!");
+    } });
   // One-letter typo on a longer word: neither right nor wrong.
   if (!correct && isNearMiss(input.value, [currentWord[WORD_KEY], typeof gameForm === "function" ? gameForm(currentWord) : currentWord[WORD_KEY]])) {
     ws.near = (ws.near || 0) + 1; ws.lastAnsweredAt = Date.now();
@@ -263,12 +276,14 @@ function checkDrill() {
     drillUsedHint = false;
     saveState();
     input.classList.add("near");
+    armTypo(true);
     showDrillFeedback("near", ws);
     holdAfterMistake("drill-next");
     return;
   }
   applyAnswerState(ws, correct);
   input.classList.add(correct ? "correct" : "wrong");
+  if (!correct) armTypo(false);
   if (correct) playSuccess(); else playFailure();
   showDrillFeedback(correct, ws);
   if (!correct) holdAfterMistake("drill-next");
@@ -312,7 +327,7 @@ function showDrillFeedback(correct, ws) {
   const typed = lastDrillTyped && lastDrillTyped.trim();
   document.getElementById("feedback").innerHTML = `
     <div class="feedback-left">
-      <div class="feedback-text ${cls}">${icon} ${near ? (drillSay ? "Close — say it once more:" : "Almost — check the spelling:") : correct ? "Correct!" : "Answer:"} <strong>${colorArticleHtml(currentWord[WORD_KEY])}</strong></div>
+      <div class="feedback-text ${cls}">${correct === true ? icon : typoMark(icon)} ${near ? (drillSay ? "Close — say it once more:" : "Almost — check the spelling:") : correct ? "Correct!" : "Answer:"} <strong>${colorArticleHtml(currentWord[WORD_KEY])}</strong></div>
       ${drillSay ? frGenderNoteHtml(currentWord) : ""}
       ${!correct || near ? (typed ? `<div class="p-diff">${diffHtml(typed, currentWord[WORD_KEY])}</div>` : "") : ""}
       ${near ? `<div class="plural-text">No step up, no step down — it comes back soon.</div>` : ""}

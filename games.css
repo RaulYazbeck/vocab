@@ -628,6 +628,9 @@ body.g-drag-active { user-select:none; -webkit-user-select:none; cursor:grabbing
   animation:gTeachIn 0.22s var(--ease) both;
 }
 .g-teach-card.ok   { border-color:rgba(0,216,150,0.45); background:var(--success-dim); }
+/* A typed miss's ✗ (tapped 3× fast: the private "my typo" override, ui-helpers.js) */
+.g-typo { float:left; color:var(--error, #ff6363); font-weight:700; margin-right:4px; }
+.g-typo-ok { font-weight:700; color:var(--success, #00b383); margin-bottom:6px; }
 .g-teach-card.bad  { border-color:rgba(255,99,99,0.45); background:var(--error-dim); }
 .g-teach-card.near { border-color:rgba(245,166,35,0.45); background:var(--accent-dim); }
 .g-teach-main { font-size:15.5px; font-weight:700; }
