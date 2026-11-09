@@ -461,8 +461,10 @@ registerGame({
         gTimeout(() => { input.classList.remove("near"); input.select(); }, 700);
         return;
       }
+      if (res !== true && !skip && !sayMode && String(val).trim()) gTypoSnap(ctx); // (before its bookkeeping)
       ctx.busy = true;
       const gen = cur.kind === "gen";
+      const vxN = (ctx.vxHits || []).length, rtN = retry.length; // (for a "my typo" take-back)
       if (gen) vfRecord(cur.v.inf, cur.tense, res === true && !helped);
       // Typed: recall credit for the verb items behind the form (a hint
       // makes it a look), and a miss flags them for a typed check.
@@ -489,6 +491,25 @@ registerGame({
         const pen = Math.round(6 * (gen ? 1 : ctx.cost(cur.w)));
         score = Math.max(0, score - pen);
         if (!gen) ctx.missed(cur.w, { given: skip ? "" : val, expected: answersOf(cur) }); // deck cards only — generated forms never flag a word
+        // A typed miss can be taken back ("my typo", gTypoSnap — taken in
+        // gradeTyped): it counts as typed right, the form's level too.
+        if (!skip && !sayMode && val.trim() && ctx.typoPend) {
+          const c = cur, c0 = combo;
+          ctx.typoPend.word = gen ? c : c.w;
+          ctx.onTypoOk = () => {
+            wrong--; correct++; combo = c0 + 1; maxCombo = Math.max(maxCombo, combo);
+            if (!gen || !c.extra) goal++;
+            if (gen) {
+              vfRecord(c.v.inf, c.tense, !helped);
+              if (ctx.vxHits) ctx.vxHits.length = vxN;
+              if (typeof vxGameHit === "function") vxGameHit(ctx, c.v.inf, c.tense, c.person, true, helped ? "recognition" : "recall");
+              if (typeof learnNoteVerb === "function") learnNoteVerb(c.v.F, c.tense, c.person, true, val, c.cell.ans);
+              retry.length = rtN;
+            } else ctx.hit(c.w, helped ? "recognition" : "recall");
+            input.classList.remove("wrong"); input.classList.add("correct");
+            ctx.setCombo(combo);
+          };
+        } else ctx.typoPend = null;
         input.classList.add("wrong");
         fb.innerHTML = `<span class="bb-bad">${val.trim() ? `<s>${escapeHtml(val.trim())}</s> → ` : ""}<span${sayTapAttrs(conjSayText(cur))}>${shownOf(cur)}</span></span>`;
         playMiss(); haptic("miss");

@@ -826,6 +826,15 @@ function gTypedBind(ctx, onSubmit) {
   setTimeout(() => { try { input.focus({ preventScroll: true }); } catch (e) {} }, 60);
   return input;
 }
+// The private "my typo" override in games (ui-helpers.js): a typed
+// answer's snapshot, taken before it's graded. A miss opens it on its
+// lesson card (waitContinue); Shift+Enter ×3 or the ✗ tapped ×3 then
+// takes the miss back — the word counts as a typed hit (a game can do
+// more with ctx.onTypoOk: 🐉 Boss gives the heart back and lands the hit).
+// The round's points and combo stay as they were.
+function gTypoSnap(ctx) {
+  ctx.typoPend = { snap: typoSnap(), missed: ctx.missedWords.slice(), kinds: { ...ctx.missKinds }, hits: new Map(ctx.hits), word: null };
+}
 // Grade a typed game answer against one or more accepted strings.
 // word: a verb item whose whole form is asked is graded as Today grades
 // it (typedCorrect / typedNear), not by the word anywhere in the answer.
@@ -833,7 +842,9 @@ function gradeTyped(val, answers, word = null) {
   // What was typed, for the learning log if this turns out to be a miss.
   const g = activeGame && activeGame.ctx;
   if (g) { g.lastGiven = val; g.lastExpected = answers; }
-  if (!String(val || "").trim()) return false;
+  if (!String(val || "").trim()) { if (g) g.typoPend = null; return false; }
+  // (a miss's "my typo" override needs what came before it: see gTypoSnap)
+  if (g) gTypoSnap(g);
   if (word && word.vx && answers.some(a => normKey(a) === normKey(gameForm(word)))) {
     if (typedCorrect(val, word)) return true;
     if (typedNear(val, word)) { if (g) g.lastGiven = null; return "near"; }
@@ -1087,6 +1098,7 @@ function makeCtx(def, pool, size, opts) {
     // Record a correct answer on a specific word (credit at the end).
     hit(w, kind = "recognition") {
       if (!w) return;
+      ctx.typoPend = null;
       const k = wordKey(w), prev = ctx.hits.get(k);
       if (!prev || (prev.kind !== "recall" && kind === "recall")) ctx.hits.set(k, { w, kind });
       if (typeof learnNoteHit === "function") learnNoteHit(w, "game:" + def.id);
@@ -1169,6 +1181,22 @@ function makeCtx(def, pool, size, opts) {
       card.insertAdjacentHTML("beforeend", `${def.timed ? `<div class="g-held-note">⏸ Clock paused while you read</div>` : ""}<button class="g-big-btn g-continue" id="g-continue">${escapeHtml(label)} ⏎</button>`);
       const b = $("g-continue");
       b.onclick = () => ctx.continueNow();
+      const tp = ctx.typoPend, hook = ctx.onTypoOk;
+      ctx.typoPend = null; ctx.onTypoOk = null;
+      if (tp && tp.word) {
+        ctx.typoOpen = tp;
+        typoArm(tp.snap, { fb: "g-teach", m: "game:" + def.id,
+          live: () => !!ctx.waiting && ctx.typoOpen === tp && !ctx.finished && !ctx.dead && !!$("g-teach"),
+          ok: () => {
+            ctx.missedWords = tp.missed; ctx.missKinds = tp.kinds; ctx.hits = tp.hits;
+            if (hook) hook(tp.word); else ctx.hit(tp.word, "recall");
+            const c = $("g-teach") && $("g-teach").querySelector(".g-teach-card");
+            if (c) { c.classList.remove("bad"); c.classList.add("ok"); const x = c.querySelector(".g-typo"); if (x) x.remove();
+              c.insertAdjacentHTML("afterbegin", `<div class="g-typo-ok">${typeof vxT === "function" ? vxT("✓ Counted") : "✓ Counted"}</div>`); }
+            ctx.say("Counted");
+          } });
+        card.insertAdjacentHTML("afterbegin", `<span class="g-typo">${typoMark("✗")}</span>`);
+      }
       gListen(b, "pointerdown", ev => ev.preventDefault()); // keep the phone keyboard up
       holdAfterMistake("g-continue");
       try { b.scrollIntoView({ block: "nearest", behavior: REDUCED_MOTION ? "auto" : "smooth" }); } catch (err) {}
@@ -1177,7 +1205,7 @@ function makeCtx(def, pool, size, opts) {
       if (!ctx.waiting || ctx.finished || ctx.paused) return;
       if (mistakeHeld("g-teach")) return;
       const f = ctx.waiting;
-      ctx.waiting = null;
+      ctx.waiting = null; ctx.typoOpen = null;
       ctx.clockHeld = false;
       const scr = $("game-screen");
       if (scr) scr.classList.remove("g-held");
@@ -1188,6 +1216,7 @@ function makeCtx(def, pool, size, opts) {
     // info (optional, for the learning log): { given, type, expected }.
     // A typed answer is picked up from gradeTyped by itself.
     missed(word, info = {}) {
+      if (word && ctx.typoPend && !ctx.typoPend.word) ctx.typoPend.word = word;
       if (word && !ctx.missedWords.some(w => sameWord(w, word))) ctx.missedWords.push(word);
       // What was missed, per word: "plural" when only its plural was —
       // its Today repair then asks the plural (applyGameCredit).

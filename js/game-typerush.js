@@ -100,6 +100,13 @@ registerGame({
         ctx.say(`Correct — ${target(cur)}`);
         gTimeout(next, 280);
       } else {
+        // A typed miss can be taken back ("my typo", gTypoSnap): the time
+        // penalty and the combo come back, the word counts as typed right.
+        if (val.trim()) {
+          gTypoSnap(ctx);
+          const c0 = combo, w0 = cur;
+          ctx.onTypoOk = () => { wrong--; correct++; combo = c0 + 1; maxCombo = Math.max(maxCombo, combo); ctx.clock.add(-pen); ctx.hit(w0, "recall"); ctx.setCombo(combo); };
+        } else ctx.typoPend = null;
         wrong++;
         const pen = Math.round(rp.pen * ctx.cost(cur));
         combo = ctx.comboAfterMiss(combo, cur);

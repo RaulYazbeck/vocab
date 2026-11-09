@@ -446,11 +446,24 @@ function gsQuizCheck() {
 }
 function gsQuizAnswered(ok, given) {
   const g = _gs, q = g.quiz, cur = q.list[q.i], Q = cur.q;
+  // A wrong typed answer can be turned around ("my typo", ui-helpers.js):
+  // snapshot before its bookkeeping, open once it's shown.
+  const typo = !ok && Q.k === "type" && String(given || "").trim() ? { snap: typoSnap(), missed: q.missed.slice(), list: q.list.slice() } : null;
   q.answered = true;
   cur.ok = ok; cur.given = given;
   if (ok && cur.first) q.firstRight++;
   // A miss comes back once at the end, after you've seen why.
   if (!ok && cur.first) { q.missed.push(cur); q.list.push({ ...cur, first: false, picked: [], order: gsOrderOf(Q), near: false, ok: undefined }); }
+  if (typo) typoArm(typo.snap, { fb: "gs-qfb", m: g.mastery ? "grammar:mastery" : g.sh.cx ? "course:quiz" : g.mode === "path" ? "path:quiz" : "grammar:quiz",
+    live: () => _gs === g && g.quiz === q && q.answered && q.list[q.i] === cur && !!document.getElementById("gs-qfb"),
+    ok: () => {
+      q.missed = typo.missed; q.list.length = 0; typo.list.forEach(x => q.list.push(x));
+      q.answered = false;
+      const inp = document.getElementById("gs-input");
+      if (inp) inp.classList.remove("wrong");
+      gsQuizAnswered(true, given);
+      typoCounted("#gs-qfb .p-ok", vxT("✓ Right"));
+    } });
   gsQuizShowAnswered();
   if (ok) { if (typeof playSuccess === "function") playSuccess(); if (typeof haptic === "function") haptic("select"); }
   else { if (typeof playFailure === "function") playFailure(); if (typeof haptic === "function") haptic("miss"); if (typeof holdAfterMistake === "function") holdAfterMistake("gs-qnext"); }
@@ -476,7 +489,7 @@ function gsQuizShowAnswered() {
   const where = sh ? `${gqPointName(Q.at)}${g.mastery ? ` ${VX_FR ? "de" : "of"} “${escapeHtml(sh.title)}”` : ""}` : "";
   const fb = document.getElementById("gs-qfb");
   if (fb) fb.innerHTML = ok ? `<div class="p-ok">${vxT("✓ Right")}${cur.uml ? ` <span class="vx-uml">${vxT("— spelt {0}", `<b>${escapeHtml(right)}</b>`)}</span>` : ""}${cur.extra ? ` <span class="vx-uml">${vxT("— only the verb was needed")}</span>` : ""}</div>${why}`
-    : `<div class="p-bad">${vxT("✗ Answer:")} <strong>${escapeHtml(right)}</strong></div>${why}
+    : `<div class="p-bad">${vxT("✗ Answer:").replace("✗", typoMark("✗"))} <strong>${escapeHtml(right)}</strong></div>${why}
       ${sh ? `<button class="gs-qsee" onclick="gsQuizReview()">${vxT("📖 See it in the sheet — {0}", where)}</button>` : ""}
       ${cur.first ? `<div class="gs-qback">${vxT("This question comes back once at the end.")}</div>` : ""}`;
   // Show the inputs as answered (after a review the question is redrawn).

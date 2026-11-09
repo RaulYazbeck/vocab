@@ -121,6 +121,21 @@ registerGame({
         if (ctx.size === "bonus" && correct >= bonusGoal("timer")) { gTimeout(() => end(true), 300); return; }
         gTimeout(next, 280);
       } else {
+        // A typed miss can be taken back ("my typo", gTypoSnap): the word
+        // counts as typed right and leaves the line; the combo comes back.
+        if (val.trim()) {
+          gTypoSnap(ctx);
+          const c0 = combo, w0 = cur, k0 = wordKey(cur), had = missedOnce.has(k0), at = qi;
+          ctx.onTypoOk = () => {
+            wrong--; correct++; combo = c0 + 1; maxCombo = Math.max(maxCombo, combo);
+            if (!had) missedOnce.delete(k0);
+            const j = queue.lastIndexOf(w0); if (j >= 0) queue.splice(at, 0, queue.splice(j, 1)[0]);
+            qi = at + 1;
+            ctx.hit(w0, had ? "recognition" : "recall"); ctx.setCombo(combo);
+            if (ctx.size === "bonus" && correct >= bonusGoal("timer") && !ctx.sudden) ctx.waiting = () => end(true);
+            else if (ctx.sudden) ctx.waiting = next;
+          };
+        } else ctx.typoPend = null;
         wrong++;
         combo = ctx.comboAfterMiss(combo, cur);
         missedOnce.add(wordKey(cur));

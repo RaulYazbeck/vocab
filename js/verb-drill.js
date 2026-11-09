@@ -175,6 +175,10 @@ function vdGrade(val, ok, said = false) {
   const ex = v.ex, R = v.review, right = ok === true;
   const input = document.getElementById("vd-input");
   if (input) input.classList.remove("retry");
+  // A wrong (or "≈ Almost") typed answer can be turned around ("my typo",
+  // ui-helpers.js): snapshot before its bookkeeping, this round's too.
+  const typo = !right && !said && String(val || "").trim() ? { snap: typoSnap(), n: v.n, right: v.right, missed: v.missed.slice(), cells: v.cells,
+    ups: v.ups.slice(), checks: new Set(v.checks), R: R ? { i: R.i, right: R.right, still: R.still.slice() } : null } : null;
   const res = vxDrillAnswer(ex, ok, { given: val, hint: !!v.usedHint, said, ms: Date.now() - v.shownAt, review: !!R });
   if (R) { R.i++; if (right) R.right++; else R.still.push(ex); }
   else {
@@ -185,13 +189,23 @@ function vdGrade(val, ok, said = false) {
     if (res.check) v.checks.add(res.check);
   }
   if (input) input.classList.add(right ? "correct" : ok === "near" ? "near" : "wrong");
+  if (typo) typoArm(typo.snap, { fb: "vd-fb", m: "vx:drill", near: ok === "near",
+    live: () => _vd === v && v.ex === ex && v.answered && !!document.getElementById("vd-fb"),
+    ok: () => {
+      Object.assign(v, { n: typo.n, right: typo.right, missed: typo.missed, cells: typo.cells, ups: typo.ups, checks: typo.checks });
+      if (R && typo.R) Object.assign(R, typo.R);
+      v.answered = false;
+      if (input) input.classList.remove("wrong", "near");
+      vdGrade(val, true);
+      typoCounted("#vd-fb .vx-res.ok", vxT("✓ Correct!"));
+    } });
   if (right) { playSuccess(); haptic("select"); } else { playFailure(); haptic("miss"); }
   saveState();
   const { why, row } = vxWhyRow(ex);
   const umlNote = right && val && vxUmlautOnly(val, ex.form.acc, vxIsCommand(ex));
   const head = right ? `<div class="vx-res ok">${vxT("✓ Correct!")}${umlNote ? ` <span class="vx-uml">${vxT("— spelt {0}", `<b>${escapeHtml(ex.form.ans)}</b>`)}</span>` : ""}</div>`
-    : ok === "near" ? `<div class="vx-res near">≈ ${vxT("Almost")} — ${vxT("check the spelling")}</div>`
-    : `<div class="vx-res bad">${val.trim() ? `✗ ${vxT("Answer:")}` : vxT("Answer:")}</div>`;
+    : ok === "near" ? `<div class="vx-res near">${typoMark("≈")} ${vxT("Almost")} — ${vxT("check the spelling")}</div>`
+    : `<div class="vx-res bad">${val.trim() ? `${typoMark("✗")} ${vxT("Answer:")}` : vxT("Answer:")}</div>`;
   const chips = [];
   if (!R) {
     if (res.up) chips.push(`<span class="p-chip ok">↑ ${tierOfStage(res.up.to).icon} ${tierOfStage(res.up.to).name}</span>`);

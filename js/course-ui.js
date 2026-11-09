@@ -254,6 +254,8 @@ function cxCheckCur() {
   if (inp) { inp.disabled = true; inp.classList.add(res.ok ? "correct" : "wrong"); }
   const built = document.getElementById("cx-built");
   if (built) { built.classList.add(res.ok ? "ok" : "bad"); document.querySelectorAll("#cx-run .gs-tok").forEach(t => { t.disabled = true; }); }
+  // A wrong typed answer can be turned around ("my typo"): snapshot first.
+  cur.undo = !res.ok && cur.mode !== "tiles" ? cxTypoSnap(cur, val, res) : null;
   cxAnswered(res.ok, val, res, cur.mode !== "tiles");
 }
 // Write / open: the model and its checklist; you say how it went.
@@ -317,7 +319,8 @@ function cxShowAnswered() {
     const ansHtml = k === "order" ? (item.a || []).map(l => `<div${sayTapAttrs(cxSayClean(l))}>${escapeHtml(l)}</div>`).join("") : d ? d.ans : escapeHtml(right);
     // (the answer plays on a tap; a gap's answer plays its whole sentence, shown under the card)
     const say = k === "order" ? "" : cxSayFor(cur);
-    html = `<div class="cx-miss"><div class="cx-miss-head">✗ Not quite</div>
+    const x = cur.undo ? `<span class="p-typo" onpointerdown="event.preventDefault();cxTypoPress(1200)">✗</span>` : "✗";
+    html = `<div class="cx-miss"><div class="cx-miss-head">${x} Not quite</div>
       <div class="cx-miss-lbl">Answer</div><div class="cx-miss-ans"${say ? sayTapAttrs(say) : ""}>${ansHtml}</div>
       ${say && cxLoose(say) !== cxLoose(right) ? `<div class="cx-heard"${sayTapAttrs(say)}>${escapeHtml(say)}</div>` : ""}
       ${d ? `<div class="cx-miss-lbl">You wrote</div><div class="cx-miss-you">${d.typed}</div>` : ""}
@@ -328,6 +331,70 @@ function cxShowAnswered() {
   const act = document.getElementById("cx-act");
   if (act) act.innerHTML = `<button class="g-big-btn" id="cx-next" onclick="cxNext()">${r.i + 1 >= r.list.length ? "See result" : "Next ›"}</button>`;
   if (r.opts.mode !== "path") setTimeout(() => { const b = document.getElementById("cx-next"); if (b) try { b.focus({ preventScroll: true }); } catch (e) {} }, 30);
+}
+// ── PRIVATE "MY TYPO" OVERRIDE ────────────────
+// As in Today (pathSecretOk): Shift+Enter ×3, or the ✗ tapped ×3, on a
+// wrong typed answer turns it into a right one — honour system, sharing
+// Today's daily allowance. Everything the miss touched is rolled back
+// (the rule's step, the drill's tally, the verb log, the day's mistakes,
+// quests, the session's count) and the answer is graded right instead.
+function cxTypoSnap(cur, val, res) {
+  const set = cxSet(cur.set), item = cur.item, Q = S.quests, J = o => o === undefined || o === null ? null : JSON.stringify(o);
+  const keys = [...new Set([res && res.rule, ...(item.r || [])].filter(r => r && cxRule(r)).map(cxWordKey))];
+  const infs = [...new Set([item.inf, ...(item.vf || []).map(v => v[0])].filter(Boolean))];
+  let mk = null;
+  try { mk = J(usageDay().mk); } catch (e) {}
+  const ps = typeof pathSession !== "undefined" && pathSession;
+  return { val, res, first: cur.first,
+    ws: keys.map(k => [k, J(S.words[k])]),
+    ds: S.course && S.course.ds ? J(S.course.ds[set.id]) : null,
+    lv: S.learn && S.learn.verbs ? infs.map(f => [f, J(S.learn.verbs[f])]) : [], mk,
+    qm: Q && Q.m ? JSON.stringify(Q.m) : null, qw: Q && Q.week ? JSON.stringify(Q.week) : null,
+    consec: typeof sessionConsecutive !== "undefined" ? sessionConsecutive : null, stats: ps ? { ...ps.stats } : null };
+}
+let _cxTypoTaps = [];
+function cxTypoPress(windowMs) {
+  const now = Date.now();
+  _cxTypoTaps = _cxTypoTaps.filter(t => now - t < windowMs).concat(now);
+  if (_cxTypoTaps.length >= 3) { _cxTypoTaps = []; cxTypoOk(); }
+}
+function cxTypoOk() {
+  const r = _cx, cur = r && !r.done && r.answered ? r.list[r.i] : null, u = cur && cur.undo;
+  if (!u) return;
+  const cap = typeof SECRET_OK_PER_DAY !== "undefined" ? SECRET_OK_PER_DAY : 10, today = studyToday();
+  const P = S.path || (S.path = {});
+  if (!P.secretOk || P.secretOk.d !== today) P.secretOk = { d: today, n: 0 };
+  if (P.secretOk.n >= cap) { shakeEl(document.getElementById("cx-fb")); return; }
+  cur.undo = null; cur.typoUsed = true;
+  if (u.first) {
+    const put = (obj, json) => { Object.keys(obj).forEach(k => delete obj[k]); Object.assign(obj, JSON.parse(json)); };
+    u.ws.forEach(([k, j]) => { if (j === null) delete S.words[k]; else if (S.words[k]) put(S.words[k], j); else S.words[k] = JSON.parse(j); });
+    const set = cxSet(cur.set);
+    if (S.course && S.course.ds) { if (u.ds === null) delete S.course.ds[set.id]; else S.course.ds[set.id] = JSON.parse(u.ds); }
+    if (S.learn && S.learn.verbs) u.lv.forEach(([f, j]) => { if (j === null) delete S.learn.verbs[f]; else S.learn.verbs[f] = JSON.parse(j); });
+    try { const d = usageDay(); if (u.mk === null) delete d.mk; else d.mk = JSON.parse(u.mk); } catch (e) {}
+    const Q = S.quests;
+    if (Q && u.qm && Q.m) put(Q.m, u.qm);
+    if (Q && u.qw && Q.week) put(Q.week, u.qw);
+    if (u.consec !== null) sessionConsecutive = u.consec;
+    const ps = typeof pathSession !== "undefined" && pathSession;
+    if (ps && u.stats) Object.assign(ps.stats, u.stats);
+    // The miss's "once more" at the end, and its line in "To look at again", go too.
+    r.missed = r.missed.filter(m => m !== cur);
+    for (let j = r.list.length - 1; j > r.i; j--) if (!r.list[j].first && r.list[j].item === cur.item && r.list[j].set === cur.set) { r.list.splice(j, 1); break; }
+    if (typeof invalidatePathScan === "function") invalidatePathScan();
+  }
+  P.secretOk.n++;
+  if (typeof logEvent === "function") logEvent("secretOk", { m: "course:" + (r.opts.kind || "drill"), n: P.secretOk.n });
+  // …and grade it as right.
+  r.answered = false;
+  const inp = document.getElementById("cx-input");
+  if (inp) { inp.classList.remove("wrong"); inp.classList.add("correct"); }
+  cxAnswered(true, u.val, { ...u.res, ok: true, soft: [], near: false, msg: undefined }, true);
+  if (typeof _mistakeHoldUntil !== "undefined") _mistakeHoldUntil = 0; // a success now: Next must not wait on the old miss
+  const ok = document.querySelector("#cx-fb .p-ok");
+  if (ok) ok.innerHTML = ok.innerHTML.replace("✓ Right", "✓ Counted");
+  saveState();
 }
 // ── HEARING IT ────────────────────────────────
 // Once a question is answered (never before: only right German is
@@ -448,6 +515,15 @@ function cxKey(e) {
   const r = _cx;
   if (!r || !document.getElementById("cx-run")) return false;
   if (r.done) { if (e.key === "Enter" && !(e.target && e.target.tagName === "BUTTON")) { e.preventDefault(); cxFinish(); return true; } return false; }
+  // Private override: Shift+Enter ×3 within 1.5s on a wrong typed answer.
+  // Swallowed while it's possible or was just used (also on the focused
+  // Next button), so a stray press never advances.
+  const cu = r.list[r.i];
+  if (e.key === "Enter" && e.shiftKey && r.answered && cu && (cu.undo || cu.typoUsed)) {
+    e.preventDefault();
+    if (cu.undo) cxTypoPress(1500);
+    return true;
+  }
   if (e.key === "Enter") {
     if (e.target && e.target.tagName === "BUTTON" && !e.target.disabled) return false;
     if (e.target && e.target.tagName === "TEXTAREA") return false;
