@@ -111,7 +111,7 @@ cxPack({
         { t: "swap", from: "^um$", to: "^damit$", rule: "cj.damit", msg: "Two different persons: **damit** + a whole sentence. (um … zu only when it's the same person.)" },
         { t: "swap", from: "^damit$", to: "^um$", rule: "cj.damit", msg: "The same person, and zu + the infinitive follows: **um** … zu." },
         { t: "swap", from: "^(bevor|nachdem|wahrend|bis|seit|seitdem|sobald|obwohl|damit|falls|da|weil|wenn|dass|als)$", to: "^(bevor|nachdem|wahrend|bis|seit|seitdem|sobald|obwohl|damit|falls|da)$", rule: "", msg: "The joining word that fits here is **{right}**." },
-        { t: "pos", tok: "^(bin|bist|ist|sind|seid|habe|hast|hat|haben|habt|muss|musst|mussen|kann|kannst|konnen|will|willst|wollen|soll|sollst|sollen|darf|darfst|durfen|mochte|mochtest|mochten|war|waren|hatte|hatten|wird|werde|werden)$", rule: "", msg: "In the side sentence the conjugated verb goes to the end — it goes {where}." },
+        { t: "pos", tok: "^(bin|bist|ist|sind|seid|habe|hast|hat|haben|habt|muss|musst|mussen|kann|kannst|konnen|will|willst|wollen|soll|sollst|sollen|darf|darfst|durfen|mochte|mochtest|mochten|war|waren|hatte|hatten|wird|werde|werden)$", rule: "", msg: "The verb is out of place — it goes {where}. (Second in a main sentence, at the end of a side sentence.)" },
         { t: "order", rule: "", msg: "The right words, another order: in the side sentence the conjugated verb goes **last** — and after a side sentence in front comes the main **verb**, then the subject." },
       ],
       drills: [
@@ -173,7 +173,7 @@ cxPack({
           { q: "Ich stehe auf. Dann trinke ich einen Kaffee.", a: ["Nachdem ich aufgestanden bin, trinke ich einen Kaffee."], r: ["cj.nachdem"] },
         ].map(it => ({ ...it, diag: [
           { t: "swap", from: "^(habe|hast|hat|haben|habt)$", to: "^(bin|bist|ist|sind|seid)$", rule: "cj.nachdem", hard: true, msg: "This verb builds its Perfekt with sein: **{right}**." },
-          { t: "missing", tok: "^(habe|hast|hat|haben|habt|bin|bist|ist|sind|seid)$", rule: "cj.nachdem", msg: "What came first goes one step back: the **Perfekt** — participle + haben / sein at the end: Nachdem ich gegessen **habe**, …" },
+          { t: "missing", whole: true, tok: "^(habe|hast|hat|haben|habt|bin|bist|ist|sind|seid)$", rule: "cj.nachdem", msg: "What came first goes one step back: the **Perfekt** — participle + haben / sein at the end: Nachdem ich gegessen **habe**, …" },
         ] })) },
         // ── our own: join with the word in brackets ──
         { id: "dcj.join", t: "transform", title: "Join the two", how: "Join the sentences with the word in brackets — its verb goes to the end.", items: [
@@ -364,7 +364,7 @@ cxPack({
         { t: "swap", from: "^(als|wenn)$", to: "^wann$", rule: "", hard: true, msg: "It asks for a time — *when?* — so it's **wann**." },
         { t: "swap", from: "^wann$", to: "^wenn$", rule: "", hard: true, msg: "Nothing is asked here — it joins two facts: **wenn**. (wann only asks for a time.)" },
         { t: "swap", from: "^als$", to: "^wenn$", rule: "", hard: true, msg: "Now, later, *if* — or every time: **wenn**. (als is for one time in the past.)" },
-        { t: "pos", tok: "^(bin|bist|ist|sind|seid|habe|hast|hat|haben|habt|war|warst|waren|hatte|hatten|kam|ging|konnte|wollte|musste)$", rule: "", msg: "After als, wenn and wann (inside a sentence) the verb goes to the end — it goes {where}." },
+        { t: "pos", tok: "^(bin|bist|ist|sind|seid|habe|hast|hat|haben|habt|war|warst|waren|hatte|hatten|kam|ging|konnte|wollte|musste)$", rule: "", msg: "The verb is out of place — it goes {where}. (Second in a main sentence, at the end of a side sentence.)" },
         { t: "order", rule: "", msg: "The right words, another order: after als, wenn and wann the verb goes **last** — and after a side sentence in front comes the main **verb**, then the subject." },
       ],
       drills: [

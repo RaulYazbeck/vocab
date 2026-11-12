@@ -104,8 +104,8 @@ cxPack({
         { t: "swap", from: "^(der|die|das|dem)$", to: "^den$", rule: "rel.acc", hard: true, msg: "In its own clause it's the object (wen?), and the noun is masculine: **den**." },
         { t: "swap", from: "^(den|dem)$", to: "^(die|das)$", rule: "rel.form", hard: true, msg: "It points back to a die- or das-noun: **{right}**." },
         { t: "swap", from: "^(der|die|das|den|dem|denen)$", to: "^(der|die|das|den|dem|denen)$", rule: "", hard: true, msg: "The pronoun here is **{right}**: gender and number from its noun, the case from its job in its own clause." },
-        { t: "missing", count: true, tok: "^(der|die|das|den|dem|denen)$", rule: "rel.form", msg: "The relative pronoun can't be left out in German — here **{right}**: der Film, **den** ich gesehen habe." },
-        { t: "pos", tok: "^(bin|bist|ist|sind|seid|habe|hast|hat|haben|habt|muss|kann|will|mochte|war|waren|hatte|hatten|wird)$", rule: "rel.verb", msg: "A relative clause is a side sentence: its verb goes to its end — it goes {where}." },
+        { t: "missing", count: true, comma: true, tok: "^(der|die|das|den|dem|denen)$", rule: "rel.form", msg: "The relative pronoun can't be left out in German — here **{right}**: der Film, **den** ich gesehen habe." },
+        { t: "pos", tok: "^(bin|bist|ist|sind|seid|habe|hast|hat|haben|habt|muss|kann|will|mochte|war|waren|hatte|hatten|wird)$", rule: "rel.verb", msg: "The verb is out of place — it goes {where}. (Second in a main sentence, at the end of a side sentence.)" },
         { t: "order", rule: "", msg: "The right words, another order: the pronoun opens the relative clause, its verb closes it — and the clause stands right after its noun." },
       ],
       drills: [
@@ -349,9 +349,9 @@ cxPack({
         { t: "swap", from: "^(was|der|die|das|den|dem)$", to: "^wo$", rule: "rp.wo", msg: "It's a place: **wo** (or in + dem / der)." },
         { t: "swap", from: "^den$", to: "^denen$", rule: "rp.case", hard: true, msg: "The dative plural is **denen**: mit denen, von denen, bei denen." },
         { t: "swap", from: "^(der|die|das|den|dem|denen)$", to: "^(der|die|das|den|dem|denen)$", rule: "rp.case", hard: true, msg: "The preposition decides the case — and the noun the gender: **{right}**." },
-        { t: "missing", tok: "^(mit|fur|auf|an|in|von|bei|zu|uber|aus|um|ohne|nach|vor|neben)$", rule: "rp.prep", msg: "The verb in the clause needs its preposition — right before the relative pronoun: **mit** dem, **auf** die …" },
+        { t: "missing", whole: true, tok: "^(mit|fur|auf|an|in|von|bei|zu|uber|aus|um|ohne|nach|vor|neben)$", rule: "rp.prep", msg: "The verb in the clause needs its preposition — right before the relative pronoun: **mit** dem, **auf** die …" },
         { t: "pos", tok: "^(mit|fur|auf|an|von|bei|uber|aus|ohne|neben)$", rule: "rp.prep", msg: "The preposition can't stay at the end: it comes first, right before the relative pronoun." },
-        { t: "pos", tok: "^(bin|bist|ist|sind|seid|habe|hast|hat|haben|habt|muss|kann|will|mochte|war|waren|hatte|hatten|wird)$", rule: "", msg: "A relative clause is a side sentence: its verb goes to its end — it goes {where}." },
+        { t: "pos", tok: "^(bin|bist|ist|sind|seid|habe|hast|hat|haben|habt|muss|kann|will|mochte|war|waren|hatte|hatten|wird)$", rule: "", msg: "The verb is out of place — it goes {where}. (Second in a main sentence, at the end of a side sentence.)" },
         { t: "order", rule: "", msg: "The right words, another order: preposition + pronoun open the relative clause, its verb closes it." },
       ],
       drills: [
@@ -492,7 +492,7 @@ cxPack({
           { q: "Das Paket, das wir geschickt haben, ist noch nicht angekommen.", a: ["Das Paket, welches wir geschickt haben, ist noch nicht angekommen."], r: ["rp.welch"] },
         ].map(it => ({ ...it, diag: [
           { t: "ending", stem: "welch", rule: "rp.welch", msg: "welcher takes the ending of the pronoun it replaces (der → welcher, die → welche, das → welches, den → welchen, dem → welchem): **{right}**." },
-          { t: "missing", tok: "^welch\\w*$", rule: "rp.welch", msg: "Replace the relative pronoun with the form of **welcher** that has the same ending." },
+          { t: "missing", whole: true, tok: "^welch\\w*$", rule: "rp.welch", msg: "Replace the relative pronoun with the form of **welcher** that has the same ending." },
         ] })) },
         // ── Übung 22•13: the pronoun that fits — all kinds ──
         { id: "d22.13", ex: "22.13", t: "type", title: "Which relative pronoun?", how: "Write the relative pronoun that fits — der / die / das forms, was, wer, wo, dessen or deren.", items: [

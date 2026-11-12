@@ -105,7 +105,6 @@ cxPack({
         { t: "ending", stem: "(mein|dein|sein|kein|ein|unser|eur|euer|ihr|dies|jed)", rule: "geni.art", hard: true, msg: "The genitive ending: -es for der- and das-nouns, -er for die-nouns and plurals — **{right}**." },
         { t: "grow", add: "e?s", rule: "geni.s", hard: true, msg: "A der- or das-noun takes an ending in the genitive too: **{right}** (-s; -es after s, ß, x, z, sch — and often after one syllable)." },
         { t: "extra", tok: "^von$", rule: "geni.order", msg: "No von here — the written genitive: the owner second, with des / der: das Büro **des Chefs**." },
-        { t: "order", rule: "geni.order", msg: "The thing comes first, the owner second: das Auto **meines Bruders**." },
       ],
       drills: [
         // ── our own: des or der ──
@@ -184,7 +183,7 @@ cxPack({
           { q: "Das ist die Nummer von dem Arzt.", a: ["Das ist die Nummer des Arztes."], r: ["geni.order", "geni.s"] },
           { q: "Der Preis von dem Auto ist zu hoch.", a: ["Der Preis des Autos ist zu hoch."], r: ["geni.order", "geni.s"] },
           { q: "Die Namen von den Gästen stehen auf der Liste.", a: ["Die Namen der Gäste stehen auf der Liste."], r: ["geni.order"] },
-        ] },
+        ].map(it => ({ ...it, diag: [{ t: "order", rule: "geni.order", msg: "The thing comes first, the owner second: das Auto **meines Bruders**." }] })) },
         // ── our own: the genitive → the way you say it ──
         { id: "dgeni.spoken", t: "transform", title: "Say it: von + dative", how: "Say it the everyday way: von + dative — a name takes -s, in front.", items: [
           { q: "Das ist das Velo meines Bruders.", a: ["Das ist das Velo von meinem Bruder."], r: ["geni.von"] },
@@ -197,7 +196,7 @@ cxPack({
           { q: "Die Tür des Hauses ist offen.", a: ["Die Tür vom Haus ist offen.", "Die Tür von dem Haus ist offen."], r: ["geni.von"] },
           { q: "Der Lehrer unserer Tochter ist sehr nett.", a: ["Der Lehrer von unserer Tochter ist sehr nett."], r: ["geni.von"] },
         ].map(it => ({ ...it, diag: [
-          { t: "missing", tok: "^(von|vom)$", rule: "geni.von", msg: "The everyday way: **von** + the dative — das Velo **von meinem** Bruder." },
+          { t: "missing", whole: true, tok: "^(von|vom)$", rule: "geni.von", msg: "The everyday way: **von** + the dative — das Velo **von meinem** Bruder." },
           { t: "swap", from: "^(meines|des|meiner|der|unserer)$", to: "^(meinem|dem|vom|meiner|der|meinen|den|unserer)$", rule: "geni.von", hard: true, msg: "After von comes the **dative**: **{right}**." },
         ] })) },
         // ── our own: wessen ──
@@ -257,7 +256,7 @@ cxPack({
           { w: ["die Wohnung", "deine", "deutsch", "Freundin"], a: ["Wo ist die Wohnung deiner deutschen Freundin?"], r: ["geni.adj"] },
           { w: ["das Velo", "sein", "klein", "Bruder"], a: ["Wo ist das Velo seines kleinen Bruders?"], r: ["geni.adj", "geni.s"] },
           { w: ["der Laden", "dieser", "nett", "Frau"], a: ["Wo ist der Laden dieser netten Frau?"], r: ["geni.adj"] },
-        ] },
+        ].map(it => ({ ...it, diag: [{ t: "order", rule: "geni.order", msg: "The thing comes first, the owner second: das Auto **meines Bruders**." }] })) },
         // ── Production ──
         { id: "dp.geni", t: "translate", end: true, title: "Say it in German", how: "Translate with the genitive — the owner second; a name just takes -s.", items: [
           { q: "That's my brother's car.", a: ["Das ist das Auto meines Bruders."], r: ["geni.order", "geni.s"] },

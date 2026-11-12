@@ -992,6 +992,20 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   ok(!chk("dcj.first", "Ich putze die Zähne, bevor ich ins Bett gehe.", "Bevor ich ins Bett gehe, putze ich die Zähne.").ok, "«the side sentence first» wants it first");
   // a gap in a sentence: the gap's words or the whole sentence
   ok(chk("d22.2", "der aus Mailand kommt", "Der Zug, der aus Mailand kommt, hat Verspätung.").ok && chk("d22.2", "Der Zug, der aus Mailand kommt, hat Verspätung.", "Der Zug, der aus Mailand kommt, hat Verspätung.").ok, "a relative clause in the gap: alone or as the whole sentence");
+  // (the bug hunt of 12 Nov) feedback that named the wrong thing
+  const sl = chk("dvp.refl", "mic", "Ich freue ___ auf das Wochenende.");
+  ok(!sl.ok && sl.near && !/reflexive/.test(sl.msg || ""), `«mic» for mich: a slip of the keyboard — not "it needs its sich word" (${sl.msg || "almost"})`);
+  ok(/reflexive/.test(chk("dp.vp", "Ich freue auf das Wochenende.", "Ich freue mich auf das Wochenende.").msg || ""), "…the word really left out still says so");
+  const ar = chk("d22.6", "Das ist Ärztin, die mich operiert hat.", "Das ist die Ärztin, die mich operiert hat.");
+  ok(!ar.ok && !/relative pronoun can't be left out/.test(ar.msg || ""), `the noun's article left out: not "the relative pronoun can't be left out" (${ar.msg || "the item's rule"})`);
+  ok(/can't be left out/.test(chk("d22.6", "Das ist die Ärztin, mich operiert hat.", "Das ist die Ärztin, die mich operiert hat.").msg || ""), "…the pronoun after the comma left out still says so");
+  const mv = chk("d22.6", "ist Das die Ärztin, die mich operiert hat.", "Das ist die Ärztin, die mich operiert hat.");
+  ok(!/relative clause is a side sentence/.test(mv.msg || "") && /out of place/.test(mv.msg || ""), `the main verb moved: "out of place", not a claim about the relative clause (${mv.msg})`);
+  ok(chk("d26.12", "Der Arzt sagt, ich solle viel Wasser trinken.", "Der Arzt sagt, ich soll viel Wasser trinken.").ok, "ich solle … (the Konjunktiv I, as the book writes it) is right German too");
+  ok(!/owner second/.test(chk("dgeni.wessen", "Jacke wessen ist das?", "Wessen Jacke ist das?").msg || ""), "a wessen question in another order: no word about the owner coming second");
+  ok(/owner second/.test(chk("dgeni.von", "Das ist des Chefs das Büro.", "Das ist das Büro des Chefs.").msg || ""), "…the owner put first still gets it");
+  // the older lesson that leans on the looser check keeps it
+  ok(chk("d24.6", "um acht Uhr ankommen", "Der Zug kommt um acht Uhr an.") && C.cxCheck(C.cxSet("d24.6").items.find(x => x.a[0] === "um acht Uhr anzukommen"), "um acht Uhr ankommen", C.cxSection("s1.zu")).rule === "zu.sep", "zu + a separable verb: «ankommen» for anzukommen is still named (the looser check stays the default)");
   // writing prompts open with their lessons
   ["w.lookforward", "w.myday2", "w.child", "w.askway", "w.person2"].forEach(id => ok(!!C.cxJournalPrompt(id) && S6.includes(C.cxJournalPrompt(id).sec), `writing prompt ${id} belongs to a Session 6 lesson`));
 }

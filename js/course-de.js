@@ -579,7 +579,7 @@ function cxCheck(item, typed, sec) {
   // almost — one more try.
   const miss = cxMinus(A, T), extra = cxMinus(T, A);
   if (miss.length === 1 && extra.length === 1 && miss[0].length >= 4 && !CX_GRAMMAR_TOK.test(miss[0]) && cxLev(miss[0], extra[0]) === 1 && !cxEndingSlip(miss[0], extra[0])) res.near = true;
-  const d = cxDiagnose(item, T, A, sec, String(best).normalize("NFC").replace(/[.,!?;:„“"«»‚‘’()…–—]/g, " ").split(/\s+/).filter(Boolean));
+  const d = cxDiagnose(item, T, A, sec, String(best).normalize("NFC").replace(/[.,!?;:„“"«»‚‘’()…–—]/g, " ").split(/\s+/).filter(Boolean), best);
   if (d) { res.rule = d.rule; res.msg = d.msg; if (d.hard) delete res.near; }
   if (!res.rule) res.rule = (item.r || [])[0] || null;
   return res;
@@ -618,7 +618,9 @@ function cxUmlautChoice(item, typed) {
 //   ending  { stem }      the right word, the wrong ending
 //   seq     { seq: [a, b] } you wrote a, then b (nicht ein…)
 //   pos     { tok }       the same words, `tok` in another place
-//   missing { tok } / extra { tok }   (missing + count: true — left out, though
+//   missing { tok } / extra { tok }   (whole: true — really absent, not misspelt;
+//                        comma: true with count — the one right after a comma;
+//                        missing + count: true — left out, though
 //                        another word of its kind is in the sentence)
 //   grow    { add }      the right word is yours plus an ending (Auto → Autos: add "e?s")
 //   order                the same words, another order (a lesson's own message for it)
@@ -654,7 +656,7 @@ function cxNounGender(noun) {
   }
   return _cxGender.get(normalize(String(noun || "").replace(/[.,!?;:]+$/, ""))) || null;
 }
-function cxDiagnose(item, T, A, sec, orig = null) {
+function cxDiagnose(item, T, A, sec, orig = null, best = "") {
   const list = [...(item.diag || []), ...((sec && sec.diag) || [])];
   // the right word as the answer spells it (möchte, not mochte), small
   const W0 = orig && orig.length === A.length ? orig : null;
@@ -691,8 +693,19 @@ function cxDiagnose(item, T, A, sec, orig = null) {
       // (count: the word was simply left out — nothing else differs — even when
       // another word of its kind is there: «der Schirm, ich gekauft habe» lacks
       // its den although der is in the sentence)
-      if (d.count) { const lost = cxMinus(A, T); if (lost.length === 1 && re.test(lost[0]) && !cxMinus(T, A).length) o = { right: spell(lost[0]) }; }
-      else if (A.some(x => re.test(x)) && !T.some(x => re.test(x)) && cxMinus(A, T).filter(x => !re.test(x)).length <= 1) o = {};
+      if (d.count) {
+        const lost = cxMinus(A, T);
+        if (lost.length === 1 && re.test(lost[0]) && !cxMinus(T, A).length) {
+          // comma: only the one right after a comma — the relative pronoun, not the
+          // noun's article («Das ist Ärztin, die …» lacks an article, not its pronoun)
+          let k = -1; for (let i = 0; i < A.length; i++) if (A[i] === lost[0] && cxBagEq(A.filter((_, j) => j !== i), T) && A.filter((_, j) => j !== i).every((x, j) => x === T[j])) { k = i; break; }
+          const raw = String(best || "").trim().split(/\s+/);
+          if (!d.comma || (k > 0 && raw.length === A.length && /,$/.test(raw[k - 1]))) o = { right: spell(lost[0]) };
+        }
+      }
+      // (whole: not when the word is there, misspelt — «mic» for mich is a slip, not a missing word)
+      else if (A.some(x => re.test(x)) && !T.some(x => re.test(x)) && cxMinus(A, T).filter(x => !re.test(x)).length <= 1
+        && !(d.whole && cxMinus(A, T).filter(x => re.test(x)).some(x => cxMinus(T, A).some(y => cxLev(x, y) <= (x.length <= 4 ? 1 : 2) && y.length >= 2 && y[0] === x[0])))) o = {};
     } else if (d.t === "extra") {
       const re = cxRx(d.tok);
       // (count: exactly that word too many — «Wessen die Jacke ist das?» — even when

@@ -925,6 +925,23 @@ clause orders, the gap alone); `t-course` lists chapters 19, 20, 22, 23, 26, 28 
 new drill set through the real runner and checks every new table fits the phone (nine were too wide at
 first and were narrowed).
 
+**Bug hunt (12 Nov 2026, after the push):** searched four ways. (1) The old checker against the new
+one on every item of the older lessons with 71,000 wrong variants (each word dropped, its ending changed,
+neighbours swapped, the gap alone): **no answer changed sides and no diagnosis changed** — the engine
+changes touch the new lessons only (the one difference: 22•2's gap now takes its words alone, as meant).
+(2) 100,000 wrong variants of the new items: none accepted; "almost" only for real slips of the keyboard.
+(3) The feedback grouped by the kind of mistake that set it off — four cases said the wrong thing and are
+fixed: a misspelt word (*mic* for mich, *sol* for soll, *dran*) was called "missing" (a `missing` detector
+can now be `whole`: really absent — opt-in, because zu + a separable verb leans on the looser check); the
+noun's article left out was called "the relative pronoun can't be left out" (`comma`: only the one after
+the comma); a main verb moved was blamed on the side sentence (the message now says "out of place — second
+in a main sentence, last in a side sentence"); any reordered genitive sentence was told "the owner comes
+second" (now only where the owner is the point). (4) A structural audit of the 1,215 items (two gaps,
+capitals at a sentence's start, options, punctuation, pronoun cues, every spoken text): clean. Also: *ich
+solle …* (the Konjunktiv I the book writes) is accepted in 26•12 — right German is never a mistake; its 11
+sentences are recorded (65,751 / 65,751 texts; 666,531 characters this month). Nine tests pin the fixes.
+`sim-app` over 150 days, which the build had not run (its server had stopped), is run now.
+
 ### Session 7 — Stage 2B
 
 **Upload:** chapters 11, 16, 17, 24, 25, 26, 27, 29, 31, appendix C. *(from the course map: `node tools/course/session.mjs 7` — chapter 24 since Session 5: its double infinitive, 24•1–24•4, is the modals-in-the-Perfekt lesson's)*

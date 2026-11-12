@@ -103,8 +103,8 @@ cxPack({
         { t: "swap", from: "^(auf|uber|an|fur|um|in|mit|von|vor|nach|zu|bei)$", to: "^(auf|uber|an|fur|um|in|mit|von|vor|nach|zu|bei)$", rule: "vp.fixed", hard: true, msg: "The verb picks its preposition — here it's **{right}**." },
         { t: "swap", from: "^(dem|einem|meinem|deinem|seinem|ihrem|unserem|der|einer|meiner|deiner|seiner|ihrer|unserer|ihm|ihr|mir|dir|ihnen)$", to: "^(den|einen|meinen|deinen|seinen|ihren|unseren|die|eine|meine|deine|seine|ihre|unsere|das|ein|mein|dein|sein|unser|ihn|sie|mich|dich|es)$", rule: "vp.acc", hard: true, msg: "With this verb the preposition takes the **accusative**: **{right}**." },
         { t: "swap", from: "^(den|einen|meinen|deinen|seinen|ihren|unseren|die|eine|meine|deine|seine|ihre|unsere|das|ein|mein|dein|sein|unser|ihn|sie|mich|dich|es)$", to: "^(dem|einem|meinem|deinem|seinem|ihrem|unserem|der|einer|meiner|deiner|seiner|ihrer|unserer|ihm|ihr|mir|dir|ihnen)$", rule: "vp.dat", hard: true, msg: "This preposition takes the **dative**: **{right}**." },
-        { t: "missing", tok: "^(auf|uber|an|fur|um|mit|von|vor|nach|zu|bei)$", rule: "vp.fixed", msg: "The verb needs its preposition before the noun: warten **auf**, denken **an**, träumen **von** …" },
-        { t: "missing", tok: "^(mich|dich|sich|uns|euch)$", rule: "vp.refl", msg: "This verb is reflexive — it needs its **sich** word (mich, dich, sich, uns, euch) after the verb." },
+        { t: "missing", whole: true, tok: "^(auf|uber|an|fur|um|mit|von|vor|nach|zu|bei)$", rule: "vp.fixed", msg: "The verb needs its preposition before the noun: warten **auf**, denken **an**, träumen **von** …" },
+        { t: "missing", whole: true, tok: "^(mich|dich|sich|uns|euch)$", rule: "vp.refl", msg: "This verb is reflexive — it needs its **sich** word (mich, dich, sich, uns, euch) after the verb." },
       ],
       drills: [
         // ── Übung 19•9: choose the word that completes the sentence ──

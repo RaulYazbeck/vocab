@@ -104,9 +104,9 @@ cxPack({
         { t: "swap", from: "^(sehr|viel)$", to: "^zu$", rule: "adv.zu", msg: "More than is good — *too*: **zu**." },
         { t: "swap", from: "^(oben|unten|draussen|drinnen|dort|hier|da)$", to: "^(dorthin|hierher|raus|rein|dahin|hin|her)$", rule: "adv.dir", hard: true, msg: "It's a movement — wohin? — so **{right}**." },
         { t: "swap", from: "^(dorthin|hierher|raus|rein|dahin|hin|her)$", to: "^(oben|unten|draussen|drinnen|dort|hier|da)$", rule: "adv.dir", hard: true, msg: "Nothing moves — wo? — so **{right}**." },
-        { t: "missing", tok: "^nach$", rule: "adv.dir", msg: "A movement up, down or out: **nach** oben, **nach** unten, **nach** draußen." },
+        { t: "missing", whole: true, tok: "^nach$", rule: "adv.dir", msg: "A movement up, down or out: **nach** oben, **nach** unten, **nach** draußen." },
         { t: "swap", from: "^nicht$", to: "^kein\\w*$", rule: "adv.neg", msg: "With a noun: gar / überhaupt + **{right}**." },
-        { t: "missing", tok: "^(gar|uberhaupt)$", rule: "adv.neg", msg: "*not at all*: **gar** nicht or **überhaupt** nicht." },
+        { t: "missing", whole: true, tok: "^(gar|uberhaupt)$", rule: "adv.neg", msg: "*not at all*: **gar** nicht or **überhaupt** nicht." },
         { t: "pos", tok: "^genug$", rule: "adv.zu", msg: "genug stands **after** the adjective (groß genug) — and before a noun (genug Geld)." },
       ],
       drills: [

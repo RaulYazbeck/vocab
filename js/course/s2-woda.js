@@ -104,7 +104,7 @@ cxPack({
         { t: "swap", from: "^wor?(auf|uber|an|in|um|aus|fur|mit|von|vor|nach|zu|bei|durch|gegen)$", to: "^(wen|wem)$", rule: "wd.wo", hard: true, msg: "It's a person: the preposition + **{right}** — wo-words ask about things." },
         { t: "swap", from: "^(da|wo)r?(auf|uber|an|in|um|aus|fur|mit|von|vor|nach|zu|bei|durch|gegen)$", to: "^(da|wo)r?(auf|uber|an|in|um|aus|fur|mit|von|vor|nach|zu|bei|durch|gegen)$", rule: "", hard: true, msg: "The verb's own preposition goes inside: **{right}**." },
         { t: "swap", from: "^(auf|uber|an|in|um|aus|fur|mit|von|vor|nach|zu|bei)$", to: "^dar?(auf|uber|an|in|um|aus|fur|mit|von|vor|nach|zu|bei)$", rule: "wd.dass", hard: true, msg: "Before a whole sentence the preposition sits inside a da-word: **{right}**, dass … / … zu …" },
-        { t: "missing", tok: "^dar?(auf|uber|an|in|um|aus|fur|mit|von|vor|nach|zu|bei)$", rule: "", msg: "The verb keeps its preposition — inside a da-word: darauf, daran, davon …" },
+        { t: "missing", whole: true, tok: "^dar?(auf|uber|an|in|um|aus|fur|mit|von|vor|nach|zu|bei)$", rule: "", msg: "The verb keeps its preposition — inside a da-word: darauf, daran, davon …" },
       ],
       drills: [
         // ── our own: person or thing ──

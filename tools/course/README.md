@@ -100,6 +100,11 @@ a later session that uploads its chapter.
      its *den* though *der* is in the sentence); its message can use `{right}`. `extra` takes
      `count: true` the same way (*Wessen die Jacke ist das?*). A detector's `{right}` keeps a
      noun's capital (*Hauses*).
+     `missing` with `whole: true`: only when the word is really absent — a misspelt one (*mic*
+     for *mich*) is a slip, not a missing word (opt-in: zu + a separable verb leans on the
+     looser default). With `count`, `comma: true` takes only the word right after a comma
+     (the relative pronoun, not the noun's article). A `pos` message should hold for any verb
+     that moved: say where it goes, not which clause it left.
      A `pos` message can't use `{right}` (only `{where}`). Add a typical mistake or two per
      lesson to the validator's "the checker on typical mistakes" list.
      `hard: true` on a detector: what it finds is the grammar, never "almost, check the
