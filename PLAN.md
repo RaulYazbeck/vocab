@@ -868,6 +868,63 @@ sync, plan, session, flows, logs, umlaut, review and typing suites pass with it.
 **Builds:** conjunctions II ×2 · als/wenn/wann · indirect questions + dass vs
 ob · relative clauses ×3 · genitive ×2 · verb + preposition · wo-/da- compounds · adverbs.
 
+**Built (12 Nov 2026):** the ten Session 6 lessons — verb + preposition (`s1-verbprep.js`, A2, 2 sheets: the
+verb picks its preposition and the preposition its case — warten auf den Bus, träumen von einem Haus,
+sich freuen auf / über · sich with many of them, Auf wen? — auf ihn, stolz auf, zufrieden mit) · more
+joining words (`s2-conj.js`, 2: bevor, nachdem, während, bis, seit, sobald, and vor or bevor? · obwohl
+or trotzdem, damit or um … zu, falls, da) and the contrast als / wenn / wann (1) · indirect questions
+(`s2-indq.js`, 2: Ich weiß nicht, wo er wohnt — the verb last, Können Sie mir sagen, …, mit wem · ob,
+dass or ob, ob or wenn, and passing on a request: Der Arzt sagt, ich soll …) · wo- / da- compounds
+(`s2-woda.js`, 2: worauf? — darauf, the r before a vowel, auf ihn for a person, wo? for a place ·
+darauf, dass … and Daran habe ich nicht gedacht) · relative clauses (`s2-rel.js`: the pronouns, 2 — der
+Mann, der … / den ich kenne · dem, der, denen, the case from its own clause; with prepositions, 2 — mit
+dem, für die, wo · was, wer, dessen / deren, welcher to recognise) · the genitive (`s2-gen.js`: 2 — des
+Mannes, der Frau, the noun's -s, the owner second, von in speech · wessen?, the adjective's -en, Ende des
+Monats, einer meiner Freunde; its prepositions, 1 — wegen, trotz, während, statt, innerhalb, wegen or
+weil, the dative you hear) · adverbs (`s2-adv.js`, 2: sehr, ziemlich, gar nicht, zu and genug, sehr or
+viel · leider, vielleicht, oft: first place or after the verb; oben or nach oben). **18 sheets, 66 rules,
+109 drill sets (1,215 items of our own, Swiss-life sentences)**, each lesson ending with its production
+drills (build · answer · translate · write your own), six writing prompts that open with their lessons.
+Every exercise of the uploaded chapters has a status — of their 123: 86 mirrored (51 of them new: 19•8,
+19•9, 20•1–20•3, 20•5–20•7, all twenty of chapter 22, 23•3, 23•11, 23•13, 26•11, 26•12, 28•15, 28•18–28•21,
+29•5–29•10), 37 planned with the later lesson that uploads their chapter (chapter 26's Konjunktiv II →
+`s2.k2`, wenn-sentences and wishes → `s2.cond`, Konjunktiv I → `s4.k1`, the past Konjunktiv II → `s4.k2p`;
+29•11–29•19 stay with participles and short answers); `DONE` = 6. **Changes to the map:** 29•7, 29•8 and
+29•10 stand under "When as a conjunction" and "Interrogatives" but practise bevor, obwohl, während, damit
+— mirrored with the joining words; 26•11 and 26•12 are written in the Konjunktiv I in the book (wie alt
+sie sei · ich solle …): their frames are mirrored in everyday German (Er fragt, wie alt sie ist · Der Arzt
+sagt, ich soll …), the Konjunktiv I itself stays the bonus lesson's; chapter 22's dessen / deren and
+welcher sit in the second relative lesson (welcher only to recognise — it is written German); the genitive
+lessons never ask for an -n noun (des Kollegen): that is `s2.ndecl`'s; wo- / da- and the adverbs got two
+sheets each (the estimate was one). **The checker** (four small additions, used by the new lessons, the old
+ones unchanged): a detector `order` — the lesson's own words for "the right words, another order" (the verb
+last in a side sentence); `grow` — the right word is the typed one plus an ending (des Auto → des Autos);
+`missing` / `extra` with `count` — a word left out or too many although another of its kind is there (der
+Schirm, ich gekauft habe · Wessen die Jacke); a fix now shows a noun with its capital (Hauses). Fixed on
+the way: a gap followed by a comma («Der Zug, ___, hat Verspätung.») didn't take the gap's words alone;
+the word-order rule took the joining word in «Immer wenn es …» for the verb and accepted a scrambled
+sentence; **a sheet, rule or drill-set id used twice now fails the validator** — the genitive had first
+been given the gender lesson's sheet ids (`cx.gen1`, `cx.gen2`), which carry its progress; it is `cx.geni1`
+· `cx.geni2` · `geni.*`. **Diagnosis:** 75 typical mistakes of the new lessons are checks in the validator
+(*warten für*, *auf dem Bus*, *Mit wen*, *Vor ich esse*, *trotzdem er geht*, *wenn ich ein Kind war*, *Ich
+weiß nicht, wenn …*, *wo wohnt er*, *auf es*, *Woauf*, *der Mann, wer*, *den* for *denen*, *alles, das*,
+*des Auto*, *Wessen die Jacke*, *wegen dem Regen*, *sehr besser*, *genug groß*…), found by the item's text,
+not its number. **Proofread** by four independent readers (German, answers, distractors, explanations):
+about 90 fixes — two nachdem sentences in the wrong tense, *unterrichten* with a dative, nine pick items
+where a second option was defensible, some forty right answers that weren't accepted (the other clause
+order, aufs, übers, des Jahrs, wohin), a few rules stated too absolutely (-es after one syllable, ganz,
+denken von, dass after Ich weiß nicht). **My progress:** nothing reset. A lesson under way finishes
+first; then verb + preposition comes wherever I am (it is earlier in the course than the future,
+comparison and the endings — an earlier lesson built later fills the gap first), the Stage 1 checkpoint
+once every Stage 1 lesson is done (it can now open — it was waiting for verb + preposition), then Stage 2
+in course order: the joining words, als / wenn / wann, Konjunktiv II (verb track), indirect questions,
+wo- / da-, the relative clauses, the passive (verb track), the genitive ×2, adverbs. Tests: a Session 6
+block in `t-unit` (the order, what waits for what, each sheet's day on the sheets read with production
+last — six days of the rotation, three checked items or more to review every rule, the new detectors, both
+clause orders, the gap alone); `t-course` lists chapters 19, 20, 22, 23, 26, 28 and 29's Übungen, runs every
+new drill set through the real runner and checks every new table fits the phone (nine were too wide at
+first and were narrowed).
+
 ### Session 7 — Stage 2B
 
 **Upload:** chapters 11, 16, 17, 24, 25, 26, 27, 29, 31, appendix C. *(from the course map: `node tools/course/session.mjs 7` — chapter 24 since Session 5: its double infinitive, 24•1–24•4, is the modals-in-the-Perfekt lesson's)*
@@ -948,6 +1005,7 @@ screen · coverage report at 100 % (every blueprint exercise *mirrored*,
 - **Conversations earlier, Should gives way when behind (2 Nov 2026):** the six scenario units come right after the grammar each needs (§6 Stage 3), not after Stage 2 — they are the closest thing to the oral exam and are small. When behind, what gives way first is the *Should* grammar (modal particles, participles as adjectives, n-declension, genitive prepositions, the Perfekt of modals, lassen, man, adverbs, short answers; and school and study), not the conversations (§5). I suggested the conversations should fall off first and asked Claude's view; Claude chose *Should* instead (reason above) — confirmed 3 Nov 2026: keep it.
 - **Known shortcoming, parked (2 Nov 2026):** with low attendance (every other day) the lessons met in the last weeks can't all reach 🌳 Known by the date — up to 20 of 345 rules short in the simulation, the last lessons'. The app does warn (pace red) and shortens the breaks. The fix, if ever needed: a margin that grows when attendance drops (40 days at full attendance, ≈ 70 at every other day, capped), verified on 8 seeds of "half the days skipped", the matrix, t-stage1 and the 150-day sim-app. Not done: I study every day and I'm the only user.
 - **Session 5 (7 Nov 2026):** an exercise goes to the lesson that teaches what it practises, also across stages — chapter 24's double infinitive (24•1–24•4) to modals in the Perfekt (B1), chapter 31's comparatives with endings (31•14) to the adjective endings, which now wait for comparison; where the book practises a form the learner hasn't met yet, the mirror keeps the exercise's frame with the forms they have (20•4 the spoken *von* + dative instead of the genitive, 23•2 without the genitive, 11•7 without a modal in the Perfekt, 24•11 with Präsens sentences); an exercise is skipped only when its whole point is above B1 and fide doesn't ask it (24•7), with the reason in its status. Stage 1's checkpoint asks 20 questions, one rule each, as Stage 0's (24 fit only a Long 60 session — a Regular 30 has room for 20). A checker detector can be `hard`: a one-letter slip that is the rule itself is a mistake, never "almost".
+- **Session 6 (12 Nov 2026):** an exercise the book writes in a form above B1 keeps its frame in everyday German (26•11, 26•12: indirect questions and reported requests in the indicative — the Konjunktiv I is the bonus lesson's); welcher as a relative pronoun is taught to recognise, never drilled as the form to say; the genitive is taught as the written form with von + dative beside it as the spoken one, and no item asks for an -n noun before its lesson; ids are unique across packs and the validator enforces it (a sheet's id carries the learner's progress); a diagnosis case in the validator names its item by its text, so adding or moving items doesn't break it.
 - **Verb + preposition in Stage 1 (2 Nov 2026):** *warten auf, sich freuen auf, denken an* are everyday spoken A2 — the lesson (now `s1.verbprep`, A2) comes right after the reflexive pronouns (≈ late Feb) instead of mid-April in Stage 2; still built in Session 6, the wo- / da- compounds stay in Stage 2 right after it.
 - **Session 2 audit (21 Oct 2026):** every new sheet and item proofread (15 fixes: a rule that put *die Mutter* among the masculine plurals, a few stiff sentences, missing natural answers in translations). The verb lessons' own sentences now feed the learning log's verbs (before, only generated items did). *(22 Oct: umlauts are never typed, as agreed — a missing one is never a mistake, in the drills or the log; the course's drills now ask the verb track's small 1 / 2 choice when the plain spelling is another real form: fahrt → fährt or fahrt?)* 📚 a chapter's Übungen render their *italics*; on a verb lesson page 🧩 Practise sits right under the sheets. The logs test's fake cloud gained `batch` (its one failure was the test, not the app). Known and left as agreed: the quest test's late-deficit stress day can end one ledger form short (extra practice asks for exactly what a quest lacks).
 

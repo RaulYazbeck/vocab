@@ -171,6 +171,9 @@
 .gr-unit.s0 .gr-name { color:var(--text-2); }
 .gr-uhead { display:flex; align-items:center; gap:14px; margin-bottom:14px; }
 .gr-uhead p { color:var(--text-2); font-size:14px; }
+/* (a long lesson title never squeezes the level badge) */
+.gr-uhead .gr-sign { flex-shrink:0; }
+.gr-uhead > div { min-width:0; }
 .gr-sheets { display:flex; flex-direction:column; gap:7px; }
 .gr-sheet { display:flex; align-items:center; gap:11px; width:100%; padding:12px 13px; min-height:52px; border-radius:var(--r-sm); border:1px solid var(--border);
   background:rgba(255,255,255,0.04); color:var(--text); cursor:pointer; text-align:left; font-size:15px; font-weight:700; }

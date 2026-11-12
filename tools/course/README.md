@@ -25,6 +25,11 @@ the 📖 Course / 🧩 Practise / 📚 By chapter / ✍️ Writing screens) and 
                                possessives and von + dative (s1-poss) · comparative and superlative
                                (s1-comp) · adjective endings (s1-adj) · zu + infinitive, um / ohne /
                                anstatt … zu (s1-zu) · the Stage 1 checkpoint (s1-recap)
+                               Session 6: verb + preposition (s1-verbprep)
+    js/course/s2-*.js          Stage 2A (Session 6): bevor, nachdem, obwohl, damit … and als / wenn / wann
+                               (s2-conj) · indirect questions, dass or ob (s2-indq) · wo- / da- compounds
+                               (s2-woda) · relative clauses ×2 (s2-rel) · the genitive and its prepositions
+                               (s2-gen — its ids are geni.*: gen.* is the gender lesson's) · adverbs (s2-adv)
     js/course/writing.js       the writing themes (cxJournalThemes) and prompts (cxJournal)
 
 German app only (`de/index.html` loads them; the French app never does).
@@ -85,9 +90,16 @@ a later session that uploads its chapter.
    - Tables: keep a sheet's table narrow enough for a phone (360px: two or three short
      columns, phrases not sentences) — t-course checks every table from Session 4 on.
    - `diag`: detectors that name the rule a wrong answer broke (swap · ending · seq ·
-     pos · missing · extra) — a verb lesson's pack has them too (its rules are `gs:` points).
+     pos · missing · extra · grow — the right word is the typed one plus an ending,
+     `add: "e?s"` for des Auto → des Autos · order — the right words in another order: the
+     lesson's own message for it, listed last) — a verb lesson's pack has them too (its rules are `gs:` points).
      `missing` / `extra` fire only when that word is (nearly) all that differs — at most one
      other word off — so a sentence wrong all the way through keeps the item's own rule.
+     `missing` with `count: true`: exactly that word was left out, nothing else differs — it
+     fires even when another word of its kind is there (*der Schirm, ich gekauft habe* lacks
+     its *den* though *der* is in the sentence); its message can use `{right}`. `extra` takes
+     `count: true` the same way (*Wessen die Jacke ist das?*). A detector's `{right}` keeps a
+     noun's capital (*Hauses*).
      A `pos` message can't use `{right}` (only `{where}`). Add a typical mistake or two per
      lesson to the validator's "the checker on typical mistakes" list.
      `hard: true` on a detector: what it finds is the grammar, never "almost, check the
@@ -125,6 +137,10 @@ a later session that uploads its chapter.
      out; `cxSayAll` lists every one an item can say) and the voice pack records them
      (`tools/audio/runtime.mjs`). The validator checks each is clean German. After adding a
      lesson: `node tools/audio/runtime.mjs --lang de`, then record (tools/audio/README.md).
+   - Ids are unique across packs — a sheet's id carries the learner's progress; the validator
+     fails on one used twice (`CX.dups`). Check before naming: `grep -n '"cx.<name>' js/course/*.js`.
+   - A typical-mistake case in the validator finds its item by its question or first answer
+     (Session 6's list) — not by its index, so items can be added or moved.
 2. Add its `<script>` tag to `de/index.html`, after `js/course/plan.js` and before
    `js/course-ui.js`.
 3. Run the checks below.

@@ -34,6 +34,10 @@ onDisk.forEach(f => ok(listed.includes(f), `de/index.html loads ${f}`));
 ok(listed[0] === "js/course-de.js" && listed[listed.length - 1] === "js/course-ui.js", "the engine first, the screens last");
 ok(!/course/.test(fs.readFileSync(path.join(ROOT, "fr/index.html"), "utf8")), "the French app loads nothing of the course");
 ok(!CX.orphans, `packs only fill sections of the skeleton (${(CX.orphans || []).join(", ")})`);
+// A sheet, rule or drill-set id used by two packs: the second would replace
+// the first without a word (Session 6 nearly reused cx.gen1 — the gender sheet
+// — for the genitive: a sheet's id carries the learner's progress).
+ok(!CX.dups, `every sheet, rule and drill-set id is used once (${(CX.dups || []).join(", ")})`);
 // Every script of the German app shares one global scope: a name declared
 // twice silently replaces the first (cxKey once did).
 {
@@ -404,6 +408,96 @@ if (neg && neg.built) {
   [["d20.8", 3, "teuerer"], ["d20.8", 10, "dunkeler"], ["dcomp.am", 2, "altsten"], ["dcomp.irr", 4, "nahsten"], ["dadj.ein", 6, "teueres"], ["dadj.ein", 0, "gute"], ["dposs.dat", 0, "meinen"]].forEach(([set, i, typed]) => {
     const r = C.cxCheck(CX.sets[set].items[i], typed, C.cxSection(CX.sets[set].sec));
     ok(!r.ok && !r.near, `"${typed}": the grammar — a mistake, not almost`);
+  });
+}
+
+// ── the checker on typical mistakes (Session 6's lessons) ──
+// each: [set, the item's question or first answer, what was typed, the rule it should name, words its message must hold]
+{
+  const cases = [
+    ["dvp.prep", "Ich warte seit einer Stunde ___ den Hauswart.", "für", "vp.fixed", "auf"],
+    ["dvp.case", "(der Bus) Wir warten auf ___.", "dem Bus", "vp.acc", "den"],
+    ["dvp.case", "(ein neues Velo) Mein Sohn träumt von ___.", "ein neues Velo", "vp.dat", "einem"],
+    ["dvp.au", "Danke für die Karte! Ich habe mich sehr ___ deine Karte gefreut.", "auf", "vp.aufueber", "über"],
+    ["dvp.refl", "Ich freue ___ auf das Wochenende.", "sich", "vp.refl", "mich"],
+    ["dvp.refl", "Ich freue ___ auf das Wochenende.", "mir", "vp.refl", "mich"],
+    ["dvp.wen", "Mit wem telefoniert Tom?", "Mit wen telefoniert Tom?", "vp.wen", "wem"],
+    ["dvp.wen", "Auf wen wartet Lea?", "Wen wartet Lea auf?", "vp.wen", "first"],
+    ["dp.vp", "Ich warte auf den Bus.", "Ich warte für den Bus.", "vp.fixed", "auf"],
+    ["dp.vp", "Ich freue mich auf das Wochenende.", "Ich freue auf das Wochenende.", "vp.refl", "reflexive"],
+    ["dcj.prep", "___ ich frühstücke, gehe ich joggen.", "Vor", "cj.prepconj", "bevor"],
+    ["dcj.prep", "___ dem Frühstück gehe ich joggen.", "Bevor", "cj.prepconj", "vor"],
+    ["dcj.nach", "Nachdem die Kinder nach Hause gekommen sind, essen sie etwas.", "Nachdem die Kinder nach Hause gekommen haben, essen sie etwas.", "cj.nachdem", "sind"],
+    ["dcj.nach", "Nachdem ich gefrühstückt habe, gehe ich zur Arbeit.", "Nachdem ich frühstücke, gehe ich zur Arbeit.", "cj.nachdem", "Perfekt"],
+    ["dcj.join", "Tom geht joggen, obwohl es schneit.", "Tom geht joggen, weil es schneit.", "cj.obwohl", "obwohl"],
+    ["dcj.ob", "Es regnet ein bisschen, ___ grillen wir heute.", "obwohl", "cj.trotzdem", "trotzdem"],
+    ["dcj.trotz", "Er ist krank, trotzdem geht er arbeiten.", "Er ist krank, trotzdem er geht arbeiten.", "cj.trotzdem", "verb"],
+    ["dcj.damit", "Ich spreche langsam, damit du mich verstehst.", "Ich spreche langsam, um du mich verstehst.", "cj.damit", "damit"],
+    ["dp.cj", "Ich spreche langsam, damit du mich verstehst.", "Ich spreche langsam, damit du verstehst mich.", "cj.damit", "last"],
+    ["dp.cj", "Nachdem ich gegessen habe, gehe ich spazieren.", "Nach ich gegessen habe, gehe ich spazieren.", "cj.prepconj", "nachdem"],
+    ["d29.5", "Ich war sehr nervös, ___ ich meine erste Stelle bekam.", "wenn", "aw.als", "als"],
+    ["d29.5", "Meine Mutter hat immer gesungen, ___ sie gekocht hat.", "als", "aw.immer", "wenn"],
+    ["d29.5", "Weißt du, ___ der letzte Bus fährt?", "wenn", "aw.wann", "wann"],
+    ["daw.join", "Als ich ein Kind war, wohnten wir auf dem Land.", "Als ich war ein Kind, wohnten wir auf dem Land.", "aw.als", "end"],
+    ["diq.dassob", "Ich weiß nicht, ___ der Zug heute fährt.", "dass", "iq.dassob", "ob"],
+    ["diq.wenn", "Ich weiß nicht, ___ ich morgen kommen kann.", "wenn", "iq.wenn", "ob"],
+    ["d29.9", "Ich weiß nicht, ob die Post weit von hier ist.", "Ich weiß nicht, die Post weit von hier ist.", "iq.ob", "ob"],
+    ["d29.9", "Ich weiß nicht, wer in der Wohnung über uns wohnt.", "Ich weiß nicht, ob wer in der Wohnung über uns wohnt.", "iq.w", "no ob"],
+    ["d26.12", "Der Arzt sagt, ich soll viel Wasser trinken.", "Der Arzt sagt, ich viel Wasser trinken.", "iq.soll", "sollen"],
+    ["dp.iq", "Ich weiß nicht, wo er wohnt.", "Ich weiß nicht, wo wohnt er.", "iq.w", "last"],
+    ["d23.11", "Wir wissen nicht, mit wem Lea Tennis gespielt hat.", "Wir wissen nicht, mit wen Lea Tennis gespielt hat.", "iq.prep", "wem"],
+    ["dwd.wo", "(auf) ___ wartest du? — Auf das Tram.", "Woauf", "wd.r", "worauf"],
+    ["dwd.wo", "(für) ___ interessiert sich deine Tochter? — Für Pferde.", "Worfür", "wd.r", "wofür"],
+    ["dwd.da", "Ich denke oft daran.", "Ich denke oft an sie.", "wd.da", "daran"],
+    ["dwd.da", "Wir warten auf ihn.", "Wir warten darauf.", "wd.da", "person"],
+    ["d28.15", "Worauf warten die Kinder?", "Auf was warten die Kinder?", "wd.wo", "worauf"],
+    ["d28.15", "Über wen ärgert sich Tom?", "Worüber ärgert sich Tom?", "wd.wo", "wen"],
+    ["dwd.dass", "Ich freue mich darauf, dass du uns besuchst.", "Ich freue mich auf, dass du uns besuchst.", "wd.dass", "darauf"],
+    ["dp.wd", "Ich freue mich darauf.", "Ich freue mich auf es.", "wd.da", "darauf"],
+    ["drel.acc", "Der Kaffee, ___ ich trinke, ist kalt.", "der", "rel.acc", "den"],
+    ["drel.dat", "Die Gäste, ___ wir die Stadt gezeigt haben, kommen aus Japan.", "den", "rel.dat", "denen"],
+    ["d22.6", "Wo ist der Schirm, den ich gestern gekauft habe?", "Wo ist der Schirm, ich gestern gekauft habe?", "rel.form", "den"],
+    ["d22.6", "Wo ist der Schirm, den ich gestern gekauft habe?", "Wo ist der Schirm, was ich gestern gekauft habe?", "rel.form", "den"],
+    ["d22.6", "Das ist die Ärztin, die mich operiert hat.", "Das ist die Ärztin, die hat mich operiert.", "rel.nom", "closes"],
+    ["dp.rel", "Das ist der Mann, der neben uns wohnt.", "Das ist der Mann, wer neben uns wohnt.", "rel.form", "der"],
+    ["drp.form", "mit den Kindern → ___", "mit den", "rp.case", "denen"],
+    ["d22.8", "Ich habe einen Kollegen, mit dem ich zur Arbeit fahre.", "Ich habe einen Kollegen, dem ich zur Arbeit fahre.", "rp.prep", "preposition"],
+    ["d22.8", "Ich habe einen Kollegen, dessen Frau Ärztin ist.", "Ich habe einen Kollegen, deren Frau Ärztin ist.", "rp.gen", "dessen"],
+    ["drp.was", "Das ist alles, ___ ich dir sagen kann.", "das", "rp.was", "was"],
+    ["drp.was", "Das ist das Kleid, ___ ich mir gekauft habe.", "was", "rp.was", "das"],
+    ["d22.4", "Wer Hunger hat, soll etwas essen.", "Der Hunger hat, soll etwas essen.", "rp.wer", "Wer"],
+    ["d22.12", "Der Vertrag, welchen wir unterschrieben haben, gilt ein Jahr.", "Der Vertrag, welcher wir unterschrieben haben, gilt ein Jahr.", "rp.welch", "welchen"],
+    ["dgeni.pick", "Das ist das Velo ___ Nachbarin.", "des", "geni.art", "der"],
+    ["d20.1", "das Auto → ___", "des Auto", "geni.s", "Autos"],
+    ["d20.1", "meine Eltern → ___", "meinen Eltern", "geni.art", "meiner"],
+    ["dgeni.s", "(das Haus) die Tür des ___", "Haus", "geni.s", "Hauses"],
+    ["d20.2", "(mein Bruder) Die Frau ___ ist Ärztin.", "mein Bruders", "geni.art", "meines"],
+    ["dgeni.spoken", "Das ist das Velo meines Bruders.", "Das ist das Velo von meines Bruders.", "geni.von", "meinem"],
+    ["dgeni.wessen", "Wessen Jacke ist das?", "Wem Jacke ist das?", "geni.wessen", "wessen"],
+    ["dgeni.wessen", "Wessen Jacke ist das?", "Wessen die Jacke ist das?", "geni.wessen", "No article"],
+    ["d20.5", "(neu) Das ist das Büro des ___ Chefs.", "neue", "geni.adj", "neuen"],
+    ["d20.6", "Wo ist die Jacke dieses jungen Mannes?", "Wo ist die Jacke dieser junge Mann?", "geni.art", "dieses"],
+    ["d20.3", "(der Regen) Wegen ___ bleiben wir zu Hause.", "dem Regen", "gp.list", "des"],
+    ["d20.3", "(meine Erkältung) Wegen ___ bleiben wir zu Hause.", "meine Erkältung", "gp.list", "meiner"],
+    ["dgp.ww", "___ der Hitze bleiben wir im Schatten.", "Weil", "gp.weil", "wegen"],
+    ["dgp.dat", "wegen dem Stau", "wegen des Stau", "gp.dat", "Staus"],
+    ["dadv.viel", "Der zweite Film war ___ besser.", "sehr", "adv.viel", "viel"],
+    ["dadv.viel", "Der Film war ___ gut.", "viel", "adv.viel", "sehr"],
+    ["dadv.front", "Leider habe ich keine Zeit.", "Leider ich habe keine Zeit.", "adv.pos", "verb"],
+    ["dadv.place", "Ich sehe ihn oft.", "Ich oft sehe ihn.", "adv.order", "after the verb"],
+    ["dadv.dir", "Ich gehe ___ und hole meine Jacke.", "oben", "adv.dir", "nach"],
+    ["dadv.dir", "Der Hund muss ___.", "draußen", "adv.dir", "raus"],
+    ["dp.adv", "Ist das Zimmer groß genug?", "Ist das Zimmer genug groß?", "adv.zu", "after"],
+    ["dp.adv", "Ich habe gar keine Zeit.", "Ich habe gar nicht Zeit.", "adv.neg", "keine"],
+  ];
+  cases.forEach(([set, key, typed, rule, word]) => {
+    const s = CX.sets[set], it = s && s.items.find(x => x.q === key || (x.a || [])[0] === key), r = it && C.cxCheck(it, typed, C.cxSection(s.sec));
+    ok(r && !r.ok && r.rule === rule && String(r.msg || "").toLowerCase().includes(word.toLowerCase()), `diagnosis: "${typed}" → ${rule}, «${word}» (got ${r ? r.rule + ": " + r.msg : "no such item in " + set})`);
+  });
+  // what the detectors find here is the grammar — never "almost, check the spelling"
+  [["dvp.case", "(der Bus) Wir warten auf ___.", "dem Bus"], ["drel.dat", "Die Gäste, ___ wir die Stadt gezeigt haben, kommen aus Japan.", "den"], ["d20.1", "das Auto → ___", "des Auto"], ["d20.5", "(neu) Das ist das Büro des ___ Chefs.", "neue"], ["dwd.wo", "(auf) ___ wartest du? — Auf das Tram.", "Woauf"], ["d29.5", "Weißt du, ___ der letzte Bus fährt?", "wenn"], ["d22.12", "Der Vertrag, welchen wir unterschrieben haben, gilt ein Jahr.", "Der Vertrag, welcher wir unterschrieben haben, gilt ein Jahr."]].forEach(([set, key, typed]) => {
+    const s = CX.sets[set], it = s.items.find(x => x.q === key || (x.a || [])[0] === key), r = it && C.cxCheck(it, typed, C.cxSection(s.sec));
+    ok(r && !r.ok && !r.near, `"${typed}": the grammar — a mistake, not almost`);
   });
 }
 

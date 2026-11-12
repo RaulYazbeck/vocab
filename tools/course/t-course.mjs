@@ -270,7 +270,7 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
   await page.evaluate(() => renderCourse()); await noOverflow("Course");
   await page.evaluate(() => renderCourseSection("s0.neg")); await noOverflow("section");
   // (a lesson not built yet: verb + preposition, Session 6's — the possessives, used here until Session 5, are built)
-  await page.evaluate(() => renderCourseSection("s1.verbprep")); await noOverflow("a coming section");
+  await page.evaluate(() => renderCourseSection("s2.cond")); await noOverflow("a coming section");
   // (Session 4 on) a sheet's table fits the phone whole — no sideways scrolling to find a column
   if (tag === "phone") await page.evaluate(() => {
     const wide = [], seen = [];
@@ -377,13 +377,13 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
     ok(_cx && _cx.list.every(e => e.set === "d5.4") && /Chapter 5/.test(document.querySelector(".screen-top .back-btn").textContent), "Übung 5.4 runs on its own; back goes to chapter 5");
     _cx.opts.onDone(); ok(document.querySelectorAll(".cx-ex").length === 10 && /Chapter 5/.test(document.querySelector(".screen-label").textContent), "done: back on the chapter");
     renderCourseChapter("c28");
-    ok([...document.querySelectorAll(".cx-ex .gr-stt")].map(b => b.innerText.split(" · ")[0]).join() === "28.1,28.2,28.3,28.4,28.5,28.6,28.7,28.8,28.9,28.10,28.11,28.12,28.13,28.14,28.16,28.17",
-      "chapter 28: 28.1–28.14 and 28.16–17 (the wo-/da- compounds' 28.15, 28.18–21 come with their lesson)");
-    ok(!/\b28\.15\b|\b28\.18\b|planned|mirrored|generated/.test(document.getElementById("main-screen").innerText), "not built yet: not listed; no build labels");
+    ok([...document.querySelectorAll(".cx-ex .gr-stt")].map(b => b.innerText.split(" · ")[0]).join() === "28.1,28.2,28.3,28.4,28.5,28.6,28.7,28.8,28.9,28.10,28.11,28.12,28.13,28.14,28.15,28.16,28.17,28.18,28.19,28.20",
+      "chapter 28: every Übung has its drill (Session 6: the wo- / da- compounds' 28.15, 28.18–28.21 — 28.21 with 28.19)");
+    ok(/28\.19 · 28\.21/.test(document.getElementById("main-screen").innerText) && !/planned|mirrored|generated/.test(document.getElementById("main-screen").innerText), "28.21 is listed with 28.19; no build labels");
     // Session 4's chapters: their built Übungen, the later lessons' not yet
     renderCourseChapter("c19");
-    ok([...document.querySelectorAll(".cx-ex .gr-stt")].map(b => b.innerText.split(" · ")[0]).join() === "19.1,19.2,19.3,19.4,19.5,19.6,19.7",
-      "chapter 19: 19.1–19.7 (19.8 with the wo-/da- compounds, 19.9 with verb + preposition, later)");
+    ok([...document.querySelectorAll(".cx-ex .gr-stt")].map(b => b.innerText.split(" · ")[0]).join() === "19.1,19.2,19.3,19.4,19.5,19.6,19.7,19.8,19.9",
+      "chapter 19: all nine (Session 6: 19.8 with the wo- / da- compounds, 19.9 with verb + preposition)");
     renderCourseChapter("c18");
     ok([...document.querySelectorAll(".cx-ex .gr-stt")].map(b => b.innerText.split(" · ")[0]).join() === "18.1,18.2,18.3,18.4", "chapter 18: all four (18.4, its commands, with the A1 verb lesson)");
     [...document.querySelectorAll(".cx-ex")].find(b => /^18\.4 /.test(b.querySelector(".gr-stt").innerText)).click();
@@ -394,9 +394,18 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
     // Session 5's chapters: their built Übungen — the later lessons' (and the one skipped) not listed
     const exOf = ch => { renderCourseChapter(ch); return [...document.querySelectorAll(".cx-ex .gr-stt")].map(b => b.innerText.split(" · ")[0]).join(); };
     ok(exOf("c11") === "11.6,11.7,11.8,11.9,11.10,11.11,11.12,11.13", "chapter 11: the future's 11.6–11.13 (the past perfect's 11.1–11.5 with the strong Präteritum, later)");
-    ok(exOf("c20") === "20.4,20.8,20.9", "chapter 20: 20.4 (possessives), 20.8–20.9 (comparison) — the genitive's later");
+    ok(exOf("c20") === "20.1,20.2,20.3,20.4,20.5,20.6,20.7,20.8,20.9", "chapter 20: all nine (Session 6: the genitive's 20.1–20.3, 20.5–20.7)");
     ok(exOf("c24") === "24.5,24.6,24.8,24.9,24.10,24.11,24.12,24.13,24.14", "chapter 24: the zu-infinitive's (24.1–24.4 with modals in the Perfekt, later; 24.7 skipped)");
-    ok(exOf("c31") === "31.14" && exOf("c23") === "23.1,23.2,23.4,23.5,23.6,23.7,23.8,23.9,23.10,23.12", "chapter 31: 31.14 (with the adjective endings) · chapter 23: 23.1–23.2 added");
+    ok(exOf("c31") === "31.14" && exOf("c23") === "23.1,23.2,23.3,23.4,23.5,23.6,23.7,23.8,23.9,23.10,23.11,23.12,23.13", "chapter 31: 31.14 (with the adjective endings) · chapter 23: all thirteen (Session 6: 23.3, 23.11, 23.13)");
+    // Session 6's chapters
+    ok(exOf("c22") === "22.1,22.2,22.4,22.5,22.6,22.7,22.8,22.10,22.12,22.13,22.14,22.15,22.20", `chapter 22: every Übung has its drill — 22.3 · 22.9 with 22.12, 22.11 with 22.7, 22.16 with 22.10, 22.17–22.19 with 22.14 (${exOf("c22")})`);
+    ok(["22.3", "22.9", "22.11", "22.16", "22.17", "22.18", "22.19"].every(x => new RegExp("\\b" + x.replace(".", "\\.") + "\\b").test(document.getElementById("main-screen").innerText)), "…the ones drilled together are named on their set");
+    ok(exOf("c26") === "26.11,26.12", `chapter 26: the indirect questions' 26.11 · 26.12 — the Konjunktiv's later (${exOf("c26")})`);
+    ok(exOf("c29") === "29.1,29.2,29.3,29.4,29.5,29.6,29.7,29.8,29.9,29.10,29.20,29.21", `chapter 29: the joining words' 29.5–29.10 added (participles, zwar later) (${exOf("c29")})`);
+    renderCourseChapter("c22");
+    [...document.querySelectorAll(".cx-ex")].find(b => /^22\.6 /.test(b.querySelector(".gr-stt").innerText)).click();
+    ok(_cx && _cx.list.every(e => e.set === "d22.6") && /Chapter 22/.test(document.querySelector(".screen-top .back-btn").textContent), "Übung 22.6 runs on its own; back goes to chapter 22");
+    cxClose();
     renderCourseChapter("c24");
     [...document.querySelectorAll(".cx-ex")].find(b => /^24\.9 /.test(b.querySelector(".gr-stt").innerText)).click();
     ok(_cx && _cx.list.every(e => e.set === "d24.9") && /Chapter 24/.test(document.querySelector(".screen-top .back-btn").textContent), "Übung 24.9 runs on its own; back goes to chapter 24");

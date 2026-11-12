@@ -80,15 +80,21 @@ function cxPack(pack) {
     if (c.testout !== undefined) sec.testout = c.testout;
     // A stage's checkpoint (a recap section): { n: questions, pass: share }.
     if (c.checkpoint) sec.checkpoint = Object.assign({ n: 20, pass: 0.8 }, c.checkpoint);
+    // (an id used twice would silently replace the first — and a sheet's id
+    // carries the learner's progress: the validator fails on CX.dups)
+    const once = (map, k, what) => { if (map[k]) CX.dups = (CX.dups || []).concat(`${what} ${k} (${id})`); };
     (c.sheets || []).forEach(sh => {
+      once(CX.sheets, sh.id, "sheet");
       Object.assign(sh, { cx: true, sec: id });
       CX.sheets[sh.id] = sh; sec.sheets.push(sh.id);
       (sh.rid || []).forEach((rid, i) => {
+        once(CX.rules, rid, "rule");
         CX.rules[rid] = { id: rid, title: (c.rules || {})[rid] || rid, text: (sh.rules || [])[i] || "", sheet: sh.id, at: "r" + (i + 1), sec: id };
         sec.rules.push(rid);
       });
     });
     (c.drills || []).forEach(d => {
+      once(CX.sets, d.id, "drill set");
       Object.assign(d, { sec: id });
       // fixed: the order is the point (a fronting drill) — no other order counts.
       if (d.fixed) (d.items || []).forEach(it => { it.fixed = true; });
@@ -324,7 +330,8 @@ function cxOrders(item) {
     }
     // (b) Time + verb + pronoun + … → Pronoun + verb + (pronoun objects) + time + …
     const n = cxTimeLen(w, 0);
-    if (n && w[n + 1] && CX_PRON_SUBJ.test(w[n + 1].toLowerCase()) && w.length > n + 2) {
+    // (not «Immer wenn es regnete, …»: the word after the time word must be the verb, not a joining word)
+    if (n && w[n + 1] && CX_PRON_SUBJ.test(w[n + 1].toLowerCase()) && w.length > n + 2 && !/^(wenn|als|weil|dass|ob|bevor|nachdem|obwohl|damit|falls|sobald|seit|seitdem|bis|während|wo|was|wer|wie|wann|warum)$/i.test(w[n])) {
       const chunk = w.slice(0, n).map(small), verb = w[n], subj = w[n + 1], rest = w.slice(n + 2);
       let k = 0; while (k < rest.length && CX_PRON_OBJ.test(rest[k].toLowerCase())) k++;
       out.push(join([subj, verb, ...rest.slice(0, k), ...chunk, ...rest.slice(k)]));
@@ -360,7 +367,8 @@ function cxGapFills(item) {
   if (parts.length !== 2 || !(parts[0].trim() || parts[1].trim())) return [];
   const esc = s => s.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   // (a gap that closes the sentence — "…, aber ___." — has only the full stop after it, no space)
-  const tail = parts[1].trim(), punct = /^[.!?]+$/.test(tail);
+  // (so has a gap followed by a comma — "Der Zug, ___, hat Verspätung.")
+  const tail = parts[1].trim(), punct = /^[.!?,;:]/.test(tail);
   const re = new RegExp("^" + (esc(parts[0]) ? esc(parts[0]) + "\\s+" : "") + "(.+?)" + (tail ? (punct ? "\\s*" : "\\s+") + esc(parts[1]) : "") + "$", "i");
   const out = [];
   (item.a || []).map(String).forEach(a => { const m = re.exec(a.trim()); if (m && m[1] && !out.includes(m[1])) out.push(m[1]); });
@@ -610,7 +618,10 @@ function cxUmlautChoice(item, typed) {
 //   ending  { stem }      the right word, the wrong ending
 //   seq     { seq: [a, b] } you wrote a, then b (nicht ein…)
 //   pos     { tok }       the same words, `tok` in another place
-//   missing { tok } / extra { tok }
+//   missing { tok } / extra { tok }   (missing + count: true — left out, though
+//                        another word of its kind is in the sentence)
+//   grow    { add }      the right word is yours plus an ending (Auto → Autos: add "e?s")
+//   order                the same words, another order (a lesson's own message for it)
 // hard: true on a detector — what it finds is the grammar, never "almost,
 // check the spelling" (teuerer for teurer is one letter off, but it's the rule)
 // Messages fill {right} (the word that goes there), {typed} and {where}
@@ -647,7 +658,8 @@ function cxDiagnose(item, T, A, sec, orig = null) {
   const list = [...(item.diag || []), ...((sec && sec.diag) || [])];
   // the right word as the answer spells it (möchte, not mochte), small
   const W0 = orig && orig.length === A.length ? orig : null;
-  const spell = t => { const k = A.indexOf(t); return W0 && k >= 0 ? W0[k].toLowerCase() : t; };
+  // (a noun keeps its capital — Hauses, not hauses; a sentence's first word is written small)
+  const spell = t => { const k = A.indexOf(t); return W0 && k >= 0 ? (k === 0 && A.length > 1 ? W0[k].toLowerCase() : W0[k]) : t; };
   const fill = (m, o) => String(m || "").replace(/\{(\w+)\}/g, (s, k) => o[k] !== undefined ? o[k] : s);
   for (const d of list) {
     let o = null;
@@ -676,11 +688,27 @@ function cxDiagnose(item, T, A, sec, orig = null) {
       // (only when that word is what's missing — another sentence altogether
       // is not "a missing nicht": it stays the item's own rule)
       const re = cxRx(d.tok);
-      if (A.some(x => re.test(x)) && !T.some(x => re.test(x)) && cxMinus(A, T).filter(x => !re.test(x)).length <= 1) o = {};
+      // (count: the word was simply left out — nothing else differs — even when
+      // another word of its kind is there: «der Schirm, ich gekauft habe» lacks
+      // its den although der is in the sentence)
+      if (d.count) { const lost = cxMinus(A, T); if (lost.length === 1 && re.test(lost[0]) && !cxMinus(T, A).length) o = { right: spell(lost[0]) }; }
+      else if (A.some(x => re.test(x)) && !T.some(x => re.test(x)) && cxMinus(A, T).filter(x => !re.test(x)).length <= 1) o = {};
     } else if (d.t === "extra") {
       const re = cxRx(d.tok);
-      if (T.some(x => re.test(x)) && !A.some(x => re.test(x)) && cxMinus(T, A).filter(x => !re.test(x)).length <= 1) o = {};
+      // (count: exactly that word too many — «Wessen die Jacke ist das?» — even when
+      // the answer has another word of its kind)
+      if (d.count) { const more = cxMinus(T, A); if (more.length === 1 && re.test(more[0]) && !cxMinus(A, T).length) o = { typed: more[0] }; }
+      else if (T.some(x => re.test(x)) && !A.some(x => re.test(x)) && cxMinus(T, A).filter(x => !re.test(x)).length <= 1) o = {};
+    } else if (d.t === "grow") {
+      // grow { add }: the right word is the one you wrote plus an ending
+      // (des Auto → des Autos · des Mann → des Mannes) — add: a regex of endings.
+      const more = cxMinus(T, A), lost = cxMinus(A, T);
+      for (const x of more) { const at = lost.find(y => y.startsWith(x) && y.length > x.length && cxRx(d.add).test(y.slice(x.length))); if (at) { o = { typed: x, right: spell(at) }; break; } }
     }
+    // order: the right words in another order — the lesson says which order
+    // it teaches (the verb last in a side sentence) instead of the bare
+    // "another order". Put it last: a pos detector that fits says more.
+    else if (d.t === "order") { if (cxBagEq(T, A)) o = {}; }
     if (o) {
       // (a rule that exists: the course's own, or a verb sheet's point — gs:fu1.r1)
       const rule = d.rule && (!item.r || item.r.includes(d.rule) || cxRule(d.rule) || cxRuleView(d.rule)) ? d.rule : (item.r || [])[0];
