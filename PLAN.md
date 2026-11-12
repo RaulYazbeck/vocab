@@ -1015,6 +1015,16 @@ screen · coverage report at 100 % (every blueprint exercise *mirrored*,
 
 *(kept up to date by the voice sessions; the pipeline is in `tools/audio/README.md`)*
 
+**12 Nov 2026 — Session 6's lessons recorded.** Everything the ten new lessons say once a question is
+answered (every drill item's whole right sentence for each accepted answer, the writing models, the
+sheets' examples, their tables' German and their quizzes' right sentences): **1,983 clips, 83,040
+characters, 0 refused** (Google Chirp 3 HD "Aoede"). The German pack has **65,740 / 65,740 texts**
+(`status.mjs --strict` passes; the pack, games, flag, say and runtime tests pass). The update is 18 of
+95 shards, ≈80 MB for a phone that has the old pack — offered with the banner, on Wi-Fi.
+**Characters this month (November 2026): 665,971** (the limit set for this run: 950,000; `run_all.py`'s
+own default guard stays 900,000). ≈284,000 left under the 950,000 limit.
+What will be missing next: Sessions 7 and 8 (≈150k + ≈40k characters) — record right after they're built.
+
 **8 Nov 2026 — the course, the sheets and every B1 verb recorded; voice inside the exercises.**
 
 - **Recorded this session (German, Google Chirp 3 HD "Aoede"), 0 refused:**
@@ -1047,10 +1057,7 @@ screen · coverage report at 100 % (every blueprint exercise *mirrored*,
   nothing and their clips left the pack; "Advice: …" / "Plusquamperfekt: …" labels are left
   out of what is said.
 - **Still missing, in priority order:** nothing the app says today. What will be missing next:
-  1. **Session 6's lessons** (Stage 2A: conjunctions II, als / wenn / wann, indirect questions,
-     relative clauses, genitive, verb + preposition, wo- / da-, adverbs) — about as much as
-     Stage 1C per lesson: **≈20–30k characters a lesson, ≈180k for the session**. Record right
-     after they're built (fits this month's leftover).
+  1. *(done 12 Nov: Session 6's lessons — 83k characters, less than the ≈180k guessed)*
   2. **Sessions 7 and 8** (Stage 2B, the conversation units): ≈150k + ≈40k.
   3. New words or verbs added to the decks: a few hundred characters each.
   4. Phrases in the voice log (Settings → Sound & voice → Copy voice log) — e.g. a gap item
