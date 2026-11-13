@@ -25,7 +25,7 @@ cxPack({
           rules: [
             "Use **kein** where **ein** or **no article** would be: **kein** Auto, **keine** Zeit, Ich bin **kein** Lehrer. With der, die, das, mein…, a name, a verb or an adjective, use **nicht**.",
             "**kein** takes the same ending that **ein** would have: einen Termin, **keinen** Termin; einem Kind, **keinem** Kind. In the plural, where ein has no form, it's **keine**: **keine** Kinder.",
-            "**nicht** comes **after** the verb, the object and time words, so it often ends the sentence: Ich arbeite heute **nicht**. It comes **before** an adjective, a place and the second verb part: **nicht** teuer, **nicht** in Bern, **nicht** gekommen.",
+            "**nicht** goes **after** the verb, the object and time words, so it often ends the sentence: Ich arbeite heute **nicht**. It goes **before** an adjective, a place or a second verb part: **nicht** teuer, **nicht** in Bern.",
             "To correct one part, put **nicht** right **before** it and give the right part after **sondern**: Ich komme **nicht** heute, **sondern** morgen.",
           ],
           table: { head: ["You negate…", "nicht goes…", "Example"], rows: [
@@ -216,7 +216,7 @@ cxPack({
           { k: "translate", q: "I didn't sleep well.", a: ["Ich habe nicht gut geschlafen."], r: ["neg.nicht-pos"] },
         ] },
         // ── Production: write your own ──
-        { id: "dw.neg", t: "write", end: true, title: "Write your own", how: "In your own words — saved for Claude to correct.", items: [
+        { id: "dw.neg", t: "write", end: true, title: "Write your own", how: "Write it in your own words. It is saved for Claude to correct.", items: [
           { q: "Three things you don't have at home — use kein.", model: ["Ich habe keinen Fernseher, kein Auto und keine Katze."], check: ["kein / keine / keinen fits each noun", "no ein next to kein", "the verb is second"], r: ["neg.kein", "neg.kein-end"] },
           { q: "Tell a friend two things you're NOT doing this weekend — with nicht.", model: ["Am Samstag arbeite ich nicht. Ich fahre nicht nach Zürich, ich bleibe zu Hause."], check: ["nicht at the end, or before the place", "the verb is second"], r: ["neg.nicht-pos"] },
           { q: "Someone thinks you live in Bern. Correct them (nicht …, sondern …).", model: ["Ich wohne nicht in Bern, sondern in Zürich."], check: ["nicht right before in Bern", "a comma before sondern"], r: ["neg.sondern"] },

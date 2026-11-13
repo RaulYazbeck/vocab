@@ -214,7 +214,7 @@ cxPack({
           { q: "Her brother is a cook.", a: ["Ihr Bruder ist Koch."], r: ["art.ihr", "art.job"] },
         ] },
         // ── Production: your own ──
-        { id: "dw.art", t: "write", end: true, title: "Write your own", how: "In your own words — saved for Claude to correct.", items: [
+        { id: "dw.art", t: "write", end: true, title: "Write your own", how: "Write it in your own words. It is saved for Claude to correct.", items: [
           { q: "Your street: what's there and what isn't (ein / kein).", model: ["In meiner Straße ist ein Café, aber keine Bäckerei."], r: ["art.ein", "art.kein"] },
           { q: "Your family's jobs — no article!", model: ["Meine Mutter ist Lehrerin, mein Vater ist Koch."], r: ["art.job"] },
           { q: "Three things in your bag, with mein / meine.", model: ["mein Handy, meine Schlüssel, mein Portemonnaie"], r: ["art.poss"] },

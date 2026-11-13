@@ -164,7 +164,7 @@ cxPack({
           { q: "The museum is closed.", a: ["Das Museum ist zu.", "Das Museum ist geschlossen."], r: ["gen.das"] },
         ] },
         // ── Production: your own ──
-        { id: "dw.gen", t: "write", end: true, title: "Write your own", how: "In your own words — saved for Claude to correct.", items: [
+        { id: "dw.gen", t: "write", end: true, title: "Write your own", how: "Write it in your own words. It is saved for Claude to correct.", items: [
           { q: "Name five things in your kitchen, each with der, die or das.", model: ["der Kühlschrank, die Tasse, das Glas, der Teller, die Pfanne"], r: ["gen.three"] },
           { q: "Your family: three people with der or die.", model: ["der Bruder, die Schwester, die Großmutter"], r: ["gen.people"] },
           { q: "Three jobs — the man and the woman (der Lehrer, die Lehrerin).", model: ["der Arzt, die Ärztin · der Koch, die Köchin · der Verkäufer, die Verkäuferin"], r: ["gen.in"] },

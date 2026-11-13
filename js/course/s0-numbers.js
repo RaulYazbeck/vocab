@@ -171,7 +171,7 @@ cxPack({
           { q: "One coffee and two teas, please.", a: ["Ein Kaffee und zwei Tee, bitte.", "Einen Kaffee und zwei Tee, bitte.", "Ein Kaffee und zwei Tees, bitte.", "Einen Kaffee und zwei Tees, bitte."], r: ["num.eins"] },
         ] },
         // ── Production: your own ──
-        { id: "dw.num", t: "write", end: true, title: "Write your own", how: "In your own words — saved for Claude to correct.", items: [
+        { id: "dw.num", t: "write", end: true, title: "Write your own", how: "Write it in your own words. It is saved for Claude to correct.", items: [
           { q: "Your week: three days, what you do and at what time.", model: ["Am Montag arbeite ich bis fünf. Am Mittwoch gehe ich um sieben ins Fitness. Am Samstag schlafe ich lange."], r: ["num.am", "num.uhr"] },
           { q: "Your birthday and two other dates that matter to you.", model: ["Mein Geburtstag ist am zwölften Juni. Am ersten August ist der Nationalfeiertag."], r: ["num.ord"] },
           { q: "An invented phone number and a house number, in words.", model: ["Meine Nummer ist null sieben neun, drei vier fünf, sechs sieben, acht neun. Ich wohne an der Bahnhofstrasse siebenundzwanzig."], r: ["num.base", "num.und"] },

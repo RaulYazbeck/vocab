@@ -211,7 +211,7 @@ cxPack({
           { k: "translate", q: "My parents live in Spain.", a: ["Meine Eltern wohnen in Spanien."], r: ["v2.second"] },
         ] },
         // ── Production: your own ──
-        { id: "dw.v2q", t: "write", end: true, title: "Write your own", how: "In your own words — saved for Claude to correct.", items: [
+        { id: "dw.v2q", t: "write", end: true, title: "Write your own", how: "Write it in your own words. It is saved for Claude to correct.", items: [
           { q: "Three things you do on Saturday — start each sentence with the time.", model: ["Am Samstag schlafe ich lange. Am Nachmittag gehe ich einkaufen. Am Abend koche ich."], r: ["v2.front"] },
           { q: "Ask a new colleague three yes/no questions (Sie).", model: ["Wohnen Sie in Zürich? Haben Sie Kinder? Fahren Sie mit dem Zug?"], r: ["v2.q"] },
           { q: "What you can and can't do — with können, the second verb at the end.", model: ["Ich kann gut kochen, aber ich kann nicht schwimmen."], r: ["v2.end"] },
@@ -391,7 +391,7 @@ cxPack({
           { q: "What are you doing tonight? (du)", a: ["Was machst du heute Abend?"], r: ["wq.v2"] },
         ] },
         // ── Production: your own ──
-        { id: "dw.wq", t: "write", end: true, title: "Write your own", how: "In your own words — saved for Claude to correct.", items: [
+        { id: "dw.wq", t: "write", end: true, title: "Write your own", how: "Write it in your own words. It is saved for Claude to correct.", items: [
           { q: "You meet someone at a party: ask four W-questions.", model: ["Wie heißt du? Woher kommst du? Wo wohnst du? Was machst du beruflich?"], r: ["wq.words", "wq.v2"] },
           { q: "At the station: ask when, where and how much.", model: ["Wann fährt der Zug nach Bern? Wo ist Gleis 5? Wie viel kostet ein Billett?"], r: ["wq.words", "wq.wie"] },
           { q: "Ask a colleague (Sie) about the weekend: what and where to.", model: ["Was machen Sie am Wochenende? Wohin fahren Sie?"], r: ["wq.wo", "wq.v2"] },

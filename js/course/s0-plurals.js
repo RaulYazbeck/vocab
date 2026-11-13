@@ -147,7 +147,7 @@ cxPack({
           { k: "translate", q: "The children are in the garden.", a: ["Die Kinder sind im Garten."], r: ["pl.er", "pl.die"] },
         ] },
         // ── Production: your own ──
-        { id: "dw.pl", t: "write", end: true, title: "Write your own", how: "In your own words — saved for Claude to correct.", items: [
+        { id: "dw.pl", t: "write", end: true, title: "Write your own", how: "Write it in your own words. It is saved for Claude to correct.", items: [
           { q: "What's in your fridge? Five things, in the plural.", model: ["Eier, Tomaten, Äpfel, Joghurts und zwei Flaschen Milch."], r: ["pl.en", "pl.zero", "pl.s"] },
           { q: "Your family: brothers, sisters, children — how many?", model: ["Ich habe zwei Brüder und eine Schwester."], r: ["pl.num", "pl.zero"] },
           { q: "Your flat: how many rooms, windows, doors?", model: ["Meine Wohnung hat drei Zimmer, sechs Fenster und vier Türen."], r: ["pl.zero", "pl.en"] },

@@ -183,7 +183,7 @@ cxPack({
           { k: "translate", q: "We're visiting our son.", a: ["Wir besuchen unseren Sohn."], r: ["acc.words"] },
         ] },
         // ── Production: your own ──
-        { id: "dw.acc", t: "write", end: true, title: "Write your own", how: "In your own words — saved for Claude to correct.", items: [
+        { id: "dw.acc", t: "write", end: true, title: "Write your own", how: "Write it in your own words. It is saved for Claude to correct.", items: [
           { q: "Your shopping today: five things you buy (einen, eine, ein).", model: ["Ich kaufe einen Salat, eine Gurke, ein Brot, zwei Äpfel und einen Joghurt."], r: ["acc.den", "acc.same"] },
           { q: "What does your town have — and not have? (es gibt)", model: ["In meiner Stadt gibt es einen See, aber es gibt keinen Flughafen."], r: ["acc.gibt"] },
           { q: "Your family: who do you have? (Ich habe einen …)", model: ["Ich habe einen Bruder und eine Schwester, aber keinen Onkel."], r: ["acc.den"] },

@@ -179,7 +179,7 @@ cxPack({
           { q: "Excuse me, do you speak English? (to a stranger)", a: ["Entschuldigung, sprechen Sie Englisch?", "Entschuldigen Sie, sprechen Sie Englisch?"], r: ["pron.sie"] },
         ] },
         // ── Production: your own ──
-        { id: "dw.pron", t: "write", end: true, title: "Write your own", how: "In your own words — saved for Claude to correct.", items: [
+        { id: "dw.pron", t: "write", end: true, title: "Write your own", how: "Write it in your own words. It is saved for Claude to correct.", items: [
           { q: "Introduce yourself at a new job: name, where you're from.", model: ["Guten Tag, ich heiße Sara Costa. Ich komme aus Portugal."], r: ["pron.title"] },
           { q: "Ask your new colleague, Herr Lang, two polite questions.", model: ["Herr Lang, wohnen Sie in Bern? Trinken Sie Kaffee?"], r: ["pron.sie"] },
           { q: "Ask a friend two questions with du.", model: ["Hast du heute Zeit? Kommst du mit ins Kino?"], r: ["pron.du"] },

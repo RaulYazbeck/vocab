@@ -402,7 +402,7 @@ cxPack({
           { q: "I have to work tomorrow.", a: ["Ich muss morgen arbeiten.", "Morgen muss ich arbeiten."], r: ["gs:pr5.r3"] },
         ] },
         // ── Production: your own ──
-        { id: "dw.vb", t: "write", end: true, title: "Write your own", how: "In your own words — saved for Claude to correct.", items: [
+        { id: "dw.vb", t: "write", end: true, title: "Write your own", how: "Write it in your own words. It is saved for Claude to correct.", items: [
           { q: "A normal weekday: five things you do (the present).", model: ["Ich stehe um sieben auf, trinke Kaffee, fahre mit dem Zug zur Arbeit, esse in der Kantine und koche am Abend."], r: ["gs:pr1.r2"] },
           { q: "Your best friend: three things he or she does (fährt, isst, liest…).", model: ["Meine Freundin fährt jeden Tag Velo, isst kein Fleisch und liest viele Krimis."], r: ["gs:pr4.r1", "gs:pr4.r2", "gs:pr4.r3"] },
           { q: "Three tips for a friend visiting your city (du-commands).", model: ["Nimm das Tram! Iss ein Fondue! Fahr auf den Uetliberg!"], r: ["gs:im1.r1", "gs:im2.r1"] },
