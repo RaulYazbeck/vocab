@@ -23,13 +23,13 @@ cxPack({
       sheets: [
         { id: "cx.mpf", title: "Ich habe arbeiten müssen", qn: 3,
           struct: [["Ich", "who"], ["habe", "aux"], ["gestern", "mid"], ["arbeiten", "inf"], ["müssen", "modal"]],
-          why: "When you speak about the past, the modals usually take the **Präteritum**: Ich **musste** arbeiten. But you will also hear and read the **Perfekt**, and it looks odd at first: **two infinitives** at the end and no ge-.",
+          why: "In speech, the modals' past is usually the **Präteritum**: Ich **musste** arbeiten. But you will also meet the **Perfekt**, and it looks odd at first: **two infinitives** at the end, and no ge-.",
           rid: ["mpf.prat", "mpf.dbl", "mpf.alone", "mpf.sub"],
           rules: [
             "In speech, the modals' past is usually the **Präteritum**: Ich **musste** gestern lange arbeiten. · **Konntest** du gut schlafen? · Wir **wollten** dich anrufen.",
             "In the **Perfekt**, a modal with another verb takes **haben** and **two infinitives** at the end, the modal last: Ich **habe** lange **arbeiten müssen**. · Er **hat** nicht **kommen können**. No ge-, no Partizip II.",
             "A modal **on its own**, with no other verb, takes its Partizip II: Ich **habe** das nicht **gewollt**. · Sie **hat** es nicht **gekonnt**. · Das **hat** er **gemusst**.",
-            "In a side sentence, **haben** goes **before** the two infinitives, not to the very end: …, weil ich **habe arbeiten müssen**. · …, dass er nicht **hat kommen können**. In speech, the Präteritum is easier: …, weil ich arbeiten **musste**.",
+            "In a side sentence, **haben** goes **before** the two infinitives: …, weil ich **habe arbeiten müssen**. · …, dass er nicht **hat kommen können**. In speech the Präteritum is easier: …, weil ich arbeiten **musste**.",
           ],
           table: { head: ["Präteritum", "Perfekt"], rows: [
             ["**musste** gehen", "**hat** gehen **müssen**"],
@@ -51,7 +51,7 @@ cxPack({
             { at: "r2", k: "order", q: "Build it: She couldn't come.", a: ["Sie", "hat", "nicht", "kommen", "können."], why: "haben second, then the two infinitives, the modal last." },
             { at: "r2", k: "pick", q: "Wir ___ nach Hause gehen müssen.", o: ["haben", "sind"], a: 0, why: "A modal in the Perfekt always takes **haben**." },
             { at: "r3", k: "pick", q: "Das habe ich nicht ___. (without another verb)", o: ["gewollt", "wollen"], a: 0, why: "A modal on its own takes its Partizip II: **gewollt**." },
-            { at: "r3", k: "type", cx: true, q: "Hast du die Aufgabe? — Nein, ich habe es nicht ___. (können)", a: ["gekonnt"], r: ["mpf.alone"], why: "On its own: **gekonnt**." },
+            { at: "r3", k: "type", cx: true, q: "Hast du die Aufgabe lösen können? — Nein, ich habe es nicht ___. (können)", a: ["gekonnt"], r: ["mpf.alone"], why: "On its own: **gekonnt**." },
             { at: "r4", k: "pick", q: "…, weil ich ___.", o: ["habe arbeiten müssen", "arbeiten müssen habe", "arbeiten habe müssen"], a: 0, why: "In a side sentence, haben comes before the two infinitives." },
             { at: "table", k: "pick", q: "Präteritum → Perfekt: er konnte kommen →", o: ["er hat kommen können", "er hat gekonnt kommen", "er ist kommen können"], a: 0, why: "haben + the two infinitives, the modal last." },
             { at: "trap", k: "pick", q: "Which is right?", o: ["Ich habe arbeiten müssen.", "Ich habe arbeiten gemusst."], a: 0, why: "With another verb, no Partizip II: arbeiten **müssen**." },
@@ -61,12 +61,12 @@ cxPack({
         { t: "swap", from: "^ge(musst|konnt|durft|sollt|wollt|mocht)$", to: "^(mussen|konnen|durfen|sollen|wollen|mogen)$", rule: "mpf.dbl", hard: true, msg: "With another verb, the modal stays an infinitive: **{right}** — no ge-." },
         { t: "swap", from: "^(mussen|konnen|durfen|sollen|wollen|mogen)$", to: "^ge(musst|konnt|durft|sollt|wollt|mocht)$", rule: "mpf.alone", hard: true, msg: "On its own, with no other verb, the modal takes its Partizip II: **{right}**." },
         { t: "swap", from: "^(bin|bist|ist|sind|seid|war|waren)$", to: "^(habe|hast|hat|haben|habt|hatte|hatten)$", rule: "mpf.dbl", hard: true, msg: "A modal in the Perfekt always takes **haben**: **{right}**." },
-        { t: "swap", from: "^ge\\w+$", to: "^\\w+(en|n)$", rule: "mpf.dbl", msg: "Two infinitives at the end: the other verb stays an infinitive too — **{right}**." },
+        { t: "swap", from: "^ge\\w+(t|en)$", to: "^(?!ge)\\w+(en|n)$", rule: "mpf.dbl", msg: "Two infinitives at the end: the other verb stays an infinitive too — **{right}**." },
         { t: "seq", seq: ["(mussen|konnen|durfen|sollen|wollen)", "\\w+(en|n)$"], rule: "mpf.dbl", msg: "The modal comes **last**: … arbeiten **müssen**." },
       ],
       drills: [
         // ── Übung 17•16: add the modal, in the Perfekt ──
-        { id: "d17.16", ex: "17.16", t: "transform", title: "Add the modal", how: "Add the modal in brackets. The sentence stays in the Perfekt: haben + two infinitives, the modal last.", items: [
+        { id: "d17.16", ex: "17.16", t: "transform", title: "Add the modal", how: "Add the modal in brackets, in the Perfekt: haben + two infinitives, the modal last.", items: [
           { q: "Sie hat Deutsch gesprochen. (können)", a: ["Sie hat Deutsch sprechen können."], r: ["mpf.dbl"] },
           { q: "Ich habe lange gewartet. (müssen)", a: ["Ich habe lange warten müssen."], r: ["mpf.dbl"] },
           { q: "Wir haben das Formular unterschrieben. (müssen)", a: ["Wir haben das Formular unterschreiben müssen."], r: ["mpf.dbl"] },
@@ -82,17 +82,17 @@ cxPack({
         { id: "d17.17", ex: "17.17", t: "type", title: "The modal on its own", how: "The modal stands alone. Write it in the Präteritum or the Perfekt, as the brackets say.", items: [
           { q: "Er will das nicht. → Er ___ das nicht. (Präteritum)", a: ["wollte"], r: ["mpf.prat"] },
           { q: "Er will das nicht. → Er hat das nicht ___. (Perfekt)", a: ["gewollt"], r: ["mpf.alone"] },
-          { q: "Wir müssen das. → Wir ___ das. (Präteritum)", a: ["mussten"], r: ["mpf.prat"] },
-          { q: "Wir müssen das. → Wir haben das ___. (Perfekt)", a: ["gemusst"], r: ["mpf.alone"] },
+          { q: "Wir müssen nach Hause. → Wir ___ nach Hause. (Präteritum)", a: ["mussten"], r: ["mpf.prat"] },
+          { q: "Wir müssen nach Hause. → Wir haben nach Hause ___. (Perfekt)", a: ["gemusst"], r: ["mpf.alone"] },
           { q: "Kannst du das? → ___ du das? (Präteritum)", a: ["Konntest"], r: ["mpf.prat"] },
           { q: "Kannst du das? → Hast du das ___? (Perfekt)", a: ["gekonnt"], r: ["mpf.alone"] },
           { q: "Ich mag ihn nicht. → Ich ___ ihn nicht. (Präteritum)", a: ["mochte"], r: ["mpf.prat"] },
-          { q: "Ich mag ihn nicht. → Ich habe ihn nie ___. (Perfekt)", a: ["gemocht"], r: ["mpf.alone"] },
+          { q: "Ich mag ihn nicht. → Ich habe ihn nicht ___. (Perfekt)", a: ["gemocht"], r: ["mpf.alone"] },
           { q: "Darf sie das? → ___ sie das? (Präteritum)", a: ["Durfte"], r: ["mpf.prat"] },
           { q: "Darf sie das? → Hat sie das ___? (Perfekt)", a: ["gedurft"], r: ["mpf.alone"] },
         ] },
         // ── Übung 24•1: into the Perfekt ──
-        { id: "d24.1", ex: "24.1", t: "transform", title: "Into the Perfekt", how: "Say it in the Perfekt: haben + the infinitive + the modal, at the end.", items: [
+        { id: "d24.1", ex: "24.1", t: "transform", title: "Into the Perfekt", how: "Say it in the Perfekt: haben + the infinitive + the modal at the end. A modal alone takes its Partizip II (gewollt).", items: [
           { q: "Ich muss am Wochenende arbeiten.", a: ["Ich habe am Wochenende arbeiten müssen."], r: ["mpf.dbl"] },
           { q: "Er kann nicht schwimmen.", a: ["Er hat nicht schwimmen können."], r: ["mpf.dbl"] },
           { q: "Wir dürfen das Museum besuchen.", a: ["Wir haben das Museum besuchen dürfen."], r: ["mpf.dbl"] },
@@ -107,7 +107,7 @@ cxPack({
           { q: "Darfst du mitkommen?", a: ["Hast du mitkommen dürfen?"], r: ["mpf.dbl"] },
         ] },
         // ── Übung 24•3: one phrase, four tenses ──
-        { id: "d24.3", ex: "24.3", t: "transform", title: "Four tenses", how: "Say it in the tense in brackets: Präteritum (musste), Perfekt (hat … müssen) or Futur (wird … müssen).", items: [
+        { id: "d24.3", ex: "24.3", t: "transform", title: "Four tenses", how: "Say it in the tense in brackets: musste · hat … müssen · wird … müssen.", items: [
           { q: "Ich will die Wohnung verkaufen. (Präteritum)", a: ["Ich wollte die Wohnung verkaufen."], r: ["mpf.prat"] },
           { q: "Ich will die Wohnung verkaufen. (Perfekt)", a: ["Ich habe die Wohnung verkaufen wollen."], r: ["mpf.dbl"] },
           { q: "Ich will die Wohnung verkaufen. (Futur)", a: ["Ich werde die Wohnung verkaufen wollen."], r: ["mpf.dbl"] },
@@ -117,7 +117,7 @@ cxPack({
           { q: "Du musst ins Ausland reisen. (Perfekt)", a: ["Du hast ins Ausland reisen müssen."], r: ["mpf.dbl"] },
           { q: "Du musst ins Ausland reisen. (Futur)", a: ["Du wirst ins Ausland reisen müssen."], r: ["mpf.dbl"] },
           { q: "Der kranke Mann darf nicht nach Hause. (Präteritum)", a: ["Der kranke Mann durfte nicht nach Hause."], r: ["mpf.prat"] },
-          { q: "Der kranke Mann darf nicht nach Hause. (Perfekt)", a: ["Der kranke Mann hat nicht nach Hause gedurft."], r: ["mpf.alone"] },
+          { q: "Der kranke Mann darf nicht nach Hause. (Perfekt)", a: ["Der kranke Mann hat nicht nach Hause gedurft.", "Der kranke Mann hat nicht nach Hause gehen dürfen."], r: ["mpf.alone"] },
           { q: "Wir sollen eine neue Schule suchen. (Perfekt)", a: ["Wir haben eine neue Schule suchen sollen."], r: ["mpf.dbl"] },
           { q: "Wir sollen eine neue Schule suchen. (Futur)", a: ["Wir werden eine neue Schule suchen sollen."], r: ["mpf.dbl"] },
         ] },
@@ -126,7 +126,7 @@ cxPack({
           { q: "Ich habe gestern nicht ___ können.", o: ["kommen", "gekommen", "komme"], a: ["kommen"], r: ["mpf.dbl"] },
           { q: "Er hat das Formular ausfüllen ___.", o: ["müssen", "gemusst", "muss"], a: ["müssen"], r: ["mpf.dbl"] },
           { q: "Das habe ich nicht ___.", o: ["gewollt", "wollen", "gewollen"], a: ["gewollt"], r: ["mpf.alone"] },
-          { q: "Wir ___ lange warten müssen.", o: ["haben", "sind", "werden"], a: ["haben"], r: ["mpf.dbl"] },
+          { q: "Wir ___ lange warten müssen.", o: ["haben", "sind", "wurden"], a: ["haben"], r: ["mpf.dbl"] },
           { q: "Die Sängerin wird in Zürich singen ___.", o: ["wollen", "gewollt", "will"], a: ["wollen"], r: ["mpf.dbl"] },
           { q: "Ich ___ gestern leider nicht anrufen.", o: ["konnte", "könnte", "kann"], a: ["konnte"], r: ["mpf.prat"] },
           { q: "Sie ist gegangen, weil sie ___.", o: ["hat arbeiten müssen", "arbeiten müssen hat", "hat müssen arbeiten"], a: ["hat arbeiten müssen"], r: ["mpf.sub"] },
@@ -145,7 +145,7 @@ cxPack({
           { q: "Habt ihr lange warten müssen?", a: ["Musstet ihr lange warten?"], r: ["mpf.prat"] },
           { q: "Sie hat das Auto nicht nehmen dürfen.", a: ["Sie durfte das Auto nicht nehmen."], r: ["mpf.prat"] },
           { q: "Wir haben den Film nicht sehen können.", a: ["Wir konnten den Film nicht sehen."], r: ["mpf.prat"] },
-          { q: "Ich habe ihn noch nie gemocht.", a: ["Ich mochte ihn noch nie."], r: ["mpf.prat"] },
+          { q: "Ich habe ihn noch nie gemocht.", a: ["Ich mochte ihn noch nie.", "Ich mochte ihn nie."], r: ["mpf.prat"] },
         ] },
         // ── our own: in a side sentence ──
         { id: "dmpf.sub", t: "transform", fixed: true, title: "…, weil ich habe arbeiten müssen", how: "Join with weil or dass, in the Perfekt: haben goes before the two infinitives.", items: [
@@ -181,15 +181,15 @@ cxPack({
           { q: "The children didn't want to sleep.", a: ["Die Kinder wollten nicht schlafen.", "Die Kinder haben nicht schlafen wollen."], r: ["mpf.prat"] },
           { q: "I'm sorry that I couldn't help you. (dir)", a: ["Es tut mir leid, dass ich dir nicht helfen konnte.", "Es tut mir leid, dass ich dir nicht habe helfen können.", "Tut mir leid, dass ich dir nicht helfen konnte."], r: ["mpf.sub"] },
           { q: "Could you sleep well? (du)", a: ["Konntest du gut schlafen?", "Hast du gut schlafen können?"], r: ["mpf.prat"] },
-          { q: "He has never been able to do that.", a: ["Das hat er nie gekonnt.", "Er hat das nie gekonnt.", "Das konnte er nie.", "Er konnte das nie."], r: ["mpf.alone"] },
+          { q: "He has never been able to do that.", a: ["Das hat er nie gekonnt.", "Er hat das nie gekonnt.", "Das konnte er nie.", "Er konnte das nie.", "Das hat er noch nie gekonnt.", "Er hat das noch nie gekonnt.", "Das konnte er noch nie.", "Er konnte das noch nie."], r: ["mpf.alone"] },
         ] },
         { id: "dw.mpf", t: "write", end: true, title: "Write your own", how: "Write in your own words, about the past. Saved for Claude to correct.", items: [
           { q: "Last week: what did you have to do, what couldn't you do?", model: ["Letzte Woche musste ich jeden Tag lange arbeiten. Am Mittwoch konnte ich nicht ins Training gehen, weil ich auf einen Handwerker warten musste."], r: ["mpf.prat"] },
           { q: "When you were a child: what were you allowed to do, what not?", model: ["Als Kind durfte ich im Sommer lange draußen spielen. Ich durfte aber nie allein in die Stadt fahren."], r: ["mpf.prat"] },
-          { q: "Something you wanted to do but couldn't. Why?", model: ["Ich wollte letztes Jahr nach Island reisen, aber ich habe keine Ferien bekommen können. Vielleicht klappt es nächstes Jahr."], r: ["mpf.dbl"] },
+          { q: "Something you wanted to do but couldn't. Why?", model: ["Ich wollte letztes Jahr nach Island reisen, aber ich habe keine Ferien nehmen können. Vielleicht klappt es nächstes Jahr."], r: ["mpf.dbl"] },
           { q: "Apologise for something you couldn't do. (Es tut mir leid, dass …)", model: ["Es tut mir leid, dass ich gestern nicht anrufen konnte. Ich musste meine Tochter vom Training abholen."], r: ["mpf.sub"] },
           { q: "Your first weeks in Switzerland: what did you have to organise?", model: ["Ich musste mich bei der Gemeinde anmelden und eine Krankenkasse suchen. Ein Bankkonto habe ich erst nach drei Wochen eröffnen können."], r: ["mpf.dbl"] },
-          { q: "Something you never liked or never could do. (gemocht · gekonnt)", model: ["Ich habe Spinat nie gemocht. Und singen habe ich auch nie gekonnt."], r: ["mpf.alone"] },
+          { q: "Something you never liked or never could do. (gemocht · gekonnt)", model: ["Ich habe Spinat nie gemocht. Und Mathe habe ich auch nie gekonnt."], r: ["mpf.alone"] },
           { q: "A bad trip: what went wrong? Use mussten and konnten.", model: ["Unser Flug hatte Verspätung, und wir mussten fünf Stunden warten. Im Hotel konnten wir nicht schlafen, weil es so laut war."], r: ["mpf.prat"] },
           { q: "Tell a friend why you couldn't come to the party.", model: ["Ich konnte leider nicht kommen, weil ich arbeiten musste. Mein Chef hat mich am Freitagabend noch angerufen."], r: ["mpf.sub"] },
         ] },

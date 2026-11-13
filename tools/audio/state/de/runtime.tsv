@@ -5610,7 +5610,9 @@ s	_course:s2.cond	Du bist nicht hier.
 s	_course:s2.cond	Du hast Hunger. Im Kühlschrank ist noch Suppe.
 s	_course:s2.cond	Du siehst aus, als ob du müde wärest.
 s	_course:s2.cond	Du siehst aus, als ob du müde wärst.
+s	_course:s2.cond	Du siehst aus, als wenn du müde wärest.
 s	_course:s2.cond	Du siehst aus, als wenn du müde wärst.
+s	_course:s2.cond	Du siehst aus, als wärst du müde.
 s	_course:s2.cond	Du weißt die Antwort. Du sagst es mir.
 s	_course:s2.cond	Er fährt, als ob die Straße ihm gehören würde.
 s	_course:s2.cond	Er fährt, als ob die Straße ihm gehörte.
@@ -5653,6 +5655,7 @@ s	_course:s2.cond	Er tut so, als wenn er mich nicht hörte.
 s	_course:s2.cond	Er tut so, als wenn er mich nicht kennen würde.
 s	_course:s2.cond	Er tut so, als wenn er mich nicht kennte.
 s	_course:s2.cond	Er tut so, als wenn er nicht kochen könnte.
+s	_course:s2.cond	Er tut so, als wüsste er alles.
 s	_course:s2.cond	Er tut, als ob er alles wüsste.
 s	_course:s2.cond	Er versteht kein Wort.
 s	_course:s2.cond	Er weiß alles.
@@ -5676,8 +5679,10 @@ s	_course:s2.cond	Es wäre schön, wenn ihr kommen würdet.
 s	_course:s2.cond	Es wäre schön, wenn ihr kämet.
 s	_course:s2.cond	Es wäre schön, wenn ihr kämt.
 s	_course:s2.cond	Hätte ich Zeit, würde ich kommen.
+s	_course:s2.cond	Hätte ich doch nur mehr Zeit!
 s	_course:s2.cond	Hätte ich nur mehr Zeit!
 s	_course:s2.cond	Hätten wir doch ein Auto!
+s	_course:s2.cond	Hätten wir doch nur ein Auto!
 s	_course:s2.cond	Ich bin reich. Ich höre auf zu arbeiten.
 s	_course:s2.cond	Ich finde eine Wohnung. Ich ziehe nach Bern.
 s	_course:s2.cond	Ich habe ein Velo. Ich fahre damit zur Arbeit.
@@ -5686,6 +5691,7 @@ s	_course:s2.cond	Ich kann Ski fahren. Ich fahre im Winter nach Davos.
 s	_course:s2.cond	Ich kann gut kochen. Ich lade euch ein.
 s	_course:s2.cond	Ich kann nicht schwimmen.
 s	_course:s2.cond	Ich muss nicht arbeiten. Ich komme mit.
+s	_course:s2.cond	Ich wünschte mir, ich hätte mehr Geld.
 s	_course:s2.cond	Ich wünschte, du wärst hier.
 s	_course:s2.cond	Ich wünschte, ich hätte mehr Geld.
 s	_course:s2.cond	Ich wünschte, ich hätte mehr Zeit.
@@ -5699,6 +5705,8 @@ s	_course:s2.cond	Ich würde warten, wenn ich du wäre.
 s	_course:s2.cond	Ihr habt Fragen. Ihr könnt mir schreiben.
 s	_course:s2.cond	Ihr habt ein Halbtax. Die Reise ist billiger.
 s	_course:s2.cond	Ihr müsst nicht so früh aufstehen. Ihr seid nicht so müde.
+s	_course:s2.cond	Könnte ich doch nur besser singen!
+s	_course:s2.cond	Könnte ich doch nur schlafen!
 s	_course:s2.cond	Könnte ich doch schlafen!
 s	_course:s2.cond	Könnte ich nur besser singen!
 s	_course:s2.cond	Könnte ich nur schlafen!
@@ -5712,6 +5720,7 @@ s	_course:s2.cond	Mein Sohn isst, als ob er nie etwas zu essen bekäme.
 s	_course:s2.cond	Mein Sohn isst, als wenn er nie etwas zu essen bekommen würde.
 s	_course:s2.cond	Mein Sohn isst, als wenn er nie etwas zu essen bekäme.
 s	_course:s2.cond	Müsste ich doch nicht arbeiten!
+s	_course:s2.cond	Müsste ich doch nur nicht arbeiten!
 s	_course:s2.cond	Ruf mich an, wenn du Fragen hast.
 s	_course:s2.cond	Sara spricht Deutsch. Sie findet schneller eine Stelle.
 s	_course:s2.cond	Sie haben Zeit. Kommen Sie doch vorbei!
@@ -5736,23 +5745,34 @@ s	_course:s2.cond	Wenn das Wetter besser wäre, gingen wir wandern.
 s	_course:s2.cond	Wenn das Wetter besser wäre, könnten wir wandern.
 s	_course:s2.cond	Wenn das Wetter besser wäre, würden wir wandern gehen.
 s	_course:s2.cond	Wenn das Wetter doch besser wäre!
+s	_course:s2.cond	Wenn das Wetter doch nur besser wäre!
 s	_course:s2.cond	Wenn das Wetter nur besser wäre!
 s	_course:s2.cond	Wenn das Wetter schön ist, gehen wir wandern. Wenn es regnet, besuchen wir ein Museum in Basel.
 s	_course:s2.cond	Wenn das Wetter schön ist, grillen wir am See.
 s	_course:s2.cond	Wenn das Wetter schön wäre, könnten wir grillen.
+s	_course:s2.cond	Wenn der Bus doch endlich kommen würde!
+s	_course:s2.cond	Wenn der Bus doch endlich käme!
 s	_course:s2.cond	Wenn der Bus doch kommen würde!
 s	_course:s2.cond	Wenn der Bus doch käme!
+s	_course:s2.cond	Wenn der Bus doch nur endlich kommen würde!
+s	_course:s2.cond	Wenn der Bus doch nur endlich käme!
+s	_course:s2.cond	Wenn der Bus doch nur kommen würde!
+s	_course:s2.cond	Wenn der Bus doch nur käme!
 s	_course:s2.cond	Wenn der Bus kommen würde, wären wir pünktlich.
 s	_course:s2.cond	Wenn der Bus kommt, sind wir pünktlich.
 s	_course:s2.cond	Wenn der Bus käme, wären wir pünktlich.
+s	_course:s2.cond	Wenn der Bus nur endlich kommen würde!
+s	_course:s2.cond	Wenn der Bus nur endlich käme!
 s	_course:s2.cond	Wenn der Bus nur kommen würde!
 s	_course:s2.cond	Wenn der Bus nur käme!
 s	_course:s2.cond	Wenn der Laden zu ist, kaufen wir morgen ein.
 s	_course:s2.cond	Wenn der Zug Verspätung hat, rufe ich dich an.
 s	_course:s2.cond	Wenn der Zug auch nachts fahren würde, würde ich nie mehr Auto fahren.
 s	_course:s2.cond	Wenn der Zug pünktlich wäre, müssten wir nicht warten.
+s	_course:s2.cond	Wenn der Zug pünktlich wäre, würden wir nicht warten müssen.
 s	_course:s2.cond	Wenn die Kinder länger aufbleiben dürften, wären sie glücklich.
 s	_course:s2.cond	Wenn die Miete doch nicht so hoch wäre!
+s	_course:s2.cond	Wenn die Miete doch nur nicht so hoch wäre!
 s	_course:s2.cond	Wenn die Miete nur nicht so hoch wäre!
 s	_course:s2.cond	Wenn die Prüfung nur schon vorbei wäre!
 s	_course:s2.cond	Wenn die Wohnung größer wäre, würden wir sie nehmen.
@@ -5761,8 +5781,11 @@ s	_course:s2.cond	Wenn du Fragen hast, ruf mich an.
 s	_course:s2.cond	Wenn du Hunger hast, ist im Kühlschrank noch Suppe.
 s	_course:s2.cond	Wenn du Hunger hast, ist noch Suppe im Kühlschrank.
 s	_course:s2.cond	Wenn du die Antwort wüsstest, würdest du es mir sagen.
+s	_course:s2.cond	Wenn du die Antwort wüsstest, würdest du sie mir sagen.
 s	_course:s2.cond	Wenn du doch hier wärest!
 s	_course:s2.cond	Wenn du doch hier wärst!
+s	_course:s2.cond	Wenn du doch nur hier wärest!
+s	_course:s2.cond	Wenn du doch nur hier wärst!
 s	_course:s2.cond	Wenn du hier wärest, würden wir zusammen einen Kaffee trinken.
 s	_course:s2.cond	Wenn du hier wärest, würden wir zusammen kochen.
 s	_course:s2.cond	Wenn du hier wärst, würden wir zusammen einen Kaffee trinken.
@@ -5778,16 +5801,25 @@ s	_course:s2.cond	Wenn er anruft, bin ich froh.
 s	_course:s2.cond	Wenn er doch am Wochenende nicht bis Mittag schlafen würde!
 s	_course:s2.cond	Wenn er doch anrufen würde!
 s	_course:s2.cond	Wenn er doch das Geschirr abwaschen würde!
-s	_course:s2.cond	Wenn er doch den Müll rausbringen würde!
+s	_course:s2.cond	Wenn er doch den Abfall rausbringen würde!
 s	_course:s2.cond	Wenn er doch die Miete pünktlich bezahlen würde!
 s	_course:s2.cond	Wenn er doch mehr Zeit für den Haushalt hätte!
 s	_course:s2.cond	Wenn er doch nicht so lange duschen würde!
 s	_course:s2.cond	Wenn er doch nicht so laut Musik hören würde!
+s	_course:s2.cond	Wenn er doch nur am Wochenende nicht bis Mittag schlafen würde!
+s	_course:s2.cond	Wenn er doch nur das Geschirr abwaschen würde!
+s	_course:s2.cond	Wenn er doch nur den Abfall rausbringen würde!
+s	_course:s2.cond	Wenn er doch nur die Miete pünktlich bezahlen würde!
+s	_course:s2.cond	Wenn er doch nur mehr Zeit für den Haushalt hätte!
+s	_course:s2.cond	Wenn er doch nur nicht so lange duschen würde!
+s	_course:s2.cond	Wenn er doch nur nicht so laut Musik hören würde!
+s	_course:s2.cond	Wenn er doch nur ordentlicher wäre!
+s	_course:s2.cond	Wenn er doch nur seine Schuhe wegräumen würde!
 s	_course:s2.cond	Wenn er doch ordentlicher wäre!
 s	_course:s2.cond	Wenn er doch seine Schuhe wegräumen würde!
 s	_course:s2.cond	Wenn er nur am Wochenende nicht bis Mittag schlafen würde!
 s	_course:s2.cond	Wenn er nur das Geschirr abwaschen würde!
-s	_course:s2.cond	Wenn er nur den Müll rausbringen würde!
+s	_course:s2.cond	Wenn er nur den Abfall rausbringen würde!
 s	_course:s2.cond	Wenn er nur die Miete pünktlich bezahlen würde!
 s	_course:s2.cond	Wenn er nur mehr Zeit für den Haushalt hätte!
 s	_course:s2.cond	Wenn er nur nicht so lange duschen würde!
@@ -5799,6 +5831,10 @@ s	_course:s2.cond	Wenn er pünktlich käme, könnten wir anfangen.
 s	_course:s2.cond	Wenn es doch nicht regnen würde!
 s	_course:s2.cond	Wenn es doch nicht schon wieder regnen würde!
 s	_course:s2.cond	Wenn es doch nicht so kalt wäre!
+s	_course:s2.cond	Wenn es doch nur nicht regnen würde!
+s	_course:s2.cond	Wenn es doch nur nicht schon wieder regnen würde!
+s	_course:s2.cond	Wenn es doch nur nicht so kalt wäre!
+s	_course:s2.cond	Wenn es doch nur wärmer wäre!
 s	_course:s2.cond	Wenn es doch wärmer wäre!
 s	_course:s2.cond	Wenn es keinen Schnee gibt, fahren wir nicht in die Berge.
 s	_course:s2.cond	Wenn es keinen Schnee gäbe, würden wir nicht in die Berge fahren.
@@ -5808,8 +5844,10 @@ s	_course:s2.cond	Wenn es nicht regnen würde, würden wir wandern gehen.
 s	_course:s2.cond	Wenn es nicht regnete, würden wir wandern gehen.
 s	_course:s2.cond	Wenn es nur nicht regnen würde!
 s	_course:s2.cond	Wenn es nur nicht schon wieder regnen würde!
+s	_course:s2.cond	Wenn es nur wärmer wäre!
 s	_course:s2.cond	Wenn es regnet, bleiben wir daheim.
 s	_course:s2.cond	Wenn es regnet, bleiben wir zu Hause.
+s	_course:s2.cond	Wenn es regnet, bleiben wir zuhause.
 s	_course:s2.cond	Wenn es schneit, bauen die Kinder einen Schneemann.
 s	_course:s2.cond	Wenn es warm ist, schwimmen wir im See.
 s	_course:s2.cond	Wenn es warm wäre, würden wir im See schwimmen.
@@ -5821,6 +5859,8 @@ s	_course:s2.cond	Wenn ich Zeit hätte, würde ich kommen.
 s	_course:s2.cond	Wenn ich Zeit hätte, würde ich meine Oma besuchen.
 s	_course:s2.cond	Wenn ich am Abend mehr Zeit hätte, könnte ich ein Instrument lernen.
 s	_course:s2.cond	Wenn ich besser Deutsch sprechen könnte, hätte ich mehr Freunde hier.
+s	_course:s2.cond	Wenn ich den Dialekt doch nur verstehen könnte!
+s	_course:s2.cond	Wenn ich den Dialekt doch nur verstehen würde!
 s	_course:s2.cond	Wenn ich den Dialekt doch verstehen könnte!
 s	_course:s2.cond	Wenn ich den Dialekt doch verstehen würde!
 s	_course:s2.cond	Wenn ich den Dialekt nur verstehen könnte!
@@ -5836,9 +5876,29 @@ s	_course:s2.cond	Wenn ich doch eine größere Wohnung finden könnte!
 s	_course:s2.cond	Wenn ich doch eine größere Wohnung finden würde!
 s	_course:s2.cond	Wenn ich doch eine größere Wohnung fände!
 s	_course:s2.cond	Wenn ich doch mehr Geld hätte!
+s	_course:s2.cond	Wenn ich doch mehr Zeit hätte!
 s	_course:s2.cond	Wenn ich doch morgen nicht arbeiten müsste!
 s	_course:s2.cond	Wenn ich doch nicht arbeiten müsste!
 s	_course:s2.cond	Wenn ich doch nicht so müde wäre!
+s	_course:s2.cond	Wenn ich doch nur Schweizerdeutsch verstehen könnte!
+s	_course:s2.cond	Wenn ich doch nur Schweizerdeutsch verstehen würde!
+s	_course:s2.cond	Wenn ich doch nur Zeit hätte!
+s	_course:s2.cond	Wenn ich doch nur besser schlafen könnte!
+s	_course:s2.cond	Wenn ich doch nur den Dialekt verstehen könnte!
+s	_course:s2.cond	Wenn ich doch nur den Dialekt verstehen würde!
+s	_course:s2.cond	Wenn ich doch nur die Antwort wüsste!
+s	_course:s2.cond	Wenn ich doch nur eine größere Wohnung finden könnte!
+s	_course:s2.cond	Wenn ich doch nur eine größere Wohnung finden würde!
+s	_course:s2.cond	Wenn ich doch nur eine größere Wohnung fände!
+s	_course:s2.cond	Wenn ich doch nur mehr Geld hätte!
+s	_course:s2.cond	Wenn ich doch nur mehr Zeit hätte!
+s	_course:s2.cond	Wenn ich doch nur morgen nicht arbeiten müsste!
+s	_course:s2.cond	Wenn ich doch nur nicht so müde wäre!
+s	_course:s2.cond	Wenn ich doch nur schlafen könnte!
+s	_course:s2.cond	Wenn ich doch nur schneller lernen könnte!
+s	_course:s2.cond	Wenn ich doch nur schneller lernen würde!
+s	_course:s2.cond	Wenn ich doch nur schon in den Ferien wäre!
+s	_course:s2.cond	Wenn ich doch nur schwimmen könnte!
 s	_course:s2.cond	Wenn ich doch schlafen könnte!
 s	_course:s2.cond	Wenn ich doch schneller lernen könnte!
 s	_course:s2.cond	Wenn ich doch schneller lernen würde!
@@ -5865,6 +5925,9 @@ s	_course:s2.cond	Wenn ich kein Auto hätte, würde ich näher am Bahnhof wohnen
 s	_course:s2.cond	Wenn ich könnte, würde ich dir helfen.
 s	_course:s2.cond	Wenn ich mehr Geld hätte, würde ich ein Haus kaufen.
 s	_course:s2.cond	Wenn ich mehr Zeit hätte, würde ich Italienisch lernen.
+s	_course:s2.cond	Wenn ich morgen doch nicht arbeiten müsste!
+s	_course:s2.cond	Wenn ich morgen doch nur nicht arbeiten müsste!
+s	_course:s2.cond	Wenn ich morgen nur nicht arbeiten müsste!
 s	_course:s2.cond	Wenn ich nicht arbeiten müsste, käme ich mit.
 s	_course:s2.cond	Wenn ich nicht arbeiten müsste, würde ich mitkommen.
 s	_course:s2.cond	Wenn ich nicht in der Schweiz arbeiten würde, würde ich am Meer wohnen.
@@ -5892,7 +5955,7 @@ s	_course:s2.cond	Wenn ich nur schwimmen könnte!
 s	_course:s2.cond	Wenn ich perfekt Deutsch sprechen würde, hätte ich eine bessere Stelle. Ich könnte mit allen Nachbarn reden und müsste nie mehr nachfragen.
 s	_course:s2.cond	Wenn ich reich wäre, würde ich aufhören zu arbeiten.
 s	_course:s2.cond	Wenn ich reich wäre, würde ich nicht mehr arbeiten.
-s	_course:s2.cond	Wenn ich überall wohnen könnte, würde ich in Lugano wohnen. Dort wäre es wärmer, und ich könnte jeden Tag im See schwimmen.
+s	_course:s2.cond	Wenn ich wohnen könnte, wo ich will, würde ich in Lugano wohnen. Dort wäre es wärmer, und ich könnte jeden Tag im See schwimmen.
 s	_course:s2.cond	Wenn ihr Fragen habt, könnt ihr mir schreiben.
 s	_course:s2.cond	Wenn ihr Lust habt, machen wir ein Picknick.
 s	_course:s2.cond	Wenn ihr Lust hättet, würden wir ein Picknick machen.
@@ -5901,6 +5964,8 @@ s	_course:s2.cond	Wenn ihr nicht so früh aufstehen müsstet, wäret ihr nicht s
 s	_course:s2.cond	Wenn ihr nicht so früh aufstehen müsstet, wärt ihr nicht so müde.
 s	_course:s2.cond	Wenn man hier parken dürfte, würden wir länger bleiben.
 s	_course:s2.cond	Wenn mein Bruder doch nicht so weit weg wohnen würde!
+s	_course:s2.cond	Wenn mein Bruder doch nur nicht so weit weg wohnen würde!
+s	_course:s2.cond	Wenn mein Bruder doch nur näher wohnen würde!
 s	_course:s2.cond	Wenn mein Bruder doch näher wohnen würde!
 s	_course:s2.cond	Wenn mein Bruder nur nicht so weit weg wohnen würde!
 s	_course:s2.cond	Wenn mein Bruder nur näher wohnen würde!
@@ -5911,6 +5976,7 @@ s	_course:s2.cond	Wenn wir Deutsch sprechen könnten, würden wir die Nachbarn v
 s	_course:s2.cond	Wenn wir Geld haben, kaufen wir ein neues Sofa.
 s	_course:s2.cond	Wenn wir Geld hätten, würden wir ein neues Sofa kaufen.
 s	_course:s2.cond	Wenn wir doch ein Auto hätten!
+s	_course:s2.cond	Wenn wir doch nur ein Auto hätten!
 s	_course:s2.cond	Wenn wir ein Jahr frei hätten, wären wir glücklich.
 s	_course:s2.cond	Wenn wir ein Jahr frei hätten, würden wir Spanisch lernen.
 s	_course:s2.cond	Wenn wir ein Jahr frei hätten, würden wir ein Buch schreiben.
@@ -5932,14 +5998,18 @@ s	_course:s2.cond	Wir müssten nicht warten, wenn der Zug pünktlich wäre.
 s	_course:s2.cond	Wir würden wandern gehen, wenn es nicht regnen würde.
 s	_course:s2.cond	Wir würden zusammen kochen, wenn du hier wärst.
 s	_course:s2.cond	Wäre das Wetter doch besser!
+s	_course:s2.cond	Wäre das Wetter doch nur besser!
 s	_course:s2.cond	Wäre das Wetter nur besser!
 s	_course:s2.cond	Wäre das Wetter schön, könnten wir grillen.
+s	_course:s2.cond	Wäre die Prüfung doch nur schon vorbei!
 s	_course:s2.cond	Wäre die Prüfung nur schon vorbei!
+s	_course:s2.cond	Wäre es doch nur wärmer!
 s	_course:s2.cond	Wäre es doch wärmer!
 s	_course:s2.cond	Wäre ich doch schon in den Ferien!
 s	_course:s2.cond	Wärest du nur hier!
 s	_course:s2.cond	Wärst du nur hier!
 s	_course:s2.cond	Würde er doch anrufen!
+s	_course:s2.cond	Würde er doch nur anrufen!
 s	_course:s2.cond	am Wochenende nicht bis Mittag schlafen
 s	_course:s2.cond	die Miete pünktlich bezahlen
 s	_course:s2.cond	ein Haus im Tessin mieten
@@ -5955,8 +6025,8 @@ s	_course:s2.cond	unsere Familie in Brasilien besuchen
 s	_course:s2.cond	viel Zeit mit den Kindern verbringen
 w	_course:s2.cond	Spanisch lernen
 w	_course:s2.cond	das Geschirr abwaschen
+w	_course:s2.cond	den Abfall rausbringen
 w	_course:s2.cond	den Bus nehmen
-w	_course:s2.cond	den Müll rausbringen
 w	_course:s2.cond	ein Buch schreiben
 w	_course:s2.cond	ein Generalabonnement kaufen
 w	_course:s2.cond	fitter sein
@@ -6820,6 +6890,7 @@ s	_course:s2.k2	Darf ich das Fenster öffnen?
 s	_course:s2.k2	Das Konzert sollte um acht beginnen.
 s	_course:s2.k2	Das Sofa stände besser am Fenster.
 s	_course:s2.k2	Das Sofa stünde besser am Fenster.
+s	_course:s2.k2	Das dürfte eigentlich nicht passieren.
 s	_course:s2.k2	Das ist schön.
 s	_course:s2.k2	Das könnte in zehn Minuten fertig sein.
 s	_course:s2.k2	Das wäre großartig!
@@ -6829,16 +6900,16 @@ s	_course:s2.k2	Das wäre super!
 s	_course:s2.k2	Das wäre wunderbar!
 s	_course:s2.k2	Das würde ich nicht machen.
 s	_course:s2.k2	Das würde ich nicht tun.
-s	_course:s2.k2	Die Idee wäre gut, aber ich würde noch etwas warten. Vielleicht könnten wir zuerst mit dem Chef sprechen.
-s	_course:s2.k2	Die Kinder hätten gern eine heiße Schokolade.
-s	_course:s2.k2	Die Kinder hätten gerne eine heiße Schokolade.
-s	_course:s2.k2	Die Kinder möchten eine heiße Schokolade.
+s	_course:s2.k2	Die Idee ist gut, aber ich würde noch etwas warten. Vielleicht könnten wir zuerst mit dem Chef sprechen.
+s	_course:s2.k2	Die Kinder hätten gern zwei heiße Schokoladen.
+s	_course:s2.k2	Die Kinder hätten gerne zwei heiße Schokoladen.
+s	_course:s2.k2	Die Kinder möchten zwei heiße Schokoladen.
 s	_course:s2.k2	Die Kinder würden am liebsten den ganzen Tag spielen.
 s	_course:s2.k2	Die Zwillinge hätten gern neue Ski.
 s	_course:s2.k2	Die Zwillinge hätten gerne neue Ski.
-s	_course:s2.k2	Du schläfst früher.
-s	_course:s2.k2	Du solltest weniger Kaffee trinken. Ich würde am Abend nicht mehr am Handy sein. An deiner Stelle würde ich vor dem Schlafen spazieren gehen.
-s	_course:s2.k2	Du würdest früher schlafen.
+s	_course:s2.k2	Du gehst früher schlafen.
+s	_course:s2.k2	Du solltest weniger Kaffee trinken. Ich würde am Abend das Handy weglegen. An deiner Stelle würde ich vor dem Schlafengehen spazieren gehen.
+s	_course:s2.k2	Du würdest früher schlafen gehen.
 s	_course:s2.k2	Dürfte ich das Fenster öffnen?
 s	_course:s2.k2	Dürfte ich eine Frage stellen?
 s	_course:s2.k2	Dürfte ich etwas fragen?
@@ -6875,7 +6946,7 @@ s	_course:s2.k2	Gäbe es morgen noch Plätze?
 s	_course:s2.k2	Hätten Sie morgen Zeit?
 s	_course:s2.k2	Ich bliebe gern noch hier. Mein Mann bliebe auch gern.
 s	_course:s2.k2	Ich frage die Vermieterin.
-s	_course:s2.k2	Ich fände das Buch spannend, glaube ich.
+s	_course:s2.k2	Ich fände es schön, wenn du mitkommst.
 s	_course:s2.k2	Ich hätte bitte gern einen Kaffee.
 s	_course:s2.k2	Ich hätte gern ein Stück Rüeblitorte.
 s	_course:s2.k2	Ich hätte gern ein neues Velo.
@@ -6889,6 +6960,7 @@ s	_course:s2.k2	Ich kaufe ein Halbtax.
 s	_course:s2.k2	Ich könnte dir helfen.
 s	_course:s2.k2	Ich möchte bitte einen Kaffee.
 s	_course:s2.k2	Ich möchte ein Stück Rüeblitorte.
+s	_course:s2.k2	Ich möchte gern einen Kaffee.
 s	_course:s2.k2	Ich rufe die Versicherung an.
 s	_course:s2.k2	Ich spreche mit dem Chef.
 s	_course:s2.k2	Ich warte bis morgen.
@@ -6911,15 +6983,15 @@ s	_course:s2.k2	Könnte ich Sie etwas fragen?
 s	_course:s2.k2	Könnte ich etwas fragen?
 s	_course:s2.k2	Könnte ich noch ein Glas Wasser haben?
 s	_course:s2.k2	Könnten Sie bitte langsamer sprechen?
-s	_course:s2.k2	Könnten Sie bitte mir helfen?
 s	_course:s2.k2	Könnten Sie langsamer sprechen, bitte?
 s	_course:s2.k2	Könnten Sie mir bitte helfen?
-s	_course:s2.k2	Könnten Sie mir bitte helfen? Ich hätte gern ein Formular für die Anmeldung. Wüssten Sie, wie lange das dauert?
+s	_course:s2.k2	Könnten Sie mir bitte helfen? Könnte ich ein Formular für die Anmeldung haben? Wüssten Sie, wie lange das dauert?
 s	_course:s2.k2	Könnten Sie mir helfen, bitte?
 s	_course:s2.k2	Könnten Sie mir sagen, wo der Bahnhof ist?
 s	_course:s2.k2	Könntest du das Fenster öffnen?
 s	_course:s2.k2	Könntest du mich abholen?
 s	_course:s2.k2	Lea hätte gern einen Hund.
+s	_course:s2.k2	Lea wüsste sicher, wo es ist.
 s	_course:s2.k2	Lena hätte gern ein Mineralwasser ohne Kohlensäure.
 s	_course:s2.k2	Lena hätte gerne ein Mineralwasser ohne Kohlensäure.
 s	_course:s2.k2	Lena möchte ein Mineralwasser ohne Kohlensäure.
@@ -6927,7 +6999,6 @@ s	_course:s2.k2	Lukas ginge gern ins Kino. Ich ginge auch gern.
 s	_course:s2.k2	Lukas ginge gern ins Kino. Sein Freund ginge auch gern.
 s	_course:s2.k2	Mama hätte gern einen freien Tag.
 s	_course:s2.k2	Mama hätte gerne einen freien Tag.
-s	_course:s2.k2	Man dürfte hier nicht parken.
 s	_course:s2.k2	Marco hätte gern einen Espresso.
 s	_course:s2.k2	Marco hätte gerne einen Espresso.
 s	_course:s2.k2	Marco möchte einen Espresso.
@@ -6935,7 +7006,7 @@ s	_course:s2.k2	Mein Mann hätte gern ein Gipfeli.
 s	_course:s2.k2	Mein Mann hätte gerne ein Gipfeli.
 s	_course:s2.k2	Mein Mann möchte ein Gipfeli.
 s	_course:s2.k2	Mein Mann würde lieber in den Bergen wohnen.
-s	_course:s2.k2	Mein Traumhaus wäre am See. Es hätte einen großen Garten und eine Küche mit Blick auf die Berge. Die Kinder hätten jeder ein eigenes Zimmer.
+s	_course:s2.k2	Mein Traumhaus wäre am See. Es hätte einen großen Garten und eine Küche mit Blick auf die Berge. Jedes Kind hätte ein eigenes Zimmer.
 s	_course:s2.k2	Meine Eltern würden ein Haus kaufen.
 s	_course:s2.k2	Meine Mutter hätte gern einen Tee mit Zitrone.
 s	_course:s2.k2	Meine Mutter hätte gerne einen Tee mit Zitrone.
@@ -6960,7 +7031,6 @@ s	_course:s2.k2	Papa hätte gerne einen Rucksack.
 s	_course:s2.k2	Sara würde nie ohne Helm Velo fahren.
 s	_course:s2.k2	Sie bestellen eine Pizza.
 s	_course:s2.k2	Sie würden eine Pizza bestellen.
-s	_course:s2.k2	Sie wüsste sicher, wo es ist.
 s	_course:s2.k2	Und ich hätte gern noch einen Kaffee.
 s	_course:s2.k2	Und ich hätte gerne noch einen Kaffee.
 s	_course:s2.k2	Und ich möchte noch einen Kaffee.
@@ -6982,6 +7052,7 @@ s	_course:s2.k2	Wir würden gern einen Hund haben, aber die Wohnung ist zu klein
 s	_course:s2.k2	Wir würden lieber daheim bleiben.
 s	_course:s2.k2	Wir würden lieber mit dem Zug fahren.
 s	_course:s2.k2	Wir würden lieber zu Hause bleiben.
+s	_course:s2.k2	Wir würden lieber zuhause bleiben.
 s	_course:s2.k2	Wir würden noch einen Tag bleiben.
 s	_course:s2.k2	Würden Sie bitte hier unterschreiben?
 s	_course:s2.k2	Würden Sie mir die Rechnung schicken?
@@ -7078,6 +7149,9 @@ s	_course:s2.lassen	Ich backe die Torte nicht selbst.
 s	_course:s2.lassen	Ich habe die Kinder lachen gehört.
 s	_course:s2.lassen	Ich habe die Kinder lachen hören.
 s	_course:s2.lassen	Ich habe mein Handy zu Hause gelassen.
+s	_course:s2.lassen	Ich habe mein Handy zu Hause liegen gelassen.
+s	_course:s2.lassen	Ich habe mein Handy zu Hause liegen lassen.
+s	_course:s2.lassen	Ich habe mein Handy zuhause gelassen.
 s	_course:s2.lassen	Ich habe mein Telefon zu Hause gelassen.
 s	_course:s2.lassen	Ich habe meinen Schirm im Bus gelassen.
 s	_course:s2.lassen	Ich habe mir die Haare kurz schneiden lassen.
@@ -7100,6 +7174,7 @@ s	_course:s2.lassen	Ich lasse mir alle zwei Monate die Haare schneiden. Mein Aut
 s	_course:s2.lassen	Ich lasse mir die Haare kurz schneiden.
 s	_course:s2.lassen	Ich lasse mir die Haare schneiden.
 s	_course:s2.lassen	Ich lasse mir morgen die Haare schneiden.
+s	_course:s2.lassen	Ich lasse morgen meine Haare schneiden.
 s	_course:s2.lassen	Ich ließ mein Handy zu Hause.
 s	_course:s2.lassen	Ich ließ meine Brille reparieren.
 s	_course:s2.lassen	Ich ließ mir die Haare schneiden.
@@ -7154,6 +7229,7 @@ s	_course:s2.lassen	Man konnte die Tür nicht abschließen.
 s	_course:s2.lassen	Mein Bruder hilft mir die Kisten tragen.
 s	_course:s2.lassen	Mein Bruder hilft mir, die Kisten zu tragen.
 s	_course:s2.lassen	Mein Mann kocht.
+s	_course:s2.lassen	Mein Sohn hat mir das Velo reparieren geholfen.
 s	_course:s2.lassen	Mein Sohn hat mir das Velo reparieren helfen.
 s	_course:s2.lassen	Mein Sohn hat mir geholfen, das Velo zu reparieren.
 s	_course:s2.lassen	Mein Sohn hilft mir das Velo reparieren.
@@ -7167,6 +7243,7 @@ s	_course:s2.lassen	Meine Eltern lassen mich nicht ausgehen.
 s	_course:s2.lassen	Meine Eltern ließen mich jeden Tag draußen spielen. Sie ließen mich aber nie allein in die Stadt fahren.
 s	_course:s2.lassen	Meine Eltern ließen mich nicht ausgehen.
 s	_course:s2.lassen	Mia sieht den Zug kommen.
+s	_course:s2.lassen	Morgen lasse ich meine Haare schneiden.
 s	_course:s2.lassen	Morgen lasse ich mir die Haare schneiden.
 s	_course:s2.lassen	Sie hat sich die Haare schneiden lassen.
 s	_course:s2.lassen	Sie hört jemand die Treppe heraufkommen.
@@ -7204,7 +7281,6 @@ s	_course:s2.man	Am Sonntag mäht man nicht den Rasen.
 s	_course:s2.man	Am Sonntag wird nicht gearbeitet.
 s	_course:s2.man	Auf der Hochzeit meiner Cousine wurde viel gegessen und getrunken. Es wurde bis drei Uhr morgens getanzt.
 s	_course:s2.man	Auf der Hochzeit wurde bis zum Morgen getanzt.
-s	_course:s2.man	Bei der SBB wurde gestreikt.
 s	_course:s2.man	Bei uns wird Neujahr mit der Familie gefeiert. Man isst zusammen, und um Mitternacht wird gesungen.
 s	_course:s2.man	Bei uns wird am Abend zusammen gegessen.
 s	_course:s2.man	Bei uns wird viel gelacht.
@@ -7252,6 +7328,8 @@ s	_course:s2.man	Ein Dieb hat mein Velo gestohlen. Mein Velo ist gestohlen worde
 s	_course:s2.man	Ein Geschenk wird den Kindern gegeben.
 s	_course:s2.man	Ein Paket wurde mir geschickt.
 s	_course:s2.man	Eine Stelle ist mir angeboten worden.
+s	_course:s2.man	Es ist bis Mitternacht getanzt worden.
+s	_course:s2.man	Es ist viel gelacht worden.
 s	_course:s2.man	Es werden viele Fragen gestellt.
 s	_course:s2.man	Es wird am Abend musiziert.
 s	_course:s2.man	Es wird am Sonntag nicht gearbeitet.
@@ -7268,10 +7346,10 @@ s	_course:s2.man	Es wird in Gruppen gearbeitet.
 s	_course:s2.man	Es wird oft gelacht.
 s	_course:s2.man	Es wird viel gesprochen.
 s	_course:s2.man	Es wurde auf der Hochzeit bis zum Morgen getanzt.
-s	_course:s2.man	Es wurde bei der SBB gestreikt.
 s	_course:s2.man	Es wurde bis Mitternacht getanzt.
 s	_course:s2.man	Es wurde bis drei Uhr morgens getanzt.
 s	_course:s2.man	Es wurde gestern lange gefeiert.
+s	_course:s2.man	Es wurde im Restaurant laut gesungen.
 s	_course:s2.man	Es wurde im Sommer viel gewandert.
 s	_course:s2.man	Es wurde viel gelacht.
 s	_course:s2.man	Euch wird geholfen.
@@ -7300,6 +7378,7 @@ s	_course:s2.man	Ihr wurde von allen gratuliert.
 s	_course:s2.man	Ihr wurden Blumen geschenkt.
 s	_course:s2.man	Im Bus isst man nicht.
 s	_course:s2.man	Im Bus wird nicht gegessen.
+s	_course:s2.man	Im Restaurant wurde laut gesungen.
 s	_course:s2.man	Im Sommer wurde viel gewandert.
 s	_course:s2.man	Im Zug wird nicht geraucht.
 s	_course:s2.man	In Spanien isst man spät.
@@ -7310,16 +7389,20 @@ s	_course:s2.man	In unserem Büro wird nicht gegessen. Man darf aber Kaffee trin
 s	_course:s2.man	Man arbeitet in Gruppen.
 s	_course:s2.man	Man baute die Brücke.
 s	_course:s2.man	Man bezahlt die Rechnung an der Kasse.
+s	_course:s2.man	Man bot ihm eine Stelle an.
 s	_course:s2.man	Man dankte den Helfern.
 s	_course:s2.man	Man empfiehlt den Gästen das Tagesmenü.
 s	_course:s2.man	Man erklärte ihm den Weg.
 s	_course:s2.man	Man feiert am 1. August.
 s	_course:s2.man	Man gibt den Kindern ein Geschenk.
 s	_course:s2.man	Man glaubt ihm nicht.
+s	_course:s2.man	Man hat ihm eine Stelle angeboten.
 s	_course:s2.man	Man hat mir eine Stelle angeboten.
 s	_course:s2.man	Man hat mir nicht geglaubt.
+s	_course:s2.man	Man hat mir sofort geholfen.
 s	_course:s2.man	Man hat uns die Schlüssel gegeben.
 s	_course:s2.man	Man hat uns nichts gesagt.
+s	_course:s2.man	Man hat viel gelacht.
 s	_course:s2.man	Man hilft dir sofort.
 s	_course:s2.man	Man hilft uns.
 s	_course:s2.man	Man hört gut zu.
@@ -7329,6 +7412,7 @@ s	_course:s2.man	Man isst in der Schweiz viel Käse.
 s	_course:s2.man	Man isst nicht im Bus.
 s	_course:s2.man	Man kocht die Bohnen langsam.
 s	_course:s2.man	Man lacht oft.
+s	_course:s2.man	Man lachte viel.
 s	_course:s2.man	Man liest einen Text.
 s	_course:s2.man	Man macht eine Pause.
 s	_course:s2.man	Man mäht am Sonntag den Rasen nicht.
@@ -7347,6 +7431,7 @@ s	_course:s2.man	Mir ist nicht geglaubt worden.
 s	_course:s2.man	Mir ist sofort geholfen worden.
 s	_course:s2.man	Mir wird nicht geantwortet.
 s	_course:s2.man	Mir wurde ein Paket geschickt.
+s	_course:s2.man	Mir wurde gleich geholfen.
 s	_course:s2.man	Mir wurde nicht geantwortet.
 s	_course:s2.man	Mir wurde nicht geglaubt.
 s	_course:s2.man	Mir wurde sofort geholfen.
@@ -7378,11 +7463,14 @@ s	_course:s2.modpf	Am Samstag musste ich arbeiten.
 s	_course:s2.modpf	Darfst du mitkommen?
 s	_course:s2.modpf	Das habe ich nicht gewollt — es tut mir leid.
 s	_course:s2.modpf	Das habe ich nicht gewollt.
+s	_course:s2.modpf	Das hat er noch nie gekonnt.
 s	_course:s2.modpf	Das konnte er nie.
+s	_course:s2.modpf	Das konnte er noch nie.
 s	_course:s2.modpf	Das wollte ich nicht.
 s	_course:s2.modpf	Der kranke Mann darf nicht nach Hause.
 s	_course:s2.modpf	Der kranke Mann durfte nicht nach Hause.
 s	_course:s2.modpf	Der kranke Mann hat nicht nach Hause gedurft.
+s	_course:s2.modpf	Der kranke Mann hat nicht nach Hause gehen dürfen.
 s	_course:s2.modpf	Die Kinder haben das nicht gedurft.
 s	_course:s2.modpf	Die Kinder haben draußen gespielt.
 s	_course:s2.modpf	Die Kinder haben draußen spielen dürfen.
@@ -7401,6 +7489,7 @@ s	_course:s2.modpf	Durfte sie das?
 s	_course:s2.modpf	Durftest du länger bleiben?
 s	_course:s2.modpf	Er hat das Formular ausfüllen müssen.
 s	_course:s2.modpf	Er hat das nie gekonnt.
+s	_course:s2.modpf	Er hat das noch nie gekonnt.
 s	_course:s2.modpf	Er hat nicht kommen können, weil er arbeiten musste.
 s	_course:s2.modpf	Er hat nicht kommen können, weil er hat arbeiten müssen.
 s	_course:s2.modpf	Er hat nicht schwimmen können.
@@ -7416,6 +7505,7 @@ s	_course:s2.modpf	Er ist sauer, weil er das Spiel nicht sehen durfte.
 s	_course:s2.modpf	Er ist sauer. Er hat das Spiel nicht sehen dürfen.
 s	_course:s2.modpf	Er kann nicht schwimmen.
 s	_course:s2.modpf	Er konnte das nie.
+s	_course:s2.modpf	Er konnte das noch nie.
 s	_course:s2.modpf	Er konnte nicht kommen, weil er arbeiten musste.
 s	_course:s2.modpf	Er konnte nicht kommen, weil er hat arbeiten müssen.
 s	_course:s2.modpf	Er musste zum Zahnarzt gehen.
@@ -7440,7 +7530,7 @@ s	_course:s2.modpf	Ich bin früh nach Hause gegangen.
 s	_course:s2.modpf	Ich bin zu spät gekommen, weil ich den Bus habe nehmen müssen.
 s	_course:s2.modpf	Ich bin zu spät gekommen, weil ich den Bus nehmen musste.
 s	_course:s2.modpf	Ich bin zu spät gekommen. Ich habe den Bus nehmen müssen.
-s	_course:s2.modpf	Ich habe Spinat nie gemocht. Und singen habe ich auch nie gekonnt.
+s	_course:s2.modpf	Ich habe Spinat nie gemocht. Und Mathe habe ich auch nie gekonnt.
 s	_course:s2.modpf	Ich habe am Samstag arbeiten müssen.
 s	_course:s2.modpf	Ich habe am Wochenende arbeiten müssen.
 s	_course:s2.modpf	Ich habe das nicht gewollt.
@@ -7449,13 +7539,14 @@ s	_course:s2.modpf	Ich habe die Wohnung verkaufen wollen.
 s	_course:s2.modpf	Ich habe früh nach Hause gehen müssen.
 s	_course:s2.modpf	Ich habe gestern lange arbeiten müssen.
 s	_course:s2.modpf	Ich habe gestern nicht kommen können.
-s	_course:s2.modpf	Ich habe ihn nie gemocht.
+s	_course:s2.modpf	Ich habe ihn nicht gemocht.
 s	_course:s2.modpf	Ich habe ihn noch nie gemocht.
 s	_course:s2.modpf	Ich habe lange arbeiten müssen.
 s	_course:s2.modpf	Ich habe lange warten müssen.
 s	_course:s2.modpf	Ich konnte gestern leider nicht anrufen.
 s	_course:s2.modpf	Ich konnte leider nicht kommen, weil ich arbeiten musste. Mein Chef hat mich am Freitagabend noch angerufen.
 s	_course:s2.modpf	Ich mochte ihn nicht.
+s	_course:s2.modpf	Ich mochte ihn nie.
 s	_course:s2.modpf	Ich mochte ihn noch nie.
 s	_course:s2.modpf	Ich muss am Wochenende arbeiten.
 s	_course:s2.modpf	Ich musste am Samstag arbeiten.
@@ -7471,7 +7562,7 @@ s	_course:s2.modpf	Ich will die Wohnung verkaufen.
 s	_course:s2.modpf	Ich wollte das nicht.
 s	_course:s2.modpf	Ich wollte dich anrufen.
 s	_course:s2.modpf	Ich wollte die Wohnung verkaufen.
-s	_course:s2.modpf	Ich wollte letztes Jahr nach Island reisen, aber ich habe keine Ferien bekommen können. Vielleicht klappt es nächstes Jahr.
+s	_course:s2.modpf	Ich wollte letztes Jahr nach Island reisen, aber ich habe keine Ferien nehmen können. Vielleicht klappt es nächstes Jahr.
 s	_course:s2.modpf	Ihr habt lange warten müssen.
 s	_course:s2.modpf	Ihr habt nichts gesagt.
 s	_course:s2.modpf	Ihr habt nichts sagen dürfen.
@@ -7514,7 +7605,6 @@ s	_course:s2.modpf	Wir haben das Formular unterschrieben.
 s	_course:s2.modpf	Wir haben das Museum besuchen dürfen.
 s	_course:s2.modpf	Wir haben das Problem gelöst.
 s	_course:s2.modpf	Wir haben das Problem lösen können.
-s	_course:s2.modpf	Wir haben das gemusst.
 s	_course:s2.modpf	Wir haben den Film nicht sehen können.
 s	_course:s2.modpf	Wir haben den Zug nicht nehmen können.
 s	_course:s2.modpf	Wir haben die Wohnung nicht mieten können.
@@ -7522,12 +7612,13 @@ s	_course:s2.modpf	Wir haben eine Stunde warten müssen.
 s	_course:s2.modpf	Wir haben eine neue Schule suchen sollen.
 s	_course:s2.modpf	Wir haben keine Wohnung finden können.
 s	_course:s2.modpf	Wir haben lange warten müssen.
+s	_course:s2.modpf	Wir haben nach Hause gemusst.
 s	_course:s2.modpf	Wir haben nicht kommen können.
 s	_course:s2.modpf	Wir haben zwei Stunden auf den Zug warten müssen.
 s	_course:s2.modpf	Wir konnten keine Wohnung finden.
 s	_course:s2.modpf	Wir können die Wohnung nicht mieten.
-s	_course:s2.modpf	Wir mussten das.
 s	_course:s2.modpf	Wir mussten eine Stunde warten.
+s	_course:s2.modpf	Wir mussten nach Hause.
 s	_course:s2.modpf	Wir sind müde, weil wir früh aufstehen mussten.
 s	_course:s2.modpf	Wir sind müde, weil wir früh haben aufstehen müssen.
 s	_course:s2.modpf	Wir sind müde. Wir haben früh aufstehen müssen.
@@ -7543,10 +7634,14 @@ s	_course:s2.ndecl	Das ist das Auto des Polizisten.
 s	_course:s2.ndecl	Das ist das Auto vom Nachbarn.
 s	_course:s2.ndecl	Das ist das Auto von dem Nachbarn.
 s	_course:s2.ndecl	Das ist das Büro des Kollegen.
+s	_course:s2.ndecl	Das ist das Büro vom Kollegen.
 s	_course:s2.ndecl	Das ist das Velo des Nachbarn.
 s	_course:s2.ndecl	Das ist der Hund des Nachbarn.
+s	_course:s2.ndecl	Das ist der Hund vom Nachbarn.
 s	_course:s2.ndecl	Der Brief ist für Herrn Rossi.
 s	_course:s2.ndecl	Der Club ist nur für Jugendliche.
+s	_course:s2.ndecl	Der Eintritt für Jugendliche ist frei.
+s	_course:s2.ndecl	Der Eintritt für Jugendliche ist gratis.
 s	_course:s2.ndecl	Der Eintritt ist für Jugendliche frei.
 s	_course:s2.ndecl	Der Eintritt ist für Jugendliche gratis.
 s	_course:s2.ndecl	Der Junge spielt jeden Tag Fußball.
@@ -7555,6 +7650,7 @@ s	_course:s2.ndecl	Der Polizist zeigt dem Touristen den Weg.
 s	_course:s2.ndecl	Der Student wohnt im dritten Stock.
 s	_course:s2.ndecl	Die Angestellten haben am Freitag frei.
 s	_course:s2.ndecl	Die Angestellten haben heute frei.
+s	_course:s2.ndecl	Die Angestellten sind im Streik.
 s	_course:s2.ndecl	Die Angestellten streiken.
 s	_course:s2.ndecl	Die Gemeinde hilft den Arbeitslosen.
 s	_course:s2.ndecl	Die Verkäuferin hilft dem Kunden.
@@ -7567,10 +7663,12 @@ s	_course:s2.ndecl	Für Erwachsene kostet der Eintritt 20 Franken.
 s	_course:s2.ndecl	Für Jugendliche gibt es in unserer Gemeinde einen Treffpunkt. Erwachsene dürfen dort nicht hinein.
 s	_course:s2.ndecl	Für Jugendliche ist der Eintritt frei.
 s	_course:s2.ndecl	Für Jugendliche ist der Eintritt gratis.
+s	_course:s2.ndecl	Für Jugendliche ist der Eintritt kostenlos.
 s	_course:s2.ndecl	Gestern hat meine Tochter einem Touristen den Weg zum Bahnhof gezeigt. Der Tourist war sehr dankbar.
 s	_course:s2.ndecl	Gibt es etwas Neues?
 s	_course:s2.ndecl	Gibt es etwas Neues? — Nein, nichts Besonderes.
 s	_course:s2.ndecl	Gibt es etwas Neues? — Nichts Besonderes.
+s	_course:s2.ndecl	Gibt es was Neues? — Nichts Besonderes.
 s	_course:s2.ndecl	Guten Tag, Herr Graf!
 s	_course:s2.ndecl	Hast du den neuen Kollegen schon gesehen?
 s	_course:s2.ndecl	Hast du den neuen Lehrer von Mia schon gesehen?
@@ -7584,6 +7682,7 @@ s	_course:s2.ndecl	Ich habe Herrn Keller gestern gesehen.
 s	_course:s2.ndecl	Ich habe Herrn Meier angerufen.
 s	_course:s2.ndecl	Ich habe Herrn Weber angerufen.
 s	_course:s2.ndecl	Ich habe einem Touristen den Bahnhof gezeigt.
+s	_course:s2.ndecl	Ich habe einen netten Kollegen, Marco. Ich helfe dem Kollegen oft am Computer, und er erklärt mir die Schweizer Politik.
 s	_course:s2.ndecl	Ich helfe dem Kunden.
 s	_course:s2.ndecl	Ich helfe dem Nachbarn.
 s	_course:s2.ndecl	Ich helfe meinem Freund.
@@ -7591,6 +7690,7 @@ s	_course:s2.ndecl	Ich hätte gern etwas Warmes.
 s	_course:s2.ndecl	Ich kaufe meinem Neffen ein Buch.
 s	_course:s2.ndecl	Ich möchte etwas Warmes trinken.
 s	_course:s2.ndecl	Ich möchte etwas Warmes.
+s	_course:s2.ndecl	Ich rief Herrn Weber an.
 s	_course:s2.ndecl	Ich treffe heute eine Bekannte.
 s	_course:s2.ndecl	Ich wünsche dir viel Gutes.
 s	_course:s2.ndecl	Im Fernsehen kommt nichts Interessantes.
@@ -7600,7 +7700,6 @@ s	_course:s2.ndecl	Kennst du den Praktikanten schon?
 s	_course:s2.ndecl	Kennst du den neuen Kollegen?
 s	_course:s2.ndecl	Kennst du einen guten Journalisten?
 s	_course:s2.ndecl	Liebe Sara, alles Gute zum Geburtstag! Ich wünsche dir viel Glück und nur das Beste.
-s	_course:s2.ndecl	Mein Kollege heißt Marco. Ich helfe dem Kollegen oft mit dem Computer, und er erklärt mir die Schweizer Politik.
 s	_course:s2.ndecl	Mein Mann ist Deutscher, ich bin Italienerin.
 s	_course:s2.ndecl	Mein Mann ist Deutscher.
 s	_course:s2.ndecl	Mein Name ist Anna.
@@ -7626,7 +7725,6 @@ s	_course:s2.part	Bleibt doch noch ein bisschen!
 s	_course:s2.part	Bleibt noch ein bisschen!
 s	_course:s2.part	Dann nehmen wir eben den Bus.
 s	_course:s2.part	Dann nehmen wir halt den Bus.
-s	_course:s2.part	Das habe ich dir doch schon dreimal gesagt!
 s	_course:s2.part	Das ist doch klar!
 s	_course:s2.part	Das ist eben so.
 s	_course:s2.part	Das ist halt so.
@@ -7634,16 +7732,20 @@ s	_course:s2.part	Das ist ja eine Überraschung! Was machst du denn hier? Du sie
 s	_course:s2.part	Das ist ja super!
 s	_course:s2.part	Das ist ja toll!
 s	_course:s2.part	Das ist ja wunderbar!
+s	_course:s2.part	Das ist nun mal so.
 s	_course:s2.part	Das ist so.
 s	_course:s2.part	Das ist toll!
+s	_course:s2.part	Das stimmt nicht! Ich habe doch angerufen!
 s	_course:s2.part	Der Bus kommt nicht. Dann gehen wir halt zu Fuß.
 s	_course:s2.part	Der Zug ist weg. Dann gehen wir halt zu Fuß.
 s	_course:s2.part	Du kennst ja meine Schwester, sie wohnt in Genf.
 s	_course:s2.part	Du kennst ja meinen Bruder.
+s	_course:s2.part	Du weißt doch, dass ich keine Zeit habe.
 s	_course:s2.part	Du weißt ja, dass ich am Freitag Geburtstag habe. Du kennst ja das Restaurant am See.
 s	_course:s2.part	Du weißt ja, dass ich am Montag arbeite.
 s	_course:s2.part	Du weißt ja, dass ich keine Zeit habe.
 s	_course:s2.part	Du weißt, dass ich am Montag arbeite.
+s	_course:s2.part	Es ist ein bisschen verbrannt. Ich bin halt kein Koch.
 s	_course:s2.part	Frag den Lehrer doch!
 s	_course:s2.part	Frag den Lehrer!
 s	_course:s2.part	Frag doch den Lehrer!
@@ -7651,26 +7753,28 @@ s	_course:s2.part	Gib mir den Schlüssel mal!
 s	_course:s2.part	Gib mir den Schlüssel!
 s	_course:s2.part	Gib mir mal den Schlüssel!
 s	_course:s2.part	Guck mal!
-s	_course:s2.part	Hallo Sara! Schau mal, das Konzert am Samstag ist billiger. Komm doch mit! Ruf mich mal an.
+s	_course:s2.part	Hallo Sara! Schau mal, am Samstag gibt es ein Konzert im Park, und es ist gratis. Komm doch mit! Ruf mich mal an.
 s	_course:s2.part	Hör mal zu!
 s	_course:s2.part	Hör mal zu, das ist wichtig!
 s	_course:s2.part	Hör mal!
 s	_course:s2.part	Hör zu!
-s	_course:s2.part	Ich bin halt kein Koch, aber es schmeckt.
 s	_course:s2.part	Ich habe dir doch gesagt, dass wir um acht gehen! Das weißt du doch!
 s	_course:s2.part	Im Winter ist es hier halt früh dunkel. Dann gehe ich eben am Mittag spazieren.
 s	_course:s2.part	Kannst du mal das Fenster aufmachen?
-s	_course:s2.part	Kannst du mal das Salz geben?
-s	_course:s2.part	Kannst du mal den Tisch decken? Gib mir mal bitte das Brot! Mach mal das Licht aus, bitte.
+s	_course:s2.part	Kannst du mal den Tisch decken? Gib mir bitte mal das Brot! Mach mal das Licht aus, bitte.
 s	_course:s2.part	Kannst du mal kurz helfen?
+s	_course:s2.part	Kannst du mir bitte mal kurz helfen?
 s	_course:s2.part	Kannst du mir kurz mal helfen?
+s	_course:s2.part	Kannst du mir mal das Salz geben?
 s	_course:s2.part	Kannst du mir mal helfen?
 s	_course:s2.part	Kannst du mir mal kurz helfen?
+s	_course:s2.part	Komm doch auch mit!
 s	_course:s2.part	Komm her!
 s	_course:s2.part	Komm mal her!
 s	_course:s2.part	Komm mit!
 s	_course:s2.part	Kommen Sie doch herein!
 s	_course:s2.part	Kommen Sie doch herein! Setzen Sie sich doch. Möchten Sie einen Kaffee?
+s	_course:s2.part	Könntest du mir mal kurz helfen?
 s	_course:s2.part	Mach das Fenster auf!
 s	_course:s2.part	Mach das Fenster mal auf!
 s	_course:s2.part	Mach mal das Fenster auf!
@@ -7686,6 +7790,8 @@ s	_course:s2.part	Schau dir das mal an!
 s	_course:s2.part	Schau mal!
 s	_course:s2.part	Schau mal, da drüben ist ein Reh!
 s	_course:s2.part	Setzen Sie sich doch!
+s	_course:s2.part	So ist es halt.
+s	_course:s2.part	Wart mal kurz!
 s	_course:s2.part	Warte kurz!
 s	_course:s2.part	Warte mal kurz!
 s	_course:s2.part	Was ist denn los?
@@ -7693,14 +7799,14 @@ s	_course:s2.part	Was ist denn passiert?
 s	_course:s2.part	Was machst du denn hier?
 s	_course:s2.part	Was machst du hier?
 s	_course:s2.part	Wie heißt du denn?
+s	_course:s2.part	Wo kommst du denn her?
 s	_course:s2.part	Wo wohnst du denn?
 s	_course:s2.part	Woher kommst du denn?
 s	_course:s2.part	Woher kommst du denn? Wie lange arbeitest du denn schon hier? Und wo wohnst du denn?
-s	_course:s2.part	Wow, das Wetter ist ja wunderschön heute!
+s	_course:s2.part	Wow, das Wetter ist heute ja wunderschön!
 s	_course:s2.part	Zeig mir das Foto mal!
 s	_course:s2.part	Zeig mir das Foto!
 s	_course:s2.part	Zeig mir mal das Foto!
-s	_course:s2.pt2	Als die Gäste kamen, hatte Papa einen Zopf schon gebacken.
 s	_course:s2.pt2	Als die Gäste kamen, hatte Papa schon einen Zopf gebacken.
 s	_course:s2.pt2	Als die Gäste kamen, hatte es angefangen zu regnen.
 s	_course:s2.pt2	Als die Gäste kamen, hatte es begonnen zu regnen.
@@ -7784,6 +7890,7 @@ s	_course:s2.pt2	Er liest den Brief. Dann ist er glücklich.
 s	_course:s2.pt2	Er vergaß seinen Schirm.
 s	_course:s2.pt2	Er vergisst seinen Schirm.
 s	_course:s2.pt2	Er weiß nicht, wo sie wohnt.
+s	_course:s2.pt2	Er wusste nicht, wo sie wohnt.
 s	_course:s2.pt2	Er wusste nicht, wo sie wohnte.
 s	_course:s2.pt2	Erkanntet ihr das Lied?
 s	_course:s2.pt2	Erkennt ihr das Lied?
@@ -7791,8 +7898,9 @@ s	_course:s2.pt2	Es gab viel Schnee.
 s	_course:s2.pt2	Es gibt viel Schnee.
 s	_course:s2.pt2	Es hatte die ganze Nacht geschneit.
 s	_course:s2.pt2	Es regnet den ganzen Tag.
+s	_course:s2.pt2	Es tat mir leid, dass ich so spät kam.
 s	_course:s2.pt2	Es wurde kalt.
-s	_course:s2.pt2	Früher kannte ich einen alten Nachbarn, Herrn Gerber. Er wusste alles über Vögel. Wir gingen oft zusammen in den Wald, und er nannte mir die Namen der Bäume.
+s	_course:s2.pt2	Früher hatte ich einen alten Nachbarn, Herrn Gerber. Er wusste alles über Vögel. Wir gingen oft zusammen in den Wald, und er nannte mir die Namen der Vögel.
 s	_course:s2.pt2	Hast du Zeit? — Nein, ich habe keine Zeit.
 s	_course:s2.pt2	Hattest du Zeit? — Nein, ich hatte keine Zeit.
 s	_course:s2.pt2	Hattest du einen Schirm dabei?
@@ -7852,12 +7960,14 @@ s	_course:s2.pt2	Kennst du den neuen Lehrer?
 s	_course:s2.pt2	Lea schrieb ihrer Mutter eine lange Nachricht.
 s	_course:s2.pt2	Lena bekommt die Stelle. Dann feiert sie mit ihren Freunden.
 s	_course:s2.pt2	Lena hatte ihren Pass vergessen.
-s	_course:s2.pt2	Letzten Winter verpasste ich den Zug, weil ich zu spät aufstand. Dann vergaß ich meinen Schirm im Bus. Am Abend war ich sehr müde und ging früh ins Bett.
+s	_course:s2.pt2	Letzten Winter verpasste ich den Zug, weil ich zu spät aufgestanden war. Dann vergaß ich meinen Schirm im Bus. Am Abend war ich sehr müde und ging früh ins Bett.
 s	_course:s2.pt2	Lisa brachte einen Kuchen mit.
 s	_course:s2.pt2	Lisa bringt einen Kuchen mit.
 s	_course:s2.pt2	Mein Bruder hatte früher eine Katze.
 s	_course:s2.pt2	Mein Großvater gab mir eine Uhr.
+s	_course:s2.pt2	Mein Großvater schenkte mir eine Uhr.
 s	_course:s2.pt2	Mein Opa gab mir eine Uhr.
+s	_course:s2.pt2	Mein Opa schenkte mir eine Uhr.
 s	_course:s2.pt2	Meine Eltern verbrachten jeden Winter zwei Wochen im Tessin.
 s	_course:s2.pt2	Meine Eltern verbringen jeden Winter zwei Wochen im Tessin.
 s	_course:s2.pt2	Meine Eltern waren früh aufgestanden.
@@ -7882,6 +7992,7 @@ s	_course:s2.pt2	Nachdem ich nach Bern umgezogen war, suchte ich eine Stelle.
 s	_course:s2.pt2	Nachdem sie in Zürich angekommen war, rief sie ihre Mutter an.
 s	_course:s2.pt2	Nachdem wir ausgestiegen waren, suchten wir das Hotel.
 s	_course:s2.pt2	Nachdem wir eingekauft hatten, kochten wir zusammen.
+s	_course:s2.pt2	Nachdem wir gegessen hatten, machten wir einen Spaziergang.
 s	_course:s2.pt2	Nina und ihre Freundinnen fahren mit dem Zug nach Luzern.
 s	_course:s2.pt2	Nina und ihre Freundinnen fuhren mit dem Zug nach Luzern.
 s	_course:s2.pt2	Oben ist es kalt und windig.
@@ -7920,7 +8031,6 @@ s	_course:s2.pt2	Was dachtest du darüber?
 s	_course:s2.pt2	Was denkst du darüber?
 s	_course:s2.pt2	Was macht ihr? — Wir sehen fern.
 s	_course:s2.pt2	Was machtet ihr? — Wir sahen fern.
-s	_course:s2.pt2	Was tatet ihr am Samstag?
 s	_course:s2.pt2	Was trankst du? — Ich trank einen Tee.
 s	_course:s2.pt2	Was trinkst du? — Ich trinke einen Tee.
 s	_course:s2.pt2	Wen sahst du? — Ich sah meinen Chef.
@@ -7953,7 +8063,7 @@ s	_course:s2.pt2	Wir steigen aus. Dann suchen wir das Hotel.
 s	_course:s2.pt2	Wir tranken Kaffee und redeten viel.
 s	_course:s2.pt2	Wir tranken Kaffee und sprachen viel.
 s	_course:s2.pt2	Wir tranken Kaffee und unterhielten uns viel.
-s	_course:s2.pt2	Wir tranken einen Kaffee am Bahnhof.
+s	_course:s2.pt2	Wir tranken am Bahnhof einen Kaffee.
 s	_course:s2.pt2	Wir verbrachten den Sommer in Graubünden.
 s	_course:s2.pt2	Wir verbringen den Sommer in Graubünden.
 s	_course:s2.pt2	Wir wissen die Antwort nicht.
@@ -8005,7 +8115,6 @@ w	_course:s2.pt2	ihr trugt
 w	_course:s2.pt2	sie trugen
 w	_course:s2.pt2	wir trugen
 s	_course:s2.ptadj	Am Sonntag hole ich frisch gebackenes Brot beim Bäcker.
-s	_course:s2.ptadj	Auf Gleis 3 steht der ankommende Zug aus Lugano.
 s	_course:s2.ptadj	Das Kind, das weint, hat Hunger.
 s	_course:s2.ptadj	Das Velo, das gestohlen wurde, ist wieder da.
 s	_course:s2.ptadj	Das gestohlene Auto ist gefunden worden.
@@ -8023,6 +8132,7 @@ s	_course:s2.ptadj	Das weinende Kind hat Hunger.
 s	_course:s2.ptadj	Der Hund, der bellt, gehört dem Nachbarn.
 s	_course:s2.ptadj	Der Tag war anstrengend.
 s	_course:s2.ptadj	Der Zug, der ankommt, ist aus Genf.
+s	_course:s2.ptadj	Der ankommende Zug aus Lugano hält auf Gleis 3.
 s	_course:s2.ptadj	Der ankommende Zug ist aus Genf.
 s	_course:s2.ptadj	Der bellende Hund gehört dem Nachbarn.
 s	_course:s2.ptadj	Die Arbeit war sehr anstrengend.
@@ -8039,6 +8149,7 @@ s	_course:s2.ptadj	Die schlafenden Kinder hörten nichts.
 s	_course:s2.ptadj	Er hat eine bezahlte Stelle.
 s	_course:s2.ptadj	Er hat eine gut bezahlte Arbeit.
 s	_course:s2.ptadj	Er hat eine gut bezahlte Stelle.
+s	_course:s2.ptadj	Er hat eine gutbezahlte Stelle.
 s	_course:s2.ptadj	Er hat einen gut bezahlten Job.
 s	_course:s2.ptadj	Gestern habe ich einen sehr spannenden Film gesehen.
 s	_course:s2.ptadj	Hast du den spannenden Film gesehen?
@@ -8046,8 +8157,10 @@ s	_course:s2.ptadj	Hörst du den bellenden Hund?
 s	_course:s2.ptadj	Hörst du den laut bellenden Hund?
 s	_course:s2.ptadj	Ich habe eine anstrengende Arbeit, aber ich mag sie.
 s	_course:s2.ptadj	Ich hätte gern ein gekochtes Ei.
+s	_course:s2.ptadj	Ich hätte gerne ein gekochtes Ei.
 s	_course:s2.ptadj	Ich kaufe gefrorenes Gemüse.
 s	_course:s2.ptadj	Ich liebe frisch gebackenes Brot.
+s	_course:s2.ptadj	Ich liebe frischgebackenes Brot.
 s	_course:s2.ptadj	Ich möchte ein gekochtes Ei.
 s	_course:s2.ptadj	Ich nehme das Ei, das gekocht ist.
 s	_course:s2.ptadj	Ich nehme das gekochte Ei.
@@ -8070,13 +8183,15 @@ s	_course:s2.ptadj	Wir essen die Kartoffeln, die gebraten sind.
 s	_course:s2.ptadj	Wir essen die gebratenen Kartoffeln.
 s	_course:s2.ptadj	Wir essen frisch gebackenes Brot zum Frühstück.
 s	_course:s2.ptadj	Wir essen frisch gebackenes Brot.
+s	_course:s2.ptadj	Wir essen frischgebackenes Brot.
 s	_course:s2.ptadj	Wir essen gebackenes Brot.
 s	_course:s2.ptadj	Wir haben ein reserviertes Zimmer im Hotel am See.
-s	_course:s2.ptadj	Wir hatten eine überraschende Nachricht für euch.
+s	_course:s2.ptadj	Wir haben eine überraschende Nachricht für euch.
 s	_course:s2.ptadj	Wir hören die Vögel, die singen.
 s	_course:s2.ptadj	Wir hören die singenden Vögel.
 s	_course:s2.ptadj	Wir suchen eine möblierte Wohnung.
 s	_course:s2.ptadj	Wir trinken frisch gepressten Orangensaft.
+s	_course:s2.ptadj	Wir trinken frischgepressten Orangensaft.
 s	_course:s2.ptadj	Wir trinken gepressten Orangensaft.
 s	_course:s2.ptadj	Wir wohnen in einer neu renovierten Wohnung.
 s	_course:s2.ptadj	Wir wohnen in einer renovierten Wohnung.
@@ -8088,7 +8203,7 @@ s	_course:s2.ptadj	der schön singende Vogel
 s	_course:s2.ptadj	die frisch gestrichene Wand
 s	_course:s2.ptadj	die gut bezahlte Stelle
 s	_course:s2.ptadj	die laut lachenden Kinder
-s	_course:s2.ptadj	die leise spielende Musik
+s	_course:s2.ptadj	die leise sprechende Frau
 s	_course:s2.ptadj	ein gut bezahlter Job
 s	_course:s2.ptadj	eine frisch gestrichene Wand
 s	_course:s2.ptadj	eine gut bezahlte Arbeit
@@ -8099,6 +8214,7 @@ s	_course:s2.ptadj	mit einem gebrochenen Arm
 s	_course:s2.ptadj	mit einem lächelnden Gesicht
 s	_course:s2.ptadj	neben dem weinenden Mädchen
 w	_course:s2.ptadj	ankommend
+w	_course:s2.ptadj	das frischgebackene Brot
 w	_course:s2.ptadj	das gestohlene Fahrrad
 w	_course:s2.ptadj	das gestohlene Velo
 w	_course:s2.ptadj	das schlafende Baby
@@ -8106,12 +8222,16 @@ w	_course:s2.ptadj	der angekommene Zug
 w	_course:s2.ptadj	der bellende Hund
 w	_course:s2.ptadj	der reservierte Tisch
 w	_course:s2.ptadj	die folgende Woche
+w	_course:s2.ptadj	die frischgestrichene Wand
 w	_course:s2.ptadj	die geschlossene Tür
 w	_course:s2.ptadj	die geschlossene Türe
+w	_course:s2.ptadj	die gutbezahlte Stelle
 w	_course:s2.ptadj	die lachenden Kinder
 w	_course:s2.ptadj	ein anstrengender Tag
 w	_course:s2.ptadj	ein gekochtes Ei
 w	_course:s2.ptadj	ein spannender Film
+w	_course:s2.ptadj	eine frischgestrichene Wand
+w	_course:s2.ptadj	eine gutbezahlte Stelle
 w	_course:s2.ptadj	entscheidend
 w	_course:s2.ptadj	fließendes Wasser
 w	_course:s2.ptadj	gebratene Kartoffeln
@@ -8130,8 +8250,8 @@ s	_course:s2.pv	Alles ist schon vorbereitet.
 s	_course:s2.pv	Am 1. August grillt man Würste.
 s	_course:s2.pv	Am 1. August werden Würste gegrillt.
 s	_course:s2.pv	Am 1. August werden Würste grilliert.
-s	_course:s2.pv	Am 1. August wird gefeiert. Am Abend werden Feuerwerke gezündet und Würste grilliert.
-s	_course:s2.pv	Am Abend werden Freunde eingeladen.
+s	_course:s2.pv	Am 1. August wird gefeiert. Am Abend wird Feuerwerk gezündet, und es werden Würste grilliert.
+s	_course:s2.pv	Am Abend wird mit Freunden gegessen.
 s	_course:s2.pv	Am Dienstag wird der Abfall abgeholt.
 s	_course:s2.pv	Am Dienstag wird der Müll abgeholt.
 s	_course:s2.pv	Am Mittag werden Spaghetti gekocht.
@@ -8172,11 +8292,12 @@ s	_course:s2.pv	Das Formular muss unterschrieben werden.
 s	_course:s2.pv	Das Formular wird falsch ausgefüllt.
 s	_course:s2.pv	Das Geschirr war abgewaschen.
 s	_course:s2.pv	Das Geschirr war gespült.
-s	_course:s2.pv	Das Geschirr war gewaschen.
 s	_course:s2.pv	Das Geschirr wird nach dem Essen abgewaschen.
 s	_course:s2.pv	Das Geschäft ist geschlossen.
+s	_course:s2.pv	Das Geschäft ist zu.
 s	_course:s2.pv	Das Haus ist 1950 gebaut worden.
 s	_course:s2.pv	Das Haus ist durch den Sturm beschädigt worden.
+s	_course:s2.pv	Das Haus ist vom Sturm beschädigt worden.
 s	_course:s2.pv	Das Haus wurde durch den Sturm beschädigt.
 s	_course:s2.pv	Das Haus wurde mit Holz geheizt.
 s	_course:s2.pv	Das Haus wurde vom Sturm beschädigt.
@@ -8214,18 +8335,23 @@ s	_course:s2.pv	Der Fehler wurde durch eine Kontrolle gefunden.
 s	_course:s2.pv	Der Fehler wurde durch einen Zufall entdeckt.
 s	_course:s2.pv	Der Hund darf nicht allein gelassen werden.
 s	_course:s2.pv	Der Hund wird nicht allein gelassen.
+s	_course:s2.pv	Der Kehricht wird am Dienstag abgeholt.
+s	_course:s2.pv	Der Kehricht wird dienstags abgeholt.
 s	_course:s2.pv	Der Keller wurde durch das Hochwasser überschwemmt.
 s	_course:s2.pv	Der Kuchen ist schon gebacken.
 s	_course:s2.pv	Der Kuchen wurde von meiner Großmutter gebacken.
 s	_course:s2.pv	Der Käse wird in dünne Scheiben geschnitten.
 s	_course:s2.pv	Der Kühlschrank war leer und geputzt.
+s	_course:s2.pv	Der Kühlschrank war leer und gereinigt.
 s	_course:s2.pv	Der Kühlschrank war leer und sauber gemacht.
 s	_course:s2.pv	Der Laden ist geschlossen.
+s	_course:s2.pv	Der Laden ist zu.
 s	_course:s2.pv	Der Mechaniker repariert das Auto.
 s	_course:s2.pv	Der Müll ist abgeholt worden.
 s	_course:s2.pv	Der Müll wird abgeholt.
 s	_course:s2.pv	Der Müll wird am Dienstag abgeholt.
 s	_course:s2.pv	Der Müll wird dienstags abgeholt.
+s	_course:s2.pv	Der Müll wird jeden Dienstag abgeholt.
 s	_course:s2.pv	Der Patient wird am Morgen operiert.
 s	_course:s2.pv	Der Patient wird von der Ärztin untersucht.
 s	_course:s2.pv	Der Patient wurde am Morgen operiert.
@@ -8290,6 +8416,7 @@ s	_course:s2.pv	Die Heizung ist von dem Hauswart repariert worden.
 s	_course:s2.pv	Die Heizung wird endlich repariert.
 s	_course:s2.pv	Die Heizung wird vom Hauswart repariert.
 s	_course:s2.pv	Die Heizung wird von dem Hauswart repariert.
+s	_course:s2.pv	Die Heizung wurde repariert.
 s	_course:s2.pv	Die Häuser werden verkauft.
 s	_course:s2.pv	Die Häuser wurden verkauft.
 s	_course:s2.pv	Die Karten können online gekauft werden.
@@ -8330,10 +8457,12 @@ s	_course:s2.pv	Die Reise wird von der Firma bezahlt.
 s	_course:s2.pv	Die Schuhe wurden beim Schuhmacher gekauft.
 s	_course:s2.pv	Die Schule ist 1960 gebaut worden.
 s	_course:s2.pv	Die Schule wurde 1960 gebaut.
+s	_course:s2.pv	Die Schule wurde im Jahr 1960 gebaut.
 s	_course:s2.pv	Die Stadt renoviert den Bahnhof.
 s	_course:s2.pv	Die Straße ist wegen einem Unfall gesperrt worden.
 s	_course:s2.pv	Die Straße ist wegen eines Unfalls gesperrt worden.
 s	_course:s2.pv	Die Straße wurde durch den Schnee blockiert.
+s	_course:s2.pv	Die Straße wurde durch die Polizei gesperrt.
 s	_course:s2.pv	Die Straße wurde durch einen Unfall blockiert.
 s	_course:s2.pv	Die Straße wurde von der Polizei gesperrt.
 s	_course:s2.pv	Die Straße wurde wegen einem Unfall gesperrt.
@@ -8364,11 +8493,11 @@ s	_course:s2.pv	Ein Zimmer ist für uns reserviert worden.
 s	_course:s2.pv	Ein Zimmer wird für uns reserviert.
 s	_course:s2.pv	Eine Studentin übersetzte den Text.
 s	_course:s2.pv	Eine neue Schule wird von der Gemeinde gebaut.
+s	_course:s2.pv	Es ist schon alles vorbereitet.
 s	_course:s2.pv	Es ist zu spät, die Post ist schon geschlossen.
 s	_course:s2.pv	Es wird viel Kaffee getrunken.
 s	_course:s2.pv	Fleisch wurde nur am Sonntag gegessen.
 s	_course:s2.pv	Fondue wird im Winter gegessen.
-s	_course:s2.pv	Freunde werden am Abend eingeladen.
 s	_course:s2.pv	Gemüse wird um elf auf dem Markt gekauft.
 s	_course:s2.pv	Hier darf nicht geraucht werden.
 s	_course:s2.pv	Hier wird nicht geraucht.
@@ -8404,6 +8533,7 @@ s	_course:s2.pv	Mein Velo wurde gestohlen.
 s	_course:s2.pv	Mein Velo wurde von einem Dieb gestohlen.
 s	_course:s2.pv	Meine Großmutter backte den Kuchen.
 s	_course:s2.pv	Meine Kolleginnen haben mich eingeladen.
+s	_course:s2.pv	Mit Freunden wird am Abend gegessen.
 s	_course:s2.pv	Morgen wird die Heizung repariert.
 s	_course:s2.pv	Nach dem Essen wird das Geschirr abgewaschen.
 s	_course:s2.pv	Neue Mitarbeiter werden von der Firma gesucht.
@@ -8440,7 +8570,7 @@ s	_course:s2.pv	Wodurch wurde die Straße blockiert?
 s	_course:s2.pv	Wodurch wurden die Bürger informiert?
 s	_course:s2.pv	Würste werden am 1. August gegrillt.
 s	_course:s2.pv	Würste werden am 1. August grilliert.
-s	_course:s2.pv	Zuerst werden die Kartoffeln geschält und geschnitten. Dann werden sie in Öl gebraten. Am Schluss wird alles mit Salz serviert.
+s	_course:s2.pv	Zuerst werden die Kartoffeln geschält und geschnitten. Dann werden sie in Öl gebraten. Am Schluss wird alles gesalzen und serviert.
 s	_course:s2.pv	Zum Raclette trinkt man Weißwein oder Tee.
 s	_course:s2.pv	Zum Raclette wird Weißwein oder Tee getrunken.
 s	_course:s2.rel	Das Buch, das du mir geliehen hast, ist spannend.
@@ -8812,6 +8942,7 @@ w	_course:s2.relprep	mit denen
 w	_course:s2.relprep	ohne das
 w	_course:s2.relprep	von dem
 w	_course:s2.relprep	zu der
+s	_course:s2.short	Also dann, bis morgen!
 s	_course:s2.short	Also, bis morgen!
 s	_course:s2.short	Also, bis morgen! Schlaf gut!
 s	_course:s2.short	Also, ich fasse zusammen: Wir treffen uns um sieben am Bahnhof.
@@ -8825,7 +8956,6 @@ s	_course:s2.short	Das Hotel liegt zwar weit weg, aber es ist ruhig.
 s	_course:s2.short	Das Konzert war super.
 s	_course:s2.short	Das Zimmer ist zwar klein, aber sehr hell.
 s	_course:s2.short	Der Bus war so voll, ich konnte mich kaum bewegen.
-s	_course:s2.short	Der Film war gar nicht so schlecht.
 s	_course:s2.short	Der Kurs ist anstrengend. Er macht Spaß.
 s	_course:s2.short	Der Kurs ist zwar anstrengend, aber er macht Spaß.
 s	_course:s2.short	Der Kurs ist zwar anstrengend, aber macht Spaß.
@@ -8839,6 +8969,7 @@ s	_course:s2.short	Die Wohnung ist zwar teuer, aber sehr schön.
 s	_course:s2.short	Die Wohnung ist zwar teuer, aber sie ist sehr schön.
 s	_course:s2.short	Doch, für dich schon!
 s	_course:s2.short	Doch, leider.
+s	_course:s2.short	Du hast den Bus doch nicht verpasst, oder?
 s	_course:s2.short	Du hast die Rechnung nicht bezahlt! Doch, gestern schon!
 s	_course:s2.short	Du hast keine Handschuhe dabei, oder? Doch! Sie sind in der Tasche.
 s	_course:s2.short	Du hast keine Zeit, oder?
@@ -8847,6 +8978,7 @@ s	_course:s2.short	Er hat die Prüfung mit einer Sechs bestanden!
 s	_course:s2.short	Er hat kaum geschlafen und ist gar nicht müde.
 s	_course:s2.short	Er ist erst zwanzig und schon Chef? kaum zu glauben!
 s	_course:s2.short	Es regnet zwar, aber wir gehen spazieren.
+s	_course:s2.short	Es regnet zwar, aber wir gehen trotzdem spazieren.
 s	_course:s2.short	Es regnet. Wir gehen spazieren.
 s	_course:s2.short	Gar nicht!
 s	_course:s2.short	Gar nicht.
@@ -8854,12 +8986,13 @@ s	_course:s2.short	Gefällt dir Bern? Und wie!
 s	_course:s2.short	Genau.
 s	_course:s2.short	Gibt es hier keinen Bancomat? Doch, gleich um die Ecke.
 s	_course:s2.short	Hast du Hunger? Ja, ich habe großen Hunger!
-s	_course:s2.short	Hast du den Bus nicht verpasst?
 s	_course:s2.short	Hast du den Schlüssel nicht? Doch, hier ist er.
 s	_course:s2.short	Hast du keine Geschwister? Nein, ich bin Einzelkind.
 s	_course:s2.short	Hast du keinen Hunger? Doch, ich habe großen Hunger!
 s	_course:s2.short	Hast du keinen Hunger? — Doch!
+s	_course:s2.short	Hast du keinen Hunger? — Doch, habe ich!
 s	_course:s2.short	Hast du keinen Hunger? — Doch, ich habe Hunger!
+s	_course:s2.short	Hast du keinen Hunger? — Doch, schon!
 s	_course:s2.short	Hat dir das Konzert gefallen?
 s	_course:s2.short	Hat es dir gefallen? — Und wie!
 s	_course:s2.short	Ich arbeite am Samstag.
@@ -8867,6 +9000,7 @@ s	_course:s2.short	Ich auch nicht.
 s	_course:s2.short	Ich auch!
 s	_course:s2.short	Ich auch.
 s	_course:s2.short	Ich brauche einen Termin, und zwar so schnell wie möglich.
+s	_course:s2.short	Ich dachte, der Film ist langweilig, aber er war gar nicht so schlecht.
 s	_course:s2.short	Ich esse keinen Fisch. — Ich auch nicht. Aber Fleisch esse ich schon.
 s	_course:s2.short	Ich finde das Wetter heute herrlich!
 s	_course:s2.short	Ich gehe gern wandern.
@@ -8900,6 +9034,7 @@ s	_course:s2.short	Magst du keine Schokolade? Nein, ich mag sie wirklich nicht.
 s	_course:s2.short	Mein Deutsch ist nicht perfekt. Ich verstehe viel.
 s	_course:s2.short	Mein Deutsch ist zwar nicht perfekt, aber ich verstehe viel.
 s	_course:s2.short	Mein Weg zur Arbeit ist zwar lang, aber ich kann im Zug lesen.
+s	_course:s2.short	Schwer zu glauben!
 s	_course:s2.short	Sie wohnt in Basel. Sie arbeitet in Zürich.
 s	_course:s2.short	Sie wohnt zwar in Basel, aber arbeitet in Zürich.
 s	_course:s2.short	Sie wohnt zwar in Basel, aber sie arbeitet in Zürich.
@@ -8911,7 +9046,7 @@ s	_course:s2.short	Wie lange dauert die Fahrt nach Chur?
 s	_course:s2.short	Wie lange wohnst du schon in der Schweiz?
 s	_course:s2.short	Wir brauchen etwas, und zwar Milch und Brot.
 s	_course:s2.short	Wir brauchen etwas. Wir brauchen Milch und Brot.
-s	_course:s2.short	Wir hatten kaum Zeit zum Essen, so viel Arbeit war es.
+s	_course:s2.short	Wir hatten kaum Zeit zum Essen, so viel Arbeit gab es.
 s	_course:s2.short	Wir müssen um sieben losfahren, sonst gibt es Stau.
 s	_course:s2.short	Wir sollten früher losfahren.
 s	_course:s2.short	Überhaupt nicht.
@@ -9422,7 +9557,7 @@ s	_sheet:cx.cond2	Es wäre schön, wenn du mich besuchen würdest.
 s	_sheet:cx.cond2	Hätte ich doch Zeit!
 s	_sheet:cx.cond2	Hätte ich doch mehr Geld!
 s	_sheet:cx.cond2	Ich wünschte, ich könnte fliegen.
-s	_sheet:cx.cond2	Sie lacht, als ob sie alles verstehen würde.
+s	_sheet:cx.cond2	Sie nickt, als ob sie alles verstehen würde.
 s	_sheet:cx.cond2	Wenn ich nur ein Auto hätte!
 s	_sheet:cx.dat1	Der Kellner gibt der Frau die Karte.
 s	_sheet:cx.dat1	Er schreibt seiner Freundin eine Karte.
@@ -9548,7 +9683,7 @@ s	_sheet:cx.lass1	Lass mich helfen!
 s	_sheet:cx.lass1	Lass uns gehen!
 s	_sheet:cx.lass1	Sie lässt sich die Haare schneiden.
 s	_sheet:cx.lass2	Er hat das Auto hier gelassen.
-s	_sheet:cx.lass2	Er hilft mir, die Kisten tragen.
+s	_sheet:cx.lass2	Er hilft mir die Kisten tragen.
 s	_sheet:cx.lass2	Ich habe mein Auto reparieren lassen.
 s	_sheet:cx.lass2	Ich höre ihn singen.
 s	_sheet:cx.mod1	Das darfst du nicht anfassen.
@@ -9565,7 +9700,7 @@ s	_sheet:cx.mod2	Sie kann gut Deutsch.
 s	_sheet:cx.mod2	Was möchtest du trinken?
 s	_sheet:cx.mod2	…, weil ich arbeiten muss.
 s	_sheet:cx.mpf	Gestern konnte ich nicht kommen.
-s	_sheet:cx.mpf	Hast du die Aufgabe? Nein, ich habe es nicht gekonnt.
+s	_sheet:cx.mpf	Hast du die Aufgabe lösen können? Nein, ich habe es nicht gekonnt.
 s	_sheet:cx.mpf	Ich habe arbeiten müssen.
 s	_sheet:cx.mpf	Ich musste warten.
 s	_sheet:cx.mpf	Sie hat nicht kommen können.
@@ -9638,7 +9773,7 @@ s	_sheet:cx.pl2	zwei Kinder
 s	_sheet:cx.pman	Es wird viel getanzt.
 s	_sheet:cx.pman	Ich werde gefragt.
 s	_sheet:cx.pman	Man feiert den 1. August mit Feuerwerk.
-s	_sheet:cx.pman	Meine Nachbarin hat das Paket genommen.
+s	_sheet:cx.pman	Meine Nachbarin hat das Paket angenommen.
 s	_sheet:cx.pman	Mir wird geholfen.
 s	_sheet:cx.pman	Mir wurde geholfen.
 s	_sheet:cx.pman	Uns wurde ein Schlüssel gegeben.

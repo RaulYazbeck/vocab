@@ -1007,6 +1007,35 @@ generated Plusquamperfekt and Konjunktiv II, the verb log); the two-sheet test m
 `t-course` lists chapters 11, 16, 17, 24–27 and 29's Übungen, runs every new drill set through the real runner and
 checks every new table fits the phone (five were too wide at first and were narrowed).
 
+**Review (13 Nov 2026, after the push), my request:** every addition checked again. (1) **German proofread by
+three independent readers** (one per third: the verb lessons' exercises · if / modals' Perfekt / lassen / man ·
+particles / short answers / participles / n-nouns): about 135 findings, fixed — a rule that said the dative passive
+always keeps the er-form (only with no subject: *Ihr wurden Blumen geschenkt*), a quiz answer that a comma made wrong
+(*Er hilft mir, die Kisten tragen*), four model texts (*… weil ich zu spät aufgestanden war*, *Mathe habe ich nie
+gekonnt*, *wohnen könnte, wo ich will*, *nannte mir die Namen der Vögel*), a wrong accepted answer (*Könnten Sie bitte
+mir helfen?*), eight pick items with a second defensible option (*werden* in *Wir ___ lange warten müssen*, *doch*
+vs *ja*, *also* in *___ nicht so schlecht*, the active / passive cues), instructions that didn't fit every item, and
+about sixty common right answers that were missing (*doch nur* in every wish, *als wüsste er*, *Ich möchte einen
+Kaffee*, *Der Kehricht wird …*, *Doch, habe ich!*, *Wo kommst du denn her?*, *gutbezahlt*, *vom Nachbarn* …).
+(2) **The checker fuzzed:** 30,834 wrong variants of the new items — none accepted. The feedback grouped by what set it
+off found eight detectors firing outside their case, now narrowed to the items they're for: *A wish needs nur or
+doch* on a real if-sentence (*… kommen Sie doch vorbei!*), *Right form, wrong person: warten* (the stem *war* for
+*wäre* also caught *warte*), *strong verb, no -te: acht* (*um achte*), *lassen comes last* on *Wir hören Nachbarn
+streiten*, *sich lassen* on *Lea lässt die Haare schneiden*, *It still needs its ending: möchte*, *the adjective's
+ending* on a Perfekt (*gehörte*), *me neither* on *Gar.* (3) **Screens and text:** every new sheet step and card type
+looked at on a phone; the five lesson titles that wrapped in the back button cut to one line (*If and wishes; als ob*
+· *Modals in the Perfekt* · *man and the impersonal passive* · *Short answers and emphasis* · *n-nouns; adjectives as
+nouns* — ids unchanged, so progress too); the longest rule (290 characters), whys and instructions cut back to the
+earlier lessons' length (rules now 174 on average, at most 230); six awkward set titles renamed. (4) **The real app
+for 270 days** (`sim-app --days 270`, 85 % right): every Stage 2 lesson met in course order, Stage 2B included
+(if and wishes 27 May … n-nouns 5 Jul), the state, cloud docs and logs agree every day; with 15 % of sheet quizzes
+failed the clock shortens the breaks from April (amber) and adds second sheets in the last week (red) — the last lesson
+lands on 5 Jul for a 6 Jul target, then green. (Seen on the way, older and not this session's: on the test profile's
+heaviest word days in Apr–May the plan asks 255–300 answers and a 9-session day falls short of the words' share.)
+Size: the course is 1.6 MB, 345 KB zipped (61 of 73 lessons built, 293 rules, 5,966 items); a day's plan in under 50
+ms. Voice: 186 changed sentences recorded (7,948 characters); November now **757,177 — ≈192,800 left under 950,000**.
+All green again: validator (+ book check), `t-unit`, `t-course`, `t-ux`, `t-edge`, voice status and tests.
+
 ### Session 8 — Stage 3, conversation
 
 **Upload:** chapters 30, 31. *(from the course map: `node tools/course/session.mjs 8`)*
@@ -1103,7 +1132,8 @@ Plusquamperfekt and Konjunktiv II forms) and the two older sentences rephrased: 
 refused** (Google Chirp 3 HD "Aoede") — far less than the ≈150k guessed. The German pack has **67,958 / 67,958
 texts** (`status.mjs --strict` passes; the pack, games, flag, say and runtime tests pass); the phone gets the update
 with the banner, on Wi-Fi. **Characters this month (November 2026): 749,207** — under the 950,000 limit set for this
-month, ≈200,800 left; `run_all.py`'s own guard (900,000) stayed in place. What will be missing next: Session 8's six
+month, ≈200,800 left; `run_all.py`'s own guard (900,000) stayed in place. *(Review, same day: 186 changed
+sentences, 7,948 characters — November now 757,177, ≈192,800 left.)* What will be missing next: Session 8's six
 conversation units (≈40k characters) — that fits this month's room (≈200k) as well as December's fresh 1,000,000.
 
 **12 Nov 2026 — Session 6's lessons recorded.** Everything the ten new lessons say once a question is

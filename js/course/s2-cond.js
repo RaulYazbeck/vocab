@@ -9,6 +9,9 @@
 // verb to the end (s1.conj2). The past unreal (Wenn ich das gewusst hätte,
 // 26•28, 27•14) is the post-B1 Konjunktiv II · past's (s4.k2p).
 // Wishes accept nur or doch, and als ob accepts als wenn, wherever one is asked.
+// (a wish without its nur / doch is named on the wish items only: in «Wenn Sie Zeit
+// haben, kommen Sie doch vorbei!» the doch is no wish word)
+const CX_WISH_DIAG = [{ t: "missing", whole: true, tok: "^(nur|doch)$", rule: "wish.wenn", msg: "A wish needs **nur** or **doch**: Wenn ich **nur** … hätte!" }];
 cxPack({
   id: "s2-cond",
   sections: {
@@ -32,8 +35,8 @@ cxPack({
           rules: [
             "Something that may well happen takes the **Präsens** in both parts: **Wenn** es morgen **regnet**, **bleiben** wir zu Hause.",
             "Something imagined, or not true now, takes the **Konjunktiv II** in both parts: **Wenn** ich mehr Geld **hätte**, **würde** ich ein Haus **kaufen**. (But I don't have the money.)",
-            "Use **hätte**, **wäre**, **könnte** and the other one-word forms where they exist; for other verbs use **würde** + the infinitive. In the wenn-part, würde goes to the very end: wenn du mir **helfen würdest**.",
-            "The wenn-part can come first or second. First, it takes the first place, so the main part starts with its verb: Wenn ich Zeit **hätte**, **würde** ich kommen. Second, the main part comes as usual: Ich **würde** kommen, wenn ich Zeit **hätte**.",
+            "Use the one-word forms of haben, sein, wissen and the modals (**hätte**, **wäre**, **wüsste**, **könnte**); for most other verbs use **würde** + the infinitive. In the wenn-part, würde goes last: wenn du mir **helfen würdest**.",
+            "The wenn-part can come first or second. If it comes first, it fills the first place, so the main part starts with its verb: Wenn ich Zeit **hätte**, **würde** ich kommen. If second: Ich **würde** kommen, wenn ich Zeit **hätte**.",
           ],
           table: { head: ["real: may happen", "not real: imagined"], rows: [
             ["ich **habe** Zeit", "ich **hätte** Zeit"],
@@ -71,7 +74,7 @@ cxPack({
             "Two more ways to wish: **Ich wünschte**, ich **hätte** mehr Zeit. · **Es wäre schön**, **wenn** du **kommen würdest**.",
             "**als ob** means *as if*. It takes the Konjunktiv II, and the verb goes to the end: Er tut so, **als ob** er mich nicht **kennen würde**. · Du siehst aus, **als ob** du müde **wärst**. **als wenn** means the same.",
           ],
-          table: { head: ["", "the wish"], rows: [
+          table: { head: ["", "example"], rows: [
             ["wenn", "Wenn ich **nur** Zeit **hätte**!"],
             ["no wenn", "**Hätte** ich **doch** Zeit!"],
             ["wünschte", "Ich **wünschte**, ich **wäre** …"],
@@ -92,7 +95,7 @@ cxPack({
             { at: "r3", k: "pick", q: "I wish I could fly.", o: ["Ich wünschte, ich könnte fliegen.", "Ich wünsche, ich kann fliegen."], a: 0, why: "**Ich wünschte** + the Konjunktiv II." },
             { at: "r3", k: "pick", q: "Es wäre schön, wenn du mich ___.", o: ["besuchen würdest", "würdest besuchen", "besuchst"], a: 0, why: "After wenn, würde goes to the end." },
             { at: "r4", k: "pick", q: "Er tut so, als ob er krank ___.", o: ["wäre", "ist", "war"], a: 0, why: "als ob + the Konjunktiv II at the end: **wäre**." },
-            { at: "r4", k: "pick", q: "Sie lacht, ___ sie alles verstehen würde.", o: ["als ob", "wenn", "ob"], a: 0, why: "*as if* is **als ob**." },
+            { at: "r4", k: "pick", q: "Sie nickt, ___ sie alles verstehen würde.", o: ["als ob", "wenn", "ob"], a: 0, why: "*as if* is **als ob**." },
             { at: "table", k: "pick", q: "Er ruft nicht an. → Wenn er doch ___!", o: ["anrufen würde", "anruft", "würde anrufen"], a: 0, why: "A wish: würde + infinitive, würde last." },
             { at: "trap", k: "pick", q: "Which is right?", o: ["Du siehst aus, als ob du müde wärst.", "Du siehst aus, als ob du wärst müde."], a: 0, why: "After als ob the verb goes to the end." },
           ] },
@@ -101,14 +104,13 @@ cxPack({
         { t: "swap", from: "^(habe|hast|hat|haben|habt|bin|bist|ist|sind|seid|kann|kannst|konnen|konnt|muss|musst|mussen|darf|darfst|durfen|weiss|weisst|wissen|gibt|geht|kommt|komme|kommst|kommen)$", to: "^(hatte\\w*|ware\\w*|wart|konnte\\w*|musste\\w*|durfte\\w*|wusste\\w*|gabe|ginge|kame\\w*|wurde\\w*)$", rule: "", hard: true, msg: "It isn't real, so it takes the Konjunktiv II: **{right}**. The Präsens would say it may well happen." },
         { t: "swap", from: "^(hatte\\w*|ware\\w*|konnte\\w*|musste\\w*|wurde\\w*|gabe|kame\\w*)$", to: "^(habe|hast|hat|haben|habt|bin|bist|ist|sind|seid|kann|kannst|konnen|muss|musst|mussen|gibt|kommt|komme|kommst|kommen|bleiben|bleibe|gehen|gehe|ziehe|zieht)$", rule: "cond.real", hard: true, msg: "This may well happen, so it takes the Präsens: **{right}**." },
         { t: "swap", from: "^(wurde|wurdest|wurden|wurdet)$", to: "^(hatte\\w*|ware\\w*|wart|konnte\\w*|musste\\w*|durfte\\w*|wusste\\w*)$", rule: "cond.forms", hard: true, msg: "sein, haben and the modals have their own form: **{right}** — not würde + the infinitive." },
-        { t: "ending", stem: "(wurd|hatt|war|konnt|musst)", rule: "", msg: "Right form, wrong person: **{right}**." },
+        { t: "ending", stem: "(wurd|hatt|war(?=(e|st|en|et|t|est)?$)|konnt|musst)", rule: "", msg: "Right form, wrong person: **{right}**." },
         { t: "swap", from: "^(wenn|ob|wie)$", to: "^als$", rule: "wish.alsob", msg: "*as if* is **als ob** (or als wenn)." },
         { t: "missing", whole: true, tok: "^als$", rule: "wish.alsob", msg: "*as if* is **als ob** (or als wenn)." },
-        { t: "missing", whole: true, tok: "^(nur|doch)$", rule: "wish.wenn", msg: "A wish needs **nur** or **doch**: Wenn ich **nur** … hätte!" },
       ],
       drills: [
         // ── Übung 26•25: a real condition ──
-        { id: "d26.25", ex: "26.25", t: "transform", fixed: true, title: "If it happens", how: "Join the two with Wenn: the first is the condition. It may well happen, so the Präsens stays. Verb, comma, verb.", items: [
+        { id: "d26.25", ex: "26.25", t: "transform", fixed: true, title: "If it happens", how: "Join the two with Wenn. It may well happen, so the Präsens stays: verb, comma, verb.", items: [
           { q: "Es regnet. Wir bleiben zu Hause.", a: ["Wenn es regnet, bleiben wir zu Hause."], r: ["cond.real"] },
           { q: "Du hast Hunger. Im Kühlschrank ist noch Suppe.", a: ["Wenn du Hunger hast, ist im Kühlschrank noch Suppe.", "Wenn du Hunger hast, ist noch Suppe im Kühlschrank."], r: ["cond.real"] },
           { q: "Der Zug hat Verspätung. Ich rufe dich an.", a: ["Wenn der Zug Verspätung hat, rufe ich dich an."], r: ["cond.order"] },
@@ -134,18 +136,18 @@ cxPack({
           { q: "Sara spricht Deutsch. Sie findet schneller eine Stelle.", a: ["Wenn Sara Deutsch sprechen würde, würde sie schneller eine Stelle finden.", "Wenn Sara Deutsch spräche, würde sie schneller eine Stelle finden.", "Wenn Sara Deutsch sprechen würde, fände sie schneller eine Stelle."], r: ["cond.unreal"] },
         ].map(it => ({ ...it, diag: [{ t: "order", rule: "cond.order", msg: "The wenn-part first, its verb at the end (hätte, wäre); after the comma comes the main verb: …, **würde** ich … lernen." }] })) },
         // ── Übung 27•7: not real — with a modal ──
-        { id: "d27.7", ex: "27.7", t: "transform", fixed: true, title: "If I could …", how: "It isn't true now. Join the two with Wenn, in the Konjunktiv II — könnte, müsste, dürfte where there's a modal.", items: [
+        { id: "d27.7", ex: "27.7", t: "transform", fixed: true, title: "If I could …", how: "It isn't true now. Join the two with Wenn, in the Konjunktiv II: könnte, müsste, dürfte for a modal.", items: [
           { q: "Ich kann gut kochen. Ich lade euch ein.", a: ["Wenn ich gut kochen könnte, würde ich euch einladen."], r: ["cond.forms"] },
           { q: "Ich muss nicht arbeiten. Ich komme mit.", a: ["Wenn ich nicht arbeiten müsste, würde ich mitkommen.", "Wenn ich nicht arbeiten müsste, käme ich mit."], r: ["cond.forms"] },
           { q: "Die Kinder dürfen länger aufbleiben. Sie sind glücklich.", a: ["Wenn die Kinder länger aufbleiben dürften, wären sie glücklich."], r: ["cond.forms"] },
           { q: "Wir können Deutsch. Wir verstehen die Nachbarn.", a: ["Wenn wir Deutsch könnten, würden wir die Nachbarn verstehen.", "Wenn wir Deutsch sprechen könnten, würden wir die Nachbarn verstehen."], r: ["cond.forms"] },
-          { q: "Du weißt die Antwort. Du sagst es mir.", a: ["Wenn du die Antwort wüsstest, würdest du es mir sagen."], r: ["cond.forms"] },
+          { q: "Du weißt die Antwort. Du sagst es mir.", a: ["Wenn du die Antwort wüsstest, würdest du es mir sagen.", "Wenn du die Antwort wüsstest, würdest du sie mir sagen."], r: ["cond.forms"] },
           { q: "Er kommt pünktlich. Wir können anfangen.", a: ["Wenn er pünktlich kommen würde, könnten wir anfangen.", "Wenn er pünktlich käme, könnten wir anfangen."], r: ["cond.unreal"] },
           { q: "Ich kann Ski fahren. Ich fahre im Winter nach Davos.", a: ["Wenn ich Ski fahren könnte, würde ich im Winter nach Davos fahren.", "Wenn ich Ski fahren könnte, führe ich im Winter nach Davos."], r: ["cond.forms"] },
           { q: "Man darf hier parken. Wir bleiben länger.", a: ["Wenn man hier parken dürfte, würden wir länger bleiben."], r: ["cond.forms"] },
           { q: "Ihr müsst nicht so früh aufstehen. Ihr seid nicht so müde.", a: ["Wenn ihr nicht so früh aufstehen müsstet, wärt ihr nicht so müde.", "Wenn ihr nicht so früh aufstehen müsstet, wäret ihr nicht so müde."], r: ["cond.forms"] },
           { q: "Ich habe ein Velo. Ich fahre damit zur Arbeit.", a: ["Wenn ich ein Velo hätte, würde ich damit zur Arbeit fahren."], r: ["cond.unreal"] },
-        ].map(it => ({ ...it, diag: [{ t: "order", rule: "cond.order", msg: "In the wenn-part the modal goes to the very end (kochen **könnte**); after the comma comes the main verb." }] })) },
+        ].map(it => ({ ...it, diag: [{ t: "order", rule: "cond.order", msg: "In the wenn-part the verb goes to the very end (kochen **könnte**); after the comma comes the main verb (**würde** ich …)." }] })) },
         // ── Übung 26•27: from real to not real ──
         { id: "d26.27", ex: "26.27", t: "transform", fixed: true, title: "Real → not real", how: "Say it as something only imagined: the Konjunktiv II in both parts.", items: [
           { q: "Wenn ich Zeit habe, besuche ich meine Oma.", a: ["Wenn ich Zeit hätte, würde ich meine Oma besuchen."], r: ["cond.unreal"] },
@@ -185,51 +187,51 @@ cxPack({
         ] },
         // ── Übung 26•6: if only … ──
         { id: "d26.6", ex: "26.6", t: "transform", fixed: true, title: "If only …", how: "Make it a wish: Wenn … nur / doch …! — the Konjunktiv II at the end.", items: [
-          { q: "Ich habe keine Zeit.", a: ["Wenn ich nur Zeit hätte!"], r: ["wish.wenn"] },
-          { q: "Es ist so kalt.", a: ["Wenn es nur nicht so kalt wäre!"], r: ["wish.wenn"] },
+          { q: "Ich habe keine Zeit.", a: ["Wenn ich nur Zeit hätte!", "Wenn ich nur mehr Zeit hätte!"], r: ["wish.wenn"] },
+          { q: "Es ist so kalt.", a: ["Wenn es nur nicht so kalt wäre!", "Wenn es nur wärmer wäre!"], r: ["wish.wenn"] },
           { q: "Mein Bruder wohnt so weit weg.", a: ["Wenn mein Bruder nur nicht so weit weg wohnen würde!", "Wenn mein Bruder nur näher wohnen würde!"], r: ["wish.wenn"] },
           { q: "Ich kann nicht schwimmen.", a: ["Wenn ich nur schwimmen könnte!"], r: ["wish.wenn"] },
           { q: "Die Miete ist so hoch.", a: ["Wenn die Miete nur nicht so hoch wäre!"], r: ["wish.wenn"] },
           { q: "Wir haben kein Auto.", a: ["Wenn wir nur ein Auto hätten!"], r: ["wish.wenn"] },
           { q: "Du bist nicht hier.", a: ["Wenn du nur hier wärst!", "Wenn du nur hier wärest!"], r: ["wish.wenn"] },
           { q: "Ich verstehe den Dialekt nicht.", a: ["Wenn ich nur den Dialekt verstehen würde!", "Wenn ich den Dialekt nur verstehen würde!", "Wenn ich nur den Dialekt verstehen könnte!", "Wenn ich den Dialekt nur verstehen könnte!"], r: ["wish.wenn"] },
-          { q: "Der Bus kommt nicht.", a: ["Wenn der Bus nur kommen würde!", "Wenn der Bus nur käme!"], r: ["wish.wenn"] },
+          { q: "Der Bus kommt nicht.", a: ["Wenn der Bus nur kommen würde!", "Wenn der Bus nur käme!", "Wenn der Bus nur endlich kommen würde!", "Wenn der Bus nur endlich käme!"], r: ["wish.wenn"] },
           { q: "Es regnet schon wieder.", a: ["Wenn es nur nicht schon wieder regnen würde!", "Wenn es nur nicht regnen würde!"], r: ["wish.wenn"] },
-        ].map(it => ({ ...it, a: [...new Set(it.a.flatMap(x => [x, x.replace(/\bnur\b/, "doch")]))] })) },
+        ].map(it => ({ ...it, a: [...new Set(it.a.flatMap(x => [x, x.replace(/\bnur\b/, "doch"), x.replace(/\bnur\b/, "doch nur")]))], diag: CX_WISH_DIAG })) },
         // ── Übung 26•26: a flatmate's wishes ──
-        { id: "d26.26", ex: "26.26", t: "transform", fixed: true, title: "If he only would …", how: "Tim's flatmate drives him crazy. Make Tim's wishes: Wenn er nur … würde! (haben and sein: hätte, wäre)", items: [
+        { id: "d26.26", ex: "26.26", t: "transform", fixed: true, title: "If only he would …", how: "Tim's flatmate drives him crazy. Make Tim's wishes: Wenn er nur … würde! (or hätte, wäre)", items: [
           { q: "das Geschirr abwaschen", a: ["Wenn er nur das Geschirr abwaschen würde!"], r: ["wish.wenn"] },
           { q: "nicht so laut Musik hören", a: ["Wenn er nur nicht so laut Musik hören würde!"], r: ["wish.wenn"] },
-          { q: "den Müll rausbringen", a: ["Wenn er nur den Müll rausbringen würde!"], r: ["wish.wenn"] },
+          { q: "den Abfall rausbringen", a: ["Wenn er nur den Abfall rausbringen würde!"], r: ["wish.wenn"] },
           { q: "die Miete pünktlich bezahlen", a: ["Wenn er nur die Miete pünktlich bezahlen würde!"], r: ["wish.wenn"] },
           { q: "nicht so lange duschen", a: ["Wenn er nur nicht so lange duschen würde!"], r: ["wish.wenn"] },
           { q: "seine Schuhe wegräumen", a: ["Wenn er nur seine Schuhe wegräumen würde!"], r: ["wish.wenn"] },
           { q: "ordentlicher sein", a: ["Wenn er nur ordentlicher wäre!"], r: ["cond.forms"] },
           { q: "mehr Zeit für den Haushalt haben", a: ["Wenn er nur mehr Zeit für den Haushalt hätte!"], r: ["cond.forms"] },
           { q: "am Wochenende nicht bis Mittag schlafen", a: ["Wenn er nur am Wochenende nicht bis Mittag schlafen würde!"], r: ["wish.wenn"] },
-        ].map(it => ({ ...it, a: [...new Set(it.a.flatMap(x => [x, x.replace(/\bnur\b/, "doch")]))] })) },
+        ].map(it => ({ ...it, a: [...new Set(it.a.flatMap(x => [x, x.replace(/\bnur\b/, "doch"), x.replace(/\bnur\b/, "doch nur")]))], diag: CX_WISH_DIAG })) },
         // ── Übung 27•6: wishes from a phrase ──
-        { id: "d27.6", ex: "27.6", t: "transform", fixed: true, title: "Wish it", how: "Make a wish about yourself from the phrase: Wenn ich nur …!", items: [
+        { id: "d27.6", ex: "27.6", t: "transform", fixed: true, title: "Make a wish", how: "Make a wish about yourself from the phrase: Wenn ich nur …!", items: [
           { q: "(mehr Geld haben)", a: ["Wenn ich nur mehr Geld hätte!"], r: ["wish.wenn"] },
           { q: "(schneller lernen)", a: ["Wenn ich nur schneller lernen würde!", "Wenn ich nur schneller lernen könnte!"], r: ["wish.wenn"] },
           { q: "(besser schlafen können)", a: ["Wenn ich nur besser schlafen könnte!"], r: ["wish.wenn"] },
           { q: "(nicht so müde sein)", a: ["Wenn ich nur nicht so müde wäre!"], r: ["wish.wenn"] },
           { q: "(eine größere Wohnung finden)", a: ["Wenn ich nur eine größere Wohnung finden würde!", "Wenn ich nur eine größere Wohnung finden könnte!", "Wenn ich nur eine größere Wohnung fände!"], r: ["wish.wenn"] },
-          { q: "(morgen nicht arbeiten müssen)", a: ["Wenn ich nur morgen nicht arbeiten müsste!"], r: ["wish.wenn"] },
+          { q: "(morgen nicht arbeiten müssen)", a: ["Wenn ich nur morgen nicht arbeiten müsste!", "Wenn ich morgen nur nicht arbeiten müsste!"], r: ["wish.wenn"] },
           { q: "(die Antwort wissen)", a: ["Wenn ich nur die Antwort wüsste!"], r: ["wish.wenn"] },
           { q: "(schon in den Ferien sein)", a: ["Wenn ich nur schon in den Ferien wäre!"], r: ["wish.wenn"] },
           { q: "(Schweizerdeutsch verstehen)", a: ["Wenn ich nur Schweizerdeutsch verstehen würde!", "Wenn ich nur Schweizerdeutsch verstehen könnte!"], r: ["wish.wenn"] },
-        ].map(it => ({ ...it, a: [...new Set(it.a.flatMap(x => [x, x.replace(/\bnur\b/, "doch")]))] })) },
+        ].map(it => ({ ...it, a: [...new Set(it.a.flatMap(x => [x, x.replace(/\bnur\b/, "doch"), x.replace(/\bnur\b/, "doch nur")]))], diag: CX_WISH_DIAG })) },
         // ── Übung 27•12: without wenn ──
-        { id: "d27.12", ex: "27.12", t: "transform", fixed: true, title: "Without wenn", how: "Say the wish again without wenn: the verb comes first.", items: [
-          { q: "Wenn ich nur mehr Zeit hätte!", a: ["Hätte ich nur mehr Zeit!"], r: ["wish.verb"] },
-          { q: "Wenn es doch wärmer wäre!", a: ["Wäre es doch wärmer!"], r: ["wish.verb"] },
+        { id: "d27.12", ex: "27.12", t: "transform", fixed: true, title: "Without wenn", how: "Say it again without wenn: the verb comes first.", items: [
+          { q: "Wenn ich nur mehr Zeit hätte!", a: ["Hätte ich nur mehr Zeit!", "Hätte ich doch nur mehr Zeit!"], r: ["wish.verb"] },
+          { q: "Wenn es doch wärmer wäre!", a: ["Wäre es doch wärmer!", "Wäre es doch nur wärmer!"], r: ["wish.verb"] },
           { q: "Wenn du nur hier wärst!", a: ["Wärst du nur hier!", "Wärest du nur hier!"], r: ["wish.verb"] },
-          { q: "Wenn wir doch ein Auto hätten!", a: ["Hätten wir doch ein Auto!"], r: ["wish.verb"] },
-          { q: "Wenn ich nur besser singen könnte!", a: ["Könnte ich nur besser singen!"], r: ["wish.verb"] },
-          { q: "Wenn er doch anrufen würde!", a: ["Würde er doch anrufen!"], r: ["wish.verb"] },
-          { q: "Wenn die Prüfung nur schon vorbei wäre!", a: ["Wäre die Prüfung nur schon vorbei!"], r: ["wish.verb"] },
-          { q: "Wenn ich doch nicht arbeiten müsste!", a: ["Müsste ich doch nicht arbeiten!"], r: ["wish.verb"] },
+          { q: "Wenn wir doch ein Auto hätten!", a: ["Hätten wir doch ein Auto!", "Hätten wir doch nur ein Auto!"], r: ["wish.verb"] },
+          { q: "Wenn ich nur besser singen könnte!", a: ["Könnte ich nur besser singen!", "Könnte ich doch nur besser singen!"], r: ["wish.verb"] },
+          { q: "Wenn er doch anrufen würde!", a: ["Würde er doch anrufen!", "Würde er doch nur anrufen!"], r: ["wish.verb"] },
+          { q: "Wenn die Prüfung nur schon vorbei wäre!", a: ["Wäre die Prüfung nur schon vorbei!", "Wäre die Prüfung doch nur schon vorbei!"], r: ["wish.verb"] },
+          { q: "Wenn ich doch nicht arbeiten müsste!", a: ["Müsste ich doch nicht arbeiten!", "Müsste ich doch nur nicht arbeiten!"], r: ["wish.verb"] },
           { q: "Wenn ich Zeit hätte, würde ich kommen.", a: ["Hätte ich Zeit, würde ich kommen."], r: ["wish.verb"] },
           { q: "Wenn das Wetter schön wäre, könnten wir grillen.", a: ["Wäre das Wetter schön, könnten wir grillen."], r: ["wish.verb"] },
         ].map(it => ({ ...it, diag: [{ t: "order", rule: "wish.verb", msg: "Without wenn, the verb takes the first place: **Hätte** ich nur …!" }] })) },
@@ -247,7 +249,7 @@ cxPack({
         ].map(it => ({ ...it, a: [...new Set(it.a.flatMap(x => [x, x.replace("als ob", "als wenn")]))], diag: [{ t: "order", rule: "wish.alsob", msg: "After als ob, the verb goes to the very end: als ob er krank **wäre**." }] })) },
         // ── Übung 27•8: it looks as if … ──
         { id: "d27.8", ex: "27.8", t: "transform", fixed: true, title: "It looks as if …", how: "Start with the words given, then als ob + the sentence in the Konjunktiv II.", items: [
-          { q: "Du siehst aus, als ob … (Du bist müde.)", a: ["Du siehst aus, als ob du müde wärst."], r: ["wish.alsob"] },
+          { q: "Du siehst aus, als ob … (Du bist müde.)", a: ["Du siehst aus, als ob du müde wärst.", "Du siehst aus, als ob du müde wärest."], r: ["wish.alsob"] },
           { q: "Es sieht aus, als ob … (Es regnet bald.)", a: ["Es sieht aus, als ob es bald regnen würde.", "Es sieht aus, als ob es bald regnete."], r: ["wish.alsob"] },
           { q: "Sie lacht, als ob … (Sie findet das lustig.)", a: ["Sie lacht, als ob sie das lustig finden würde.", "Sie lacht, als ob sie das lustig fände."], r: ["wish.alsob"] },
           { q: "Der Hund bellt, als ob … (Jemand ist an der Tür.)", a: ["Der Hund bellt, als ob jemand an der Tür wäre."], r: ["wish.alsob"] },
@@ -265,23 +267,23 @@ cxPack({
           { w: ["wenn", "es", "nicht regnen", "wir", "wandern gehen"], a: ["Wenn es nicht regnen würde, würden wir wandern gehen.", "Wenn es nicht regnete, würden wir wandern gehen.", "Wenn es nicht regnen würde, gingen wir wandern.", "Wir würden wandern gehen, wenn es nicht regnen würde."], r: ["cond.unreal"] },
           { w: ["wenn", "du", "hier sein", "wir", "zusammen kochen"], a: ["Wenn du hier wärst, würden wir zusammen kochen.", "Wenn du hier wärest, würden wir zusammen kochen.", "Wir würden zusammen kochen, wenn du hier wärst."], r: ["cond.forms"] },
           { w: ["ich", "dir helfen", "wenn", "ich", "können"], a: ["Ich würde dir helfen, wenn ich könnte.", "Wenn ich könnte, würde ich dir helfen."], r: ["cond.order"] },
-          { w: ["wenn", "der Zug", "pünktlich sein", "wir", "nicht warten müssen"], a: ["Wenn der Zug pünktlich wäre, müssten wir nicht warten.", "Wir müssten nicht warten, wenn der Zug pünktlich wäre."], r: ["cond.forms"] },
+          { w: ["wenn", "der Zug", "pünktlich sein", "wir", "nicht warten müssen"], a: ["Wenn der Zug pünktlich wäre, müssten wir nicht warten.", "Wir müssten nicht warten, wenn der Zug pünktlich wäre.", "Wenn der Zug pünktlich wäre, würden wir nicht warten müssen."], r: ["cond.forms"] },
           { w: ["wenn", "ich", "du", "sein", "ich", "das nicht machen"], a: ["Wenn ich du wäre, würde ich das nicht machen.", "Ich würde das nicht machen, wenn ich du wäre."], r: ["cond.forms"] },
           { w: ["es", "schön sein", "wenn", "ihr", "kommen"], a: ["Es wäre schön, wenn ihr kommen würdet.", "Es wäre schön, wenn ihr kämt.", "Es wäre schön, wenn ihr kämet."], r: ["wish.ich"] },
           { w: ["ich", "wünschte", "ich", "mehr Zeit", "haben"], a: ["Ich wünschte, ich hätte mehr Zeit."], r: ["wish.ich"] },
         ] },
         { id: "dp.cond", t: "translate", end: true, title: "Say it in German", how: "Translate. Real: the Präsens. Imagined: the Konjunktiv II.", items: [
-          { q: "If it rains, we'll stay at home.", a: ["Wenn es regnet, bleiben wir zu Hause.", "Wir bleiben zu Hause, wenn es regnet.", "Wenn es regnet, bleiben wir daheim."], r: ["cond.real"] },
+          { q: "If it rains, we'll stay at home.", a: ["Wenn es regnet, bleiben wir zu Hause.", "Wir bleiben zu Hause, wenn es regnet.", "Wenn es regnet, bleiben wir daheim.", "Wenn es regnet, bleiben wir zuhause."], r: ["cond.real"] },
           { q: "If I had time, I would come.", a: ["Wenn ich Zeit hätte, würde ich kommen.", "Wenn ich Zeit hätte, käme ich.", "Ich würde kommen, wenn ich Zeit hätte."], r: ["cond.unreal"] },
           { q: "If I were you, I would wait.", a: ["Wenn ich du wäre, würde ich warten.", "Ich würde warten, wenn ich du wäre.", "An deiner Stelle würde ich warten."], r: ["cond.forms"] },
-          { q: "If only I could sleep!", a: ["Wenn ich nur schlafen könnte!", "Wenn ich doch schlafen könnte!", "Könnte ich nur schlafen!", "Könnte ich doch schlafen!"], r: ["wish.wenn"] },
-          { q: "If only the weather were better!", a: ["Wenn das Wetter nur besser wäre!", "Wenn das Wetter doch besser wäre!", "Wäre das Wetter nur besser!", "Wäre das Wetter doch besser!"], r: ["wish.verb"] },
-          { q: "I wish I had more money.", a: ["Ich wünschte, ich hätte mehr Geld."], r: ["wish.ich"] },
-          { q: "He acts as if he knew everything.", a: ["Er tut so, als ob er alles wüsste.", "Er tut so, als wenn er alles wüsste.", "Er tut, als ob er alles wüsste."], r: ["wish.alsob"] },
+          { q: "If only I could sleep!", a: ["Wenn ich nur schlafen könnte!", "Wenn ich doch schlafen könnte!", "Könnte ich nur schlafen!", "Könnte ich doch schlafen!", "Wenn ich doch nur schlafen könnte!", "Könnte ich doch nur schlafen!"], r: ["wish.wenn"], diag: CX_WISH_DIAG },
+          { q: "If only the weather were better!", a: ["Wenn das Wetter nur besser wäre!", "Wenn das Wetter doch besser wäre!", "Wäre das Wetter nur besser!", "Wäre das Wetter doch besser!", "Wenn das Wetter doch nur besser wäre!", "Wäre das Wetter doch nur besser!"], r: ["wish.verb"], diag: CX_WISH_DIAG },
+          { q: "I wish I had more money.", a: ["Ich wünschte, ich hätte mehr Geld.", "Ich wünschte mir, ich hätte mehr Geld."], r: ["wish.ich"] },
+          { q: "He acts as if he knew everything.", a: ["Er tut so, als ob er alles wüsste.", "Er tut so, als wenn er alles wüsste.", "Er tut, als ob er alles wüsste.", "Er tut so, als wüsste er alles."], r: ["wish.alsob"] },
           { q: "It would be nice if you came along. (du)", a: ["Es wäre schön, wenn du mitkommen würdest.", "Es wäre schön, wenn du mitkämst.", "Es wäre nett, wenn du mitkommen würdest."], r: ["wish.ich"] },
           { q: "If you have questions, call me. (du)", a: ["Wenn du Fragen hast, ruf mich an.", "Wenn du Fragen hast, ruf mich an!", "Ruf mich an, wenn du Fragen hast."], r: ["cond.real"] },
           { q: "If we had a garden, we would grow vegetables.", a: ["Wenn wir einen Garten hätten, würden wir Gemüse anpflanzen.", "Wenn wir einen Garten hätten, würden wir Gemüse pflanzen.", "Wenn wir einen Garten hätten, würden wir Gemüse anbauen."], r: ["cond.unreal"] },
-          { q: "You look as if you were tired. (du)", a: ["Du siehst aus, als ob du müde wärst.", "Du siehst aus, als wenn du müde wärst.", "Du siehst aus, als ob du müde wärest."], r: ["wish.alsob"] },
+          { q: "You look as if you were tired. (du)", a: ["Du siehst aus, als ob du müde wärst.", "Du siehst aus, als wenn du müde wärst.", "Du siehst aus, als ob du müde wärest.", "Du siehst aus, als wärst du müde."], r: ["wish.alsob"] },
           { q: "If I could, I would help you. (dir)", a: ["Wenn ich könnte, würde ich dir helfen.", "Ich würde dir helfen, wenn ich könnte."], r: ["cond.forms"] },
         ] },
         // ── Übung 27•13: set the condition ──
@@ -300,7 +302,7 @@ cxPack({
           { q: "Three things you wish were different in your life. (Wenn ich nur … · Ich wünschte, …)", model: ["Wenn ich nur mehr Zeit für Sport hätte! Ich wünschte, meine Familie würde näher wohnen. Wäre die Miete doch nicht so hoch!"], r: ["wish.wenn"] },
           { q: "Someone who acts as if … (Mein Chef tut so, als ob …)", model: ["Mein Nachbar tut so, als ob ihm das ganze Haus gehören würde. Er redet, als ob er alles wüsste."], r: ["wish.alsob"] },
           { q: "What would you do with a million francs?", model: ["Wenn ich eine Million Franken hätte, würde ich zuerst meine Eltern einladen. Dann würde ich ein kleines Haus kaufen und weniger arbeiten."], r: ["cond.unreal"] },
-          { q: "If you could live anywhere, where would it be? Why?", model: ["Wenn ich überall wohnen könnte, würde ich in Lugano wohnen. Dort wäre es wärmer, und ich könnte jeden Tag im See schwimmen."], r: ["cond.forms"] },
+          { q: "If you could live anywhere, where would it be? Why?", model: ["Wenn ich wohnen könnte, wo ich will, würde ich in Lugano wohnen. Dort wäre es wärmer, und ich könnte jeden Tag im See schwimmen."], r: ["cond.forms"] },
           { q: "Your plans for the weekend: what you'll do if the weather is good, and if it rains.", model: ["Wenn das Wetter schön ist, gehen wir wandern. Wenn es regnet, besuchen wir ein Museum in Basel."], r: ["cond.real"] },
           { q: "Give a friend advice: Wenn ich du wäre, …", model: ["Wenn ich du wäre, würde ich die Stelle nehmen. Ich würde aber zuerst noch mit deiner Familie sprechen."], r: ["cond.forms"] },
           { q: "A day that felt as if … (Es war, als ob …)", model: ["Der erste Schnee war wunderschön. Es war, als ob die ganze Stadt schlafen würde."], r: ["wish.alsob"] },

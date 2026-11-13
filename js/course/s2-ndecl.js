@@ -1,4 +1,4 @@
-// ── COURSE PACK · Stage 2 · n-declension nouns; adjectives used as nouns ──
+// ── COURSE PACK · Stage 2 · n-nouns; adjectives used as nouns ──
 // Book: appendix C's "Masculine nouns requiring an -(e)n ending", "Neuter
 // noun Herz requiring an -en ending" and "Adjectives and participles used
 // as nouns" (tables only — no exercise). Two sheets: the n-nouns (der
@@ -26,9 +26,9 @@ cxPack({
           why: "A small group of masculine nouns adds **-n** or **-en** in every case except the subject: der Kollege, but **den Kollegen**, **dem Kollegen**. Many are words for people you meet every day.",
           rid: ["nd.which", "nd.cases", "nd.herr"],
           rules: [
-            "These **masculine** nouns take **-(e)n**: most words for people or animals ending in **-e** (der Kollege, der Kunde, der Junge, der Neffe, der Löwe), words ending in **-ent, -ant, -ist** (der Student, der Praktikant, der Polizist, der Tourist), and a few more: der Mensch, der Nachbar, der Bauer, der Herr.",
+            "These **masculine** nouns take **-(e)n**: most people or animals in **-e** (der Kollege, der Kunde, der Junge, der Löwe), people in **-ent, -ant, -ist** (der Student, der Polizist, der Tourist), and a few more: der Mensch, der Nachbar, der Herr.",
             "They add **-(e)n** in every case except the nominative singular: **Der Kollege** kommt. · Ich frage **den Kollegen**. · mit **dem Kunden** · das Auto **des Nachbarn**. The plural ends in -(e)n too: die Kollegen.",
-            "**Herr** takes **-n**: Ich habe **Herrn** Meier angerufen. · ein Brief an **Herrn** Meier. As the subject, and in Sehr geehrter **Herr** Meier, it has none. Two odd ones: der Name → des Name**ns**, and das Herz → von ganzem Herz**en**.",
+            "**Herr** takes **-n**: Ich habe **Herrn** Meier angerufen. As the subject, and when you speak or write to him (Guten Tag, **Herr** Meier), it has none. Two odd ones: der Name → den Name**n**, des Name**ns** · das Herz → von ganzem Herz**en**.",
           ],
           table: { head: ["", "der Kollege", "der Student"], rows: [
             ["nom.", "der Kollege", "der Student"],
@@ -81,7 +81,7 @@ cxPack({
             { at: "r1", k: "pick", q: "the employees:", o: ["die Angestellten", "die Angestellte", "die Angestellter"], a: 0, why: "Plural after die: **-en**." },
             { at: "r2", k: "pick", q: "Sein Vater ist ___. (German)", o: ["Deutscher", "Deutsche", "Deutschen"], a: 0, why: "No article, a man: like ein: **Deutscher**." },
             { at: "r2", k: "type", cx: true, q: "(verwandt) Sie ist eine ___ von mir.", a: ["Verwandte"], r: ["na.end"], why: "eine + -e: **Verwandte**." },
-            { at: "r2", k: "pick", q: "Ich habe mit einem ___ gesprochen. (Bekannt)", o: ["Bekannten", "Bekannter", "Bekannte"], a: 0, why: "mit einem: **-en**." },
+            { at: "r2", k: "pick", q: "Ich habe mit einem ___ gesprochen. (bekannt)", o: ["Bekannten", "Bekannter", "Bekannte"], a: 0, why: "mit einem: **-en**." },
             { at: "r3", k: "pick", q: "Gibt es etwas ___?", o: ["Neues", "Neue", "neu"], a: 0, why: "After etwas: **-es**." },
             { at: "r3", k: "pick", q: "___ zum Geburtstag!", o: ["Alles Gute", "Alles Gutes", "Alles gut"], a: 0, why: "After alles: **-e**." },
             { at: "table", k: "pick", q: "die Deutschen · ein ___", o: ["Deutscher", "Deutsche", "Deutschen"], a: 0, why: "ein + a man: **-er**." },
@@ -94,14 +94,13 @@ cxPack({
         { t: "swap", from: "^(kollegen|kunden|jungen|neffen|lowen|studenten|praktikanten|polizisten|touristen|menschen|nachbarn|bauern|herrn|patienten|assistenten|prasidenten|journalisten|elefanten)$", to: "^(kollege|kunde|junge|neffe|lowe|student|praktikant|polizist|tourist|mensch|nachbar|bauer|herr|patient|assistent|prasident|journalist|elefant)$", rule: "nd.cases", hard: true, msg: "As the subject it has no -n: **{right}**." },
         { t: "swap", from: "^\\w+(es|s)$", to: "^\\w+(en|n)$", rule: "nd.cases", msg: "These nouns take **-n** in the genitive too, no -s: **{right}**." },
         { t: "ending", stem: "(deutsch|bekannt|verwandt|angestellt|erwachsen|krank|jugendlich|arbeitslos|reisend|fremd|neu|gut|besonder|schon|interessant|wichtig|schlecht|alt|klein|gross)", rule: "", hard: true, msg: "Right word, wrong ending: **{right}** — it takes the adjective's ending." },
-        { t: "grow", add: "(es|e|en|er)", rule: "na.etwas", msg: "It still needs its ending: **{right}**." },
       ],
       drills: [
         // ── our own: the n-nouns ──
-        { id: "dnd.case", t: "type", title: "den Kollegen, dem Kunden", how: "Write the noun in brackets with its article in the right case. Only the subject has no -n.", items: [
+        { id: "dnd.case", t: "type", title: "den Kollegen, dem Kunden", how: "Write the noun in brackets in the right case, with its article where the gap needs one. Only the subject has no -n.", items: [
           { q: "(der Kollege) Ich frage ___.", a: ["den Kollegen"], r: ["nd.cases"] },
           { q: "(der Kunde) Die Verkäuferin hilft ___.", a: ["dem Kunden"], r: ["nd.cases"] },
-          { q: "(der Nachbar) Das ist der Hund ___.", a: ["des Nachbarn"], r: ["nd.cases"] },
+          { q: "(der Nachbar) Das ist der Hund ___.", a: ["des Nachbarn", "vom Nachbarn"], r: ["nd.cases"] },
           { q: "(der Student) ___ wohnt im dritten Stock.", a: ["Der Student"], r: ["nd.cases"] },
           { q: "(der Polizist) Wir haben ___ nach dem Weg gefragt.", a: ["den Polizisten"], r: ["nd.cases"] },
           { q: "(ein Tourist) Ich habe ___ den Bahnhof gezeigt.", a: ["einem Touristen"], r: ["nd.cases"] },
@@ -109,7 +108,7 @@ cxPack({
           { q: "(mein Neffe) Ich kaufe ___ ein Buch.", a: ["meinem Neffen"], r: ["nd.cases"] },
           { q: "(der Praktikant) Kennst du ___ schon?", a: ["den Praktikanten"], r: ["nd.cases"] },
           { q: "(der Mensch) Er ist ein sehr netter ___.", a: ["Mensch"], r: ["nd.cases"] },
-          { q: "(der Kollege) Das ist das Büro ___.", a: ["des Kollegen"], r: ["nd.cases"] },
+          { q: "(der Kollege) Das ist das Büro ___.", a: ["des Kollegen", "vom Kollegen"], r: ["nd.cases"] },
           { q: "(der Patient) Die Ärztin spricht mit ___.", a: ["dem Patienten"], r: ["nd.cases"] },
         ] },
         // ── our own: n-noun or not? ──
@@ -163,9 +162,9 @@ cxPack({
           { q: "Wir haben wenig ___ gehört. (neu)", a: ["Neues"], r: ["na.etwas"] },
           { q: "Sie hat uns viel ___ erzählt. (interessant)", a: ["Interessantes"], r: ["na.etwas"] },
           { q: "Hoffentlich passiert nichts ___. (schlimm)", a: ["Schlimmes"], r: ["na.etwas"] },
-        ] },
+        ].map(it => ({ ...it, diag: [{ t: "grow", add: "(es|e)", rule: "na.etwas", msg: "It still needs its ending: **{right}**." }] })) },
         // ── Production ──
-        { id: "dnd.build", t: "compose", end: true, title: "Build it", how: "Build the sentence. n-nouns take -(e)n except as the subject; adjectives as nouns keep their endings.", items: [
+        { id: "dnd.build", t: "compose", end: true, title: "Build it", how: "Build it. n-nouns take -(e)n except as the subject; adjectives as nouns keep their endings.", items: [
           { w: ["ich", "fragen", "der Kollege"], a: ["Ich frage den Kollegen."], r: ["nd.cases"] },
           { w: ["die Verkäuferin", "helfen", "der Kunde"], a: ["Die Verkäuferin hilft dem Kunden."], r: ["nd.cases"] },
           { w: ["ich", "anrufen", "Herr Meier", "(Perfekt)"], a: ["Ich habe Herrn Meier angerufen."], r: ["nd.herr"] },
@@ -179,20 +178,20 @@ cxPack({
         { id: "dp.nd", t: "translate", end: true, title: "Say it in German", how: "Translate. Mind the -n of the n-nouns and the endings of adjectives as nouns.", items: [
           { q: "Do you know the new colleague? (du, a man)", a: ["Kennst du den neuen Kollegen?"], r: ["nd.cases"] },
           { q: "I'm helping the customer.", a: ["Ich helfe dem Kunden."], r: ["nd.cases"] },
-          { q: "I called Mr Weber.", a: ["Ich habe Herrn Weber angerufen."], r: ["nd.herr"] },
+          { q: "I called Mr Weber.", a: ["Ich habe Herrn Weber angerufen.", "Ich rief Herrn Weber an."], r: ["nd.herr"] },
           { q: "That's the neighbour's car.", a: ["Das ist das Auto des Nachbarn.", "Das ist das Auto vom Nachbarn.", "Das ist das Auto von dem Nachbarn."], r: ["nd.cases"] },
           { q: "My wife is German.", a: ["Meine Frau ist Deutsche."], r: ["na.end"] },
           { q: "All the best for your birthday!", a: ["Alles Gute zum Geburtstag!"], r: ["na.etwas"] },
-          { q: "Anything new? — Nothing special.", a: ["Gibt es etwas Neues? — Nichts Besonderes.", "Etwas Neues? — Nichts Besonderes."], r: ["na.etwas"] },
-          { q: "The employees are on strike.", a: ["Die Angestellten streiken."], r: ["na.what"] },
+          { q: "Anything new? — Nothing special.", a: ["Gibt es etwas Neues? — Nichts Besonderes.", "Etwas Neues? — Nichts Besonderes.", "Gibt es was Neues? — Nichts Besonderes."], r: ["na.etwas"] },
+          { q: "The employees are on strike.", a: ["Die Angestellten streiken.", "Die Angestellten sind im Streik."], r: ["na.what"] },
           { q: "What is your name? (Sie)", a: ["Wie ist Ihr Name?", "Wie heißen Sie?"], r: ["nd.herr"] },
-          { q: "Admission is free for young people.", a: ["Für Jugendliche ist der Eintritt gratis.", "Für Jugendliche ist der Eintritt frei.", "Der Eintritt ist für Jugendliche gratis.", "Der Eintritt ist für Jugendliche frei."], r: ["na.end"] },
+          { q: "Admission is free for young people.", a: ["Für Jugendliche ist der Eintritt gratis.", "Für Jugendliche ist der Eintritt frei.", "Der Eintritt ist für Jugendliche gratis.", "Der Eintritt ist für Jugendliche frei.", "Der Eintritt für Jugendliche ist gratis.", "Der Eintritt für Jugendliche ist frei.", "Für Jugendliche ist der Eintritt kostenlos."], r: ["na.end"] },
           { q: "We asked a policeman.", a: ["Wir haben einen Polizisten gefragt.", "Wir fragten einen Polizisten."], r: ["nd.cases"] },
           { q: "I'd like something warm.", a: ["Ich möchte etwas Warmes.", "Ich hätte gern etwas Warmes."], r: ["na.etwas"] },
         ] },
         { id: "dw.nd", t: "write", end: true, title: "Write your own", how: "Write in your own words. Saved for Claude to correct.", items: [
-          { q: "A colleague or a neighbour: who is he, and what do you do together?", model: ["Mein Kollege heißt Marco. Ich helfe dem Kollegen oft mit dem Computer, und er erklärt mir die Schweizer Politik."], r: ["nd.cases"] },
-          { q: "Write the start of a formal letter to a man, and one sentence about him.", model: ["Sehr geehrter Herr Huber, vielen Dank für Ihre Nachricht. Ich habe gestern auch mit Herrn Keller gesprochen."], r: ["nd.herr"] },
+          { q: "A colleague or a neighbour: who is he, and what do you do together?", model: ["Ich habe einen netten Kollegen, Marco. Ich helfe dem Kollegen oft am Computer, und er erklärt mir die Schweizer Politik."], r: ["nd.cases"] },
+          { q: "Write the start of a formal letter to a man, and a sentence that mentions another man (Herrn …).", model: ["Sehr geehrter Herr Huber, vielen Dank für Ihre Nachricht. Ich habe gestern auch mit Herrn Keller gesprochen."], r: ["nd.herr"] },
           { q: "Your relatives: who are they, where do they live?", model: ["Meine Verwandten wohnen in Portugal. Ein Verwandter von mir, mein Onkel, wohnt aber seit zehn Jahren in Genf."], r: ["na.end"] },
           { q: "Anything new in your life? Answer a friend's question.", model: ["Etwas Neues? Ja! Ich habe eine neue Stelle. Sonst gibt es nichts Besonderes."], r: ["na.etwas"] },
           { q: "Write a birthday card.", model: ["Liebe Sara, alles Gute zum Geburtstag! Ich wünsche dir viel Glück und nur das Beste."], r: ["na.etwas"] },

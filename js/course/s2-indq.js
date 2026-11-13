@@ -250,7 +250,7 @@ cxPack({
         // ── Übung 27•5 (27•4): what the doctor asked — as you'd say it ──
         // (the book writes 27•4 in the Konjunktiv; 27•5 asks it "as said in the spoken
         // language": the indicative, as here — the Konjunktiv I is the bonus lesson's)
-        { id: "d27.5", ex: "27.5", also: ["27.4"], t: "transform", fixed: true, title: "Die Ärztin hat gefragt, …", how: "Tell your partner what the doctor asked about your son: Die Ärztin hat gefragt, … — ob for a yes/no question, the verb at the end.", items: [
+        { id: "d27.5", ex: "27.5", also: ["27.4"], t: "transform", fixed: true, title: "Die Ärztin hat gefragt, …", how: "What did the doctor ask about your child? Die Ärztin hat gefragt, … — ob for yes/no, the verb last.", items: [
           { q: "«Hat das Kind Fieber?»", a: ["Die Ärztin hat gefragt, ob das Kind Fieber hat."], r: ["iq.ob"] },
           { q: "«Seit wann hustet es?»", a: ["Die Ärztin hat gefragt, seit wann es hustet."], r: ["iq.w"] },
           { q: "«Nimmt es Medikamente?»", a: ["Die Ärztin hat gefragt, ob es Medikamente nimmt."], r: ["iq.ob"] },
@@ -258,7 +258,7 @@ cxPack({
           { q: "«Hat es gut geschlafen?»", a: ["Die Ärztin hat gefragt, ob es gut geschlafen hat."], r: ["iq.two"] },
           { q: "«Wann hat es zuletzt gegessen?»", a: ["Die Ärztin hat gefragt, wann es zuletzt gegessen hat."], r: ["iq.two"] },
           { q: "«Kann das Kind gut schlucken?»", a: ["Die Ärztin hat gefragt, ob das Kind gut schlucken kann."], r: ["iq.two"] },
-          { q: "«Wo tut es weh?»", a: ["Die Ärztin hat gefragt, wo es weh tut.", "Die Ärztin hat gefragt, wo es wehtut."], r: ["iq.w"] },
+          { q: "«Wo tut es weh?»", a: ["Die Ärztin hat gefragt, wo es wehtut.", "Die Ärztin hat gefragt, wo es weh tut."], r: ["iq.w"] },
           { q: "«Mit wem hat es gespielt?»", a: ["Die Ärztin hat gefragt, mit wem es gespielt hat."], r: ["iq.prep"] },
           { q: "«Warum ist es so müde?»", a: ["Die Ärztin hat gefragt, warum es so müde ist."], r: ["iq.w"] },
         ].map(it => ({ ...it, diag: [{ t: "order", rule: "iq.w", msg: "A question inside a sentence has its verb at the very end: …, ob das Kind Fieber **hat**." }] })) },

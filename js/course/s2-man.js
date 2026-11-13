@@ -1,4 +1,4 @@
-// ── COURSE PACK · Stage 2 · man, the impersonal passive, and other ways around it ──
+// ── COURSE PACK · Stage 2 · man and the impersonal passive ──
 // Book: chapter 25's "Substitutes for the passive voice", "man" and
 // "Impersonal passive constructions" (25•10, 25•13, 25•14, 25•19), and the
 // dative in the passive (25•3, 25•23, 25•24 — Mir wurde geholfen). One
@@ -27,7 +27,7 @@ cxPack({
           rules: [
             "**man** (people, you, they) says what people in general do, with the er-form of the verb. It is the usual way round the passive in speech: Wie **schreibt man** das? = Wie **wird** das **geschrieben**?",
             "When only the **activity** matters, the passive has no subject: Hier **wird** viel **gelacht**. · Am Sonntag **wird** nicht **gearbeitet**. If nothing else comes first, **es** fills the first place: **Es wird** viel gelacht.",
-            "A **dative** object stays dative in the passive, and the verb stays in the er-form: Man hilft **mir**. → **Mir wird geholfen**. · **Dem Kind wurde** ein Geschenk **gegeben**. With helfen, danken, antworten, glauben there is no subject at all.",
+            "A **dative** stays dative in the passive: Man hilft **mir**. → **Mir wird geholfen**. With helfen, danken, glauben there is no subject: the verb stays in the er-form. With geben, zeigen, the thing is the subject: **Ihr wurden** Blumen **geschenkt**.",
             "Choose by what matters. **Who** does it: the active (Die Polizei sucht den Dieb). **What happens**: the passive (Der Dieb wird gesucht). **People in general**: man (Man sucht den Dieb).",
           ],
           table: { head: ["man", "passive"], rows: [
@@ -39,7 +39,7 @@ cxPack({
             ["In der Schweiz **trinkt man** viel Kaffee.", "People drink a lot of coffee in Switzerland."],
             ["Bei uns **wird** am Abend zusammen **gegessen**.", "At our place we eat together in the evening."],
             ["**Es wurde** bis drei Uhr morgens **getanzt**.", "There was dancing until three in the morning."],
-            ["**Uns wurde** gesagt, dass der Zug ausfällt.", "We were told that the train is cancelled."],
+            ["**Uns wurde** gesagt, dass der Zug ausfällt.", "We were told that the train was cancelled."],
           ],
           trap: "**man** is never replaced by er: ~~Man kauft ein Ticket, dann steigt er ein~~ — it stays man: …, dann steigt **man** ein. And the dative never becomes ich: ~~Ich wurde geholfen~~ is wrong; it's **Mir wurde geholfen**.",
           quiz: [
@@ -50,14 +50,14 @@ cxPack({
             { at: "r3", k: "pick", q: "Man hilft mir. →", o: ["Mir wird geholfen.", "Ich werde geholfen.", "Mich wird geholfen."], a: 0, why: "helfen takes the dative, and the dative stays: **Mir** wird geholfen." },
             { at: "r3", k: "order", q: "Build it: We were given a key.", a: ["Uns", "wurde", "ein Schlüssel", "gegeben."], why: "uns stays dative; ein Schlüssel is the subject." },
             { at: "r4", k: "pick", q: "People in general:", o: ["Man feiert den 1. August mit Feuerwerk.", "Der 1. August feiert mit Feuerwerk."], a: 0, why: "For people in general, use **man**." },
-            { at: "r4", k: "pick", q: "Who does it matters:", o: ["Meine Nachbarin hat das Paket genommen.", "Das Paket ist genommen worden."], a: 0, why: "To say **who**, use the active." },
+            { at: "r4", k: "pick", q: "It matters who did it:", o: ["Meine Nachbarin hat das Paket angenommen.", "Das Paket ist angenommen worden."], a: 0, why: "To say **who**, use the active." },
             { at: "table", k: "pick", q: "Man fragt mich. → ___ gefragt.", o: ["Ich werde", "Mich wird", "Mir wird"], a: 0, why: "fragen takes the accusative, so mich becomes the subject: **ich werde** gefragt. Only a dative stays (mir wird geholfen)." },
             { at: "trap", k: "pick", q: "Which is right?", o: ["Mir wurde geholfen.", "Ich wurde geholfen."], a: 0, why: "helfen takes the dative: **Mir** wurde geholfen." },
           ] },
       ],
       diag: [
-        { t: "swap", from: "^(ich|du|er|sie|wir|ihr)$", to: "^(mir|dir|ihm|ihr|uns|euch|ihnen)$", rule: "imp.dat", hard: true, msg: "The dative stays dative in the passive: **{right}** wurde geholfen." },
-        { t: "swap", from: "^(werde|wirst|werden|wurden|wurdest)$", to: "^(wird|wurde)$", rule: "imp.es", hard: true, msg: "With no subject, the verb stays in the er-form: **{right}**." },
+        { t: "swap", from: "^(ich|du|er|sie|wir|ihr)$", to: "^(mir|dir|ihm|ihr|uns|euch|ihnen)$", rule: "imp.dat", hard: true, msg: "The dative stays dative in the passive: **{right}**." },
+        { t: "swap", from: "^(werde|wirst|werden|wurden|wurdest)$", to: "^(wird|wurde)$", rule: "imp.es", hard: true, msg: "Here the verb is **{right}**: with no subject — or a singular one — it stays in the er-form." },
         { t: "swap", from: "^(er|sie)$", to: "^man$", rule: "imp.man", hard: true, msg: "man stays **man** — it never becomes er." },
         { t: "swap", from: "^(machen|sagen|sprechen|schreiben|essen|trinken|kaufen|kochen|bezahlen|singen|lesen|feiern)$", to: "^(macht|sagt|spricht|schreibt|isst|trinkt|kauft|kocht|bezahlt|singt|liest|feiert)$", rule: "imp.man", msg: "man takes the er-form: **{right}**." },
         { t: "missing", whole: true, tok: "^es$", rule: "imp.es", msg: "With nothing else in first place, **es** fills it: **Es** wird …" },
@@ -77,7 +77,7 @@ cxPack({
           { q: "Am 1. August wird gefeiert.", a: ["Am 1. August feiert man.", "Man feiert am 1. August."], r: ["imp.man"] },
         ] },
         // ── Übung 25•14: from man to es wird ──
-        { id: "d25.14", ex: "25.14", t: "transform", fixed: true, title: "Es wird …", how: "What happens in the German class? Say it in the passive, starting with Es wird.", items: [
+        { id: "d25.14", ex: "25.14", t: "transform", fixed: true, title: "Es wird …", how: "What happens in the German class? Say it in the passive, starting with Es wird (Es werden for a plural).", items: [
           { q: "Man liest einen Text.", a: ["Es wird ein Text gelesen."], r: ["imp.es"] },
           { q: "Man spricht viel.", a: ["Es wird viel gesprochen."], r: ["imp.es"] },
           { q: "Man lacht oft.", a: ["Es wird oft gelacht."], r: ["imp.es"] },
@@ -98,7 +98,7 @@ cxPack({
           { q: "Am Sonntag wird nicht gearbeitet.", a: ["Es wird am Sonntag nicht gearbeitet."], r: ["imp.es"] },
           { q: "Auf der Hochzeit wurde bis zum Morgen getanzt.", a: ["Es wurde auf der Hochzeit bis zum Morgen getanzt."], r: ["imp.es"] },
           { q: "Im Zug wird nicht geraucht.", a: ["Es wird im Zug nicht geraucht."], r: ["imp.es"] },
-          { q: "Bei der SBB wurde gestreikt.", a: ["Es wurde bei der SBB gestreikt."], r: ["imp.es"] },
+          { q: "Im Restaurant wurde laut gesungen.", a: ["Es wurde im Restaurant laut gesungen."], r: ["imp.es"] },
         ] },
         // ── Übung 25•3: verbs with a dative ──
         { id: "d25.3", ex: "25.3", t: "transform", title: "Mir wurde geholfen", how: "Say it in the passive, in the same tense. The dative stays dative — there's no subject.", items: [
@@ -125,7 +125,7 @@ cxPack({
           { q: "Den Kindern wurde nicht geglaubt. (Perfekt)", a: ["Den Kindern ist nicht geglaubt worden."], r: ["imp.dat"], vf: [["glauben", "pvpf", "er"]] },
         ] },
         // ── Übung 25•24: an indirect object ──
-        { id: "d25.24", ex: "25.24", t: "transform", title: "Mir wurde ein Paket geschickt", how: "Say it in the passive, in the same tense, without man. The dative stays dative; the thing becomes the subject.", items: [
+        { id: "d25.24", ex: "25.24", t: "transform", title: "Mir wurde ein Paket geschickt", how: "Say it in the passive, same tense, without man: the dative stays, the thing becomes the subject.", items: [
           { q: "Man schickte mir ein Paket.", a: ["Mir wurde ein Paket geschickt.", "Ein Paket wurde mir geschickt."], r: ["imp.dat"] },
           { q: "Man zeigte uns die Wohnung.", a: ["Uns wurde die Wohnung gezeigt.", "Die Wohnung wurde uns gezeigt."], r: ["imp.dat"] },
           { q: "Man gibt den Kindern ein Geschenk.", a: ["Den Kindern wird ein Geschenk gegeben.", "Ein Geschenk wird den Kindern gegeben."], r: ["imp.dat"] },
@@ -139,25 +139,25 @@ cxPack({
         ] },
         // ── Übung 25•19: active, passive, state or man? ──
         { id: "d25.19", ex: "25.19", t: "pick", title: "Which way?", how: "The same news, four ways. Pick the one the brackets ask for.", items: [
-          { q: "(active) ___", o: ["Die Gemeinde baute die Brücke.", "Die Brücke wurde gebaut.", "Man baute die Brücke.", "Die Brücke ist gebaut."], a: ["Die Gemeinde baute die Brücke."], r: ["imp.which"] },
-          { q: "(passive) ___", o: ["Die Brücke wurde gebaut.", "Die Gemeinde baute die Brücke.", "Man baute die Brücke.", "Die Brücke ist gebaut."], a: ["Die Brücke wurde gebaut."], r: ["imp.which"] },
+          { q: "(active: who built it) ___", o: ["Die Gemeinde baute die Brücke.", "Die Brücke wurde gebaut.", "Man baute die Brücke.", "Die Brücke ist gebaut."], a: ["Die Gemeinde baute die Brücke."], r: ["imp.which"] },
+          { q: "(passive: what happened) ___", o: ["Die Brücke wurde gebaut.", "Die Gemeinde baute die Brücke.", "Man baute die Brücke.", "Die Brücke ist gebaut."], a: ["Die Brücke wurde gebaut."], r: ["imp.which"] },
           { q: "(man) ___", o: ["Man baute die Brücke.", "Die Brücke wurde gebaut.", "Die Gemeinde baute die Brücke.", "Die Brücke ist gebaut."], a: ["Man baute die Brücke."], r: ["imp.man"] },
           { q: "(the state, the result) ___", o: ["Die Brücke ist gebaut.", "Die Brücke wurde gebaut.", "Man baute die Brücke.", "Die Gemeinde baute die Brücke."], a: ["Die Brücke ist gebaut."], r: ["imp.which"] },
-          { q: "(passive) Der Brief ___", o: ["wurde geschrieben.", "ist geschrieben.", "schrieb man."], a: ["wurde geschrieben."], r: ["imp.which"] },
+          { q: "(passive: what happened) Der Brief ___", o: ["wurde geschrieben.", "ist geschrieben.", "schrieb man."], a: ["wurde geschrieben."], r: ["imp.which"] },
           { q: "(man) Den Brief ___", o: ["schrieb man.", "wurde geschrieben.", "ist geschrieben."], a: ["schrieb man."], r: ["imp.man"] },
           { q: "(passive, no subject) Hier ___", o: ["wird getanzt.", "tanzt man.", "tanzen alle."], a: ["wird getanzt."], r: ["imp.es"] },
           { q: "(man) Hier ___", o: ["tanzt man.", "wird getanzt.", "tanzen alle."], a: ["tanzt man."], r: ["imp.man"] },
           { q: "(passive) Dem Mann ___", o: ["wurde geholfen.", "half man.", "half die Polizei."], a: ["wurde geholfen."], r: ["imp.dat"] },
-          { q: "(active) Dem Mann ___", o: ["half die Polizei.", "wurde geholfen.", "half man."], a: ["half die Polizei."], r: ["imp.which"] },
+          { q: "(active: who helped) Dem Mann ___", o: ["half die Polizei.", "wurde geholfen.", "half man."], a: ["half die Polizei."], r: ["imp.which"] },
         ] },
         // ── Production ──
         { id: "dman.build", t: "compose", end: true, title: "Build it", how: "Build the sentence: man + the er-form, or the passive with no subject (es wird …, mir wird …).", items: [
           { w: ["in der Schweiz", "man", "viel Käse", "essen"], a: ["In der Schweiz isst man viel Käse.", "Man isst in der Schweiz viel Käse."], r: ["imp.man"] },
           { w: ["wie", "man", "das", "schreiben", "?"], a: ["Wie schreibt man das?"], r: ["imp.man"] },
           { w: ["hier", "nicht", "rauchen", "(passive)"], a: ["Hier wird nicht geraucht."], r: ["imp.es"] },
-          { w: ["es", "bis Mitternacht", "tanzen", "(passive, past)"], a: ["Es wurde bis Mitternacht getanzt."], r: ["imp.es"] },
-          { w: ["mir", "sofort", "helfen", "(passive, past)"], a: ["Mir wurde sofort geholfen."], r: ["imp.dat"] },
-          { w: ["uns", "nichts", "sagen", "(passive, past)"], a: ["Uns wurde nichts gesagt."], r: ["imp.dat"] },
+          { w: ["es", "bis Mitternacht", "tanzen", "(passive, past)"], a: ["Es wurde bis Mitternacht getanzt.", "Es ist bis Mitternacht getanzt worden."], r: ["imp.es"] },
+          { w: ["mir", "sofort", "helfen", "(passive, past)"], a: ["Mir wurde sofort geholfen.", "Mir ist sofort geholfen worden."], r: ["imp.dat"] },
+          { w: ["uns", "nichts", "sagen", "(passive, past)"], a: ["Uns wurde nichts gesagt.", "Uns ist nichts gesagt worden."], r: ["imp.dat"] },
           { w: ["am Sonntag", "man", "nicht", "den Rasen", "mähen"], a: ["Am Sonntag mäht man den Rasen nicht.", "Am Sonntag mäht man nicht den Rasen.", "Man mäht am Sonntag den Rasen nicht.", "Am Sonntag mäht man keinen Rasen."], r: ["imp.man"] },
           { w: ["bei uns", "viel", "lachen", "(passive)"], a: ["Bei uns wird viel gelacht."], r: ["imp.es"] },
           { w: ["den Gästen", "das Zimmer", "zeigen", "(passive)"], a: ["Den Gästen wird das Zimmer gezeigt.", "Das Zimmer wird den Gästen gezeigt."], r: ["imp.dat"] },
@@ -166,13 +166,13 @@ cxPack({
           { q: "How do you say that in Swiss German?", a: ["Wie sagt man das auf Schweizerdeutsch?"], r: ["imp.man"] },
           { q: "People eat late in Spain.", a: ["In Spanien isst man spät.", "Man isst in Spanien spät."], r: ["imp.man"] },
           { q: "There's no smoking here.", a: ["Hier wird nicht geraucht.", "Hier raucht man nicht.", "Es wird hier nicht geraucht."], r: ["imp.es"] },
-          { q: "I was helped right away.", a: ["Mir wurde sofort geholfen.", "Mir ist sofort geholfen worden."], r: ["imp.dat"] },
+          { q: "I was helped right away.", a: ["Mir wurde sofort geholfen.", "Mir ist sofort geholfen worden.", "Mir wurde gleich geholfen.", "Man hat mir sofort geholfen."], r: ["imp.dat"] },
           { q: "We were told nothing.", a: ["Uns wurde nichts gesagt.", "Uns ist nichts gesagt worden.", "Man hat uns nichts gesagt."], r: ["imp.dat"] },
-          { q: "There was a lot of laughing.", a: ["Es wurde viel gelacht."], r: ["imp.es"] },
+          { q: "There was a lot of laughing.", a: ["Es wurde viel gelacht.", "Es ist viel gelacht worden.", "Man hat viel gelacht.", "Man lachte viel."], r: ["imp.es"] },
           { q: "Where can you buy tickets?", a: ["Wo kann man Billette kaufen?", "Wo kann man Tickets kaufen?", "Wo kann man Fahrkarten kaufen?"], r: ["imp.man"] },
           { q: "Nobody answered her. (passive)", a: ["Ihr wurde nicht geantwortet.", "Ihr ist nicht geantwortet worden."], r: ["imp.dat"] },
           { q: "On Sundays people don't work.", a: ["Am Sonntag arbeitet man nicht.", "Sonntags arbeitet man nicht.", "Am Sonntag wird nicht gearbeitet.", "Sonntags wird nicht gearbeitet."], r: ["imp.man"] },
-          { q: "He was offered a job.", a: ["Ihm wurde eine Stelle angeboten.", "Ihm ist eine Stelle angeboten worden."], r: ["imp.dat"] },
+          { q: "He was offered a job.", a: ["Ihm wurde eine Stelle angeboten.", "Ihm ist eine Stelle angeboten worden.", "Man hat ihm eine Stelle angeboten.", "Man bot ihm eine Stelle an."], r: ["imp.dat"] },
           { q: "You don't do that!", a: ["Das macht man nicht!", "Das macht man nicht.", "So etwas macht man nicht!"], r: ["imp.man"] },
         ] },
         { id: "dw.man", t: "write", end: true, title: "Write your own", how: "Write in your own words. Saved for Claude to correct.", items: [

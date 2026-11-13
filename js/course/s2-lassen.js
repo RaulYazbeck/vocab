@@ -7,6 +7,9 @@
 // infinitive (Ich höre ihn singen), and sich lassen: it can be done (Das
 // lässt sich machen). Built on the modals (s1.modal) and on their Perfekt
 // (s2.modpf), which works the same way.
+// (sich missing is named only where sich lassen is the point: in «Lea lässt sich
+// die Haare schneiden» the sich is another one)
+const CX_LASS_SICH = [{ t: "missing", whole: true, tok: "^sich$", rule: "lass.sich", msg: "*It can be done* is **sich** lassen: Das lässt **sich** machen." }];
 cxPack({
   id: "s2-lassen",
   sections: {
@@ -24,7 +27,7 @@ cxPack({
       sheets: [
         { id: "cx.lass1", title: "Ich lasse mein Velo reparieren", qn: 3,
           struct: [["Ich", "who"], ["lasse", "verb"], ["mein Velo", "thing"], ["reparieren", "inf"]],
-          why: "**lassen** works like a modal: it's the verb second, with an infinitive at the end. It says that **someone else** does it for you, or that you **let** someone do it.",
+          why: "**lassen** works like a modal: lassen comes second, the other verb goes to the end as an infinitive. It says that **someone else** does it for you, or that you **let** someone do it.",
           rid: ["lass.do", "lass.let", "lass.leave", "lass.form"],
           rules: [
             "**lassen** + an infinitive means you **have it done** by someone else: Ich **lasse** mein Velo **reparieren**. (I don't repair it myself.) · Sie **lässt** sich die Haare **schneiden**.",
@@ -61,7 +64,7 @@ cxPack({
           ] },
         { id: "cx.lass2", title: "Ich habe es reparieren lassen · Ich höre ihn singen", qn: 3,
           struct: [["Ich", "who"], ["habe", "aux"], ["mein Velo", "thing"], ["reparieren", "inf"], ["lassen", "modal"]],
-          why: "lassen, and the verbs of the senses **sehen** and **hören**, and **helfen**, take an infinitive without zu, like the modals. In the Perfekt, lassen also ends in two infinitives. And **sich lassen** is an easy way to say *it can be done*.",
+          why: "Like the modals, **lassen**, **sehen**, **hören** and **helfen** take an infinitive without zu, and lassen ends in two infinitives in the Perfekt. **sich lassen** is an easy way to say *it can be done*.",
           rid: ["lass.pf", "lass.sense", "lass.sich"],
           rules: [
             "In the Perfekt, lassen with another verb works like a modal: **haben** + **two infinitives**, lassen last: Ich **habe** mein Velo **reparieren lassen**. Alone, it takes its Partizip II: Ich **habe** den Schirm im Zug **gelassen**.",
@@ -85,7 +88,7 @@ cxPack({
             { at: "r1", k: "pick", q: "I left my umbrella on the train. Ich habe meinen Schirm im Zug ___.", o: ["gelassen", "lassen"], a: 0, why: "No other verb: the Partizip II, **gelassen**." },
             { at: "r1", k: "order", q: "Build it: We had the flat painted.", a: ["Wir", "haben", "die Wohnung", "streichen", "lassen."], why: "haben second, then the two infinitives." },
             { at: "r2", k: "pick", q: "I hear him singing.", o: ["Ich höre ihn singen.", "Ich höre ihn zu singen.", "Ich höre ihn singend."], a: 0, why: "hören + the infinitive, no zu." },
-            { at: "r2", k: "pick", q: "Er hilft mir, die Kisten ___.", o: ["tragen", "zu tragen", "trägt"], a: 0, why: "helfen + the infinitive: tragen. (zu tragen is also heard after the comma.)" },
+            { at: "r2", k: "pick", q: "Er hilft mir die Kisten ___.", o: ["tragen", "getragen", "trägt"], a: 0, why: "helfen + the infinitive, no zu: tragen. (With a comma: Er hilft mir, die Kisten zu tragen.)" },
             { at: "r3", k: "pick", q: "The window can't be opened.", o: ["Das Fenster lässt sich nicht öffnen.", "Das Fenster lässt nicht öffnen.", "Das Fenster lässt sich nicht zu öffnen."], a: 0, why: "**sich lassen** + the infinitive: it can (not) be done." },
             { at: "r3", k: "type", cx: true, q: "Das Problem ___ sich leicht lösen. (lassen)", a: ["lässt"], r: ["lass.sich"], why: "es **lässt** sich: it can be solved." },
             { at: "table", k: "pick", q: "Er hat das Auto hier ___. (left it)", o: ["gelassen", "lassen", "ließ"], a: 0, why: "Alone: **gelassen**." },
@@ -96,11 +99,9 @@ cxPack({
         { t: "swap", from: "^gelassen$", to: "^lassen$", rule: "lass.pf", hard: true, msg: "With another verb, lassen stays an infinitive: … reparieren **lassen** — no ge-." },
         { t: "swap", from: "^lassen$", to: "^gelassen$", rule: "lass.pf", hard: true, msg: "lassen alone, with no other verb, takes its Partizip II: **gelassen**." },
         { t: "extra", tok: "^zu$", rule: "lass.do", msg: "After lassen, sehen, hören and helfen comes the bare infinitive — no **zu**." },
-        { t: "missing", whole: true, tok: "^sich$", rule: "lass.sich", msg: "*It can be done* is **sich** lassen: Das lässt **sich** machen." },
         { t: "ending", stem: "(lass|lies)", rule: "lass.form", msg: "lassen must match the subject: **{right}**. (ich lasse, du lässt, er lässt · ließ)" },
         { t: "swap", from: "^(bin|bist|ist|sind|seid)$", to: "^(habe|hast|hat|haben|habt)$", rule: "lass.pf", hard: true, msg: "lassen, sehen and hören take **haben** in the Perfekt: **{right}**." },
         { t: "swap", from: "^mir$", to: "^mich$", rule: "lass.let", hard: true, msg: "lassen takes the accusative: Lass **mich** …" },
-        { t: "seq", seq: ["(lassen|horen|sehen|helfen)", "\\w+(en|n)$"], rule: "lass.pf", msg: "lassen comes **last**: … reparieren **lassen**." },
       ],
       drills: [
         // ── our own: have it done ──
@@ -156,20 +157,20 @@ cxPack({
           { q: "Die Vögel singen. (ich, hören)", a: ["Ich höre die Vögel singen."], r: ["lass.sense"] },
         ] },
         // ── Übung 24•2: the Perfekt and the future ──
-        { id: "d24.2", ex: "24.2", t: "transform", title: "Perfekt with two infinitives", how: "Say it in the tense in brackets. Perfekt: haben + two infinitives (waschen lassen). Futur: werden + the two infinitives.", items: [
+        { id: "d24.2", ex: "24.2", t: "transform", title: "Perfekt with two infinitives", how: "Say it in the tense in brackets: hat … waschen lassen · wird … waschen lassen. Alone: gelassen.", items: [
           { q: "Er lässt das Auto waschen. (Perfekt)", a: ["Er hat das Auto waschen lassen."], r: ["lass.pf"] },
           { q: "Er lässt das Auto waschen. (Futur)", a: ["Er wird das Auto waschen lassen."], r: ["lass.pf"] },
           { q: "Ich höre die Kinder lachen. (Perfekt)", a: ["Ich habe die Kinder lachen hören.", "Ich habe die Kinder lachen gehört."], r: ["lass.pf"] },
           { q: "Wir sehen den Ballon über dem See fliegen. (Perfekt)", a: ["Wir haben den Ballon über dem See fliegen sehen.", "Wir haben den Ballon über dem See fliegen gesehen."], r: ["lass.pf"] },
           { q: "Frau Keller lässt einen neuen Pass machen. (Perfekt)", a: ["Frau Keller hat einen neuen Pass machen lassen."], r: ["lass.pf"], cap: true },
           { q: "Frau Keller lässt einen neuen Pass machen. (Futur)", a: ["Frau Keller wird einen neuen Pass machen lassen."], r: ["lass.pf"], cap: true },
-          { q: "Mein Sohn hilft mir das Velo reparieren. (Perfekt)", a: ["Mein Sohn hat mir das Velo reparieren helfen.", "Mein Sohn hat mir geholfen, das Velo zu reparieren."], r: ["lass.pf"] },
+          { q: "Mein Sohn hilft mir das Velo reparieren. (Perfekt)", a: ["Mein Sohn hat mir das Velo reparieren helfen.", "Mein Sohn hat mir das Velo reparieren geholfen.", "Mein Sohn hat mir geholfen, das Velo zu reparieren."], r: ["lass.pf"] },
           { q: "Ich lasse mir die Haare kurz schneiden. (Perfekt)", a: ["Ich habe mir die Haare kurz schneiden lassen."], r: ["lass.pf"] },
           { q: "Wir lassen die Kinder bei den Großeltern. (Perfekt)", a: ["Wir haben die Kinder bei den Großeltern gelassen."], r: ["lass.pf"] },
           { q: "Die Gemeinde lässt eine neue Brücke bauen. (Futur)", a: ["Die Gemeinde wird eine neue Brücke bauen lassen."], r: ["lass.pf"] },
         ] },
         // ── Übung 25•16: it can be done — sich lassen ──
-        { id: "d25.16", ex: "25.16", t: "transform", title: "It can be done", how: "Say it with sich lassen: what man kann do becomes the subject. (konnte man → ließ sich)", items: [
+        { id: "d25.16", ex: "25.16", t: "transform", title: "It can be done", how: "Say it with sich lassen: the thing becomes the subject. (man kann → lässt sich · man konnte → ließ sich)", items: [
           { q: "Man kann den Stuhl reparieren.", a: ["Der Stuhl lässt sich reparieren."], r: ["lass.sich"] },
           { q: "Man kann das Fenster nicht öffnen.", a: ["Das Fenster lässt sich nicht öffnen."], r: ["lass.sich"] },
           { q: "Man kann das Problem leicht lösen.", a: ["Das Problem lässt sich leicht lösen."], r: ["lass.sich"] },
@@ -180,7 +181,7 @@ cxPack({
           { q: "Man konnte die Tür nicht abschließen.", a: ["Die Tür ließ sich nicht abschließen."], r: ["lass.sich"] },
           { q: "Man kann den Text gut lesen.", a: ["Der Text lässt sich gut lesen."], r: ["lass.sich"] },
           { q: "Man konnte das Auto nicht mehr reparieren.", a: ["Das Auto ließ sich nicht mehr reparieren."], r: ["lass.sich"] },
-        ] },
+        ].map(it => ({ ...it, diag: CX_LASS_SICH })) },
         // ── Übung 25•5: sich lassen in the past ──
         { id: "d25.5", ex: "25.5", t: "transform", title: "sich lassen, then", how: "Say it in the tense in brackets: Präteritum (ließ sich) or Perfekt (hat sich … lassen).", items: [
           { q: "Das lässt sich nicht leicht ändern. (Präteritum)", a: ["Das ließ sich nicht leicht ändern."], r: ["lass.sich"] },
@@ -191,7 +192,7 @@ cxPack({
           { q: "Der Termin lässt sich verschieben. (Perfekt)", a: ["Der Termin hat sich verschieben lassen."], r: ["lass.pf"] },
           { q: "Das Wort lässt sich schwer übersetzen. (Präteritum)", a: ["Das Wort ließ sich schwer übersetzen."], r: ["lass.sich"] },
           { q: "Die Heizung lässt sich nicht reparieren. (Perfekt)", a: ["Die Heizung hat sich nicht reparieren lassen."], r: ["lass.pf"] },
-        ] },
+        ].map(it => ({ ...it, diag: CX_LASS_SICH })) },
         // ── Production ──
         { id: "dlass.build", t: "compose", end: true, title: "Build it", how: "Build the sentence with lassen, sehen or hören: the infinitive at the end, no zu.", items: [
           { w: ["ich", "lassen", "mein Auto", "reparieren"], a: ["Ich lasse mein Auto reparieren."], r: ["lass.do"] },
@@ -199,23 +200,23 @@ cxPack({
           { w: ["lass uns", "am Samstag", "wandern gehen"], a: ["Lass uns am Samstag wandern gehen!", "Lass uns am Samstag wandern gehen.", "Lasst uns am Samstag wandern gehen!"], r: ["lass.let"] },
           { w: ["wir", "die Wohnung", "streichen", "lassen", "(Perfekt)"], a: ["Wir haben die Wohnung streichen lassen."], r: ["lass.pf"] },
           { w: ["ich", "die Kinder", "im Garten", "lachen", "hören"], a: ["Ich höre die Kinder im Garten lachen."], r: ["lass.sense"] },
-          { w: ["das", "sich lassen", "machen"], a: ["Das lässt sich machen."], r: ["lass.sich"] },
+          { w: ["das", "sich lassen", "machen"], a: ["Das lässt sich machen."], r: ["lass.sich"], diag: CX_LASS_SICH },
           { w: ["sie", "sich", "die Haare", "schneiden", "lassen", "(Perfekt)"], a: ["Sie hat sich die Haare schneiden lassen."], r: ["lass.pf"] },
           { w: ["ich", "meinen Schirm", "im Bus", "lassen", "(Perfekt)"], a: ["Ich habe meinen Schirm im Bus gelassen."], r: ["lass.pf"] },
           { w: ["wir", "den Zug", "kommen", "sehen"], a: ["Wir sehen den Zug kommen."], r: ["lass.sense"] },
         ] },
         { id: "dp.lass", t: "translate", end: true, title: "Say it in German", how: "Translate with lassen, sehen or hören.", items: [
-          { q: "I'm having my hair cut tomorrow.", a: ["Ich lasse mir morgen die Haare schneiden.", "Morgen lasse ich mir die Haare schneiden."], r: ["lass.do"] },
+          { q: "I'm having my hair cut tomorrow.", a: ["Ich lasse mir morgen die Haare schneiden.", "Morgen lasse ich mir die Haare schneiden.", "Ich lasse morgen meine Haare schneiden.", "Morgen lasse ich meine Haare schneiden."], r: ["lass.do"] },
           { q: "Let me help you! (du)", a: ["Lass mich dir helfen!", "Lass mich dir helfen."], r: ["lass.let"] },
           { q: "Let's go to the cinema!", a: ["Lass uns ins Kino gehen!", "Lasst uns ins Kino gehen!", "Lass uns ins Kino gehen."], r: ["lass.let"] },
           { q: "We had the kitchen renovated.", a: ["Wir haben die Küche renovieren lassen.", "Wir ließen die Küche renovieren."], r: ["lass.pf"] },
-          { q: "I left my phone at home.", a: ["Ich habe mein Handy zu Hause gelassen.", "Ich habe mein Telefon zu Hause gelassen.", "Ich ließ mein Handy zu Hause."], r: ["lass.leave"] },
-          { q: "Can the appointment be moved?", a: ["Lässt sich der Termin verschieben?", "Kann der Termin verschoben werden?", "Kann man den Termin verschieben?"], r: ["lass.sich"] },
+          { q: "I left my phone at home.", a: ["Ich habe mein Handy zu Hause gelassen.", "Ich habe mein Telefon zu Hause gelassen.", "Ich ließ mein Handy zu Hause.", "Ich habe mein Handy zu Hause liegen lassen.", "Ich habe mein Handy zu Hause liegen gelassen.", "Ich habe mein Handy zuhause gelassen."], r: ["lass.leave"] },
+          { q: "Can the appointment be moved?", a: ["Lässt sich der Termin verschieben?", "Kann der Termin verschoben werden?", "Kann man den Termin verschieben?"], r: ["lass.sich"], diag: CX_LASS_SICH },
           { q: "I hear the neighbours singing.", a: ["Ich höre die Nachbarn singen."], r: ["lass.sense"] },
           { q: "She sees the bus coming.", a: ["Sie sieht den Bus kommen."], r: ["lass.sense"] },
           { q: "Stop that! (du)", a: ["Lass das!", "Lass das sein!"], r: ["lass.leave"] },
           { q: "My parents don't let me go out alone.", a: ["Meine Eltern lassen mich nicht allein ausgehen.", "Meine Eltern lassen mich nicht alleine ausgehen.", "Meine Eltern lassen mich nicht allein rausgehen."], r: ["lass.let"] },
-          { q: "That can be done.", a: ["Das lässt sich machen."], r: ["lass.sich"] },
+          { q: "That can be done.", a: ["Das lässt sich machen."], r: ["lass.sich"], diag: CX_LASS_SICH },
           { q: "He has the documents translated.", a: ["Er lässt die Dokumente übersetzen."], r: ["lass.do"] },
         ] },
         { id: "dw.lass", t: "write", end: true, title: "Write your own", how: "Write in your own words. Saved for Claude to correct.", items: [

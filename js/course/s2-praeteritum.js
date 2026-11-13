@@ -21,25 +21,25 @@ cxPack({
         { t: "swap", from: "^(hatte|hattest|hatten|hattet)$", to: "^(war|warst|waren|wart)$", rule: "gs:pq1.r2", hard: true, msg: "This verb takes **sein** in the Perfekt (ist gegangen), so here it's **{right}**." },
         { t: "swap", from: "^(war|warst|waren|wart)$", to: "^(hatte|hattest|hatten|hattet)$", rule: "gs:pq1.r2", hard: true, msg: "This verb takes **haben** in the Perfekt (hat gemacht), so here it's **{right}**." },
         { t: "swap", from: "^(denk|bring|kenn|nenn|renn|brenn|wiss|verbring|erkenn|mitbring|nachdenk)(t|te|test|ten|tet)$", to: "^(dach|brach|kann|nann|rann|brann|wuss|verbrach|erkann|mitbrach|nachdach)(te|test|ten|tet)$", rule: "gs:pt23.r1", hard: true, msg: "A mixed verb changes its stem **and** adds -te: **{right}**." },
-        { t: "swap", from: "^(?!(hatte|wurde|konnte|musste|durfte|sollte|wollte|mochte))\\w+(te|test|ten|tet)$", to: "^(?!\\w*(te|test|ten|tet)$)(?!(war|warst|waren|wart)$)\\w+$", rule: "gs:pt22.r1", hard: true, msg: "This is a strong verb: it changes its stem and never adds -te. Here: **{right}**." },
-        { t: "ending", stem: "(ging|kam|sah|fand|nahm|gab|las|blieb|schrieb|schlief|fuhr|trank|sprach|half|trug|lag|stand|ass|tat|rief|lief|fiel|hielt|vergass|begann|gefiel|stieg|flog|zog|wusch|sass|bat|traf|schwamm|gewann|sang|trat|fing)", rule: "gs:pt22.r2", msg: "Right stem, wrong ending: **{right}**. ich and er/sie/es take no ending; then -st, -en, -t, -en." },
-        { t: "ending", stem: "(dach|brach|kann|nann|rann|brann|wuss|verbrach|erkann)te", rule: "gs:pt23.r1", msg: "Right stem, wrong ending: **{right}**. The endings are those of -te: -te, -test, -te, -ten, -tet, -ten." },
+        { t: "swap", from: "^(?!(hatte|wurde|konnte|musste|durfte|sollte|wollte|mochte))\\w+(te|test|ten|tet)$", to: "^(ging|kam|sah|fand|nahm|gab|las|blieb|schrieb|schlief|fuhr|trank|sprach|half|trug|lag|stand|ass|tat|rief|lief|fiel|hielt|vergass|begann|gefiel|stieg|flog|zog|wusch|sass|bat|traf|schwamm|gewann|sang|trat|fing)(st|en|t)?$", rule: "gs:pt22.r1", hard: true, msg: "This is a strong verb: it changes its stem and never adds -te. Here: **{right}**." },
+        { t: "ending", stem: "(ging|kam|sah|fand|nahm|gab|las|blieb|schrieb|schlief|fuhr|trank|sprach|half|trug|lag|stand|ass|tat|rief|lief|fiel|hielt|vergass|begann|gefiel|stieg|flog|zog|wusch|sass|bat|traf|schwamm|gewann|sang|trat|fing)", rule: "gs:pt22.r2", msg: "Right stem, wrong ending: **{right}**. Endings: ich –, du -st, er/sie/es –, wir -en, ihr -t, sie/Sie -en." },
+        { t: "ending", stem: "(dach|brach|kann|nann|rann|brann|wuss|verbrach|erkann)te", rule: "gs:pt23.r1", msg: "Right stem, wrong ending: **{right}**. Endings: ich -te, du -test, er/sie/es -te, wir -ten, ihr -tet, sie/Sie -ten." },
         { t: "swap", from: "^wartet$", to: "^wart$", rule: "gs:pt11.trap", hard: true, msg: "ihr **wart** means *you were*; ihr wartet is warten (to wait)." },
-        { t: "ending", stem: "(hatt|wa[rs]|wurd)", rule: "gs:pt11.r3", msg: "Right verb, wrong person: **{right}**." },
+        { t: "ending", stem: "(hatt|wurd|war(?=(st|en|t)?$))", rule: "gs:pt11.r3", msg: "Right verb, wrong person: **{right}**." },
       ],
       drills: [
         // ── generated: Übung 16•1 (16•2, 16•18) — one strong verb, one person ──
         { id: "d16.1", ex: "16.1", also: ["16.2", "16.18"], t: "type", title: "Strong verbs: a new stem", how: "Write the Präteritum for the person given. No -te: the stem changes.", gen: { kind: "conj", verbs: ["gehen", "kommen", "sehen", "finden", "nehmen", "geben", "bleiben", "schreiben", "fahren", "schlafen", "essen", "trinken", "sprechen", "tun", "beschreiben", "stehen", "liegen", "sitzen"], tense: "pt" }, n: 10, r: ["gs:pt22.r1", "gs:pt22.r2"] },
         // ── generated: Übung 16•8 (16•9) — the vowel patterns: ei, ie, i ──
-        { id: "d16.8", ex: "16.8", also: ["16.9"], t: "type", title: "ei → ie · ie → o · i → a", how: "Write the Präteritum. schreiben → schrieb, fliegen → flog, finden → fand.", gen: { kind: "conj", verbs: ["schreiben", "bleiben", "steigen", "scheinen", "fliegen", "ziehen", "verlieren", "schließen", "finden", "trinken", "singen", "beginnen", "schwimmen", "gewinnen"], tense: "pt" }, n: 10, r: ["gs:pt22.r3"] },
+        { id: "d16.8", ex: "16.8", also: ["16.9"], t: "type", title: "schrieb, flog, fand", how: "Write the Präteritum. schreiben → schrieb, fliegen → flog, finden → fand.", gen: { kind: "conj", verbs: ["schreiben", "bleiben", "steigen", "scheinen", "fliegen", "ziehen", "verlieren", "schließen", "finden", "trinken", "singen", "beginnen", "schwimmen", "gewinnen"], tense: "pt" }, n: 10, r: ["gs:pt22.r3"] },
         // ── generated: Übung 16•10 — e → a, a → u, a → ie ──
-        { id: "d16.10", ex: "16.10", t: "type", title: "e → a · a → u · a → ie", how: "Write the Präteritum. sprechen → sprach, fahren → fuhr, schlafen → schlief.", gen: { kind: "conj", verbs: ["sprechen", "helfen", "nehmen", "treffen", "geben", "lesen", "sehen", "essen", "fahren", "tragen", "waschen", "schlafen", "laufen", "fallen", "halten", "rufen"], tense: "pt" }, n: 10, r: ["gs:pt22.r3"] },
+        { id: "d16.10", ex: "16.10", t: "type", title: "sprach, fuhr, schlief", how: "Write the Präteritum. sprechen → sprach, fahren → fuhr, schlafen → schlief, rufen → rief.", gen: { kind: "conj", verbs: ["sprechen", "helfen", "nehmen", "treffen", "geben", "lesen", "sehen", "essen", "fahren", "tragen", "waschen", "schlafen", "laufen", "fallen", "halten", "rufen"], tense: "pt" }, n: 10, r: ["gs:pt22.r3"] },
         // ── generated: Übung 16•3 — haben and sein ──
         { id: "d16.3", ex: "16.3", t: "type", title: "haben and sein", how: "Write the Präteritum: hatte, war.", gen: { kind: "conj", verbs: ["haben", "sein"], tense: "pt" }, n: 8, r: ["gs:pt11.r1", "gs:pt11.r2"] },
         // ── generated: Übung 16•4 (16•5) — the mixed verbs ──
         { id: "d16.4", ex: "16.4", also: ["16.5"], t: "type", title: "Mixed verbs: new stem + -te", how: "Write the Präteritum. The stem changes and -te is added: dachte.", gen: { kind: "conj", verbs: ["kennen", "nennen", "rennen", "denken", "bringen", "wissen", "brennen"], tense: "pt" }, n: 10, r: ["gs:pt23.r1"] },
         // ── generated: Übung 11•1 — the Plusquamperfekt ──
-        { id: "d11.1", ex: "11.1", t: "type", title: "hatte or war + Partizip II", how: "Write the Plusquamperfekt: hatte or war, then the Partizip II.", gen: { kind: "conj", verbs: ["bleiben", "fliegen", "essen", "kommen", "spielen", "besuchen", "lachen", "vergessen", "bekommen", "umziehen", "passieren", "einkaufen", "abfahren", "aufwachen", "verpassen", "anfangen"], tense: "pq" }, n: 10, r: ["gs:pq1.r1", "gs:pq1.r2"] },
+        { id: "d11.1", ex: "11.1", t: "type", title: "hatte or war + Partizip II", how: "Write the Plusquamperfekt: hatte or war, then the Partizip II.", gen: { kind: "conj", verbs: ["bleiben", "fliegen", "essen", "kommen", "spielen", "besuchen", "lachen", "vergessen", "bekommen", "umziehen", "einkaufen", "abfahren", "aufwachen", "verpassen", "anfangen", "ankommen"], tense: "pq" }, n: 10, r: ["gs:pq1.r1", "gs:pq1.r2"] },
 
         // ── Übung 16•6: the verb in the sentence ──
         { id: "d16.6", ex: "16.6", t: "type", title: "In the sentence", how: "Write the verb in brackets in the Präteritum.", items: [
@@ -52,9 +52,9 @@ cxPack({
           { q: "Ihr ___ sehr leise. (sprechen)", a: ["spracht"], r: ["gs:pt22.r2"], vf: [["sprechen", "pt", "ihr"]] },
           { q: "Ich ___ meinen Schlüssel nicht. (finden)", a: ["fand"], r: ["gs:pt22.r2"], vf: [["finden", "pt", "ich"]] },
           { q: "Um sieben Uhr ___ der Kurs. (beginnen)", a: ["begann"], r: ["gs:pt22.r3"], vf: [["beginnen", "pt", "er"]] },
-          { q: "Wir ___ einen Kaffee am Bahnhof. (trinken)", a: ["tranken"], r: ["gs:pt22.r3"], vf: [["trinken", "pt", "wir"]] },
+          { q: "Wir ___ am Bahnhof einen Kaffee. (trinken)", a: ["tranken"], r: ["gs:pt22.r3"], vf: [["trinken", "pt", "wir"]] },
           { q: "Meine Schwester ___ den Zug nach Genf. (nehmen)", a: ["nahm"], r: ["gs:pt22.r1"], vf: [["nehmen", "pt", "er"]] },
-          { q: "Was ___ ihr am Samstag? (tun)", a: ["tatet"], r: ["gs:pt22.r2"], vf: [["tun", "pt", "ihr"]] },
+          { q: "Es ___ mir leid, dass ich so spät kam. (tun)", a: ["tat"], r: ["gs:pt22.r1"], vf: [["tun", "pt", "er"]] },
         ] },
         // ── Übung 16•7: into the past ──
         { id: "d16.7", ex: "16.7", t: "transform", title: "Into the past", how: "Say it in the Präteritum.", items: [
@@ -101,7 +101,7 @@ cxPack({
           { q: "Ich bringe dir einen Kaffee.", a: ["Ich brachte dir einen Kaffee."], r: ["gs:pt23.r1"], vf: [["bringen", "pt", "ich"]] },
           { q: "Weißt du das?", a: ["Wusstest du das?"], r: ["gs:pt23.r1"], vf: [["wissen", "pt", "du"]] },
           { q: "Ihr kennt euch schon lange.", a: ["Ihr kanntet euch schon lange."], r: ["gs:pt23.r1"], vf: [["kennen", "pt", "ihr"]] },
-          { q: "Er weiß nicht, wo sie wohnt.", a: ["Er wusste nicht, wo sie wohnte."], r: ["gs:pt23.r1"], vf: [["wissen", "pt", "er"], ["wohnen", "pt", "er"]] },
+          { q: "Er weiß nicht, wo sie wohnt.", a: ["Er wusste nicht, wo sie wohnte.", "Er wusste nicht, wo sie wohnt."], r: ["gs:pt23.r1"], vf: [["wissen", "pt", "er"]] },
         ] },
         // ── Übung 16•13: mixed verbs with a prefix ──
         { id: "d16.13", ex: "16.13", t: "transform", title: "Mixed verbs with a prefix", how: "Say it in the Präteritum. A separable prefix goes to the end: brachte … mit.", items: [
@@ -220,9 +220,9 @@ cxPack({
           { q: "ich kaufe zu viel ein", a: ["Ich nahm ein Taxi, denn ich hatte zu viel eingekauft."], r: ["gs:pq1.r1"], vf: [["einkaufen", "pq", "ich"]] },
         ] },
         // ── Übung 11•5: when the guests arrived ──
-        { id: "d11.5", ex: "11.5", t: "transform", fixed: true, title: "When the guests arrived", how: "Start with: Als die Gäste kamen, … What had already happened? (A state then stays in the Präteritum.)", items: [
+        { id: "d11.5", ex: "11.5", t: "transform", fixed: true, title: "When the guests arrived", how: "Start with: Als die Gäste kamen, … What had already happened? (A state stays in the Präteritum: waren.)", items: [
           { q: "wir decken schon den Tisch", a: ["Als die Gäste kamen, hatten wir schon den Tisch gedeckt.", "Als die Gäste kamen, hatten wir den Tisch schon gedeckt."], r: ["gs:pq1.r1"] },
-          { q: "Papa backt schon einen Zopf", a: ["Als die Gäste kamen, hatte Papa schon einen Zopf gebacken.", "Als die Gäste kamen, hatte Papa einen Zopf schon gebacken."], r: ["gs:pq1.r1"], vf: [["backen", "pq", "er"]] },
+          { q: "Papa backt schon einen Zopf", a: ["Als die Gäste kamen, hatte Papa schon einen Zopf gebacken."], r: ["gs:pq1.r1"], vf: [["backen", "pq", "er"]] },
           { q: "die Kinder räumen ihr Zimmer auf", a: ["Als die Gäste kamen, hatten die Kinder ihr Zimmer aufgeräumt."], r: ["gs:pq1.r1"], vf: [["aufräumen", "pq", "sie"]] },
           { q: "ich kaufe Blumen", a: ["Als die Gäste kamen, hatte ich Blumen gekauft."], r: ["gs:pq1.r1"], vf: [["kaufen", "pq", "ich"]] },
           { q: "Oma kommt schon an", a: ["Als die Gäste kamen, war Oma schon angekommen."], r: ["gs:pq1.r2"], vf: [["ankommen", "pq", "er"]] },
@@ -246,7 +246,7 @@ cxPack({
         ].map(it => ({ ...it, diag: [{ t: "order", rule: "gs:pq2.r2", msg: "nachdem starts a side sentence: both its verbs go to its end (gegessen **hatten**). Then comes the main verb, right after the comma: …, **gingen** wir." }] })) },
 
         // ── Production ──
-        { id: "dp.pt2", t: "translate", end: true, title: "Tell it in the past", how: "Translate, as when you write a story: the Präteritum, and the Plusquamperfekt for what had happened before.", items: [
+        { id: "dp.pt2", t: "translate", end: true, title: "Tell it in the past", how: "Translate as in a story: the Präteritum, and the Plusquamperfekt for what had happened before.", items: [
           { q: "We arrived late in the evening.", a: ["Wir kamen spät am Abend an.", "Wir kamen am späten Abend an.", "Wir kamen abends spät an."], r: ["gs:pt24.r1"], vf: [["ankommen", "pt", "wir"]] },
           { q: "She found a cheap flat in Winterthur.", a: ["Sie fand eine günstige Wohnung in Winterthur.", "Sie fand eine billige Wohnung in Winterthur.", "Sie fand in Winterthur eine günstige Wohnung.", "Sie fand in Winterthur eine billige Wohnung."], r: ["gs:pt22.r1"], vf: [["finden", "pt", "er"]] },
           { q: "The children slept in the car.", a: ["Die Kinder schliefen im Auto."], r: ["gs:pt22.r3"], vf: [["schlafen", "pt", "sie"]] },
@@ -254,10 +254,10 @@ cxPack({
           { q: "He brought his girlfriend along.", a: ["Er brachte seine Freundin mit."], r: ["gs:pt24.r1"], vf: [["mitbringen", "pt", "er"]] },
           { q: "We drank coffee and talked a lot.", a: ["Wir tranken Kaffee und sprachen viel.", "Wir tranken Kaffee und redeten viel.", "Wir tranken Kaffee und unterhielten uns viel."], r: ["gs:pt22.r3"], vf: [["trinken", "pt", "wir"]] },
           { q: "The train had already left.", a: ["Der Zug war schon abgefahren.", "Der Zug war bereits abgefahren.", "Der Zug war schon weg."], r: ["gs:pq1.r2"] },
-          { q: "After we had eaten, we went for a walk.", a: ["Nachdem wir gegessen hatten, gingen wir spazieren.", "Wir gingen spazieren, nachdem wir gegessen hatten."], r: ["gs:pq2.r2"], vf: [["gehen", "pt", "wir"]] },
+          { q: "After we had eaten, we went for a walk.", a: ["Nachdem wir gegessen hatten, gingen wir spazieren.", "Wir gingen spazieren, nachdem wir gegessen hatten.", "Nachdem wir gegessen hatten, machten wir einen Spaziergang."], r: ["gs:pq2.r2"] },
           { q: "I had forgotten my passport.", a: ["Ich hatte meinen Pass vergessen."], r: ["gs:pq1.r1"], vf: [["vergessen", "pq", "ich"]] },
           { q: "It got cold.", a: ["Es wurde kalt."], r: ["gs:pt12.r2"], vf: [["werden", "pt", "er"]] },
-          { q: "My grandfather gave me a watch.", a: ["Mein Großvater gab mir eine Uhr.", "Mein Opa gab mir eine Uhr."], r: ["gs:pt22.r1"], vf: [["geben", "pt", "er"]] },
+          { q: "My grandfather gave me a watch.", a: ["Mein Großvater gab mir eine Uhr.", "Mein Opa gab mir eine Uhr.", "Mein Großvater schenkte mir eine Uhr.", "Mein Opa schenkte mir eine Uhr."], r: ["gs:pt22.r1"] },
           { q: "They stayed until midnight.", a: ["Sie blieben bis Mitternacht."], r: ["gs:pt22.r2"], vf: [["bleiben", "pt", "sie"]] },
         ] },
         { id: "dw.pt2", t: "write", end: true, title: "Write your own", how: "Write in your own words, in the Präteritum. It is saved for Claude to correct.", items: [
@@ -265,10 +265,10 @@ cxPack({
           { q: "Your first day in Switzerland.", model: ["Ich kam an einem Montag in Zürich an. Es regnete, und ich fand mein Hotel nicht. Ein Mann half mir und brachte mich bis zur Tür."], r: ["gs:pt22.r1"] },
           { q: "Something you had done before you came here. (Bevor ich in die Schweiz kam, hatte ich …)", model: ["Bevor ich in die Schweiz kam, hatte ich schon ein bisschen Deutsch gelernt. Ich hatte auch ein Zimmer gefunden und meine Papiere übersetzt."], r: ["gs:pq1.r1"] },
           { q: "A short trip: three things in order, with nachdem.", model: ["Wir fuhren nach Bern. Nachdem wir den Bärenpark besucht hatten, gingen wir in die Altstadt. Nachdem wir gegessen hatten, nahmen wir den Zug nach Hause."], r: ["gs:pq2.r2"] },
-          { q: "A day when everything went wrong. What happened?", model: ["Letzten Winter verpasste ich den Zug, weil ich zu spät aufstand. Dann vergaß ich meinen Schirm im Bus. Am Abend war ich sehr müde und ging früh ins Bett."], r: ["gs:pt22.r1"] },
+          { q: "A day when everything went wrong. What happened?", model: ["Letzten Winter verpasste ich den Zug, weil ich zu spät aufgestanden war. Dann vergaß ich meinen Schirm im Bus. Am Abend war ich sehr müde und ging früh ins Bett."], r: ["gs:pt22.r1"] },
           { q: "A film or a book you liked: what happened in it?", model: ["Im Film kam ein Mann in ein kleines Dorf. Er fand dort Arbeit und lernte eine Frau kennen. Am Ende blieb er im Dorf."], r: ["gs:pt22.r3"] },
           { q: "When you arrived somewhere, what had already happened? (Als ich ankam, hatte … / war …)", model: ["Als ich am Bahnhof ankam, war der Zug schon abgefahren. Als ich nach Hause kam, hatte meine Frau schon gekocht."], r: ["gs:pq2.r1"] },
-          { q: "Someone you knew a long time ago. What was he or she like? What did you do together?", model: ["Früher kannte ich einen alten Nachbarn, Herrn Gerber. Er wusste alles über Vögel. Wir gingen oft zusammen in den Wald, und er nannte mir die Namen der Bäume."], r: ["gs:pt23.r1"] },
+          { q: "Someone you knew a long time ago. What was he or she like? What did you do together?", model: ["Früher hatte ich einen alten Nachbarn, Herrn Gerber. Er wusste alles über Vögel. Wir gingen oft zusammen in den Wald, und er nannte mir die Namen der Vögel."], r: ["gs:pt23.r1"] },
         ] },
       ],
     },

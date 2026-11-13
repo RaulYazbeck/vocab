@@ -610,7 +610,7 @@ if (neg && neg.built) {
     ["d25.14", "Man spricht viel.", "Wird viel gesprochen.", "imp.es", "es"],
     ["d25.10", "Hier wird hart gearbeitet.", "Es werden hier hart gearbeitet.", "imp.es", "wird"],
     // particles, short answers
-    ["dpart.pick", "Kannst du ___ das Salz geben? (friendly)", "ja", "part.mal", "mal"],
+    ["dpart.pick", "Kannst du mir ___ das Salz geben? (friendly)", "ja", "part.mal", "mal"],
     ["dpart.place", "Kannst du mir helfen? (mal)", "Kannst du mal mir helfen?", "part.mal", "helfen"],
     ["dshort.doch", "Hast du keinen Hunger? — ___, ich habe großen Hunger!", "Ja", "short.doch", "doch"],
     ["dshort.auch", "Ich trinke keinen Alkohol. — (me neither) ___", "Ich auch.", "short.auch", "nicht"],

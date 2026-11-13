@@ -63,8 +63,8 @@ cxPack({
         { t: "grow", add: "d\\w*", rule: "pta.pres", hard: true, msg: "*-ing* is the infinitive + **d**, with its ending: **{right}**." },
         { t: "swap", from: "^ge\\w+$", to: "^\\w+end\\w*$", rule: "pta.pres", hard: true, msg: "It is happening at that moment: the **-d** form, **{right}**." },
         { t: "swap", from: "^\\w+end\\w*$", to: "^ge\\w+$|^\\w+(t|en)e[nrms]?$", rule: "pta.past", hard: true, msg: "It is done already: the Partizip II, **{right}**." },
-        { t: "ending", stem: "(\\w+end|ge\\w+)", rule: "pta.end", msg: "Right word, wrong ending: **{right}**. It takes the adjective's ending." },
-        { t: "grow", add: "(e|en|er|es|em)", rule: "pta.end", msg: "Before a noun it needs the adjective's ending: **{right}**." },
+        { t: "swap", from: "^(\\w+end|ge\\w+|\\w+iert)\\w*$", to: "^(\\w+end|ge\\w+|\\w+iert)(e|en|er|es|em)$", rule: "pta.end", msg: "Right word, wrong ending: **{right}**. It takes the adjective's ending." },
+        { t: "grow", add: "(e|en|er|es|em)$", rule: "pta.end", msg: "Before a noun it needs the adjective's ending: **{right}**." },
       ],
       drills: [
         // ── Übung 29•11: the present participle ──
@@ -78,7 +78,7 @@ cxPack({
           { q: "folgen → ___ (following)", a: ["folgend"], r: ["pta.pres"] },
           { q: "anstrengen → ___ (tiring)", a: ["anstrengend"], r: ["pta.pres"] },
           { q: "fließen → ___ (flowing)", a: ["fließend"], r: ["pta.pres"] },
-          { q: "entscheiden → ___ (deciding)", a: ["entscheidend"], r: ["pta.pres"] },
+          { q: "entscheiden → ___ (deciding, decisive)", a: ["entscheidend"], r: ["pta.pres"] },
         ] },
         // ── our own: the ending ──
         { id: "dpta.end", t: "type", title: "The ending", how: "Write the word in brackets with its adjective ending — or none after sein.", items: [
@@ -87,7 +87,7 @@ cxPack({
           { q: "Ich suche eine ___ Wohnung. (möbliert)", a: ["möblierte"], r: ["pta.end"] },
           { q: "Mit ___ Bein kann er nicht Ski fahren. (gebrochen)", a: ["gebrochenem"], r: ["pta.end"] },
           { q: "Hast du den ___ Film gesehen? (spannend)", a: ["spannenden"], r: ["pta.end"] },
-          { q: "Wir hatten eine ___ Nachricht für euch. (überraschend)", a: ["überraschende"], r: ["pta.end"] },
+          { q: "Wir haben eine ___ Nachricht für euch. (überraschend)", a: ["überraschende"], r: ["pta.end"] },
           { q: "Das ___ Zimmer ist nicht mehr frei. (reserviert)", a: ["reservierte"], r: ["pta.end"] },
           { q: "Im ___ Jahr ziehen wir um. (kommend)", a: ["kommenden"], r: ["pta.end"] },
           { q: "Die Tür ist ___. (geschlossen)", a: ["geschlossen"], r: ["pta.end"] },
@@ -115,10 +115,10 @@ cxPack({
           { q: "the stolen bike", a: ["das gestohlene Velo", "das gestohlene Fahrrad"], r: ["pta.past"] },
           { q: "fried potatoes", a: ["gebratene Kartoffeln"], r: ["pta.end"] },
           { q: "the train that has arrived", a: ["der angekommene Zug"], r: ["pta.past"] },
-          { q: "a well-paid job", a: ["eine gut bezahlte Stelle", "ein gut bezahlter Job", "eine gut bezahlte Arbeit"], r: ["pta.rel"] },
+          { q: "a well-paid job", a: ["eine gut bezahlte Stelle", "eine gutbezahlte Stelle", "ein gut bezahlter Job", "eine gut bezahlte Arbeit"], r: ["pta.rel"] },
           { q: "the reserved table", a: ["der reservierte Tisch"], r: ["pta.past"] },
           { q: "with the invited guests", a: ["mit den eingeladenen Gästen"], r: ["pta.end"] },
-          { q: "a freshly painted wall", a: ["eine frisch gestrichene Wand"], r: ["pta.rel"] },
+          { q: "a freshly painted wall", a: ["eine frisch gestrichene Wand", "eine frischgestrichene Wand"], r: ["pta.rel"] },
         ] },
         // ── Übung 29•14: instead of a relative clause ──
         { id: "d29.14", ex: "29.14", t: "transform", title: "Shorter: the participle", how: "Say it shorter: put the participle before the noun instead of the relative clause.", items: [
@@ -136,44 +136,44 @@ cxPack({
         // ── Übung 29•15: with an adverb ──
         { id: "d29.15", ex: "29.15", t: "transform", title: "Add the adverb", how: "Put the word in brackets right before the participle.", items: [
           { q: "Sie bekam einen geschriebenen Brief. (schön)", a: ["Sie bekam einen schön geschriebenen Brief."], r: ["pta.rel"] },
-          { q: "Wir essen gebackenes Brot. (frisch)", a: ["Wir essen frisch gebackenes Brot."], r: ["pta.rel"] },
-          { q: "Er hat eine bezahlte Stelle. (gut)", a: ["Er hat eine gut bezahlte Stelle."], r: ["pta.rel"] },
+          { q: "Wir essen gebackenes Brot. (frisch)", a: ["Wir essen frisch gebackenes Brot.", "Wir essen frischgebackenes Brot."], r: ["pta.rel"] },
+          { q: "Er hat eine bezahlte Stelle. (gut)", a: ["Er hat eine gut bezahlte Stelle.", "Er hat eine gutbezahlte Stelle."], r: ["pta.rel"] },
           { q: "Das ist ein bekanntes Restaurant. (sehr)", a: ["Das ist ein sehr bekanntes Restaurant."], r: ["pta.rel"] },
           { q: "Wir wohnen in einer renovierten Wohnung. (neu)", a: ["Wir wohnen in einer neu renovierten Wohnung."], r: ["pta.rel"] },
           { q: "Hörst du den bellenden Hund? (laut)", a: ["Hörst du den laut bellenden Hund?"], r: ["pta.rel"] },
           { q: "Das war ein spannendes Spiel. (unglaublich)", a: ["Das war ein unglaublich spannendes Spiel."], r: ["pta.rel"] },
           { q: "Sie trägt ein gemachtes Kleid. (selbst)", a: ["Sie trägt ein selbst gemachtes Kleid.", "Sie trägt ein selbstgemachtes Kleid."], r: ["pta.rel"] },
-          { q: "Wir trinken gepressten Orangensaft. (frisch)", a: ["Wir trinken frisch gepressten Orangensaft."], r: ["pta.rel"] },
+          { q: "Wir trinken gepressten Orangensaft. (frisch)", a: ["Wir trinken frisch gepressten Orangensaft.", "Wir trinken frischgepressten Orangensaft."], r: ["pta.rel"] },
         ] },
         // ── Production ──
         // ── Übung 29•16: build the phrase ──
         { id: "d29.16", ex: "29.16", t: "compose", end: true, title: "Build the phrase", how: "Build a phrase with der, die or das: the adverb, the participle with its ending, then the noun.", items: [
           { w: ["laut", "bellen", "Hund"], a: ["der laut bellende Hund"], r: ["pta.rel"] },
-          { w: ["frisch", "backen", "Brot"], a: ["das frisch gebackene Brot"], r: ["pta.rel"] },
+          { w: ["frisch", "backen", "Brot"], a: ["das frisch gebackene Brot", "das frischgebackene Brot"], r: ["pta.rel"] },
           { w: ["schön", "singen", "Vogel"], a: ["der schön singende Vogel"], r: ["pta.rel"] },
-          { w: ["gut", "bezahlen", "Stelle"], a: ["die gut bezahlte Stelle"], r: ["pta.rel"] },
+          { w: ["gut", "bezahlen", "Stelle"], a: ["die gut bezahlte Stelle", "die gutbezahlte Stelle"], r: ["pta.rel"] },
           { w: ["langsam", "fahren", "Zug"], a: ["der langsam fahrende Zug"], r: ["pta.rel"] },
           { w: ["neu", "eröffnen", "Café"], a: ["das neu eröffnete Café"], r: ["pta.rel"] },
           { w: ["laut", "lachen", "Kinder"], a: ["die laut lachenden Kinder"], r: ["pta.rel"] },
-          { w: ["frisch", "streichen", "Wand"], a: ["die frisch gestrichene Wand"], r: ["pta.rel"] },
-          { w: ["leise", "spielen", "Musik"], a: ["die leise spielende Musik"], r: ["pta.rel"] },
+          { w: ["frisch", "streichen", "Wand"], a: ["die frisch gestrichene Wand", "die frischgestrichene Wand"], r: ["pta.rel"] },
+          { w: ["leise", "sprechen", "Frau"], a: ["die leise sprechende Frau"], r: ["pta.rel"] },
         ] },
-        { id: "dp.ptadj", t: "translate", end: true, title: "Say it in German", how: "Translate, with a participle before the noun.", items: [
+        { id: "dp.ptadj", t: "translate", end: true, title: "Say it in German", how: "Translate, with a participle used as an adjective.", items: [
           { q: "That was an exciting film.", a: ["Das war ein spannender Film."], r: ["pta.end"] },
           { q: "The coming weeks will be tiring.", a: ["Die kommenden Wochen werden anstrengend.", "Die kommenden Wochen werden anstrengend sein."], r: ["pta.end"] },
-          { q: "I'd like a boiled egg.", a: ["Ich möchte ein gekochtes Ei.", "Ich hätte gern ein gekochtes Ei."], r: ["pta.past"] },
+          { q: "I'd like a boiled egg.", a: ["Ich möchte ein gekochtes Ei.", "Ich hätte gern ein gekochtes Ei.", "Ich hätte gerne ein gekochtes Ei."], r: ["pta.past"] },
           { q: "The work was very tiring.", a: ["Die Arbeit war sehr anstrengend."], r: ["pta.end"] },
           { q: "We're looking for a furnished flat.", a: ["Wir suchen eine möblierte Wohnung."], r: ["pta.past"] },
           { q: "Careful, the train is moving! (a sign: moving train)", a: ["Vorsicht, fahrender Zug!"], r: ["pta.pres"] },
           { q: "The stolen car was found.", a: ["Das gestohlene Auto wurde gefunden.", "Das gestohlene Auto ist gefunden worden."], r: ["pta.past"] },
-          { q: "He has a well-paid job.", a: ["Er hat eine gut bezahlte Stelle.", "Er hat einen gut bezahlten Job.", "Er hat eine gut bezahlte Arbeit."], r: ["pta.rel"] },
-          { q: "I love freshly baked bread.", a: ["Ich liebe frisch gebackenes Brot."], r: ["pta.rel"] },
+          { q: "He has a well-paid job.", a: ["Er hat eine gut bezahlte Stelle.", "Er hat eine gutbezahlte Stelle.", "Er hat einen gut bezahlten Job.", "Er hat eine gut bezahlte Arbeit."], r: ["pta.rel"] },
+          { q: "I love freshly baked bread.", a: ["Ich liebe frisch gebackenes Brot.", "Ich liebe frischgebackenes Brot."], r: ["pta.rel"] },
           { q: "The door is closed.", a: ["Die Tür ist geschlossen.", "Die Türe ist geschlossen."], r: ["pta.end"] },
           { q: "The sleeping children didn't hear anything.", a: ["Die schlafenden Kinder haben nichts gehört.", "Die schlafenden Kinder hörten nichts."], r: ["pta.end"] },
         ] },
         // ── Übung 29•17: your own ──
-        { id: "d29.17", ex: "29.17", t: "write", end: true, title: "Your own", how: "Write a sentence with a participle before the noun, from the words given. Saved for Claude to correct.", items: [
-          { q: "der Zug, der ankommt", model: ["Auf Gleis 3 steht der ankommende Zug aus Lugano."], r: ["pta.rel"] },
+        { id: "d29.17", ex: "29.17", t: "write", end: true, title: "Your own", how: "Write a sentence with the participle before the noun. Saved for Claude to correct.", items: [
+          { q: "der Zug, der ankommt", model: ["Der ankommende Zug aus Lugano hält auf Gleis 3."], r: ["pta.rel"] },
           { q: "das Brot, das frisch gebacken ist", model: ["Am Sonntag hole ich frisch gebackenes Brot beim Bäcker."], r: ["pta.rel"] },
           { q: "die Kinder, die spielen", model: ["Vom Balkon sehe ich die spielenden Kinder im Hof."], r: ["pta.rel"] },
           { q: "eine Arbeit, die anstrengt", model: ["Ich habe eine anstrengende Arbeit, aber ich mag sie."], r: ["pta.pres"] },

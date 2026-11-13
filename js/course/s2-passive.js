@@ -93,7 +93,7 @@ cxPack({
           { q: "Der Chef unterschrieb den Vertrag.", a: ["Der Vertrag wurde vom Chef unterschrieben."], r: ["gs:pv2.r1"], vf: [["unterschreiben", "pvpt", "er"]] },
         ].map(it => ({ ...it, a: [...new Set(it.a.flatMap(x => [x, x.replace(/\bvom\b/, "von dem")]))] })) },
         // ── Übung 25•21: keep the tense ──
-        { id: "d25.21", ex: "25.21", t: "transform", title: "Keep the tense", how: "Say it in the passive, in the same tense — the Perfekt too (ist … worden). What was the object becomes the subject.", items: [
+        { id: "d25.21", ex: "25.21", t: "transform", title: "Keep the tense", how: "Say it in the passive, same tense (Perfekt: ist … worden). The object becomes the subject.", items: [
           { q: "Der Hauswart hat die Heizung repariert.", a: ["Die Heizung ist vom Hauswart repariert worden."], r: ["gs:pv3.r1"], vf: [["reparieren", "pvpf", "er"]] },
           { q: "Die Firma sucht neue Mitarbeiter.", a: ["Neue Mitarbeiter werden von der Firma gesucht."], r: ["gs:pv1.r2"], vf: [["suchen", "pvpr", "sie"]] },
           { q: "Ein Kollege hat mich angerufen.", a: ["Ich bin von einem Kollegen angerufen worden."], r: ["gs:pv1.r3"] },
@@ -107,7 +107,7 @@ cxPack({
         ].map(it => ({ ...it, a: [...new Set(it.a.flatMap(x => [x, x.replace(/\bvom\b/, "von dem")]))] })) },
         // ── Übung 25•17: how the Swiss eat ──
         { id: "d25.17", ex: "25.17", t: "transform", title: "How the Swiss eat", how: "Say it in the passive. man disappears: nobody is named.", items: [
-          { q: "Man trinkt viel Kaffee.", a: ["Viel Kaffee wird getrunken.", "Es wird viel Kaffee getrunken."], r: ["gs:pv1.r3"], vf: [["trinken", "pvpr", "er"]] },
+          { q: "Man trinkt viel Kaffee.", a: ["Es wird viel Kaffee getrunken.", "Viel Kaffee wird getrunken."], r: ["gs:pv1.r3"], vf: [["trinken", "pvpr", "er"]] },
           { q: "Im Winter isst man Fondue.", a: ["Im Winter wird Fondue gegessen.", "Fondue wird im Winter gegessen."], r: ["gs:pv1.r3"], vf: [["essen", "pvpr", "er"]] },
           { q: "Man macht Rösti aus Kartoffeln.", a: ["Rösti wird aus Kartoffeln gemacht.", "Rösti werden aus Kartoffeln gemacht."], r: ["gs:pv1.r1"] },
           { q: "Man kauft das Brot beim Bäcker.", a: ["Das Brot wird beim Bäcker gekauft."], r: ["gs:pv1.r3"], vf: [["kaufen", "pvpr", "er"]] },
@@ -140,7 +140,7 @@ cxPack({
           { w: ["nach dem Essen", "das Geschirr", "abwaschen"], a: ["Nach dem Essen wird das Geschirr abgewaschen.", "Das Geschirr wird nach dem Essen abgewaschen."], r: ["gs:pv1.r1"] },
           { w: ["am Nachmittag", "die Blumen", "gießen"], a: ["Am Nachmittag werden die Blumen gegossen.", "Die Blumen werden am Nachmittag gegossen."], r: ["gs:pv1.r2"], vf: [["gießen", "pvpr", "sie"]] },
           { w: ["dann", "das Altpapier", "bündeln"], a: ["Dann wird das Altpapier gebündelt.", "Das Altpapier wird dann gebündelt."], r: ["gs:pv1.r1"] },
-          { w: ["am Abend", "Freunde", "einladen"], a: ["Am Abend werden Freunde eingeladen.", "Freunde werden am Abend eingeladen."], r: ["gs:pv1.r2"], vf: [["einladen", "pvpr", "sie"]] },
+          { w: ["am Abend", "mit Freunden", "essen"], a: ["Am Abend wird mit Freunden gegessen.", "Mit Freunden wird am Abend gegessen."], r: ["gs:pv1.r1"] },
           { w: ["bis Mitternacht", "Karten", "spielen"], a: ["Bis Mitternacht werden Karten gespielt.", "Karten werden bis Mitternacht gespielt."], r: ["gs:pv1.r2"] },
         ] },
         // ── Übung 25•7: who does it? von ──
@@ -172,7 +172,7 @@ cxPack({
         { id: "d25.22", ex: "25.22", t: "type", title: "von or durch?", how: "Add von or durch with the words in brackets, in the right case.", items: [
           { q: "Das Dorf wurde ___ zerstört. (eine Lawine)", a: ["durch eine Lawine"], r: ["gs:pv4.r2"] },
           { q: "Das Paket wurde ___ gebracht. (ein Kurier)", a: ["von einem Kurier"], r: ["gs:pv4.r1"] },
-          { q: "Die Straße wurde ___ gesperrt. (die Polizei)", a: ["von der Polizei"], r: ["gs:pv4.r1"] },
+          { q: "Die Straße wurde ___ gesperrt. (die Polizei)", a: ["von der Polizei", "durch die Polizei"], r: ["gs:pv4.r1"] },
           { q: "Der Baum wurde ___ umgeworfen. (der Sturm)", a: ["durch den Sturm"], r: ["gs:pv4.r2"] },
           { q: "Das Kind wurde ___ gerettet. (eine Nachbarin)", a: ["von einer Nachbarin"], r: ["gs:pv4.r1"] },
           { q: "Die Ernte wurde ___ zerstört. (der Hagel)", a: ["durch den Hagel"], r: ["gs:pv4.r2"] },
@@ -187,24 +187,24 @@ cxPack({
           { w: ["der Tisch", "schon", "decken"], a: ["Der Tisch ist schon gedeckt."], r: ["gs:pv4.r3"] },
           { w: ["die Gläser", "schon", "waschen"], a: ["Die Gläser sind schon gewaschen.", "Die Gläser sind schon gespült."], r: ["gs:pv4.r3"] },
           { w: ["das Fleisch", "schon", "marinieren"], a: ["Das Fleisch ist schon mariniert."], r: ["gs:pv4.r3"] },
-          { w: ["die Einladungen", "schon", "schicken"], a: ["Die Einladungen sind schon geschickt.", "Die Einladungen sind schon verschickt."], r: ["gs:pv4.r3"] },
+          { w: ["die Einladungen", "schon", "schicken"], a: ["Die Einladungen sind schon verschickt.", "Die Einladungen sind schon geschickt."], r: ["gs:pv4.r3"] },
           { w: ["der Kuchen", "schon", "backen"], a: ["Der Kuchen ist schon gebacken."], r: ["gs:pv4.r3"] },
           { w: ["die Musik", "schon", "auswählen"], a: ["Die Musik ist schon ausgewählt."], r: ["gs:pv4.r3"] },
           { w: ["die Stühle", "schon", "aufstellen"], a: ["Die Stühle sind schon aufgestellt."], r: ["gs:pv4.r3"] },
           { w: ["der Salat", "schon", "machen"], a: ["Der Salat ist schon gemacht."], r: ["gs:pv4.r3"] },
-          { w: ["alles", "schon", "vorbereiten"], a: ["Alles ist schon vorbereitet."], r: ["gs:pv4.r3"] },
+          { w: ["alles", "schon", "vorbereiten"], a: ["Alles ist schon vorbereitet.", "Es ist schon alles vorbereitet."], r: ["gs:pv4.r3"] },
         ].map(it => ({ ...it, diag: [{ t: "swap", from: "^(wird|werden|wurde|wurden)$", to: "^(ist|sind|war|waren)$", rule: "gs:pv4.r3", msg: "This describes a state, the result: **{right}** + Partizip II. werden would say that someone is doing it now." }] })) },
         // ── Übung 25•12: before we left ──
         { id: "d25.12", ex: "25.12", t: "translate", title: "Before we left", how: "Before you left for the holidays, everything was done. Translate: war / waren + Partizip II.", items: [
           { q: "The windows were closed.", a: ["Die Fenster waren geschlossen.", "Die Fenster waren zu."], r: ["gs:pv4.r3"] },
           { q: "The lights were switched off.", a: ["Die Lichter waren ausgeschaltet.", "Das Licht war ausgeschaltet.", "Die Lampen waren ausgeschaltet."], r: ["gs:pv4.r3"] },
-          { q: "The dishes were washed.", a: ["Das Geschirr war gespült.", "Das Geschirr war abgewaschen.", "Das Geschirr war gewaschen."], r: ["gs:pv4.r3"] },
+          { q: "The dishes were washed.", a: ["Das Geschirr war gespült.", "Das Geschirr war abgewaschen."], r: ["gs:pv4.r3"] },
           { q: "The bed was made.", a: ["Das Bett war gemacht."], r: ["gs:pv4.r3"] },
           { q: "The bags were packed.", a: ["Die Taschen waren gepackt.", "Die Koffer waren gepackt."], r: ["gs:pv4.r3"] },
           { q: "The door was locked.", a: ["Die Tür war abgeschlossen.", "Die Türe war abgeschlossen.", "Die Tür war zugeschlossen."], r: ["gs:pv4.r3"] },
           { q: "The plants were watered.", a: ["Die Pflanzen waren gegossen.", "Die Blumen waren gegossen."], r: ["gs:pv4.r3"] },
           { q: "The bills were paid.", a: ["Die Rechnungen waren bezahlt."], r: ["gs:pv4.r3"] },
-          { q: "The fridge was empty and cleaned.", a: ["Der Kühlschrank war leer und geputzt.", "Der Kühlschrank war leer und sauber gemacht."], r: ["gs:pv4.r3"] },
+          { q: "The fridge was empty and cleaned.", a: ["Der Kühlschrank war leer und geputzt.", "Der Kühlschrank war leer und gereinigt.", "Der Kühlschrank war leer und sauber gemacht."], r: ["gs:pv4.r3"] },
         ].map(it => ({ ...it, diag: [{ t: "swap", from: "^(wird|werden|wurde|wurden)$", to: "^(ist|sind|war|waren)$", rule: "gs:pv4.r3", msg: "This describes a state, the result: **{right}** + Partizip II. werden would say that someone is doing it now." }] })) },
         // ── Übung 25•25: which form? ──
         { id: "d25.25", ex: "25.25", t: "pick", title: "Which form?", how: "Pick the form that completes the sentence.", items: [
@@ -223,26 +223,26 @@ cxPack({
         ] },
 
         // ── Production ──
-        { id: "dp.pv", t: "translate", end: true, title: "What happened?", how: "Translate into the passive: werden for what happens, wurde for the past, ist … worden for the Perfekt.", items: [
+        { id: "dp.pv", t: "translate", end: true, title: "What happened?", how: "Translate: wird for what happens, wurde for the past, ist … worden for the Perfekt, ist + Partizip II for a state.", items: [
           { q: "My bike was stolen.", a: ["Mein Velo wurde gestohlen.", "Mein Fahrrad wurde gestohlen.", "Mein Velo ist gestohlen worden.", "Mein Fahrrad ist gestohlen worden."], r: ["gs:pv2.r2"] },
-          { q: "The rubbish is collected on Tuesdays.", a: ["Der Müll wird am Dienstag abgeholt.", "Der Abfall wird am Dienstag abgeholt.", "Der Müll wird dienstags abgeholt.", "Der Abfall wird dienstags abgeholt.", "Am Dienstag wird der Müll abgeholt.", "Am Dienstag wird der Abfall abgeholt."], r: ["gs:pv1.r1"] },
-          { q: "The school was built in 1960.", a: ["Die Schule wurde 1960 gebaut.", "Die Schule ist 1960 gebaut worden."], r: ["gs:pv2.r2"] },
+          { q: "The rubbish is collected on Tuesdays.", a: ["Der Müll wird am Dienstag abgeholt.", "Der Abfall wird am Dienstag abgeholt.", "Der Müll wird dienstags abgeholt.", "Der Abfall wird dienstags abgeholt.", "Am Dienstag wird der Müll abgeholt.", "Am Dienstag wird der Abfall abgeholt.", "Der Kehricht wird am Dienstag abgeholt.", "Der Kehricht wird dienstags abgeholt.", "Der Müll wird jeden Dienstag abgeholt.", "Der Abfall wird jeden Dienstag abgeholt."], r: ["gs:pv1.r1"] },
+          { q: "The school was built in 1960.", a: ["Die Schule wurde 1960 gebaut.", "Die Schule ist 1960 gebaut worden.", "Die Schule wurde im Jahr 1960 gebaut."], r: ["gs:pv2.r2"] },
           { q: "The form must be signed.", a: ["Das Formular muss unterschrieben werden."], r: ["gs:pv3.r2"], vf: [["unterschreiben", "pvmod", "er"]] },
           { q: "We were invited by our neighbours.", a: ["Wir wurden von unseren Nachbarn eingeladen.", "Wir sind von unseren Nachbarn eingeladen worden."], r: ["gs:pv4.r1"] },
           { q: "The road was closed because of an accident.", a: ["Die Straße wurde wegen eines Unfalls gesperrt.", "Die Straße wurde wegen einem Unfall gesperrt.", "Die Straße ist wegen eines Unfalls gesperrt worden.", "Die Straße ist wegen einem Unfall gesperrt worden."], r: ["gs:pv2.r1"] },
-          { q: "The shop is closed.", a: ["Das Geschäft ist geschlossen.", "Der Laden ist geschlossen."], r: ["gs:pv4.r3"] },
-          { q: "The heating has been repaired.", a: ["Die Heizung ist repariert worden."], r: ["gs:pv3.r1"], vf: [["reparieren", "pvpf", "er"]] },
-          { q: "The house was damaged by the storm.", a: ["Das Haus wurde durch den Sturm beschädigt.", "Das Haus ist durch den Sturm beschädigt worden.", "Das Haus wurde vom Sturm beschädigt."], r: ["gs:pv4.r2"] },
+          { q: "The shop is closed.", a: ["Das Geschäft ist geschlossen.", "Der Laden ist geschlossen.", "Das Geschäft ist zu.", "Der Laden ist zu."], r: ["gs:pv4.r3"] },
+          { q: "The heating has been repaired.", a: ["Die Heizung ist repariert worden.", "Die Heizung wurde repariert."], r: ["gs:pv3.r1"] },
+          { q: "The house was damaged by the storm.", a: ["Das Haus wurde durch den Sturm beschädigt.", "Das Haus ist durch den Sturm beschädigt worden.", "Das Haus wurde vom Sturm beschädigt.", "Das Haus ist vom Sturm beschädigt worden."], r: ["gs:pv4.r2"] },
           { q: "German is spoken here.", a: ["Hier wird Deutsch gesprochen.", "Deutsch wird hier gesprochen."], r: ["gs:pv1.r1"] },
           { q: "The tickets can be bought online.", a: ["Die Tickets können online gekauft werden.", "Die Billette können online gekauft werden.", "Die Karten können online gekauft werden."], r: ["gs:pv3.r2"] },
           { q: "The children were picked up at four.", a: ["Die Kinder wurden um vier abgeholt.", "Die Kinder wurden um vier Uhr abgeholt.", "Die Kinder sind um vier abgeholt worden.", "Die Kinder sind um vier Uhr abgeholt worden."], r: ["gs:pv2.r1"] },
         ] },
         { id: "dw.pv", t: "write", end: true, title: "Write your own", how: "Write in your own words, in the passive. It is saved for Claude to correct.", items: [
           { q: "Your town or village: what was built there, and when? What is being built now?", model: ["Unser Dorf wurde im 12. Jahrhundert gegründet. Die Kirche wurde 1650 gebaut. Zurzeit wird ein neues Schulhaus gebaut."], r: ["gs:pv2.r2"] },
-          { q: "A dish from your country: how is it made?", model: ["Zuerst werden die Kartoffeln geschält und geschnitten. Dann werden sie in Öl gebraten. Am Schluss wird alles mit Salz serviert."], r: ["gs:pv1.r1"] },
+          { q: "A dish from your country: how is it made?", model: ["Zuerst werden die Kartoffeln geschält und geschnitten. Dann werden sie in Öl gebraten. Am Schluss wird alles gesalzen und serviert."], r: ["gs:pv1.r1"] },
           { q: "Something that was stolen, broken or lost. What happened?", model: ["Letztes Jahr wurde mein Velo vor dem Bahnhof gestohlen. Es ist nie gefunden worden."], r: ["gs:pv3.r1"] },
           { q: "At work or at home: what must be done this week?", model: ["Diese Woche muss die Steuererklärung ausgefüllt werden. Die Wohnung muss geputzt werden, und die Rechnungen müssen bezahlt werden."], r: ["gs:pv3.r2"] },
-          { q: "A festival in Switzerland: what is done on that day?", model: ["Am 1. August wird gefeiert. Am Abend werden Feuerwerke gezündet und Würste grilliert."], r: ["gs:pv1.r2"] },
+          { q: "A festival in Switzerland: what is done on that day?", model: ["Am 1. August wird gefeiert. Am Abend wird Feuerwerk gezündet, und es werden Würste grilliert."], r: ["gs:pv1.r2"] },
           { q: "Before a trip: what is already done? (ist / sind + Partizip II)", model: ["Die Koffer sind gepackt. Das Hotel ist reserviert, und die Billette sind schon gekauft."], r: ["gs:pv4.r3"] },
           { q: "A storm or bad weather you remember. What was damaged?", model: ["Im Sommer gab es einen starken Sturm. Viele Bäume wurden durch den Wind umgeworfen, und unser Dach wurde beschädigt."], r: ["gs:pv4.r2"] },
           { q: "Who was your favourite teacher? What were you taught?", model: ["Wir wurden von Frau Rossi in Mathematik unterrichtet. Bei ihr wurde viel gelacht, aber auch viel gelernt."], r: ["gs:pv4.r1"] },
