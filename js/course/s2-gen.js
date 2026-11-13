@@ -20,24 +20,24 @@ cxPack({
     "s2.gen": {
       testout: { n: 7, miss: 1 },
       rules: {
-        "geni.art": "des · eines (der- and das-nouns) — der · einer (die-nouns, plurals)",
-        "geni.s": "a der- or das-noun adds -s or -es: des Autos, des Mannes",
-        "geni.order": "the owner comes second: das Auto meines Bruders",
-        "geni.von": "in speech: von + dative — and a name + s: Annas Auto",
-        "geni.wessen": "wessen? — whose?",
-        "geni.adj": "an adjective in the genitive: always -en",
-        "geni.one": "Ende des Monats · die Hälfte der Leute · einer meiner Freunde",
+        "geni.art": "des / eines, or der / einer for die-nouns and plurals",
+        "geni.s": "A der- or das-noun adds -s or -es: des Autos",
+        "geni.order": "The owner comes second: das Auto meines Bruders",
+        "geni.von": "In speech: von + dative, or a name + s (Annas)",
+        "geni.wessen": "wessen? means whose?",
+        "geni.adj": "An adjective in the genitive: always -en",
+        "geni.one": "Ende des Monats, einer meiner Freunde",
       },
       sheets: [
         { id: "cx.geni1", title: "des Mannes, der Frau: the genitive", qn: 3,
           struct: [["das Auto", "thing"], ["meines", "end"], ["Bruders", "who"]],
-          why: "The genitive is the fourth case: it says **whose** — English *'s* or *of*. You'll read it everywhere (letters, forms, newspapers); in speech most people say **von** + dative. Know it to read and write; use von to talk.",
+          why: "The genitive says **whose**, like English *'s* or *of*. You'll read it in letters, forms and news; in speech most people say **von** + dative. Learn it to read and write; use von to talk.",
           rid: ["geni.art", "geni.s", "geni.order", "geni.von"],
           rules: [
-            "The articles: **des · eines** for der- and das-nouns, **der · einer** for die-nouns and all plurals. mein, kein, dieser, jeder take the same endings: **meines** Bruders · **dieser** Frau · **unserer** Kinder.",
-            "A der- or das-noun takes an ending too: **-s** — des Auto**s**, des Lehrer**s** — or **-es**: always after s, ß, z, sch (des Haus**es**), often after one syllable (des Mann**es**, des Kind**es**). Feminine and plural nouns add nothing: der Frau.",
-            "The **owner comes second**, the opposite of English *'s*: das Auto **meines Bruders** = my brother's car · die Tür **des Hauses** = the door of the house · der Name **der Straße**.",
-            "In **speech** the genitive is rare: say **von + dative** — das Auto **von meinem Bruder**. A **name** just takes -s, in front, without an apostrophe: **Annas** Auto · **Toms** Schwester (after s, x, z only an apostrophe: Max' Velo).",
+            "In the genitive, der- and das-nouns take **des** or **eines**; die-nouns and plurals take **der** or **einer**. mein, kein, dieser and jeder get the same endings: **meines** Bruders · **dieser** Frau · **unserer** Kinder.",
+            "A der- or das-noun also gets an ending: **-s** (des Auto**s**, des Lehrer**s**) or **-es**, always after s, ß, z, sch (des Haus**es**) and often after one syllable (des Mann**es**). Feminine and plural nouns add nothing.",
+            "The **owner comes second**, the other way round from English *'s*: das Auto **meines Bruders** (my brother's car) · die Tür **des Hauses** (the door of the house).",
+            "In **speech** the genitive is rare; say **von + dative**: das Auto **von meinem Bruder**. A **name** just takes -s, in front, with no apostrophe: **Annas** Auto. After s, x or z, only an apostrophe: Max' Velo.",
           ],
           table: { head: ["", "genitive", ""], rows: [
             ["der Mann", "**des** Mann**es**", "eines · meines"],
@@ -51,28 +51,28 @@ cxPack({
             ["Wie ist der Name **des Hotels**?", "What's the name of the hotel?"],
             ["Die Lehrerin **unserer Kinder** kommt aus Wien.", "Our children's teacher comes from Vienna."],
           ],
-          trap: "No apostrophe-s on a noun as in English: ~~mein Bruders Auto~~ → das Auto **meines Bruders**. And don't forget the noun's own ending: des Auto**s**, des Mann**es** — never ~~des Auto~~.",
+          trap: "No *'s* on a noun as in English: ~~mein Bruders Auto~~ should be das Auto **meines Bruders**. And don't forget the noun's own ending: des Auto**s**, des Mann**es**, never ~~des Auto~~.",
           quiz: [
-            { at: "r1", k: "pick", q: "Das ist der Hund ___ Nachbarin.", o: ["der", "des", "die"], a: 0, why: "A die-noun: **der**." },
-            { at: "r1", k: "pick", q: "Das ist die Tasche ___ Kindes.", o: ["des", "der", "dem"], a: 0, why: "A das-noun: **des**." },
-            { at: "r1", k: "pick", q: "Das ist das Zimmer ___ Sohnes.", o: ["meines", "meiner", "meinem"], a: 0, why: "A der-noun: **meines**." },
-            { at: "r2", k: "pick", q: "die Farbe des ___", o: ["Autos", "Auto", "Autoes"], a: 0, why: "A das-noun adds **-s**." },
-            { at: "r2", k: "type", cx: true, q: "(das Haus) Das Dach des ___ ist neu.", a: ["Hauses"], r: ["geni.s"], why: "After s: **-es** — des Haus**es**." },
+            { at: "r1", k: "pick", q: "Das ist der Hund ___ Nachbarin.", o: ["der", "des", "die"], a: 0, why: "Nachbarin is a die-noun: **der**." },
+            { at: "r1", k: "pick", q: "Das ist die Tasche ___ Kindes.", o: ["des", "der", "dem"], a: 0, why: "Kind is a das-noun: **des**." },
+            { at: "r1", k: "pick", q: "Das ist das Zimmer ___ Sohnes.", o: ["meines", "meiner", "meinem"], a: 0, why: "Sohn is a der-noun: **meines**." },
+            { at: "r2", k: "pick", q: "die Farbe des ___", o: ["Autos", "Auto", "Autoes"], a: 0, why: "A das-noun adds **-s**: des Autos." },
+            { at: "r2", k: "type", cx: true, q: "(das Haus) Das Dach des ___ ist neu.", a: ["Hauses"], r: ["geni.s"], why: "After s it's **-es**: des Haus**es**." },
             { at: "r3", k: "pick", q: "my friend's flat:", o: ["die Wohnung meines Freundes", "meines Freundes die Wohnung", "mein Freunds Wohnung"], a: 0, why: "The thing first, the owner second." },
-            { at: "r3", k: "order", q: "Build it: That's my brother's car.", a: ["Das ist", "das Auto", "meines", "Bruders."], why: "The owner comes second, in the genitive." },
-            { at: "r4", k: "pick", q: "The everyday way to say *das Velo meines Bruders*:", o: ["das Velo von meinem Bruder", "das Velo von meines Bruders", "das Velo von mein Bruder"], a: 0, why: "**von** + the dative." },
-            { at: "r4", k: "pick", q: "Anna's mother:", o: ["Annas Mutter", "Anna's Mutter", "die Mutter Anna"], a: 0, why: "A name + s, no apostrophe." },
-            { at: "table", k: "pick", q: "die Eltern ___ Kinder (the children's parents)", o: ["der", "des", "den"], a: 0, why: "A plural: **der**." },
-            { at: "trap", k: "pick", q: "Which is right?", o: ["Das ist das Auto meines Vaters.", "Das ist mein Vaters Auto.", "Das ist das Auto meines Vater."], a: 0, why: "The owner second — and the noun takes its -s." },
+            { at: "r3", k: "order", q: "Build it: That's my brother's car.", a: ["Das ist", "das Auto", "meines", "Bruders."], why: "The owner comes second, in the genitive: **meines Bruders**." },
+            { at: "r4", k: "pick", q: "The everyday way to say *das Velo meines Bruders*:", o: ["das Velo von meinem Bruder", "das Velo von meines Bruders", "das Velo von mein Bruder"], a: 0, why: "In speech: **von** + the dative, von meinem Bruder." },
+            { at: "r4", k: "pick", q: "Anna's mother:", o: ["Annas Mutter", "Anna's Mutter", "die Mutter Anna"], a: 0, why: "A name takes -s, with no apostrophe: **Annas**." },
+            { at: "table", k: "pick", q: "die Eltern ___ Kinder (the children's parents)", o: ["der", "des", "den"], a: 0, why: "Kinder is plural: **der**." },
+            { at: "trap", k: "pick", q: "Which is right?", o: ["Das ist das Auto meines Vaters.", "Das ist mein Vaters Auto.", "Das ist das Auto meines Vater."], a: 0, why: "The owner second, and the noun takes its -s: meines Vater**s**." },
           ] },
         { id: "cx.geni2", title: "wessen? · des neuen Chefs · Ende des Monats", qn: 3,
           struct: [["Wessen", "pre"], ["Jacke", "thing"], ["ist", "verb"], ["das?", "mid"]],
-          why: "Three things that go with the genitive: its question word **wessen?**, the adjective ending (always **-en**), and a handful of everyday phrases that you can't say without it.",
+          why: "Three more things about the genitive: its question word **wessen?**, the adjective ending (always **-en**), and a few everyday phrases that need it.",
           rid: ["geni.wessen", "geni.adj", "geni.one"],
           rules: [
-            "**Wessen?** = *whose?* — it stands before its noun, without an article: **Wessen** Jacke ist das? — Das ist Leas Jacke. · **Wessen** Auto steht vor der Garage? — Das Auto der Nachbarin.",
-            "An **adjective** in the genitive always ends in **-en** — after des, der, eines, einer, meines …: das Büro des neu**en** Chefs · die Wohnung meiner alt**en** Tante · die Namen der neu**en** Kollegen.",
-            "Everyday genitives: **Anfang / Mitte / Ende** des Monats, der Woche, des Jahres · **die Hälfte** der Leute · **ein Teil** des Geldes · **eines Tages** (one day) — and *one of*: **einer** meiner Freunde · **eine** meiner Kolleginnen · **eines** der Kinder.",
+            "**Wessen?** means *whose?* It goes right before its noun, with no article. **Wessen** Jacke ist das? — Das ist Leas Jacke. · **Wessen** Auto steht da? — Das Auto der Nachbarin.",
+            "An **adjective** in the genitive always ends in **-en**, after des, der, eines, einer, meines …: das Büro des neu**en** Chefs · die Wohnung meiner alt**en** Tante · die Namen der neu**en** Kollegen.",
+            "Some everyday phrases use the genitive: **Anfang / Mitte / Ende** des Monats · **die Hälfte** der Leute · **ein Teil** des Geldes · **eines Tages** (one day). *one of* works the same way: **einer** meiner Freunde · **eine** meiner Kolleginnen.",
           ],
           table: { head: ["", "genitive + adjective"], rows: [
             ["der Chef", "des neu**en** Chefs"],
@@ -86,25 +86,25 @@ cxPack({
             ["**Einer meiner Kollegen** kommt auch aus Portugal.", "One of my colleagues also comes from Portugal."],
             ["Das ist die Adresse **der neuen Ärztin**.", "That's the new doctor's address."],
           ],
-          trap: "*one of my friends* is **einer meiner Freunde** — not ~~ein von meine Freunde~~ (in speech: einer **von** meinen Freunden). And *wessen* takes no article: ~~Wessen die Jacke~~ → **Wessen Jacke**.",
+          trap: "*one of my friends* is **einer meiner Freunde**, not ~~ein von meine Freunde~~ (in speech: einer **von** meinen Freunden). And wessen takes no article: ~~Wessen die Jacke~~ should be **Wessen Jacke**.",
           quiz: [
-            { at: "r1", k: "pick", q: "___ Schlüssel ist das? — Das ist Toms Schlüssel.", o: ["Wessen", "Wem", "Wer"], a: 0, why: "*whose?*: **wessen**." },
-            { at: "r1", k: "order", q: "Build it: Whose bag is that?", a: ["Wessen", "Tasche", "ist", "das?"], why: "wessen + the noun, no article." },
-            { at: "r2", k: "pick", q: "Das ist das Auto des ___ Nachbarn.", o: ["neuen", "neue", "neues"], a: 0, why: "In the genitive: always **-en**." },
+            { at: "r1", k: "pick", q: "___ Schlüssel ist das? — Das ist Toms Schlüssel.", o: ["Wessen", "Wem", "Wer"], a: 0, why: "*whose?* is **wessen**." },
+            { at: "r1", k: "order", q: "Build it: Whose bag is that?", a: ["Wessen", "Tasche", "ist", "das?"], why: "wessen, then the noun, with no article." },
+            { at: "r2", k: "pick", q: "Das ist das Auto des ___ Nachbarn.", o: ["neuen", "neue", "neues"], a: 0, why: "In the genitive the adjective always ends in **-en**." },
             { at: "r2", k: "type", cx: true, q: "(alt) Die Wohnung meiner ___ Tante ist sehr schön.", a: ["alten"], r: ["geni.adj"], why: "Always **-en**: meiner alt**en** Tante." },
-            { at: "r3", k: "pick", q: "Wir bekommen den Lohn am Ende ___.", o: ["des Monats", "dem Monat", "der Monat"], a: 0, why: "Ende + the genitive: **des Monats**." },
-            { at: "r3", k: "pick", q: "one of my colleagues (a woman):", o: ["eine meiner Kolleginnen", "eine meine Kollegin", "ein von meine Kolleginnen"], a: 0, why: "**eine** + the genitive plural." },
-            { at: "table", k: "pick", q: "die Spielsachen der ___ Kinder", o: ["kleinen", "kleine", "kleiner"], a: 0, why: "Always **-en**." },
-            { at: "trap", k: "pick", q: "Which is right?", o: ["Einer meiner Freunde wohnt in Genf.", "Ein von meine Freunde wohnt in Genf."], a: 0, why: "**einer** + the genitive plural." },
+            { at: "r3", k: "pick", q: "Wir bekommen den Lohn am Ende ___.", o: ["des Monats", "dem Monat", "der Monat"], a: 0, why: "Ende takes the genitive: **des Monats**." },
+            { at: "r3", k: "pick", q: "one of my colleagues (a woman):", o: ["eine meiner Kolleginnen", "eine meine Kollegin", "ein von meine Kolleginnen"], a: 0, why: "**eine**, then the genitive plural: meiner Kolleginnen." },
+            { at: "table", k: "pick", q: "die Spielsachen der ___ Kinder", o: ["kleinen", "kleine", "kleiner"], a: 0, why: "Always **-en**: der klein**en** Kinder." },
+            { at: "trap", k: "pick", q: "Which is right?", o: ["Einer meiner Freunde wohnt in Genf.", "Ein von meine Freunde wohnt in Genf."], a: 0, why: "**einer**, then the genitive plural: meiner Freunde." },
           ] },
       ],
       diag: [
-        { t: "swap", from: "^(wer|wem|wen|was)$", to: "^wessen$", rule: "geni.wessen", hard: true, msg: "*whose?* is **wessen** — right before its noun, without an article." },
-        { t: "swap", from: "^(der|die|das|den|dem)$", to: "^des$", rule: "geni.art", hard: true, msg: "The genitive of a der- or das-noun: **des** (+ -s / -es on the noun)." },
-        { t: "swap", from: "^(des|die|das|den|dem)$", to: "^der$", rule: "geni.art", hard: true, msg: "The genitive of a die-noun or a plural: **der**." },
-        { t: "ending", stem: "(mein|dein|sein|kein|ein|unser|eur|euer|ihr|dies|jed)", rule: "geni.art", hard: true, msg: "The genitive ending: -es for der- and das-nouns, -er for die-nouns and plurals — **{right}**." },
-        { t: "grow", add: "e?s", rule: "geni.s", hard: true, msg: "A der- or das-noun takes an ending in the genitive too: **{right}** (-s; -es after s, ß, x, z, sch — and often after one syllable)." },
-        { t: "extra", tok: "^von$", rule: "geni.order", msg: "No von here — the written genitive: the owner second, with des / der: das Büro **des Chefs**." },
+        { t: "swap", from: "^(wer|wem|wen|was)$", to: "^wessen$", rule: "geni.wessen", hard: true, msg: "*whose?* is **wessen**, right before its noun, with no article." },
+        { t: "swap", from: "^(der|die|das|den|dem)$", to: "^des$", rule: "geni.art", hard: true, msg: "A der- or das-noun takes **des** in the genitive, and the noun gets -s or -es." },
+        { t: "swap", from: "^(des|die|das|den|dem)$", to: "^der$", rule: "geni.art", hard: true, msg: "A die-noun or a plural takes **der** in the genitive." },
+        { t: "ending", stem: "(mein|dein|sein|kein|ein|unser|eur|euer|ihr|dies|jed)", rule: "geni.art", hard: true, msg: "The genitive ending is -es for der- and das-nouns and -er for die-nouns and plurals: **{right}**." },
+        { t: "grow", add: "e?s", rule: "geni.s", hard: true, msg: "A der- or das-noun also gets an ending in the genitive: **{right}** (-s, or -es after s, ß, x, z, sch and often after one syllable)." },
+        { t: "extra", tok: "^von$", rule: "geni.order", msg: "No von here. Use the written genitive, owner second: das Büro **des Chefs**." },
       ],
       drills: [
         // ── our own: des or der ──
@@ -123,7 +123,7 @@ cxPack({
           { q: "Der Garten ___ Großeltern ist riesig.", o: ["unserer", "unseres"], a: ["unserer"], r: ["geni.art"] },
         ] },
         // ── Übung 20•1: a noun phrase → its genitive ──
-        { id: "d20.1", ex: "20.1", t: "type", title: "Into the genitive", how: "Write the noun phrase in the genitive — the article changes, and a der- or das-noun adds -s / -es.", items: [
+        { id: "d20.1", ex: "20.1", t: "type", title: "Into the genitive", how: "Write the phrase in the genitive. The article changes; a der- or das-noun adds -s / -es.", items: [
           { q: "die Tasse → ___", a: ["der Tasse"], r: ["geni.art"] },
           { q: "das Auto → ___", a: ["des Autos"], r: ["geni.s"] },
           { q: "meine Eltern → ___", a: ["meiner Eltern"], r: ["geni.art"] },
@@ -140,7 +140,7 @@ cxPack({
           { q: "der Zug → ___", a: ["des Zuges", "des Zugs"], r: ["geni.s"] },
         ] },
         // ── our own: the noun's ending ──
-        { id: "dgeni.s", t: "type", title: "des Autos · des Mannes", how: "Write the noun in the genitive: -s, -es — or nothing for a die-noun or a plural.", items: [
+        { id: "dgeni.s", t: "type", title: "des Autos · des Mannes", how: "Write the noun in the genitive: -s, -es, or nothing for a die-noun or a plural.", items: [
           { q: "(das Haus) die Tür des ___", a: ["Hauses"], r: ["geni.s"] },
           { q: "(der Vater) der Beruf des ___", a: ["Vaters"], r: ["geni.s"] },
           { q: "(die Stadt) das Zentrum der ___", a: ["Stadt"], r: ["geni.s"] },
@@ -154,7 +154,7 @@ cxPack({
           { q: "(die Schule) der Direktor der ___", a: ["Schule"], r: ["geni.s"] },
           { q: "(das Spiel) die Regeln des ___", a: ["Spiels", "Spieles"], r: ["geni.s"] },
         ].map(it => ({ ...it, diag: [
-          { t: "ending", stem: it.a[0].toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/e?s$/, ""), rule: "geni.s", hard: true, msg: "A der- or das-noun takes -s (-es after s, ß, x, z, sch, and often after one syllable); a die-noun or a plural takes nothing: **{right}**." },
+          { t: "ending", stem: it.a[0].toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/e?s$/, ""), rule: "geni.s", hard: true, msg: "A der- or das-noun takes -s (-es after s, ß, x, z, sch, often after one syllable); a die-noun or plural takes nothing: **{right}**." },
         ] })) },
         // ── Übung 20•2: the noun in brackets in the genitive ──
         { id: "d20.2", ex: "20.2", t: "type", title: "Whose is it?", how: "Write the words in brackets in the genitive.", items: [
@@ -172,7 +172,7 @@ cxPack({
           { q: "(ein Freund) Das ist das Auto ___.", a: ["eines Freundes", "eines Freunds"], r: ["geni.art", "geni.s"] },
         ] },
         // ── our own: von + dative → the written genitive ──
-        { id: "dgeni.von", t: "transform", title: "von dem Chef → des Chefs", how: "Write it the formal way: the genitive for von + dative — the owner stays second.", items: [
+        { id: "dgeni.von", t: "transform", title: "von dem Chef → des Chefs", how: "Write it the formal way: the genitive instead of von + dative. The owner stays second.", items: [
           { q: "Das ist das Büro von dem Chef.", a: ["Das ist das Büro des Chefs."], r: ["geni.order"] },
           { q: "Die Wohnung von meiner Tante ist sehr hell.", a: ["Die Wohnung meiner Tante ist sehr hell."], r: ["geni.order"] },
           { q: "Wo ist das Zimmer von den Kindern?", a: ["Wo ist das Zimmer der Kinder?"], r: ["geni.order"] },
@@ -185,7 +185,7 @@ cxPack({
           { q: "Die Namen von den Gästen stehen auf der Liste.", a: ["Die Namen der Gäste stehen auf der Liste."], r: ["geni.order"] },
         ].map(it => ({ ...it, diag: [{ t: "order", rule: "geni.order", msg: "The thing comes first, the owner second: das Auto **meines Bruders**." }] })) },
         // ── our own: the genitive → the way you say it ──
-        { id: "dgeni.spoken", t: "transform", title: "Say it: von + dative", how: "Say it the everyday way: von + dative — a name takes -s, in front.", items: [
+        { id: "dgeni.spoken", t: "transform", title: "Say it: von + dative", how: "Say it the everyday way: von + dative. A name takes -s, in front.", items: [
           { q: "Das ist das Velo meines Bruders.", a: ["Das ist das Velo von meinem Bruder."], r: ["geni.von"] },
           { q: "Die Wohnung meiner Schwester ist klein.", a: ["Die Wohnung von meiner Schwester ist klein."], r: ["geni.von"] },
           { q: "Wo ist das Büro des Chefs?", a: ["Wo ist das Büro vom Chef?", "Wo ist das Büro von dem Chef?"], r: ["geni.von"] },
@@ -196,11 +196,11 @@ cxPack({
           { q: "Die Tür des Hauses ist offen.", a: ["Die Tür vom Haus ist offen.", "Die Tür von dem Haus ist offen."], r: ["geni.von"] },
           { q: "Der Lehrer unserer Tochter ist sehr nett.", a: ["Der Lehrer von unserer Tochter ist sehr nett."], r: ["geni.von"] },
         ].map(it => ({ ...it, diag: [
-          { t: "missing", whole: true, tok: "^(von|vom)$", rule: "geni.von", msg: "The everyday way: **von** + the dative — das Velo **von meinem** Bruder." },
+          { t: "missing", whole: true, tok: "^(von|vom)$", rule: "geni.von", msg: "The everyday way is **von** + the dative: das Velo **von meinem** Bruder." },
           { t: "swap", from: "^(meines|des|meiner|der|unserer)$", to: "^(meinem|dem|vom|meiner|der|meinen|den|unserer)$", rule: "geni.von", hard: true, msg: "After von comes the **dative**: **{right}**." },
         ] })) },
         // ── our own: wessen ──
-        { id: "dgeni.wessen", t: "transform", low: true, title: "Wessen …?", how: "Ask whose it is — wessen + the noun, without an article.", items: [
+        { id: "dgeni.wessen", t: "transform", low: true, title: "Wessen …?", how: "Ask whose it is: wessen + the noun, with no article.", items: [
           { q: "Das ist Leas Jacke.", hl: "Leas", a: ["Wessen Jacke ist das?"], r: ["geni.wessen"] },
           { q: "Das ist das Auto meines Vaters.", hl: "meines Vaters", a: ["Wessen Auto ist das?"], r: ["geni.wessen"] },
           { q: "Das sind die Schuhe der Kinder.", hl: "der Kinder", a: ["Wessen Schuhe sind das?"], r: ["geni.wessen"] },
@@ -245,7 +245,7 @@ cxPack({
           { q: "(der Tag) Am Ende ___ bin ich sehr müde.", a: ["des Tages", "des Tags"], r: ["geni.one"] },
         ] },
         // ── Übung 20•6: build the question from the words ──
-        { id: "d20.6", ex: "20.6", t: "compose", low: true, end: true, title: "Wo ist … dieses jungen Mannes?", how: "Build a question that asks where the thing is — its owner in the genitive, the adjective with -en.", items: [
+        { id: "d20.6", ex: "20.6", t: "compose", low: true, end: true, title: "Wo ist … dieses jungen Mannes?", how: "Build a question asking where the thing is: owner in the genitive, adjective with -en.", items: [
           { w: ["die Jacke", "dieser", "jung", "Mann"], a: ["Wo ist die Jacke dieses jungen Mannes?", "Wo ist die Jacke dieses jungen Manns?"], r: ["geni.adj"] },
           { w: ["das Spielzeug", "die", "klein", "Kinder"], a: ["Wo ist das Spielzeug der kleinen Kinder?"], r: ["geni.adj"] },
           { w: ["das Büro", "der", "neu", "Chef"], a: ["Wo ist das Büro des neuen Chefs?"], r: ["geni.adj", "geni.s"] },
@@ -258,7 +258,7 @@ cxPack({
           { w: ["der Laden", "dieser", "nett", "Frau"], a: ["Wo ist der Laden dieser netten Frau?"], r: ["geni.adj"] },
         ].map(it => ({ ...it, diag: [{ t: "order", rule: "geni.order", msg: "The thing comes first, the owner second: das Auto **meines Bruders**." }] })) },
         // ── Production ──
-        { id: "dp.geni", t: "translate", end: true, title: "Say it in German", how: "Translate with the genitive — the owner second; a name just takes -s.", items: [
+        { id: "dp.geni", t: "translate", end: true, title: "Say it in German", how: "Translate with the genitive: the owner second; a name just takes -s.", items: [
           { q: "That's my brother's car.", a: ["Das ist das Auto meines Bruders."], r: ["geni.order", "geni.s"] },
           { q: "My sister's flat is small.", a: ["Die Wohnung meiner Schwester ist klein."], r: ["geni.order", "geni.art"] },
           { q: "Where is the boss's office?", a: ["Wo ist das Büro des Chefs?", "Wo ist das Büro der Chefin?"], r: ["geni.art"] },
@@ -274,7 +274,7 @@ cxPack({
           { q: "The door of the house is open.", a: ["Die Tür des Hauses ist offen.", "Die Haustür ist offen."], r: ["geni.s"] },
           { q: "I know the parents of my old friend. (she)", a: ["Ich kenne die Eltern meiner alten Freundin."], r: ["geni.adj"] },
         ] },
-        { id: "dgeni.write", t: "write", end: true, title: "Whose is what?", how: "Write your own sentences with the genitive — saved for Claude to correct.", items: [
+        { id: "dgeni.write", t: "write", end: true, title: "Whose is what?", how: "Write your own sentences with the genitive. Saved for Claude to correct.", items: [
           { q: "Three people in your family and something of theirs. (das Auto meines …, die Wohnung meiner …)", model: ["Das Auto meines Bruders ist sehr alt. Die Wohnung meiner Schwester liegt im Zentrum. Der Hund meiner Eltern heißt Bobby."], r: ["geni.order"] },
           { q: "What happens at the beginning, in the middle and at the end of your week?", model: ["Am Anfang der Woche habe ich viel Arbeit. Mitte der Woche gehe ich zum Deutschkurs. Am Ende der Woche bin ich müde, aber zufrieden."], r: ["geni.one"] },
           { q: "One of your friends, one of your colleagues, one of your neighbours: say one thing about each.", model: ["Einer meiner Freunde spielt in einer Band. Eine meiner Kolleginnen kommt aus Peru. Einer meiner Nachbarn hat drei Katzen."], r: ["geni.one"] },
@@ -290,21 +290,21 @@ cxPack({
     "s2.genprep": {
       testout: { n: 8, miss: 1 },
       rules: {
-        "gp.list": "wegen · trotz · während · (an)statt + genitive",
-        "gp.inner": "innerhalb · außerhalb + genitive: innerhalb einer Woche",
-        "gp.weil": "wegen + noun = weil + sentence · trotz + noun = obwohl + sentence",
-        "gp.dat": "in speech you hear the dative: wegen dem Wetter · wegen mir",
+        "gp.list": "wegen, trotz, während, (an)statt + genitive",
+        "gp.inner": "innerhalb, außerhalb + genitive",
+        "gp.weil": "wegen + noun, weil + sentence (trotz, obwohl too)",
+        "gp.dat": "In speech you hear the dative: wegen dem Wetter",
       },
       sheets: [
         { id: "cx.gp", title: "wegen, trotz, während, statt", qn: 3,
           struct: [["Wegen", "pre"], ["des", "end"], ["Regens", "thing"], ["bleiben", "verb"], ["wir", "who"], ["zu Hause", "mid"]],
-          why: "A few prepositions take the **genitive**. You'll hear them every day in announcements and read them in letters: *Wegen eines Unfalls …*, *Trotz des Regens …*, *Während der Ferien …*",
+          why: "A few prepositions take the **genitive**. You hear them in announcements and read them in letters: *Wegen eines Unfalls …* · *Trotz des Regens …* · *Während der Ferien …*",
           rid: ["gp.list", "gp.inner", "gp.weil", "gp.dat"],
           rules: [
-            "**wegen** (because of) · **trotz** (in spite of) · **während** (during) · **statt / anstatt** (instead of) take the **genitive**: **wegen des** Wetters · **trotz der** Kälte · **während des** Kurses · **statt eines** Geschenks.",
-            "**innerhalb** (within, inside) and **außerhalb** (outside) too: **innerhalb einer** Woche · **innerhalb der** Stadt · **außerhalb der** Öffnungszeiten · **außerhalb des** Dorfes.",
-            "Before a **noun** stands the preposition, before a **sentence** the joining word: **wegen** des Regens = **weil** es regnet · **trotz** des Regens = **obwohl** es regnet · **während** der Pause = **während** wir Pause machen.",
-            "In **speech** many people use the **dative** after wegen, trotz and während: wegen **dem** Wetter. Write the genitive. With a pronoun you say **wegen mir**, wegen dir (everyday) — in writing one word: **meinetwegen**, deinetwegen.",
+            "**wegen** (because of), **trotz** (in spite of), **während** (during) and **statt / anstatt** (instead of) take the **genitive**: **wegen des** Wetters · **trotz der** Kälte · **während des** Kurses · **statt eines** Geschenks.",
+            "**innerhalb** (within) and **außerhalb** (outside) also take the genitive: **innerhalb einer** Woche · **außerhalb der** Stadt · **außerhalb des** Dorfes.",
+            "Before a **noun** use the preposition; before a **whole sentence**, the joining word. **wegen** des Regens means **weil** es regnet · **trotz** des Regens means **obwohl** es regnet. während works both ways.",
+            "In **speech** many people use the **dative** after wegen, trotz and während (wegen **dem** Wetter), but in writing use the genitive. With a pronoun, say **wegen mir**, wegen dir, or in one word **meinetwegen**.",
           ],
           table: { head: ["+ noun (genitive)", "+ sentence"], rows: [
             ["**wegen** des Regens", "**weil** es regnet"],
@@ -318,31 +318,31 @@ cxPack({
             ["**Während der Arbeit** darf ich das Handy nicht benutzen.", "During work I'm not allowed to use my phone."],
             ["Bitte antworten Sie **innerhalb einer Woche**.", "Please reply within a week."],
           ],
-          trap: "**wegen** + a noun, **weil** + a sentence — don't mix them: ~~wegen es regnet~~ → **weil** es regnet · **wegen des Regens**. The same with trotz and obwohl: ~~trotz es regnet~~ → **obwohl** es regnet.",
+          trap: "**wegen** goes with a noun, **weil** with a sentence: ~~wegen es regnet~~ should be **weil** es regnet or **wegen des Regens**. The same with trotz and obwohl: ~~trotz es regnet~~ should be **obwohl** es regnet.",
           quiz: [
-            { at: "r1", k: "pick", q: "___ des schlechten Wetters bleiben wir zu Hause.", o: ["Wegen", "Trotz", "Statt"], a: 0, why: "The reason: **wegen**." },
-            { at: "r1", k: "pick", q: "___ des schlechten Wetters gehen wir wandern.", o: ["Trotz", "Wegen", "Während"], a: 0, why: "In spite of it: **trotz**." },
-            { at: "r1", k: "pick", q: "Während ___ Ferien arbeite ich nicht.", o: ["der", "den", "die"], a: 0, why: "während + the genitive, plural: **der**." },
-            { at: "r2", k: "pick", q: "Sie bekommen die Antwort innerhalb ___ Woche.", o: ["einer", "eine", "einem"], a: 0, why: "innerhalb + the genitive: **einer** Woche." },
-            { at: "r2", k: "type", cx: true, q: "(die Stadt) Wir wohnen außerhalb ___.", a: ["der Stadt"], r: ["gp.inner"], why: "außerhalb + the genitive: **der Stadt**." },
+            { at: "r1", k: "pick", q: "___ des schlechten Wetters bleiben wir zu Hause.", o: ["Wegen", "Trotz", "Statt"], a: 0, why: "The bad weather is the reason: **wegen**." },
+            { at: "r1", k: "pick", q: "___ des schlechten Wetters gehen wir wandern.", o: ["Trotz", "Wegen", "Während"], a: 0, why: "We go in spite of it: **trotz**." },
+            { at: "r1", k: "pick", q: "Während ___ Ferien arbeite ich nicht.", o: ["der", "den", "die"], a: 0, why: "während takes the genitive; plural: **der**." },
+            { at: "r2", k: "pick", q: "Sie bekommen die Antwort innerhalb ___ Woche.", o: ["einer", "eine", "einem"], a: 0, why: "innerhalb takes the genitive: **einer** Woche." },
+            { at: "r2", k: "type", cx: true, q: "(die Stadt) Wir wohnen außerhalb ___.", a: ["der Stadt"], r: ["gp.inner"], why: "außerhalb takes the genitive: **der Stadt**." },
             { at: "r3", k: "pick", q: "___ es regnet, bleiben wir zu Hause.", o: ["Weil", "Wegen"], a: 0, why: "Before a sentence: **weil**." },
             { at: "r3", k: "pick", q: "___ des Regens bleiben wir zu Hause.", o: ["Wegen", "Weil"], a: 0, why: "Before a noun: **wegen**." },
-            { at: "r4", k: "pick", q: "In a letter you write:", o: ["wegen des Staus", "wegen dem Stau", "wegen der Stau"], a: 0, why: "Written: the **genitive**." },
-            { at: "r4", k: "pick", q: "because of me:", o: ["wegen mir", "wegen ich", "wegen meines"], a: 0, why: "With a pronoun: **wegen mir** (in writing: meinetwegen)." },
-            { at: "table", k: "pick", q: "trotz des Regens = ___ es regnet", o: ["obwohl", "weil", "während"], a: 0, why: "trotz + noun = **obwohl** + sentence." },
-            { at: "trap", k: "pick", q: "Which is right?", o: ["Weil ich krank bin, bleibe ich zu Hause.", "Wegen ich krank bin, bleibe ich zu Hause."], a: 0, why: "Before a sentence: **weil** — wegen needs a noun." },
+            { at: "r4", k: "pick", q: "In a letter you write:", o: ["wegen des Staus", "wegen dem Stau", "wegen der Stau"], a: 0, why: "In writing, use the **genitive**: des Staus." },
+            { at: "r4", k: "pick", q: "because of me:", o: ["wegen mir", "wegen ich", "wegen meines"], a: 0, why: "With a pronoun: **wegen mir** (or in one word, meinetwegen)." },
+            { at: "table", k: "pick", q: "trotz des Regens = ___ es regnet", o: ["obwohl", "weil", "während"], a: 0, why: "trotz with a noun means **obwohl** with a sentence." },
+            { at: "trap", k: "pick", q: "Which is right?", o: ["Weil ich krank bin, bleibe ich zu Hause.", "Wegen ich krank bin, bleibe ich zu Hause."], a: 0, why: "Before a sentence you need **weil**; wegen needs a noun." },
           ] },
       ],
       diag: [
-        { t: "swap", from: "^(weil|da)$", to: "^wegen$", rule: "gp.weil", hard: true, msg: "Before a noun it's the preposition **wegen** — weil opens a sentence." },
-        { t: "swap", from: "^wegen$", to: "^(weil|da)$", rule: "gp.weil", hard: true, msg: "Before a sentence it's **weil** — wegen stands before a noun." },
-        { t: "swap", from: "^obwohl$", to: "^trotz$", rule: "gp.weil", hard: true, msg: "Before a noun it's the preposition **trotz** — obwohl opens a sentence." },
-        { t: "swap", from: "^trotz$", to: "^obwohl$", rule: "gp.weil", hard: true, msg: "Before a sentence it's **obwohl** — trotz stands before a noun." },
+        { t: "swap", from: "^(weil|da)$", to: "^wegen$", rule: "gp.weil", hard: true, msg: "Before a noun it's the preposition **wegen**. weil starts a sentence." },
+        { t: "swap", from: "^wegen$", to: "^(weil|da)$", rule: "gp.weil", hard: true, msg: "Before a sentence it's **weil**. wegen goes before a noun." },
+        { t: "swap", from: "^obwohl$", to: "^trotz$", rule: "gp.weil", hard: true, msg: "Before a noun it's the preposition **trotz**. obwohl starts a sentence." },
+        { t: "swap", from: "^trotz$", to: "^obwohl$", rule: "gp.weil", hard: true, msg: "Before a sentence it's **obwohl**. trotz goes before a noun." },
         { t: "swap", from: "^(wegen|trotz|wahrend|statt|anstatt|innerhalb|ausserhalb)$", to: "^(wegen|trotz|wahrend|statt|anstatt|innerhalb|ausserhalb)$", rule: "", hard: true, msg: "The preposition that fits the meaning here is **{right}**." },
-        { t: "swap", from: "^(dem|den|das|die|der)$", to: "^des$", rule: "", hard: true, msg: "These prepositions take the **genitive** in writing: **des** (+ -s / -es on the noun)." },
-        { t: "swap", from: "^(dem|den|das|die|des)$", to: "^der$", rule: "", hard: true, msg: "These prepositions take the **genitive** in writing — a die-noun or a plural: **der**." },
-        { t: "grow", add: "e?s", rule: "", hard: true, msg: "A der- or das-noun takes an ending in the genitive too: **{right}** (-s; -es after s, ß, x, z, sch — and often after one syllable)." },
-        { t: "ending", stem: "(mein|dein|sein|kein|ein|unser|eur|euer|ihr|dies|jed)", rule: "", hard: true, msg: "The genitive ending: -es for der- and das-nouns, -er for die-nouns and plurals — **{right}**." },
+        { t: "swap", from: "^(dem|den|das|die|der)$", to: "^des$", rule: "", hard: true, msg: "In writing these prepositions take the **genitive**: **des**, with -s or -es on the noun." },
+        { t: "swap", from: "^(dem|den|das|die|des)$", to: "^der$", rule: "", hard: true, msg: "In writing these prepositions take the **genitive**; for a die-noun or a plural, that's **der**." },
+        { t: "grow", add: "e?s", rule: "", hard: true, msg: "A der- or das-noun also gets an ending in the genitive: **{right}** (-s, or -es after s, ß, x, z, sch and often after one syllable)." },
+        { t: "ending", stem: "(mein|dein|sein|kein|ein|unser|eur|euer|ihr|dies|jed)", rule: "", hard: true, msg: "The genitive ending is -es for der- and das-nouns and -er for die-nouns and plurals: **{right}**." },
       ],
       drills: [
         // ── our own: which preposition ──
@@ -386,12 +386,12 @@ cxPack({
           { q: "(das Dorf) Der Bauernhof liegt außerhalb ___.", a: ["des Dorfes", "des Dorfs"], r: ["gp.inner"] },
           { q: "(ein Jahr) Innerhalb ___ hat sie Deutsch gelernt.", a: ["eines Jahres"], r: ["gp.inner"] },
           { q: "(die Schweiz) Innerhalb ___ kostet das Paket sieben Franken.", a: ["der Schweiz"], r: ["gp.inner"] },
-          { q: "(drei Tage) Das Paket kommt innerhalb von ___.", a: ["drei Tagen"], r: ["gp.inner"], note: "Without an article the genitive can't be seen — then it's **innerhalb von** + dative: innerhalb von drei Tag**en**." },
+          { q: "(drei Tage) Das Paket kommt innerhalb von ___.", a: ["drei Tagen"], r: ["gp.inner"], note: "Without an article the genitive doesn't show, so use **innerhalb von** + dative: innerhalb von drei Tag**en**." },
           { q: "(das Haus) Innerhalb ___ darf man nicht rauchen.", a: ["des Hauses"], r: ["gp.inner"] },
           { q: "(die Öffnungszeiten) Außerhalb ___ ist die Tür geschlossen.", a: ["der Öffnungszeiten"], r: ["gp.inner"] },
         ] },
         // ── our own: weil → wegen · obwohl → trotz ──
-        { id: "dgp.weil", t: "transform", title: "weil → wegen · obwohl → trotz", how: "Say the same with the preposition and the noun in brackets — in the genitive.", items: [
+        { id: "dgp.weil", t: "transform", title: "weil → wegen · obwohl → trotz", how: "Say the same with the preposition and the noun in brackets, in the genitive.", items: [
           { q: "Weil es regnet, bleiben wir zu Hause. (der Regen)", a: ["Wegen des Regens bleiben wir zu Hause.", "Wir bleiben wegen des Regens zu Hause."], r: ["gp.weil"] },
           { q: "Obwohl es regnet, gehen wir spazieren. (der Regen)", a: ["Trotz des Regens gehen wir spazieren.", "Wir gehen trotz des Regens spazieren."], r: ["gp.weil"] },
           { q: "Weil er krank ist, kommt er nicht. (seine Krankheit)", a: ["Wegen seiner Krankheit kommt er nicht.", "Er kommt wegen seiner Krankheit nicht."], r: ["gp.weil"] },
@@ -404,7 +404,7 @@ cxPack({
           { q: "Obwohl er Fieber hat, geht er zur Arbeit. (das Fieber)", a: ["Trotz des Fiebers geht er zur Arbeit.", "Er geht trotz des Fiebers zur Arbeit."], r: ["gp.weil"] },
         ] },
         // ── our own: wegen or weil ──
-        { id: "dgp.ww", t: "pick", title: "wegen or weil? trotz or obwohl?", how: "Pick: before a noun — the preposition · before a sentence — the joining word.", items: [
+        { id: "dgp.ww", t: "pick", title: "wegen or weil? trotz or obwohl?", how: "Before a noun: the preposition. Before a sentence: the joining word.", items: [
           { q: "___ der Hitze bleiben wir im Schatten.", o: ["Wegen", "Weil"], a: ["Wegen"], r: ["gp.weil"] },
           { q: "___ es so heiß ist, bleiben wir im Schatten.", o: ["Weil", "Wegen"], a: ["Weil"], r: ["gp.weil"] },
           { q: "___ der Hitze spielen die Kinder draußen.", o: ["Trotz", "Obwohl"], a: ["Trotz"], r: ["gp.weil"] },
@@ -417,7 +417,7 @@ cxPack({
           { q: "___ wir umziehen, habe ich diese Woche frei.", o: ["Weil", "Wegen"], a: ["Weil"], r: ["gp.weil"] },
         ] },
         // ── our own: what you hear → what you write ──
-        { id: "dgp.dat", t: "transform", title: "Heard → written", how: "You hear the dative — write it with the genitive.", items: [
+        { id: "dgp.dat", t: "transform", title: "From speech to writing", how: "This is the dative you hear. Write it with the genitive.", items: [
           { q: "wegen dem Stau", a: ["wegen des Staus"], r: ["gp.dat"] },
           { q: "trotz dem Regen", a: ["trotz des Regens"], r: ["gp.dat"] },
           { q: "während dem Essen", a: ["während des Essens"], r: ["gp.dat"] },
@@ -429,7 +429,7 @@ cxPack({
           { q: "statt dem Auto", a: ["statt des Autos"], r: ["gp.dat"] },
           { q: "während dem Spiel", a: ["während des Spiels", "während des Spieles"], r: ["gp.dat"] },
         ] },
-        { id: "dgp.mir", t: "pick", title: "wegen mir · meinetwegen", how: "With a pronoun: wegen + dative — or one word.", items: [
+        { id: "dgp.mir", t: "pick", title: "wegen mir · meinetwegen", how: "With a pronoun: wegen + dative, or one word (meinetwegen).", items: [
           { q: "Ihr müsst nicht ___ mir warten.", o: ["wegen", "weil", "trotz"], a: ["wegen"], r: ["gp.dat"] },
           { q: "Bist du wegen ___ so traurig?", o: ["mir", "ich", "mich"], a: ["mir"], r: ["gp.dat"] },
           { q: "Wir sind nur wegen ___ gekommen, Oma!", o: ["dir", "du", "dein"], a: ["dir"], r: ["gp.dat"] },
@@ -440,7 +440,7 @@ cxPack({
           { q: "Mach dir wegen ___ keine Sorgen, uns geht es gut!", o: ["uns", "wir", "unser"], a: ["uns"], r: ["gp.dat"] },
         ] },
         // ── Production ──
-        { id: "dp.gp", t: "translate", end: true, title: "Say it in German", how: "Translate — wegen, trotz, während, statt, innerhalb + the genitive.", items: [
+        { id: "dp.gp", t: "translate", end: true, title: "Say it in German", how: "Translate. wegen, trotz, während, statt and innerhalb take the genitive.", items: [
           { q: "Because of the rain we're staying at home.", a: ["Wegen des Regens bleiben wir zu Hause.", "Wir bleiben wegen des Regens zu Hause."], r: ["gp.list"] },
           { q: "In spite of the rain we're going for a walk.", a: ["Trotz des Regens gehen wir spazieren.", "Wir gehen trotz des Regens spazieren."], r: ["gp.list"] },
           { q: "During the holidays I don't work.", a: ["Während der Ferien arbeite ich nicht.", "Ich arbeite während der Ferien nicht."], r: ["gp.list"] },
@@ -455,7 +455,7 @@ cxPack({
           { q: "In spite of his age he still works.", a: ["Trotz seines Alters arbeitet er noch.", "Er arbeitet trotz seines Alters noch.", "Trotz seines Alters arbeitet er immer noch."], r: ["gp.list"] },
         ] },
         // ── Übung 20•7: your own phrase after the preposition ──
-        { id: "d20.7", ex: "20.7", t: "write", end: true, title: "Finish it your way", how: "Finish it with a genitive phrase: article + adjective + noun — saved for Claude to correct.", items: [
+        { id: "d20.7", ex: "20.7", t: "write", end: true, title: "Finish it your way", how: "Finish it with a genitive phrase: article + adjective + noun. Saved for Claude to correct.", items: [
           { q: "Wir waren während … in Italien.", model: ["Wir waren während der langen Sommerferien in Italien."], r: ["gp.list"] },
           { q: "Wegen … kommen heute viele Leute zu spät.", model: ["Wegen des starken Schnees kommen heute viele Leute zu spät."], r: ["gp.list"] },
           { q: "Trotz … geht sie jeden Tag joggen.", model: ["Trotz ihres hohen Alters geht sie jeden Tag joggen."], r: ["gp.list"] },

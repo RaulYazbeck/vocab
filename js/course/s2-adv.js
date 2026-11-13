@@ -13,25 +13,25 @@ cxPack({
     "s2.adv": {
       testout: { n: 8, miss: 1 },
       rules: {
-        "adv.int": "sehr · ziemlich · ganz · total · wirklich — before the adjective, never an ending",
-        "adv.neg": "gar nicht · überhaupt nicht · gar kein — not at all",
-        "adv.zu": "zu = too (before) · genug = enough (after): zu klein, groß genug",
-        "adv.viel": "sehr + adjective · viel + comparative: sehr gut, viel besser",
-        "adv.kinds": "when · how often · where · how · your comment: heute, oft, dort, gern, leider",
-        "adv.pos": "an adverb in first place: then the verb — Leider habe ich …",
-        "adv.order": "after the verb and its pronouns, before the rest: Ich sehe ihn oft",
-        "adv.dir": "wo? oben, draußen, dort — wohin? nach oben, raus, dorthin",
+        "adv.int": "sehr, ziemlich, total: before the adjective, no ending",
+        "adv.neg": "gar nicht, überhaupt nicht, gar kein: not at all",
+        "adv.zu": "zu (too) goes before, genug (enough) after",
+        "adv.viel": "sehr + adjective, viel + comparative",
+        "adv.kinds": "Kinds of adverb: heute, oft, dort, gern, leider",
+        "adv.pos": "An adverb first: then the verb (Leider habe ich …)",
+        "adv.order": "After the verb and its pronouns: Ich sehe ihn oft",
+        "adv.dir": "Where it is (oben) or where it goes (nach oben)",
       },
       sheets: [
         { id: "cx.adv1", title: "sehr, ziemlich, gar nicht — how much?", qn: 3,
           struct: [["Das ist", "who"], ["sehr · ziemlich · zu", "pre"], ["teuer", "thing"]],
-          why: "Small words say **how much**: very, quite, rather, not at all, too. They stand right **before** the adjective or adverb and never take an ending — an easy way to sound much more natural.",
+          why: "Small words say **how much**: very, rather, not at all, too. They go right **before** the adjective and never take an ending. They make your German sound much more natural.",
           rid: ["adv.int", "adv.neg", "adv.zu", "adv.viel"],
           rules: [
-            "From a little to a lot: **ein bisschen** · **ziemlich** (rather) · **sehr** · **wirklich** · **total** (completely) — **before** the adjective, never an ending: **ziemlich** teuer · **sehr** schnell · **total** müde. **ganz** gut = pretty good.",
-            "*not at all*: **gar nicht** or **überhaupt nicht** — with a noun **gar kein / überhaupt kein**: Das ist **gar nicht** teuer. · Ich habe **überhaupt keine** Zeit. · Er versteht **gar nichts**. Softer: **nicht so** (not so) · **kaum** (hardly).",
-            "**zu** = *too* (more than is good), before the adjective: Die Jacke ist **zu** klein. · **genug** = *enough*, **after** it: Das Zimmer ist groß **genug**. With a noun genug stands before: **genug** Geld, **genug** Zeit.",
-            "**sehr** or **viel**? **sehr** before an adjective or adverb, and with verbs of feeling: **sehr** gut · Das gefällt mir **sehr**. **viel** before a **comparative**, and for an amount: **viel** besser · **viel** teurer · Ich arbeite **viel**.",
+            "Words like **ein bisschen**, **ziemlich** (rather), **sehr**, **wirklich** and **total** (completely) go **before** the adjective and never take an ending: **ziemlich** teuer · **sehr** schnell · **total** müde. **ganz** gut means *pretty good*.",
+            "*not at all* is **gar nicht** or **überhaupt nicht**; with a noun, **gar kein** or **überhaupt kein**. Das ist **gar nicht** teuer. · Ich habe **überhaupt keine** Zeit. Softer: **nicht so** (not so) · **kaum** (hardly).",
+            "**zu** (too) goes **before** the adjective, **genug** (enough) goes **after** it: Die Jacke ist **zu** klein. · Das Zimmer ist groß **genug**. With a noun, genug comes first: **genug** Geld.",
+            "Use **sehr** before an adjective and with verbs of feeling, **viel** before a **comparative** and for an amount. **sehr** gut · Das gefällt mir **sehr**. · **viel** besser · Ich arbeite **viel**.",
           ],
           table: { head: ["", "example"], rows: [
             ["ein bisschen", "**ein bisschen** müde"],
@@ -47,28 +47,28 @@ cxPack({
             ["Der Koffer ist **zu** schwer — bist du stark **genug**?", "The suitcase is too heavy — are you strong enough?"],
             ["Mit dem Zug geht es **viel** schneller.", "It's much faster by train."],
           ],
-          trap: "*very much better* is not ~~sehr besser~~: before a comparative it's **viel** besser. And *big enough* is groß **genug** — genug comes after the adjective, not before.",
+          trap: "*much better* is **viel** besser, never ~~sehr besser~~: before a comparative it's viel. And *big enough* is groß **genug**: genug comes after the adjective.",
           quiz: [
-            { at: "r1", k: "pick", q: "Die Suppe ist ___ heiß. (very)", o: ["sehr", "viel", "sehre"], a: 0, why: "*very* + adjective: **sehr** — no ending." },
-            { at: "r1", k: "pick", q: "rather expensive:", o: ["ziemlich teuer", "teuer ziemlich", "ziemliche teuer"], a: 0, why: "**ziemlich** before the adjective, unchanged." },
-            { at: "r2", k: "pick", q: "Das ist ___ schwer. (not at all)", o: ["gar nicht", "gar", "nicht gar"], a: 0, why: "*not at all*: **gar nicht**." },
-            { at: "r2", k: "pick", q: "Ich habe ___ Hunger. (none at all)", o: ["überhaupt keinen", "überhaupt nicht", "gar nicht"], a: 0, why: "With a noun: überhaupt / gar + **kein**." },
-            { at: "r3", k: "pick", q: "Die Schuhe sind ___ klein. (too)", o: ["zu", "genug", "viel"], a: 0, why: "*too*: **zu**." },
+            { at: "r1", k: "pick", q: "Die Suppe ist ___ heiß. (very)", o: ["sehr", "viel", "sehre"], a: 0, why: "*very* before an adjective is **sehr**, with no ending." },
+            { at: "r1", k: "pick", q: "rather expensive:", o: ["ziemlich teuer", "teuer ziemlich", "ziemliche teuer"], a: 0, why: "**ziemlich** goes before the adjective, unchanged." },
+            { at: "r2", k: "pick", q: "Das ist ___ schwer. (not at all)", o: ["gar nicht", "gar", "nicht gar"], a: 0, why: "*not at all* is **gar nicht**." },
+            { at: "r2", k: "pick", q: "Ich habe ___ Hunger. (none at all)", o: ["überhaupt keinen", "überhaupt nicht", "gar nicht"], a: 0, why: "With a noun (Hunger) it's **kein**: überhaupt keinen." },
+            { at: "r3", k: "pick", q: "Die Schuhe sind ___ klein. (too)", o: ["zu", "genug", "viel"], a: 0, why: "*too* is **zu**." },
             { at: "r3", k: "order", q: "Build it: The room is big enough.", a: ["Das Zimmer", "ist", "groß", "genug."], why: "**genug** comes after the adjective." },
-            { at: "r4", k: "pick", q: "Heute geht es mir ___ besser.", o: ["viel", "sehr"], a: 0, why: "Before a comparative: **viel**." },
+            { at: "r4", k: "pick", q: "Heute geht es mir ___ besser.", o: ["viel", "sehr"], a: 0, why: "Before a comparative (besser): **viel**." },
             { at: "r4", k: "type", cx: true, q: "Das Essen schmeckt ___ gut. (very)", a: ["sehr"], r: ["adv.viel"], why: "Before an adjective: **sehr**." },
-            { at: "table", k: "pick", q: "Das Auto ist ___ teurer als das Velo.", o: ["viel", "sehr", "zu"], a: 0, why: "teur**er** is a comparative: **viel**." },
-            { at: "trap", k: "pick", q: "Which is right?", o: ["Ist die Wohnung groß genug?", "Ist die Wohnung genug groß?"], a: 0, why: "genug stands **after** the adjective." },
+            { at: "table", k: "pick", q: "Das Auto ist ___ teurer als das Velo.", o: ["viel", "sehr", "zu"], a: 0, why: "teur**er** is a comparative, so **viel**." },
+            { at: "trap", k: "pick", q: "Which is right?", o: ["Ist die Wohnung groß genug?", "Ist die Wohnung genug groß?"], a: 0, why: "genug goes **after** the adjective: groß genug." },
           ] },
         { id: "cx.adv2", title: "oft, dort, gern, leider — where adverbs stand", qn: 3,
           struct: [["Leider", "pre"], ["habe", "verb"], ["ich", "who"], ["heute", "mid"], ["keine Zeit", "thing"]],
-          why: "Adverbs say **when, how often, where, how** — or what you think about it (leider, vielleicht). They never change. What matters is their **place**: first in the sentence (then the verb), or right after the verb.",
+          why: "Adverbs say **when, how often, where, how**, or what you think about something (leider, vielleicht). They never change form. What matters is their **place**: first (then the verb), or after the verb.",
           rid: ["adv.kinds", "adv.pos", "adv.order", "adv.dir"],
           rules: [
-            "**when** — heute, bald, früher, schon · **how often** — immer, oft, manchmal, selten, nie · **where** — hier, dort, draußen · **how** — gern, zusammen, allein · **your comment** — leider, vielleicht, hoffentlich, natürlich.",
-            "An adverb can take the **first place** — then comes the **verb**, then the subject: **Leider habe** ich keine Zeit. · **Vielleicht kommt** er morgen. · **Hoffentlich regnet** es nicht. · **Dort wohnt** meine Tante.",
-            "Inside the sentence: **after the verb** and its pronouns, **before** the rest: Ich sehe **ihn oft**. · Ich trinke **oft Kaffee**. · Wir gehen **gern ins Kino**. (A noun with der, mein … often comes first: Ich sehe meinen Bruder **oft**.)",
-            "Where something **is** — where it **goes**: **oben** / nach **oben** · **unten** / nach **unten** · **draußen** / **raus** (nach draußen) · **drinnen** / **rein** · **dort** / **dorthin** · **hier** / **hierher**: Die Kinder sind **draußen**. · Geh bitte **raus**!",
+            "Adverbs say **when** (heute, bald, früher), **how often** (immer, oft, selten, nie), **where** (hier, dort, draußen), **how** (gern, allein), or give **your comment** (leider, vielleicht, hoffentlich).",
+            "An adverb can go **first**; then comes the **verb**, then the subject: **Leider habe** ich keine Zeit. · **Vielleicht kommt** er morgen. · **Dort wohnt** meine Tante.",
+            "Inside the sentence, an adverb goes **after the verb** and its pronouns, but **before** the rest: Ich sehe **ihn oft**. · Ich trinke **oft Kaffee**. A noun with der, mein … often comes first: Ich sehe meinen Bruder **oft**.",
+            "Some adverbs come in pairs: one for where something **is**, one for where it **goes**. **oben** / **nach oben** · **draußen** / **raus** · **drinnen** / **rein** · **dort** / **dorthin** · **hier** / **hierher**. Die Kinder sind **draußen**. · Geh **raus**!",
           ],
           table: { head: ["wo? (is)", "wohin? (goes)"], rows: [
             ["oben", "nach oben"],
@@ -84,34 +84,34 @@ cxPack({
             ["**Vielleicht** ziehen wir nächstes Jahr um.", "Perhaps we'll move next year."],
             ["Die Toilette ist **oben** — gehen Sie die Treppe **nach oben**.", "The toilet is upstairs — go up the stairs."],
           ],
-          trap: "After an adverb in first place the subject can't come next: ~~Leider ich habe keine Zeit~~ → Leider **habe ich** keine Zeit. And *I like going* is Ich gehe **gern** — gern is an adverb, not a verb.",
+          trap: "After an adverb in first place, the subject can't come next: ~~Leider ich habe keine Zeit~~ should be Leider **habe ich** keine Zeit. And *I like going* is Ich gehe **gern**: gern is an adverb, not a verb.",
           quiz: [
-            { at: "r1", k: "pick", q: "Which one says *how often*?", o: ["manchmal", "dort", "leider"], a: 0, why: "**manchmal** — sometimes." },
-            { at: "r1", k: "pick", q: "Ich habe ___ keine Zeit. (unfortunately)", o: ["leider", "hoffentlich", "vielleicht"], a: 0, why: "*unfortunately*: **leider**." },
-            { at: "r2", k: "pick", q: "Vielleicht ___ morgen.", o: ["kommt er", "er kommt"], a: 0, why: "The adverb is first: then the verb." },
-            { at: "r2", k: "order", q: "Build it: Hopefully it won't rain.", a: ["Hoffentlich", "regnet", "es", "nicht."], why: "Adverb, verb, subject." },
+            { at: "r1", k: "pick", q: "Which one says *how often*?", o: ["manchmal", "dort", "leider"], a: 0, why: "**manchmal** (sometimes) says how often." },
+            { at: "r1", k: "pick", q: "Ich habe ___ keine Zeit. (unfortunately)", o: ["leider", "hoffentlich", "vielleicht"], a: 0, why: "*unfortunately* is **leider**." },
+            { at: "r2", k: "pick", q: "Vielleicht ___ morgen.", o: ["kommt er", "er kommt"], a: 0, why: "The adverb comes first, so the verb comes next: **kommt er**." },
+            { at: "r2", k: "order", q: "Build it: Hopefully it won't rain.", a: ["Hoffentlich", "regnet", "es", "nicht."], why: "Adverb, then verb, then subject." },
             { at: "r3", k: "pick", q: "I often see him:", o: ["Ich sehe ihn oft.", "Ich oft sehe ihn.", "Ich sehe oft ihn."], a: 0, why: "After the verb and the pronoun: ihn **oft**." },
             { at: "r3", k: "pick", q: "I often drink tea:", o: ["Ich trinke oft Tee.", "Ich oft trinke Tee.", "Oft ich trinke Tee."], a: 0, why: "After the verb, before the noun: **oft** Tee." },
             { at: "r4", k: "pick", q: "Die Kinder spielen ___.", o: ["draußen", "raus"], a: 0, why: "Where they are: **draußen**." },
             { at: "r4", k: "type", cx: true, q: "Mein Büro ist oben. Gehen Sie bitte nach ___!", a: ["oben"], r: ["adv.dir"], why: "Where to: **nach oben**." },
             { at: "table", k: "pick", q: "Komm bitte ___! (to me, here)", o: ["hierher", "hier", "dorthin"], a: 0, why: "A movement towards here: **hierher**." },
-            { at: "trap", k: "pick", q: "Which is right?", o: ["Leider habe ich heute keine Zeit.", "Leider ich habe heute keine Zeit."], a: 0, why: "After the adverb comes the verb." },
+            { at: "trap", k: "pick", q: "Which is right?", o: ["Leider habe ich heute keine Zeit.", "Leider ich habe heute keine Zeit."], a: 0, why: "After the adverb comes the verb: Leider **habe** ich …" },
           ] },
       ],
       diag: [
-        { t: "swap", from: "^sehr$", to: "^viel$", rule: "adv.viel", hard: true, msg: "Before a comparative (besser, teurer, mehr …) or for an amount: **viel**." },
-        { t: "swap", from: "^viel$", to: "^sehr$", rule: "adv.viel", hard: true, msg: "Before an adjective or adverb, and with feelings (gefallen, sich freuen, lieben): **sehr**." },
-        { t: "swap", from: "^(sehr|viel)$", to: "^zu$", rule: "adv.zu", msg: "More than is good — *too*: **zu**." },
-        { t: "swap", from: "^(oben|unten|draussen|drinnen|dort|hier|da)$", to: "^(dorthin|hierher|raus|rein|dahin|hin|her)$", rule: "adv.dir", hard: true, msg: "It's a movement — wohin? — so **{right}**." },
-        { t: "swap", from: "^(dorthin|hierher|raus|rein|dahin|hin|her)$", to: "^(oben|unten|draussen|drinnen|dort|hier|da)$", rule: "adv.dir", hard: true, msg: "Nothing moves — wo? — so **{right}**." },
-        { t: "missing", whole: true, tok: "^nach$", rule: "adv.dir", msg: "A movement up, down or out: **nach** oben, **nach** unten, **nach** draußen." },
-        { t: "swap", from: "^nicht$", to: "^kein\\w*$", rule: "adv.neg", msg: "With a noun: gar / überhaupt + **{right}**." },
-        { t: "missing", whole: true, tok: "^(gar|uberhaupt)$", rule: "adv.neg", msg: "*not at all*: **gar** nicht or **überhaupt** nicht." },
-        { t: "pos", tok: "^genug$", rule: "adv.zu", msg: "genug stands **after** the adjective (groß genug) — and before a noun (genug Geld)." },
+        { t: "swap", from: "^sehr$", to: "^viel$", rule: "adv.viel", hard: true, msg: "Before a comparative (besser, teurer, mehr …) or for an amount, use **viel**." },
+        { t: "swap", from: "^viel$", to: "^sehr$", rule: "adv.viel", hard: true, msg: "Before an adjective or adverb, and with feelings (gefallen, sich freuen), use **sehr**." },
+        { t: "swap", from: "^(sehr|viel)$", to: "^zu$", rule: "adv.zu", msg: "More than is good means *too*: **zu**." },
+        { t: "swap", from: "^(oben|unten|draussen|drinnen|dort|hier|da)$", to: "^(dorthin|hierher|raus|rein|dahin|hin|her)$", rule: "adv.dir", hard: true, msg: "It's a movement (*wohin?*), so it's **{right}**." },
+        { t: "swap", from: "^(dorthin|hierher|raus|rein|dahin|hin|her)$", to: "^(oben|unten|draussen|drinnen|dort|hier|da)$", rule: "adv.dir", hard: true, msg: "Nothing moves here (*wo?*), so it's **{right}**." },
+        { t: "missing", whole: true, tok: "^nach$", rule: "adv.dir", msg: "A movement up, down or out needs **nach**: **nach** oben, **nach** unten, **nach** draußen." },
+        { t: "swap", from: "^nicht$", to: "^kein\\w*$", rule: "adv.neg", msg: "With a noun, use gar or überhaupt + **{right}**." },
+        { t: "missing", whole: true, tok: "^(gar|uberhaupt)$", rule: "adv.neg", msg: "*not at all* is **gar** nicht or **überhaupt** nicht." },
+        { t: "pos", tok: "^genug$", rule: "adv.zu", msg: "genug goes **after** an adjective (groß genug) but before a noun (genug Geld)." },
       ],
       drills: [
         // ── Übung 23•3: say it again with the modifier ──
-        { id: "d23.3", ex: "23.3", t: "transform", title: "Add the word", how: "Say the sentence again with the word in brackets — right before the adjective.", items: [
+        { id: "d23.3", ex: "23.3", t: "transform", title: "Add the word", how: "Say the sentence again with the word in brackets, right before the adjective.", items: [
           { q: "Die Kinder waren müde. (sehr)", a: ["Die Kinder waren sehr müde."], r: ["adv.int"] },
           { q: "Die Kinder waren müde. (ziemlich)", a: ["Die Kinder waren ziemlich müde."], r: ["adv.int"] },
           { q: "Die Kinder waren müde. (gar nicht)", a: ["Die Kinder waren gar nicht müde."], r: ["adv.neg"] },
@@ -142,7 +142,7 @@ cxPack({
           { q: "(very) Sie spricht ___ gut Deutsch.", a: ["sehr"], r: ["adv.int"] },
         ] },
         // ── our own: zu or genug ──
-        { id: "dadv.zu", t: "pick", title: "zu, genug or sehr?", how: "Pick: zu — too · genug — enough (after the adjective) · sehr — very.", items: [
+        { id: "dadv.zu", t: "pick", title: "zu, genug or sehr?", how: "zu: too. genug: enough (after the adjective). sehr: very.", items: [
           { q: "Die Hose ist ___ klein. Ich brauche eine Nummer größer.", o: ["zu", "genug", "sehr viel"], a: ["zu"], r: ["adv.zu"] },
           { q: "Ist der Tisch groß ___ für acht Personen?", o: ["genug", "zu", "sehr"], a: ["genug"], r: ["adv.zu"] },
           { q: "Ich kann das Auto nicht kaufen. Es ist ___ teuer.", o: ["zu", "genug", "gar"], a: ["zu"], r: ["adv.zu"] },
@@ -155,7 +155,7 @@ cxPack({
           { q: "Wir kommen ___ spät — der Film hat schon angefangen.", o: ["zu", "genug", "gar"], a: ["zu"], r: ["adv.zu"] },
         ] },
         // ── our own: sehr or viel ──
-        { id: "dadv.viel", t: "pick", title: "sehr or viel?", how: "Pick: sehr before an adjective and with feelings · viel before a comparative and for an amount.", o: ["sehr", "viel"], items: [
+        { id: "dadv.viel", t: "pick", title: "sehr or viel?", how: "sehr: before an adjective, and with feelings. viel: before a comparative, and for an amount.", o: ["sehr", "viel"], items: [
           { q: "Der Film war ___ gut.", a: ["sehr"], r: ["adv.viel"] },
           { q: "Der zweite Film war ___ besser.", a: ["viel"], r: ["adv.viel"] },
           { q: "Meine Schwester arbeitet ___.", a: ["viel"], r: ["adv.viel"] },
@@ -186,7 +186,7 @@ cxPack({
           { q: "(always) Sie ist ___ pünktlich.", a: ["immer"], r: ["adv.kinds"] },
         ] },
         // ── our own: the adverb first ──
-        { id: "dadv.front", t: "transform", fixed: true, title: "The adverb first", how: "Start with the highlighted adverb — then the verb, then the subject.", items: [
+        { id: "dadv.front", t: "transform", fixed: true, title: "The adverb first", how: "Start with the highlighted adverb. Then the verb, then the subject.", items: [
           { q: "Ich habe leider keine Zeit.", hl: "leider", a: ["Leider habe ich keine Zeit."], r: ["adv.pos"] },
           { q: "Er kommt vielleicht morgen.", hl: "vielleicht", a: ["Vielleicht kommt er morgen."], r: ["adv.pos"] },
           { q: "Wir sehen uns hoffentlich bald wieder.", hl: "hoffentlich", a: ["Hoffentlich sehen wir uns bald wieder."], r: ["adv.pos"] },
@@ -197,9 +197,9 @@ cxPack({
           { q: "Die Kinder spielen draußen im Garten.", hl: "draußen", a: ["Draußen spielen die Kinder im Garten.", "Draußen im Garten spielen die Kinder."], r: ["adv.pos"] },
           { q: "Ich gehe manchmal allein ins Kino.", hl: "manchmal", a: ["Manchmal gehe ich allein ins Kino."], r: ["adv.pos"] },
           { q: "Der Zug hat leider wieder Verspätung.", hl: "leider", a: ["Leider hat der Zug wieder Verspätung."], r: ["adv.pos"] },
-        ].map(it => ({ ...it, diag: [{ t: "order", rule: "adv.pos", msg: "The adverb takes the first place — then comes the **verb**, then the subject: Leider **habe ich** …" }] })) },
+        ].map(it => ({ ...it, diag: [{ t: "order", rule: "adv.pos", msg: "The adverb takes the first place, then comes the **verb**, then the subject: Leider **habe ich** …" }] })) },
         // ── our own: the adverb inside the sentence ──
-        { id: "dadv.place", t: "transform", fixed: true, title: "Put the adverb in", how: "Put the adverb in brackets into the sentence: after the verb and its pronouns, before the rest.", items: [
+        { id: "dadv.place", t: "transform", fixed: true, title: "Put the adverb in", how: "Put the adverb into the sentence: after the verb and its pronouns, before the rest.", items: [
           { q: "Ich sehe ihn. (oft)", a: ["Ich sehe ihn oft."], r: ["adv.order"] },
           { q: "Wir essen Fisch. (selten)", a: ["Wir essen selten Fisch."], r: ["adv.order"] },
           { q: "Sie kommt zu spät. (immer)", a: ["Sie kommt immer zu spät."], r: ["adv.order"] },
@@ -212,9 +212,9 @@ cxPack({
           { q: "Wir treffen uns am Bahnhof. (immer)", a: ["Wir treffen uns immer am Bahnhof."], r: ["adv.order"] },
           { q: "Ich kann morgen nicht kommen. (leider)", a: ["Ich kann morgen leider nicht kommen.", "Ich kann leider morgen nicht kommen."], r: ["adv.order"] },
           { q: "Sie liest Bücher. (gern)", a: ["Sie liest gern Bücher."], r: ["adv.order"] },
-        ].map(it => ({ ...it, diag: [{ t: "order", rule: "adv.order", msg: "A short adverb stands after the verb and its pronouns, but before a noun or the rest: Ich sehe **ihn oft** · Ich trinke **oft Kaffee**." }] })) },
+        ].map(it => ({ ...it, diag: [{ t: "order", rule: "adv.order", msg: "A short adverb goes after the verb and its pronouns, but before a noun or the rest: Ich sehe **ihn oft** · Ich trinke **oft Kaffee**." }] })) },
         // ── our own: wo or wohin ──
-        { id: "dadv.dir", t: "pick", title: "oben or nach oben?", how: "Pick: where it is — oben, draußen, dort · where it goes — nach oben, raus, dorthin.", items: [
+        { id: "dadv.dir", t: "pick", title: "oben or nach oben?", how: "Where it is: oben, draußen, dort. Where it goes: nach oben, raus, dorthin.", items: [
           { q: "Das Schlafzimmer ist ___.", o: ["oben", "nach oben"], a: ["oben"], r: ["adv.dir"] },
           { q: "Ich gehe ___ und hole meine Jacke.", o: ["nach oben", "oben"], a: ["nach oben"], r: ["adv.dir"] },
           { q: "Es ist so schön heute. Wir essen ___.", o: ["draußen", "raus"], a: ["draußen"], r: ["adv.dir"] },
@@ -229,7 +229,7 @@ cxPack({
           { q: "Die Waschküche ist ___, im Keller.", o: ["unten", "nach unten"], a: ["unten"], r: ["adv.dir"] },
         ] },
         // ── Production ──
-        { id: "dadv.build", t: "compose", end: true, title: "Build the sentence", how: "Build it — an adverb first: then the verb; inside: after the verb and its pronouns.", items: [
+        { id: "dadv.build", t: "compose", end: true, title: "Build the sentence", how: "Build it. An adverb first is followed by the verb; inside, it goes after the verb and pronouns.", items: [
           { w: ["leider", "ich", "haben", "kein Geld"], a: ["Leider habe ich kein Geld.", "Ich habe leider kein Geld."], r: ["adv.pos"] },
           { w: ["vielleicht", "wir", "fahren", "am Wochenende", "nach Bern"], a: ["Vielleicht fahren wir am Wochenende nach Bern.", "Wir fahren am Wochenende vielleicht nach Bern.", "Wir fahren vielleicht am Wochenende nach Bern."], r: ["adv.pos"] },
           { w: ["ich", "sehen", "sie (her)", "selten"], a: ["Ich sehe sie selten."], r: ["adv.order"] },
@@ -242,7 +242,7 @@ cxPack({
           { w: ["mit dem Zug", "es", "gehen", "viel", "schnell (-er)"], a: ["Mit dem Zug geht es viel schneller.", "Es geht mit dem Zug viel schneller."], r: ["adv.viel"] },
           { w: ["natürlich", "können", "Sie", "hier", "warten"], a: ["Natürlich können Sie hier warten.", "Sie können natürlich hier warten."], r: ["adv.pos"] },
         ] },
-        { id: "dp.adv", t: "translate", end: true, title: "Say it in German", how: "Translate — mind where the adverb stands.", items: [
+        { id: "dp.adv", t: "translate", end: true, title: "Say it in German", how: "Translate. Mind where the adverb goes.", items: [
           { q: "Unfortunately I have no time today.", a: ["Leider habe ich heute keine Zeit.", "Ich habe heute leider keine Zeit.", "Heute habe ich leider keine Zeit.", "Ich habe leider heute keine Zeit."], r: ["adv.pos"] },
           { q: "The flat is pretty expensive.", a: ["Die Wohnung ist ziemlich teuer."], r: ["adv.int"] },
           { q: "That's not expensive at all.", a: ["Das ist gar nicht teuer.", "Das ist überhaupt nicht teuer."], r: ["adv.neg"] },
@@ -258,7 +258,7 @@ cxPack({
           { q: "I have no time at all.", a: ["Ich habe gar keine Zeit.", "Ich habe überhaupt keine Zeit."], r: ["adv.neg"] },
           { q: "Hopefully the weather will be nice.", a: ["Hoffentlich ist das Wetter schön.", "Hoffentlich wird das Wetter schön.", "Hoffentlich ist das Wetter gut.", "Hoffentlich wird das Wetter gut."], r: ["adv.kinds", "adv.pos"] },
         ] },
-        { id: "dadv.write", t: "write", end: true, title: "How much? How often?", how: "Write your own sentences — saved for Claude to correct.", items: [
+        { id: "dadv.write", t: "write", end: true, title: "How much? How often?", how: "Write your own sentences. Saved for Claude to correct.", items: [
           { q: "How is your German course, your flat, your job? Three sentences with sehr, ziemlich, gar nicht.", model: ["Mein Deutschkurs ist sehr interessant. Meine Wohnung ist ziemlich klein, aber gar nicht teuer. Meine Arbeit ist manchmal ziemlich anstrengend."], r: ["adv.int"] },
           { q: "What do you do often, sometimes, rarely, never? Four sentences.", model: ["Ich koche oft für meine Familie. Manchmal gehe ich schwimmen. Ich gehe selten ins Kino, und ich trinke nie Alkohol."], r: ["adv.order"] },
           { q: "Three sentences that start with Leider, Vielleicht and Hoffentlich.", model: ["Leider muss ich am Samstag arbeiten. Vielleicht besuche ich am Sonntag meine Schwester. Hoffentlich scheint die Sonne."], r: ["adv.pos"] },

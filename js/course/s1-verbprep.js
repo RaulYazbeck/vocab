@@ -31,7 +31,7 @@ cxPack({
             "Each verb has its own preposition, and you can't translate it from English: **warten auf** (wait for) · **denken an** (think of) · **sprechen über** (talk about) · **bitten um** (ask for) · **träumen von** (dream of).",
             "With these verbs, **auf, über, an** and **in** take the **accusative**, and so do für and um: Ich warte auf **den** Bus. · Wir sprechen über **das** Wetter. · Sie interessiert sich für **den** Kurs.",
             "**mit, von, nach, zu, bei** always take the **dative**. So do **vor** in Angst haben vor and **an** in teilnehmen an: Ich träume von **einem** Haus. · Er hat Angst vor **dem** Hund.",
-            "**sich freuen auf** means *look forward to* (it's still to come); **sich freuen über** means *be glad about* (it's already here): Ich freue mich **auf** die Ferien. · Ich freue mich **über** das Geschenk.",
+            "**sich freuen auf** means *look forward to* (it's still to come); **sich freuen über** means *be glad about* (it's already here): Ich freue mich **auf** den Sommer. · Ich freue mich **über** das Geschenk.",
           ],
           table: { head: ["+ accusative", "+ dative"], rows: [
             ["warten **auf**", "sprechen **mit**"],

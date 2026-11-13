@@ -33,7 +33,7 @@ cxPack({
           rid: ["ap.list", "ap.pron", "ap.adj"],
           rules: [
             "**durch** (through), **für** (for), **gegen** (against), **ohne** (without), **um** (around) and **bis** (until) always take the accusative: **für den** Chef · **durch den** Wald. The other genders don't change: für **die** Kollegin.",
-            "A pronoun after them is in the accusative: für **mich** · ohne **dich** · gegen **ihn** · für **sie** · ohne **uns** · für **euch** · für **Sie**.",
+            "A pronoun after für, ohne, durch, gegen or um is in the accusative: für **mich** · ohne **dich** · gegen **ihn** · für **sie** · ohne **uns** · für **euch** · für **Sie**.",
             "Before a masculine noun, every word in front of it ends in **-en**, the adjective too: für **diesen** Hauswart · ohne **meinen** Schirm · durch **einen langen** Tunnel.",
           ],
           table: { head: ["", "für + the accusative"], rows: [
@@ -272,7 +272,7 @@ cxPack({
           rules: [
             "**aus, bei, mit, nach, seit, von, zu**, and also **außer** (except) and **gegenüber** (opposite), always take the dative: **mit dem** Bus · **bei der** Arbeit · **mit den** Kinder**n** (the plural noun adds -n).",
             "**zu dem** becomes **zum**, **zu der** becomes **zur**, **bei dem** becomes **beim** and **von dem** becomes **vom**. The short form is the normal one: **zum** Bahnhof · **zur** Arbeit · **beim** Arzt.",
-            "A pronoun after them is in the dative: mit **mir** · bei **dir** · von **ihm** · zu **ihr** · mit **uns** · bei **euch** · von **ihnen** · mit **Ihnen**.",
+            "A pronoun after mit, bei, von, zu, aus or nach is in the dative: mit **mir** · bei **dir** · von **ihm** · zu **ihr** · mit **uns** · bei **euch** · von **ihnen** · mit **Ihnen**.",
           ],
           table: { head: ["", "mit …", "zu …"], rows: [
             ["m", "**dem** · **einem** Mann", "**zum** Arzt"],
@@ -510,7 +510,7 @@ cxPack({
           why: "Nine prepositions can take two cases, and the question decides. **Wo?** (where something *is* or *happens*) takes the **dative**. Where it is *going* is the next sheet.",
           rid: ["tw.list", "tw.wo", "tw.im"],
           rules: [
-            "These nine can take either case: **in** (in) · **an** (at, on the side of) · **auf** (on top of) · **über** (above) · **unter** (under) · **vor** (in front of) · **hinter** (behind) · **neben** (next to) · **zwischen** (between).",
+            "Nine prepositions can take either the dative or the accusative: **in** (in) · **an** (at, on the side of) · **auf** (on top of) · **über** (above) · **unter** (under) · **vor** (in front of) · **hinter** (behind) · **neben** (next to) · **zwischen** (between).",
             "For **wo?**, the place where something is or happens, use the **dative**: Das Handy liegt **auf dem** Tisch. · Wir warten **vor der** Bank. · Er arbeitet **in einem** Spital.",
             "In the dative, **in dem** becomes **im** and **an dem** becomes **am**: **im** Büro · **am** Bahnhof · **am** See. The feminine has no short form: **in der** Küche · **an der** Tür.",
           ],

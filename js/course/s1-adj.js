@@ -35,7 +35,7 @@ cxPack({
           rules: [
             "After **sein, werden, bleiben**, an adjective takes no ending: Die Wohnung ist **hell**. · Es wird **kalt**. Right before a noun it always takes one: die **helle** Wohnung.",
             "After der, die, das, the adjective ends in **-e** in five places: the three singular subjects (der **alte** Bahnhof, die **alte** Brücke, das **alte** Rathaus) and die or das as the object: Ich sehe die **alte** Brücke.",
-            "Everywhere else it's **-en**: der as the object (**den** alt**en** Bahnhof), every dative (mit **dem** alt**en** Zug, bei **der** nett**en** Nachbarin) and every plural (die neu**en** Wohnungen).",
+            "After der, die, das in every other case the ending is **-en**: der as the object (**den** alt**en** Bahnhof), every dative (mit **dem** alt**en** Zug, bei **der** nett**en** Nachbarin) and every plural (die neu**en** Wohnungen).",
           ],
           table: { head: ["", "der", "die", "das", "pl."], rows: [
             ["nom.", "-e", "-e", "-e", "-en"],

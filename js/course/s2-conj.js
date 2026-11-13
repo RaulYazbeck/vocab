@@ -40,7 +40,7 @@ cxPack({
           table: { head: ["+ noun", "+ sentence"], rows: [
             ["**vor** dem Kurs", "**bevor** er anfängt"],
             ["**nach** dem Kurs", "**nachdem** er geendet hat"],
-            ["**während** der Pause", "**während** ich warte"],
+            ["**während** des Tags", "**während** ich warte"],
             ["**bis** morgen", "**bis** du kommst"],
             ["**seit** einem Jahr", "**seit** ich hier bin"],
           ] },

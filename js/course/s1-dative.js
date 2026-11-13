@@ -59,7 +59,7 @@ cxPack({
           rid: ["dat.words", "dat.adj", "dat.verbs"],
           rules: [
             "All der-words and ein-words take the same dative endings: **-em** (m), **-er** (f), **-em** (n), **-en** (plural). dies**em** Mann · jed**er** Kundin · mein**em** Kind · unser**en** Gästen",
-            "An adjective after these words always ends in **-en** in the dative. dem **alten** Mann · der **neuen** Kollegin · meinem **kleinen** Bruder · den **netten** Nachbarn",
+            "In the dative, an adjective after dem, der, einem, meinem … always ends in **-en**: dem **alten** Mann · der **neuen** Kollegin · meinem **kleinen** Bruder · den **netten** Nachbarn",
             "Verbs of giving and telling take a **dative person** and an **accusative thing**: geben, schenken, bringen, schicken, zeigen, erklären, erzählen, empfehlen, kaufen, leihen, schreiben. Ich **erkläre dem Kunden den Weg**.",
           ],
           table: { head: ["", "der-words · ein-words", "+ adjective"], rows: [

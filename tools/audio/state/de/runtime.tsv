@@ -135,10 +135,12 @@ s	_course:s0.accpron	Herr Kunz sucht den Hauswart.
 s	_course:s0.accpron	Herr Weber, ich verstehe Sie nicht.
 s	_course:s0.accpron	Hier darf man nicht baden.
 s	_course:s0.accpron	Hier darf man nicht parken.
+s	_course:s0.accpron	Hier darf man nicht parkieren.
 s	_course:s0.accpron	Hier dürfen die Leute nicht rauchen.
 s	_course:s0.accpron	Hier fährt man sehr schnell.
 s	_course:s0.accpron	Hier kann man gut essen.
 s	_course:s0.accpron	Hier kann man nicht parken.
+s	_course:s0.accpron	Hier kann man nicht parkieren.
 s	_course:s0.accpron	Hier können Gäste gut essen.
 s	_course:s0.accpron	Hier spricht man Deutsch.
 s	_course:s0.accpron	Hier spricht man Französisch.
@@ -172,12 +174,14 @@ s	_course:s0.accpron	Lea kauft ein Geschenk.
 s	_course:s0.accpron	Lukas ist krank wir besuchen ihn heute.
 s	_course:s0.accpron	Man arbeitet am Sonntag nicht.
 s	_course:s0.accpron	Man darf hier nicht parken.
+s	_course:s0.accpron	Man darf hier nicht parkieren.
 s	_course:s0.accpron	Man darf hier nicht rauchen.
 s	_course:s0.accpron	Man darf im Museum nichts anfassen.
 s	_course:s0.accpron	Man darf nach zehn Uhr nicht laut sein. Man muss den Abfall trennen.
 s	_course:s0.accpron	Man fährt hier sehr schnell.
 s	_course:s0.accpron	Man kann hier gut essen.
 s	_course:s0.accpron	Man kann hier nicht parken.
+s	_course:s0.accpron	Man kann hier nicht parkieren.
 s	_course:s0.accpron	Man kauft das Billett, und dann steigt man ein.
 s	_course:s0.accpron	Man kommt an, und man fragt an der Info.
 s	_course:s0.accpron	Man muss ein Billett kaufen.
@@ -367,7 +371,7 @@ s	_course:s0.gender	Das Mädchen ist sechs Jahre alt.
 s	_course:s0.gender	Das Mädchen ist sechs.
 s	_course:s0.gender	Das Mädchen ist sieben.
 s	_course:s0.gender	Der Fahrplan ist neu.
-s	_course:s0.gender	Der Frühling kommt spät dieses Jahr.
+s	_course:s0.gender	Der Frühling kommt dieses Jahr spät.
 s	_course:s0.gender	Der Frühling kommt.
 s	_course:s0.gender	Der Kühlschrank ist leer.
 s	_course:s0.gender	Der Lehrer ist heute krank.
@@ -410,8 +414,8 @@ s	_course:s0.neg	Am Abend trinke ich Kaffee.
 s	_course:s0.neg	Am Abend trinke ich keinen Kaffee.
 s	_course:s0.neg	Am Freitag kann ich leider nicht kommen, aber am Samstag habe ich Zeit.
 s	_course:s0.neg	Am Samstag arbeite ich nicht. Ich fahre nicht nach Zürich, ich bleibe zu Hause.
+s	_course:s0.neg	Am Samstag haben wir Zeit.
 s	_course:s0.neg	Am Samstag haben wir keine Zeit.
-s	_course:s0.neg	Am Samstag haben wir viel Zeit.
 s	_course:s0.neg	Am Sonntag arbeite ich nicht.
 s	_course:s0.neg	Das Hotel ist nicht teuer.
 s	_course:s0.neg	Das Hotel ist teuer.
@@ -428,6 +432,7 @@ s	_course:s0.neg	Das ist keine gute Idee.
 s	_course:s0.neg	Das ist mein Handy.
 s	_course:s0.neg	Das ist mein Schlüssel.
 s	_course:s0.neg	Das ist nicht der schnellste Zug.
+s	_course:s0.neg	Das ist nicht mein Billett.
 s	_course:s0.neg	Das ist nicht mein Handy, sondern dein Handy.
 s	_course:s0.neg	Das ist nicht mein Handy, sondern deins.
 s	_course:s0.neg	Das ist nicht mein Handy.
@@ -513,6 +518,7 @@ s	_course:s0.neg	Ich trinke Milch.
 s	_course:s0.neg	Ich trinke Tee.
 s	_course:s0.neg	Ich trinke keine Milch.
 s	_course:s0.neg	Ich trinke keinen Tee, sondern Kaffee.
+s	_course:s0.neg	Ich trinke nicht Tee, sondern Kaffee.
 s	_course:s0.neg	Ich verstehe die Frage nicht.
 s	_course:s0.neg	Ich verstehe die Frage.
 s	_course:s0.neg	Ich wohne nicht in Bern, sondern in Zürich.
@@ -757,6 +763,7 @@ s	_course:s0.plural	Die Zimmer sind klein.
 s	_course:s0.plural	Die Züge haben heute Verspätung.
 s	_course:s0.plural	Die Züge kommen heute zu spät.
 s	_course:s0.plural	Die Züge nach Bern sind heute voll.
+s	_course:s0.plural	Die Züge sind heute verspätet.
 s	_course:s0.plural	Die Züge sind heute zu spät.
 s	_course:s0.plural	Die Züge sind pünktlich.
 s	_course:s0.plural	Die Äpfel sind rot.
@@ -789,6 +796,7 @@ w	_course:s0.plural	die Kolleginnen
 w	_course:s0.plural	die Schülerinnen
 w	_course:s0.plural	keine Termine
 w	_course:s0.plural	meine Kinder
+s	_course:s0.pron	Anna, kommst du auch mit?
 s	_course:s0.pron	Anna, kommst du auch?
 s	_course:s0.pron	Anna, kommst du mit?
 s	_course:s0.pron	Das Baby schläft — es ist müde.
@@ -819,12 +827,15 @@ s	_course:s0.pron	Frau Graf, sind Sie morgen zu Hause?
 s	_course:s0.pron	Freut mich, Frau Keller.
 s	_course:s0.pron	Freut mich, Herr Brunner.
 s	_course:s0.pron	Grüezi, Frau Doktor Frei.
+s	_course:s0.pron	Grüezi, Frau Doktor.
+s	_course:s0.pron	Grüezi, Frau Frei.
 s	_course:s0.pron	Grüezi, Frau Keller.
 s	_course:s0.pron	Grüezi, Herr Brunner.
 s	_course:s0.pron	Guten Morgen, Frau Graf.
 s	_course:s0.pron	Guten Tag, Frau Doktor Frei.
 s	_course:s0.pron	Guten Tag, Frau Doktor Frei. Es geht mir nicht so gut.
 s	_course:s0.pron	Guten Tag, Frau Doktor.
+s	_course:s0.pron	Guten Tag, Frau Frei.
 s	_course:s0.pron	Guten Tag, Frau Keller.
 s	_course:s0.pron	Guten Tag, Herr Brunner.
 s	_course:s0.pron	Guten Tag, Herr Rossi. Ich heiße Marta Lopez.
@@ -835,6 +846,7 @@ s	_course:s0.pron	Guten Tag, wie heißen Sie?
 s	_course:s0.pron	Hast du heute Zeit? Kommst du mit ins Kino?
 s	_course:s0.pron	Herr Keller arbeitet bei der Post.
 s	_course:s0.pron	Herr Lang, wohnen Sie in Bern? Trinken Sie Kaffee?
+s	_course:s0.pron	Herr Weber, kommen Sie auch mit?
 s	_course:s0.pron	Herr Weber, kommen Sie auch?
 s	_course:s0.pron	Herr Weber, kommen Sie mit?
 s	_course:s0.pron	Herr Weber, wann sind Sie zu Hause?
@@ -1589,7 +1601,7 @@ s	_course:s0.wq	Die Kollegin heißt Sandra.
 s	_course:s0.wq	Die Nachbarn nehmen das blaue Sofa.
 s	_course:s0.wq	Die Reise dauert drei Stunden.
 s	_course:s0.wq	Die Wohnung hat achtzig Quadratmeter.
-s	_course:s0.wq	Die neue Ärztin heißt Doktor Frei.
+s	_course:s0.wq	Die neue Ärztin heißt Anna Frei.
 s	_course:s0.wq	Die Ärztin spricht sehr schnell.
 s	_course:s0.wq	Du kommst am Freitag.
 s	_course:s0.wq	Er hat drei Geschwister.
@@ -1626,7 +1638,7 @@ s	_course:s0.wq	Seine Tochter studiert in Freiburg.
 s	_course:s0.wq	Sie arbeitet in Zürich.
 s	_course:s0.wq	Sie geht nach Hause.
 s	_course:s0.wq	Sie geht zweimal pro Woche schwimmen.
-s	_course:s0.wq	Sie heißt Doktor Frei.
+s	_course:s0.wq	Sie heißt Anna Frei.
 s	_course:s0.wq	Sie heißt Jana.
 s	_course:s0.wq	Sie heißt Mimi.
 s	_course:s0.wq	Sie ist gerade in Italien.
@@ -1768,7 +1780,7 @@ s	_course:s1.accdat	Ich schenke meinem Vater ein Buch.
 s	_course:s1.accdat	Ich sehe die Kinder im Park.
 s	_course:s1.accdat	Ich suche das Kind.
 s	_course:s1.accdat	Ich suche einen Pullover. Die Verkäuferin zeigt mir einen blauen Pullover.
-s	_course:s1.accdat	Ich treffe die neue Nachbarin im Treppenhaus und zeige ihr den Waschraum.
+s	_course:s1.accdat	Ich treffe die neue Nachbarin im Treppenhaus und zeige ihr die Waschküche.
 s	_course:s1.accdat	Ich treffe sie im Café.
 s	_course:s1.accdat	Ich zeige den Kindern den Park.
 s	_course:s1.accdat	Kennst du den neuen Chef?
@@ -1885,6 +1897,7 @@ s	_course:s1.accprep	Wir bleiben bis Sonntag in den Bergen.
 s	_course:s1.accprep	Wir fahren durch den Gotthardtunnel.
 s	_course:s1.accprep	Wir fahren durch den langen Tunnel.
 s	_course:s1.accprep	Wir fahren nicht ohne Sie.
+s	_course:s1.accprep	Wir gehen dem schönen See entlang.
 s	_course:s1.accprep	Wir gehen den schönen See entlang.
 s	_course:s1.accprep	Wir gehen durch den Garten.
 s	_course:s1.accprep	Wir sitzen alle um den Tisch herum.
@@ -2152,6 +2165,7 @@ s	_course:s1.comp	Seine Tochter spricht am besten Französisch.
 s	_course:s1.comp	Sie tanzt sehr gern.
 s	_course:s1.comp	Sie tanzt sehr gerne.
 s	_course:s1.comp	Unsere Gäste sind früh gekommen.
+s	_course:s1.comp	Unsere Gäste sind früher als die Nachbarn gekommen.
 s	_course:s1.comp	Unsere Gäste sind früher gekommen als die Nachbarn.
 s	_course:s1.comp	Unsere neue Wohnung ist größer als die alte.
 s	_course:s1.comp	Velofahren ist gesünder als Autofahren.
@@ -2550,7 +2564,7 @@ s	_course:s1.datprep	Das Café liegt gegenüber der kleinen Schule.
 s	_course:s1.datprep	Das Hotel liegt dem Park gegenüber.
 s	_course:s1.datprep	Das Hotel liegt gegenüber dem Park.
 s	_course:s1.datprep	Das Paket ist von meiner Tante.
-s	_course:s1.datprep	Das ist mein neues Velo — ich fahre jeden Tag damit zur Arbeit.
+s	_course:s1.datprep	Das ist mein neues Velo. Ich fahre jeden Tag damit zur Arbeit.
 s	_course:s1.datprep	Der Bus fährt vom Bahnhof bis zum See.
 s	_course:s1.datprep	Die Kinder gehen zur Schule.
 s	_course:s1.datprep	Diese Karte ist von ihm.
@@ -2665,6 +2679,7 @@ s	_course:s1.datpron	Die Lehrerin erklärt der Klasse die Regel.
 s	_course:s1.datpron	Die Lehrerin erklärt ihr die Regel.
 s	_course:s1.datpron	Die Nachbarn bringen uns einen Kuchen.
 s	_course:s1.datpron	Die Oma erzählt ihm von früher.
+s	_course:s1.datpron	Er erklärte es uns.
 s	_course:s1.datpron	Er hat es uns erklärt.
 s	_course:s1.datpron	Er leiht ihr die Kamera.
 s	_course:s1.datpron	Er leiht seiner Freundin die Kamera.
@@ -2798,7 +2813,7 @@ s	_course:s1.datverb	Kann ich Ihnen helfen?
 s	_course:s1.datverb	Kann ich Ihnen helfen? Ich trage Ihnen die Tasche.
 s	_course:s1.datverb	Kannst du der alten Frau helfen?
 s	_course:s1.datverb	Kannst du mir kurz helfen?
-s	_course:s1.datverb	Käse schmeckt mir sehr, aber Fisch schmeckt mir nicht.
+s	_course:s1.datverb	Käse schmeckt mir sehr gut, aber Fisch schmeckt mir nicht.
 s	_course:s1.datverb	Magst du den Tee?
 s	_course:s1.datverb	Magst du die Schuhe?
 s	_course:s1.datverb	Mir gefällt deine Idee.
@@ -3026,7 +3041,7 @@ s	_course:s1.front	Wir sind vielleicht am Sonntag in Bern.
 s	_course:s1.front	Wir treffen uns um sechs vor dem Kino.
 s	_course:s1.front	Zuerst kaufe ich ein, danach koche ich.
 s	_course:s1.front	Zuerst kaufe ich ein. Ich koche.
-s	_course:s1.front	Zum Glück habe ich meinen Schlüssel wieder gefunden.
+s	_course:s1.front	Zum Glück habe ich meinen Schlüssel wiedergefunden.
 s	_course:s1.front	Zum Glück hat die Apotheke noch offen.
 s	_course:s1.front	Zum Glück ist das Kind nicht krank.
 s	_course:s1.front	Zum Glück war der Zug pünktlich.
@@ -3207,7 +3222,7 @@ s	_course:s1.fu	Sie werden wohl im Garten spielen.
 s	_course:s1.fu	Sie werden wohl in den Ferien sein.
 s	_course:s1.fu	Sie wird sicher arbeiten.
 s	_course:s1.fu	Sie wird wohl arbeiten.
-s	_course:s1.fu	Sie wird wohl in den Ferien sein. Oder sie wird bei ihrer Tochter in Bern wohnen.
+s	_course:s1.fu	Sie wird wohl in den Ferien sein. Oder sie wird bei ihrer Tochter in Bern sein.
 s	_course:s1.fu	Tim wird den Rasen mähen müssen.
 s	_course:s1.fu	Tom wird wohl zu wenig schlafen.
 s	_course:s1.fu	Warst du wieder in Lugano?
@@ -3292,7 +3307,7 @@ s	_course:s1.modal	Ich mag Raclette, aber ich mag keine Oliven.
 s	_course:s1.modal	Ich mag den Winter nicht.
 s	_course:s1.modal	Ich mag die neue Wohnung sehr.
 s	_course:s1.modal	Ich mag keine Pilze.
-s	_course:s1.modal	Ich mag keinen Fisch nie!
+s	_course:s1.modal	Ich mag überhaupt keinen Fisch.
 s	_course:s1.modal	Ich muss am Samstag arbeiten.
 s	_course:s1.modal	Ich muss hier warten.
 s	_course:s1.modal	Ich muss mein Auto verkaufen.
@@ -3349,6 +3364,7 @@ s	_course:s1.modal	Musst du schon gehen?
 s	_course:s1.modal	Musst du schon?
 s	_course:s1.modal	Möchten Sie mehr?
 s	_course:s1.modal	Möchten Sie noch etwas?
+s	_course:s1.modal	Möchten Sie noch mehr?
 s	_course:s1.modal	Möchtest du auch mitkommen?
 s	_course:s1.modal	Nein, wir mögen keinen Käse.
 s	_course:s1.modal	Nein, wir wollen nicht.
@@ -3419,7 +3435,7 @@ s	_course:s1.neg2	Der Pullover ist gar nicht teuer nur zwanzig Franken!
 s	_course:s1.neg2	Der Weg ist gar nicht weit.
 s	_course:s1.neg2	Der Weg ist nicht weit.
 s	_course:s1.neg2	Der Weg ist überhaupt nicht weit.
-s	_course:s1.neg2	Die Kinder haben die Vase kaputt gemacht.
+s	_course:s1.neg2	Die Kinder haben die Vase kaputtgemacht.
 s	_course:s1.neg2	Er fährt jeden Sommer ans Meer.
 s	_course:s1.neg2	Er fährt nie ans Meer.
 s	_course:s1.neg2	Er fährt niemals ans Meer.
@@ -3444,7 +3460,7 @@ s	_course:s1.neg2	Ich habe Hunger ich habe heute noch nichts gegessen.
 s	_course:s1.neg2	Ich habe gar keine Zeit.
 s	_course:s1.neg2	Ich habe heute gar keine Lust auf Sport.
 s	_course:s1.neg2	Ich habe heute noch nichts gegessen.
-s	_course:s1.neg2	Ich habe keine Milch mehr, keine Eier und kein Brot mehr.
+s	_course:s1.neg2	Ich habe keine Milch, keine Eier und kein Brot mehr.
 s	_course:s1.neg2	Ich habe keine Zeit.
 s	_course:s1.neg2	Ich habe nichts gekauft.
 s	_course:s1.neg2	Ich habe noch keinen Führerschein, aber ich nehme bald Fahrstunden.
@@ -3511,6 +3527,7 @@ s	_course:s1.neg2	Nein, wir haben noch keine.
 s	_course:s1.neg2	Nichts ist in Ordnung.
 s	_course:s1.neg2	Niemand hat angerufen.
 s	_course:s1.neg2	Niemand hat die Vase kaputt gemacht.
+s	_course:s1.neg2	Niemand hat die Vase kaputtgemacht.
 s	_course:s1.neg2	Niemand hat mir geholfen ich habe alles allein gemacht.
 s	_course:s1.neg2	Niemand ist daheim.
 s	_course:s1.neg2	Niemand ist zu Hause.
@@ -3751,7 +3768,7 @@ s	_course:s1.pf	Mein Mann hat viele Geschichten erzählt.
 s	_course:s1.pf	Mein Mann liest die Zeitung.
 s	_course:s1.pf	Mein Sohn findet einen Frosch.
 s	_course:s1.pf	Mein Sohn hat einen Frosch gefunden.
-s	_course:s1.pf	Mein Vater ist in Portugal geboren. Er hat Ingenieur studiert und ist 1990 in die Schweiz gekommen.
+s	_course:s1.pf	Mein Vater ist in Portugal geboren. Er hat Maschinenbau studiert und ist 1990 in die Schweiz gekommen.
 s	_course:s1.pf	Mein Velo ist verschwunden.
 s	_course:s1.pf	Mein Velo verschwindet.
 s	_course:s1.pf	Mein Zimmer habe ich schon aufgeräumt.
@@ -4032,6 +4049,7 @@ s	_course:s1.poss	Wessen Handy ist das? — Das ist meins. — Und der Schlüsse
 s	_course:s1.poss	Wessen Koffer ist das? Das ist unserer.
 s	_course:s1.poss	Wessen Mantel ist das? — Das ist meiner.
 s	_course:s1.poss	Wessen Schirm ist das? — Das ist Annas Schirm.
+s	_course:s1.poss	Wessen Schirm ist das? — Das ist Annas.
 s	_course:s1.poss	Wessen Schirm ist das? — Das ist der Schirm von Anna.
 s	_course:s1.poss	Wessen Schirm ist das? — Der gehört Anna.
 s	_course:s1.poss	Wir feiern am Samstag Omas Geburtstag.
@@ -5186,6 +5204,7 @@ s	_course:s1.zu	Mein Vater träumt davon, ein Haus am Meer zu haben. Er träumt 
 s	_course:s1.zu	Meine Eltern hoffen, uns im Sommer zu besuchen.
 s	_course:s1.zu	Meine Eltern hoffen. Sie besuchen uns im Sommer.
 s	_course:s1.zu	Meine Tochter träumt davon, Tierärztin zu werden. Sie träumt auch davon, einen Hund zu haben.
+s	_course:s1.zu	Möchtest du einen Tee trinken?
 s	_course:s1.zu	Ohne aufzuschauen, isst Tom sein Sandwich.
 s	_course:s1.zu	Ohne das Licht auszumachen, hat er die Wohnung verlassen.
 s	_course:s1.zu	Sie braucht einen Laptop, um zu Hause zu arbeiten.
@@ -5599,6 +5618,8 @@ s	_course:s2.conj3	Da heute Feiertag ist, sind alle Läden zu.
 s	_course:s2.conj3	Da ich kein Auto habe, fahre ich immer mit dem Zug.
 s	_course:s2.conj3	Da unser Sohn krank ist, bleiben wir zu Hause.
 s	_course:s2.conj3	Da wir schon zwei Stunden arbeiten, schlage ich eine Pause vor.
+s	_course:s2.conj3	Damit du das Haus findest, schreibe ich dir die Adresse auf.
+s	_course:s2.conj3	Damit ich nicht verschlafe, stelle ich den Wecker.
 s	_course:s2.conj3	Das Handy ist alt, trotzdem funktioniert es gut.
 s	_course:s2.conj3	Das Handy ist alt. Trotzdem funktioniert es gut.
 s	_course:s2.conj3	Das Restaurant ist klein, aber es ist sehr bekannt.
@@ -6304,6 +6325,7 @@ s	_course:s2.indq	Ich weiß, dass das Geschäft zu ist.
 s	_course:s2.indq	Ich weiß, dass der Laden geschlossen ist.
 s	_course:s2.indq	Ich weiß, dass der Laden zu ist.
 s	_course:s2.indq	Ich weiß, dass der Zug um acht fährt.
+s	_course:s2.indq	Ich würde gern wissen, wie viel das kostet.
 s	_course:s2.indq	Ist das Museum am Montag geöffnet?
 s	_course:s2.indq	Ist die Post weit von hier?
 s	_course:s2.indq	Jemand fragt, für wen Tom den Kuchen gebacken hat.
@@ -8101,7 +8123,7 @@ s	_sheet:pv3	Der Brief ist geschrieben worden.
 s	_sheet:pv3	Ich bin eingeladen worden.
 s	_sheet:pv3	Ich bin zur Party eingeladen worden.
 s	_sheet:pv4	Das Bild wurde von Picasso gemalt.
-s	_sheet:pv4	Das Essen wurde von dem Koch gekocht.
+s	_sheet:pv4	Das Essen wurde von unserem Koch zubereitet.
 s	_sheet:pv4	Das Geschäft ist geöffnet.
 s	_sheet:pv4	Das Haus wurde durch ein Feuer zerstört.
 s	_sheet:pv4	Das Zimmer wird geputzt.
