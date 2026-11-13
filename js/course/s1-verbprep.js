@@ -14,24 +14,24 @@ cxPack({
     "s1.verbprep": {
       testout: { n: 7, miss: 1 },
       rules: {
-        "vp.fixed": "the verb picks its preposition — learn them as one: warten auf, denken an",
-        "vp.acc": "auf · über · an · für · um with these verbs: the accusative — auf den Bus",
-        "vp.dat": "mit · von · nach · zu · bei · vor: the dative — von dem Urlaub",
-        "vp.aufueber": "sich freuen auf (still to come) · über (already here)",
+        "vp.fixed": "each verb has its own preposition: warten auf, denken an",
+        "vp.acc": "auf, über, an, für, um here take the accusative",
+        "vp.dat": "mit, von, nach, zu, bei, vor take the dative",
+        "vp.aufueber": "sich freuen auf (still to come), über (already here)",
         "vp.refl": "many take sich: ich freue mich, du interessierst dich",
-        "vp.wen": "a person: Auf wen? · Mit wem? — auf ihn · mit ihr",
+        "vp.wen": "asking about a person: Auf wen? Mit wem?",
         "vp.adj": "adjectives too: zufrieden mit, stolz auf, fertig mit",
       },
       sheets: [
         { id: "cx.vp1", title: "warten auf, denken an", qn: 3,
           struct: [["Ich", "who"], ["warte", "verb"], ["auf", "pre"], ["den Bus", "thing"]],
-          why: "Many verbs come with **their own preposition** — and it's often not the English one: *wait for* is warten **auf**, *think of* is denken **an**. Learn verb and preposition as one word.",
+          why: "Many verbs come with **their own preposition**, and it's often not the one English uses: *wait for* is warten **auf**, *think of* is denken **an**. Learn the verb and its preposition together.",
           rid: ["vp.fixed", "vp.acc", "vp.dat", "vp.aufueber"],
           rules: [
-            "The verb picks the preposition; you can't translate it: **warten auf** (wait for) · **denken an** (think of) · **sprechen über** (talk about) · **bitten um** (ask for) · **träumen von** (dream of) · **fragen nach** (ask about).",
-            "With these verbs **auf, über, an** and **in** take the **accusative** (and für, um always do): Ich warte auf **den** Bus. · Wir sprechen über **das** Wetter. · Er denkt an **seine** Familie. · Sie interessiert sich für **den** Kurs.",
-            "**mit, von, nach, zu, bei** always take the **dative** — and so does **vor** (Angst haben vor) and **an** in *teilnehmen an*: Ich träume von **einem** Haus. · Sie fragt nach **dem** Weg. · Er hat Angst vor **dem** Hund.",
-            "One verb, two prepositions: **sich freuen auf** = look forward to (it's still coming) · **sich freuen über** = be glad about (it's here): Ich freue mich **auf** die Sommerferien. · Ich freue mich **über** das Geschenk.",
+            "Each verb has its own preposition, and you can't translate it from English: **warten auf** (wait for) · **denken an** (think of) · **sprechen über** (talk about) · **bitten um** (ask for) · **träumen von** (dream of).",
+            "With these verbs, **auf, über, an** and **in** take the **accusative**, and so do für and um: Ich warte auf **den** Bus. · Wir sprechen über **das** Wetter. · Sie interessiert sich für **den** Kurs.",
+            "**mit, von, nach, zu, bei** always take the **dative**. So do **vor** in Angst haben vor and **an** in teilnehmen an: Ich träume von **einem** Haus. · Er hat Angst vor **dem** Hund.",
+            "**sich freuen auf** means *look forward to* (it's still to come); **sich freuen über** means *be glad about* (it's already here): Ich freue mich **auf** die Ferien. · Ich freue mich **über** das Geschenk.",
           ],
           table: { head: ["+ accusative", "+ dative"], rows: [
             ["warten **auf**", "sprechen **mit**"],
@@ -48,28 +48,28 @@ cxPack({
             ["Lea träumt **von** einem Haus am See.", "Lea dreams of a house by the lake."],
             ["Die Kinder freuen sich schon **auf** den Schulausflug.", "The children are already looking forward to the school trip."],
           ],
-          trap: "Don't translate the English preposition: *wait for* is warten **auf** — never ~~warten für~~. And *think of* (have in mind) is denken **an** — not ~~denken von~~ (*Was denkst du von ihm?* asks for an opinion).",
+          trap: "Don't translate the English preposition: *wait for* is warten **auf**, never ~~warten für~~. *Think of* is denken **an**, not ~~denken von~~ (Was denkst du von ihm? asks for an opinion).",
           quiz: [
-            { at: "r1", k: "pick", q: "Ich warte ___ dich.", o: ["auf", "für", "an"], a: 0, why: "warten **auf**." },
-            { at: "r1", k: "pick", q: "Denkst du noch ___ mich?", o: ["an", "von", "über"], a: 0, why: "denken **an**." },
-            { at: "r1", k: "type", cx: true, q: "Darf ich Sie ___ einen Gefallen bitten?", a: ["um"], r: ["vp.fixed"], why: "bitten **um**." },
-            { at: "r2", k: "pick", q: "Wir warten auf ___ Zug.", o: ["den", "dem", "der"], a: 0, why: "warten auf + the **accusative**." },
-            { at: "r2", k: "pick", q: "Sie spricht über ___ neue Stelle.", o: ["ihre", "ihrer", "ihrem"], a: 0, why: "sprechen über + the **accusative**." },
-            { at: "r3", k: "pick", q: "Er träumt von ___ großen Reise.", o: ["einer", "eine", "einen"], a: 0, why: "von always takes the **dative**." },
-            { at: "r3", k: "pick", q: "Hast du Angst vor ___ Prüfung?", o: ["der", "die", "den"], a: 0, why: "Angst haben vor + the **dative**." },
-            { at: "r4", k: "pick", q: "Morgen beginnen die Ferien. Ich freue mich ___ die Ferien!", o: ["auf", "über"], a: 0, why: "Still to come: **auf**." },
-            { at: "r4", k: "pick", q: "Danke für die Blumen! Ich freue mich sehr ___ die Blumen.", o: ["über", "auf"], a: 0, why: "They're here: **über**." },
-            { at: "table", k: "pick", q: "Die Touristin fragt ___ dem Weg.", o: ["nach", "für", "um"], a: 0, why: "fragen **nach**." },
-            { at: "trap", k: "pick", q: "Which is right?", o: ["Ich warte auf meinen Bruder.", "Ich warte für meinen Bruder."], a: 0, why: "warten **auf** — not für." },
+            { at: "r1", k: "pick", q: "Ich warte ___ dich.", o: ["auf", "für", "an"], a: 0, why: "*Wait for* is warten **auf**." },
+            { at: "r1", k: "pick", q: "Denkst du noch ___ mich?", o: ["an", "von", "über"], a: 0, why: "*Think of* is denken **an**." },
+            { at: "r1", k: "type", cx: true, q: "Darf ich Sie ___ einen Gefallen bitten?", a: ["um"], r: ["vp.fixed"], why: "*Ask for* is bitten **um**." },
+            { at: "r2", k: "pick", q: "Wir warten auf ___ Zug.", o: ["den", "dem", "der"], a: 0, why: "warten auf takes the **accusative**: den Zug." },
+            { at: "r2", k: "pick", q: "Sie spricht über ___ neue Stelle.", o: ["ihre", "ihrer", "ihrem"], a: 0, why: "sprechen über takes the **accusative**: ihre Stelle." },
+            { at: "r3", k: "pick", q: "Er träumt von ___ großen Reise.", o: ["einer", "eine", "einen"], a: 0, why: "von always takes the **dative**: einer Reise." },
+            { at: "r3", k: "pick", q: "Hast du Angst vor ___ Prüfung?", o: ["der", "die", "den"], a: 0, why: "Angst haben vor takes the **dative**: der Prüfung." },
+            { at: "r4", k: "pick", q: "Morgen beginnen die Ferien. Ich freue mich ___ die Ferien!", o: ["auf", "über"], a: 0, why: "The holidays are still to come: **auf**." },
+            { at: "r4", k: "pick", q: "Danke für die Blumen! Ich freue mich sehr ___ die Blumen.", o: ["über", "auf"], a: 0, why: "The flowers are already here: **über**." },
+            { at: "table", k: "pick", q: "Die Touristin fragt ___ dem Weg.", o: ["nach", "für", "um"], a: 0, why: "*Ask about* is fragen **nach**." },
+            { at: "trap", k: "pick", q: "Which is right?", o: ["Ich warte auf meinen Bruder.", "Ich warte für meinen Bruder."], a: 0, why: "*Wait for* is warten **auf**, not für." },
           ] },
         { id: "cx.vp2", title: "sich freuen auf · Auf wen? · stolz auf", qn: 3,
           struct: [["Auf wen", "pre"], ["wartest", "verb"], ["du", "who"], ["? — Auf ihn.", "thing"]],
-          why: "Many of these verbs are **reflexive** (ich freue **mich**). To ask after a **person**, the preposition comes first: **Auf wen** wartest du? And adjectives have their prepositions too.",
+          why: "Many of these verbs are **reflexive** (ich freue **mich**). To ask about a **person**, put the preposition first: **Auf wen** wartest du? Some adjectives have their own prepositions too.",
           rid: ["vp.refl", "vp.wen", "vp.adj"],
           rules: [
-            "Many take **sich** — it changes with the subject: ich freue **mich** · du interessierst **dich** · er ärgert **sich** · wir erinnern **uns** · ihr freut **euch**. So: sich freuen auf · sich ärgern über · sich kümmern um.",
-            "A **person** after the preposition: ask with the preposition + **wen** (accusative) or **wem** (dative), answer with a pronoun: **Auf wen** wartest du? — Auf **ihn**. · **Mit wem** sprichst du? — Mit **ihr**. · **Von wem** träumst du? — Von **dir**.",
-            "Adjectives pick a preposition as well: **zufrieden mit** · **fertig mit** · **verheiratet mit** (+ dative) · **stolz auf** · **böse auf** · **neugierig auf** (+ accusative) · **nett zu** · **freundlich zu** (+ dative).",
+            "Many of these verbs take **sich**, and it changes with the subject: ich freue **mich** · du interessierst **dich** · er ärgert **sich** · wir erinnern **uns** · ihr freut **euch**.",
+            "To ask about a **person**, use the preposition + **wen** (accusative) or **wem** (dative), and answer with a pronoun: **Auf wen** wartest du? — Auf **ihn**. · **Mit wem** sprichst du? — Mit **ihr**.",
+            "Some adjectives have a fixed preposition too: **zufrieden mit**, **fertig mit**, **verheiratet mit**, **nett zu** (+ dative) · **stolz auf**, **böse auf**, **neugierig auf** (+ accusative).",
           ],
           table: { head: ["question", "answer"], rows: [
             ["**Auf wen** wartest du?", "Auf **ihn**."],
@@ -83,32 +83,32 @@ cxPack({
             ["Ich bin sehr zufrieden **mit** meiner neuen Wohnung.", "I'm very happy with my new flat."],
             ["Meine Eltern sind stolz **auf** mich.", "My parents are proud of me."],
           ],
-          trap: "In a question the preposition can't stay at the end as in English: ~~Wen wartest du auf?~~ → **Auf wen** wartest du? And the sich changes with the subject: ich freue **mich** — never ~~ich freue sich~~.",
+          trap: "In a question, the preposition can't go at the end as in English: **Auf wen** wartest du?, not ~~Wen wartest du auf?~~ And sich changes with the subject: ich freue **mich**, never ~~ich freue sich~~.",
           quiz: [
-            { at: "r1", k: "pick", q: "Ich freue ___ auf das Wochenende.", o: ["mich", "sich", "mir"], a: 0, why: "ich → **mich**." },
-            { at: "r1", k: "pick", q: "Interessiert ihr ___ für Musik?", o: ["euch", "sich", "uns"], a: 0, why: "ihr → **euch**." },
-            { at: "r1", k: "type", cx: true, q: "Mein Chef ärgert ___ über jeden Fehler.", a: ["sich"], r: ["vp.refl"], why: "er → **sich**." },
-            { at: "r2", k: "pick", q: "___ wartest du? — Auf meine Schwester.", o: ["Auf wen", "Wen", "Auf wem"], a: 0, why: "The preposition first, and auf + the accusative: **Auf wen**." },
-            { at: "r2", k: "pick", q: "___ hast du gesprochen? — Mit dem Arzt.", o: ["Mit wem", "Mit wen", "Wem"], a: 0, why: "mit + the dative: **Mit wem**." },
-            { at: "r2", k: "order", q: "Build it: Who are you thinking of?", a: ["An", "wen", "denkst", "du?"], why: "The preposition first: **An wen** …?" },
-            { at: "r3", k: "pick", q: "Bist du zufrieden ___ deiner Arbeit?", o: ["mit", "über", "auf"], a: 0, why: "zufrieden **mit**." },
-            { at: "r3", k: "pick", q: "Wir sind stolz ___ unsere Tochter.", o: ["auf", "über", "von"], a: 0, why: "stolz **auf** + the accusative." },
-            { at: "table", k: "pick", q: "Von wem erzählt sie? — Von ___.", o: ["ihnen", "sie", "ihren"], a: 0, why: "von + the dative: **ihnen**." },
-            { at: "trap", k: "pick", q: "Which is right?", o: ["Auf wen wartest du?", "Wen wartest du auf?"], a: 0, why: "The preposition comes first." },
+            { at: "r1", k: "pick", q: "Ich freue ___ auf das Wochenende.", o: ["mich", "sich", "mir"], a: 0, why: "With ich, the sich word is **mich**." },
+            { at: "r1", k: "pick", q: "Interessiert ihr ___ für Musik?", o: ["euch", "sich", "uns"], a: 0, why: "With ihr, the sich word is **euch**." },
+            { at: "r1", k: "type", cx: true, q: "Mein Chef ärgert ___ über jeden Fehler.", a: ["sich"], r: ["vp.refl"], why: "Mein Chef is er, so **sich**." },
+            { at: "r2", k: "pick", q: "___ wartest du? — Auf meine Schwester.", o: ["Auf wen", "Wen", "Auf wem"], a: 0, why: "The preposition comes first, and auf takes the accusative: **Auf wen**." },
+            { at: "r2", k: "pick", q: "___ hast du gesprochen? — Mit dem Arzt.", o: ["Mit wem", "Mit wen", "Wem"], a: 0, why: "mit takes the dative: **Mit wem**." },
+            { at: "r2", k: "order", q: "Build it: Who are you thinking of?", a: ["An", "wen", "denkst", "du?"], why: "The preposition comes first: **An wen** denkst du?" },
+            { at: "r3", k: "pick", q: "Bist du zufrieden ___ deiner Arbeit?", o: ["mit", "über", "auf"], a: 0, why: "*Happy with* is zufrieden **mit**." },
+            { at: "r3", k: "pick", q: "Wir sind stolz ___ unsere Tochter.", o: ["auf", "über", "von"], a: 0, why: "*Proud of* is stolz **auf**, with the accusative." },
+            { at: "table", k: "pick", q: "Von wem erzählt sie? — Von ___.", o: ["ihnen", "sie", "ihren"], a: 0, why: "von takes the dative, and *them* in the dative is **ihnen**." },
+            { at: "trap", k: "pick", q: "Which is right?", o: ["Auf wen wartest du?", "Wen wartest du auf?"], a: 0, why: "In German, the preposition comes first: Auf wen …?" },
           ] },
       ],
       diag: [
-        { t: "swap", from: "^wen$", to: "^wem$", rule: "vp.wen", hard: true, msg: "This preposition takes the dative: **wem**." },
-        { t: "swap", from: "^wem$", to: "^wen$", rule: "vp.wen", hard: true, msg: "This preposition takes the accusative here: **wen**." },
-        { t: "swap", from: "^(auf|uber|an|fur|um|in|mit|von|vor|nach|zu|bei)$", to: "^(auf|uber|an|fur|um|in|mit|von|vor|nach|zu|bei)$", rule: "vp.fixed", hard: true, msg: "The verb picks its preposition — here it's **{right}**." },
-        { t: "swap", from: "^(dem|einem|meinem|deinem|seinem|ihrem|unserem|der|einer|meiner|deiner|seiner|ihrer|unserer|ihm|ihr|mir|dir|ihnen)$", to: "^(den|einen|meinen|deinen|seinen|ihren|unseren|die|eine|meine|deine|seine|ihre|unsere|das|ein|mein|dein|sein|unser|ihn|sie|mich|dich|es)$", rule: "vp.acc", hard: true, msg: "With this verb the preposition takes the **accusative**: **{right}**." },
+        { t: "swap", from: "^wen$", to: "^wem$", rule: "vp.wen", hard: true, msg: "This preposition takes the dative, so ask with **wem**." },
+        { t: "swap", from: "^wem$", to: "^wen$", rule: "vp.wen", hard: true, msg: "This preposition takes the accusative here, so ask with **wen**." },
+        { t: "swap", from: "^(auf|uber|an|fur|um|in|mit|von|vor|nach|zu|bei)$", to: "^(auf|uber|an|fur|um|in|mit|von|vor|nach|zu|bei)$", rule: "vp.fixed", hard: true, msg: "This verb has its own preposition: **{right}**." },
+        { t: "swap", from: "^(dem|einem|meinem|deinem|seinem|ihrem|unserem|der|einer|meiner|deiner|seiner|ihrer|unserer|ihm|ihr|mir|dir|ihnen)$", to: "^(den|einen|meinen|deinen|seinen|ihren|unseren|die|eine|meine|deine|seine|ihre|unsere|das|ein|mein|dein|sein|unser|ihn|sie|mich|dich|es)$", rule: "vp.acc", hard: true, msg: "With this verb, the preposition takes the **accusative**: **{right}**." },
         { t: "swap", from: "^(den|einen|meinen|deinen|seinen|ihren|unseren|die|eine|meine|deine|seine|ihre|unsere|das|ein|mein|dein|sein|unser|ihn|sie|mich|dich|es)$", to: "^(dem|einem|meinem|deinem|seinem|ihrem|unserem|der|einer|meiner|deiner|seiner|ihrer|unserer|ihm|ihr|mir|dir|ihnen)$", rule: "vp.dat", hard: true, msg: "This preposition takes the **dative**: **{right}**." },
-        { t: "missing", whole: true, tok: "^(auf|uber|an|fur|um|mit|von|vor|nach|zu|bei)$", rule: "vp.fixed", msg: "The verb needs its preposition before the noun: warten **auf**, denken **an**, träumen **von** …" },
-        { t: "missing", whole: true, tok: "^(mich|dich|sich|uns|euch)$", rule: "vp.refl", msg: "This verb is reflexive — it needs its **sich** word (mich, dich, sich, uns, euch) after the verb." },
+        { t: "missing", whole: true, tok: "^(auf|uber|an|fur|um|mit|von|vor|nach|zu|bei)$", rule: "vp.fixed", msg: "The preposition is missing. This verb needs its own one before the noun: warten **auf**, denken **an** …" },
+        { t: "missing", whole: true, tok: "^(mich|dich|sich|uns|euch)$", rule: "vp.refl", msg: "This verb is reflexive: it needs its **sich** word (mich, dich, sich, uns, euch) after the verb." },
       ],
       drills: [
         // ── Übung 19•9: choose the word that completes the sentence ──
-        { id: "d19.9", ex: "19.9", t: "pick", title: "Which one fits?", how: "Pick what completes the sentence — the preposition, the verb or the case.", items: [
+        { id: "d19.9", ex: "19.9", t: "pick", title: "Which one fits?", how: "Pick what completes the sentence: the preposition, the verb or the case.", items: [
           { q: "Wir warten ___ den Briefträger.", o: ["auf", "für", "vor", "an"], a: ["auf"], r: ["vp.fixed"] },
           { q: "Ich ___ oft an meine Freunde in Portugal.", o: ["denke", "warte", "frage", "träume"], a: ["denke"], r: ["vp.fixed"] },
           { q: "Mein Sohn träumt ___ einem eigenen Hund.", o: ["von", "an", "über", "auf"], a: ["von"], r: ["vp.fixed"] },
@@ -157,7 +157,7 @@ cxPack({
           { q: "(ihre Reise) Sie erzählt von ___.", a: ["ihrer Reise"], r: ["vp.dat"] },
         ] },
         // ── our own: sich freuen auf or über ──
-        { id: "dvp.au", t: "pick", title: "auf or über?", how: "sich freuen: auf — it's still to come · über — it's here.", o: ["auf", "über"], items: [
+        { id: "dvp.au", t: "pick", title: "auf or über?", how: "sich freuen auf: it's still to come. sich freuen über: it's already here.", o: ["auf", "über"], items: [
           { q: "Nächste Woche fahren wir ans Meer. Wir freuen uns schon ___ die Reise.", a: ["auf"], r: ["vp.aufueber"] },
           { q: "Danke für die Karte! Ich habe mich sehr ___ deine Karte gefreut.", a: ["über"], r: ["vp.aufueber"] },
           { q: "Am Samstag kommt Oma. Die Kinder freuen sich ___ ihren Besuch.", a: ["auf"], r: ["vp.aufueber"] },
@@ -169,8 +169,8 @@ cxPack({
           { q: "Freust du dich schon ___ deinen Geburtstag nächsten Monat?", a: ["auf"], r: ["vp.aufueber"] },
           { q: "Mein Chef hat mich gelobt. Ich habe mich ___ das Lob gefreut.", a: ["über"], r: ["vp.aufueber"] },
         ].map(it => ({ ...it, diag: [
-          { t: "swap", from: "^uber$", to: "^auf$", rule: "vp.aufueber", msg: "It's still to come — you look forward to it: sich freuen **auf**." },
-          { t: "swap", from: "^auf$", to: "^uber$", rule: "vp.aufueber", msg: "It's already here — you're glad about it: sich freuen **über**." },
+          { t: "swap", from: "^uber$", to: "^auf$", rule: "vp.aufueber", msg: "It's still to come, so you look forward to it: sich freuen **auf**." },
+          { t: "swap", from: "^auf$", to: "^uber$", rule: "vp.aufueber", msg: "It's already here, so you're glad about it: sich freuen **über**." },
         ] })) },
         // ── our own: the sich word ──
         { id: "dvp.refl", t: "type", title: "mich, dich, sich …", how: "Write the reflexive pronoun that goes with the subject.", items: [
@@ -186,11 +186,11 @@ cxPack({
           { q: "Wir haben ___ schnell an das Wetter hier gewöhnt.", a: ["uns"], r: ["vp.refl"] },
           { q: "Bitte kümmern Sie ___ um die neuen Gäste.", a: ["sich"], r: ["vp.refl"] },
         ].map(it => ({ ...it, diag: [
-          { t: "swap", from: "^(mir|dir)$", to: "^(mich|dich)$", rule: "vp.refl", hard: true, msg: "These verbs take the accusative sich word: **{right}**." },
+          { t: "swap", from: "^(mir|dir)$", to: "^(mich|dich)$", rule: "vp.refl", hard: true, msg: "These verbs take the accusative form of the sich word: **{right}**." },
           { t: "swap", from: "^(sich|mich|dich|uns|euch)$", to: "^(sich|mich|dich|uns|euch)$", rule: "vp.refl", hard: true, msg: "The sich word changes with the subject: **{right}**." },
         ] })) },
         // ── our own: ask after the person ──
-        { id: "dvp.wen", t: "transform", low: true, title: "Auf wen? · Mit wem?", how: "Ask about the highlighted person — the preposition first, then wen or wem.", items: [
+        { id: "dvp.wen", t: "transform", low: true, title: "Auf wen? · Mit wem?", how: "Ask about the highlighted person: the preposition first, then wen or wem.", items: [
           { q: "Lea wartet auf ihren Bruder.", hl: "auf ihren Bruder", a: ["Auf wen wartet Lea?"], r: ["vp.wen"] },
           { q: "Ich denke an meine Großmutter.", hl: "an meine Großmutter", a: ["An wen denkst du?", "An wen denken Sie?"], r: ["vp.wen"] },
           { q: "Tom telefoniert mit seiner Freundin.", hl: "mit seiner Freundin", a: ["Mit wem telefoniert Tom?"], r: ["vp.wen"] },
@@ -202,7 +202,7 @@ cxPack({
           { q: "Opa erzählt von seinem Bruder.", hl: "von seinem Bruder", a: ["Von wem erzählt Opa?"], r: ["vp.wen"] },
           { q: "Das Paket ist für die Nachbarin.", hl: "für die Nachbarin", a: ["Für wen ist das Paket?"], r: ["vp.wen"] },
           { q: "Mia hat sich in einen Kollegen verliebt.", hl: "in einen Kollegen", a: ["In wen hat sich Mia verliebt?", "In wen hat Mia sich verliebt?"], r: ["vp.wen"] },
-        ].map(it => ({ ...it, diag: [{ t: "pos", tok: "^(auf|uber|an|fur|um|in|mit|von|vor)$", rule: "vp.wen", msg: "In a question the preposition can't stay behind: it comes first, with wen or wem — **Auf wen** …?" }] })) },
+        ].map(it => ({ ...it, diag: [{ t: "pos", tok: "^(auf|uber|an|fur|um|in|mit|von|vor)$", rule: "vp.wen", msg: "In a question, the preposition comes first, then wen or wem: **Auf wen** …?" }] })) },
         // ── our own: the person as a pronoun ──
         { id: "dvp.pron", t: "transform", title: "auf ihn · mit ihr", how: "Write the sentence again with a pronoun for the highlighted person.", items: [
           { q: "Ich warte auf meinen Bruder.", hl: "meinen Bruder", a: ["Ich warte auf ihn."], r: ["vp.wen", "vp.acc"] },
@@ -230,7 +230,7 @@ cxPack({
           { q: "Wir sind stolz ___ dich!", a: ["auf"], r: ["vp.adj"] },
         ] },
         // ── Production ──
-        { id: "dvp.build", t: "compose", low: true, end: true, title: "Build the sentence", how: "Build the sentence — add the preposition's case (and the sich word where the verb has one).", items: [
+        { id: "dvp.build", t: "compose", low: true, end: true, title: "Build the sentence", how: "Build the sentence. Use the preposition's case, and add the sich word if needed.", items: [
           { w: ["wir", "warten", "auf", "der Zug"], a: ["Wir warten auf den Zug."], r: ["vp.acc"] },
           { w: ["ich", "denken", "oft", "an", "meine Heimat"], a: ["Ich denke oft an meine Heimat."], r: ["vp.acc"] },
           { w: ["Lea", "träumen", "von", "ein eigenes Café"], a: ["Lea träumt von einem eigenen Café."], r: ["vp.dat"], cap: true },
@@ -244,7 +244,7 @@ cxPack({
           { w: ["auf", "wer", "warten", "ihr", "?"], a: ["Auf wen wartet ihr?"], r: ["vp.wen"] },
           { w: ["mit", "wer", "sprechen", "du", "?"], a: ["Mit wem sprichst du?"], r: ["vp.wen"] },
         ] },
-        { id: "dp.vp", t: "translate", end: true, title: "Say it in German", how: "Translate — the verb with its own preposition and the right case.", items: [
+        { id: "dp.vp", t: "translate", end: true, title: "Say it in German", how: "Translate. Use the verb's own preposition and the right case.", items: [
           { q: "I'm waiting for the bus.", a: ["Ich warte auf den Bus."], r: ["vp.fixed", "vp.acc"] },
           { q: "She often thinks of her family.", a: ["Sie denkt oft an ihre Familie."], r: ["vp.fixed", "vp.acc"] },
           { q: "We're talking about the weather.", a: ["Wir sprechen über das Wetter.", "Wir reden über das Wetter.", "Wir sprechen übers Wetter.", "Wir reden übers Wetter."], r: ["vp.fixed"] },
@@ -260,7 +260,7 @@ cxPack({
           { q: "I don't remember him.", a: ["Ich erinnere mich nicht an ihn.", "Ich kann mich nicht an ihn erinnern."], r: ["vp.refl", "vp.wen"] },
           { q: "Can you help me with the homework? (du)", a: ["Kannst du mir bei den Hausaufgaben helfen?", "Kannst du mir bei der Hausaufgabe helfen?"], r: ["vp.dat"] },
         ] },
-        { id: "dvp.write", t: "write", end: true, title: "About you", how: "Answer in a sentence or two, with the verb and its preposition — saved for Claude to correct.", items: [
+        { id: "dvp.write", t: "write", end: true, title: "About you", how: "Answer in a sentence or two, using the verb and its preposition. Saved for Claude to correct.", items: [
           { q: "Worauf freust du dich diese Woche? (sich freuen auf)", model: ["Ich freue mich auf das Wochenende, weil meine Schwester zu Besuch kommt."], r: ["vp.aufueber"] },
           { q: "An wen denkst du oft? (denken an)", model: ["Ich denke oft an meine Eltern und an meine Freunde in der Heimat."], r: ["vp.acc"] },
           { q: "Wofür interessierst du dich? (sich interessieren für)", model: ["Ich interessiere mich für Fußball und für Musik."], r: ["vp.refl"] },

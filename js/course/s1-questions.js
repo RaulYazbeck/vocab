@@ -80,30 +80,30 @@ cxPack({
             ["**Was für eine** Wohnung sucht ihr?", "What kind of flat are you looking for?"],
             ["**Was für** Musik hörst du gern?", "What kind of music do you like?"],
           ],
-          trap: "In **was für ein**, *für* takes no case of its own — **ein** follows its noun's role in the sentence: **Was für ein** Mann ist das? (the subject) · Mit **was für einem** Auto fährst du? (mit + dative).",
+          trap: "In **was für ein**, *für* doesn't set the case; **ein** takes the case of the noun's role in the sentence. **Was für ein** Mann ist das? (subject) · Mit **was für einem** Auto fährst du? (mit takes the dative)",
           quiz: [
-            { at: "r1", k: "pick", q: "___ Bus nimmst du? — Den um acht.", o: ["Welchen", "Welcher", "Welchem"], a: 0, why: "der Bus as the object: **welchen**." },
-            { at: "r1", k: "type", cx: true, q: "Mit ___ Zug fährst du? (welcher)", a: ["welchem"], r: ["wer.welch"], why: "mit + dative: **welchem**." },
-            { at: "r1", k: "pick", q: "___ Jacke gefällt dir? — Die rote.", o: ["Welche", "Welchen", "Welcher"], a: 0, why: "die Jacke as the subject: **welche**." },
-            { at: "r2", k: "pick", q: "___ Auto hast du? — Ein Elektroauto.", o: ["Was für ein", "Was für einen", "Welchen"], a: 0, why: "das Auto: **was für ein**." },
-            { at: "r2", k: "pick", q: "___ Bücher liest du gern? — Krimis.", o: ["Was für", "Was für ein", "Welcher"], a: 0, why: "Plural: **was für** — no ein." },
-            { at: "r3", k: "pick", q: "Welchen Pullover nimmst du? — ___", o: ["Diesen hier.", "Einen aus Wolle.", "Ein Pullover."], a: 0, why: "welcher → point to one." },
-            { at: "r3", k: "pick", q: "Was für einen Hund habt ihr? — ___", o: ["Einen kleinen Terrier.", "Den da.", "Welchen?"], a: 0, why: "was für → describe it." },
-            { at: "table", k: "pick", q: "___ Kind gehört das Velo?", o: ["Welchem", "Welches", "Welchen"], a: 0, why: "gehören + dative: **welchem**." },
-            { at: "trap", k: "pick", q: "Mit ___ Auto fährst du?", o: ["was für einem", "was für ein", "was für einen"], a: 0, why: "mit + dative: **was für einem**." },
+            { at: "r1", k: "pick", q: "___ Bus nimmst du? — Den um acht.", o: ["Welchen", "Welcher", "Welchem"], a: 0, why: "*der Bus* is the object here: **welchen**." },
+            { at: "r1", k: "type", cx: true, q: "Mit ___ Zug fährst du? (welcher)", a: ["welchem"], r: ["wer.welch"], why: "*mit* takes the dative: **welchem**." },
+            { at: "r1", k: "pick", q: "___ Jacke gefällt dir? — Die rote.", o: ["Welche", "Welchen", "Welcher"], a: 0, why: "*die Jacke* is the subject here: **welche**." },
+            { at: "r2", k: "pick", q: "___ Auto hast du? — Ein Elektroauto.", o: ["Was für ein", "Was für einen", "Welchen"], a: 0, why: "*das Auto* is neuter, so the object form is **was für ein**." },
+            { at: "r2", k: "pick", q: "___ Bücher liest du gern? — Krimis.", o: ["Was für", "Was für ein", "Welcher"], a: 0, why: "With a plural, drop ein: **was für**." },
+            { at: "r3", k: "pick", q: "Welchen Pullover nimmst du? — ___", o: ["Diesen hier.", "Einen aus Wolle.", "Ein Pullover."], a: 0, why: "*welcher* asks you to point to one." },
+            { at: "r3", k: "pick", q: "Was für einen Hund habt ihr? — ___", o: ["Einen kleinen Terrier.", "Den da.", "Welchen?"], a: 0, why: "*was für* asks you to describe it." },
+            { at: "table", k: "pick", q: "___ Kind gehört das Velo?", o: ["Welchem", "Welches", "Welchen"], a: 0, why: "*gehören* takes the dative: **welchem**." },
+            { at: "trap", k: "pick", q: "Mit ___ Auto fährst du?", o: ["was für einem", "was für ein", "was für einen"], a: 0, why: "*mit* takes the dative: **was für einem**." },
           ] },
       ],
       diag: [
-        { t: "seq", seq: ["^(mit|bei|von|zu|nach|aus)$", "^(wen|wer)$"], rule: "wer.prep", msg: "«{typed}»: mit, bei, von, zu, nach and aus take the dative — **wem**." },
-        { t: "seq", seq: ["^(fur|ohne|gegen|durch|um|auf)$", "^(wem|wer)$"], rule: "wer.prep", msg: "«{typed}»: für, ohne, gegen, durch and auf … warten take the accusative — **wen**." },
-        { t: "swap", from: "^(wer|wem)$", to: "^wen$", rule: "wer.case", msg: "You're asking for the accusative (whom?): **wen**." },
-        { t: "swap", from: "^(wer|wen)$", to: "^wem$", rule: "wer.case", msg: "You're asking for the dative (to whom? with whom?): **wem**." },
-        { t: "swap", from: "^(wen|wem)$", to: "^wer$", rule: "wer.case", msg: "You're asking for the subject: **wer**." },
-        { t: "swap", from: "^(wer|wen|wem)$", to: "^was$", rule: "wer.was", msg: "A thing: **was**." },
-        { t: "swap", from: "^(wer|wen|wem|was)$", to: "^wessen$", rule: "wer.wessen", msg: "Whose: **wessen**." },
-        { t: "ending", stem: "welch", rule: "wer.welch", msg: "welcher takes der's endings: **{right}**." },
-        { t: "ending", stem: "k?ein", rule: "wer.wasfur", msg: "In was für ein, ein takes the noun's case: **{right}**." },
-        { t: "swap", from: "^(haben|sind|kommen|wohnen|warten|kosten|stehen)$", to: "^(hat|ist|kommt|wohnt|wartet|kostet|steht)$", rule: "wer.was", msg: "wer and was take the singular: **{right}**." },
+        { t: "seq", seq: ["^(mit|bei|von|zu|nach|aus)$", "^(wen|wer)$"], rule: "wer.prep", msg: "«{typed}»: mit, bei, von, zu, nach and aus take the dative, so it's **wem**." },
+        { t: "seq", seq: ["^(fur|ohne|gegen|durch|um|auf)$", "^(wem|wer)$"], rule: "wer.prep", msg: "«{typed}»: für, ohne, gegen, durch, um and auf (warten) take the accusative, so it's **wen**." },
+        { t: "swap", from: "^(wer|wem)$", to: "^wen$", rule: "wer.case", msg: "You're asking about the accusative object (whom?): **wen**." },
+        { t: "swap", from: "^(wer|wen)$", to: "^wem$", rule: "wer.case", msg: "You're asking about the dative (to whom? with whom?): **wem**." },
+        { t: "swap", from: "^(wen|wem)$", to: "^wer$", rule: "wer.case", msg: "You're asking about the subject: **wer**." },
+        { t: "swap", from: "^(wer|wen|wem)$", to: "^was$", rule: "wer.was", msg: "For a thing, use **was**." },
+        { t: "swap", from: "^(wer|wen|wem|was)$", to: "^wessen$", rule: "wer.wessen", msg: "*Whose* is **wessen**." },
+        { t: "ending", stem: "welch", rule: "wer.welch", msg: "*welcher* takes the same endings as der: **{right}**." },
+        { t: "ending", stem: "k?ein", rule: "wer.wasfur", msg: "In *was für ein*, ein takes the noun's case: **{right}**." },
+        { t: "swap", from: "^(haben|sind|kommen|wohnen|warten|kosten|stehen)$", to: "^(hat|ist|kommt|wohnt|wartet|kostet|steht)$", rule: "wer.was", msg: "*wer* and *was* take a singular verb: **{right}**." },
       ],
       drills: [
         // ── our own: which question word? ──
@@ -121,7 +121,7 @@ cxPack({
           { q: "___ hast du gestern geholfen? — Meinem Nachbarn.", o: ["Wem", "Wen", "Wer"], a: ["Wem"], r: ["wer.case"] },
         ] },
         // ── Übung 7•13: wer or was? ──
-        { id: "d7.13", ex: "7.13", t: "transform", low: true, title: "Ask with wer, wen or was", how: "Ask about the highlighted part — wer, wen or was.", items: [
+        { id: "d7.13", ex: "7.13", t: "transform", low: true, title: "Ask with wer, wen or was", how: "Ask about the highlighted part with wer, wen or was.", items: [
           { q: "Sara kennt ihn nicht.", hl: "ihn", a: ["Wen kennt Sara nicht?"], r: ["wer.case"] },
           { q: "Tim kauft ein Geschenk für seine Mutter.", hl: "ein Geschenk", a: ["Was kauft Tim für seine Mutter?"], r: ["wer.was"] },
           { q: "Der Hauswart hat die Heizung repariert.", hl: "Der Hauswart", a: ["Wer hat die Heizung repariert?"], r: ["wer.case"] },
@@ -135,7 +135,7 @@ cxPack({
           { q: "Herr Graf hat Frau Meier gesehen.", hl: "Herr Graf", a: ["Wer hat Frau Meier gesehen?"], r: ["wer.case"] },
         ] },
         // ── Übung 28•13: wer, wen, wem or wessen? ──
-        { id: "d28.13", ex: "28.13", t: "transform", low: true, title: "wer, wen, wem or wessen?", how: "Ask about the highlighted part — with wer, wen, wem or wessen (a preposition stays in front).", items: [
+        { id: "d28.13", ex: "28.13", t: "transform", low: true, title: "wer, wen, wem or wessen?", how: "Ask about the highlighted part with wer, wen, wem or wessen. Keep any preposition in front.", items: [
           { q: "Lisa hilft ihrem Vater beim Umzug.", hl: "ihrem Vater", a: ["Wem hilft Lisa beim Umzug?"], r: ["wer.case"] },
           { q: "Tom tanzt mit der neuen Kollegin.", hl: "mit der neuen Kollegin", a: ["Mit wem tanzt Tom?"], r: ["wer.prep"] },
           { q: "Die Großeltern schicken den Kindern ein Paket.", hl: "den Kindern", a: ["Wem schicken die Großeltern ein Paket?"], r: ["wer.case"] },
@@ -149,7 +149,7 @@ cxPack({
           { q: "Unsere Katze schläft auf dem Sofa.", hl: "Unsere", a: ["Wessen Katze schläft auf dem Sofa?"], r: ["wer.wessen"] },
         ] },
         // ── Übung 28•14: was, wem or wessen? ──
-        { id: "d28.14", ex: "28.14", t: "transform", low: true, title: "was, wem or wessen?", how: "Ask about the highlighted part — was, wem or wessen.", items: [
+        { id: "d28.14", ex: "28.14", t: "transform", low: true, title: "was, wem or wessen?", how: "Ask about the highlighted part with was, wem or wessen.", items: [
           { q: "Ich habe die Jacke im Laden gesehen.", hl: "die Jacke", a: ["Was hast du im Laden gesehen?"], r: ["wer.was"] },
           { q: "Der Gärtner gibt den Blumen Wasser.", hl: "den Blumen", a: ["Wem gibt der Gärtner Wasser?"], r: ["wer.case"] },
           { q: "Die Bauern im Dorf halten Kühe.", hl: "Kühe", a: ["Was halten die Bauern im Dorf?"], r: ["wer.was"] },
@@ -157,7 +157,7 @@ cxPack({
           { q: "Der Regen macht die Kinder müde.", hl: "Der Regen", a: ["Was macht die Kinder müde?"], r: ["wer.was"] },
           { q: "Die Kinder geben dem Hund einen Knochen.", hl: "dem Hund", a: ["Wem geben die Kinder einen Knochen?"], r: ["wer.case"] },
           { q: "Ihr Koffer ist sehr schwer.", hl: "Ihr", a: ["Wessen Koffer ist sehr schwer?"], r: ["wer.wessen"] },
-          { q: "Diese Schuhe kosten achtzig Franken.", hl: "Diese Schuhe", a: ["Was kostet achtzig Franken?"], r: ["wer.was"], note: "was takes the singular: *Was kostet …?* — even for the shoes." },
+          { q: "Diese Schuhe kosten achtzig Franken.", hl: "Diese Schuhe", a: ["Was kostet achtzig Franken?"], r: ["wer.was"], note: "*was* takes a singular verb, even when it asks about the shoes: *Was kostet …?*" },
           { q: "Im Kühlschrank stehen drei Flaschen.", hl: "drei Flaschen", a: ["Was steht im Kühlschrank?"], r: ["wer.was"] },
           { q: "Der Bäcker verkauft frisches Brot.", hl: "frisches Brot", a: ["Was verkauft der Bäcker?"], r: ["wer.was"] },
         ] },
@@ -175,7 +175,7 @@ cxPack({
           { q: "Bei ___ Arzt bist du? (welcher)", a: ["welchem"], r: ["wer.welch"] },
         ] },
         // ── our own: which one, or what kind? ──
-        { id: "dwer.f", t: "pick", title: "welcher or was für?", how: "Which one of these → welcher · what kind of → was für ein.", items: [
+        { id: "dwer.f", t: "pick", title: "welcher or was für?", how: "Which one? Use welcher. What kind of? Use was für ein.", items: [
           { q: "___ Zug nimmst du — den um sieben oder den um acht?", o: ["Welchen", "Was für einen"], a: ["Welchen"], r: ["wer.wasfur"] },
           { q: "___ Auto möchtest du kaufen? — Ein kleines, für die Stadt.", o: ["Was für ein", "Welches"], a: ["Was für ein"], r: ["wer.wasfur"] },
           { q: "___ Wohnung sucht ihr? — Eine mit Balkon.", o: ["Was für eine", "Welche"], a: ["Was für eine"], r: ["wer.wasfur"] },
@@ -202,7 +202,7 @@ cxPack({
           { q: "Wessen Freund kommt heute? (ich)", a: ["Mein Freund kommt heute."], r: ["wer.wessen"] },
         ] },
         // ── Production: say it ──
-        { id: "dp.wer", t: "translate", end: true, title: "Ask it in German", how: "Translate the question — the question word in its case.", items: [
+        { id: "dp.wer", t: "translate", end: true, title: "Ask it in German", how: "Translate the question. Put the question word in the right case.", items: [
           { q: "Who did you see at the station? (du)", a: ["Wen hast du am Bahnhof gesehen?"], r: ["wer.case"] },
           { q: "Who are you writing to? (du)", a: ["Wem schreibst du?"], r: ["wer.case"] },
           { q: "Who are you going to the cinema with? (du)", a: ["Mit wem gehst du ins Kino?"], r: ["wer.prep"] },

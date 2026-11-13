@@ -14,19 +14,19 @@ cxPack({
         "acc.what": "the object answers wen? or was?",
         "acc.den": "only masculine changes: den, einen, keinen",
         "acc.same": "die, das and plurals stay the same",
-        "acc.words": "every word before a der-noun: -en",
+        "acc.words": "every word before a masculine object ends in -en",
         "acc.gibt": "haben, brauchen, es gibt + accusative",
         "acc.front": "the object first: den Film kenne ich",
       },
       sheets: [
         { id: "cx.acc1", title: "The object: only der changes", qn: 3,
           struct: [["der", "who"], ["→ den", "mid"], ["ein", "who"], ["→ einen", "mid"]],
-          why: "The person or thing a verb acts on — the direct object — is in the **accusative**. The good news: only masculine words change.",
+          why: "The person or thing a verb acts on (the direct object) is in the **accusative**. The good news: only masculine words change.",
           rid: ["acc.what", "acc.den", "acc.same"],
           rules: [
-            "The direct object answers **wen?** (whom) or **was?** (what): Ich kaufe **einen Kaffee**. — Was kaufe ich? Einen Kaffee. It's in the accusative.",
-            "Only **masculine** changes: der → **den**, ein → **einen**, kein → **keinen**: Ich sehe **den** Bus. Ich brauche **einen** Stift. Ich habe **keinen** Hunger.",
-            "**die, das** and every **plural** stay the same: Ich sehe **die** Frau / **das** Kind / **die** Kinder. Wir brauchen **eine** Tasche, **ein** Ticket, **keine** Tüten.",
+            "The direct object is in the accusative. It answers **wen?** (whom?) or **was?** (what?): Ich kaufe **einen Kaffee**. Was kaufe ich? Einen Kaffee.",
+            "Only **masculine** words change: der becomes **den**, ein **einen**, kein **keinen**. Ich sehe **den** Bus. Ich brauche **einen** Stift. Ich habe **keinen** Hunger.",
+            "**die**, **das** and all **plurals** stay the same: Ich sehe **die** Frau, **das** Kind, **die** Kinder. Wir brauchen **eine** Tasche, **ein** Ticket, **keine** Tüten.",
           ],
           table: { head: ["", "m", "f", "n", "plural"], rows: [
             ["subject", "der · ein", "die · eine", "das · ein", "die · —"],
@@ -38,25 +38,25 @@ cxPack({
             ["Wir besuchen **die** Großeltern.", "We're visiting the grandparents."],
             ["Er hat **keinen** Termin.", "He has no appointment."],
           ],
-          trap: "The subject never changes: **Der** Bus kommt. — Ich sehe **den** Bus. Ask *who does it?* (the subject: der) and *does it to what?* (the object: den).",
+          trap: "The subject never changes: **Der** Bus kommt, but Ich sehe **den** Bus. Ask who does it (the subject: der) and what it is done to (the object: den).",
           quiz: [
-            { at: "r1", k: "pick", q: "Ich trinke einen Tee. — The object is…", o: ["einen Tee", "Ich", "trinke"], a: 0, why: "Was trinke ich? Einen Tee." },
-            { at: "r1", k: "pick", q: "Was suchst du? — …", o: ["Meinen Schlüssel.", "Mein Schlüssel.", "Meiner Schlüssel."], a: 0, why: "The object of suchen: meinen." },
-            { at: "r2", k: "pick", q: "Ich sehe ___ Bus.", o: ["den", "der", "dem"], a: 0, why: "der Bus as object → den." },
-            { at: "r2", k: "type", cx: true, q: "Wir brauchen ___ Tisch. (ein)", a: ["einen"], r: ["acc.den"], why: "der Tisch as object → einen." },
-            { at: "r3", k: "pick", q: "Ich kaufe ___ Zeitung.", o: ["die", "den", "der"], a: 0, why: "Feminine stays: die." },
-            { at: "r3", k: "pick", q: "Er hat ___ Kinder.", o: ["keine", "keinen", "kein"], a: 0, why: "Plural stays: keine." },
-            { at: "table", k: "pick", q: "Ich nehme ___ Apfel. (ein)", o: ["einen", "ein", "eine"], a: 0, why: "der Apfel as object → einen." },
-            { at: "trap", k: "pick", q: "___ Zug kommt um acht.", o: ["Der", "Den"], a: 0, why: "The subject: der stays der." },
+            { at: "r1", k: "pick", q: "Ich trinke einen Tee. — The object is…", o: ["einen Tee", "Ich", "trinke"], a: 0, why: "Was trinke ich? Einen Tee. That's the object." },
+            { at: "r1", k: "pick", q: "Was suchst du? — …", o: ["Meinen Schlüssel.", "Mein Schlüssel.", "Meiner Schlüssel."], a: 0, why: "It's the object of suchen, so mein becomes meinen." },
+            { at: "r2", k: "pick", q: "Ich sehe ___ Bus.", o: ["den", "der", "dem"], a: 0, why: "der Bus is the object here, so it's den." },
+            { at: "r2", k: "type", cx: true, q: "Wir brauchen ___ Tisch. (ein)", a: ["einen"], r: ["acc.den"], why: "der Tisch is the object here, so it's einen." },
+            { at: "r3", k: "pick", q: "Ich kaufe ___ Zeitung.", o: ["die", "den", "der"], a: 0, why: "Feminine words stay the same: die Zeitung." },
+            { at: "r3", k: "pick", q: "Er hat ___ Kinder.", o: ["keine", "keinen", "kein"], a: 0, why: "Plurals stay the same: keine Kinder." },
+            { at: "table", k: "pick", q: "Ich nehme ___ Apfel. (ein)", o: ["einen", "ein", "eine"], a: 0, why: "der Apfel is the object here, so it's einen." },
+            { at: "trap", k: "pick", q: "___ Zug kommt um acht.", o: ["Der", "Den"], a: 0, why: "This is the subject, so der stays der." },
           ] },
         { id: "cx.acc2", title: "Every der-word and ein-word — and es gibt", qn: 3,
           struct: [["dies-", "verb"], ["-en", "end"], ["·", "mid"], ["mein-", "who"], ["-en", "end"]],
-          why: "Whatever stands before a masculine object takes the same **-en**: den, einen, diesen, meinen… Hear the -en and you know it's the object.",
+          why: "Every word before a masculine object ends in **-en**: den, einen, diesen, meinen… When you hear the -en, you know it's the object.",
           rid: ["acc.words", "acc.gibt", "acc.front"],
           rules: [
-            "Every word before a masculine object gets **-en**: dies**en**, jed**en**, welch**en**, mein**en**, dein**en**, unser**en**, Ihr**en**: Kennst du **meinen** Bruder? **Welchen** Zug nimmst du?",
-            "**haben, brauchen, möchten, suchen, kaufen, es gibt** take an accusative object: Ich habe **einen** Bruder. Es gibt **einen** Park. Hier gibt es **keinen** Lift.",
-            "The object can come first, for emphasis — its **-en** still shows it's the object: **Den** Film kenne ich schon. **Diesen** Weg nehme ich jeden Tag.",
+            "Every word before a masculine object ends in **-en**: dies**en**, jed**en**, welch**en**, mein**en**, dein**en**, unser**en**, Ihr**en**. Kennst du **meinen** Bruder? **Welchen** Zug nimmst du?",
+            "**haben, brauchen, möchten, suchen, kaufen** and **es gibt** take an accusative object: Ich habe **einen** Bruder. Es gibt **einen** Park. Hier gibt es **keinen** Lift.",
+            "The object can come first for emphasis; its **-en** still marks it as the object: **Den** Film kenne ich schon. **Diesen** Weg nehme ich jeden Tag.",
           ],
           table: { head: ["before a der-noun", "subject", "object"], rows: [
             ["the", "der Zug", "**den** Zug"], ["a · no", "ein · kein Zug", "**einen** · **keinen** Zug"],
@@ -69,28 +69,28 @@ cxPack({
             ["**Welchen** Bus nimmst du?", "Which bus do you take?"],
             ["**Den** Kuchen habe ich selbst gebacken.", "I baked the cake myself."],
           ],
-          trap: "A few masculine nouns add an **-n** of their own: den Kollege**n**, den Nachbar**n**, Herr**n** Meier. Notice them for now — they get their own lesson later.",
+          trap: "A few masculine nouns also add an **-n** as objects: den Kollege**n**, den Nachbar**n**, Herr**n** Meier. Just notice them for now; a later lesson covers them.",
           quiz: [
-            { at: "r1", k: "pick", q: "Kennst du ___ Bruder? (mein)", o: ["meinen", "mein", "meine"], a: 0, why: "Before a masculine object: meinen." },
-            { at: "r1", k: "type", cx: true, q: "___ Film möchtest du sehen? (welcher)", a: ["Welchen"], r: ["acc.words"], why: "der Film as object → welchen." },
-            { at: "r2", k: "pick", q: "Hier gibt es ___ Supermarkt.", o: ["einen", "ein", "eine"], a: 0, why: "es gibt + accusative: einen." },
-            { at: "r2", k: "pick", q: "Ich habe ___ Hund. (kein)", o: ["keinen", "kein", "keine"], a: 0, why: "haben + accusative: keinen." },
-            { at: "r3", k: "pick", q: "Which is right?", o: ["Den Film kenne ich schon.", "Der Film kenne ich schon."], a: 0, why: "First place, still the object: den." },
-            { at: "r3", k: "order", q: "Build it: The coffee I drink black.", a: ["Den Kaffee", "trinke", "ich", "schwarz."], why: "The object first, then the verb." },
-            { at: "table", k: "pick", q: "Ich besuche ___ Onkel. (unser)", o: ["unseren", "unser", "unsere"], a: 0, why: "-en before a masculine object." },
-            { at: "trap", k: "pick", q: "Ich treffe heute ___ (Herr Meier).", o: ["Herrn Meier", "Herr Meier", "Herren Meier"], a: 0, why: "Herr adds -n as an object: Herrn Meier." },
+            { at: "r1", k: "pick", q: "Kennst du ___ Bruder? (mein)", o: ["meinen", "mein", "meine"], a: 0, why: "Before a masculine object, mein becomes meinen." },
+            { at: "r1", k: "type", cx: true, q: "___ Film möchtest du sehen? (welcher)", a: ["Welchen"], r: ["acc.words"], why: "der Film is the object here, so it's welchen." },
+            { at: "r2", k: "pick", q: "Hier gibt es ___ Supermarkt.", o: ["einen", "ein", "eine"], a: 0, why: "es gibt takes the accusative: einen Supermarkt." },
+            { at: "r2", k: "pick", q: "Ich habe ___ Hund. (kein)", o: ["keinen", "kein", "keine"], a: 0, why: "haben takes the accusative: keinen Hund." },
+            { at: "r3", k: "pick", q: "Which is right?", o: ["Den Film kenne ich schon.", "Der Film kenne ich schon."], a: 0, why: "Even in first place it's the object, so it's den." },
+            { at: "r3", k: "order", q: "Build it: The coffee I drink black.", a: ["Den Kaffee", "trinke", "ich", "schwarz."], why: "The object first, then the verb, then the subject." },
+            { at: "table", k: "pick", q: "Ich besuche ___ Onkel. (unser)", o: ["unseren", "unser", "unsere"], a: 0, why: "Before a masculine object, unser becomes unseren." },
+            { at: "trap", k: "pick", q: "Ich treffe heute ___ (Herr Meier).", o: ["Herrn Meier", "Herr Meier", "Herren Meier"], a: 0, why: "As an object, Herr adds -n: Herrn Meier." },
           ] },
       ],
       diag: [
-        { t: "swap", from: "^der$", to: "^den$", rule: "acc.den", msg: "The object of a der-noun: **den**, not der." },
-        { t: "swap", from: "^den$", to: "^der$", rule: "acc.what", msg: "This one is the subject: **der** stays der." },
-        { t: "swap", from: "^den$", to: "^(die|das)$", rule: "acc.same", msg: "Only masculine changes — this one stays **{right}**." },
-        { t: "ending", stem: "k?ein", rule: "acc.den", msg: "Right word, wrong ending: **{right}** — a masculine object takes -en (einen, keinen); die/das stay." },
-        { t: "ending", stem: "(dies|jed|welch|mein|dein|sein|ihr|unser|eu)", rule: "acc.words", msg: "Right word, wrong ending: **{right}** — before a masculine object: -en." },
+        { t: "swap", from: "^der$", to: "^den$", rule: "acc.den", msg: "A masculine noun as the object takes **den**, not der." },
+        { t: "swap", from: "^den$", to: "^der$", rule: "acc.what", msg: "This is the subject, so it stays **der**." },
+        { t: "swap", from: "^den$", to: "^(die|das)$", rule: "acc.same", msg: "Only masculine words change as objects. This one stays **{right}**." },
+        { t: "ending", stem: "k?ein", rule: "acc.den", msg: "Right word, wrong ending: it's **{right}**. A masculine object takes -en (einen, keinen); feminine and neuter stay the same." },
+        { t: "ending", stem: "(dies|jed|welch|mein|dein|sein|ihr|unser|eu)", rule: "acc.words", msg: "Right word, wrong ending: it's **{right}**. Before a masculine object, these words end in -en." },
       ],
       drills: [
         // ── Übung 7•1: masculine → the object form ──
-        { id: "d7.1", ex: "7.1", t: "type", title: "The object form: -en", how: "Write the word as it stands before a masculine object.", items: [
+        { id: "d7.1", ex: "7.1", t: "type", title: "The object form: -en", how: "Write the form this word takes before a masculine object.", items: [
           { q: "der Fahrplan → ___ Fahrplan", a: ["den"], r: ["acc.den"] },
           { q: "ein Termin → ___ Termin", a: ["einen"], r: ["acc.den"] },
           { q: "dieser Pullover → ___ Pullover", a: ["diesen"], r: ["acc.words"] },
@@ -103,7 +103,7 @@ cxPack({
           { q: "welcher Zug → ___ Zug", a: ["welchen"], r: ["acc.words"] },
         ] },
         // ── Übung 7•2: every gender ──
-        { id: "d7.2", ex: "7.2", t: "type", title: "Does it change?", how: "Write the word as it stands before the object — only masculine changes.", items: [
+        { id: "d7.2", ex: "7.2", t: "type", title: "Does it change?", how: "Write the form it takes before an object. Only masculine words change.", items: [
           { q: "die Rechnung → ___ Rechnung", a: ["die"], r: ["acc.same"] },
           { q: "ein Apfel → ___ Apfel", a: ["einen"], r: ["acc.den"] },
           { q: "das Formular → ___ Formular", a: ["das"], r: ["acc.same"] },
@@ -118,7 +118,7 @@ cxPack({
           { q: "unsere Katze → ___ Katze", a: ["unsere"], r: ["acc.same"] },
         ] },
         // ── Übung 7•3: find the object ──
-        { id: "d7.3", ex: "7.3", t: "pick", title: "Which is the object?", how: "Ask was? or wen? — pick the direct object.", items: [
+        { id: "d7.3", ex: "7.3", t: "pick", title: "Which is the object?", how: "Ask was? or wen? to find the direct object.", items: [
           { q: "Meine Schwester kauft einen Pullover. — the object: ___", o: ["einen Pullover", "Meine Schwester", "kauft"], a: ["einen Pullover"], r: ["acc.what"] },
           { q: "Ich habe heute keine Zeit. — the object: ___", o: ["keine Zeit", "Ich", "heute"], a: ["keine Zeit"], r: ["acc.what"] },
           { q: "Kennen Sie Frau Graf? — the object: ___", o: ["Frau Graf", "Sie", "Kennen"], a: ["Frau Graf"], r: ["acc.what"] },
@@ -144,7 +144,7 @@ cxPack({
           { q: "(ein Lift) Gibt es hier ___?", a: ["einen Lift"], r: ["acc.gibt"] },
         ] },
         // ── our own: es gibt ──
-        { id: "dacc.g", t: "transform", title: "es gibt + the accusative", how: "Say it with es gibt — the noun becomes its object.", d: ["ein", "kein", "ist"], items: [
+        { id: "dacc.g", t: "transform", title: "es gibt + the accusative", how: "Say it with es gibt. The noun becomes its object.", d: ["ein", "kein", "ist"], items: [
           { q: "Hier ist ein Park. (→ es gibt)", a: ["Hier gibt es einen Park."], r: ["acc.gibt"] },
           { q: "Im Dorf ist kein Bahnhof. (→ es gibt)", a: ["Im Dorf gibt es keinen Bahnhof."], r: ["acc.gibt"] },
           { q: "Im Haus ist ein Keller. (→ es gibt)", a: ["Im Haus gibt es einen Keller."], r: ["acc.gibt"] },
@@ -157,7 +157,7 @@ cxPack({
           { q: "Am Bahnhof ist ein Kiosk. (→ es gibt)", a: ["Am Bahnhof gibt es einen Kiosk."], r: ["acc.gibt"] },
         ] },
         // ── our own: the object first ──
-        { id: "dacc.f", t: "transform", fixed: true, low: true, title: "The object first", how: "Start with the highlighted object — the verb stays second.", items: [
+        { id: "dacc.f", t: "transform", fixed: true, low: true, title: "The object first", how: "Start with the highlighted object. The verb stays second.", items: [
           { q: "Ich habe den Schlüssel gefunden.", hl: "den Schlüssel", a: ["Den Schlüssel habe ich gefunden."], r: ["acc.front"] },
           { q: "Wir nehmen den Zug um acht.", hl: "den Zug um acht", a: ["Den Zug um acht nehmen wir."], r: ["acc.front"] },
           { q: "Ich trinke den Kaffee schwarz.", hl: "den Kaffee", a: ["Den Kaffee trinke ich schwarz."], r: ["acc.front"] },
@@ -170,7 +170,7 @@ cxPack({
           { q: "Man kann den See von hier sehen.", hl: "den See", a: ["Den See kann man von hier sehen."], r: ["acc.front"] },
         ] },
         // ── Production: build it ──
-        { id: "dp.acc", t: "compose", end: true, title: "Build it yourself", how: "Make a sentence — conjugate, and give the object its ending.", d: ["ein", "der", "kein"], items: [
+        { id: "dp.acc", t: "compose", end: true, title: "Build it yourself", how: "Make a sentence. Give the verb and the object their right endings.", d: ["ein", "der", "kein"], items: [
           { w: ["ich", "kaufen", "ein", "Kaffee"], a: ["Ich kaufe einen Kaffee."], r: ["acc.den"] },
           { w: ["wir", "brauchen", "ein", "Tisch", "für die Küche"], a: ["Wir brauchen einen Tisch für die Küche."], r: ["acc.den"] },
           { w: ["hier", "es gibt", "kein", "Supermarkt"], a: ["Hier gibt es keinen Supermarkt.", "Es gibt hier keinen Supermarkt."], r: ["acc.gibt"] },
@@ -199,21 +199,21 @@ cxPack({
       testout: { n: 6, miss: 1 },
       rules: {
         "accp.forms": "mich, dich, ihn, sie, es, uns, euch, Sie",
-        "accp.gender": "ihn / sie / es follow the noun's gender",
-        "accp.wen": "wer → wen; was stays was",
-        "man.verb": "man = people in general, with the er-form",
-        "man.rule": "man + a modal for rules",
-        "man.not": "man ≠ der Mann, and never er again",
+        "accp.gender": "ihn, sie, es follow the noun's gender",
+        "accp.wen": "wen for a person as the object; was stays was",
+        "man.verb": "man (people in general) takes the er-form",
+        "man.rule": "man + a modal verb for rules",
+        "man.not": "man is not der Mann, and never becomes er",
       },
       sheets: [
         { id: "cx.accp1", title: "mich, dich, ihn — the pronoun as object", qn: 3,
           struct: [["er", "who"], ["→ ihn", "mid"], ["ich", "who"], ["→ mich", "mid"]],
-          why: "Pronouns change as objects, like English *I → me, he → him*: **ich → mich, er → ihn**.",
+          why: "Pronouns change when they are the object, just as English *I* becomes *me* and *he* becomes *him*: ich becomes **mich**, er becomes **ihn**.",
           rid: ["accp.forms", "accp.gender", "accp.wen"],
           rules: [
-            "As the object: ich → **mich** · du → **dich** · er → **ihn** · sie → sie · es → es · wir → **uns** · ihr → **euch** · sie/Sie → sie/Sie: Er besucht **mich**. Ich rufe **dich** an.",
-            "**ihn / sie / es** follow the noun's gender — things too: Der Kaffee? Ich trinke **ihn** schwarz. Die Jacke? Ich nehme **sie**. Das Buch? Ich lese **es**.",
-            "**wer → wen** for a person as the object: **Wen** besuchst du? (whom?) — **was** stays **was**: **Was** kaufst du?",
+            "As the object, ich becomes **mich**, du **dich**, er **ihn**, wir **uns**, ihr **euch**; sie, es and Sie stay the same. Er besucht **mich**. Ich rufe **dich** an.",
+            "**ihn**, **sie** and **es** follow the noun's gender, for things too: Der Kaffee? Ich trinke **ihn** schwarz. Die Jacke? Ich nehme **sie**. Das Buch? Ich lese **es**.",
+            "To ask about a person as the object, **wer** becomes **wen** (whom): **Wen** besuchst du? For a thing, **was** stays **was**: **Was** kaufst du?",
           ],
           table: { head: ["subject", "object", "example"], rows: [
             ["ich", "mich", "Kennst du **mich**?"], ["du", "dich", "Ich sehe **dich**."], ["er", "ihn", "Ich frage **ihn**."],
@@ -226,25 +226,25 @@ cxPack({
             ["Wir besuchen **euch** am Sonntag.", "We're visiting you on Sunday."],
             ["**Wen** suchen Sie? — Frau Graf.", "Who are you looking for? — Ms Graf."],
           ],
-          trap: "The thing decides nothing — its article does: the salad is **der** Salat → Ich esse **ihn** (not ~~es~~).",
+          trap: "The thing itself decides nothing; its article does. The salad is **der** Salat, so: Ich esse **ihn** (not ~~es~~).",
           quiz: [
-            { at: "r1", k: "pick", q: "Kannst du ___ abholen? (me)", o: ["mich", "mir", "ich"], a: 0, why: "The object of abholen: mich." },
-            { at: "r1", k: "type", cx: true, q: "Wir besuchen ___ morgen. (ihr)", a: ["euch"], r: ["accp.forms"], why: "ihr as the object: euch." },
-            { at: "r2", k: "pick", q: "Der Salat? Ich esse ___.", o: ["ihn", "es", "sie"], a: 0, why: "der Salat → ihn." },
-            { at: "r2", k: "pick", q: "Die Brille? Ich suche ___ schon lange.", o: ["sie", "ihn", "es"], a: 0, why: "die Brille → sie." },
-            { at: "r3", k: "pick", q: "___ fragst du? — Den Lehrer.", o: ["Wen", "Wer", "Was"], a: 0, why: "A person as the object: wen." },
-            { at: "r3", k: "pick", q: "___ kochst du? — Pasta.", o: ["Was", "Wen", "Wer"], a: 0, why: "A thing: was." },
-            { at: "table", k: "pick", q: "er → as the object: ___", o: ["ihn", "ihm", "er"], a: 0, why: "er → ihn." },
-            { at: "trap", k: "pick", q: "Das Brot? Ich kaufe ___.", o: ["es", "ihn", "sie"], a: 0, why: "das Brot → es." },
+            { at: "r1", k: "pick", q: "Kannst du ___ abholen? (me)", o: ["mich", "mir", "ich"], a: 0, why: "It's the object of abholen, so ich becomes mich." },
+            { at: "r1", k: "type", cx: true, q: "Wir besuchen ___ morgen. (ihr)", a: ["euch"], r: ["accp.forms"], why: "As the object, ihr becomes euch." },
+            { at: "r2", k: "pick", q: "Der Salat? Ich esse ___.", o: ["ihn", "es", "sie"], a: 0, why: "It's der Salat, so the object pronoun is ihn." },
+            { at: "r2", k: "pick", q: "Die Brille? Ich suche ___ schon lange.", o: ["sie", "ihn", "es"], a: 0, why: "It's die Brille, so the pronoun is sie." },
+            { at: "r3", k: "pick", q: "___ fragst du? — Den Lehrer.", o: ["Wen", "Wer", "Was"], a: 0, why: "Asking about a person as the object: wen." },
+            { at: "r3", k: "pick", q: "___ kochst du? — Pasta.", o: ["Was", "Wen", "Wer"], a: 0, why: "Asking about a thing: was." },
+            { at: "table", k: "pick", q: "er → as the object: ___", o: ["ihn", "ihm", "er"], a: 0, why: "As the object, er becomes ihn." },
+            { at: "trap", k: "pick", q: "Das Brot? Ich kaufe ___.", o: ["es", "ihn", "sie"], a: 0, why: "It's das Brot, so the pronoun is es." },
           ] },
         { id: "cx.accp2", title: "man — people in general", qn: 3,
           struct: [["man", "who"], ["verb + -t", "verb"], ["…", "mid"]],
-          why: "**man** is the German *you / people / one* for rules and habits — the voice of every Swiss sign and instruction.",
+          why: "**man** is the German *you*, *people* or *one* for rules and habits. You'll see it on Swiss signs and instructions everywhere.",
           rid: ["man.verb", "man.rule", "man.not"],
           rules: [
-            "**man** = people in general, *you*, *one* — with the **er-form** of the verb: Hier spricht **man** Deutsch. Wie sagt **man** das? Um zwölf isst **man** zu Mittag.",
-            "**man** + a modal for rules and advice: Hier **darf man** nicht rauchen. **Man muss** ein Billett kaufen. **Kann man** hier bezahlen?",
-            "**man** is not *der Mann* (small m, one n) — and it never turns into er: **Man** nimmt den Bus und **man** steigt in Bern um.",
+            "**man** means people in general (*you*, *one*) and takes the **er-form** of the verb: Hier spricht **man** Deutsch. Wie sagt **man** das? Um zwölf isst **man** zu Mittag.",
+            "**man** + a modal verb gives rules and advice: Hier **darf man** nicht rauchen. **Man muss** ein Billett kaufen. **Kann man** hier bezahlen?",
+            "**man** is not *der Mann* (small m, one n), and it never turns into er later on: **Man** nimmt den Bus, und **man** steigt in Bern um.",
           ],
           table: { head: ["English", "German"], rows: [
             ["You can't park here.", "Hier **kann man** nicht parken."], ["People say …", "**Man** sagt …"],
@@ -256,23 +256,23 @@ cxPack({
             ["Wie schreibt **man** das?", "How do you spell that?"],
             ["**Man** weiß nie.", "You never know."],
           ],
-          trap: "With man the verb is singular, like er: ~~Man müssen~~ → **Man muss**. And man stays man: Man kommt an und **man** (~~er~~) fragt.",
+          trap: "With man the verb is singular, as with er: **Man muss**, never ~~Man müssen~~. And man stays man: Man kommt an, und **man** (not ~~er~~) fragt.",
           quiz: [
-            { at: "r1", k: "pick", q: "Hier ___ man Englisch.", o: ["spricht", "sprechen", "sprecht"], a: 0, why: "man + the er-form." },
-            { at: "r1", k: "type", cx: true, q: "Wie ___ man das auf Deutsch? (sagen)", a: ["sagt"], r: ["man.verb"], why: "man + the er-form: sagt." },
-            { at: "r2", k: "pick", q: "Hier ___ man nicht parken.", o: ["darf", "dürfen", "darfst"], a: 0, why: "man darf — like er darf." },
-            { at: "r2", k: "pick", q: "No smoking here →", o: ["Hier darf man nicht rauchen.", "Hier darf Mann nicht rauchen.", "Hier dürfen man nicht rauchen."], a: 0, why: "man (small, one n) + darf." },
-            { at: "r3", k: "pick", q: "Man kauft ein Billett, und ___ steigt ein.", o: ["man", "er", "Mann"], a: 0, why: "man stays man." },
-            { at: "table", k: "pick", q: "You never know.", o: ["Man weiß nie.", "Man wissen nie.", "Mann weiß nie."], a: 0, why: "man + the er-form: weiß." },
-            { at: "trap", k: "pick", q: "Which is right?", o: ["Man muss warten.", "Man müssen warten."], a: 0, why: "man takes the singular." },
+            { at: "r1", k: "pick", q: "Hier ___ man Englisch.", o: ["spricht", "sprechen", "sprecht"], a: 0, why: "man takes the er-form: spricht." },
+            { at: "r1", k: "type", cx: true, q: "Wie ___ man das auf Deutsch? (sagen)", a: ["sagt"], r: ["man.verb"], why: "man takes the er-form: sagt." },
+            { at: "r2", k: "pick", q: "Hier ___ man nicht parken.", o: ["darf", "dürfen", "darfst"], a: 0, why: "man darf, just like er darf." },
+            { at: "r2", k: "pick", q: "No smoking here →", o: ["Hier darf man nicht rauchen.", "Hier darf Mann nicht rauchen.", "Hier dürfen man nicht rauchen."], a: 0, why: "man with a small m and one n, and the verb darf." },
+            { at: "r3", k: "pick", q: "Man kauft ein Billett, und ___ steigt ein.", o: ["man", "er", "Mann"], a: 0, why: "man stays man; it never becomes er." },
+            { at: "table", k: "pick", q: "You never know.", o: ["Man weiß nie.", "Man wissen nie.", "Mann weiß nie."], a: 0, why: "man takes the er-form: weiß." },
+            { at: "trap", k: "pick", q: "Which is right?", o: ["Man muss warten.", "Man müssen warten."], a: 0, why: "man takes a singular verb: muss." },
           ] },
       ],
       diag: [
-        { t: "swap", from: "^(ich|du|er|wir|ihr|wer)$", to: "^(mich|dich|ihn|uns|euch|wen)$", rule: "accp.forms", msg: "As the object: **{right}**, not {typed}." },
-        { t: "swap", from: "^(mir|dir|ihm|ihnen)$", to: "^(mich|dich|ihn|sie|uns|euch)$", rule: "accp.forms", msg: "That's another case — the object here is **{right}**." },
-        { t: "swap", from: "^(ihn|sie|es)$", to: "^(ihn|sie|es)$", rule: "accp.gender", msg: "**{right}** — the pronoun takes the noun's gender (der → ihn, die → sie, das → es)." },
-        { t: "swap", from: "^(wer|was)$", to: "^(wen|was)$", rule: "accp.wen", msg: "**{right}** — wen for a person as the object, was for a thing." },
-        { t: "swap", from: "^(mann|er)$", to: "^man$", rule: "man.not", msg: "**man** — small m, one n: people in general." },
+        { t: "swap", from: "^(ich|du|er|wir|ihr|wer)$", to: "^(mich|dich|ihn|uns|euch|wen)$", rule: "accp.forms", msg: "This is the object, so it's **{right}**, not {typed}." },
+        { t: "swap", from: "^(mir|dir|ihm|ihnen)$", to: "^(mich|dich|ihn|sie|uns|euch)$", rule: "accp.forms", msg: "That form belongs to another case (the dative). The object here is **{right}**." },
+        { t: "swap", from: "^(ihn|sie|es)$", to: "^(ihn|sie|es)$", rule: "accp.gender", msg: "It's **{right}**: the pronoun follows the noun's article. der goes with ihn, die with sie, das with es." },
+        { t: "swap", from: "^(wer|was)$", to: "^(wen|was)$", rule: "accp.wen", msg: "It's **{right}**: wen asks about a person as the object, was about a thing." },
+        { t: "swap", from: "^(mann|er)$", to: "^man$", rule: "man.not", msg: "Use **man** here (small m, one n): it means people in general." },
       ],
       drills: [
         // ── Übung 7•4 · 7•9: the object pronoun ──
@@ -290,7 +290,7 @@ cxPack({
           { q: "Mein Hund kennt ___ schon. (du)", a: ["dich"], r: ["accp.forms"] },
         ] },
         // ── Übung 7•5 · 7•7: ask with wen or was ──
-        { id: "d7.5", ex: "7.5", also: ["7.7"], t: "transform", low: true, title: "Wen or was?", how: "Ask about the highlighted object — wen for a person, was for a thing.", items: [
+        { id: "d7.5", ex: "7.5", also: ["7.7"], t: "transform", low: true, title: "Wen or was?", how: "Ask about the highlighted object: wen for a person, was for a thing.", items: [
           { q: "Anna besucht ihre Oma.", hl: "ihre Oma", a: ["Wen besucht Anna?"], r: ["accp.wen"] },
           { q: "Die Eltern brauchen einen Termin.", hl: "einen Termin", a: ["Was brauchen die Eltern?"], r: ["accp.wen"] },
           { q: "Herr Kunz sucht den Hauswart.", hl: "den Hauswart", a: ["Wen sucht Herr Kunz?"], r: ["accp.wen"] },
@@ -303,7 +303,7 @@ cxPack({
           { q: "Frau Graf liebt Rosen.", hl: "Rosen", a: ["Was liebt Frau Graf?"], r: ["accp.wen"] },
         ] },
         // ── Übung 7•6: the pronoun for the highlighted noun ──
-        { id: "d7.6", ex: "7.6", t: "type", title: "Subject or object?", how: "Write the pronoun for the highlighted part — subject or object?", items: [
+        { id: "d7.6", ex: "7.6", t: "type", title: "Subject or object?", how: "Write the pronoun for the highlighted part. Is it the subject or the object?", items: [
           { q: "Der Bus kommt gleich. → ___", hl: "Der Bus", a: ["er"], r: ["accp.gender"] },
           { q: "Wir kaufen den Tisch. → ___", hl: "den Tisch", a: ["ihn"], r: ["accp.gender"] },
           { q: "Lisa sucht die Apotheke. → ___", hl: "die Apotheke", a: ["sie"], r: ["accp.gender"] },
@@ -330,9 +330,9 @@ cxPack({
           { q: "Der Bus? Wir nehmen ___ um acht.", o: ["ihn", "es", "er"], a: ["ihn"], r: ["accp.gender"] },
         ] },
         // ── Übung 7•11: the pronoun in the sentence ──
-        { id: "d7.11", ex: "7.11", t: "transform", title: "Say it with a pronoun", how: "Write the sentence again — a pronoun for the highlighted part.", d: ["es", "er", "ihm"], items: [
+        { id: "d7.11", ex: "7.11", t: "transform", title: "Say it with a pronoun", how: "Write the sentence again with a pronoun for the highlighted part.", d: ["es", "er", "ihm"], items: [
           { q: "Ich sehe den Mann jeden Tag.", hl: "den Mann", a: ["Ich sehe ihn jeden Tag."], r: ["accp.forms"] },
-          { q: "Wir haben heute den Zug verpasst.", hl: "den Zug", a: ["Wir haben ihn heute verpasst."], r: ["accp.gender"], note: "A pronoun object moves up, right after the verb: haben **ihn** heute verpasst." },
+          { q: "Wir haben heute den Zug verpasst.", hl: "den Zug", a: ["Wir haben ihn heute verpasst."], r: ["accp.gender"], note: "A pronoun object moves forward, right after the verb: Wir haben **ihn** heute verpasst." },
           { q: "Kannst du die Rechnung bezahlen?", hl: "die Rechnung", a: ["Kannst du sie bezahlen?"], r: ["accp.gender"] },
           { q: "Sie liest das Buch heute.", hl: "das Buch", a: ["Sie liest es heute."], r: ["accp.gender"] },
           { q: "Er ruft seine Mutter jeden Tag an.", hl: "seine Mutter", a: ["Er ruft sie jeden Tag an."], r: ["accp.forms"] },
@@ -356,7 +356,7 @@ cxPack({
           { q: "Hier ___ man nicht rauchen.", o: ["darf", "dürfen", "darfst"], a: ["darf"], r: ["man.rule"] },
         ] },
         // ── Übung 7•16: say it with man ──
-        { id: "d7.16", ex: "7.16", t: "transform", title: "Say it with man", how: "Say it with man — people in general.", d: ["Mann", "er", "sprechen"], items: [
+        { id: "d7.16", ex: "7.16", t: "transform", title: "Say it with man", how: "Say it with man (people in general).", d: ["Mann", "er", "sprechen"], items: [
           { q: "Die Leute sprechen hier Französisch.", a: ["Man spricht hier Französisch.", "Hier spricht man Französisch."], r: ["man.verb"] },
           { q: "In der Schweiz trennen alle den Abfall.", a: ["In der Schweiz trennt man den Abfall."], r: ["man.verb"] },
           { q: "Hier dürfen die Leute nicht rauchen.", a: ["Hier darf man nicht rauchen.", "Man darf hier nicht rauchen."], r: ["man.rule"] },
@@ -369,7 +369,7 @@ cxPack({
           { q: "Im Museum dürfen die Besucher nichts anfassen.", a: ["Im Museum darf man nichts anfassen.", "Man darf im Museum nichts anfassen."], r: ["man.rule"] },
         ] },
         // ── Production: say it ──
-        { id: "dp.accp", t: "translate", end: true, title: "Say it in German", how: "Translate — mind the object pronoun, and man.", items: [
+        { id: "dp.accp", t: "translate", end: true, title: "Say it in German", how: "Translate. Watch the object pronouns and man.", items: [
           { q: "Can you hear me? (du)", a: ["Hörst du mich?"], r: ["accp.forms"] },
           { q: "I'll call you tomorrow. (du)", a: ["Ich rufe dich morgen an.", "Morgen rufe ich dich an."], r: ["accp.forms"] },
           { q: "The coffee? I drink it black.", a: ["Der Kaffee? Ich trinke ihn schwarz."], r: ["accp.gender"] },
@@ -377,12 +377,12 @@ cxPack({
           { q: "Who are you looking for? (Sie)", a: ["Wen suchen Sie?"], r: ["accp.wen"] },
           { q: "The jacket? I'll take it.", a: ["Die Jacke? Ich nehme sie."], r: ["accp.gender"] },
           { q: "Do you know us? (Sie)", a: ["Kennen Sie uns?"], r: ["accp.forms"] },
-          { q: "You can't park here.", a: ["Hier kann man nicht parken.", "Man kann hier nicht parken.", "Hier darf man nicht parken.", "Man darf hier nicht parken."], r: ["man.rule"] },
+          { q: "You can't park here.", a: ["Hier kann man nicht parken.", "Man kann hier nicht parken.", "Hier darf man nicht parken.", "Man darf hier nicht parken.", "Hier kann man nicht parkieren.", "Man kann hier nicht parkieren.", "Hier darf man nicht parkieren.", "Man darf hier nicht parkieren."], r: ["man.rule"] },
           { q: "How do you say that in German?", a: ["Wie sagt man das auf Deutsch?"], r: ["man.verb"] },
           { q: "In Switzerland people separate the rubbish.", a: ["In der Schweiz trennt man den Abfall."], r: ["man.verb"] },
         ] },
         // ── Übung 7•12: a noun for the pronoun — your own ──
-        { id: "d7.12", ex: "7.12", t: "write", end: true, title: "Write your own", how: "Write the sentence with a noun that fits instead of the pronoun — saved for Claude to correct.", items: [
+        { id: "d7.12", ex: "7.12", t: "write", end: true, title: "Write your own", how: "Replace the pronoun with a noun that fits. It's saved for Claude to correct.", items: [
           { q: "Ich habe ihn gestern gekauft. — what did you buy? (a der-noun)", model: ["Ich habe den Pullover gestern gekauft."], r: ["accp.gender"] },
           { q: "Wo hast du es gefunden? — what? (a das-noun)", model: ["Wo hast du das Handy gefunden?"], r: ["accp.gender"] },
           { q: "Wir besuchen sie am Sonntag. — whom?", model: ["Wir besuchen unsere Großeltern am Sonntag."], r: ["accp.forms"] },

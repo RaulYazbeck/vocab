@@ -17,21 +17,21 @@ cxPack({
     "s1.pf": {
       // What a wrong answer gives away (the verb sheets' points).
       diag: [
-        { t: "swap", from: "^(habe|hast|hat|haben|habt)$", to: "^(bin|bist|ist|sind|seid)$", rule: "gs:pf2.r1", msg: "Movement from A to B or a change of state → **sein**: **{right}**." },
-        { t: "swap", from: "^(bin|bist|ist|sind|seid)$", to: "^(habe|hast|hat|haben|habt)$", rule: "gs:pf2.r4", msg: "No movement from A to B, no change → **haben**: **{right}**." },
-        { t: "swap", from: "^ge(be|ver|er|ent|emp|zer|ge)\\w+$", to: "^(be|ver|er|ent|emp|zer|ge)\\w+$", rule: "gs:pf4.r2", msg: "be-, ver-, er-, ent-, emp-, zer-: no ge- in front — **{right}**." },
-        { t: "swap", from: "^ge\\w+iert$", to: "^\\w+iert$", rule: "gs:pf4.r3", msg: "-ieren verbs take no ge-: **{right}**." },
-        { t: "swap", from: "^ge(an|auf|aus|ein|mit|ab|zu|um|vor|kennen)\\w+$", to: "^(an|auf|aus|ein|mit|ab|zu|um|vor|kennen)ge\\w+$", rule: "gs:pf4.r1", msg: "A separable verb takes ge- in the middle: **{right}**." },
+        { t: "swap", from: "^(habe|hast|hat|haben|habt)$", to: "^(bin|bist|ist|sind|seid)$", rule: "gs:pf2.r1", msg: "Movement from A to B or a change of state takes **sein**: **{right}**." },
+        { t: "swap", from: "^(bin|bist|ist|sind|seid)$", to: "^(habe|hast|hat|haben|habt)$", rule: "gs:pf2.r4", msg: "There's no movement from A to B and no change of state, so it takes **haben**: **{right}**." },
+        { t: "swap", from: "^ge(be|ver|er|ent|emp|zer|ge)\\w+$", to: "^(be|ver|er|ent|emp|zer|ge)\\w+$", rule: "gs:pf4.r2", msg: "Verbs starting with be-, ver-, er-, ent-, emp- or zer- add no ge-: **{right}**." },
+        { t: "swap", from: "^ge\\w+iert$", to: "^\\w+iert$", rule: "gs:pf4.r3", msg: "Verbs ending in -ieren add no ge-: **{right}**." },
+        { t: "swap", from: "^ge(an|auf|aus|ein|mit|ab|zu|um|vor|kennen)\\w+$", to: "^(an|auf|aus|ein|mit|ab|zu|um|vor|kennen)ge\\w+$", rule: "gs:pf4.r1", msg: "A separable verb puts ge- in the middle: **{right}**." },
         { t: "swap", from: "^ge\\w+t$", to: "^ge\\w+en$", rule: "gs:pf3.r2", msg: "A strong verb's participle ends in -en: **{right}**." },
         { t: "swap", from: "^ge\\w+en$", to: "^ge\\w+t$", rule: "gs:pf3.r1", msg: "A regular verb's participle ends in -t: **{right}**." },
-        { t: "pos", tok: "^ge\\w+(t|en)$", rule: "gs:pf1.r3", msg: "The participle goes to the very end ({where})." },
+        { t: "pos", tok: "^ge\\w+(t|en)$", rule: "gs:pf1.r3", msg: "The participle belongs at the end: it goes {where}." },
       ],
       drills: [
         // ── generated: Übung 10•9 — the auxiliary and the participle ──
         { id: "d10.9", ex: "10.9", t: "type", title: "hat or ist + the participle", how: "Write the Perfekt: the auxiliary and the participle.", gen: { kind: "conj", verbs: ["essen", "trinken", "nehmen", "schlafen", "fallen", "gehen", "kommen", "fahren", "schreiben", "lesen", "sehen", "finden", "bleiben", "laufen", "fliegen", "sprechen", "helfen", "werden", "schwimmen", "sterben"], tense: "pf", persons: ["er"] }, n: 10, r: ["gs:pf2.r1", "gs:pf2.r4", "gs:pf3.r2"] },
 
         // ── Übung 10•1: already done — haben for every person ──
-        { id: "d10.1", ex: "10.1", t: "type", title: "Already done!", how: "Who will do it? It's already done — write the form of haben.", items: [
+        { id: "d10.1", ex: "10.1", t: "type", title: "Already done!", how: "Each job is already done. Write the right form of haben.", items: [
           { q: "Wer bringt den Müll raus? — Opa ___ es schon gemacht.", a: ["hat"], r: ["gs:pf1.r1"], vf: [["haben", "pr", "er"]] },
           { q: "Wer räumt die Küche auf? — Ich ___ es schon gemacht.", a: ["habe"], r: ["gs:pf1.r1"], vf: [["haben", "pr", "ich"]] },
           { q: "Wer kauft die Milch? — Wir ___ es schon gemacht.", a: ["haben"], r: ["gs:pf1.r1"], vf: [["haben", "pr", "wir"]] },
@@ -44,7 +44,7 @@ cxPack({
           { q: "Wer macht die Wäsche? — Ich ___ das schon gemacht.", a: ["habe"], r: ["gs:pf1.r1"], vf: [["haben", "pr", "ich"]] },
         ] },
         // ── Übung 10•2: I've already done it ──
-        { id: "d10.2", ex: "10.2", t: "answer", title: "I've done it already", how: "Your mother asks before you leave. Say you've already done it — in the Perfekt.", items: [
+        { id: "d10.2", ex: "10.2", t: "answer", title: "I've done it already", how: "Your mother asks before you leave. Say in the Perfekt that you've already done it.", items: [
           { q: "Kauf bitte Brot!", a: ["Ich habe das Brot schon gekauft.", "Ich habe schon Brot gekauft.", "Das Brot habe ich schon gekauft."], r: ["gs:pf3.r1"], vf: [["kaufen", "pf", "ich"]] },
           { q: "Spiel noch kurz mit Mia!", a: ["Ich habe schon mit Mia gespielt.", "Mit Mia habe ich schon gespielt."], r: ["gs:pf3.r1"], vf: [["spielen", "pf", "ich"]] },
           { q: "Öffne die Fenster!", a: ["Ich habe die Fenster schon geöffnet.", "Die Fenster habe ich schon geöffnet."], r: ["gs:pf3.r1"], vf: [["öffnen", "pf", "ich"]] },
@@ -57,7 +57,7 @@ cxPack({
           { q: "Bezahl bitte die Rechnung!", a: ["Ich habe die Rechnung schon bezahlt.", "Die Rechnung habe ich schon bezahlt."], r: ["gs:pf4.r2"], vf: [["bezahlen", "pf", "ich"]] },
         ] },
         // ── Übung 10•3: family news in the Perfekt ──
-        { id: "d10.3", ex: "10.3", t: "transform", title: "Family news", how: "Your aunt tells the news — say it in the Perfekt.", items: [
+        { id: "d10.3", ex: "10.3", t: "transform", title: "Family news", how: "Your aunt tells the family news. Say it in the Perfekt.", items: [
           { q: "Mein Cousin lernt Japanisch.", a: ["Mein Cousin hat Japanisch gelernt."], r: ["gs:pf3.r1"], vf: [["lernen", "pf", "er"]] },
           { q: "Die Nachbarn bauen ein Haus.", a: ["Die Nachbarn haben ein Haus gebaut."], r: ["gs:pf3.r1"], vf: [["bauen", "pf", "sie"]] },
           { q: "Das kostet viel Geld.", a: ["Das hat viel Geld gekostet."], r: ["gs:pf3.r1"], vf: [["kosten", "pf", "er"]] },
@@ -78,7 +78,7 @@ cxPack({
           { q: "Der Hund ___ ins Wasser gesprungen.", a: ["ist"], r: ["gs:pf2.r1"] },
           { q: "Ben ___ allen ein Eis gekauft.", a: ["hat"], r: ["gs:pf2.r4"] },
           { q: "Wir ___ mit dem Velo nach Hause gefahren.", a: ["sind"], r: ["gs:pf2.r1"] },
-          { q: "Ihr ___ lange am Ufer gesessen.", a: ["habt", "seid"], r: ["gs:pf2.r4"], note: "sitzen, liegen, stehen: haben — in Switzerland and the south also sein." },
+          { q: "Ihr ___ lange am Ufer gesessen.", a: ["habt", "seid"], r: ["gs:pf2.r4"], note: "sitzen, liegen and stehen take haben; in Switzerland and southern Germany, sein is common too." },
           { q: "Am Abend ___ alle müde ins Bett gefallen.", a: ["sind"], r: ["gs:pf2.r1"] },
           { q: "Du ___ den ganzen Tag draußen geblieben.", a: ["bist"], r: ["gs:pf2.r3"] },
         ] },
@@ -96,7 +96,7 @@ cxPack({
           { q: "Mit achtzig ___ sie noch einmal nach Rom geflogen.", a: ["ist"], r: ["gs:pf2.r1"] },
         ] },
         // ── Übung 10•6: where was Nico? — sein, bleiben, werden ──
-        { id: "d10.6", ex: "10.6", t: "type", title: "Where was Nico?", how: "Write the form of haben or sein — gewesen, geblieben and geworden take sein.", items: [
+        { id: "d10.6", ex: "10.6", t: "type", title: "Where was Nico?", how: "Write the form of haben or sein. gewesen, geblieben and geworden take sein.", items: [
           { q: "Nico ___ gestern nicht im Büro gewesen.", a: ["ist"], r: ["gs:pf2.r3"] },
           { q: "Er ___ zu Hause geblieben.", a: ["ist"], r: ["gs:pf2.r3"] },
           { q: "Er ___ krank geworden.", a: ["ist"], r: ["gs:pf2.r2"] },
@@ -119,10 +119,10 @@ cxPack({
           { q: "Der Zug ___ schon abgefahren.", a: ["ist"], r: ["gs:pf2.r1"] },
           { q: "Ich ___ zwanzig Minuten auf den nächsten Zug gewartet.", a: ["habe"], r: ["gs:pf2.r4"] },
           { q: "Ich ___ müde im Büro angekommen.", a: ["bin"], r: ["gs:pf2.r1"] },
-          { q: "Mein Handy ___ den ganzen Morgen auf dem Küchentisch gelegen.", a: ["hat", "ist"], r: ["gs:pf2.r4"], note: "liegen, sitzen, stehen: haben — in Switzerland and the south also sein." },
+          { q: "Mein Handy ___ den ganzen Morgen auf dem Küchentisch gelegen.", a: ["hat", "ist"], r: ["gs:pf2.r4"], note: "liegen, sitzen and stehen take haben; in Switzerland and southern Germany, sein is common too." },
         ] },
         // ── Übung 10•8: a week at the language school ──
-        { id: "d10.8", ex: "10.8", t: "pick", title: "Last week at the language school", how: "hat, ist, haben or sind? Movement and change → sein.", o: ["hat", "ist", "haben", "sind"], items: [
+        { id: "d10.8", ex: "10.8", t: "pick", title: "Last week at the language school", how: "Pick hat, ist, haben or sind. Movement and change take sein.", o: ["hat", "ist", "haben", "sind"], items: [
           { q: "Wir ___ früh in die Sprachschule gefahren.", a: ["sind"], r: ["gs:pf2.r1"] },
           { q: "Dort ___ wir neue Leute getroffen.", a: ["haben"], r: ["gs:pf2.r4"] },
           { q: "Die Lehrerin ___ uns die Hand gegeben.", a: ["hat"], r: ["gs:pf2.r4"] },
@@ -148,7 +148,7 @@ cxPack({
           { q: "Zum Abschied hat sie uns eine Karte ___. (schreiben)", a: ["geschrieben"], r: ["gs:pf3.trap"], vf: [["schreiben", "p2only", "er"]] },
         ] },
         // ── Übung 10•11: a Sunday — strong verbs and sein ──
-        { id: "d10.11", ex: "10.11", t: "transform", title: "Our Sunday", how: "Tell it in the Perfekt — haben or sein, and the participle.", items: [
+        { id: "d10.11", ex: "10.11", t: "transform", title: "Our Sunday", how: "Tell it in the Perfekt, with haben or sein and the participle.", items: [
           { q: "Wir essen ein großes Frühstück.", a: ["Wir haben ein großes Frühstück gegessen."], r: ["gs:pf3.r2"], vf: [["essen", "pf", "wir"]] },
           { q: "Ich trinke drei Tassen Kaffee.", a: ["Ich habe drei Tassen Kaffee getrunken."], r: ["gs:pf3.trap"], vf: [["trinken", "pf", "ich"]] },
           { q: "Die Kinder gehen in den Wald.", a: ["Die Kinder sind in den Wald gegangen."], r: ["gs:pf2.r1"], vf: [["gehen", "pf", "sie"]] },
@@ -161,7 +161,7 @@ cxPack({
           { q: "Wir schlafen alle sehr gut.", a: ["Wir haben alle sehr gut geschlafen."], r: ["gs:pf2.r4"], vf: [["schlafen", "pf", "wir"]] },
         ] },
         // ── Übung 10•12: where were you last night? ──
-        { id: "d10.12", ex: "10.12", t: "transform", low: true, title: "Where were you last night?", how: "You came home late — tell it, and ask it, in the Perfekt.", items: [
+        { id: "d10.12", ex: "10.12", t: "transform", low: true, title: "Where were you last night?", how: "You came home late. Put the questions and answers into the Perfekt.", items: [
           { q: "Ich fahre mit Lara in die Stadt.", a: ["Ich bin mit Lara in die Stadt gefahren."], r: ["gs:pf2.r1"], vf: [["fahren", "pf", "ich"]] },
           { q: "Was macht ihr da?", a: ["Was habt ihr da gemacht?"], r: ["gs:pf3.r1"], vf: [["machen", "pf", "ihr"]] },
           { q: "Wir gehen ins Kino.", a: ["Wir sind ins Kino gegangen."], r: ["gs:pf2.r1"], vf: [["gehen", "pf", "wir"]] },
@@ -174,7 +174,7 @@ cxPack({
           { q: "Bleibst du lange draußen?", a: ["Bist du lange draußen geblieben?"], r: ["gs:pf2.r3"], vf: [["bleiben", "pf", "du"]] },
         ] },
         // ── Übung 10•13: the mixed verbs — gedacht, gebracht, gewusst ──
-        { id: "d10.13", ex: "10.13", t: "type", title: "gedacht, gebracht, gewusst", how: "Write the participle — the mixed verbs: a new stem and -t.", items: [
+        { id: "d10.13", ex: "10.13", t: "type", title: "gedacht, gebracht, gewusst", how: "Write the participle. These mixed verbs change their stem and end in -t.", items: [
           { q: "Ich habe oft an dich ___. (denken)", a: ["gedacht"], r: ["gs:pf3.r3"], vf: [["denken", "p2only", "er"]] },
           { q: "Du hast mir Blumen ___. (bringen)", a: ["gebracht"], r: ["gs:pf3.r3"], vf: [["bringen", "p2only", "er"]] },
           { q: "Hast du ihn schon als Kind ___? (kennen)", a: ["gekannt"], r: ["gs:pf3.r3"], vf: [["kennen", "p2only", "er"]] },
@@ -199,7 +199,7 @@ cxPack({
           { q: "Das Kind nennt den Hund Bello.", a: ["Das Kind hat den Hund Bello genannt."], r: ["gs:pf3.r3"], vf: [["nennen", "pf", "er"]] },
         ] },
         // ── Übung 10•15: separable verbs — ge in the middle ──
-        { id: "d10.15", ex: "10.15", t: "type", title: "abgeholt, angekommen", how: "Write the participle — a separable verb takes ge- in the middle.", items: [
+        { id: "d10.15", ex: "10.15", t: "type", title: "abgeholt, angekommen", how: "Write the participle. A separable verb puts ge- in the middle.", items: [
           { q: "Wann hast du Lea ___? (abholen)", a: ["abgeholt"], r: ["gs:pf4.r1"], vf: [["abholen", "p2only", "er"]] },
           { q: "Der Zug ist pünktlich ___. (ankommen)", a: ["angekommen"], r: ["gs:pf4.r1"], vf: [["ankommen", "p2only", "er"]] },
           { q: "Wer hat die Tür ___? (aufmachen)", a: ["aufgemacht"], r: ["gs:pf4.r1"], vf: [["aufmachen", "p2only", "er"]] },
@@ -212,7 +212,7 @@ cxPack({
           { q: "Wir haben Freunde zum Essen ___. (einladen)", a: ["eingeladen"], r: ["gs:pf4.r1"], vf: [["einladen", "p2only", "er"]] },
         ] },
         // ── Übung 10•16: separable verbs in a conversation ──
-        { id: "d10.16", ex: "10.16", t: "transform", low: true, title: "Asked and answered", how: "Say it in the Perfekt — the prefix joins the participle.", items: [
+        { id: "d10.16", ex: "10.16", t: "transform", low: true, title: "Asked and answered", how: "Say it in the Perfekt. The prefix joins the front of the participle.", items: [
           { q: "Wann stehst du auf?", a: ["Wann bist du aufgestanden?"], r: ["gs:pf4.r1"], vf: [["aufstehen", "pf", "du"]] },
           { q: "Ich stehe um sieben auf.", a: ["Ich bin um sieben aufgestanden."], r: ["gs:pf4.r1"], vf: [["aufstehen", "pf", "ich"]] },
           { q: "Wer ruft dich an?", a: ["Wer hat dich angerufen?"], r: ["gs:pf4.r1"], vf: [["anrufen", "pf", "er"]] },
@@ -225,7 +225,7 @@ cxPack({
           { q: "Wir räumen die Küche auf.", a: ["Wir haben die Küche aufgeräumt."], r: ["gs:pf4.r1"], vf: [["aufräumen", "pf", "wir"]] },
         ] },
         // ── Übung 10•17: the holidays — Perfekt, and war / hatte ──
-        { id: "d10.17", ex: "10.17", t: "transform", title: "Our holidays", how: "Say it in the past as people speak: the Perfekt — but war and hatte for sein and haben.", items: [
+        { id: "d10.17", ex: "10.17", t: "transform", title: "Our holidays", how: "Say it in the spoken past: the Perfekt, but war and hatte for sein and haben.", items: [
           { q: "Wir fahren in die Berge.", a: ["Wir sind in die Berge gefahren."], r: ["gs:pf2.r1"], vf: [["fahren", "pf", "wir"]] },
           { q: "Das Wetter ist schön.", a: ["Das Wetter war schön."], r: ["gs:pf6.r3"], vf: [["sein", "pt", "er"]] },
           { q: "Wir besuchen meine Tante.", a: ["Wir haben meine Tante besucht."], r: ["gs:pf4.r2"], vf: [["besuchen", "pf", "wir"]] },
@@ -238,7 +238,7 @@ cxPack({
           { q: "Wir bezahlen das Hotel mit Karte.", a: ["Wir haben das Hotel mit Karte bezahlt."], r: ["gs:pf4.r2"], vf: [["bezahlen", "pf", "wir"]] },
         ] },
         // ── Übung 10•18: the bike is gone — no ge- after be-, ver-… ──
-        { id: "d10.18", ex: "10.18", t: "transform", low: true, title: "The bike is gone!", how: "Say it in the Perfekt — be-, ver-, er-, ent-, zer-, ge-: no ge- in front.", items: [
+        { id: "d10.18", ex: "10.18", t: "transform", low: true, title: "The bike is gone!", how: "Say it in the Perfekt. Verbs starting with be-, ver-, er-, ent-, zer-, ge- add no ge-.", items: [
           { q: "Wir verlieren den Schlüssel.", a: ["Wir haben den Schlüssel verloren."], r: ["gs:pf4.r2"], vf: [["verlieren", "pf", "wir"]] },
           { q: "Mein Velo verschwindet.", a: ["Mein Velo ist verschwunden."], r: ["gs:pf4.r2", "gs:pf2.r2"], vf: [["verschwinden", "pf", "er"]] },
           { q: "Ich verstehe das nicht.", a: ["Ich habe das nicht verstanden."], r: ["gs:pf4.r2"], vf: [["verstehen", "pf", "ich"]] },
@@ -264,7 +264,7 @@ cxPack({
           { q: "Was hat er nie vergessen? (seine Heimat)", a: ["Er hat seine Heimat nie vergessen.", "Seine Heimat hat er nie vergessen."], r: ["gs:pf4.r2"], vf: [["vergessen", "pf", "er"]] },
         ] },
         // ── Übung 10•20: -ieren — no ge- ──
-        { id: "d10.20", ex: "10.20", t: "transform", title: "studiert, telefoniert", how: "Say it in the Perfekt — -ieren verbs take no ge-.", items: [
+        { id: "d10.20", ex: "10.20", t: "transform", title: "studiert, telefoniert", how: "Say it in the Perfekt. Verbs ending in -ieren add no ge-.", items: [
           { q: "Was passiert am Wochenende?", a: ["Was ist am Wochenende passiert?"], r: ["gs:pf4.r3", "gs:pf2.r2"], vf: [["passieren", "pf", "er"]] },
           { q: "Wir korrigieren die Hausaufgaben.", a: ["Wir haben die Hausaufgaben korrigiert."], r: ["gs:pf4.r3"], vf: [["korrigieren", "pf", "wir"]] },
           { q: "Ich telefoniere mit meiner Schwester.", a: ["Ich habe mit meiner Schwester telefoniert."], r: ["gs:pf4.r3"], vf: [["telefonieren", "pf", "ich"]] },
@@ -277,7 +277,7 @@ cxPack({
           { q: "Wir diskutieren lange.", a: ["Wir haben lange diskutiert."], r: ["gs:pf4.r3"], vf: [["diskutieren", "pf", "wir"]] },
         ] },
         // ── Übung 28•1: one sentence, two tenses ──
-        { id: "d28.1", ex: "28.1", t: "transform", low: true, title: "Now or then?", how: "Say it in the tense in brackets — for sein and haben the past is war and hatte.", items: [
+        { id: "d28.1", ex: "28.1", t: "transform", low: true, title: "Now or then?", how: "Say it in the tense in brackets. For sein and haben, the past is war and hatte.", items: [
           { q: "Der Kurs beginnt um neun. (→ Perfekt)", a: ["Der Kurs hat um neun begonnen."], r: ["gs:pf4.r2"], vf: [["beginnen", "pf", "er"]] },
           { q: "Wir sind ins Kino gegangen. (→ Präsens)", a: ["Wir gehen ins Kino."], r: ["gs:pf1.r1"], vf: [["gehen", "pr", "wir"]] },
           { q: "Die Katze hat die Wurst gefressen. (→ Präsens)", a: ["Die Katze frisst die Wurst."], r: ["gs:pf1.r1"], vf: [["fressen", "pr", "er"]] },
@@ -291,7 +291,7 @@ cxPack({
         ] },
         // ── our own: after weil and dass the auxiliary goes last ──
         // (the engine checks the participle here: the auxiliary follows it)
-        { id: "dpf.sub", t: "transform", fixed: true, title: "…, weil ich krank gewesen bin", how: "Join them with the word in brackets — the auxiliary goes to the very end.", items: [
+        { id: "dpf.sub", t: "transform", fixed: true, title: "…, weil ich krank gewesen bin", how: "Join them with the word in brackets. The auxiliary goes to the very end.", items: [
           { q: "Ich bin müde. Ich habe schlecht geschlafen. (weil)", a: ["Ich bin müde, weil ich schlecht geschlafen habe."], r: ["gs:pf6.r2"], vf: [["schlafen", "p2only", "er"]] },
           { q: "Sie ist froh. Sie hat die Prüfung bestanden. (weil)", a: ["Sie ist froh, weil sie die Prüfung bestanden hat."], r: ["gs:pf6.r2"], vf: [["bestehen", "p2only", "er"]] },
           { q: "Ich weiß es. Er ist umgezogen. (dass)", a: ["Ich weiß, dass er umgezogen ist."], r: ["gs:pf6.r2"], vf: [["umziehen", "p2only", "er"]] },
@@ -316,7 +316,7 @@ cxPack({
         ] },
 
         // ── Production: build it, say it ──
-        { id: "dp.pf", t: "compose", end: true, title: "Build it yourself", how: "Make a sentence in the Perfekt — haben or sein, the participle at the end.", d: ["hat", "ist"], items: [
+        { id: "dp.pf", t: "compose", end: true, title: "Build it yourself", how: "Make a sentence in the Perfekt: haben or sein, and the participle at the end.", d: ["hat", "ist"], items: [
           { w: ["ich", "gestern", "lange", "schlafen"], a: ["Ich habe gestern lange geschlafen.", "Gestern habe ich lange geschlafen."], r: ["gs:pf2.r4"], vf: [["schlafen", "pf", "ich"]] },
           { w: ["wir", "im Sommer", "nach Italien", "fahren"], a: ["Wir sind im Sommer nach Italien gefahren."], r: ["gs:pf2.r1"], vf: [["fahren", "pf", "wir"]] },
           { w: ["Anna", "ihre Mutter", "anrufen"], a: ["Anna hat ihre Mutter angerufen."], r: ["gs:pf4.r1"], vf: [["anrufen", "pf", "er"]], cap: true },
@@ -328,12 +328,12 @@ cxPack({
           { k: "translate", q: "She studied in Basel.", a: ["Sie hat in Basel studiert."], r: ["gs:pf4.r3"], vf: [["studieren", "pf", "er"]] },
           { k: "translate", q: "I didn't come because I was ill. (weil)", a: ["Ich bin nicht gekommen, weil ich krank war.", "Ich bin nicht gekommen, weil ich krank gewesen bin."], r: ["gs:pf6.r2"], vf: [["kommen", "pf", "ich"]] },
         ] },
-        { id: "dw.pf", t: "write", end: true, title: "Write your own", how: "In your own words, in the Perfekt — saved for Claude to correct.", items: [
+        { id: "dw.pf", t: "write", end: true, title: "Write your own", how: "Write in your own words, in the Perfekt. Saved for Claude to correct.", items: [
           { q: "Last weekend: four things you did.", model: ["Am Samstag habe ich lange geschlafen. Dann bin ich in die Stadt gefahren und habe eingekauft. Am Abend habe ich mit Freunden gekocht."], r: ["gs:pf2.r1", "gs:pf2.r4"] },
           { q: "Your last trip: where did you go, what did you see and eat?", model: ["Im September sind wir nach Lugano gefahren. Wir haben den See gesehen und viel Pizza gegessen."], r: ["gs:pf2.r1", "gs:pf3.r2"] },
           { q: "Your first day in Switzerland (or in your town): what happened?", model: ["Ich bin am Flughafen angekommen und habe meine Kollegin angerufen. Sie hat mich abgeholt."], r: ["gs:pf4.r1"] },
           { q: "A bad morning: what went wrong?", model: ["Ich habe den Wecker nicht gehört und bin zu spät aufgestanden. Der Bus ist ohne mich abgefahren."], r: ["gs:pf4.r1", "gs:pf2.r2"] },
-          { q: "Someone you know: tell three things from his or her life.", model: ["Mein Vater ist in Portugal geboren. Er hat Ingenieur studiert und ist 1990 in die Schweiz gekommen."], r: ["gs:pf2.r2", "gs:pf4.r3"] },
+          { q: "Someone you know: tell three things from his or her life.", model: ["Mein Vater ist in Portugal geboren. Er hat Maschinenbau studiert und ist 1990 in die Schweiz gekommen."], r: ["gs:pf2.r2", "gs:pf4.r3"] },
           { q: "Yesterday evening: what did you do — and why not something else? (weil)", model: ["Gestern Abend bin ich zu Hause geblieben, weil ich müde war. Ich habe einen Film gesehen."], r: ["gs:pf2.r3", "gs:pf6.r2"] },
           { q: "Something you lost or forgot — and found again?", model: ["Ich habe meinen Schlüssel im Zug vergessen. Zum Glück hat ihn jemand gefunden."], r: ["gs:pf4.r2"] },
           { q: "A phone call: who called you, what did you talk about?", model: ["Gestern hat mich meine Schwester angerufen. Wir haben über ihren Urlaub gesprochen."], r: ["gs:pf4.r1", "gs:pf3.r2"] },
