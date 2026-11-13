@@ -433,6 +433,20 @@
 .cx-learned { color:var(--success) !important; }
 .cx-lines { flex-direction:column; align-items:stretch; }
 .cx-lines .gs-tok { text-align:left; }
+/* place the word: the sentence with a slot before, between and after its words */
+.cx-place-src { display:flex; align-items:center; gap:10px; min-height:48px; margin:6px 0 8px; flex-wrap:wrap; }
+.cx-place-hint { color:var(--text-3); font-size:13px; }
+.cx-place { align-items:center; gap:0; row-gap:8px; padding:10px 6px; font-size:19px; line-height:1.3; }
+.cx-pword { padding:8px 1px; cursor:pointer; font-weight:600; }
+.cx-pend { font-weight:600; }
+.cx-slot { width:20px; min-width:20px; height:44px; padding:0; border:0; background:none; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; touch-action:manipulation; }
+.cx-slot i { display:block; width:6px; height:6px; border-radius:50%; background:hsl(var(--th) 60% 65% / 0.45); transition:all .12s; }
+.cx-slot:hover i, .cx-slot.hot i, .cx-slot:focus-visible i { width:4px; height:30px; border-radius:3px; background:hsl(var(--th) 85% 65%); }
+.cx-slot:disabled { cursor:default; visibility:hidden; }
+.cx-placed, .cx-ptok { touch-action:none; margin:0 3px; }
+.cx-place.cx-nudge .cx-slot i { animation:cx-slot-pulse .5s ease 2; }
+@keyframes cx-slot-pulse { 50% { transform:scale(2.2); background:hsl(var(--th) 85% 65%); } }
+.cx-place-q { margin-bottom:0; }
 /* drag & drop on the course's tiles (course-ui.js cxDragBind) */
 .cx-run #cx-bank .gs-tok, .cx-run #cx-built .gs-tok { touch-action:none; }
 .cx-run .gs-bank.drop-hot { background:var(--accent-dim); border-radius:var(--r-sm); }

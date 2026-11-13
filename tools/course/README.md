@@ -64,6 +64,11 @@ a later session that uploads its chapter.
      reordering of a time phrase and a pronoun subject by rule. `low: true` on a set
      writes every first tile small (questions, commands: the capital would give the
      start away) — its items that start with a noun or a name say `cap: true`.
+   - A transform item whose answer is its sentence plus one given word (the cue in brackets, or
+     nicht · gar nicht · nie …) is shown as **place the word** (`cxPlace`): slots in the sentence,
+     tap or drag — no rewriting. A form the learner must work out is never placed. `place: false`
+     on a set or item opts out. Typed gap items accept the gap's words alone, with some of the
+     sentence around them, or the whole sentence (`cxGapInner`) — no need to list those.
    - Verb forms: `vf: [[inf, tense, person]]` on an item makes the validator check that
      every accepted answer holds the engine's form (`pr` · `pt` · `im`), its words in
      order — `ruf … an` passes in *Ruf mich morgen an!*. The Perfekt (`pf`: *ist gegangen*) is
@@ -169,6 +174,9 @@ a later session that uploads its chapter.
                                       # buttons, ✍️ Writing, 📚 My dues (list + a round of only
                                       # what's due), the Journey's grammar block and days,
                                       # the French app untouched
+    node t-ux.mjs                     # exercise comfort: the whole sentence (or the prompt) typed where a gap was asked is
+                                      # right — the course, the verb sheets' quizzes; a word to put in is placed (tap,
+                                      # drag, ← →), which items are and which never; phone geometry
     node t-fixes.mjs                  # the fixes after the first week: the length is the length (Quick 15 keeps
                                       # a lesson that doesn't fit out), the Präsens lesson's last sheet in a Long
                                       # 60, ✍️ starters typed at the cursor, the Journey's days and "out of reach"

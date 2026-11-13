@@ -41,6 +41,12 @@ const HELP = () => {
     }
     if (k === "write" || k === "open") { document.getElementById("cx-text").value = "Ich habe keinen Fernseher und kein Auto."; return cxCheckCur(); }
     if (k === "order") { cur.picked = cur.bank.map((b, bi) => [b.i, bi]).sort((x, y) => x[0] - y[0]).map(x => x[1]); if (!right) cur.picked.reverse(); return cxCheckCur(); }
+    if (cur.mode === "place") {
+      // (a word to put in: its right place — or the first wrong one)
+      const pl = cxPlace(item, set);
+      cur.at = right ? pl.slots[0] : [...Array(pl.words.length + 1).keys()].find(a => !cxCheck(item, cxPlaceText(pl, a), cxSection(set.sec)).ok);
+      return cxCheckCur();
+    }
     if (cur.mode === "tiles") {
       if (right) { const words = cxTiles(set, item).tiles; const used = new Set(); cur.picked = words.map(w => { const bi = cur.bank.findIndex((t, i) => t.w === w && !used.has(i)); used.add(bi); return bi; }); }
       // (wrong: the answer's first word alone — never the right sentence; [last, first]

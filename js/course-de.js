@@ -380,17 +380,37 @@ function cxGapFills(item) {
 // (the rest must be the sentence as shown). → those words, or null.
 function cxGapInner(item, typed) {
   if (item.k === "order" || typeof item.q !== "string" || !/(^|[^A-Za-zÄÖÜäöüß])___([^A-Za-zÄÖÜäöüß]|$)/.test(item.q)) return null;
-  const parts = item.q.replace(/\([^)]*\)/g, " ").replace(/\s+/g, " ").trim().split("___");
-  if (parts.length !== 2 || /→/.test(parts[0])) return null;
-  const P0 = cxToks(parts[0]), P1 = cxToks(parts[1]), T = cxToks(typed);
-  if (!P0.length && !P1.length || T.length <= P0.length + P1.length) return null;
-  // (only where the answers are the gap's words: an item whose answers are whole sentences checks those)
-  const holds = a => { const A = cxToks(a); return A.length > P0.length + P1.length && P0.every((x, i) => A[i] === x) && P1.every((x, i) => A[A.length - P1.length + i] === x); };
-  if ((item.a || []).some(holds)) return null;
-  if (P0.some((x, i) => T[i] !== x) || P1.some((x, i) => T[T.length - P1.length + i] !== x)) return null;
-  const W = String(typed).replace(/[.,!?;:„“"«»‚‘’()…–—]/g, " ").split(/\s+/).filter(Boolean);
   const tpl = item.q.replace(/\([^)]*\)/g, " ").replace(/\s+/g, " ").trim();
-  return { text: (W.length === T.length ? W : T).slice(P0.length, T.length - P1.length).join(" "), whole: fill => tpl.replace("___", fill) };
+  if (tpl.split("___").length !== 2) return null;
+  // The sentence the gap sits in: the whole prompt, or — in a two-part one —
+  // the part with the gap ("Ich habe einen Termin. → Ich habe ___ Termin.":
+  // what comes after the arrow · "___ wartest du? — Auf das Tram.": the question).
+  const segs = [tpl];
+  const cut = t => t.split(/\s*→\s*|\s+[—–]\s+/).find(x => x.includes("___"));
+  if (cut(tpl) && cut(tpl) !== tpl) segs.push(cut(tpl).trim());
+  const T = cxToks(typed);
+  const W = String(typed).replace(/[.,!?;:„“"«»‚‘’()…–—→]/g, " ").split(/\s+/).filter(Boolean);
+  const fills = [...(item.a || []).map(String), ...cxGapFills(item)].map(cxLoose);
+  let full = null;
+  for (const seg of segs) {
+    const parts = seg.split("___"), P0 = cxToks(parts[0]), P1 = cxToks(parts[1]);
+    if (!P0.length && !P1.length) continue;
+    // (only where the answers are the gap's words: an item whose answers are whole sentences checks those)
+    const holds = a => { const A = cxToks(a); return A.length > P0.length + P1.length && P0.every((x, i) => A[i] === x) && P1.every((x, i) => A[A.length - P1.length + i] === x); };
+    if (seg === tpl && (item.a || []).some(holds)) return null;
+    // i words of the sentence before the gap, j after it — typed around the gap's own
+    for (let i = P0.length; i >= 0; i--) for (let j = P1.length; j >= 0; j--) {
+      if (!i && !j || T.length <= i + j) continue;
+      if (P0.slice(P0.length - i).some((x, k) => T[k] !== x) || P1.slice(0, j).some((x, k) => T[T.length - j + k] !== x)) continue;
+      const text = (W.length === T.length ? W : T).slice(i, T.length - j).join(" ");
+      const out = { text, whole: fill => tpl.replace("___", fill) };
+      // the gap's words right, with some of the sentence around them: that's the answer
+      if (fills.includes(cxLoose(text))) return out;
+      // the whole sentence, the gap's words not right: its slip is the gap's (shown whole)
+      if (i === P0.length && j === P1.length && !full) full = out;
+    }
+  }
+  return full;
 }
 // ── WHAT IS SAID AFTER AN ANSWER ──────────────
 // The one place that says what the course speaks (course-ui.js after an
@@ -772,6 +792,50 @@ function cxTiles(set, item) {
   const have = new Set(tiles.map(w => w.toLowerCase()));
   const extra = shuffle((item.d || set.d || []).filter(w => !have.has(String(w).toLowerCase())).slice()).slice(0, 2);
   return { tiles, extra };
+}
+
+// ── PLACE THE WORD ────────────────────────────
+// "Put nicht in", "say it again with sehr": the sentence is given and one
+// word (or a short phrase) goes into it — nothing else changes. Such an item
+// is answered by placing that word in the sentence (course-ui.js), not by
+// writing the sentence again. Only when the word itself is given: the cue
+// in brackets, or a plain negation word — never a form to work out (kein →
+// keinen, meine Schwester → meiner Schwester: those stay tiles / typed).
+// → { words, run, end, slots: the right places } or null. A set opts out
+// with place: false.
+const CX_PLACE_GIVEN = /^(nicht|nie|gar|gar nicht|überhaupt nicht|nicht mehr|noch nicht|auch|schon|noch)$/i;
+function cxPlace(item, set) {
+  if (!item || (set && set.place === false) || item.place === false || typeof item.q !== "string" || /___|→/.test(item.q) || !(item.a || []).length) return null;
+  const cue = (/\(([^()]+)\)\s*$/.exec(item.q) || [])[1] || "";
+  const bare = item.q.replace(/\([^)]*\)/g, " ").replace(/\s+/g, " ").trim();
+  const end = (bare.match(/[.!?]+$/) || [""])[0];
+  const split = t => String(t).replace(/[.!?]+$/, "").trim().split(/\s+/).filter(Boolean);
+  const key = w => cxLoose(w);
+  const Q = split(bare);
+  if (Q.length < 2) return null;
+  let run = null; const slots = [];
+  for (const a of item.a) {
+    const A = split(a), k = A.length - Q.length;
+    if (k < 1 || k > 3) return null;
+    let at = -1;
+    for (let i = 0; i <= Q.length && at < 0; i++) if (Q.slice(0, i).every((w, j) => key(w) === key(A[j])) && Q.slice(i).every((w, j) => key(w) === key(A[i + k + j]))) at = i;
+    if (at < 0) return null;
+    const r = A.slice(at, at + k).join(" ").replace(/[,;:]$/, "");
+    if (run !== null && key(run) !== key(r)) return null;
+    run = r; if (!slots.includes(at)) slots.push(at);
+  }
+  if (!(CX_PLACE_GIVEN.test(run) || (cue && key(cue) === key(run)))) return null;
+  return { words: Q, run: run.charAt(0).toLowerCase() === run.charAt(0) ? run : (CX_PLACE_GIVEN.test(run) || /^[a-zäöü]/.test(cue) ? run.toLowerCase() : run), end, slots };
+}
+// The sentence with the word placed before words[at] (at = words.length: at
+// the end). In first place it takes the capital; the old first word gives it
+// up unless it is a noun or a name.
+function cxPlaceText(pl, at) {
+  const w = pl.words.slice();
+  let run = pl.run;
+  if (at === 0) { run = run.charAt(0).toUpperCase() + run.slice(1); if (CX_SMALL_START.test(w[0])) w[0] = w[0].charAt(0).toLowerCase() + w[0].slice(1); }
+  w.splice(at, 0, run);
+  return w.join(" ") + pl.end;
 }
 
 // ── PICKING ITEMS ─────────────────────────────

@@ -892,3 +892,9 @@ body.grandma button.gm-quest { min-height:76px; }
 .cx-wday i { font-style:normal; display:block; height:15px; font-size:11px; }
 .cx-wday.on { border-color:hsl(38 70% 60% / 0.6); background:hsl(38 70% 50% / 0.14); color:var(--text); }
 .cx-wday.on b { color:var(--text); }
+
+/* the bonus offer: the game's rank and stars, and what ★★★ takes */
+.p-bonus-stars { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:4px 10px; margin-top:12px; font-size:13px; color:var(--text-2); }
+.p-bonus-rank { font-weight:700; color:var(--text-1, var(--text)); }
+.p-bonus-st .g-star { font-size:18px; animation:none; }
+.p-bonus-how { color:var(--text-3); }

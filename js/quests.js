@@ -754,6 +754,28 @@ function questSwapRetired() {
   if (typeof vxDeckRetired === "function") questSwapWhere((id, q) => !!(q && q.p && [q.p.deck, q.p.d1, q.p.d2].some(d => d && vxDeckRetired(d))), "vx_deck", true);
 }
 // Replace one quest (reroll, or free 🔇 swap for sound quests).
+// A 🎲 reroll is a real draw: any quest of that slot can come — one you had
+// yesterday, one like another on today's list, and one whose work you have
+// already done today, which then arrives finished and pays at once (a lucky
+// roll, as it used to be). Only what could never be done is left out: a quest
+// that doesn't fit you now AND isn't already met by today's counters.
+function questRerollCandidates(q, idx, ctx, free) {
+  const Q = S.quests;
+  if (free) {
+    // (a free 🔇 swap stays a plain swap: an open quest that fits, nothing lucky)
+    const used = new Set(Q.list.map(x => x.tpl));
+    const fams = new Set(Q.list.filter((x, i) => i !== idx).map(x => (byId(x.tpl) || {}).fam));
+    return questCandidates(q.slot, ctx, used, fams).filter(x => !x.t.audio && x.t.id !== "d_mystery");
+  }
+  const rng0 = seededRandom(hashString(Q.day + "|rr|" + idx));
+  return QT.filter(t => t.slot === q.slot && t.id !== q.tpl && !t.fixed && !t.retired && !t.audio && t.id !== "d_mystery" && !(t.spell && speakOn()))
+    .filter(t => {
+      let fits = false; try { fits = !!t.ok(ctx); } catch (e) {}
+      if (fits) return true;
+      // doesn't fit any more — its work is done: it may come, finished
+      try { const probe = makeQuest(t, ctx, rng0, q.slot); return questProgOf(probe) >= probe.target && questProgOf(probe) > 0; } catch (e) { return false; }
+    }).map(t => ({ t, w: t.w || 1 }));
+}
 function questReroll(idx, free = false) {
   const Q = S.quests, q = Q.list[idx];
   if (!q || q.done) return;
@@ -762,17 +784,18 @@ function questReroll(idx, free = false) {
   const isSound = t && t.audio || (q.hidden && byId(q.hidden.tpl) && byId(q.hidden.tpl).audio);
   if (!free) {
     if (!(Q.tokens > 0)) { showCelebrateToast("🎟️", "No rerolls left", "Chests often contain reroll tokens"); return; }
-    Q.tokens--;
   } else if (!isSound) return;
   const ctx = questContext();
   const rng = seededRandom(hashString(Q.day + "|reroll|" + idx + "|" + Date.now()));
-  const used = new Set(Q.list.map(x => x.tpl));
-  const fams = new Set(Q.list.filter((x, i) => i !== idx).map(x => (byId(x.tpl) || {}).fam));
-  const cands = questCandidates(q.slot, ctx, used, fams).filter(x => !x.t.audio && x.t.id !== "d_mystery");
+  const cands = questRerollCandidates(q, idx, ctx, free);
   const pick = weightedPick(cands, rng);
   if (!pick) { showCelebrateToast("🎲", "Nothing else fits today", "Try again later"); return; }
-  Q.list[idx] = makeQuest(pick.t, ctx, rng, q.slot);
-  logEvent(free ? "quest_swap" : "quest_reroll", { tpl: q.tpl, to: pick.t.id });
+  if (!free) Q.tokens--; // (a token is only spent on a roll that gives a quest)
+  const nq = makeQuest(pick.t, ctx, rng, q.slot);
+  Q.list[idx] = nq;
+  const lucky = questProgOf(nq) >= nq.target;
+  logEvent(free ? "quest_swap" : "quest_reroll", { tpl: q.tpl, to: pick.t.id, lucky });
+  if (lucky) showCelebrateToast("🍀", "Lucky roll!", "Already done today — it pays out now");
   questRecompute(true);
   saveState();
   if (typeof renderHome === "function") renderHome();
@@ -1050,7 +1073,7 @@ function questOnGame(m, d) {
   g.plays++;
   m.game += (r.goalCorrect ?? r.correct) || 0;
   if (r.typedCorrect) { m.typed += r.typedCorrect; m.typedNoHint += r.typedCorrect; }
-  if (d.size === "full") g.stars = Math.max(g.stars, d.stars || 0);
+  g.stars = Math.max(g.stars, d.stars || 0); // (a full round's, or a bonus round's at your rank)
   m.maxCombo = Math.max(m.maxCombo, r.maxCombo || 0);
   if (d.rankedUp) { m.rankUps++; m.rankUpIds[d.id] = 1; }
   if (d.newBest) m.bests[d.id] = 1;
@@ -1077,7 +1100,7 @@ function questOnGame(m, d) {
   const now = Date.now();
   if (m.lastGameEnd && d.startedAt && d.startedAt - m.lastGameEnd < 120000) m.b2b++;
   m.lastGameEnd = now;
-  questWeekBump("stars", d.size === "full" ? d.stars || 0 : 0);
+  questWeekBump("stars", d.stars || 0);
   questWeekBump("game", d.id);
   questMaybeLucky();
 }

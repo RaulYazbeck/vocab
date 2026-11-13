@@ -177,6 +177,9 @@ for (const [width, height, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]
     migrateCourse();
     S.course.sec["s0.neg"] = { st: 3, sh: 100, ok: { "cx.neg1": 100 } };
     renderCourseDrill("s0.neg", "d5.8");
+    // (since 13 Nov these items are placed — nicht dropped into the sentence, t-ux.mjs; the
+    // tiles' own drag & drop, tested here, is what every other build-it item still uses)
+    _cx.list[0].mode = "tiles"; cxRender();
     const cur = _cx.list[0], set = cxSet(cur.set);
     const { tiles } = cxTiles(set, cur.item);
     const n = tiles.indexOf("nicht");

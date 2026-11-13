@@ -1009,5 +1009,35 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   // writing prompts open with their lessons
   ["w.lookforward", "w.myday2", "w.child", "w.askway", "w.person2"].forEach(id => ok(!!C.cxJournalPrompt(id) && S6.includes(C.cxJournalPrompt(id).sec), `writing prompt ${id} belongs to a Session 6 lesson`));
 }
+// ── Exercise comfort (13 Nov 2026): more typed than asked · a word placed ──
+{
+  const it = (set, q) => C.cxSet(set).items.find(x => x.q === q || (x.a || [])[0] === q);
+  const chk = (set, q, t) => C.cxCheck(it(set, q), t, C.cxSection(C.cxSet(set).sec));
+  // the sentence after an arrow, typed whole
+  const ar = C.cxSet("d5.10").items[0], after = ar.q.split("→")[1].trim();
+  ok(C.cxCheck(ar, after.replace("___", ar.a[0]), C.cxSection("s0.neg")).ok && C.cxCheck(ar, ar.q.replace("___", ar.a[0]), C.cxSection("s0.neg")).ok, "«A → B with a gap»: B typed whole is right, and so is the whole line");
+  const arBad = C.cxCheck(ar, after.replace("___", "nicht"), C.cxSection("s0.neg"));
+  ok(!arBad.ok && arBad.right.includes("→"), "…a wrong word in it: a miss, the answer shown as the prompt stands", arBad.right);
+  ok(chk("dvp.case", "(der Bus) Wir warten auf ___.", "auf den Bus").ok && chk("dvp.case", "(der Bus) Wir warten auf ___.", "warten auf den Bus.").ok && chk("dvp.case", "(der Bus) Wir warten auf ___.", "den Bus").ok, "the gap's words with some of the sentence around them: right");
+  const pb = chk("dvp.case", "(der Bus) Wir warten auf ___.", "auf dem Bus");
+  ok(!pb.ok && !pb.near, "…wrong words with the sentence around them: a miss, not almost");
+  ok(!chk("dvp.case", "(der Bus) Wir warten auf ___.", "auf").ok && !chk("dvp.case", "(der Bus) Wir warten auf ___.", "Wir warten auf").ok, "the sentence without the gap's words: nothing right about it");
+  // a gap whose fill repeats the word before it never loses that word
+  ok(chk("d22.13", "Die Zeitung, in ___ ich das gelesen habe, liegt auf dem Tisch.", "in der").ok && chk("d22.13", "Die Zeitung, in ___ ich das gelesen habe, liegt auf dem Tisch.", "der").ok, "«in ___»: der, or in der");
+  // a word to put in: which items, where, and the sentence it gives
+  const p1 = C.cxPlace(it("d5.5", "Der Zug ist nicht pünktlich."), C.cxSet("d5.5"));
+  ok(p1 && p1.run === "nicht" && J(p1.words) === J(["Der", "Zug", "ist", "pünktlich"]) && p1.end === "." && J(p1.slots) === J([3]), "«Der Zug ist pünktlich.» + nicht: the word, the sentence's words, its place", J(p1));
+  ok(C.cxPlaceText(p1, 3) === "Der Zug ist nicht pünktlich." && C.cxPlaceText(p1, 0) === "Nicht der Zug ist pünktlich." && C.cxPlaceText(p1, 4) === "Der Zug ist pünktlich nicht.", "the sentence with it placed — first place takes the capital, der gives it up");
+  const p2 = C.cxPlace(it("d23.3", "Die Kinder waren gar nicht müde."), C.cxSet("d23.3"));
+  ok(p2 && p2.run === "gar nicht", "a cue of two words is placed as one (gar nicht)", J(p2));
+  const p3 = C.cxPlace(it("dadv.place", "Ich kann morgen leider nicht kommen."), C.cxSet("dadv.place"));
+  ok(p3 && p3.slots.length === 2, "two right places when the item lists both", J(p3 && p3.slots));
+  ok(!C.cxSet("d5.4").items.some(x => C.cxPlace(x, C.cxSet("d5.4"))) && !C.cxSet("ddat.o").items.some(x => C.cxPlace(x, C.cxSet("ddat.o"))), "a form to work out (kein → keinen, meine → meiner Schwester) is never just placed");
+  ok(!C.cxPlace({ q: "Der Zug ist pünktlich.", a: ["Der Zug ist nicht pünktlich."] }, { place: false }), "a set can opt out (place: false)");
+  let n = 0, bad = [];
+  Object.values(C.CX.sets).forEach(set => (set.items || []).forEach(x => { if (C.cxItemKind(set, x) !== "transform") return; const p = C.cxPlace(x, set); if (!p) return; n++;
+    for (let a = 0; a <= p.words.length; a++) { const r = C.cxCheck(x, C.cxPlaceText(p, a), C.cxSection(set.sec)); if (p.slots.includes(a) ? !r.ok || r.soft.length : r.ok && !C.cxOrders(x).length) bad.push(set.id + ": " + C.cxPlaceText(p, a)); } }));
+  ok(n >= 55 && !bad.length, `${n} placed items: every right place is right (no "mind the capital" note), every other place a miss`, bad.slice(0, 4));
+}
 console.log(`course unit: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

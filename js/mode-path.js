@@ -1104,6 +1104,7 @@ function renderPathBonusOffer(it) {
       <div class="p-bonus-title">Bonus round?</div>
       <div class="p-bonus-sub">${g.icon} ${escapeHtml(gameName(g))} — <strong>${bonusGoalText(pick.id)}</strong> to clear it</div>
       <div class="p-sub">${pick.prefer.size ? "The words you missed come first" : "With this session's words"} · optional${bonusUntimed(pick.id) ? " · no clock" : ""}</div>
+      <div class="p-bonus-stars"><span class="p-bonus-rank">${rankLabel(gameRankOf(pick.id))}</span><span class="p-bonus-st">${starsHtml(gameRankProgress(pick.id).stars, 3)}</span><span class="p-bonus-how">no mistake: ★★★${gameRankOf(pick.id) < GAME_RANKS.length - 1 ? " + next rank" : ""}</span></div>
     </div>`;
   pathSetActions(`
     <button class="g-sec-btn" onclick="pathBonus(false)">Skip</button>

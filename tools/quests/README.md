@@ -19,3 +19,10 @@ The rule: a quest is finished by your effort — the daily plus a little extra �
   after the daily): once Today is empty, every verb quest is done within two quick extra rounds.
 - **summary**: the real session summary lists open focus / verb quests, Go starts that session, a focus
   session fills the quest.
+
+## Bonus stars and the lucky reroll
+
+    node t-bonus-reroll.mjs   # a Today bonus round earns stars at your rank (★ target · ★★ one miss · ★★★ none, which
+                              # ranks up), never a personal best, never for a minion; the quests see them · the 🎲
+                              # reroll: any quest of the slot, some arrive done and pay at once, never one that
+                              # can't be done, a token only for a drawn quest

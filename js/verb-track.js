@@ -1167,6 +1167,28 @@ function vxGradeTries(val, imp = false) {
   const list = imp ? (imp === "Sie" ? [raw, raw.replace(/\s+sie$/i, "")] : [raw]) : [raw, raw.replace(/^(ich|du|er|sie|es|wir|ihr|man)\s+/i, "")];
   return [...list, ...list.map(t => t.replace(/\s*[,·/;…]\s*/g, " "))];
 }
+// The whole prompt typed back with the gap filled in ("er ___ (wohnen)" →
+// «er wohnt», "Der Film ___ um acht ___ (anfangen)" → the whole sentence):
+// what was asked is what sits in the gap — the words of the prompt around
+// it are taken off. → more tries for the graders (never fewer).
+function vxGapTries(val, q) {
+  const tpl = String(q || "").replace(/\*\*/g, "").replace(/\([^)]*\)/g, " ").replace(/\s+/g, " ").trim();
+  const parts = tpl.split("___");
+  if (parts.length < 2 || parts.length > 3) return [];
+  const tok = t => String(t || "").toLowerCase().replace(/[.,!?;:„“"«»()…–—]/g, " ").split(/\s+/).filter(Boolean);
+  const T = tok(val), raw = String(val || "").replace(/[.,!?;:„“"«»()…–—]/g, " ").split(/\s+/).filter(Boolean);
+  const P0 = tok(parts[0]), P1 = tok(parts[parts.length - 1]), mid = parts.length === 3 ? tok(parts[1]) : null;
+  if (!P0.length && !P1.length && !(mid && mid.length) || raw.length !== T.length) return [];
+  if (T.length <= P0.length + P1.length || P0.some((x, i) => T[i] !== x) || P1.some((x, i) => T[T.length - P1.length + i] !== x)) return [];
+  let inner = raw.slice(P0.length, T.length - P1.length), key = T.slice(P0.length, T.length - P1.length);
+  if (mid && mid.length) {
+    // two gaps (hat … gemacht · ruft … an): the words between them go too
+    let at = -1; for (let i = 1; i + mid.length < key.length && at < 0; i++) if (mid.every((x, k) => key[i + k] === x)) at = i;
+    if (at < 0) return [];
+    inner = [...inner.slice(0, at), ...inner.slice(at + mid.length)];
+  }
+  return inner.length ? [inner.join(" ")] : [];
+}
 // Is this exercise (or quiz question) a command? German: "Sie" for a Sie
 // command, true for a du / ihr one, false for none.
 function vxIsCommand(ex) {
@@ -1180,7 +1202,7 @@ function vxIsCommand(ex) {
 // An umlaut left out counts, as everywhere in the app (no umlaut keys
 // needed); vxUmlautOnly() tells the feedback to show the spelling.
 function vxGrade(val, ex) {
-  const tries = vxGradeTries(val, vxIsCommand(ex));
+  const tries = vxGradeTries(val, vxIsCommand(ex)).concat(vxGapTries(val, ex && ex.q));
   if (!tries.length) return false;
   const acc = ex.form.acc;
   for (const t of tries) if (acc.some(a => vxEq(a, t))) return true;

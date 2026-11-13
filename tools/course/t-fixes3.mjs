@@ -23,6 +23,12 @@ const HELP = () => {
     if (k === "pick" || k === "respond") { const opts = item.o || set.o, want = right ? item.a[0] : opts.find(o => o !== item.a[0]); return cxPick(opts.indexOf(want)); }
     if (k === "write" || k === "open") { document.getElementById("cx-text").value = "Ich habe keinen Fernseher und kein Auto."; return cxCheckCur(); }
     if (k === "order") { cur.picked = cur.bank.map((b, bi) => [b.i, bi]).sort((x, y) => x[0] - y[0]).map(x => x[1]); if (!right) cur.picked.reverse(); return cxCheckCur(); }
+    if (cur.mode === "place") {
+      // (a word to put in: its right place — or the first wrong one)
+      const pl = cxPlace(item, set);
+      cur.at = right ? pl.slots[0] : [...Array(pl.words.length + 1).keys()].find(a => !cxCheck(item, cxPlaceText(pl, a), cxSection(set.sec)).ok);
+      return cxCheckCur();
+    }
     if (cur.mode === "tiles") {
       if (right) { const words = cxTiles(set, item).tiles; const used = new Set(); cur.picked = words.map(w => { const bi = cur.bank.findIndex((t, i) => t.w === w && !used.has(i)); used.add(bi); return bi; }); }
       else { const w0 = cxTiles(set, item).tiles[0]; cur.picked = [cur.bank.findIndex(t => t.w === w0)]; }

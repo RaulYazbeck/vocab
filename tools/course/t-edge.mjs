@@ -85,7 +85,7 @@ const SETUP = () => {
       // not this one: answer it right and go on
       if (k === "pick" || k === "respond") { const opts = item.o || set.o; cxPick(opts.indexOf(item.a[0])); }
       else if (k === "order") { cur.picked = cur.bank.map((b, bi) => [b.i, bi]).sort((x, y) => x[0] - y[0]).map(x => x[1]); cxCheckCur(); }
-      else if (cur.mode === "tiles") { cxTypeInstead(); document.getElementById("cx-input").value = item.a[0]; cxCheckCur(); }
+      else if ((cur.mode === "tiles" || cur.mode === "place")) { cxTypeInstead(); document.getElementById("cx-input").value = item.a[0]; cxCheckCur(); }
       else if (k === "write" || k === "open") { document.getElementById("cx-text").value = "Ich habe keinen Fernseher und kein Auto."; cxCheckCur(); }
       else { document.getElementById("cx-input").value = item.a[0]; cxCheckCur(); }
       _mistakeHoldUntil = 0; cxNext();
@@ -161,7 +161,7 @@ const SETUP = () => {
     startPathSession("long", { noBonus: true });
     const s = pathSession, cnt = () => +(document.getElementById("p-count").textContent.split("/")[1]);
     const total0 = cnt();
-    toCx("testout"); while (!_cx.done) { const c = _cx.list[_cx.i], set = cxSet(c.set), k = cxItemKind(set, c.item); if (k === "pick") cxPick((c.item.o || set.o).indexOf(c.item.a[0])); else { if (c.mode === "tiles") cxTypeInstead(); if (document.getElementById("cx-input")) { document.getElementById("cx-input").value = "falsch"; } else { document.getElementById("cx-text").value = "Ich habe kein Auto."; } cxCheckCur(); cxCheckCur(); } window.mistakeHeld = () => false; cxNext(); }
+    toCx("testout"); while (!_cx.done) { const c = _cx.list[_cx.i], set = cxSet(c.set), k = cxItemKind(set, c.item); if (k === "pick") cxPick((c.item.o || set.o).indexOf(c.item.a[0])); else { if ((c.mode === "tiles" || c.mode === "place")) cxTypeInstead(); if (document.getElementById("cx-input")) { document.getElementById("cx-input").value = "falsch"; } else { document.getElementById("cx-text").value = "Ich habe kein Auto."; } cxCheckCur(); cxCheckCur(); } window.mistakeHeld = () => false; cxNext(); }
     cxFinish();
     // (the sheet card is next) — meanwhile the other device's sync arrives:
     const sec = s.cur.sec, sh1 = cxSection(sec).sheets;
@@ -176,7 +176,7 @@ const SETUP = () => {
     const k0 = _cx.i;
     S.course.day = "2000-01-01";
     const c = _cx.list[_cx.i], set = cxSet(c.set), k = cxItemKind(set, c.item);
-    if (k === "pick") cxPick((c.item.o || set.o).indexOf(c.item.a[0])); else { if (c.mode === "tiles") cxTypeInstead(); document.getElementById("cx-input").value = c.item.a[0]; cxCheckCur(); }
+    if (k === "pick") cxPick((c.item.o || set.o).indexOf(c.item.a[0])); else { if ((c.mode === "tiles" || c.mode === "place")) cxTypeInstead(); document.getElementById("cx-input").value = c.item.a[0]; cxCheckCur(); }
     ok(_cx.answered && S.course.day === studyToday(), "the day rolled over mid-drill: the answer counts on the new day");
     void k0;
     // a peek over a question, then back with the keyboard

@@ -82,7 +82,7 @@ const r = await page.evaluate(async ([DAYS, ACC, SEED, PARTIAL]) => {
     if (k === "pick" || k === "respond") { const opts = item.o || set.o, want = ok ? item.a[0] : opts.find(o => o !== item.a[0]); return cxPick(opts.indexOf(want)); }
     if (k === "write" || k === "open") { document.getElementById("cx-text").value = "Ich habe heute keine Zeit, aber morgen komme ich."; return cxCheckCur(); }
     if (k === "order") { cur.picked = cur.bank.map((b, bi) => [b.i, bi]).sort((x, y) => x[0] - y[0]).map(x => x[1]); if (!ok) cur.picked.reverse(); return cxCheckCur(); }
-    if (cur.mode === "tiles") cxTypeInstead();
+    if (cur.mode === "tiles" || cur.mode === "place") cxTypeInstead(); // (built or placed: these runs type)
     const inp = document.getElementById("cx-input");
     inp.value = ok ? item.a[0] : "Das ist ganz falsch";
     cxCheckCur(); if (!r.answered) cxCheckCur();
