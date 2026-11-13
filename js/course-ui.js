@@ -79,7 +79,13 @@ function cxRender() {
   // What to do: the set's name in bold, how in a line under it.
   const how = `<div class="cx-task">${set.title ? `<b>${escapeHtml(set.title)}</b>` : ""}${set.how ? `<span>${gsMd(set.how)}</span>` : ""}</div>`;
   let body = "";
-  const input = (ph = "type it…") => `<input type="text" class="german-input gs-input" id="cx-input" placeholder="${ph}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="go"/>${typeof accentBarHtml === "function" ? accentBarHtml("cx-input") : ""}`;
+  // A sentence to type gets a box that grows with it (one line to start; Enter
+  // still checks) — a one-line input hid the start of a long sentence.
+  const long = k === "translate" || k === "answer" || k === "transform" || k === "compose" || (item.a || []).some(a => String(a).length > 26);
+  const input = (ph = "type it…") => (long
+    ? `<textarea class="german-input gs-input cx-long" id="cx-input" rows="1" placeholder="${ph}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" lang="de"></textarea>`
+    : `<input type="text" class="german-input gs-input" id="cx-input" placeholder="${ph}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" lang="de"/>`)
+    + (typeof accentBarHtml === "function" ? accentBarHtml("cx-input") : "");
   if (k === "pick" || k === "respond") {
     const opts = item.o || set.o || [];
     if (!cur.order) cur.order = k === "pick" && !item.o ? opts.map((_, i) => i) : shuffle(opts.map((_, i) => i));
@@ -94,12 +100,18 @@ function cxRender() {
   } else if (k === "transform" && cur.mode === "place") {
     body = `<div class="gs-qtext cx-place-q">${item.hl ? cxQHtml({ q: item.q.replace(/\([^)]*\)\s*$/, "").trim(), hl: item.hl }) : "Where does it go?"}</div>${cxPlaceHtml(cur)}`;
   } else if ((k === "transform" || k === "compose") && cur.mode === "tiles") {
-    if (!cur.bank) { const { tiles, extra } = cxTiles(set, item); cur.bank = shuffle([...tiles, ...extra].map((w, i) => ({ w, i }))); }
-    const cue = k === "compose" ? `<div class="cx-cue">${(item.w || []).map(w => `<span class="gs-chip">${escapeHtml(w)}</span>`).join("")}</div>` : `<div class="gs-qtext">${cxQHtml(item)}</div>`;
+    if (!cur.bank) {
+      const { tiles, extra } = cxTiles(set, item); cur.bank = shuffle([...tiles, ...extra].map((w, i) => ({ w, i })));
+      // the start the task gives (cxLead) is already placed — the rest is yours
+      const n = cxLead(item, set) ? cxLead(item, set).split(/\s+/).length : 0;
+      if (n && !cur.picked.length) cur.picked = cur.bank.map((b, bi) => [b.i, bi]).filter(x => x[0] < n).sort((a, b) => a[0] - b[0]).map(x => x[1]);
+    }
+    // (with the tiles, the cue in another order: in sentence order it was the answer)
+    const cue = k === "compose" ? `<div class="cx-cue">${cxCueOrder(item, true).map(w => `<span class="gs-chip">${escapeHtml(w)}</span>`).join("")}</div>` : `<div class="gs-qtext">${cxQHtml(item)}</div>`;
     body = `${cue}<div class="gs-built" id="cx-built" aria-label="Your sentence">${cur.picked.map((bi, j) => `<button class="gs-tok on" data-j="${j}">${escapeHtml(cur.bank[bi].w)}</button>`).join("") || `<span class="gs-built-ph">tap the words in order</span>`}</div>
       <div class="gs-bank" id="cx-bank">${cur.bank.map((t, bi) => `<button class="gs-tok" data-b="${bi}" ${cur.picked.includes(bi) ? "disabled" : ""}>${escapeHtml(t.w)}</button>`).join("")}</div>`;
   } else if (k === "compose") {
-    body = `<div class="cx-cue">${(item.w || []).map(w => `<span class="gs-chip">${escapeHtml(w)}</span>`).join("")}</div>${input("your sentence…")}`;
+    body = `<div class="cx-cue">${cxCueOrder(item, false).map(w => `<span class="gs-chip">${escapeHtml(w)}</span>`).join("")}</div>${input("your sentence…")}`;
   } else if (k === "translate") {
     body = `<div class="gs-qtext cx-en">🇬🇧 ${gsMd(item.q)}</div>${input("in German…")}`;
   } else if (k === "answer") {
@@ -118,13 +130,43 @@ function cxRender() {
       <div class="gs-qact" id="cx-act">${check ? `<button class="g-big-btn" id="cx-check" onclick="cxCheckCur()">${actLabel}</button>` : ""}${cur.mode === "tiles" || cur.mode === "place" ? `<button class="tc-link cx-typeit" onclick="cxTypeInstead()">⌨️ type it instead</button>` : ""}</div></div></div></div>`;
   cxBind();
 }
+// A compose cue's words. With tiles they come in another order (the same
+// each time for an item) — "?" and a cue in brackets stay last; typed, as written.
+function cxCueOrder(item, mixed) {
+  const w = (item.w || []).slice();
+  if (!mixed || w.length < 3) return w;
+  const tail = w.filter(x => /^[?!.]$|^\(.*\)$/.test(String(x).trim())), body = w.filter(x => !tail.includes(x));
+  let h = [...body.join("|")].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) >>> 0, 11);
+  const rnd = () => { h = (h * 1103515245 + 12345) >>> 0; return h / 4294967296; };
+  // (mixed enough to say nothing: the first word not first, and at most one
+  // pair of neighbours still side by side as in the sentence)
+  const orig = body.slice(), pairs = b => b.slice(1).filter((x, i) => orig.indexOf(x) === orig.indexOf(b[i]) + 1).length;
+  let best = body.slice(), bestS = Infinity;
+  for (let t = 0; t < 40; t++) {
+    for (let i = body.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [body[i], body[j]] = [body[j], body[i]]; }
+    const sc = pairs(body) + (body[0] === orig[0] ? 2 : 0);
+    if (sc < bestS) { bestS = sc; best = body.slice(); }
+    if (sc <= (orig.length > 4 ? 1 : 0)) break;
+  }
+  return [...best, ...tail];
+}
+// A sentence box: as tall as its text (a typed line break is no answer: it goes).
+function cxGrow(t) {
+  if (!t) return;
+  if (/\n/.test(t.value)) { const p = t.selectionStart; t.value = t.value.replace(/\s*\n+\s*/g, " "); try { t.setSelectionRange(p, p); } catch (e) {} }
+  t.style.height = "auto"; t.style.height = Math.max(50, t.scrollHeight + 2) + "px";
+}
 function cxBind() {
   const r = _cx, cur = r && r.list[r.i];
   if (!cur) return;
   const inp = document.getElementById("cx-input") || document.getElementById("cx-text");
   if (inp) {
     inp.addEventListener("keydown", e => { if (e.key === "Enter" && !(inp.tagName === "TEXTAREA" && e.shiftKey)) { e.preventDefault(); e.stopPropagation(); if (r.answered) cxNext(); else cxCheckCur(); } });
-    if (r.opts.mode !== "path" || inp.tagName === "INPUT") setTimeout(() => { try { inp.focus({ preventScroll: true }); } catch (e) {} }, 60);
+    if (r.opts.mode !== "path" || inp.id === "cx-input") setTimeout(() => { try { inp.focus({ preventScroll: true }); } catch (e) {} }, 60);
+    // the start the task gives is written in already (cxLead); the caret after it
+    const lead = inp.id === "cx-input" && !r.answered && cxLead(cur.item, cxSet(cur.set));
+    if (lead && !inp.value) { inp.value = lead + " "; try { inp.setSelectionRange(inp.value.length, inp.value.length); } catch (e) {} }
+    if (inp.classList.contains("cx-long")) { const fit = () => cxGrow(inp); inp.addEventListener("input", fit); fit(); }
   }
   document.querySelectorAll("#cx-run .gs-opt").forEach(b => b.onclick = () => cxPick(+b.dataset.o));
   document.querySelectorAll("#cx-bank .gs-tok").forEach(b => b.onclick = () => { if (r.answered) return; cur.picked.push(+b.dataset.b); cxRefreshTiles(); });
@@ -279,7 +321,10 @@ function cxCheckCur() {
   // After "Almost": the same answer again is a stray Enter, never a miss.
   if (nearSameAgain(cur, val, document.getElementById("cx-input") || document.getElementById("cx-built") || document.getElementById("cx-place"), fb, `<div class="p-near">≈ Same answer — change it first: check the spelling</div>`)) return;
   if (typeof vxUmlautAsking === "function" && vxUmlautAsking(fb)) return;
-  const res = cxCheck(item, val, sec);
+  let res = cxCheck(item, val, sec);
+  // (the start written in, then deleted and only the rest typed: that counts too)
+  const lead = cxLead(item, set);
+  if (!res.ok && lead && cur.mode !== "place" && !cxLoose(val).startsWith(cxLoose(lead))) { const r2 = cxCheck(item, lead + " " + val, sec); if (r2.ok) { res = r2; val = lead + " " + val; } }
   // Umlauts are never typed (agreed): a missing one is forgiven, and only
   // when the plain spelling is another real verb form (fahrt: fährt or
   // fahrt?) the small 1 / 2 choice asks which — as in the verb track.
@@ -385,6 +430,18 @@ function cxShowAnswered() {
   const act = document.getElementById("cx-act");
   if (act) act.innerHTML = `<button class="g-big-btn" id="cx-next" onclick="cxNext()">${r.i + 1 >= r.list.length ? "See result" : "Next ›"}</button>`;
   if (r.opts.mode !== "path") setTimeout(() => { const b = document.getElementById("cx-next"); if (b) try { b.focus({ preventScroll: true }); } catch (e) {} }, 30);
+  cxShowNext();
+}
+// After an answer, Next in sight: scroll just enough — never so far that the
+// card's first line (the answer) leaves the top of the screen.
+function cxShowNext() {
+  setTimeout(() => {
+    const b = document.getElementById("cx-next"), fb = document.getElementById("cx-fb");
+    if (!b || !fb) return;
+    const bb = b.getBoundingClientRect(), H = window.innerHeight || document.documentElement.clientHeight;
+    const need = bb.bottom + 12 - H, room = fb.getBoundingClientRect().top - 8;
+    if (need > 0 && room > 0) try { window.scrollBy({ top: Math.min(need, room), behavior: "smooth" }); } catch (e) {}
+  }, 80);
 }
 // ── PRIVATE "MY TYPO" OVERRIDE ────────────────
 // As in Today (pathSecretOk): Shift+Enter ×3, or the ✗ tapped ×3, on a

@@ -1039,5 +1039,26 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
     for (let a = 0; a <= p.words.length; a++) { const r = C.cxCheck(x, C.cxPlaceText(p, a), C.cxSection(set.sec)); if (p.slots.includes(a) ? !r.ok || r.soft.length : r.ok && !C.cxOrders(x).length) bad.push(set.id + ": " + C.cxPlaceText(p, a)); } }));
   ok(n >= 55 && !bad.length, `${n} placed items: every right place is right (no "mind the capital" note), every other place a miss`, bad.slice(0, 4));
 }
+// ── Build-it decoys and the start the task gives (13 Nov 2026) ──
+{
+  const it = (set, q) => C.cxSet(set).items.find(x => x.a && x.a[0] === q);
+  const zug = it("dvp.build", "Wir warten auf den Zug.");
+  const t1 = C.cxTiles(C.cxSet("dvp.build"), zug);
+  ok(t1.extra.includes("der") && t1.tiles.includes("den"), "der Zug → den Zug: «der» is a decoy beside «den»", J(t1));
+  let n = 0, bad = [];
+  Object.values(C.CX.sets).forEach(set => (set.items || []).forEach(x => { if (C.cxItemKind(set, x) !== "compose" || !x.a) return; const { tiles, extra } = C.cxTiles(set, x); n++;
+    const used = new Set(C.cxAnswers(x).flatMap(a => C.cxToks(a)));
+    extra.forEach(d => { if (used.has(C.cxLoose(d)) || tiles.some(t => t.toLowerCase() === String(d).toLowerCase())) bad.push(set.id + ": " + d); });
+    if (J(C.cxTiles(set, x).extra.slice().sort()) !== J(extra.slice().sort())) bad.push(set.id + ": decoys change"); }));
+  ok(n > 200 && !bad.length, `${n} build-it items: a decoy is never a word of any right answer, and the same every time`, bad.slice(0, 4));
+  const lead = (set, q) => C.cxLead(C.cxSet(set).items.find(x => x.q === q), C.cxSet(set));
+  ok(lead("d29.9", "Ist die Post weit von hier?") === "Ich weiß nicht," && lead("d26.12", "«Trinken Sie viel Wasser!»") === "Der Arzt sagt,", "the start the instruction gives: Ich weiß nicht, · Der Arzt sagt,");
+  ok(lead("d23.11", "Warum ist Sara früher gegangen? (Wir wissen nicht, …)") === "Wir wissen nicht,", "…or the prompt's own brackets: Wir wissen nicht,");
+  let leaks = [];
+  Object.values(C.CX.sets).forEach(set => (set.items || []).forEach(x => { const l = C.cxLead(x, set); if (!l) return;
+    if (!C.cxLoose((x.q || "") + " " + set.how + " " + set.title).includes(C.cxLoose(l))) leaks.push(set.id); if (/___/.test(x.q || "")) leaks.push(set.id + " gap"); }));
+  ok(!leaks.length, "a start is written in only when the task shows it word for word — never in a gap item", leaks.slice(0, 4));
+  ok(!C.cxLead(it("dcj.nach", "Nachdem ich gefrühstückt habe, gehe ich zur Arbeit."), C.cxSet("dcj.nach")), "«Nachdem ich gefrühstückt habe,» is the work, not given: not written in");
+}
 console.log(`course unit: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

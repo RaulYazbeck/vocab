@@ -790,8 +790,40 @@ function cxTiles(set, item) {
   const src = item.tiles || String(item.a[0]).replace(/[.!?]+$/, "").split(/\s+/).map(w => w.replace(/[,;:]$/, ""));
   const tiles = src.map((w, i) => i === 0 && !item.cap && (set.low || CX_SMALL_START.test(w)) ? w.toLowerCase() : w);
   const have = new Set(tiles.map(w => w.toLowerCase()));
-  const extra = shuffle((item.d || set.d || []).filter(w => !have.has(String(w).toLowerCase())).slice()).slice(0, 2);
+  const given = (item.d || set.d || []).filter(w => !have.has(String(w).toLowerCase()));
+  const extra = shuffle([...given, ...cxDecoys(set, item, have).filter(w => !given.some(g => String(g).toLowerCase() === w.toLowerCase()))].slice()).slice(0, given.length ? 3 : 2);
   return { tiles, extra };
+}
+// Decoys for a build-it item (13 Nov 2026): the cue's words that the answer
+// changed — der Zug → den Zug brings «der» to choose against «den», sich
+// freuen → freue mich brings «sich» and «freuen» — so the tiles never hold
+// the forms ready-made. Never a word any accepted answer has.
+function cxDecoys(set, item, have) {
+  if (cxItemKind(set, item) !== "compose" || !(item.w || []).length || set.decoys === false) return [];
+  const used = new Set(cxAnswers(item).concat(cxOrders(item)).flatMap(a => cxToks(a)));
+  const out = [];
+  item.w.forEach(c => String(c).replace(/\([^)]*\)/g, " ").split(/\s+/).forEach(w => {
+    w = w.replace(/[,;:]$/, "");
+    if (!w || !/^[A-Za-zÄÖÜäöüß]+$/.test(w) || have.has(w.toLowerCase()) || used.has(cxLoose(w)) || out.some(x => x.toLowerCase() === w.toLowerCase())) return;
+    out.push(w);
+  }));
+  // (the same few every time for an item: by its text, not at random)
+  const h = [...String(item.q || item.w.join(" "))].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) >>> 0, 7);
+  return out.map((w, i) => ({ w, k: (h + i * 2654435761) >>> 0 })).sort((a, b) => a.k - b.k).slice(0, 2).map(x => x.w);
+}
+// The start every answer shares, when the task gives it word for word (the
+// prompt or the instruction: "Start with Ich weiß nicht, …", "(Weißt du, …)",
+// a main clause to copy): written in for you — up to its last comma.
+// Never a gap item, never words the task doesn't show. → the start, or "".
+function cxLead(item, set) {
+  const k = cxItemKind(set, item);
+  if (!["transform", "compose", "answer", "translate"].includes(k) || /___/.test(item.q || "") || !(item.a || []).length || set.lead === false) return "";
+  const W = item.a.map(a => String(a).trim().split(/\s+/));
+  let p = 0; while (W.every(w => w[p] !== undefined && w[p] === W[0][p])) p++;
+  let c = -1; for (let i = 0; i < p; i++) if (/,$/.test(W[0][i])) c = i;
+  if (c < 1) return "";
+  const lead = W[0].slice(0, c + 1).join(" ");
+  return cxLoose((item.q || "") + " " + (set.how || "") + " " + (set.title || "")).includes(cxLoose(lead)) ? lead : "";
 }
 
 // ── PLACE THE WORD ────────────────────────────

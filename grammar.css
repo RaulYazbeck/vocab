@@ -536,3 +536,7 @@
 .cx-dnum { text-align:center; font-size:44px; font-weight:900; line-height:1; margin:8px 0 14px; color:hsl(38 85% 65%); }
 .cx-chmix { margin-bottom:8px; }
 .gr-sheets .cx-dues-btn { margin-bottom:0; }
+
+/* a sentence to type: the box grows with it, the text in the app's own type */
+.german-input.cx-long { height:auto; min-height:50px; padding:13px 16px; line-height:1.4; resize:none; overflow:hidden; display:block;
+  font-family:'DM Sans',sans-serif; font-size:17px; text-align:left; }

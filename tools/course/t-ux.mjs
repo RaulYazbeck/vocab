@@ -81,6 +81,48 @@ ok(pl.n >= 55 && !pl.never.length && pl.sets["d5.5"] && pl.sets["d28.2"] && pl.s
 await ev(() => renderCourseDrill("s2.adv", "dadv.place")); await page.waitForTimeout(200);
 const geo = await ev(() => { const W = document.documentElement.clientWidth; return { out: [...document.querySelectorAll("#cx-run *")].filter(e => e.getBoundingClientRect().right > W + 1).length, h: Math.min(...[...document.querySelectorAll(".cx-slot")].map(s => s.getBoundingClientRect().height)) }; });
 ok(geo.out === 0 && geo.h >= 40, "on a phone: nothing sticks out, every slot is a finger tall", geo);
+// ── 4 · a sentence to type: the box grows with it ──
+await ev(() => renderCourseDrill("s2.conj3", "dp.cj")); await page.waitForTimeout(200);
+const box = await ev(async () => { const t = document.getElementById("cx-input"); const h0 = t.getBoundingClientRect().height;
+  t.focus(); t.value = "Bevor ich morgens zur Arbeit gehe, trinke ich immer einen großen Kaffee mit Milch."; t.dispatchEvent(new Event("input"));
+  await new Promise(r => setTimeout(r, 50)); const h1 = t.getBoundingClientRect().height;
+  return { tag: t.tagName, h0, h1, fits: t.scrollHeight <= t.clientHeight + 2, nl: (t.value = "a\nb", t.dispatchEvent(new Event("input")), t.value) }; });
+ok(box.tag === "TEXTAREA" && box.h0 >= 48 && box.h0 < 60 && box.h1 > box.h0 + 15 && box.fits, "a sentence box: one line to start, as tall as the sentence once typed — nothing hidden", box);
+ok(box.nl === "a b", "a line break typed is no answer: it becomes a space", box.nl);
+await ev(() => { const t = document.getElementById("cx-input"); t.value = ""; }); await page.focus("#cx-input"); await page.keyboard.type("Ich trinke Kaffee"); await page.keyboard.press("Enter"); await page.waitForTimeout(200);
+ok(await ev(() => _cx.answered), "Enter still checks");
+await ev(() => renderCourseDrill("s1.verbprep", "dvp.case")); await page.waitForTimeout(150);
+ok(await ev(() => document.getElementById("cx-input").tagName === "INPUT"), "a short gap keeps the one-line input");
+// ── 5 · after a miss, Next in sight — the answer never pushed off the top ──
+const nx = await ev(async () => { const wait = ms => new Promise(r => setTimeout(r, ms)); const out = [];
+  for (const id of ["d15.6", "d19.7", "dsub.two", "d17.10", "dp.sub"]) { const S0 = cxSet(id); if (!S0) continue; renderCourseDrill(S0.sec, id); await wait(20);
+    if (_cx.list[_cx.i].mode !== "typed") cxTypeInstead(); window.scrollTo(0, 0);
+    const a = String(_cx.list[_cx.i].item.a[0]); document.getElementById("cx-input").value = a.split(" ").length > 2 ? a.replace(/(\S+) (\S+)([.?!]?)$/, "$2 $1$3") : a + "x"; cxCheckCur(); await wait(900);
+    const b = document.getElementById("cx-next").getBoundingClientRect(), f = document.getElementById("cx-fb").getBoundingClientRect();
+    out.push({ id, nb: Math.round(b.bottom), ft: Math.round(f.top), H: innerHeight }); }
+  return out; });
+ok(nx.length >= 4 && nx.every(x => x.nb <= x.H && x.ft >= 0), "after a miss Next is on the screen, the card's top still in sight", nx);
+// ── 6 · build-it: no answer given away ──
+await ev(() => renderCourseDrill("s1.verbprep", "dvp.build")); await page.waitForTimeout(150);
+const bt = await ev(() => { const cur = _cx.list[_cx.i]; if (cur.mode !== "tiles") return null; const chips = [...document.querySelectorAll(".cx-cue .gs-chip")].map(c => c.textContent), toks = cur.bank.map(b => b.w);
+  return { chips, w: cur.item.w, toks, ans: cur.item.a[0] }; });
+ok(bt && bt.chips.length === bt.w.length && bt.chips.join("|") !== bt.w.join("|") && bt.chips[0] !== bt.w[0], "with tiles the cue comes in another order (in sentence order it was the answer)", bt);
+ok(bt && bt.toks.some(t => /^der$/i.test(t)) && bt.toks.some(t => /^den$/i.test(t)), "…and «der» lies beside «den»: the form is yours to choose", bt && bt.toks);
+await ev(() => { cxTypeInstead(); }); await page.waitForTimeout(100);
+ok(await ev(() => [...document.querySelectorAll(".cx-cue .gs-chip")].map(c => c.textContent).join("|") === _cx.list[_cx.i].item.w.join("|")), "typed, the cue stays as written (the forms are the work there)");
+// ── 7 · "Start with Ich weiß nicht, …": written in for you ──
+await ev(() => renderCourseDrill("s2.indq", "d29.9")); await page.waitForTimeout(150);
+await ev(() => { if (_cx.list[_cx.i].mode !== "typed") cxTypeInstead(); }); await page.waitForTimeout(150);
+const ld = await ev(() => { const t = document.getElementById("cx-input"); return { v: t.value, caret: t.selectionStart, len: t.value.length }; });
+ok(ld.v === "Ich weiß nicht, " && ld.caret === ld.len, "typed: the start is in the box, the caret after it", ld);
+await page.keyboard.type(await ev(() => _cx.list[_cx.i].item.a[0].replace(/^Ich weiß nicht, /, ""))); await page.keyboard.press("Enter"); await page.waitForTimeout(200);
+ok(await ev(() => _cx.list[_cx.i].ok === true), "…typing the rest is right");
+await ev(() => renderCourseDrill("s2.indq", "d29.9")); await page.waitForTimeout(150);
+const lt = await ev(() => { const cur = _cx.list[_cx.i]; if (cur.mode !== "typed") { const t = document.getElementById("cx-input"); if (t) t.value = ""; } cxTypeInstead(); const t = document.getElementById("cx-input"); t.value = cur.item.a[0].replace(/^Ich weiß nicht, /, ""); cxCheckCur(); return cur.ok; });
+ok(lt === true, "the start deleted and only the rest typed: right too");
+await ev(() => { renderCourseDrill("s2.indq", "d29.9"); const cur = _cx.list[_cx.i]; cur.mode = "tiles"; cur.bank = null; cur.picked = []; cxRender(); }); await page.waitForTimeout(150);
+const lp = await ev(() => [...document.querySelectorAll("#cx-built .gs-tok")].map(b => b.textContent).join(" "));
+ok(/^ich weiß nicht$/i.test(lp), "with tiles: its words already placed", lp);
 let fail = 0; res.forEach(([c2, m]) => { console.log((c2 ? "✓ " : "✗ ") + m); if (!c2) fail++; });
 if (errors.length) { console.log("page errors:", errors.slice(0, 3)); fail++; }
 console.log(fail ? `t-ux: ${fail} FAILED` : "t-ux: all passed");
