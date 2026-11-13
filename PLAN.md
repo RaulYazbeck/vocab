@@ -950,6 +950,63 @@ sentences · *man* instead of the passive · modals in the Perfekt · lassen ·
 modal particles · short answers and emphasis · participles as adjectives ·
 n-declension and adjectives as nouns · Stage 2 recap and checkpoint.
 
+**Built (13 Nov 2026):** the eight Stage 2B lessons, the three B1 verb lessons' book exercises and the Stage 2
+checkpoint, in `js/course/s2-*.js` — if and wishes (`s2-cond.js`, 2 sheets: real or not — wenn + Präsens for what may
+happen, the Konjunktiv II in both parts for what's imagined, hätte / wäre / könnte else würde, either part first ·
+Wenn ich nur …! · Hätte ich doch …! (no wenn: the verb first) · Ich wünschte … · als ob) · modals in the Perfekt
+(`s2-modpf.js`, 1: in speech the Präteritum — musste; the Perfekt with two infinitives — habe arbeiten müssen; alone
+— gewollt; in a side sentence — …, weil ich habe arbeiten müssen) · modal particles (`s2-part.js`, 1: mal, doch, ja,
+halt / eben, denn in a question) · short answers and emphasis (`s2-short.js`, 1: Doch! · Ich auch nicht. · Ich schon.
+· also, gar, kaum, wie · zwar … aber, und zwar) · man and the impersonal passive (`s2-man.js`, 1: man for people in
+general · Hier wird gelacht / Es wird … · Mir wurde geholfen — the dative stays · active, passive or man) · lassen
+(`s2-lassen.js`, 2: have it done, let, Lass uns …, leave · habe … reparieren lassen, ich höre ihn singen, Das lässt
+sich machen) · participles as adjectives (`s2-ptadj.js`, 1: lachend, gekocht, their endings, instead of a short
+relative clause) · n-nouns and adjectives as nouns (`s2-ndecl.js`, 2: den Kollegen, Herrn Meier, der Name · ein
+Deutscher, die Angestellten, etwas Neues, alles Gute). **11 sheets, 41 rules, 75 drill sets (737 items of our own,
+Swiss-life sentences)**, each lesson ending with its production drills (build · translate · write your own), four
+writing prompts that open with their lessons (w.story · w.done · w.ifonly · w.ourway). The **verb lessons' book
+exercises**: the strong and mixed Präteritum and the Plusquamperfekt (`s2-praeteritum.js`, 23 sets — chapter 16
+whole and 11•1–11•5: the tables generated, a weekend in Lucerne, mixed verbs with prefixes, Bevor wir ins Tessin
+fuhren, hatten wir …, nachdem), Konjunktiv II (`s2-k2.js`, 12 sets — 26•2–26•3 and 27•3 generated, würde,
+könnte / dürfte requests, hätte gern, Es wäre gut, wenn …, käme / ginge / gäbe) and the passive (`s2-passive.js`, 17
+sets — the tenses, active into passive, with a modal, von / durch, the state passive, how the Swiss eat, Grandma's
+farm): **52 sets, 456 items, 310 verb forms checked against the engine (vf)**; their rules are the verb sheets'
+points. The **Stage 2 checkpoint** (`s2-recap.js`, 20 questions, one rule each, 80 % — as Stages 0 and 1). Every
+exercise of the uploaded chapters has a status — of their 169: 125 mirrored (82 of them new), 15 generated (13 new),
+1 skipped (24•7, as before), 28 planned with the later lesson that uploads their chapter; `DONE` = 7. **Changes to the
+map:** 24•2 (lassen, hören, sehen, helfen with two infinitives) went from modals in the Perfekt to lassen, and lassen
+now waits for modals in the Perfekt (`after`); 31•9 stands under "Subjunctive review" but answers questions about a
+dialogue before going shopping — planned with the shopping conversation (Session 8, which uploads chapter 31); 27•4
+and 27•5 (a question passed on "as said in the spoken language") are drilled with the indirect questions (a new set
+`d27.5` in `s2-indq.js`, the indicative — the Konjunktiv I stays the bonus lesson's); 27•1, 27•2, 27•10 → Konjunktiv I,
+26•28 · 27•14 (the past unreal) → Konjunktiv II · past, 25•15 (sein … zu) → the post-B1 passive. Where the book
+practises above B1, the mirror keeps its frame at B1: the future passive (wird gebaut werden) left out of the tense
+sets; the book's old Konjunktiv forms (führe, hülfe) asked as würde + infinitive, the one-word form only where it's
+common (käme, ginge, gäbe, wüsste); als ob in the present only; 29•14–29•17's long extended modifiers (die im
+Wohnzimmer sitzende Frau) kept to a participle with one word or a short adverb before it (the long ones are s4.ext's).
+**The engine:** the generator gives the Plusquamperfekt (`pq`: war gegangen) and the Konjunktiv II (`k2`: wäre,
+könnte, wüsste where the verb has its own form, else würde + infinitive with the one-word form accepted — käme); a
+verb form checked in a sentence goes to the verb log under its engine tense (würde kommen, käme → Konjunktiv II), and
+a passive form is checked but not logged (the log has no passive tense). **Diagnosis:** 57 typical mistakes of the new
+lessons are checks in the validator (*kommte*, *denkte*, *hatten … gegangen*, *würde sein*, *Ich würde nehmen den
+Zug*, *geliefert geworden*, *hat … worden*, *von dem Sturm*, *Wenn ich Zeit habe, würde ich*, *arbeiten gemusst*,
+*waschen gelassen*, *lasse … zu reparieren*, *Wir werden geholfen*, *Hier sprechen man*, *Ja* to *Hast du keinen
+Hunger?*, *Ich auch* after a no, *zwar …* without aber, *lachen* for lachend, *den Kollege*, *Der Studenten*, *des
+Nachbars*, *Herr* for Herrn, *etwas Neu*…). **Found on the way:** two older sentences turned out to be the book's once
+chapters 11 and 25 were uploaded (*Wie sagt man das auf Deutsch?* in Stage 0 — now auf Französisch; *Ich habe leider
+keine Zeit.* in the adverbs — now *… heute …*), five of this session's too (rephrased). **My progress:** nothing reset.
+A lesson under way finishes first; Stage 2 then runs in course order (checked in the app's own scheduler) — the
+strong Präteritum (verb track, right after wo? vs wohin?, as before), the joining words, als / wenn / wann, Konjunktiv
+II (verb track) and if and wishes right after it, indirect questions, wo- / da-, the relative clauses ×2, modals in the
+Perfekt, the particles, short answers, the passive (verb track), man, lassen, the genitive ×2, adverbs, participles,
+n-nouns — and the Stage 2 checkpoint once every Stage 2 lesson is done (the conversation units come in among them once
+Session 8 builds them). Tests: a Session 7 block in
+`t-unit` (the order, what waits for what, the checkpoint asking 20 different Stage 2 rules, each sheet's day on the
+sheets read with production last — six days of the rotation, three checked items or more to review every rule, the
+generated Plusquamperfekt and Konjunktiv II, the verb log); the two-sheet test moved to a Session 8 lesson (s3.travel);
+`t-course` lists chapters 11, 16, 17, 24–27 and 29's Übungen, runs every new drill set through the real runner and
+checks every new table fits the phone (five were too wide at first and were narrowed).
+
 ### Session 8 — Stage 3, conversation
 
 **Upload:** chapters 30, 31. *(from the course map: `node tools/course/session.mjs 8`)*
@@ -1029,6 +1086,7 @@ screen · coverage report at 100 % (every blueprint exercise *mirrored*,
 - **Exercise comfort II (13 Nov 2026):** (1) A sentence to type gets a box that grows with it (one line to start, Enter checks) — in 105 of 277 sets with a typed first item the answer was longer than the one-line input and its start scrolled out of sight. (2) After a miss, the page scrolls just enough to show Next (29 sets had it below a phone's screen), never so far that the answer leaves the top. (3) Build-it with tiles no longer hands the answer over (my report: "den as a card + the order in blue"): the cue comes in another order (all 238 cues were in sentence order), and the cue's words the answer changed lie as decoys beside the right forms (der beside den, sich and freuen beside freue mich) — never a word of any right answer, the same each time for an item; typed, the cue stays as written. (4) "Start with Ich weiß nicht, …": a start every answer shares and the task shows word for word (the instruction, the prompt's brackets, a main clause to copy) is written in for you — in the box with the caret after it, or its tiles already placed; deleting it and typing only the rest is right too. 215 items; never a gap item, never words that are the work.
 - **🐣 Easy or 🏅 Rank up (13 Nov 2026):** every bonus round (Today's offer, Drill's surprise round, a game's first intro) has a two-way switch: 🏅 Rank up — at your rank, it earns stars and can rank the game up — or 🐣 Easy — the lowest rank, practice only, no stars. The choice is remembered (`S.games.bonusEasy`, synced) and can be changed on any offer. A minion fight has no switch.
 - **Explanations and feedback rewritten (13 Nov 2026), my request:** every sheet's why, rules and trap, every quiz why, every feedback message, rule title and instruction of the course (Stages 0–2, 35 packs) and of the verb track's sheets, rewritten in plain English — full sentences, the rule first, then one or two examples, no symbol chains — with a native check of all the German (each change listed in the session's notes). The first sentence of each rule states it on its own: after a miss with no message of its own, the card shows that sentence (the link still opens the whole sheet). Word order: when the right words come in another order, the card names the one word out of place and where it goes («hat» goes at the very end) — added to a lesson's own order message too. Tiles: the word in first place shows its capital (in the bank it waits small — a capital there would say which word starts); a phrase that isn't a sentence stays small. Done: 35 packs and all 38 verb sheets (≈ 2,000 texts). The native check fixed about 30 German points — distractors that were also right (*euere*, *etwas zu trinken*, three *ohne / anstatt / um … zu* items, *Sie* for das Mädchen in speech), spelling (*wiedergefunden*, *kaputtgemacht*), idiom (*ich bin zu spät*, *Waschküche*, *der Film kam ins Kino*, *vom Koch zubereitet*), a negation that changed the meaning, a rule that said -ß always adds an e (am größten), French comparisons in the verb sheets — and added common right answers (*parkieren*, *Grüezi*, *dem See entlang*, *Möchten Sie noch mehr?*, *nachdem … geendet hat* in a table). Five rule openings that leaned on the sentence before were made to stand alone. 36 changed sentences recorded (65,773 / 65,773 texts). Left as judgement calls: *Ich bin gesessen* (Swiss sein with sitzen) is accepted in the drills but not taught on the sheet; a few correct-but-stiff sentences (listed in the session).
+- **Session 7 (13 Nov 2026):** an exercise whose heading is another lesson's goes where its practice is taught, also into a lesson already built (27•4 · 27•5 → the indirect questions); one that only answers questions about a dialogue goes to the conversation unit of that dialogue's topic (31•9 → shopping), whatever its heading says. A form the book still writes but nobody says (the future passive, führe, hülfe) is left out or asked as the form people use; the one-word Konjunktiv II is asked only where it's common. The verb log keeps the engine's tenses: a Konjunktiv II form counts as the Konjunktiv II whichever way it is written, a passive form is checked but not logged.
 - **Verb + preposition in Stage 1 (2 Nov 2026):** *warten auf, sich freuen auf, denken an* are everyday spoken A2 — the lesson (now `s1.verbprep`, A2) comes right after the reflexive pronouns (≈ late Feb) instead of mid-April in Stage 2; still built in Session 6, the wo- / da- compounds stay in Stage 2 right after it.
 - **Session 2 audit (21 Oct 2026):** every new sheet and item proofread (15 fixes: a rule that put *die Mutter* among the masculine plurals, a few stiff sentences, missing natural answers in translations). The verb lessons' own sentences now feed the learning log's verbs (before, only generated items did). *(22 Oct: umlauts are never typed, as agreed — a missing one is never a mistake, in the drills or the log; the course's drills now ask the verb track's small 1 / 2 choice when the plain spelling is another real form: fahrt → fährt or fahrt?)* 📚 a chapter's Übungen render their *italics*; on a verb lesson page 🧩 Practise sits right under the sheets. The logs test's fake cloud gained `batch` (its one failure was the test, not the app). Known and left as agreed: the quest test's late-deficit stress day can end one ledger form short (extra practice asks for exactly what a quest lacks).
 
@@ -1038,6 +1096,16 @@ screen · coverage report at 100 % (every blueprint exercise *mirrored*,
 
 *(kept up to date by the voice sessions; the pipeline is in `tools/audio/README.md`)*
 
+**13 Nov 2026 — Session 7's lessons recorded.** Everything the Stage 2B lessons and the three verb lessons' book
+exercises say once a question is answered (every drill item's whole right sentence for each accepted answer, the
+cue phrases you transform, the writing models, the sheets' examples, tables and quiz sentences, the generated
+Plusquamperfekt and Konjunktiv II forms) and the two older sentences rephrased: **2,186 clips, 80,977 characters, 0
+refused** (Google Chirp 3 HD "Aoede") — far less than the ≈150k guessed. The German pack has **67,958 / 67,958
+texts** (`status.mjs --strict` passes; the pack, games, flag, say and runtime tests pass); the phone gets the update
+with the banner, on Wi-Fi. **Characters this month (November 2026): 749,207** — under the 950,000 limit set for this
+month, ≈200,800 left; `run_all.py`'s own guard (900,000) stayed in place. What will be missing next: Session 8's six
+conversation units (≈40k characters) — that fits this month's room (≈200k) as well as December's fresh 1,000,000.
+
 **12 Nov 2026 — Session 6's lessons recorded.** Everything the ten new lessons say once a question is
 answered (every drill item's whole right sentence for each accepted answer, the writing models, the
 sheets' examples, their tables' German and their quizzes' right sentences): **1,983 clips, 83,040
@@ -1046,7 +1114,7 @@ characters, 0 refused** (Google Chirp 3 HD "Aoede"). The German pack has **65,74
 95 shards, ≈80 MB for a phone that has the old pack — offered with the banner, on Wi-Fi.
 **Characters this month (November 2026): 665,971** (the limit set for this run: 950,000; `run_all.py`'s
 own default guard stays 900,000). ≈284,000 left under the 950,000 limit.
-What will be missing next: Sessions 7 and 8 (≈150k + ≈40k characters) — record right after they're built.
+What will be missing next: Sessions 7 and 8 (≈150k + ≈40k characters) — record right after they're built. *(13 Nov: Session 7's done — 81k.)*
 
 **8 Nov 2026 — the course, the sheets and every B1 verb recorded; voice inside the exercises.**
 
@@ -1081,7 +1149,7 @@ What will be missing next: Sessions 7 and 8 (≈150k + ≈40k characters) — re
   out of what is said.
 - **Still missing, in priority order:** nothing the app says today. What will be missing next:
   1. *(done 12 Nov: Session 6's lessons — 83k characters, less than the ≈180k guessed)*
-  2. **Sessions 7 and 8** (Stage 2B, the conversation units): ≈150k + ≈40k.
+  2. ~~Session 7~~ (done 13 Nov: 81k) · **Session 8** (the conversation units): ≈40k.
   3. New words or verbs added to the decks: a few hundred characters each.
   4. Phrases in the voice log (Settings → Sound & voice → Copy voice log) — e.g. a gap item
      whose prompt has two gaps or English inside the word ("ei or ie? dr___ (three)") says

@@ -275,8 +275,8 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
   };
   await page.evaluate(() => renderCourse()); await noOverflow("Course");
   await page.evaluate(() => renderCourseSection("s0.neg")); await noOverflow("section");
-  // (a lesson not built yet: verb + preposition, Session 6's — the possessives, used here until Session 5, are built)
-  await page.evaluate(() => renderCourseSection("s2.cond")); await noOverflow("a coming section");
+  // (a lesson not built yet: a Stage 3 conversation, Session 8's — s2.cond, used here until Session 7, is built)
+  await page.evaluate(() => renderCourseSection("s3.travel")); await noOverflow("a coming section");
   // (Session 4 on) a sheet's table fits the phone whole — no sideways scrolling to find a column
   if (tag === "phone") await page.evaluate(() => {
     const wide = [], seen = [];
@@ -399,15 +399,28 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
     ok([...document.querySelectorAll(".cx-ex .gr-stt")].map(b => b.innerText.split(" · ")[0]).join() === "14.1,14.2,14.3,14.4,14.5,14.6,14.7,14.8,14.9,14.10", "chapter 14: every Übung now has its drill");
     // Session 5's chapters: their built Übungen — the later lessons' (and the one skipped) not listed
     const exOf = ch => { renderCourseChapter(ch); return [...document.querySelectorAll(".cx-ex .gr-stt")].map(b => b.innerText.split(" · ")[0]).join(); };
-    ok(exOf("c11") === "11.6,11.7,11.8,11.9,11.10,11.11,11.12,11.13", "chapter 11: the future's 11.6–11.13 (the past perfect's 11.1–11.5 with the strong Präteritum, later)");
+    ok(exOf("c11") === "11.1,11.2,11.3,11.4,11.5,11.6,11.7,11.8,11.9,11.10,11.11,11.12,11.13", "chapter 11: all thirteen (Session 7: the past perfect's 11.1–11.5)");
     ok(exOf("c20") === "20.1,20.2,20.3,20.4,20.5,20.6,20.7,20.8,20.9", "chapter 20: all nine (Session 6: the genitive's 20.1–20.3, 20.5–20.7)");
-    ok(exOf("c24") === "24.5,24.6,24.8,24.9,24.10,24.11,24.12,24.13,24.14", "chapter 24: the zu-infinitive's (24.1–24.4 with modals in the Perfekt, later; 24.7 skipped)");
+    ok(exOf("c24") === "24.1,24.2,24.3,24.4,24.5,24.6,24.8,24.9,24.10,24.11,24.12,24.13,24.14", "chapter 24: all but the skipped 24.7 (Session 7: 24.1–24.4, the double infinitive)");
     ok(exOf("c31") === "31.14" && exOf("c23") === "23.1,23.2,23.3,23.4,23.5,23.6,23.7,23.8,23.9,23.10,23.11,23.12,23.13", "chapter 31: 31.14 (with the adjective endings) · chapter 23: all thirteen (Session 6: 23.3, 23.11, 23.13)");
     // Session 6's chapters
     ok(exOf("c22") === "22.1,22.2,22.4,22.5,22.6,22.7,22.8,22.10,22.12,22.13,22.14,22.15,22.20", `chapter 22: every Übung has its drill — 22.3 · 22.9 with 22.12, 22.11 with 22.7, 22.16 with 22.10, 22.17–22.19 with 22.14 (${exOf("c22")})`);
     ok(["22.3", "22.9", "22.11", "22.16", "22.17", "22.18", "22.19"].every(x => new RegExp("\\b" + x.replace(".", "\\.") + "\\b").test(document.getElementById("main-screen").innerText)), "…the ones drilled together are named on their set");
-    ok(exOf("c26") === "26.11,26.12", `chapter 26: the indirect questions' 26.11 · 26.12 — the Konjunktiv's later (${exOf("c26")})`);
-    ok(exOf("c29") === "29.1,29.2,29.3,29.4,29.5,29.6,29.7,29.8,29.9,29.10,29.20,29.21", `chapter 29: the joining words' 29.5–29.10 added (participles, zwar later) (${exOf("c29")})`);
+    ok(exOf("c26") === "26.2,26.6,26.7,26.8,26.11,26.12,26.15,26.16,26.17,26.18,26.19,26.22,26.23,26.24,26.25,26.26,26.27,26.29,26.30", `chapter 26: the Konjunktiv II and if-sentences added (the Konjunktiv I and the past one are post-B1) (${exOf("c26")})`);
+    ok(exOf("c29") === "29.1,29.2,29.3,29.4,29.5,29.6,29.7,29.8,29.9,29.10,29.11,29.12,29.13,29.14,29.15,29.16,29.17,29.18,29.19,29.20,29.21", `chapter 29: all twenty-one (Session 7: participles 29.11–29.17, zwar 29.18 · 29.19) (${exOf("c29")})`);
+    // Session 7's chapters
+    ok(exOf("c16") === "16.1,16.3,16.4,16.6,16.7,16.8,16.10,16.11,16.12,16.13,16.14,16.16,16.17,16.19,16.20" && /16\.1 · 16\.2 · 16\.18/.test(document.getElementById("main-screen").innerText), `chapter 16: every Übung — the tables drilled together (16.1 · 16.2 · 16.18) (${exOf("c16")})`);
+    ok(exOf("c17") === "17.1,17.3,17.4,17.5,17.6,17.7,17.8,17.9,17.10,17.11,17.12,17.13,17.14,17.15,17.16,17.17", `chapter 17: every Übung (Session 7: lassen's 17.5 · 17.6, the modals' Perfekt 17.16 · 17.17) (${exOf("c17")})`);
+    ok(exOf("c25") === "25.1,25.2,25.3,25.4,25.5,25.6,25.7,25.8,25.9,25.10,25.11,25.12,25.13,25.14,25.16,25.17,25.18,25.19,25.20,25.21,25.22,25.23,25.24,25.25", `chapter 25: all but sein … zu's 25.15 (post-B1) (${exOf("c25")})`);
+    ok(exOf("c27") === "27.3,27.5,27.6,27.7,27.8,27.9,27.11,27.12,27.13,27.15", `chapter 27: the Konjunktiv II's, wenn and als ob — 27.4 with 27.5 (${exOf("c27")})`);
+    renderCourseChapter("c25");
+    [...document.querySelectorAll(".cx-ex")].find(b => /^25\.13 /.test(b.querySelector(".gr-stt").innerText)).click();
+    ok(_cx && _cx.list.every(e => e.set === "d25.13") && /Chapter 25/.test(document.querySelector(".screen-top .back-btn").textContent), "Übung 25.13 runs on its own; back goes to chapter 25");
+    cxClose();
+    renderCourseChapter("c16");
+    [...document.querySelectorAll(".cx-ex")].find(b => /^16\.1 /.test(b.querySelector(".gr-stt").innerText)).click();
+    ok(_cx && _cx.list.length >= 8 && _cx.list.every(e => e.set === "d16.1" && e.item.gen && e.item.t === "pt"), "Übung 16.1 (generated: the strong Präteritum) runs on its own");
+    cxClose();
     renderCourseChapter("c22");
     [...document.querySelectorAll(".cx-ex")].find(b => /^22\.6 /.test(b.querySelector(".gr-stt").innerText)).click();
     ok(_cx && _cx.list.every(e => e.set === "d22.6") && /Chapter 22/.test(document.querySelector(".screen-top .back-btn").textContent), "Übung 22.6 runs on its own; back goes to chapter 22");

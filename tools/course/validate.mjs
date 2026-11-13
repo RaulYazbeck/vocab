@@ -119,12 +119,12 @@ Object.values(CX.sets).forEach(set => {
     ok(items.length >= 8, `${tag}: the generator gives 8+ items (${items.length})`);
     (set.r || []).forEach(r => ok(ruleOk(r), `${tag}: rule ${r}`));
     const tense = set.gen.tense || "pr";
-    ok(["pr", "pt", "im", "pf"].includes(tense), `${tag}: tense ${tense}`);
+    ok(["pr", "pt", "im", "pf", "pq", "k2"].includes(tense), `${tag}: tense ${tense}`);
     items.forEach(it => {
       const m = /^(\S+(?: \(they\))?) ___!? \((\S+)\)$/.exec(it.q);
       ok(!!m && m[2] === it.inf, `${tag}: generated "${it.q}"`);
       if (!m) return;
-      const f = C.vxForm(C.vxVerb(it.inf), tense, it.p);
+      const f = C.cxGenForm(C.vxVerb(it.inf), tense, it.p);
       ok(f && it.a.includes(f.ans) && C.cxCheck(it, f.ans).ok && it.t === tense, `${tag}: "${it.q}" = the engine's ${f && f.ans}`);
     });
     return;
@@ -483,7 +483,7 @@ if (neg && neg.built) {
     ["dgp.dat", "wegen dem Stau", "wegen des Stau", "gp.dat", "Staus"],
     ["dadv.viel", "Der zweite Film war ___ besser.", "sehr", "adv.viel", "viel"],
     ["dadv.viel", "Der Film war ___ gut.", "viel", "adv.viel", "sehr"],
-    ["dadv.front", "Leider habe ich keine Zeit.", "Leider ich habe keine Zeit.", "adv.pos", "verb"],
+    ["dadv.front", "Leider habe ich heute keine Zeit.", "Leider ich habe heute keine Zeit.", "adv.pos", "verb"],
     ["dadv.place", "Ich sehe ihn oft.", "Ich oft sehe ihn.", "adv.order", "after the verb"],
     ["dadv.dir", "Ich gehe ___ und hole meine Jacke.", "oben", "adv.dir", "nach"],
     ["dadv.dir", "Der Hund muss ___.", "draußen", "adv.dir", "raus"],
@@ -556,6 +556,88 @@ if (neg && neg.built) {
   ["A1", "A2", "B1"].forEach(lv => T.forEach(t => ok(C.cxJournalPool(t.id, lv).length > 0, `theme ${t.id} at ${lv}: something to write`)));
   ok(C.cxJournalPrompt("th.home.B1") && C.cxJournalPrompt("th.home.B1").lv === "B1" && !C.cxJournalPrompt("th.nope.A1"), "a theme's own task resolves by id");
   ok(C.cxWordCount("Ich wohne seit 2021 in Zürich — es gefällt mir, z.B. der See.") === 12, "the word count (numbers and abbreviations count once)");
+}
+
+// ── the checker on typical mistakes (Session 7's lessons) ──
+// each: [set, the item's question or first answer, what was typed, the rule it should name, words its message must hold]
+{
+  const cases = [
+    // the strong and mixed Präteritum, the Plusquamperfekt
+    ["d16.7", "Der Bus kommt zu spät.", "Der Bus kommte zu spät.", "gs:pt22.r1", "kam"],
+    ["d16.7", "Die Kinder gehen in den Wald.", "Die Kinder gingten in den Wald.", "gs:pt22.r1", "-te"],
+    ["d16.12", "Ich denke oft an meine Familie.", "Ich denkte oft an meine Familie.", "gs:pt23.r1", "dachte"],
+    ["d16.13", "Lisa bringt einen Kuchen mit.", "Lisa bringte einen Kuchen mit.", "gs:pt23.r1", "brachte"],
+    ["d16.6", "Ihr ___ sehr leise. (sprechen)", "sprach", "gs:pt22.r2", "spracht"],
+    ["d16.14", "Ihr ___ gestern nicht zu Hause. (sein)", "wartet", "gs:pt11.trap", "wart"],
+    ["d11.3", "wir gehen noch zur Bank", "Bevor wir ins Tessin fuhren, hatten wir noch zur Bank gegangen.", "gs:pq1.r2", "waren"],
+    ["d11.3", "wir packen die Koffer", "Bevor wir ins Tessin fuhren, haben wir die Koffer gepackt.", "gs:pq1.r1", "hatten"],
+    ["dpq.nach", "Ich mache die Hausaufgaben. Dann sehe ich fern.", "Nachdem ich die Hausaufgaben gemacht hatte, ich sah fern.", "gs:pq2.r2", "side sentence"],
+    // Konjunktiv II
+    ["d26.16", "Ich kann dir helfen.", "Ich würde dir helfen können.", "gs:k22.r3", "könnte"],
+    ["d26.16", "Das ist schön.", "Das würde schön sein.", "gs:k22.r3", "wäre"],
+    ["d26.24", "Ich nehme den Zug.", "Ich würde nehmen den Zug.", "gs:k21.r2", "end"],
+    ["d26.22", "___ du mir kurz helfen?", "Würde", "gs:k21.r1", "würdest"],
+    ["d27.9", "Lea ___ gern einen Hund. (haben)", "hat", "gs:k22.r2", "hätte"],
+    // the passive
+    ["d25.6", "Das Paket wird geliefert.", "Das Paket ist geliefert geworden.", "gs:pv3.trap", "worden"],
+    ["d25.6", "Das Paket wird geliefert.", "Das Paket hat geliefert worden.", "gs:pv3.r1", "sein"],
+    ["d25.1", "Die Fenster werden geputzt.", "Die Fenster wurde geputzt.", "gs:pv2.r1", "wurden"],
+    ["d25.8", "Wodurch wurde das Dach beschädigt? (der Sturm)", "Das Dach wurde von dem Sturm beschädigt.", "gs:pv4.r2", "durch"],
+    ["d25.11", "Die Wohnung ist schon geputzt.", "Die Wohnung wird schon geputzt.", "gs:pv4.r3", "ist"],
+    ["d25.2", "Der Mechaniker repariert das Auto.", "Das Auto wird vom Mechaniker reparieren.", "gs:pv1.trap", "repariert"],
+    // if and wishes
+    ["d26.8", "Ich habe mehr Zeit. Ich lerne Italienisch.", "Wenn ich mehr Zeit habe, würde ich Italienisch lernen.", "cond.unreal", "hätte"],
+    ["d26.8", "Ich habe mehr Zeit. Ich lerne Italienisch.", "Wenn ich mehr Zeit hätte, ich würde Italienisch lernen.", "cond.order", "würde"],
+    ["d26.8", "Ich habe mehr Zeit. Ich lerne Italienisch.", "Wenn ich mehr Zeit haben würde, würde ich Italienisch lernen.", "cond.unreal", "hätte"],
+    ["d26.6", "Ich habe keine Zeit.", "Wenn ich Zeit hätte!", "wish.wenn", "nur"],
+    ["d26.7", "Er ist krank.", "Er tut so, wenn er krank wäre.", "wish.alsob", "als ob"],
+    ["d27.12", "Wenn ich nur mehr Zeit hätte!", "Ich hätte nur mehr Zeit!", "wish.verb", "first"],
+    // modals in the Perfekt
+    ["d17.16", "Ich habe lange gewartet. (müssen)", "Ich habe lange warten gemusst.", "mpf.dbl", "no ge-"],
+    ["d17.16", "Ich habe lange gewartet. (müssen)", "Ich habe lange gewartet müssen.", "mpf.dbl", "warten"],
+    ["d17.16", "Ich bin früh nach Hause gegangen. (müssen)", "Ich bin früh nach Hause gehen müssen.", "mpf.dbl", "haben"],
+    ["d17.17", "Er will das nicht. → Er hat das nicht ___. (Perfekt)", "wollen", "mpf.alone", "gewollt"],
+    ["d24.1", "Ich muss am Wochenende arbeiten.", "Ich habe am Wochenende müssen arbeiten.", "mpf.dbl", "last"],
+    ["dmpf.sub", "Ich bin zu spät gekommen. (weil) Ich habe den Bus nehmen müssen.", "Ich bin zu spät gekommen, weil ich den Bus nehmen müssen habe.", "mpf.sub", "before"],
+    // lassen
+    ["dlass.do", "Ich repariere das Velo nicht selbst.", "Ich lasse das Velo zu reparieren.", "lass.do", "zu"],
+    ["d24.2", "Er lässt das Auto waschen. (Perfekt)", "Er hat das Auto waschen gelassen.", "lass.pf", "no ge-"],
+    ["d25.16", "Man kann das Fenster nicht öffnen.", "Das Fenster lässt nicht öffnen.", "lass.sich", "sich"],
+    ["dp.lass", "Let me help you! (du)", "Lass mir dir helfen!", "lass.let", "mich"],
+    // man, es wird, mir wurde geholfen
+    ["d25.3", "Man hilft uns.", "Wir werden geholfen.", "imp.dat", "uns"],
+    ["d25.13", "Hier wird Deutsch gesprochen.", "Hier sprechen man Deutsch.", "imp.man", "spricht"],
+    ["d25.14", "Man spricht viel.", "Wird viel gesprochen.", "imp.es", "es"],
+    ["d25.10", "Hier wird hart gearbeitet.", "Es werden hier hart gearbeitet.", "imp.es", "wird"],
+    // particles, short answers
+    ["dpart.pick", "Kannst du ___ das Salz geben? (friendly)", "ja", "part.mal", "mal"],
+    ["dpart.place", "Kannst du mir helfen? (mal)", "Kannst du mal mir helfen?", "part.mal", "helfen"],
+    ["dshort.doch", "Hast du keinen Hunger? — ___, ich habe großen Hunger!", "Ja", "short.doch", "doch"],
+    ["dshort.auch", "Ich trinke keinen Alkohol. — (me neither) ___", "Ich auch.", "short.auch", "nicht"],
+    ["dshort.zwar", "Das Auto ist alt. Es fährt gut.", "Das Auto ist zwar alt, es fährt gut.", "short.zwar", "aber"],
+    // participles, n-nouns, adjectives as nouns
+    ["d29.11", "lachen → ___ (laughing)", "lachen", "pta.pres", "lachend"],
+    ["dpta.end", "Das war ein ___ Tag. (anstrengend)", "anstrengend", "pta.end", "anstrengender"],
+    ["d29.14", "Die Frau, die schläft, ist meine Schwester.", "Die geschlafene Frau ist meine Schwester.", "pta.pres", "schlafende"],
+    ["d29.13", "the closed door", "die schließende Tür", "pta.past", "geschlossene"],
+    ["dnd.case", "(der Kollege) Ich frage ___.", "den Kollege", "nd.cases", "Kollegen"],
+    ["dnd.case", "(der Student) ___ wohnt im dritten Stock.", "Der Studenten", "nd.cases", "no -n"],
+    ["dnd.case", "(der Nachbar) Das ist der Hund ___.", "des Nachbars", "nd.cases", "Nachbarn"],
+    ["dnd.herr", "Ich habe ___ Keller gestern gesehen.", "Herr", "nd.herr", "Herrn"],
+    ["dna.end", "(deutsch) Mein Mann ist ___.", "Deutsche", "na.end", "Deutscher"],
+    ["dna.etwas", "Gibt es etwas ___? (neu)", "Neu", "na.etwas", "Neues"],
+    // indirect questions (27•5, added to Session 6's lesson)
+    ["d27.5", "«Hat das Kind Fieber?»", "Die Ärztin hat gefragt, ob hat das Kind Fieber.", "iq.w", "end"],
+  ];
+  cases.forEach(([set, key, typed, rule, word]) => {
+    const s = CX.sets[set], it = s && s.items.find(x => x.q === key || (x.a || [])[0] === key), r = it && C.cxCheck(it, typed, C.cxSection(s.sec));
+    ok(r && !r.ok && r.rule === rule && String(r.msg || "").toLowerCase().includes(word.toLowerCase()), `diagnosis: "${typed}" → ${rule}, «${word}» (got ${r ? r.rule + ": " + r.msg : "no such item in " + set})`);
+  });
+  // what the detectors find here is the grammar — never "almost, check the spelling"
+  [["d16.7", "Der Bus kommt zu spät.", "Der Bus kommte zu spät."], ["d25.6", "Das Paket wird geliefert.", "Das Paket ist geliefert geworden."], ["d29.11", "lachen → ___ (laughing)", "lachen"], ["dnd.case", "(der Kollege) Ich frage ___.", "den Kollege"], ["dnd.herr", "Ich habe ___ Keller gestern gesehen.", "Herr"], ["d24.2", "Er lässt das Auto waschen. (Perfekt)", "Er hat das Auto waschen gelassen."], ["dshort.doch", "Hast du keinen Hunger? — ___, ich habe großen Hunger!", "Ja"]].forEach(([set, key, typed]) => {
+    const s = CX.sets[set], it = s.items.find(x => x.q === key || (x.a || [])[0] === key), r = it && C.cxCheck(it, typed, C.cxSection(s.sec));
+    ok(r && !r.ok && !r.near, `"${typed}": the grammar — a mistake, not almost`);
+  });
 }
 
 // ── what the course says (course-de.js cxSayAll / cxQuizSayText) ──

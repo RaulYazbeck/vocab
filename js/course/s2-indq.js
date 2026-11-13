@@ -247,6 +247,21 @@ cxPack({
           { q: "«Arbeiten Sie diese Woche nicht!»", a: ["Der Arzt sagt, ich soll diese Woche nicht arbeiten.", "Der Arzt sagt, ich solle diese Woche nicht arbeiten."], r: ["iq.soll"] },
           { q: "«Machen Sie einen Termin für die Kontrolle!»", a: ["Der Arzt sagt, ich soll einen Termin für die Kontrolle machen.", "Der Arzt sagt, ich solle einen Termin für die Kontrolle machen."], r: ["iq.soll"] },
         ] },
+        // ── Übung 27•5 (27•4): what the doctor asked — as you'd say it ──
+        // (the book writes 27•4 in the Konjunktiv; 27•5 asks it "as said in the spoken
+        // language": the indicative, as here — the Konjunktiv I is the bonus lesson's)
+        { id: "d27.5", ex: "27.5", also: ["27.4"], t: "transform", fixed: true, title: "Die Ärztin hat gefragt, …", how: "Tell your partner what the doctor asked about your son: Die Ärztin hat gefragt, … — ob for a yes/no question, the verb at the end.", items: [
+          { q: "«Hat das Kind Fieber?»", a: ["Die Ärztin hat gefragt, ob das Kind Fieber hat."], r: ["iq.ob"] },
+          { q: "«Seit wann hustet es?»", a: ["Die Ärztin hat gefragt, seit wann es hustet."], r: ["iq.w"] },
+          { q: "«Nimmt es Medikamente?»", a: ["Die Ärztin hat gefragt, ob es Medikamente nimmt."], r: ["iq.ob"] },
+          { q: "«Wie viel wiegt das Kind?»", a: ["Die Ärztin hat gefragt, wie viel das Kind wiegt."], r: ["iq.w"] },
+          { q: "«Hat es gut geschlafen?»", a: ["Die Ärztin hat gefragt, ob es gut geschlafen hat."], r: ["iq.two"] },
+          { q: "«Wann hat es zuletzt gegessen?»", a: ["Die Ärztin hat gefragt, wann es zuletzt gegessen hat."], r: ["iq.two"] },
+          { q: "«Kann das Kind gut schlucken?»", a: ["Die Ärztin hat gefragt, ob das Kind gut schlucken kann."], r: ["iq.two"] },
+          { q: "«Wo tut es weh?»", a: ["Die Ärztin hat gefragt, wo es weh tut.", "Die Ärztin hat gefragt, wo es wehtut."], r: ["iq.w"] },
+          { q: "«Mit wem hat es gespielt?»", a: ["Die Ärztin hat gefragt, mit wem es gespielt hat."], r: ["iq.prep"] },
+          { q: "«Warum ist es so müde?»", a: ["Die Ärztin hat gefragt, warum es so müde ist."], r: ["iq.w"] },
+        ].map(it => ({ ...it, diag: [{ t: "order", rule: "iq.w", msg: "A question inside a sentence has its verb at the very end: …, ob das Kind Fieber **hat**." }] })) },
         // ── Production ──
         { id: "dp.iq", t: "translate", end: true, title: "Say it in German", how: "Translate. A question inside a sentence has its verb last; a yes/no question takes ob.", items: [
           { q: "I don't know where he lives.", a: ["Ich weiß nicht, wo er wohnt."], r: ["iq.w"] },
@@ -282,7 +297,7 @@ cxPack({
 // What the exercises became. 26•11 and 26•12 are written with the
 // Konjunktiv I in the book (sei, solle): their frames are mirrored in the
 // indicative — the Konjunktiv I itself is the bonus lesson's (s4.k1).
-cxCover({ "23.11": "d23.11", "29.9": "d29.9", "26.11": "d26.11", "26.12": "d26.12" });
+cxCover({ "23.11": "d23.11", "29.9": "d29.9", "26.11": "d26.11", "26.12": "d26.12", "27.4": "d27.5", "27.5": "d27.5" });
 // The rest of chapter 26 waits for its lessons (Sessions 7 and 9 upload the
 // chapter again): the Konjunktiv II's forms, wishes and requests, würde →
 // s2.k2 · wenn-sentences, wishes with wenn, als ob → s2.cond · the Konjunktiv
