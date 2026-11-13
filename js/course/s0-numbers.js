@@ -67,26 +67,26 @@ cxPack({
           ex: [
             ["Der Zug fährt um **halb acht**.", "The train leaves at half past seven."],
             ["Mein Geburtstag ist **am zwölften Juni**.", "My birthday is on the twelfth of June."],
-            ["**Im August** ist der Nationalfeiertag — **am ersten**.", "In August is the national holiday — on the first."],
-            ["Wir treffen uns **am Freitag um Viertel nach sechs**.", "We'll meet on Friday at quarter past six."],
+            ["**Im August** ist der Nationalfeiertag — **am ersten**.", "The national holiday is in August, on the first."],
+            ["Wir treffen uns **am Freitag um Viertel nach sechs**.", "We're meeting on Friday at quarter past six."],
           ],
-          trap: "**halb neun** is 8:30, not 9:30: German counts the half *towards* the next hour. When in doubt, say it like a timetable: acht Uhr dreißig.",
+          trap: "**halb neun** is 8:30, not 9:30: German counts the half *towards* the next hour. If unsure, say it like a timetable: acht Uhr dreißig.",
           quiz: [
-            { at: "r1", k: "pick", q: "8:30 = ___", o: ["halb neun", "halb acht", "acht halb"], a: 0, why: "Half towards nine." },
-            { at: "r1", k: "type", cx: true, q: "Der Kurs beginnt ___ neun Uhr.", a: ["um"], r: ["num.uhr"], why: "A clock time: um." },
-            { at: "r1", k: "pick", q: "6:45 = ___", o: ["Viertel vor sieben", "Viertel nach sechs", "halb sieben"], a: 0, why: "A quarter before seven." },
-            { at: "r2", k: "pick", q: "___ Montag habe ich frei.", o: ["Am", "Im", "Um"], a: 0, why: "A day: am." },
-            { at: "r2", k: "pick", q: "___ Juli fahren wir weg.", o: ["Im", "Am", "Um"], a: 0, why: "A month: im." },
-            { at: "r3", k: "pick", q: "Heute ist der ___ Mai. (3.)", o: ["dritte", "dreite", "dritten"], a: 0, why: "der dritte — after der: -e." },
-            { at: "r3", k: "type", cx: true, q: "Ich komme am ___ Juni. (7.)", a: ["siebten"], r: ["num.ord"], why: "am + date: -en, and sieben → siebt-." },
-            { at: "table", k: "pick", q: "on the 1st of August", o: ["am ersten August", "im ersten August", "am eins August"], a: 0, why: "am + ordinal with -en." },
-            { at: "trap", k: "pick", q: "halb neun is…", o: ["8:30", "9:30", "8:15"], a: 0, why: "Half towards nine: 8:30." },
+            { at: "r1", k: "pick", q: "8:30 = ___", o: ["halb neun", "halb acht", "acht halb"], a: 0, why: "halb neun is halfway towards nine: 8:30." },
+            { at: "r1", k: "type", cx: true, q: "Der Kurs beginnt ___ neun Uhr.", a: ["um"], r: ["num.uhr"], why: "A clock time takes um." },
+            { at: "r1", k: "pick", q: "6:45 = ___", o: ["Viertel vor sieben", "Viertel nach sechs", "halb sieben"], a: 0, why: "6:45 is a quarter before seven: Viertel vor sieben." },
+            { at: "r2", k: "pick", q: "___ Montag habe ich frei.", o: ["Am", "Im", "Um"], a: 0, why: "A day takes am: am Montag." },
+            { at: "r2", k: "pick", q: "___ Juli fahren wir weg.", o: ["Im", "Am", "Um"], a: 0, why: "A month takes im: im Juli." },
+            { at: "r3", k: "pick", q: "Heute ist der ___ Mai. (3.)", o: ["dritte", "dreite", "dritten"], a: 0, why: "After der, the ordinal ends in -e: der dritte." },
+            { at: "r3", k: "type", cx: true, q: "Ich komme am ___ Juni. (7.)", a: ["siebten"], r: ["num.ord"], why: "After am it ends in -en, and sieben becomes siebt-: siebten." },
+            { at: "table", k: "pick", q: "on the 1st of August", o: ["am ersten August", "im ersten August", "am eins August"], a: 0, why: "am + the ordinal with -en: am ersten August." },
+            { at: "trap", k: "pick", q: "halb neun is…", o: ["8:30", "9:30", "8:15"], a: 0, why: "Halfway towards nine: 8:30." },
           ] },
       ],
       diag: [
-        { t: "swap", from: "^(am|im)$", to: "^um$", rule: "num.uhr", msg: "A clock time takes **um**." },
-        { t: "swap", from: "^(am|im|um)$", to: "^(am|im)$", rule: "num.am", msg: "**{right}** here — am + a day or a date, im + a month or a season." },
-        { t: "ending", stem: "(erst|zweit|dritt|viert|fünft|sechst|siebt|acht|neunt|zehnt|elft|zwölft)", rule: "num.ord", msg: "The ending: der …**e**, but am …**en**: **{right}**." },
+        { t: "swap", from: "^(am|im)$", to: "^um$", rule: "num.uhr", msg: "A clock time takes **um**, not am or im." },
+        { t: "swap", from: "^(am|im|um)$", to: "^(am|im)$", rule: "num.am", msg: "It's **{right}** here: am with a day or a date, im with a month or a season." },
+        { t: "ending", stem: "(erst|zweit|dritt|viert|fünft|sechst|siebt|acht|neunt|zehnt|elft|zwölft)", rule: "num.ord", msg: "Wrong ending: it's **{right}**. After der the date ends in -e, after am in -en." },
       ],
       drills: [
         // ── Übung 6•5: the sum in words ──
@@ -105,7 +105,7 @@ cxPack({
           { q: "5 − 4 = ___", a: ["eins"], r: ["num.eins"] },
         ] },
         // ── Übung 6•6: dates with ordinals ──
-        { id: "d6.6", ex: "6.6", t: "type", title: "The first, the second…", how: "Write the ordinal with its ending: der …e, am / im …en.", items: [
+        { id: "d6.6", ex: "6.6", t: "type", title: "The first, the second…", how: "Write the ordinal with its ending: -e after der, -en after am or im.", items: [
           { q: "(2.) Heute ist der ___ Dezember.", a: ["zweite"], r: ["num.ord"] },
           { q: "(11.) Mein Termin ist am ___ Juni.", a: ["elften"], r: ["num.ord"] },
           { q: "(3.) Wir wohnen im ___ Stock.", a: ["dritten"], r: ["num.ord"] },
@@ -145,7 +145,7 @@ cxPack({
           { q: "4:20 → ___", a: ["zwanzig nach vier"], r: ["num.uhr"] },
         ] },
         // ── Übung 4•7: wann? ──
-        { id: "d4.7", ex: "4.7", t: "answer", title: "When?", how: "Answer with the cue — am, im, um.", items: [
+        { id: "d4.7", ex: "4.7", t: "answer", title: "When?", how: "Answer with the cue, using am, im or um.", items: [
           { q: "Wann ist der Elternabend? (Dienstag)", a: ["Am Dienstag.", "Der Elternabend ist am Dienstag."], r: ["num.am"] },
           { q: "Wann ist das Fest? (Juli)", a: ["Im Juli.", "Das Fest ist im Juli."], r: ["num.am"] },
           { q: "Wann hast du Geburtstag? (14. Mai)", a: ["Am vierzehnten Mai.", "Ich habe am vierzehnten Mai Geburtstag.", "Mein Geburtstag ist am vierzehnten Mai."], r: ["num.ord"] },
@@ -158,7 +158,7 @@ cxPack({
           { q: "Wann kommt der Hauswart? (8:45)", a: ["Um Viertel vor neun.", "Er kommt um Viertel vor neun.", "Der Hauswart kommt um Viertel vor neun."], r: ["num.uhr"] },
         ] },
         // ── Production: say it ──
-        { id: "dp.num", t: "translate", end: true, title: "Say it in German", how: "Translate — the numbers in words.", items: [
+        { id: "dp.num", t: "translate", end: true, title: "Say it in German", how: "Translate. Write the numbers in words.", items: [
           { q: "The train leaves at half past eight.", a: ["Der Zug fährt um halb neun.", "Um halb neun fährt der Zug.", "Der Zug fährt um acht Uhr dreißig."], r: ["num.uhr"] },
           { q: "My birthday is on the third of May.", a: ["Mein Geburtstag ist am dritten Mai.", "Ich habe am dritten Mai Geburtstag."], r: ["num.ord"] },
           { q: "That costs twelve francs fifty.", a: ["Das kostet zwölf Franken fünfzig.", "Das macht zwölf Franken fünfzig."], r: ["num.big"] },
