@@ -19,24 +19,24 @@ cxPack({
     "s2.rel": {
       testout: { n: 7, miss: 1 },
       rules: {
-        "rel.form": "the relative pronoun looks like the article: der, die, das — by the noun it points back to",
-        "rel.verb": "a side sentence: a comma, and the verb last",
-        "rel.nom": "the subject of its clause: der · die · das · die",
-        "rel.acc": "the object of its clause: den · die · das · die",
-        "rel.dat": "the dative: dem · der · dem · denen",
-        "rel.case": "the case comes from its job in its own clause, not from the main sentence",
-        "rel.place": "right after its noun (a short verb part may come between) — also in the middle, between two commas",
+        "rel.form": "The relative pronoun is the article: der, die, das",
+        "rel.verb": "A side sentence: a comma, and the verb last",
+        "rel.nom": "Subject of its clause: der, die, das, die",
+        "rel.acc": "Object of its clause: den, die, das, die",
+        "rel.dat": "Dative: dem, der, dem, denen",
+        "rel.case": "The case comes from its job in its own clause",
+        "rel.place": "The clause goes right after its noun",
       },
       sheets: [
         { id: "cx.rel1", title: "der Mann, der … · den ich kenne", qn: 3,
           struct: [["Das ist der Mann,", "thing"], ["der", "pre"], ["neben uns", "mid"], ["wohnt", "verb"]],
-          why: "A relative clause says **which one** you mean: *the man who lives next door*. German has no separate *who / that / which* — it uses the **article** again: der Mann, **der** … And it's a side sentence: the verb goes last.",
+          why: "A relative clause says **which one** you mean: *the man who lives next door*. German has no separate word for *who* or *that*; it repeats the **article**: der Mann, **der** … The verb goes last.",
           rid: ["rel.form", "rel.verb", "rel.nom", "rel.acc"],
           rules: [
-            "The relative pronoun is the **article** of the noun it points back to — its gender and number: **der** Mann, **der** … · **die** Frau, **die** … · **das** Kind, **das** … · **die** Leute, **die** … It can never be left out as in English (*the man I know*).",
-            "A relative clause is a **side sentence**: a **comma** before it, and the conjugated verb at the **end**: Das ist die Frau, die im Spital **arbeitet**. · Das ist der Film, den ich gestern gesehen **habe**.",
-            "When the pronoun is the **subject** of its own clause (it does the action): **der · die · das · die** — Der Mann, **der** dort steht, ist mein Chef. · Die Kinder, **die** hier spielen, wohnen im Haus.",
-            "When it is the **object** (someone else does the action to it): **den · die · das · die** — only the masculine changes: Der Mann, **den** ich meine, ist mein Chef. · Der Kaffee, **den** du gemacht hast, ist sehr gut.",
+            "The relative pronoun is the **article** of the noun it points back to, with the same gender and number: **der** Mann, **der** … · **die** Frau, **die** … · **das** Kind, **das** … · **die** Leute, **die** … It's never left out.",
+            "A relative clause is a **side sentence**: a **comma** before it, and the conjugated verb at the **end**. Das ist die Frau, die im Spital **arbeitet**. · Das ist der Film, den ich gesehen **habe**.",
+            "If the pronoun is the **subject** of its own clause (it does the action), it's **der, die, das, die**. Der Mann, **der** dort steht, ist mein Chef. · Die Kinder, **die** hier spielen, wohnen im Haus.",
+            "If it's the **object** (someone does something to it), it's **den, die, das, die**: only the masculine changes. Der Mann, **den** ich meine, ist mein Chef. · Der Kaffee, **den** du gemacht hast, ist gut.",
           ],
           table: { head: ["", "subject", "object"], rows: [
             ["der Mann,", "**der** hier wohnt", "**den** ich kenne"],
@@ -50,27 +50,27 @@ cxPack({
             ["Ich suche ein Restaurant, **das** am Sonntag offen **ist**.", "I'm looking for a restaurant that's open on Sunday."],
             ["Die Schuhe, **die** ich gekauft **habe**, sind zu klein.", "The shoes I bought are too small."],
           ],
-          trap: "English can drop the pronoun (*the film I saw*) — German never: der Film, **den** ich gesehen habe. And it's not ~~was~~ or ~~wer~~ after a noun: der Mann, **der** …, never ~~der Mann, wer~~.",
+          trap: "English can drop the pronoun (*the film I saw*); German never can: der Film, **den** ich gesehen habe. And after a noun it's never ~~was~~ or ~~wer~~: der Mann, **der** …, not ~~der Mann, wer~~.",
           quiz: [
-            { at: "r1", k: "pick", q: "Das ist die Frau, ___ im dritten Stock wohnt.", o: ["die", "der", "das"], a: 0, why: "die Frau → **die**." },
-            { at: "r1", k: "pick", q: "Ich habe ein Velo, ___ sehr alt ist.", o: ["das", "der", "die"], a: 0, why: "das Velo → **das**." },
-            { at: "r2", k: "pick", q: "Das ist der Kollege, der ___.", o: ["aus Spanien kommt", "kommt aus Spanien"], a: 0, why: "A side sentence: the verb last." },
-            { at: "r2", k: "order", q: "Build it: That's the woman who works here.", a: ["Das ist die Frau,", "die", "hier", "arbeitet."], why: "The pronoun first, the verb last." },
-            { at: "r3", k: "pick", q: "Der Mann, ___ dort steht, ist mein Lehrer.", o: ["der", "den", "dem"], a: 0, why: "He stands there — the subject: **der**." },
-            { at: "r4", k: "pick", q: "Der Mann, ___ du dort siehst, ist mein Lehrer.", o: ["den", "der", "dem"], a: 0, why: "du siehst **ihn** — the object: **den**." },
-            { at: "r4", k: "type", cx: true, q: "Der Kuchen, ___ du gebacken hast, schmeckt super.", a: ["den"], r: ["rel.acc"], why: "du hast **ihn** gebacken: **den**." },
-            { at: "r4", k: "pick", q: "Die Jacke, ___ ich gekauft habe, ist rot.", o: ["die", "den", "der"], a: 0, why: "Feminine: the object is **die** too." },
+            { at: "r1", k: "pick", q: "Das ist die Frau, ___ im dritten Stock wohnt.", o: ["die", "der", "das"], a: 0, why: "die Frau, so **die**." },
+            { at: "r1", k: "pick", q: "Ich habe ein Velo, ___ sehr alt ist.", o: ["das", "der", "die"], a: 0, why: "das Velo, so **das**." },
+            { at: "r2", k: "pick", q: "Das ist der Kollege, der ___.", o: ["aus Spanien kommt", "kommt aus Spanien"], a: 0, why: "A side sentence: the verb goes last." },
+            { at: "r2", k: "order", q: "Build it: That's the woman who works here.", a: ["Das ist die Frau,", "die", "hier", "arbeitet."], why: "The pronoun first, the verb last: die hier **arbeitet**." },
+            { at: "r3", k: "pick", q: "Der Mann, ___ dort steht, ist mein Lehrer.", o: ["der", "den", "dem"], a: 0, why: "He stands there, so he's the subject: **der**." },
+            { at: "r4", k: "pick", q: "Der Mann, ___ du dort siehst, ist mein Lehrer.", o: ["den", "der", "dem"], a: 0, why: "du siehst **ihn**: he's the object, so **den**." },
+            { at: "r4", k: "type", cx: true, q: "Der Kuchen, ___ du gebacken hast, schmeckt super.", a: ["den"], r: ["rel.acc"], why: "du hast **ihn** gebacken: the object, so **den**." },
+            { at: "r4", k: "pick", q: "Die Jacke, ___ ich gekauft habe, ist rot.", o: ["die", "den", "der"], a: 0, why: "Feminine: the object is also **die**." },
             { at: "table", k: "pick", q: "Die Leute, ___ hier wohnen, sind sehr nett.", o: ["die", "der", "den"], a: 0, why: "Plural: **die**." },
-            { at: "trap", k: "pick", q: "Which is right?", o: ["Das ist der Film, den ich gesehen habe.", "Das ist der Film, ich gesehen habe.", "Das ist der Film, was ich gesehen habe."], a: 0, why: "The pronoun can't be dropped, and after a noun it's the article's form." },
+            { at: "trap", k: "pick", q: "Which is right?", o: ["Das ist der Film, den ich gesehen habe.", "Das ist der Film, ich gesehen habe.", "Das ist der Film, was ich gesehen habe."], a: 0, why: "The pronoun can't be dropped, and after a noun it's the article's form: **den**." },
           ] },
         { id: "cx.rel2", title: "dem, der, denen — and where the clause goes", qn: 3,
           struct: [["Die Frau,", "who"], ["der", "pre"], ["ich helfe,", "mid"], ["ist", "verb"], ["meine Nachbarin", "thing"]],
-          why: "The pronoun's **gender** comes from the noun it points back to — but its **case** comes from its job in its **own** clause. With a dative verb (helfen, gehören, gefallen) or an indirect object that's the dative.",
+          why: "The pronoun's **gender** comes from the noun it points back to, but its **case** comes from its job in its **own** clause. With helfen, gehören, gefallen or an indirect object, that's the dative.",
           rid: ["rel.dat", "rel.case", "rel.place"],
           rules: [
-            "The **dative** forms: **dem · der · dem** — and in the plural **denen** (not den): Der Mann, **dem** ich helfe … · Die Frau, **der** das Auto gehört … · Die Kinder, **denen** ich das Buch gebe …",
-            "Gender from the noun, the **case from its own clause** — test it: Ich kenne **ihn** → der Mann, **den** ich kenne. · Ich helfe **ihm** → der Mann, **dem** ich helfe. · **Er** hilft mir → der Mann, **der** mir hilft.",
-            "The clause stands **right after its noun** — in the middle too, between **two commas**: Der Mann, **der** dort steht, **ist** mein Chef. Only a short verb part may come between: Hast du den Brief **gelesen**, der heute kam?",
+            "The **dative** forms are **dem, der, dem**, and **denen** in the plural (not den). Der Mann, **dem** ich helfe … · Die Frau, **der** das Auto gehört … · Die Kinder, **denen** ich das Buch gebe …",
+            "The gender comes from the noun, the **case from the pronoun's own clause**. Test it: Ich kenne **ihn** → der Mann, **den** ich kenne. · Ich helfe **ihm** → der Mann, **dem** ich helfe. · **Er** hilft mir → der Mann, **der** mir hilft.",
+            "The clause goes **right after its noun**, even in the middle of a sentence, between **two commas**: Der Mann, **der** dort steht, **ist** mein Chef. Only a short verb part may come in between: Hast du den Brief **gelesen**, der heute kam?",
           ],
           table: { head: ["", "dative", ""], rows: [
             ["der Mann,", "**dem**", "ich helfe"],
@@ -84,33 +84,33 @@ cxPack({
             ["Die Gäste, **denen** das Essen geschmeckt hat, kommen sicher wieder.", "The guests who liked the food will surely come again."],
             ["Der Arzt, **der** mich operiert hat, war sehr freundlich.", "The doctor who operated on me was very kind."],
           ],
-          trap: "The dative plural is **denen**, not den: die Freunde, **denen** ich schreibe. And don't copy the case of the main sentence: Ich helfe dem Mann, **der** (not ~~dem~~) nebenan wohnt — in his own clause he's the subject.",
+          trap: "The dative plural is **denen**, not den: die Freunde, **denen** ich schreibe. And don't copy the main sentence's case: Ich helfe dem Mann, **der** (not ~~dem~~) nebenan wohnt. In his own clause he's the subject.",
           quiz: [
-            { at: "r1", k: "pick", q: "Der Nachbar, ___ ich oft helfe, ist schon 90.", o: ["dem", "den", "der"], a: 0, why: "helfen + dative, masculine: **dem**." },
-            { at: "r1", k: "pick", q: "Die Kinder, ___ ich Deutsch beibringe, kommen aus Syrien.", o: ["denen", "den", "die"], a: 0, why: "beibringen + dative, plural: **denen**." },
-            { at: "r1", k: "type", cx: true, q: "Die Frau, ___ dieses Auto gehört, wohnt im ersten Stock.", a: ["der"], r: ["rel.dat"], why: "gehören + dative, feminine: **der**." },
-            { at: "r2", k: "pick", q: "Ich spreche mit dem Mann, ___ hier arbeitet.", o: ["der", "dem", "den"], a: 0, why: "In his own clause he is the subject: **der**." },
-            { at: "r2", k: "pick", q: "Das ist der Freund, ___ ich gestern besucht habe.", o: ["den", "dem", "der"], a: 0, why: "Ich habe **ihn** besucht: **den**." },
-            { at: "r3", k: "pick", q: "Der Zug, der nach Bern fährt, ___.", o: ["hat Verspätung", "Verspätung hat"], a: 0, why: "After the second comma the main sentence goes on — its verb is second." },
-            { at: "r3", k: "order", q: "Build it: The flat we saw was too expensive.", a: ["Die Wohnung,", "die wir gesehen haben,", "war", "zu teuer."], why: "The clause right after its noun, then the main verb." },
+            { at: "r1", k: "pick", q: "Der Nachbar, ___ ich oft helfe, ist schon 90.", o: ["dem", "den", "der"], a: 0, why: "helfen takes the dative; masculine: **dem**." },
+            { at: "r1", k: "pick", q: "Die Kinder, ___ ich Deutsch beibringe, kommen aus Syrien.", o: ["denen", "den", "die"], a: 0, why: "beibringen takes the dative; plural: **denen**." },
+            { at: "r1", k: "type", cx: true, q: "Die Frau, ___ dieses Auto gehört, wohnt im ersten Stock.", a: ["der"], r: ["rel.dat"], why: "gehören takes the dative; feminine: **der**." },
+            { at: "r2", k: "pick", q: "Ich spreche mit dem Mann, ___ hier arbeitet.", o: ["der", "dem", "den"], a: 0, why: "In his own clause he's the subject: **der**." },
+            { at: "r2", k: "pick", q: "Das ist der Freund, ___ ich gestern besucht habe.", o: ["den", "dem", "der"], a: 0, why: "Ich habe **ihn** besucht: the object, so **den**." },
+            { at: "r3", k: "pick", q: "Der Zug, der nach Bern fährt, ___.", o: ["hat Verspätung", "Verspätung hat"], a: 0, why: "After the second comma the main sentence goes on, with its verb second." },
+            { at: "r3", k: "order", q: "Build it: The flat we saw was too expensive.", a: ["Die Wohnung,", "die wir gesehen haben,", "war", "zu teuer."], why: "The clause comes right after its noun, then the main verb." },
             { at: "table", k: "pick", q: "Das Kind, ___ ich das Buch geschenkt habe, heißt Mia.", o: ["dem", "das", "der"], a: 0, why: "Dative, neuter: **dem**." },
             { at: "trap", k: "pick", q: "Which is right?", o: ["Das sind die Freunde, denen ich geschrieben habe.", "Das sind die Freunde, den ich geschrieben habe."], a: 0, why: "Dative plural: **denen**." },
           ] },
       ],
       diag: [
-        { t: "swap", from: "^(was|wer|wo|welche\\w*)$", to: "^(der|die|das|den|dem|denen)$", rule: "rel.form", hard: true, msg: "After a noun the relative pronoun is the article's form: **{right}** — not was, wer or wo." },
-        { t: "swap", from: "^den$", to: "^denen$", rule: "rel.dat", hard: true, msg: "The dative plural is **denen** — the one form that isn't the article's." },
-        { t: "swap", from: "^(der|die|das|den)$", to: "^(dem|denen)$", rule: "rel.dat", hard: true, msg: "In its own clause it's a dative (helfen, gehören, geben … + wem?): **{right}**." },
-        { t: "swap", from: "^(der|die|das|dem)$", to: "^den$", rule: "rel.acc", hard: true, msg: "In its own clause it's the object (wen?), and the noun is masculine: **den**." },
+        { t: "swap", from: "^(was|wer|wo|welche\\w*)$", to: "^(der|die|das|den|dem|denen)$", rule: "rel.form", hard: true, msg: "After a noun, the relative pronoun takes the article's form: **{right}**, not was, wer or wo." },
+        { t: "swap", from: "^den$", to: "^denen$", rule: "rel.dat", hard: true, msg: "The dative plural is **denen**, the one form that isn't like the article." },
+        { t: "swap", from: "^(der|die|das|den)$", to: "^(dem|denen)$", rule: "rel.dat", hard: true, msg: "In its own clause it's in the dative (it answers *wem?*, as with helfen or gehören): **{right}**." },
+        { t: "swap", from: "^(der|die|das|dem)$", to: "^den$", rule: "rel.acc", hard: true, msg: "In its own clause it's the object (*wen?*), and the noun is masculine: **den**." },
         { t: "swap", from: "^(den|dem)$", to: "^(die|das)$", rule: "rel.form", hard: true, msg: "It points back to a die- or das-noun: **{right}**." },
-        { t: "swap", from: "^(der|die|das|den|dem|denen)$", to: "^(der|die|das|den|dem|denen)$", rule: "", hard: true, msg: "The pronoun here is **{right}**: gender and number from its noun, the case from its job in its own clause." },
-        { t: "missing", count: true, comma: true, tok: "^(der|die|das|den|dem|denen)$", rule: "rel.form", msg: "The relative pronoun can't be left out in German — here **{right}**: der Film, **den** ich gesehen habe." },
-        { t: "pos", tok: "^(bin|bist|ist|sind|seid|habe|hast|hat|haben|habt|muss|kann|will|mochte|war|waren|hatte|hatten|wird)$", rule: "rel.verb", msg: "The verb is out of place — it goes {where}. (Second in a main sentence, at the end of a side sentence.)" },
-        { t: "order", rule: "", msg: "The right words, another order: the pronoun opens the relative clause, its verb closes it — and the clause stands right after its noun." },
+        { t: "swap", from: "^(der|die|das|den|dem|denen)$", to: "^(der|die|das|den|dem|denen)$", rule: "", hard: true, msg: "The pronoun here is **{right}**: gender and number come from its noun, the case from its job in its own clause." },
+        { t: "missing", count: true, comma: true, tok: "^(der|die|das|den|dem|denen)$", rule: "rel.form", msg: "The relative pronoun can't be left out in German. Here it's **{right}**, as in der Film, **den** ich gesehen habe." },
+        { t: "pos", tok: "^(bin|bist|ist|sind|seid|habe|hast|hat|haben|habt|muss|kann|will|mochte|war|waren|hatte|hatten|wird)$", rule: "rel.verb", msg: "The verb is out of place: it goes {where}. It's second in a main sentence and at the end of a side sentence." },
+        { t: "order", rule: "", msg: "Right words, wrong order: the pronoun opens the relative clause and its verb closes it. The clause goes right after its noun." },
       ],
       drills: [
         // ── our own: which pronoun ──
-        { id: "drel.pick", t: "pick", title: "der, die, das — or den?", how: "Pick the relative pronoun: the noun gives the gender, its job in the clause the case.", items: [
+        { id: "drel.pick", t: "pick", title: "der, die, das — or den?", how: "Pick the relative pronoun. The noun gives the gender; its job in the clause gives the case.", items: [
           { q: "Das ist der Mann, ___ neben uns wohnt.", o: ["der", "den", "die"], a: ["der"], r: ["rel.nom"] },
           { q: "Das ist die Lehrerin, ___ meinen Sohn unterrichtet.", o: ["die", "der", "den"], a: ["die"], r: ["rel.nom"] },
           { q: "Wir haben ein Auto, ___ wenig Benzin braucht.", o: ["das", "der", "den"], a: ["das"], r: ["rel.form"] },
@@ -137,7 +137,7 @@ cxPack({
           { q: "Kennst du das Restaurant, das ___?", o: ["letzte Woche aufgemacht hat", "hat letzte Woche aufgemacht", "letzte Woche hat aufgemacht"], a: ["letzte Woche aufgemacht hat"], r: ["rel.verb"] },
         ] },
         // ── Übung 22•1: a phrase → its relative pronoun ──
-        { id: "d22.1", ex: "22.1", t: "type", title: "The pronoun for it", how: "Write the relative pronoun that stands for the phrase — same gender, same case.", items: [
+        { id: "d22.1", ex: "22.1", t: "type", title: "The pronoun for it", how: "Write the relative pronoun for the phrase: same gender, same case.", items: [
           { q: "das Mädchen → ___", a: ["das"], r: ["rel.form"] },
           { q: "den Bahnhof → ___", a: ["den"], r: ["rel.acc"] },
           { q: "den Gästen → ___", a: ["denen"], r: ["rel.dat"] },
@@ -152,7 +152,7 @@ cxPack({
           { q: "ein Geschenk → ___", a: ["das"], r: ["rel.form"] },
         ] },
         // ── our own: subject or object ──
-        { id: "drel.acc", t: "type", title: "der or den?", how: "Write the relative pronoun — subject (der · die · das) or object (den · die · das).", items: [
+        { id: "drel.acc", t: "type", title: "der or den?", how: "Write the relative pronoun: subject (der, die, das) or object (den, die, das).", items: [
           { q: "Der Kaffee, ___ ich trinke, ist kalt.", a: ["den"], r: ["rel.acc"] },
           { q: "Der Kaffee, ___ hier steht, ist kalt.", a: ["der"], r: ["rel.nom"] },
           { q: "Das ist der Kollege, ___ mir immer hilft.", a: ["der"], r: ["rel.case"] },
@@ -167,7 +167,7 @@ cxPack({
           { q: "Der Termin, ___ ich hatte, wurde verschoben.", a: ["den"], r: ["rel.acc"] },
         ] },
         // ── our own: the dative ──
-        { id: "drel.dat", t: "type", title: "dem, der, denen", how: "Write the relative pronoun in the dative — the verb in the clause asks for it.", items: [
+        { id: "drel.dat", t: "type", title: "dem, der, denen", how: "Write the relative pronoun in the dative. The verb in the clause calls for it.", items: [
           { q: "Die Frau, ___ ich geholfen habe, hat sich bedankt.", a: ["der"], r: ["rel.dat"] },
           { q: "Der Junge, ___ das Velo gehört, wohnt nebenan.", a: ["dem"], r: ["rel.dat"] },
           { q: "Die Gäste, ___ wir die Stadt gezeigt haben, kommen aus Japan.", a: ["denen"], r: ["rel.dat"] },
@@ -197,7 +197,7 @@ cxPack({
           { q: "Ich habe Freunde. Die Freunde wohnen in Lugano.", a: ["Ich habe Freunde, die in Lugano wohnen."], r: ["rel.nom"] },
         ] },
         // ── Übung 22•2: a sentence becomes the clause in the middle ──
-        { id: "d22.2", ex: "22.2", t: "transform", title: "In the middle", how: "Make the sentence in brackets the relative clause — right after its noun, between the commas.", items: [
+        { id: "d22.2", ex: "22.2", t: "transform", title: "In the middle", how: "Make the sentence in brackets the relative clause, right after its noun, between the commas.", items: [
           { q: "Der Zug, ___, hat Verspätung. (Der Zug kommt aus Mailand.)", a: ["Der Zug, der aus Mailand kommt, hat Verspätung."], r: ["rel.nom", "rel.place"] },
           { q: "Der Zug, ___, hat Verspätung. (Wir wollen den Zug nehmen.)", a: ["Der Zug, den wir nehmen wollen, hat Verspätung."], r: ["rel.acc", "rel.place"] },
           { q: "Der Zug, ___, hat Verspätung. (Der Zug fährt nach Chur.)", a: ["Der Zug, der nach Chur fährt, hat Verspätung."], r: ["rel.nom", "rel.place"] },
@@ -212,7 +212,7 @@ cxPack({
           { q: "Der Arzt, ___, ist in den Ferien. (Ich vertraue dem Arzt.)", a: ["Der Arzt, dem ich vertraue, ist in den Ferien."], r: ["rel.dat", "rel.place"] },
         ] },
         // ── Übung 22•7 and 22•11: a new noun, a new pronoun ──
-        { id: "d22.7", ex: "22.7", also: ["22.11"], t: "transform", title: "A new noun", how: "Say it again with the noun in brackets — the article and the relative pronoun change with it.", items: [
+        { id: "d22.7", ex: "22.7", also: ["22.11"], t: "transform", title: "A new noun", how: "Say it again with the noun in brackets. The article and the relative pronoun change with it.", items: [
           { q: "Das ist der Mann, der hier wohnt. (die Frau)", a: ["Das ist die Frau, die hier wohnt."], r: ["rel.form"] },
           { q: "Das ist der Mann, der hier wohnt. (das Mädchen)", a: ["Das ist das Mädchen, das hier wohnt."], r: ["rel.form"] },
           { q: "Sie findet die Tasche, die sie gestern gekauft hat. (der Mantel)", a: ["Sie findet den Mantel, den sie gestern gekauft hat."], r: ["rel.acc"] },
@@ -227,7 +227,7 @@ cxPack({
           { q: "Ich kenne den Jungen, dem der Hund gehört. (das Mädchen)", a: ["Ich kenne das Mädchen, dem der Hund gehört."], r: ["rel.dat"] },
         ] },
         // ── Production ──
-        { id: "dp.rel", t: "translate", end: true, title: "Say it in German", how: "Translate — the pronoun can't be dropped; its verb goes last.", items: [
+        { id: "dp.rel", t: "translate", end: true, title: "Say it in German", how: "Translate. The pronoun can't be dropped, and its verb goes last.", items: [
           { q: "That's the man who lives next to us.", a: ["Das ist der Mann, der neben uns wohnt."], r: ["rel.nom"] },
           { q: "That's the woman who helped me.", a: ["Das ist die Frau, die mir geholfen hat."], r: ["rel.nom", "rel.verb"] },
           { q: "Where is the book I bought?", a: ["Wo ist das Buch, das ich gekauft habe?"], r: ["rel.form", "rel.verb"] },
@@ -244,7 +244,7 @@ cxPack({
           { q: "I need a phone that isn't so expensive.", a: ["Ich brauche ein Handy, das nicht so teuer ist.", "Ich brauche ein Telefon, das nicht so teuer ist."], r: ["rel.verb"] },
         ] },
         // ── Übung 22•10 and 22•16: your own relative clauses ──
-        { id: "d22.10", ex: "22.10", also: ["22.16"], t: "write", end: true, title: "Your own relative clauses", how: "Finish each sentence with a relative clause of your own — saved for Claude to correct.", items: [
+        { id: "d22.10", ex: "22.10", also: ["22.16"], t: "write", end: true, title: "Your own relative clauses", how: "Finish each sentence with your own relative clause. Saved for Claude to correct.", items: [
           { q: "Ich habe einen Freund, der …", model: ["Ich habe einen Freund, der in einer Bäckerei arbeitet und jeden Tag um drei Uhr aufsteht."], r: ["rel.nom"] },
           { q: "Zürich ist eine Stadt, die …", model: ["Zürich ist eine Stadt, die teuer ist, aber viel Kultur und einen schönen See hat."], r: ["rel.nom"] },
           { q: "Das ist das Essen, das …", model: ["Das ist das Essen, das meine Großmutter immer am Sonntag gekocht hat."], r: ["rel.acc"] },
@@ -260,23 +260,23 @@ cxPack({
     "s2.relprep": {
       testout: { n: 7, miss: 1 },
       rules: {
-        "rp.prep": "the preposition comes first: der Mann, mit dem ich arbeite",
-        "rp.case": "the preposition decides the case: mit dem / der / denen · für den / die",
-        "rp.wo": "a place: wo — die Stadt, wo (in der) ich wohne",
-        "rp.was": "was after alles, nichts, etwas, das, das Beste — and for a whole sentence",
-        "rp.wer": "Wer …, (der) … — whoever",
-        "rp.gen": "whose: dessen (der, das) · deren (die, plural)",
-        "rp.welch": "welcher = der in writing — recognise it",
+        "rp.prep": "The preposition comes first: mit dem ich …",
+        "rp.case": "The preposition sets the case: mit dem, für den",
+        "rp.wo": "For a place: wo (die Stadt, wo ich wohne)",
+        "rp.was": "was after alles, nichts, etwas, or a whole sentence",
+        "rp.wer": "Wer … for whoever: Wer Hunger hat, …",
+        "rp.gen": "whose: dessen (der, das) or deren (die, plural)",
+        "rp.welch": "welcher means der in writing: recognise it",
       },
       sheets: [
         { id: "cx.rp1", title: "mit dem, für die — and wo", qn: 3,
           struct: [["der Kollege,", "who"], ["mit", "pre"], ["dem", "end"], ["ich", "who"], ["arbeite", "verb"]],
-          why: "When the verb in the relative clause needs a **preposition**, it can't stay at the end as in English (*the colleague I work with*). It moves to the front, **before the pronoun** — and decides its case.",
+          why: "If the verb in the relative clause needs a **preposition**, it can't stay at the end as in English (*the colleague I work with*). It moves to the front, **before the pronoun**, and sets its case.",
           rid: ["rp.prep", "rp.case", "rp.wo"],
           rules: [
-            "The **preposition** stands right **before** the relative pronoun: der Kollege, **mit dem** ich arbeite · die Freundin, **auf die** ich warte · das Haus, **in dem** wir wohnen. No short forms here: **in dem**, never ~~im~~; **zu der**, never ~~zur~~.",
-            "The preposition decides the **case**: mit, von, bei, zu + dative — die Firma, **bei der** ich arbeite · die Leute, **mit denen** ich wohne; für, ohne, um + accusative — der Freund, **für den** ich koche.",
-            "For a **place** you can simply say **wo**: die Stadt, **wo** ich geboren bin (= **in der** ich geboren bin) · das Café, **wo** wir uns treffen. After the name of a town or country only wo: in Basel, **wo** meine Schwester wohnt.",
+            "The **preposition** goes right **before** the relative pronoun: der Kollege, **mit dem** ich arbeite · die Freundin, **auf die** ich warte. Don't shorten it here: **in dem**, never ~~im~~; **zu der**, never ~~zur~~.",
+            "The preposition sets the **case**: mit, von, bei and zu take the dative; für, ohne and um the accusative. die Firma, **bei der** ich arbeite · die Leute, **mit denen** ich wohne · der Freund, **für den** ich koche.",
+            "For a **place**, you can simply use **wo**: die Stadt, **wo** ich geboren bin (or **in der** ich geboren bin). After the name of a town or country, only wo works: in Basel, **wo** meine Schwester wohnt.",
           ],
           table: { head: ["", "relative clause"], rows: [
             ["der Freund,", "**mit dem** ich wohne"],
@@ -291,27 +291,27 @@ cxPack({
             ["Das Dorf, **wo** ich aufgewachsen bin, liegt in den Bergen.", "The village where I grew up is in the mountains."],
             ["Wie heißt der Film, **von dem** du erzählt hast?", "What's the film you told me about called?"],
           ],
-          trap: "The preposition can't stay behind: ~~der Kollege, den ich arbeite mit~~ → der Kollege, **mit dem** ich arbeite. And don't use ~~wo~~ for a person, or a thing that isn't a place — der Mann, **mit dem** …, never ~~der Mann, wo~~.",
+          trap: "The preposition can't stay at the end: ~~der Kollege, den ich arbeite mit~~ is wrong; say der Kollege, **mit dem** ich arbeite. And wo is only for places: der Mann, **mit dem** …, never ~~der Mann, wo~~.",
           quiz: [
-            { at: "r1", k: "pick", q: "Das ist der Kollege, ___ ich arbeite.", o: ["mit dem", "dem mit", "den … mit"], a: 0, why: "The preposition first: **mit dem**." },
-            { at: "r1", k: "order", q: "Build it: That's the house we live in.", a: ["Das ist das Haus,", "in dem", "wir", "wohnen."], why: "in + dem open the clause, the verb closes it." },
-            { at: "r2", k: "pick", q: "Die Freundin, ___ ich warte, kommt aus Chur.", o: ["auf die", "auf der", "auf den"], a: 0, why: "warten auf + accusative, feminine: **auf die**." },
-            { at: "r2", k: "pick", q: "Die Leute, ___ ich zusammenwohne, sind Studenten.", o: ["mit denen", "mit den", "mit die"], a: 0, why: "mit + dative plural: **mit denen**." },
-            { at: "r2", k: "type", cx: true, q: "Die Firma, bei ___ ich arbeite, ist in Zug.", a: ["der"], r: ["rp.case"], why: "bei + dative, feminine: **der**." },
-            { at: "r3", k: "pick", q: "Das ist die Stadt, ___ ich geboren bin.", o: ["wo", "was", "die"], a: 0, why: "A place: **wo** (= in der)." },
-            { at: "r3", k: "pick", q: "Im Sommer fahren wir nach Porto, ___ meine Eltern leben.", o: ["wo", "in dem", "das"], a: 0, why: "After a town's name: **wo**." },
-            { at: "table", k: "pick", q: "Die Kinder, ___ ich koche, sind hungrig.", o: ["für die", "für denen", "für der"], a: 0, why: "für + accusative plural: **für die**." },
-            { at: "trap", k: "pick", q: "Which is right?", o: ["Das ist die Frau, mit der ich gesprochen habe.", "Das ist die Frau, die ich gesprochen habe mit."], a: 0, why: "The preposition comes before the pronoun." },
+            { at: "r1", k: "pick", q: "Das ist der Kollege, ___ ich arbeite.", o: ["mit dem", "dem mit", "den … mit"], a: 0, why: "The preposition comes first: **mit dem**." },
+            { at: "r1", k: "order", q: "Build it: That's the house we live in.", a: ["Das ist das Haus,", "in dem", "wir", "wohnen."], why: "in dem opens the clause, and the verb closes it." },
+            { at: "r2", k: "pick", q: "Die Freundin, ___ ich warte, kommt aus Chur.", o: ["auf die", "auf der", "auf den"], a: 0, why: "warten auf takes the accusative; feminine: **auf die**." },
+            { at: "r2", k: "pick", q: "Die Leute, ___ ich zusammenwohne, sind Studenten.", o: ["mit denen", "mit den", "mit die"], a: 0, why: "mit takes the dative; plural: **mit denen**." },
+            { at: "r2", k: "type", cx: true, q: "Die Firma, bei ___ ich arbeite, ist in Zug.", a: ["der"], r: ["rp.case"], why: "bei takes the dative; feminine: **der**." },
+            { at: "r3", k: "pick", q: "Das ist die Stadt, ___ ich geboren bin.", o: ["wo", "was", "die"], a: 0, why: "A place: **wo** (or in der)." },
+            { at: "r3", k: "pick", q: "Im Sommer fahren wir nach Porto, ___ meine Eltern leben.", o: ["wo", "in dem", "das"], a: 0, why: "After a town's name, only **wo** works." },
+            { at: "table", k: "pick", q: "Die Kinder, ___ ich koche, sind hungrig.", o: ["für die", "für denen", "für der"], a: 0, why: "für takes the accusative; plural: **für die**." },
+            { at: "trap", k: "pick", q: "Which is right?", o: ["Das ist die Frau, mit der ich gesprochen habe.", "Das ist die Frau, die ich gesprochen habe mit."], a: 0, why: "The preposition goes before the pronoun: **mit der**." },
           ] },
         { id: "cx.rp2", title: "was, wer, dessen / deren — and welcher", qn: 3,
           struct: [["Alles,", "thing"], ["was", "pre"], ["ich", "who"], ["brauche", "verb"]],
-          why: "Four special cases: **was** when there's no real noun to point back to, **wer** for *whoever*, **dessen / deren** for *whose* — and **welcher**, which you'll meet in letters and newspapers instead of der.",
+          why: "Four special cases: **was** when there's no real noun to point back to, **wer** for *whoever*, **dessen / deren** for *whose*, and **welcher**, a formal word for der in letters and news.",
           rid: ["rp.was", "rp.wer", "rp.gen", "rp.welch"],
           rules: [
-            "**was** when there's no real noun to point back to — after **alles, nichts, etwas, das, das Beste** and for a **whole sentence**: Das ist alles, **was** ich habe. · Er kommt immer pünktlich, **was** mich freut.",
-            "**Wer** … = *whoever, anyone who* — a general rule; the main sentence can start with **der**: **Wer** müde ist, (der) soll schlafen. · **Wer** Fragen hat, kann mich anrufen. Another case must show: Wer lügt, **dem** glaubt man nicht.",
-            "*whose* is **dessen** (for der- and das-nouns) and **deren** (for die-nouns and plurals) — by the **owner**, not by the thing owned: der Nachbar, **dessen** Hund immer bellt · die Frau, **deren** Auto dort steht · die Kinder, **deren** Eltern arbeiten.",
-            "In writing you'll also see **welcher** for der — same endings: der Kunde, **welcher** (= der) … · die Stelle, **welche** (= die) … · das Formular, **welches** … · mit **welchem** (= mit dem). Recognise it; in speech use der, die, das.",
+            "Use **was** when there's no real noun to point back to: after **alles, nichts, etwas, das, das Beste**, and for a **whole sentence**. Das ist alles, **was** ich habe. · Er kommt immer pünktlich, **was** mich freut.",
+            "**Wer** … means *whoever, anyone who* and states a general rule. The main sentence may start with **der**: **Wer** müde ist, (der) soll schlafen. If it needs another case, say it: Wer lügt, **dem** glaubt man nicht.",
+            "*whose* is **dessen** for der- and das-nouns and **deren** for die-nouns and plurals. It follows the **owner**, not the thing owned: der Nachbar, **dessen** Hund bellt · die Frau, **deren** Auto dort steht.",
+            "In writing you'll also see **welcher** for der, with the same endings: der Kunde, **welcher** … · die Stelle, **welche** … · mit **welchem** (= mit dem). Just recognise it; when you speak, use der, die, das.",
           ],
           table: { head: ["", "example"], rows: [
             ["**was**", "alles, **was** ich weiß"],
@@ -326,33 +326,33 @@ cxPack({
             ["Das ist die Kollegin, **deren** Mann aus Italien kommt.", "That's the colleague whose husband comes from Italy."],
             ["Sie hat mir sofort geholfen, **was** ich sehr nett fand.", "She helped me straight away, which I found very kind."],
           ],
-          trap: "After a real noun it's the article's form, not was: das Buch, **das** ich lese — never ~~das Buch, was~~. But: **alles, was** ich lese. And dessen / deren follow the **owner**: die Frau, **deren** Sohn (not ~~dessen~~).",
+          trap: "After a real noun, use the article's form, not was: das Buch, **das** ich lese, never ~~das Buch, was~~. But: **alles, was** ich lese. And dessen / deren follow the **owner**: die Frau, **deren** Sohn, not ~~dessen~~.",
           quiz: [
             { at: "r1", k: "pick", q: "Das ist alles, ___ ich weiß.", o: ["was", "das", "wer"], a: 0, why: "After alles: **was**." },
-            { at: "r1", k: "pick", q: "Das Auto, ___ dort steht, gehört mir.", o: ["das", "was"], a: 0, why: "A real noun: the article's form, **das**." },
+            { at: "r1", k: "pick", q: "Das Auto, ___ dort steht, gehört mir.", o: ["das", "was"], a: 0, why: "After a real noun: the article's form, **das**." },
             { at: "r1", k: "pick", q: "Er hat mir geholfen, ___ mich sehr gefreut hat.", o: ["was", "das", "der"], a: 0, why: "It points back to the whole sentence: **was**." },
-            { at: "r2", k: "pick", q: "___ nicht kommen kann, soll bitte anrufen.", o: ["Wer", "Der", "Was"], a: 0, why: "*whoever*: **wer**." },
-            { at: "r2", k: "type", cx: true, q: "___ Hunger hat, kann etwas essen.", a: ["Wer"], r: ["rp.wer"], why: "*anyone who*: **wer**." },
-            { at: "r3", k: "pick", q: "Der Nachbar, ___ Hund immer bellt, ist nie zu Hause.", o: ["dessen", "deren", "der"], a: 0, why: "The owner is masculine: **dessen**." },
-            { at: "r3", k: "pick", q: "Die Frau, ___ Tochter mit Mia in die Schule geht, ist sehr nett.", o: ["deren", "dessen", "die"], a: 0, why: "The owner is feminine: **deren**." },
-            { at: "r4", k: "pick", q: "der Vertrag, welchen Sie unterschrieben haben — welchen = ?", o: ["den", "dem", "der"], a: 0, why: "welch**en** has den's ending." },
+            { at: "r2", k: "pick", q: "___ nicht kommen kann, soll bitte anrufen.", o: ["Wer", "Der", "Was"], a: 0, why: "*whoever* is **wer**." },
+            { at: "r2", k: "type", cx: true, q: "___ Hunger hat, kann etwas essen.", a: ["Wer"], r: ["rp.wer"], why: "*anyone who* is **wer**." },
+            { at: "r3", k: "pick", q: "Der Nachbar, ___ Hund immer bellt, ist nie zu Hause.", o: ["dessen", "deren", "der"], a: 0, why: "The owner (der Nachbar) is masculine: **dessen**." },
+            { at: "r3", k: "pick", q: "Die Frau, ___ Tochter mit Mia in die Schule geht, ist sehr nett.", o: ["deren", "dessen", "die"], a: 0, why: "The owner (die Frau) is feminine: **deren**." },
+            { at: "r4", k: "pick", q: "der Vertrag, welchen Sie unterschrieben haben — welchen = ?", o: ["den", "dem", "der"], a: 0, why: "welch**en** has the same ending as **den**." },
             { at: "table", k: "pick", q: "Das ist nichts, ___ mich interessiert.", o: ["was", "das", "wer"], a: 0, why: "After nichts: **was**." },
-            { at: "trap", k: "pick", q: "Which is right?", o: ["Das ist das Buch, das ich lese.", "Das ist das Buch, was ich lese."], a: 0, why: "After a noun: **das**. (was after alles, etwas, nichts …)" },
+            { at: "trap", k: "pick", q: "Which is right?", o: ["Das ist das Buch, das ich lese.", "Das ist das Buch, was ich lese."], a: 0, why: "After a real noun it's **das**; was only after alles, etwas, nichts …" },
           ] },
       ],
       diag: [
-        { t: "swap", from: "^(der|die|das|den|dem|denen|dessen|deren|wessen|sein|seine|ihr|ihre)$", to: "^(dessen|deren)$", rule: "rp.gen", hard: true, msg: "*whose*: **{right}** — dessen for a der- or das-owner, deren for a die-owner or a plural." },
-        { t: "swap", from: "^(das|die|der|wo)$", to: "^was$", rule: "rp.was", hard: true, msg: "No real noun to point back to (alles, nichts, etwas, das … or a whole sentence): **was**." },
-        { t: "swap", from: "^was$", to: "^(das|die|der|den)$", rule: "rp.was", hard: true, msg: "It points back to a real noun — the article's form: **{right}**. (was only after alles, etwas, nichts … or a whole sentence.)" },
-        { t: "swap", from: "^(der|man|jemand|was)$", to: "^wer$", rule: "rp.wer", hard: true, msg: "*whoever, anyone who*: **wer**." },
+        { t: "swap", from: "^(der|die|das|den|dem|denen|dessen|deren|wessen|sein|seine|ihr|ihre)$", to: "^(dessen|deren)$", rule: "rp.gen", hard: true, msg: "*whose* is **{right}**: dessen for a der- or das-owner, deren for a die-owner or a plural." },
+        { t: "swap", from: "^(das|die|der|wo)$", to: "^was$", rule: "rp.was", hard: true, msg: "There's no real noun to point back to (alles, nichts, etwas … or a whole sentence), so it's **was**." },
+        { t: "swap", from: "^was$", to: "^(das|die|der|den)$", rule: "rp.was", hard: true, msg: "It points back to a real noun, so use the article's form: **{right}**. was only follows alles, etwas, nichts … or a whole sentence." },
+        { t: "swap", from: "^(der|man|jemand|was)$", to: "^wer$", rule: "rp.wer", hard: true, msg: "*whoever, anyone who* is **wer**." },
         { t: "missing", count: true, tok: "^wer$", rule: "rp.wer", msg: "A general rule about anyone starts with **Wer** …: Wer Hunger hat, (der) soll essen." },
-        { t: "swap", from: "^(was|der|die|das|den|dem)$", to: "^wo$", rule: "rp.wo", msg: "It's a place: **wo** (or in + dem / der)." },
+        { t: "swap", from: "^(was|der|die|das|den|dem)$", to: "^wo$", rule: "rp.wo", msg: "It's a place, so use **wo** (or in dem, in der)." },
         { t: "swap", from: "^den$", to: "^denen$", rule: "rp.case", hard: true, msg: "The dative plural is **denen**: mit denen, von denen, bei denen." },
-        { t: "swap", from: "^(der|die|das|den|dem|denen)$", to: "^(der|die|das|den|dem|denen)$", rule: "rp.case", hard: true, msg: "The preposition decides the case — and the noun the gender: **{right}**." },
-        { t: "missing", whole: true, tok: "^(mit|fur|auf|an|in|von|bei|zu|uber|aus|um|ohne|nach|vor|neben)$", rule: "rp.prep", msg: "The verb in the clause needs its preposition — right before the relative pronoun: **mit** dem, **auf** die …" },
-        { t: "pos", tok: "^(mit|fur|auf|an|von|bei|uber|aus|ohne|neben)$", rule: "rp.prep", msg: "The preposition can't stay at the end: it comes first, right before the relative pronoun." },
-        { t: "pos", tok: "^(bin|bist|ist|sind|seid|habe|hast|hat|haben|habt|muss|kann|will|mochte|war|waren|hatte|hatten|wird)$", rule: "", msg: "The verb is out of place — it goes {where}. (Second in a main sentence, at the end of a side sentence.)" },
-        { t: "order", rule: "", msg: "The right words, another order: preposition + pronoun open the relative clause, its verb closes it." },
+        { t: "swap", from: "^(der|die|das|den|dem|denen)$", to: "^(der|die|das|den|dem|denen)$", rule: "rp.case", hard: true, msg: "The preposition sets the case and the noun sets the gender: **{right}**." },
+        { t: "missing", whole: true, tok: "^(mit|fur|auf|an|in|von|bei|zu|uber|aus|um|ohne|nach|vor|neben)$", rule: "rp.prep", msg: "The verb in the clause needs its preposition, right before the relative pronoun: **mit** dem, **auf** die …" },
+        { t: "pos", tok: "^(mit|fur|auf|an|von|bei|uber|aus|ohne|neben)$", rule: "rp.prep", msg: "The preposition can't stay at the end. It goes first, right before the relative pronoun." },
+        { t: "pos", tok: "^(bin|bist|ist|sind|seid|habe|hast|hat|haben|habt|muss|kann|will|mochte|war|waren|hatte|hatten|wird)$", rule: "", msg: "The verb is out of place: it goes {where}. It's second in a main sentence and at the end of a side sentence." },
+        { t: "order", rule: "", msg: "Right words, wrong order: the preposition and pronoun open the relative clause, and its verb closes it." },
       ],
       drills: [
         // ── our own: preposition + pronoun ──
@@ -385,7 +385,7 @@ cxPack({
           { q: "vom Chef → ___", a: ["von dem"], r: ["rp.prep"] },
         ] },
         // ── Übung 22•8: clauses with a preposition — or whose ──
-        { id: "d22.8", ex: "22.8", t: "transform", title: "…, mit dem ich …", how: "Finish the sentence with the one in brackets as a relative clause — its preposition comes first.", items: [
+        { id: "d22.8", ex: "22.8", t: "transform", title: "…, mit dem ich …", how: "Finish with the sentence in brackets as a relative clause. Its preposition comes first.", items: [
           { q: "Ich habe einen Kollegen, ___. (Ich fahre mit dem Kollegen zur Arbeit.)", a: ["Ich habe einen Kollegen, mit dem ich zur Arbeit fahre."], r: ["rp.prep"] },
           { q: "Ich habe einen Kollegen, ___. (Ich lerne viel von dem Kollegen.)", a: ["Ich habe einen Kollegen, von dem ich viel lerne."], r: ["rp.prep"] },
           { q: "Ich habe einen Kollegen, ___. (Die Frau des Kollegen ist Ärztin.)", a: ["Ich habe einen Kollegen, dessen Frau Ärztin ist."], r: ["rp.gen"] },
@@ -400,9 +400,9 @@ cxPack({
           { q: "Das ist das Buch, ___. (Ich habe lange nach dem Buch gesucht.)", a: ["Das ist das Buch, nach dem ich lange gesucht habe."], r: ["rp.prep"] },
         ] },
         // ── our own: a place — wo ──
-        { id: "drp.wo", t: "type", title: "wo — or in dem, in der", how: "It's a place: write wo — or in / an / auf + the pronoun.", items: [
+        { id: "drp.wo", t: "type", title: "wo — or in dem, in der", how: "It's a place: write wo, or in / an / auf + the pronoun.", items: [
           { q: "Das ist das Dorf, ___ ich geboren bin.", a: ["wo", "in dem"], r: ["rp.wo"] },
-          { q: "Die Schule, ___ meine Kinder gehen, ist ganz neu.", a: ["in die", "wohin"], r: ["rp.case"], note: "They go *to* it — so the accusative: **in die**. (wo is for where something is; for where to: wohin.)" },
+          { q: "Die Schule, ___ meine Kinder gehen, ist ganz neu.", a: ["in die", "wohin"], r: ["rp.case"], note: "They go *to* it, so it's the accusative: **in die**. wo is for where something is; wohin is for where to." },
           { q: "Kennst du ein Café, ___ man gut frühstücken kann?", a: ["wo", "in dem"], r: ["rp.wo"] },
           { q: "Wir fahren nach Locarno, ___ es wärmer ist.", a: ["wo"], r: ["rp.wo"] },
           { q: "Das ist die Firma, ___ ich zehn Jahre gearbeitet habe.", a: ["wo", "in der", "bei der", "für die"], r: ["rp.wo"] },
@@ -413,7 +413,7 @@ cxPack({
           { q: "Zeig mir bitte die Stelle, ___ es wehtut.", a: ["wo", "an der"], r: ["rp.wo"] },
         ] },
         // ── our own: das or was ──
-        { id: "drp.was", t: "pick", title: "das or was?", how: "Pick: a real noun — its article's form · alles, nichts, etwas, das Beste, a whole sentence — was.", items: [
+        { id: "drp.was", t: "pick", title: "das or was?", how: "A real noun: the article's form. After alles, nichts, etwas, das Beste or a whole sentence: was.", items: [
           { q: "Das ist alles, ___ ich dir sagen kann.", o: ["was", "das"], a: ["was"], r: ["rp.was"] },
           { q: "Das ist das Kleid, ___ ich mir gekauft habe.", o: ["das", "was"], a: ["das"], r: ["rp.was"] },
           { q: "Es gibt nichts, ___ er nicht reparieren kann.", o: ["was", "das"], a: ["was"], r: ["rp.was"] },
@@ -441,7 +441,7 @@ cxPack({
           { q: "Das ist das Einzige. Ich brauche das Einzige.", a: ["Das ist das Einzige, was ich brauche."], r: ["rp.was"] },
         ] },
         // ── Übung 22•4: join with wer ──
-        { id: "d22.4", ex: "22.4", t: "transform", title: "Wer …, der …", how: "Make it a general rule with Wer … — its verb last, then the main verb.", items: [
+        { id: "d22.4", ex: "22.4", t: "transform", title: "Wer …, der …", how: "Make it a general rule with Wer …: its verb last, then the main verb.", items: [
           { q: "Jemand hat Hunger. Er soll etwas essen.", a: ["Wer Hunger hat, soll etwas essen.", "Wer Hunger hat, der soll etwas essen."], r: ["rp.wer"] },
           { q: "Jemand ist krank. Er muss zu Hause bleiben.", a: ["Wer krank ist, muss zu Hause bleiben.", "Wer krank ist, der muss zu Hause bleiben."], r: ["rp.wer"] },
           { q: "Jemand kommt zu spät. Er bekommt keinen Platz.", a: ["Wer zu spät kommt, bekommt keinen Platz.", "Wer zu spät kommt, der bekommt keinen Platz."], r: ["rp.wer"] },
@@ -454,7 +454,7 @@ cxPack({
           { q: "Jemand ist fertig. Er darf nach Hause gehen.", a: ["Wer fertig ist, darf nach Hause gehen.", "Wer fertig ist, der darf nach Hause gehen."], r: ["rp.wer"] },
         ] },
         // ── our own: dessen or deren ──
-        { id: "drp.gen", t: "pick", title: "dessen or deren?", how: "whose? — look at the owner: a der- or das-noun — dessen · a die-noun or a plural — deren.", o: ["dessen", "deren"], items: [
+        { id: "drp.gen", t: "pick", title: "dessen or deren?", how: "whose? Look at the owner. A der- or das-noun: dessen. A die-noun or a plural: deren.", o: ["dessen", "deren"], items: [
           { q: "Das ist der Nachbar, ___ Katze immer bei uns ist.", a: ["dessen"], r: ["rp.gen"] },
           { q: "Das ist die Nachbarin, ___ Katze immer bei uns ist.", a: ["deren"], r: ["rp.gen"] },
           { q: "Die Kinder, ___ Eltern arbeiten, essen in der Schule.", a: ["deren"], r: ["rp.gen"] },
@@ -467,7 +467,7 @@ cxPack({
           { q: "Die Lehrerin, ___ Unterricht mir so gefällt, geht in Pension.", a: ["deren"], r: ["rp.gen"] },
         ] },
         // ── Übung 22•15: join — also with whose ──
-        { id: "d22.15", ex: "22.15", t: "transform", title: "Join with dessen, deren, mit dem", how: "Make one sentence: the second becomes a relative clause (sein / ihr → dessen / deren).", items: [
+        { id: "d22.15", ex: "22.15", t: "transform", title: "Join with dessen, deren, mit dem", how: "Make one sentence: the second becomes a relative clause (sein, ihr become dessen, deren).", items: [
           { q: "Das ist Herr Kunz. Sein Sohn spielt mit Tim Fußball.", a: ["Das ist Herr Kunz, dessen Sohn mit Tim Fußball spielt."], r: ["rp.gen"] },
           { q: "Ich kenne eine Frau. Ihr Mann ist Bäcker.", a: ["Ich kenne eine Frau, deren Mann Bäcker ist."], r: ["rp.gen"] },
           { q: "Tom hat ein Auto. Lea möchte mit dem Auto fahren.", a: ["Tom hat ein Auto, mit dem Lea fahren möchte."], r: ["rp.prep"], cap: true },
@@ -480,7 +480,7 @@ cxPack({
           { q: "Ich habe eine Kollegin. Ihre Kinder sind schon erwachsen.", a: ["Ich habe eine Kollegin, deren Kinder schon erwachsen sind."], r: ["rp.gen"] },
         ] },
         // ── Übung 22•12 (and 22•3, 22•9): welcher ──
-        { id: "d22.12", ex: "22.12", also: ["22.3", "22.9"], t: "transform", title: "der → welcher", how: "Write it the formal way: the relative pronoun becomes the form of welcher with the same ending.", items: [
+        { id: "d22.12", ex: "22.12", also: ["22.3", "22.9"], t: "transform", title: "der → welcher", how: "Write it the formal way: use the form of welcher with the same ending as the pronoun.", items: [
           { q: "Der Kunde, der gestern angerufen hat, kommt heute vorbei.", a: ["Der Kunde, welcher gestern angerufen hat, kommt heute vorbei."], r: ["rp.welch"] },
           { q: "Die Rechnung, die Sie bekommen haben, ist falsch.", a: ["Die Rechnung, welche Sie bekommen haben, ist falsch."], r: ["rp.welch"] },
           { q: "Das Formular, das Sie ausfüllen müssen, liegt bei.", a: ["Das Formular, welches Sie ausfüllen müssen, liegt bei."], r: ["rp.welch"] },
@@ -491,11 +491,11 @@ cxPack({
           { q: "Die Dokumente, die Sie brauchen, finden Sie im Internet.", a: ["Die Dokumente, welche Sie brauchen, finden Sie im Internet."], r: ["rp.welch"] },
           { q: "Das Paket, das wir geschickt haben, ist noch nicht angekommen.", a: ["Das Paket, welches wir geschickt haben, ist noch nicht angekommen."], r: ["rp.welch"] },
         ].map(it => ({ ...it, diag: [
-          { t: "ending", stem: "welch", rule: "rp.welch", msg: "welcher takes the ending of the pronoun it replaces (der → welcher, die → welche, das → welches, den → welchen, dem → welchem): **{right}**." },
+          { t: "ending", stem: "welch", rule: "rp.welch", msg: "welcher gets the ending of the pronoun it replaces (den → welch**en**, dem → welch**em** …). Here: **{right}**." },
           { t: "missing", whole: true, tok: "^welch\\w*$", rule: "rp.welch", msg: "Replace the relative pronoun with the form of **welcher** that has the same ending." },
         ] })) },
         // ── Übung 22•13: the pronoun that fits — all kinds ──
-        { id: "d22.13", ex: "22.13", t: "type", title: "Which relative pronoun?", how: "Write the relative pronoun that fits — der / die / das forms, was, wer, wo, dessen or deren.", items: [
+        { id: "d22.13", ex: "22.13", t: "type", title: "Which relative pronoun?", how: "Write the relative pronoun that fits: a der/die/das form, was, wer, wo, dessen or deren.", items: [
           { q: "Die Zeitung, in ___ ich das gelesen habe, liegt auf dem Tisch.", a: ["der"], r: ["rp.case"] },
           { q: "Mein Mann schenkt mir alles, ___ ich mir wünsche.", a: ["was"], r: ["rp.was"] },
           { q: "___ nicht fragt, bekommt keine Antwort.", a: ["Wer"], r: ["rp.wer"] },
@@ -511,7 +511,7 @@ cxPack({
           { q: "Er hat sein Portemonnaie verloren, ___ ihn sehr ärgert.", a: ["was"], r: ["rp.was"] },
         ] },
         // ── Production ──
-        { id: "dp.rp", t: "translate", end: true, title: "Say it in German", how: "Translate — the preposition comes before the relative pronoun; was after alles, nichts, etwas.", items: [
+        { id: "dp.rp", t: "translate", end: true, title: "Say it in German", how: "Translate. The preposition goes before the relative pronoun; was after alles, nichts, etwas.", items: [
           { q: "That's the colleague I work with. (he)", a: ["Das ist der Kollege, mit dem ich arbeite.", "Das ist der Kollege, mit dem ich zusammenarbeite."], r: ["rp.prep"] },
           { q: "The bus we're waiting for is late.", a: ["Der Bus, auf den wir warten, hat Verspätung.", "Der Bus, auf den wir warten, ist verspätet.", "Der Bus, auf den wir warten, ist zu spät."], r: ["rp.case"] },
           { q: "That's the town where I was born.", a: ["Das ist die Stadt, wo ich geboren bin.", "Das ist die Stadt, in der ich geboren bin.", "Das ist die Stadt, in der ich geboren wurde.", "Das ist die Stadt, wo ich geboren wurde."], r: ["rp.wo"] },
@@ -528,7 +528,7 @@ cxPack({
           { q: "That's the best thing I've ever eaten.", a: ["Das ist das Beste, was ich je gegessen habe.", "Das ist das Beste, was ich jemals gegessen habe.", "Das ist das Beste, das ich je gegessen habe."], r: ["rp.was"] },
         ] },
         // ── Übung 22•14 (and 22•17, 22•18, 22•19): your own endings ──
-        { id: "d22.14", ex: "22.14", also: ["22.17", "22.18", "22.19"], t: "write", end: true, title: "Finish it your way", how: "Finish each sentence with a relative clause of your own — saved for Claude to correct.", items: [
+        { id: "d22.14", ex: "22.14", also: ["22.17", "22.18", "22.19"], t: "write", end: true, title: "Finish it your way", how: "Finish each sentence with your own relative clause. Saved for Claude to correct.", items: [
           { q: "Das sind die Kollegen, mit denen …", model: ["Das sind die Kollegen, mit denen ich jeden Mittag in der Kantine esse."], r: ["rp.case"] },
           { q: "Ich wohne in einer Stadt, in der … / wo …", model: ["Ich wohne in einer Stadt, in der viele Sprachen gesprochen werden und wo man alles zu Fuß machen kann."], r: ["rp.wo"] },
           { q: "In der Schweiz gibt es vieles, was …", model: ["In der Schweiz gibt es vieles, was mir gefällt: die Berge, die Züge und die Ruhe am Sonntag."], r: ["rp.was"] },
@@ -539,7 +539,7 @@ cxPack({
           { q: "Mein Chef hat mir heute freigegeben, was …", model: ["Mein Chef hat mir heute freigegeben, was mich sehr überrascht hat."], r: ["rp.was"] },
         ] },
         // ── Übung 22•20: your own sentence from a cue ──
-        { id: "d22.20", ex: "22.20", t: "write", end: true, title: "Your own sentence", how: "Write a sentence with a relative clause that uses the cue — saved for Claude to correct.", items: [
+        { id: "d22.20", ex: "22.20", t: "write", end: true, title: "Your own sentence", how: "Write a sentence with a relative clause that uses the cue. Saved for Claude to correct.", items: [
           { q: "(was)", model: ["Das ist das Schönste, was mir dieses Jahr passiert ist."], r: ["rp.was"] },
           { q: "(mit denen)", model: ["Die Leute, mit denen ich Deutsch lerne, kommen aus der ganzen Welt."], r: ["rp.case"] },
           { q: "(dessen)", model: ["Ich habe einen Nachbarn, dessen Garten wie ein kleiner Park aussieht."], r: ["rp.gen"] },

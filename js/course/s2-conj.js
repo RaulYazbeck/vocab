@@ -17,29 +17,29 @@ cxPack({
     "s2.conj3": {
       testout: { n: 8, miss: 1 },
       rules: {
-        "cj.time": "bevor · während · bis · seit(dem) · sobald — the verb last",
-        "cj.nachdem": "nachdem: what came first is one step back — Nachdem ich gegessen habe, gehe ich",
-        "cj.prepconj": "vor dem Essen, but bevor ich esse — a noun or a sentence?",
-        "cj.first": "the side sentence first: verb, comma, verb",
-        "cj.obwohl": "obwohl = although — the verb last",
-        "cj.trotzdem": "obwohl opens the side sentence · trotzdem the main one (verb second)",
-        "cj.damit": "damit = so that (another person) · um … zu (the same person)",
-        "cj.falls": "falls = in case · da = as, since (a written weil)",
+        "cj.time": "bevor, während, bis, seit, sobald: the verb last",
+        "cj.nachdem": "nachdem: what happened first goes one step back",
+        "cj.prepconj": "vor or bevor? Before a noun or a whole sentence",
+        "cj.first": "Side sentence first: verb, comma, verb",
+        "cj.obwohl": "obwohl (although): the verb last",
+        "cj.trotzdem": "obwohl or trotzdem? Where the verb goes",
+        "cj.damit": "damit (so that) or um … zu (same person)?",
+        "cj.falls": "falls (in case) and da (as, since)",
       },
       sheets: [
         { id: "cx.cj1", title: "bevor, nachdem, während, bis, seit, sobald", qn: 3,
           struct: [["main sentence,", "thing"], ["bevor · während · bis", "pre"], ["subject", "who"], ["…", "mid"], ["verb", "verb"]],
-          why: "The words that say **when** work like weil and dass: they open a side sentence, and its conjugated verb goes to the **end**. Most have a twin that stands before a noun (vor — bevor).",
+          why: "Words that say **when** work like weil and dass: they start a side sentence, and its conjugated verb goes to the **end**. Some have a twin used before a noun, like vor and bevor.",
           rid: ["cj.time", "cj.nachdem", "cj.prepconj", "cj.first"],
           rules: [
-            "**bevor** (before) · **während** (while) · **bis** (until) · **seit / seitdem** (since) · **sobald** (as soon as) — the verb goes last: Ich rufe dich an, **bevor** ich **losfahre**. · Warte hier, **bis** ich **zurückkomme**. · **Seit** ich hier **wohne**, lerne ich Deutsch.",
-            "**nachdem** (after): what happened first stands one step back in time — the **Perfekt** when the rest is now: **Nachdem** ich gegessen **habe**, gehe ich spazieren. In a story: **Nachdem** er gegessen **hatte**, ging er spazieren.",
-            "Before a **noun** stands the preposition, before a **sentence** the joining word: **vor** dem Essen · **bevor** ich esse — **nach** dem Essen · **nachdem** ich gegessen habe. *während, bis* and *seit* do both jobs: während der Pause · während ich warte.",
-            "The side sentence can come **first**; then the main sentence starts with its verb — verb, comma, verb: **Bevor** ich ins Bett **gehe**, **putze** ich die Zähne. · **Sobald** ich zu Hause **bin**, **rufe** ich dich an.",
+            "**bevor** (before), **während** (while), **bis** (until), **seit / seitdem** (since) and **sobald** (as soon as) start a side sentence with the verb last. Ich rufe an, **bevor** ich **losfahre**. · **Seit** ich hier **wohne**, lerne ich Deutsch.",
+            "With **nachdem** (after), what happened first goes one step back in time: the Perfekt when the rest is present. **Nachdem** ich gegessen **habe**, gehe ich raus. In a story: **Nachdem** er gegessen **hatte**, ging er.",
+            "Before a **noun** you use the preposition; before a **whole sentence**, the joining word. **vor** dem Essen · **bevor** ich esse · **nach** dem Essen · **nachdem** ich gegessen habe. während, bis and seit work both ways.",
+            "If the side sentence comes **first**, the main sentence starts with its verb: verb, comma, verb. **Bevor** ich ins Bett **gehe**, **putze** ich die Zähne. · **Sobald** ich zu Hause **bin**, **rufe** ich dich an.",
           ],
           table: { head: ["+ noun", "+ sentence"], rows: [
             ["**vor** dem Kurs", "**bevor** er anfängt"],
-            ["**nach** dem Kurs", "**nachdem** er aus ist"],
+            ["**nach** dem Kurs", "**nachdem** er geendet hat"],
             ["**während** der Pause", "**während** ich warte"],
             ["**bis** morgen", "**bis** du kommst"],
             ["**seit** einem Jahr", "**seit** ich hier bin"],
@@ -50,29 +50,29 @@ cxPack({
             ["Wir bleiben draußen, **bis** es dunkel **wird**.", "We'll stay outside until it gets dark."],
             ["**Nachdem** ich die Kinder ins Bett gebracht **habe**, räume ich auf.", "After I've put the children to bed, I tidy up."],
           ],
-          trap: "**vor** and **nach** can't open a sentence with a verb: ~~Vor ich esse~~ → **Bevor** ich esse · ~~Nach ich gegessen habe~~ → **Nachdem** ich gegessen habe. And **seit** goes with the present for what is still going on: Seit ich hier **wohne** …",
+          trap: "**vor** and **nach** can't start a side sentence: ~~Nach ich gegessen habe~~ is wrong; say **Nachdem** ich gegessen habe. With **seit**, use the present for what is still going on: Seit ich hier **wohne** …",
           quiz: [
-            { at: "r1", k: "pick", q: "Ich rufe dich an, bevor ___.", o: ["ich losfahre", "ich fahre los", "fahre ich los"], a: 0, why: "The verb goes last — and joins up: **losfahre**." },
-            { at: "r1", k: "pick", q: "Warte bitte hier, ___ ich zurückkomme.", o: ["bis", "während", "seit"], a: 0, why: "*until*: **bis**." },
-            { at: "r1", k: "type", cx: true, q: "___ ich koche, hört er Musik. (while)", a: ["Während"], r: ["cj.time"], why: "*while*: **während**." },
-            { at: "r2", k: "pick", q: "Nachdem ich ___, gehe ich spazieren.", o: ["gegessen habe", "esse", "habe gegessen"], a: 0, why: "What came first: the Perfekt, the auxiliary last." },
-            { at: "r2", k: "pick", q: "Nachdem wir angekommen ___, rufen wir euch an.", o: ["sind", "haben", "werden"], a: 0, why: "ankommen: **sind** — and it goes last." },
-            { at: "r3", k: "pick", q: "___ dem Essen wasche ich mir die Hände.", o: ["Vor", "Bevor"], a: 0, why: "Before a noun: **vor**." },
-            { at: "r3", k: "pick", q: "___ ich esse, wasche ich mir die Hände.", o: ["Bevor", "Vor"], a: 0, why: "Before a sentence: **bevor**." },
-            { at: "r4", k: "pick", q: "Sobald ich zu Hause bin, ___ dich an.", o: ["rufe ich", "ich rufe"], a: 0, why: "The side sentence is first: then the verb." },
-            { at: "r4", k: "order", q: "Build it: Before I go, I'll close the windows.", a: ["Bevor ich gehe,", "schließe", "ich", "die Fenster."], why: "Verb, comma, verb." },
-            { at: "table", k: "pick", q: "___ ich hier wohne, lerne ich Deutsch.", o: ["Seit", "Bis", "Vor"], a: 0, why: "*since*: **seit** — it also opens a sentence." },
-            { at: "trap", k: "pick", q: "Which is right?", o: ["Nachdem ich gegessen habe, gehe ich raus.", "Nach ich gegessen habe, gehe ich raus."], a: 0, why: "Before a sentence: **nachdem**." },
+            { at: "r1", k: "pick", q: "Ich rufe dich an, bevor ___.", o: ["ich losfahre", "ich fahre los", "fahre ich los"], a: 0, why: "The verb goes last, and the separable verb joins up: **losfahre**." },
+            { at: "r1", k: "pick", q: "Warte bitte hier, ___ ich zurückkomme.", o: ["bis", "während", "seit"], a: 0, why: "*until* is **bis**." },
+            { at: "r1", k: "type", cx: true, q: "___ ich koche, hört er Musik. (while)", a: ["Während"], r: ["cj.time"], why: "*while* is **während**." },
+            { at: "r2", k: "pick", q: "Nachdem ich ___, gehe ich spazieren.", o: ["gegessen habe", "esse", "habe gegessen"], a: 0, why: "What happened first takes the Perfekt, with **habe** at the end." },
+            { at: "r2", k: "pick", q: "Nachdem wir angekommen ___, rufen wir euch an.", o: ["sind", "haben", "werden"], a: 0, why: "ankommen forms its Perfekt with **sind**, and it goes last." },
+            { at: "r3", k: "pick", q: "___ dem Essen wasche ich mir die Hände.", o: ["Vor", "Bevor"], a: 0, why: "Before a noun (dem Essen): **vor**." },
+            { at: "r3", k: "pick", q: "___ ich esse, wasche ich mir die Hände.", o: ["Bevor", "Vor"], a: 0, why: "Before a whole sentence (ich esse): **bevor**." },
+            { at: "r4", k: "pick", q: "Sobald ich zu Hause bin, ___ dich an.", o: ["rufe ich", "ich rufe"], a: 0, why: "The side sentence comes first, so the verb comes next: **rufe ich**." },
+            { at: "r4", k: "order", q: "Build it: Before I go, I'll close the windows.", a: ["Bevor ich gehe,", "schließe", "ich", "die Fenster."], why: "Side sentence, comma, then the verb, then the subject." },
+            { at: "table", k: "pick", q: "___ ich hier wohne, lerne ich Deutsch.", o: ["Seit", "Bis", "Vor"], a: 0, why: "*since* is **seit**; it can also start a side sentence." },
+            { at: "trap", k: "pick", q: "Which is right?", o: ["Nachdem ich gegessen habe, gehe ich raus.", "Nach ich gegessen habe, gehe ich raus."], a: 0, why: "Before a whole sentence you need **nachdem**, not nach." },
           ] },
         { id: "cx.cj2", title: "obwohl, damit, falls, da", qn: 3,
           struct: [["Wir gehen raus,", "thing"], ["obwohl", "pre"], ["es", "who"], ["regnet", "verb"]],
-          why: "Four more joining words, all with the verb **last**: **obwohl** (although), **damit** (so that), **falls** (in case) and **da** (as, since). Watch obwohl against trotzdem, and damit against um … zu.",
+          why: "Four more joining words with the verb **last**: **obwohl** (although), **damit** (so that), **falls** (in case) and **da** (as, since). Keep obwohl apart from trotzdem, and damit from um … zu.",
           rid: ["cj.obwohl", "cj.trotzdem", "cj.damit", "cj.falls"],
           rules: [
-            "**obwohl** = *although* — something happens in spite of it; the verb goes last: Wir gehen spazieren, **obwohl** es **regnet**. · **Obwohl** er müde **ist**, arbeitet er weiter.",
-            "**obwohl** or **trotzdem**? Both say *in spite of that*, in different halves: **obwohl** opens the side sentence (verb last) — **trotzdem** opens the main one (verb second): **Obwohl** es regnet, gehen wir raus. · Es regnet, **trotzdem gehen** wir raus.",
-            "**damit** = *so that* — what something is for: Ich spreche langsam, **damit** du mich **verstehst**. When both halves have the **same person**, use **um … zu**: Ich lerne Deutsch, **um** hier **zu** arbeiten.",
-            "**falls** = *in case, if perhaps*: Nimm einen Schirm mit, **falls** es **regnet**. · **da** = *as, since* — a weil for writing, usually in front: **Da** der Zug Verspätung **hat**, komme ich später.",
+            "**obwohl** means *although*: something happens in spite of a fact, and the verb goes last. Wir gehen spazieren, **obwohl** es **regnet**. · **Obwohl** er müde **ist**, arbeitet er weiter.",
+            "**obwohl** starts the side sentence (verb last); **trotzdem** (anyway) starts the main sentence (verb right after it). **Obwohl** es regnet, gehen wir raus. · Es regnet, **trotzdem gehen** wir raus.",
+            "To say what something is for, use **damit** (so that) when the two halves have different people, and **um … zu** when it's the **same person**. Ich spreche langsam, **damit** du mich **verstehst**. · Ich lerne, **um** hier **zu** arbeiten.",
+            "**falls** means *in case*: Nimm einen Schirm mit, **falls** es **regnet**. **da** means *as, since*: it gives a reason like weil, mostly in writing and at the front. **Da** der Zug Verspätung **hat**, komme ich später.",
           ],
           table: { head: ["", "example"], rows: [
             ["obwohl", "…, **obwohl** es kalt **ist**."],
@@ -87,32 +87,32 @@ cxPack({
             ["Hier ist meine Nummer, **falls** Sie Fragen **haben**.", "Here's my number in case you have questions."],
             ["Sie hat wenig Zeit, **trotzdem hilft** sie uns immer.", "She has little time; still, she always helps us."],
           ],
-          trap: "After **trotzdem** the verb comes at once — it's no side sentence: Es regnet, trotzdem **gehen wir** raus — never ~~trotzdem wir raus gehen~~. And *so that he …* is **damit**, not ~~um … zu~~: um … zu needs the same person twice.",
+          trap: "**trotzdem** starts a main sentence, so the verb comes right after it: Es regnet, trotzdem **gehen wir** raus, never ~~trotzdem wir raus gehen~~. For *so that he …* use **damit**: um … zu needs the same person.",
           quiz: [
-            { at: "r1", k: "pick", q: "Er geht zur Arbeit, ___ er krank ist.", o: ["obwohl", "weil", "damit"], a: 0, why: "In spite of it: **obwohl**." },
-            { at: "r1", k: "pick", q: "Obwohl ___, gehen wir an den See.", o: ["es kalt ist", "es ist kalt", "ist es kalt"], a: 0, why: "After obwohl the verb goes last." },
-            { at: "r2", k: "pick", q: "Es regnet, ___ gehen wir spazieren.", o: ["trotzdem", "obwohl"], a: 0, why: "The verb comes right after it: **trotzdem**." },
-            { at: "r2", k: "pick", q: "___ es regnet, gehen wir spazieren.", o: ["Obwohl", "Trotzdem"], a: 0, why: "A side sentence with the verb last: **obwohl**." },
-            { at: "r3", k: "pick", q: "Ich spreche langsam, ___ du mich verstehst.", o: ["damit", "um", "obwohl"], a: 0, why: "ich … du — two persons: **damit**." },
+            { at: "r1", k: "pick", q: "Er geht zur Arbeit, ___ er krank ist.", o: ["obwohl", "weil", "damit"], a: 0, why: "He goes in spite of being ill: **obwohl**." },
+            { at: "r1", k: "pick", q: "Obwohl ___, gehen wir an den See.", o: ["es kalt ist", "es ist kalt", "ist es kalt"], a: 0, why: "After obwohl the verb goes last: es kalt **ist**." },
+            { at: "r2", k: "pick", q: "Es regnet, ___ gehen wir spazieren.", o: ["trotzdem", "obwohl"], a: 0, why: "The verb (gehen) comes right after the gap, so it's **trotzdem**." },
+            { at: "r2", k: "pick", q: "___ es regnet, gehen wir spazieren.", o: ["Obwohl", "Trotzdem"], a: 0, why: "The verb (regnet) is last, so it's a side sentence: **obwohl**." },
+            { at: "r3", k: "pick", q: "Ich spreche langsam, ___ du mich verstehst.", o: ["damit", "um", "obwohl"], a: 0, why: "Two different people (ich, du): **damit**." },
             { at: "r3", k: "pick", q: "Ich lerne jeden Tag, ___ die Prüfung zu bestehen.", o: ["um", "damit"], a: 0, why: "The same person, and zu follows: **um … zu**." },
-            { at: "r3", k: "type", cx: true, q: "Ich gebe dir den Schlüssel, ___ du ins Haus kommst. (so that)", a: ["damit"], r: ["cj.damit"], why: "*so that*: **damit**." },
-            { at: "r4", k: "pick", q: "Nimm eine Jacke mit, ___ es kalt wird.", o: ["falls", "obwohl", "damit"], a: 0, why: "*in case*: **falls**." },
-            { at: "r4", k: "pick", q: "___ ich krank bin, kann ich heute nicht kommen.", o: ["Da", "Falls", "Damit"], a: 0, why: "The reason, in front: **da** (= weil)." },
-            { at: "table", k: "pick", q: "Ich rufe an, damit du es ___.", o: ["weißt", "wissen", "zu wissen"], a: 0, why: "After damit a whole sentence — its verb last." },
-            { at: "trap", k: "pick", q: "Which is right?", o: ["Es ist spät, trotzdem bleibe ich noch.", "Es ist spät, trotzdem ich noch bleibe."], a: 0, why: "After trotzdem the verb comes at once." },
+            { at: "r3", k: "type", cx: true, q: "Ich gebe dir den Schlüssel, ___ du ins Haus kommst. (so that)", a: ["damit"], r: ["cj.damit"], why: "*so that* is **damit**." },
+            { at: "r4", k: "pick", q: "Nimm eine Jacke mit, ___ es kalt wird.", o: ["falls", "obwohl", "damit"], a: 0, why: "*in case* is **falls**." },
+            { at: "r4", k: "pick", q: "___ ich krank bin, kann ich heute nicht kommen.", o: ["Da", "Falls", "Damit"], a: 0, why: "A reason, at the front: **da** (like weil)." },
+            { at: "table", k: "pick", q: "Ich rufe an, damit du es ___.", o: ["weißt", "wissen", "zu wissen"], a: 0, why: "After damit comes a whole sentence with its verb last: **weißt**." },
+            { at: "trap", k: "pick", q: "Which is right?", o: ["Es ist spät, trotzdem bleibe ich noch.", "Es ist spät, trotzdem ich noch bleibe."], a: 0, why: "trotzdem starts a main sentence: the verb comes right after it." },
           ] },
       ],
       diag: [
-        { t: "swap", from: "^(vor|nach)$", to: "^(bevor|nachdem)$", rule: "cj.prepconj", hard: true, msg: "Before a whole sentence it's **{right}** — vor and nach stand before a noun." },
-        { t: "swap", from: "^(bevor|nachdem)$", to: "^(vor|nach)$", rule: "cj.prepconj", hard: true, msg: "Before a noun it's the preposition **{right}** — bevor and nachdem open a sentence." },
-        { t: "swap", from: "^trotzdem$", to: "^obwohl$", rule: "cj.trotzdem", msg: "The verb is at the end — a side sentence: **obwohl**. (After trotzdem the verb comes at once.)" },
-        { t: "swap", from: "^obwohl$", to: "^trotzdem$", rule: "cj.trotzdem", msg: "The verb comes right after it — a main sentence: **trotzdem**. (obwohl sends the verb to the end.)" },
-        { t: "swap", from: "^(weil|denn|aber|wenn|da)$", to: "^obwohl$", rule: "cj.obwohl", msg: "It happens *in spite of* that: **obwohl**." },
-        { t: "swap", from: "^um$", to: "^damit$", rule: "cj.damit", msg: "Two different persons: **damit** + a whole sentence. (um … zu only when it's the same person.)" },
-        { t: "swap", from: "^damit$", to: "^um$", rule: "cj.damit", msg: "The same person, and zu + the infinitive follows: **um** … zu." },
+        { t: "swap", from: "^(vor|nach)$", to: "^(bevor|nachdem)$", rule: "cj.prepconj", hard: true, msg: "Before a whole sentence it's **{right}**. vor and nach only go before a noun." },
+        { t: "swap", from: "^(bevor|nachdem)$", to: "^(vor|nach)$", rule: "cj.prepconj", hard: true, msg: "Before a noun it's the preposition **{right}**. bevor and nachdem start a whole sentence." },
+        { t: "swap", from: "^trotzdem$", to: "^obwohl$", rule: "cj.trotzdem", msg: "The verb is at the end, so this is a side sentence: **obwohl**. After trotzdem the verb comes right away." },
+        { t: "swap", from: "^obwohl$", to: "^trotzdem$", rule: "cj.trotzdem", msg: "The verb comes right after the gap, so this is a main sentence: **trotzdem**. obwohl sends the verb to the end." },
+        { t: "swap", from: "^(weil|denn|aber|wenn|da)$", to: "^obwohl$", rule: "cj.obwohl", msg: "This happens *in spite of* the other fact, so it's **obwohl**." },
+        { t: "swap", from: "^um$", to: "^damit$", rule: "cj.damit", msg: "Two different people: use **damit** and a whole sentence. um … zu only works with the same person." },
+        { t: "swap", from: "^damit$", to: "^um$", rule: "cj.damit", msg: "Same person, with zu and the infinitive: **um** … zu." },
         { t: "swap", from: "^(bevor|nachdem|wahrend|bis|seit|seitdem|sobald|obwohl|damit|falls|da|weil|wenn|dass|als)$", to: "^(bevor|nachdem|wahrend|bis|seit|seitdem|sobald|obwohl|damit|falls|da)$", rule: "", msg: "The joining word that fits here is **{right}**." },
-        { t: "pos", tok: "^(bin|bist|ist|sind|seid|habe|hast|hat|haben|habt|muss|musst|mussen|kann|kannst|konnen|will|willst|wollen|soll|sollst|sollen|darf|darfst|durfen|mochte|mochtest|mochten|war|waren|hatte|hatten|wird|werde|werden)$", rule: "", msg: "The verb is out of place — it goes {where}. (Second in a main sentence, at the end of a side sentence.)" },
-        { t: "order", rule: "", msg: "The right words, another order: in the side sentence the conjugated verb goes **last** — and after a side sentence in front comes the main **verb**, then the subject." },
+        { t: "pos", tok: "^(bin|bist|ist|sind|seid|habe|hast|hat|haben|habt|muss|musst|mussen|kann|kannst|konnen|will|willst|wollen|soll|sollst|sollen|darf|darfst|durfen|mochte|mochtest|mochten|war|waren|hatte|hatten|wird|werde|werden)$", rule: "", msg: "The verb is out of place: it goes {where}. It's second in a main sentence and at the end of a side sentence." },
+        { t: "order", rule: "", msg: "Right words, wrong order: in the side sentence the verb goes **last**. If the side sentence comes first, the main verb comes next, then the subject." },
       ],
       drills: [
         // ── Übung 29•7: the joining word that fits ──
@@ -146,7 +146,7 @@ cxPack({
           { q: "(after) ___ ich geduscht habe, geht es mir besser.", a: ["Nachdem"], r: ["cj.nachdem"] },
         ] },
         // ── our own: a noun or a sentence? ──
-        { id: "dcj.prep", t: "pick", title: "vor or bevor? nach or nachdem?", how: "Before a noun: vor, nach · before a sentence: bevor, nachdem.", items: [
+        { id: "dcj.prep", t: "pick", title: "vor or bevor? nach or nachdem?", how: "vor and nach go before a noun; bevor and nachdem before a whole sentence.", items: [
           { q: "___ dem Frühstück gehe ich joggen.", o: ["Vor", "Bevor"], a: ["Vor"], r: ["cj.prepconj"] },
           { q: "___ ich frühstücke, gehe ich joggen.", o: ["Bevor", "Vor"], a: ["Bevor"], r: ["cj.prepconj"] },
           { q: "___ der Arbeit hole ich die Kinder ab.", o: ["Nach", "Nachdem"], a: ["Nach"], r: ["cj.prepconj"] },
@@ -160,7 +160,7 @@ cxPack({
           { q: "___ wir umgezogen waren, haben wir alle Nachbarn eingeladen.", o: ["Nachdem", "Nach"], a: ["Nachdem"], r: ["cj.prepconj"] },
         ] },
         // ── our own: first this, then that → nachdem ──
-        { id: "dcj.nach", t: "transform", fixed: true, title: "Nachdem …", how: "Make one sentence, starting with Nachdem — what comes first goes into the Perfekt.", items: [
+        { id: "dcj.nach", t: "transform", fixed: true, title: "Nachdem …", how: "Make one sentence starting with Nachdem. What happened first goes into the Perfekt.", items: [
           { q: "Ich frühstücke. Dann gehe ich zur Arbeit.", a: ["Nachdem ich gefrühstückt habe, gehe ich zur Arbeit."], r: ["cj.nachdem"] },
           { q: "Wir essen. Dann räumen wir die Küche auf.", a: ["Nachdem wir gegessen haben, räumen wir die Küche auf."], r: ["cj.nachdem"] },
           { q: "Lea macht die Hausaufgaben. Dann spielt sie draußen.", a: ["Nachdem Lea die Hausaufgaben gemacht hat, spielt sie draußen."], r: ["cj.nachdem"] },
@@ -172,26 +172,26 @@ cxPack({
           { q: "Sie bringt die Kinder ins Bett. Dann sieht sie fern.", a: ["Nachdem sie die Kinder ins Bett gebracht hat, sieht sie fern."], r: ["cj.nachdem"] },
           { q: "Ich stehe auf. Dann trinke ich einen Kaffee.", a: ["Nachdem ich aufgestanden bin, trinke ich einen Kaffee."], r: ["cj.nachdem"] },
         ].map(it => ({ ...it, diag: [
-          { t: "swap", from: "^(habe|hast|hat|haben|habt)$", to: "^(bin|bist|ist|sind|seid)$", rule: "cj.nachdem", hard: true, msg: "This verb builds its Perfekt with sein: **{right}**." },
-          { t: "missing", whole: true, tok: "^(habe|hast|hat|haben|habt|bin|bist|ist|sind|seid)$", rule: "cj.nachdem", msg: "What came first goes one step back: the **Perfekt** — participle + haben / sein at the end: Nachdem ich gegessen **habe**, …" },
+          { t: "swap", from: "^(habe|hast|hat|haben|habt)$", to: "^(bin|bist|ist|sind|seid)$", rule: "cj.nachdem", hard: true, msg: "This verb forms its Perfekt with sein: **{right}**." },
+          { t: "missing", whole: true, tok: "^(habe|hast|hat|haben|habt|bin|bist|ist|sind|seid)$", rule: "cj.nachdem", msg: "What happened first needs the **Perfekt**: the participle, then haben or sein at the end. Nachdem ich gegessen **habe**, …" },
         ] })) },
         // ── our own: join with the word in brackets ──
-        { id: "dcj.join", t: "transform", title: "Join the two", how: "Join the sentences with the word in brackets — its verb goes to the end.", items: [
+        { id: "dcj.join", t: "transform", title: "Join the two", how: "Join the sentences with the word in brackets. Its verb goes to the end.", items: [
           { q: "Ich rufe dich an. Ich komme am Bahnhof an. (sobald)", a: ["Ich rufe dich an, sobald ich am Bahnhof ankomme.", "Sobald ich am Bahnhof ankomme, rufe ich dich an."], r: ["cj.time"] },
           { q: "Wir warten draußen. Der Laden macht auf. (bis)", a: ["Wir warten draußen, bis der Laden aufmacht.", "Bis der Laden aufmacht, warten wir draußen."], r: ["cj.time"] },
           { q: "Ich höre Musik. Ich putze die Wohnung. (während)", a: ["Ich höre Musik, während ich die Wohnung putze.", "Während ich die Wohnung putze, höre ich Musik."], r: ["cj.time"] },
           { q: "Mach das Fenster zu! Du gehst weg. (bevor)", a: ["Mach das Fenster zu, bevor du weggehst!", "Bevor du weggehst, mach das Fenster zu!"], r: ["cj.time"] },
           { q: "Er ist viel ruhiger. Er arbeitet weniger. (seit)", a: ["Er ist viel ruhiger, seit er weniger arbeitet.", "Seit er weniger arbeitet, ist er viel ruhiger."], r: ["cj.time"] },
           { q: "Tom geht joggen. Es schneit. (obwohl)", a: ["Tom geht joggen, obwohl es schneit.", "Obwohl es schneit, geht Tom joggen."], r: ["cj.obwohl"], cap: true },
-          { q: "Ich schreibe dir die Adresse auf. Du findest das Haus. (damit)", a: ["Ich schreibe dir die Adresse auf, damit du das Haus findest."], r: ["cj.damit"] },
+          { q: "Ich schreibe dir die Adresse auf. Du findest das Haus. (damit)", a: ["Ich schreibe dir die Adresse auf, damit du das Haus findest.", "Damit du das Haus findest, schreibe ich dir die Adresse auf."], r: ["cj.damit"] },
           { q: "Nimm den Schlüssel mit! Ich bin nicht zu Hause. (falls)", a: ["Nimm den Schlüssel mit, falls ich nicht zu Hause bin!", "Falls ich nicht zu Hause bin, nimm den Schlüssel mit!"], r: ["cj.falls"] },
           { q: "Sie kauft das Kleid. Es ist sehr teuer. (obwohl)", a: ["Sie kauft das Kleid, obwohl es sehr teuer ist.", "Obwohl es sehr teuer ist, kauft sie das Kleid."], r: ["cj.obwohl"] },
           { q: "Wir bleiben zu Hause. Unser Sohn ist krank. (da)", a: ["Da unser Sohn krank ist, bleiben wir zu Hause.", "Wir bleiben zu Hause, da unser Sohn krank ist."], r: ["cj.falls"] },
           { q: "Die Kinder dürfen spielen. Es wird dunkel. (bis)", a: ["Die Kinder dürfen spielen, bis es dunkel wird.", "Bis es dunkel wird, dürfen die Kinder spielen."], r: ["cj.time"] },
-          { q: "Ich stelle den Wecker. Ich verschlafe nicht. (damit)", a: ["Ich stelle den Wecker, damit ich nicht verschlafe."], r: ["cj.damit"] },
+          { q: "Ich stelle den Wecker. Ich verschlafe nicht. (damit)", a: ["Ich stelle den Wecker, damit ich nicht verschlafe.", "Damit ich nicht verschlafe, stelle ich den Wecker."], r: ["cj.damit"] },
         ] },
         // ── our own: the side sentence first ──
-        { id: "dcj.first", t: "transform", fixed: true, title: "The side sentence first", how: "Start with the side sentence — then comes the verb, then the subject.", items: [
+        { id: "dcj.first", t: "transform", fixed: true, title: "The side sentence first", how: "Start with the side sentence. Then comes the verb, then the subject.", items: [
           { q: "Ich putze die Zähne, bevor ich ins Bett gehe.", a: ["Bevor ich ins Bett gehe, putze ich die Zähne."], r: ["cj.first"] },
           { q: "Wir gehen spazieren, obwohl es regnet.", a: ["Obwohl es regnet, gehen wir spazieren."], r: ["cj.first"] },
           { q: "Ich rufe dich an, sobald ich Zeit habe.", a: ["Sobald ich Zeit habe, rufe ich dich an."], r: ["cj.first"] },
@@ -204,7 +204,7 @@ cxPack({
           { q: "Man muss ein Formular ausfüllen, bevor man den Ausweis bekommt.", a: ["Bevor man den Ausweis bekommt, muss man ein Formular ausfüllen."], r: ["cj.first"] },
         ] },
         // ── our own: obwohl, weil or trotzdem ──
-        { id: "dcj.ob", t: "pick", title: "obwohl, weil or trotzdem?", how: "Pick: in spite of it — obwohl (verb last) or trotzdem (verb next); the reason — weil.", items: [
+        { id: "dcj.ob", t: "pick", title: "obwohl, weil or trotzdem?", how: "In spite of it: obwohl (verb last) or trotzdem (verb next). The reason: weil.", items: [
           { q: "Wir grillen heute, ___ es ein bisschen regnet.", o: ["obwohl", "weil", "trotzdem"], a: ["obwohl"], r: ["cj.obwohl"] },
           { q: "Wir grillen heute nicht, ___ es regnet.", o: ["weil", "obwohl", "trotzdem"], a: ["weil"], r: ["cj.obwohl"] },
           { q: "Es regnet ein bisschen, ___ grillen wir heute.", o: ["trotzdem", "obwohl", "weil"], a: ["trotzdem"], r: ["cj.trotzdem"] },
@@ -217,9 +217,9 @@ cxPack({
           { q: "Ich habe schlecht geschlafen, ___ gehe ich heute ins Training.", o: ["trotzdem", "obwohl", "weil"], a: ["trotzdem"], r: ["cj.trotzdem"] },
           { q: "___ das Velo alt ist, fährt es noch sehr gut.", o: ["Obwohl", "Trotzdem", "Weil"], a: ["Obwohl"], r: ["cj.obwohl"] },
           { q: "Er verdient gut, ___ ist er nicht zufrieden.", o: ["trotzdem", "obwohl", "weil"], a: ["trotzdem"], r: ["cj.trotzdem"] },
-        ].map(it => ({ ...it, diag: [{ t: "swap", from: "^(obwohl|trotzdem)$", to: "^weil$", rule: "cj.obwohl", msg: "Here it's simply the reason: **weil**. (obwohl = in spite of it.)" }] })) },
+        ].map(it => ({ ...it, diag: [{ t: "swap", from: "^(obwohl|trotzdem)$", to: "^weil$", rule: "cj.obwohl", msg: "Here it's simply the reason: **weil**. obwohl means *in spite of that*." }] })) },
         // ── our own: aber → obwohl ──
-        { id: "dcj.obt", t: "transform", title: "aber → obwohl", how: "Say the same with obwohl — its verb goes to the end.", items: [
+        { id: "dcj.obt", t: "transform", title: "aber → obwohl", how: "Say the same with obwohl. Its verb goes to the end.", items: [
           { q: "Es regnet, aber wir gehen spazieren.", a: ["Obwohl es regnet, gehen wir spazieren.", "Wir gehen spazieren, obwohl es regnet."], r: ["cj.obwohl"] },
           { q: "Ich bin müde, aber ich gehe noch ins Training.", a: ["Obwohl ich müde bin, gehe ich noch ins Training.", "Ich gehe noch ins Training, obwohl ich müde bin."], r: ["cj.obwohl"] },
           { q: "Die Wohnung ist teuer, aber wir nehmen sie.", a: ["Obwohl die Wohnung teuer ist, nehmen wir sie.", "Wir nehmen die Wohnung, obwohl sie teuer ist."], r: ["cj.obwohl"] },
@@ -232,7 +232,7 @@ cxPack({
           { q: "Mein Opa ist 85, aber er fährt noch Velo.", a: ["Obwohl mein Opa 85 ist, fährt er noch Velo.", "Mein Opa fährt noch Velo, obwohl er 85 ist."], r: ["cj.obwohl"] },
         ] },
         // ── our own: obwohl → trotzdem ──
-        { id: "dcj.trotz", t: "transform", fixed: true, title: "obwohl → trotzdem", how: "Say the same with trotzdem: the fact first, then trotzdem + the verb.", items: [
+        { id: "dcj.trotz", t: "transform", fixed: true, title: "obwohl → trotzdem", how: "Say the same with trotzdem: the fact first, then trotzdem and the verb.", items: [
           { q: "Obwohl er krank ist, geht er arbeiten.", a: ["Er ist krank, trotzdem geht er arbeiten.", "Er ist krank. Trotzdem geht er arbeiten."], r: ["cj.trotzdem"] },
           { q: "Obwohl es spät ist, bleiben wir noch.", a: ["Es ist spät, trotzdem bleiben wir noch.", "Es ist spät. Trotzdem bleiben wir noch."], r: ["cj.trotzdem"] },
           { q: "Obwohl das Wetter schlecht ist, machen wir den Ausflug.", a: ["Das Wetter ist schlecht, trotzdem machen wir den Ausflug.", "Das Wetter ist schlecht. Trotzdem machen wir den Ausflug."], r: ["cj.trotzdem"] },
@@ -241,9 +241,9 @@ cxPack({
           { q: "Obwohl der Bus voll ist, steigen wir ein.", a: ["Der Bus ist voll, trotzdem steigen wir ein.", "Der Bus ist voll. Trotzdem steigen wir ein."], r: ["cj.trotzdem"] },
           { q: "Obwohl wir wenig Platz haben, laden wir alle ein.", a: ["Wir haben wenig Platz, trotzdem laden wir alle ein.", "Wir haben wenig Platz. Trotzdem laden wir alle ein."], r: ["cj.trotzdem"] },
           { q: "Obwohl das Handy alt ist, funktioniert es gut.", a: ["Das Handy ist alt, trotzdem funktioniert es gut.", "Das Handy ist alt. Trotzdem funktioniert es gut."], r: ["cj.trotzdem"] },
-        ].map(it => ({ ...it, diag: [{ t: "extra", tok: "^obwohl$", rule: "cj.trotzdem", msg: "No obwohl here: the fact as a plain sentence, then **trotzdem** + the verb." }, { t: "order", rule: "cj.trotzdem", msg: "After **trotzdem** the verb comes at once, then the subject: trotzdem **geht er** … — it's a main sentence." }] })) },
+        ].map(it => ({ ...it, diag: [{ t: "extra", tok: "^obwohl$", rule: "cj.trotzdem", msg: "No obwohl here. Say the fact as a plain sentence, then **trotzdem** and the verb." }, { t: "order", rule: "cj.trotzdem", msg: "After **trotzdem** the verb comes right away, then the subject: trotzdem **geht er** …" }] })) },
         // ── our own: damit or um … zu ──
-        { id: "dcj.damit", t: "transform", title: "damit or um … zu?", how: "Join them: what is it for? The same person — um … zu; another person — damit.", items: [
+        { id: "dcj.damit", t: "transform", title: "damit or um … zu?", how: "Say what it's for. Same person: um … zu. Another person: damit.", items: [
           { q: "Ich spreche langsam. Du verstehst mich.", a: ["Ich spreche langsam, damit du mich verstehst."], r: ["cj.damit"] },
           { q: "Ich lerne Deutsch. Ich finde eine bessere Stelle.", a: ["Ich lerne Deutsch, um eine bessere Stelle zu finden.", "Ich lerne Deutsch, damit ich eine bessere Stelle finde."], r: ["cj.damit"] },
           { q: "Wir sind leise. Das Baby wacht nicht auf.", a: ["Wir sind leise, damit das Baby nicht aufwacht."], r: ["cj.damit"] },
@@ -256,12 +256,12 @@ cxPack({
           { q: "Ich schicke dir ein Foto. Du siehst die Wohnung.", a: ["Ich schicke dir ein Foto, damit du die Wohnung siehst.", "Ich schicke dir ein Foto, damit du die Wohnung sehen kannst."], r: ["cj.damit"] },
         ] },
         // ── our own: falls and da ──
-        { id: "dcj.falls", t: "type", title: "falls · da", how: "Write falls (in case) or da (as, since — the reason).", items: [
+        { id: "dcj.falls", t: "type", title: "falls · da", how: "Write falls (in case) or da (as, since: the reason).", items: [
           { q: "Nimm einen Schirm mit, ___ es regnet.", a: ["falls"], r: ["cj.falls"] },
           { q: "___ heute Feiertag ist, sind alle Läden zu.", a: ["Da"], r: ["cj.falls"] },
           { q: "Hier ist meine Adresse, ___ du mich besuchen willst.", a: ["falls"], r: ["cj.falls"] },
           { q: "___ ich kein Auto habe, fahre ich immer mit dem Zug.", a: ["Da"], r: ["cj.falls"] },
-          { q: "(Vielleicht hat der Zug Verspätung.) ___ der Zug Verspätung hat, nehmen wir ein Taxi.", a: ["Falls"], r: ["cj.falls"], note: "Perhaps it's late, perhaps not: falls. (Da … would say: it *is* late.)" },
+          { q: "(Vielleicht hat der Zug Verspätung.) ___ der Zug Verspätung hat, nehmen wir ein Taxi.", a: ["Falls"], r: ["cj.falls"], note: "Maybe it's late, maybe not: **falls**. Da would mean it *is* late." },
           { q: "Ruf mich an, ___ du den Weg nicht findest.", a: ["falls"], r: ["cj.falls"] },
           { q: "___ es schon dunkel war, sind wir nach Hause gegangen.", a: ["Da"], r: ["cj.falls"] },
           { q: "Ich lasse das Licht an, ___ du vielleicht später kommst.", a: ["falls"], r: ["cj.falls"] },
@@ -269,7 +269,7 @@ cxPack({
           { q: "Sag mir bitte Bescheid, ___ du nicht kommen kannst.", a: ["falls"], r: ["cj.falls"] },
         ] },
         // ── Übung 29•10: build the sentence from the words ──
-        { id: "d29.10", ex: "29.10", t: "compose", end: true, title: "Build the sentence", how: "Build one sentence from the words — the joining word's verb goes last; add the endings.", items: [
+        { id: "d29.10", ex: "29.10", t: "compose", end: true, title: "Build the sentence", how: "Build one sentence from the words. The joining word's verb goes last; add the endings.", items: [
           { w: ["Tina", "bleiben", "im Bett", "bis", "sie", "wieder gesund", "sein"], a: ["Tina bleibt im Bett, bis sie wieder gesund ist."], r: ["cj.time"], cap: true },
           { w: ["ich", "erklären", "es", "noch einmal", "damit", "ihr", "es", "verstehen"], a: ["Ich erkläre es noch einmal, damit ihr es versteht."], r: ["cj.damit"] },
           { w: ["während", "es", "regnen", "spielen", "wir", "Karten"], a: ["Während es regnet, spielen wir Karten."], r: ["cj.time", "cj.first"] },
@@ -283,7 +283,7 @@ cxPack({
           { w: ["da", "der Lift", "kaputt", "sein", "nehmen", "wir", "die Treppe"], a: ["Da der Lift kaputt ist, nehmen wir die Treppe."], r: ["cj.falls", "cj.first"] },
         ] },
         // ── Production ──
-        { id: "dp.cj", t: "translate", end: true, title: "Say it in German", how: "Translate — the joining word's verb goes to the end; a side sentence in front is followed by the verb.", items: [
+        { id: "dp.cj", t: "translate", end: true, title: "Say it in German", how: "Translate. The joining word's verb goes last; after a side sentence in front, the verb comes next.", items: [
           { q: "Before I go to work, I drink a coffee.", a: ["Bevor ich zur Arbeit gehe, trinke ich einen Kaffee.", "Ich trinke einen Kaffee, bevor ich zur Arbeit gehe.", "Bevor ich arbeiten gehe, trinke ich einen Kaffee."], r: ["cj.time", "cj.first"] },
           { q: "Wait here until I come back. (du)", a: ["Warte hier, bis ich zurückkomme.", "Warte hier, bis ich zurückkomme!", "Warte hier, bis ich wiederkomme."], r: ["cj.time"] },
           { q: "While the children are sleeping, I read.", a: ["Während die Kinder schlafen, lese ich.", "Ich lese, während die Kinder schlafen."], r: ["cj.time", "cj.first"] },
@@ -300,7 +300,7 @@ cxPack({
           { q: "I'm writing it down so that I don't forget it.", a: ["Ich schreibe es auf, damit ich es nicht vergesse.", "Ich schreibe es auf, um es nicht zu vergessen."], r: ["cj.damit"] },
         ] },
         // ── Übung 23•13 and 29•8: finish the sentence your way ──
-        { id: "d23.13", ex: "23.13", also: ["29.8"], t: "write", end: true, title: "Finish it your way", how: "Finish each sentence with your own words — saved for Claude to correct.", items: [
+        { id: "d23.13", ex: "23.13", also: ["29.8"], t: "write", end: true, title: "Finish it your way", how: "Finish each sentence in your own words. It's saved for Claude to correct.", items: [
           { q: "Während ich koche, …", model: ["Während ich koche, höre ich Radio und die Kinder decken den Tisch."], r: ["cj.time"] },
           { q: "Bevor ich morgens aus dem Haus gehe, …", model: ["Bevor ich morgens aus dem Haus gehe, trinke ich einen Kaffee und packe meine Tasche."], r: ["cj.time", "cj.first"] },
           { q: "Obwohl ich wenig Zeit habe, …", model: ["Obwohl ich wenig Zeit habe, lerne ich jeden Tag zwanzig Minuten Deutsch."], r: ["cj.obwohl"] },
@@ -317,21 +317,21 @@ cxPack({
     "s2.alswenn": {
       testout: { n: 8, miss: 1 },
       rules: {
-        "aw.als": "als — once, in the past: Als ich klein war, …",
-        "aw.wenn": "wenn — now, later, or if: Wenn ich Zeit habe, …",
-        "aw.immer": "every time, also in the past: (immer) wenn",
-        "aw.wann": "wann asks for a time — also inside a sentence: Ich weiß nicht, wann …",
+        "aw.als": "als: one time in the past (Als ich klein war …)",
+        "aw.wenn": "wenn: now, later, or if (Wenn ich Zeit habe …)",
+        "aw.immer": "(immer) wenn: every time, also in the past",
+        "aw.wann": "wann asks for a time, also inside a sentence",
       },
       sheets: [
         { id: "cx.aw", title: "als, wenn or wann?", qn: 3,
           struct: [["als", "end"], ["once, past", "mid"], ["wenn", "pre"], ["now · later · every time", "mid"], ["wann", "who"], ["a question", "mid"]],
-          why: "English *when* is three German words. **als**: one time in the past. **wenn**: now, in the future, every time — and *if*. **wann**: only when you ask for a time.",
+          why: "English *when* has three German words. **als** is for one time in the past. **wenn** is for now, the future, every time, and *if*. **wann** only asks for a time.",
           rid: ["aw.als", "aw.wenn", "aw.immer", "aw.wann"],
           rules: [
-            "**als** — something happened **once** in the **past** (one moment, or one stretch of life): **Als** ich klein war, wohnten wir in Porto. · **Als** der Bus kam, hat es geregnet. The verb goes last.",
-            "**wenn** — in the **present** and the **future**, and for *if*: **Wenn** ich nach Hause komme, koche ich. · Ruf mich an, **wenn** du ankommst.",
-            "**wenn** also for the past when it happened **every time** — often with *immer* or *jedes Mal*: **Immer wenn** Oma kam, gab es Kuchen. · **Wenn** wir am Meer waren, sind wir jeden Tag geschwommen.",
-            "**wann** asks for a **time** — in a question, and in a question inside a sentence (the verb last there): **Wann** kommt der Zug? · Weißt du, **wann** der Zug **kommt**? · Ich weiß nicht, **wann**.",
+            "Use **als** for something that happened **once** in the **past**: one moment or one period of life. The verb goes last. **Als** ich klein war, wohnten wir in Porto. · **Als** der Bus kam, hat es geregnet.",
+            "Use **wenn** for the **present** and the **future**, and for *if*. **Wenn** ich nach Hause komme, koche ich. · Ruf mich an, **wenn** du ankommst.",
+            "Use **wenn** in the past too when something happened **every time**, often with immer or jedes Mal. **Immer wenn** Oma kam, gab es Kuchen. · **Jedes Mal, wenn** ich anrief, war er weg.",
+            "**wann** asks for a **time**, in a direct question or in a question inside a sentence (there the verb goes last). **Wann** kommt der Zug? · Weißt du, **wann** der Zug **kommt**?",
           ],
           table: { head: ["", "example"], rows: [
             ["**als** · once", "Als ich 20 war, …"],
@@ -345,31 +345,31 @@ cxPack({
             ["**Immer wenn** mein Vater kochte, war die Küche ein Chaos.", "Whenever my father cooked, the kitchen was a mess."],
             ["Können Sie mir sagen, **wann** die Apotheke öffnet?", "Can you tell me when the pharmacy opens?"],
           ],
-          trap: "For one time in the past it's **als**, never wenn: ~~Wenn ich ein Kind war~~ → **Als** ich ein Kind war. And **wann** can't join two facts — it only asks: ~~Ich koche, wann ich nach Hause komme~~ → …, **wenn** ich nach Hause komme.",
+          trap: "For one time in the past it's **als**, never wenn: ~~Wenn ich ein Kind war~~ should be **Als** ich ein Kind war. And **wann** only asks: ~~Ich koche, wann ich heimkomme~~ needs **wenn**.",
           quiz: [
             { at: "r1", k: "pick", q: "___ ich ein Kind war, hatten wir einen Hund.", o: ["Als", "Wenn", "Wann"], a: 0, why: "Once, in the past: **als**." },
             { at: "r1", k: "pick", q: "___ wir gestern ankamen, war das Hotel schon zu.", o: ["Als", "Wenn", "Wann"], a: 0, why: "One moment in the past: **als**." },
-            { at: "r2", k: "pick", q: "___ ich morgen Zeit habe, rufe ich dich an.", o: ["Wenn", "Als", "Wann"], a: 0, why: "The future, or *if*: **wenn**." },
-            { at: "r2", k: "type", cx: true, q: "Sag mir Bescheid, ___ du fertig bist.", a: ["wenn"], r: ["aw.wenn"], why: "Later today: **wenn**." },
-            { at: "r3", k: "pick", q: "Immer ___ wir Oma besuchten, hat sie Kuchen gebacken.", o: ["wenn", "als", "wann"], a: 0, why: "Every time: **wenn** — in the past too." },
-            { at: "r3", k: "pick", q: "Jedes Mal, ___ ich ihn anrief, war er nicht da.", o: ["wenn", "als", "wann"], a: 0, why: "*jedes Mal*: **wenn**." },
+            { at: "r2", k: "pick", q: "___ ich morgen Zeit habe, rufe ich dich an.", o: ["Wenn", "Als", "Wann"], a: 0, why: "The future (morgen): **wenn**." },
+            { at: "r2", k: "type", cx: true, q: "Sag mir Bescheid, ___ du fertig bist.", a: ["wenn"], r: ["aw.wenn"], why: "Later, once you're done: **wenn**." },
+            { at: "r3", k: "pick", q: "Immer ___ wir Oma besuchten, hat sie Kuchen gebacken.", o: ["wenn", "als", "wann"], a: 0, why: "Every time, even in the past: **wenn**." },
+            { at: "r3", k: "pick", q: "Jedes Mal, ___ ich ihn anrief, war er nicht da.", o: ["wenn", "als", "wann"], a: 0, why: "After jedes Mal (every time): **wenn**." },
             { at: "r4", k: "pick", q: "___ fängt der Kurs an?", o: ["Wann", "Wenn", "Als"], a: 0, why: "It asks for a time: **wann**." },
-            { at: "r4", k: "pick", q: "Ich weiß nicht, ___ der Kurs anfängt.", o: ["wann", "wenn", "als"], a: 0, why: "A question inside the sentence: **wann**." },
+            { at: "r4", k: "pick", q: "Ich weiß nicht, ___ der Kurs anfängt.", o: ["wann", "wenn", "als"], a: 0, why: "A question inside a sentence: **wann**." },
             { at: "table", k: "pick", q: "___ ich 18 war, bin ich nach Lissabon gezogen.", o: ["Als", "Wenn", "Wann"], a: 0, why: "Once, in the past: **als**." },
-            { at: "trap", k: "pick", q: "Which is right?", o: ["Als ich jung war, spielte ich Fußball.", "Wenn ich jung war, spielte ich Fußball."], a: 0, why: "One stretch of life in the past: **als**." },
+            { at: "trap", k: "pick", q: "Which is right?", o: ["Als ich jung war, spielte ich Fußball.", "Wenn ich jung war, spielte ich Fußball."], a: 0, why: "One period of life in the past: **als**." },
           ] },
       ],
       diag: [
         { t: "swap", from: "^(wenn|wann)$", to: "^als$", rule: "", hard: true, msg: "It happened once, in the past: **als**." },
-        { t: "swap", from: "^(als|wenn)$", to: "^wann$", rule: "", hard: true, msg: "It asks for a time — *when?* — so it's **wann**." },
-        { t: "swap", from: "^wann$", to: "^wenn$", rule: "", hard: true, msg: "Nothing is asked here — it joins two facts: **wenn**. (wann only asks for a time.)" },
-        { t: "swap", from: "^als$", to: "^wenn$", rule: "", hard: true, msg: "Now, later, *if* — or every time: **wenn**. (als is for one time in the past.)" },
-        { t: "pos", tok: "^(bin|bist|ist|sind|seid|habe|hast|hat|haben|habt|war|warst|waren|hatte|hatten|kam|ging|konnte|wollte|musste)$", rule: "", msg: "The verb is out of place — it goes {where}. (Second in a main sentence, at the end of a side sentence.)" },
-        { t: "order", rule: "", msg: "The right words, another order: after als, wenn and wann the verb goes **last** — and after a side sentence in front comes the main **verb**, then the subject." },
+        { t: "swap", from: "^(als|wenn)$", to: "^wann$", rule: "", hard: true, msg: "It asks for a time (*when?*), so it's **wann**." },
+        { t: "swap", from: "^wann$", to: "^wenn$", rule: "", hard: true, msg: "Nothing is asked here; it joins two facts: **wenn**. wann only asks for a time." },
+        { t: "swap", from: "^als$", to: "^wenn$", rule: "", hard: true, msg: "For now, later, *if* or every time, use **wenn**. als is for one time in the past." },
+        { t: "pos", tok: "^(bin|bist|ist|sind|seid|habe|hast|hat|haben|habt|war|warst|waren|hatte|hatten|kam|ging|konnte|wollte|musste)$", rule: "", msg: "The verb is out of place: it goes {where}. It's second in a main sentence and at the end of a side sentence." },
+        { t: "order", rule: "", msg: "Right words, wrong order: after als, wenn and wann the verb goes **last**. If that part comes first, the main verb comes next, then the subject." },
       ],
       drills: [
         // ── Übung 29•5: wann, wenn or als ──
-        { id: "d29.5", ex: "29.5", t: "pick", title: "als, wenn or wann?", how: "Pick: als — once in the past · wenn — now, later, every time, if · wann — it asks for a time.", o: ["als", "wenn", "wann"], items: [
+        { id: "d29.5", ex: "29.5", t: "pick", title: "als, wenn or wann?", how: "als: once in the past. wenn: now, later, every time, if. wann: asks for a time.", o: ["als", "wenn", "wann"], items: [
           { q: "___ stehst du normalerweise auf?", o: ["Wann", "Wenn", "Als"], a: ["Wann"], r: ["aw.wann"] },
           { q: "Ich war sehr nervös, ___ ich meine erste Stelle bekam.", a: ["als"], r: ["aw.als"] },
           { q: "Man geht zum Zahnarzt, ___ man Zahnschmerzen hat.", a: ["wenn"], r: ["aw.wenn"] },
@@ -401,7 +401,7 @@ cxPack({
           { q: "Was machst du, ___ du pensioniert bist?", a: ["wenn"], r: ["aw.wenn"] },
         ] },
         // ── our own: join the two ──
-        { id: "daw.join", t: "transform", fixed: true, title: "Join with als or wenn", how: "Make one sentence that starts with Als or Wenn — its verb last, then the main verb.", items: [
+        { id: "daw.join", t: "transform", fixed: true, title: "Join with als or wenn", how: "Make one sentence starting with Als or Wenn: its verb last, then the main verb.", items: [
           { q: "Ich war ein Kind. Wir wohnten auf dem Land.", a: ["Als ich ein Kind war, wohnten wir auf dem Land."], r: ["aw.als"] },
           { q: "Ich habe Zeit. Ich besuche dich.", a: ["Wenn ich Zeit habe, besuche ich dich."], r: ["aw.wenn"] },
           { q: "Der Zug kam an. Alle sind eingestiegen.", a: ["Als der Zug ankam, sind alle eingestiegen."], r: ["aw.als"] },
@@ -414,7 +414,7 @@ cxPack({
           { q: "Der Kurs ist zu Ende. Ich mache die Prüfung.", a: ["Wenn der Kurs zu Ende ist, mache ich die Prüfung."], r: ["aw.wenn"] },
         ] },
         // ── our own: wann inside a sentence ──
-        { id: "daw.wann", t: "transform", title: "Weißt du, wann …?", how: "Put the question after the opening in brackets — wann stays, the verb goes to the end.", items: [
+        { id: "daw.wann", t: "transform", title: "Weißt du, wann …?", how: "Put the question after the words in brackets. wann stays; the verb goes to the end.", items: [
           { q: "Wann kommt der Zug? (Weißt du, …)", a: ["Weißt du, wann der Zug kommt?"], r: ["aw.wann"] },
           { q: "Wann öffnet die Post? (Können Sie mir sagen, …)", a: ["Können Sie mir sagen, wann die Post öffnet?"], r: ["aw.wann"] },
           { q: "Wann beginnt der Kurs? (Ich weiß nicht, …)", a: ["Ich weiß nicht, wann der Kurs beginnt."], r: ["aw.wann"] },
@@ -426,7 +426,7 @@ cxPack({
           { q: "Wann machst du Ferien? (Sag mir bitte, …)", a: ["Sag mir bitte, wann du Ferien machst."], r: ["aw.wann"] },
         ] },
         // ── Production ──
-        { id: "dp.aw", t: "translate", end: true, title: "Say it in German", how: "Translate — choose als, wenn or wann.", items: [
+        { id: "dp.aw", t: "translate", end: true, title: "Say it in German", how: "Translate. Choose als, wenn or wann.", items: [
           { q: "When I was a child, I lived in Brazil.", a: ["Als ich ein Kind war, wohnte ich in Brasilien.", "Als ich ein Kind war, habe ich in Brasilien gewohnt.", "Als ich Kind war, wohnte ich in Brasilien.", "Als ich Kind war, habe ich in Brasilien gewohnt.", "Als ich klein war, wohnte ich in Brasilien.", "Als ich ein Kind war, lebte ich in Brasilien.", "Als ich ein Kind war, habe ich in Brasilien gelebt."], r: ["aw.als"] },
           { q: "When does the train leave?", a: ["Wann fährt der Zug?", "Wann fährt der Zug ab?"], r: ["aw.wann"] },
           { q: "When I have time, I'll help you. (du)", a: ["Wenn ich Zeit habe, helfe ich dir.", "Ich helfe dir, wenn ich Zeit habe."], r: ["aw.wenn"] },
@@ -441,7 +441,7 @@ cxPack({
           { q: "Since when have you been living here? (Sie)", a: ["Seit wann wohnen Sie hier?", "Seit wann leben Sie hier?"], r: ["aw.wann"] },
         ] },
         // ── Übung 29•6: finish the sentence ──
-        { id: "d29.6", ex: "29.6", t: "write", end: true, title: "Finish it your way", how: "Finish each sentence with your own words — saved for Claude to correct.", items: [
+        { id: "d29.6", ex: "29.6", t: "write", end: true, title: "Finish it your way", how: "Finish each sentence in your own words. It's saved for Claude to correct.", items: [
           { q: "Als ich ein Kind war, …", model: ["Als ich ein Kind war, spielte ich jeden Tag draußen mit meinen Cousins."], r: ["aw.als"] },
           { q: "Als ich in die Schweiz gekommen bin, …", model: ["Als ich in die Schweiz gekommen bin, war alles neu für mich und ich kannte niemanden."], r: ["aw.als"] },
           { q: "Wenn ich am Wochenende Zeit habe, …", model: ["Wenn ich am Wochenende Zeit habe, gehe ich wandern oder treffe Freunde."], r: ["aw.wenn"] },

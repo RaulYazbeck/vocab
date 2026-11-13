@@ -17,25 +17,25 @@ cxPack({
     "s1.adj": {
       testout: { n: 9, miss: 1 },
       rules: {
-        "adj.pred": "after sein, werden, bleiben: no ending — Der Tee ist heiß.",
-        "adj.e": "after der, die, das: -e in the five nominative / accusative singular places",
-        "adj.en": "after der-words, everywhere else -en: den, dem, der, the plural",
-        "adj.ein": "where ein has no ending: -er (der) · -es (das) — ein alter Mann",
-        "adj.eine": "eine → -e · einen, einem, einer → -en",
-        "adj.kein": "the plural after kein, mein, unser…: -en",
-        "adj.zero": "no article: the article's ending — heißer Tee, frisches Brot",
-        "adj.zerodat": "no article, dative: -em · -er · -em · -en — mit warmer Milch",
-        "adj.comp": "a comparative or superlative before a noun takes the endings too",
+        "adj.pred": "no ending after sein, werden, bleiben: Der Tee ist heiß.",
+        "adj.e": "after der, die, das: -e in five singular places",
+        "adj.en": "after der-words, -en everywhere else (den, dem, plural)",
+        "adj.ein": "after a bare ein: -er for der, -es for das",
+        "adj.eine": "eine takes -e; einen, einem, einer take -en",
+        "adj.kein": "plural after kein, mein, unser…: always -en",
+        "adj.zero": "no article: the adjective takes the article's ending",
+        "adj.zerodat": "no article, dative: -em, -er, -en (mit warmer Milch)",
+        "adj.comp": "comparative or superlative before a noun: endings too",
       },
       sheets: [
         { id: "cx.adj1", title: "After der, dieser, jeder: -e or -en", qn: 3,
           struct: [["der · dieser", "who"], ["adjective + e / en", "end"], ["noun", "thing"]],
-          why: "An adjective **before a noun** takes an ending. After **der, dieser, jeder** the article already shows the case, so the adjective needs only **-e** or **-en**. After sein: none.",
+          why: "An adjective **right before a noun** takes an ending. After **der, dieser, jeder** the article already shows the case, so the adjective only needs **-e** or **-en**. After sein it takes none.",
           rid: ["adj.pred", "adj.e", "adj.en"],
           rules: [
-            "After **sein, werden, bleiben** — no ending: Die Wohnung ist **hell**. · Es wird **kalt**. Right before a noun — always one: die **helle** Wohnung.",
-            "**-e** in five places: the three singular nominatives — der **alte** Bahnhof · die **alte** Brücke · das **alte** Rathaus — and die / das as the object: Ich sehe die **alte** Brücke, das **alte** Rathaus.",
-            "Everywhere else **-en**: **den** alt**en** Bahnhof (der as the object) · in the dative: mit **dem** alt**en** Zug, bei **der** nett**en** Nachbarin · and every plural: die neu**en** Wohnungen, alle jung**en** Leute.",
+            "After **sein, werden, bleiben**, an adjective takes no ending: Die Wohnung ist **hell**. · Es wird **kalt**. Right before a noun it always takes one: die **helle** Wohnung.",
+            "After der, die, das, the adjective ends in **-e** in five places: the three singular subjects (der **alte** Bahnhof, die **alte** Brücke, das **alte** Rathaus) and die or das as the object: Ich sehe die **alte** Brücke.",
+            "Everywhere else it's **-en**: der as the object (**den** alt**en** Bahnhof), every dative (mit **dem** alt**en** Zug, bei **der** nett**en** Nachbarin) and every plural (die neu**en** Wohnungen).",
           ],
           table: { head: ["", "der", "die", "das", "pl."], rows: [
             ["nom.", "-e", "-e", "-e", "-en"],
@@ -48,26 +48,26 @@ cxPack({
             ["Wir wohnen in dem **gelben** Haus neben der Schule.", "We live in the yellow house next to the school."],
             ["Alle **neuen** Wohnungen haben einen Lift.", "All the new flats have a lift."],
           ],
-          trap: "No ending after sein: Das Wetter ist **schön** — never ~~ist schönes~~. And der as the object becomes **den** — the adjective follows with -en: Ich kenne **den neuen** Chef.",
+          trap: "No ending after sein: Das Wetter ist **schön**, never ~~ist schönes~~. And when der becomes **den** as the object, the adjective takes -en: Ich kenne **den neuen** Chef.",
           quiz: [
-            { at: "r1", k: "pick", q: "Der Tee ist sehr ___.", o: ["heiß", "heiße", "heißer"], a: 0, why: "After sein: no ending — **heiß**." },
-            { at: "r1", k: "pick", q: "Vorsicht, der ___ Tee!", o: ["heiße", "heiß"], a: 0, why: "Before a noun: an ending — der **heiße** Tee." },
-            { at: "r2", k: "type", cx: true, q: "(klein) Das ___ Kind schläft.", a: ["kleine"], r: ["adj.e"], why: "das, the subject: **-e**." },
-            { at: "r2", k: "pick", q: "Ich nehme die ___ Tasche. (rot)", o: ["rote", "roten", "roter"], a: 0, why: "die as the object: **-e**." },
-            { at: "r3", k: "type", cx: true, q: "(neu) Kennst du den ___ Chef?", a: ["neuen"], r: ["adj.en"], why: "den: **-en**." },
-            { at: "r3", k: "pick", q: "mit dem ___ Zug (schnell)", o: ["schnellen", "schnelle"], a: 0, why: "The dative: **-en**." },
-            { at: "r3", k: "pick", q: "die ___ Kinder (klein)", o: ["kleinen", "kleine"], a: 0, why: "Plural: **-en**." },
-            { at: "table", k: "pick", q: "der as the object: den ___ Bahnhof (alt)", o: ["alten", "alte", "alter"], a: 0, why: "den → **-en**." },
-            { at: "trap", k: "pick", q: "Which is right?", o: ["Das Wetter ist schön.", "Das Wetter ist schönes.", "Das Wetter ist schöne."], a: 0, why: "After sein: no ending." },
+            { at: "r1", k: "pick", q: "Der Tee ist sehr ___.", o: ["heiß", "heiße", "heißer"], a: 0, why: "After sein, no ending: **heiß**." },
+            { at: "r1", k: "pick", q: "Vorsicht, der ___ Tee!", o: ["heiße", "heiß"], a: 0, why: "Right before a noun, an ending: der **heiße** Tee." },
+            { at: "r2", k: "type", cx: true, q: "(klein) Das ___ Kind schläft.", a: ["kleine"], r: ["adj.e"], why: "das as the subject: **-e** (kleine)." },
+            { at: "r2", k: "pick", q: "Ich nehme die ___ Tasche. (rot)", o: ["rote", "roten", "roter"], a: 0, why: "die as the object still takes **-e**: rote." },
+            { at: "r3", k: "type", cx: true, q: "(neu) Kennst du den ___ Chef?", a: ["neuen"], r: ["adj.en"], why: "After den, the adjective takes **-en**." },
+            { at: "r3", k: "pick", q: "mit dem ___ Zug (schnell)", o: ["schnellen", "schnelle"], a: 0, why: "In the dative it's always **-en**." },
+            { at: "r3", k: "pick", q: "die ___ Kinder (klein)", o: ["kleinen", "kleine"], a: 0, why: "In the plural after die, always **-en**." },
+            { at: "table", k: "pick", q: "der as the object: den ___ Bahnhof (alt)", o: ["alten", "alte", "alter"], a: 0, why: "After den, **-en**: den alten Bahnhof." },
+            { at: "trap", k: "pick", q: "Which is right?", o: ["Das Wetter ist schön.", "Das Wetter ist schönes.", "Das Wetter ist schöne."], a: 0, why: "After sein, the adjective takes no ending." },
           ] },
         { id: "cx.adj2", title: "After ein, mein, kein: -er, -es", qn: 3,
           struct: [["ein · mein", "who"], ["adjective + er / es / e / en", "end"], ["noun", "thing"]],
-          why: "Where **ein** has no ending (ein Mann, ein Haus), the **adjective** shows what der or das would: ein alt**er** Mann, ein alt**es** Haus. Elsewhere: as after der. kein, mein, unser… the same.",
+          why: "When **ein** has no ending (ein Mann, ein Haus), the **adjective** shows the gender instead: ein alt**er** Mann, ein alt**es** Haus. Everywhere else it's as after der. kein, mein, unser… work the same way.",
           rid: ["adj.ein", "adj.eine", "adj.kein"],
           rules: [
-            "Where ein has no ending, the adjective takes der's or das's: ein gut**er** Freund (der) · ein neu**es** Handy (das) — das also as the object: Ich habe ein neu**es** Handy. **mein, kein, unser…** the same: mein neu**er** Job · kein gut**es** Wetter.",
-            "**eine** → **-e**: eine klein**e** Wohnung (the subject and the object). After **einen, einem, einer**: **-en** — einen warm**en** Pullover · mit einem alt**en** Velo · bei einer klein**en** Firma.",
-            "The plural after **kein, mein, dein, unser…**: always **-en** — meine alt**en** Freunde · keine gut**en** Ideen · mit unseren klein**en** Kindern.",
+            "When ein has no ending, the adjective takes der's or das's: ein gut**er** Freund (der) · ein neu**es** Handy (das, also as the object). The same after **mein, kein, unser…**: mein neu**er** Job · kein gut**es** Wetter.",
+            "After **eine**, the adjective takes **-e** (subject and object): eine klein**e** Wohnung. After **einen, einem, einer** it takes **-en**: einen warm**en** Pullover · mit einem alt**en** Velo.",
+            "In the plural after **kein, mein, dein, unser…**, the adjective always takes **-en**: meine alt**en** Freunde · keine gut**en** Ideen · mit unseren klein**en** Kindern.",
           ],
           table: { head: ["ein · mein", "der", "die", "das", "pl."], rows: [
             ["nom.", "-**er**", "-e", "-**es**", "-en"],
@@ -80,27 +80,27 @@ cxPack({
             ["Wir wohnen in einer **kleinen** Wohnung in Olten.", "We live in a small flat in Olten."],
             ["Meine **alten** Schulfreunde kommen am Samstag.", "My old school friends are coming on Saturday."],
           ],
-          trap: "ein + a masculine subject: ein gut**er** Freund — never ~~ein gute Freund~~. And das after ein: ein klein**es** Kind — never ~~ein kleine Kind~~.",
+          trap: "After ein, a der-noun as the subject needs **-er**: ein gut**er** Freund, not ~~ein gute Freund~~. A das-noun needs **-es**: ein klein**es** Kind, not ~~ein kleine Kind~~.",
           quiz: [
-            { at: "r1", k: "type", cx: true, q: "(gut) Lukas ist ein ___ Freund.", a: ["guter"], r: ["adj.ein"], why: "ein + der-noun: **-er**." },
-            { at: "r1", k: "pick", q: "Ich habe ein ___ Velo. (neu)", o: ["neues", "neue", "neuen"], a: 0, why: "ein + das-noun: **-es**." },
-            { at: "r1", k: "pick", q: "Das ist mein ___ Chef. (neu)", o: ["neuer", "neue", "neuen"], a: 0, why: "mein + der-noun, the subject: **-er**." },
-            { at: "r2", k: "pick", q: "Wir suchen eine ___ Wohnung. (groß)", o: ["große", "großen", "großer"], a: 0, why: "eine: **-e**." },
-            { at: "r2", k: "type", cx: true, q: "(warm) Hast du einen ___ Pullover?", a: ["warmen"], r: ["adj.eine"], why: "einen: **-en**." },
-            { at: "r2", k: "pick", q: "nach einem ___ Tag (lang)", o: ["langen", "langer", "lange"], a: 0, why: "einem: **-en**." },
-            { at: "r3", k: "pick", q: "Meine ___ Freunde kommen. (alt)", o: ["alten", "alte", "alter"], a: 0, why: "Plural after mein: **-en**." },
-            { at: "r3", k: "type", cx: true, q: "(neu) Sie hat keine ___ Ideen.", a: ["neuen"], r: ["adj.kein"], why: "Plural after kein: **-en**." },
-            { at: "table", k: "pick", q: "ein ___ Haus (alt)", o: ["altes", "alte", "alter"], a: 0, why: "ein + das: **-es**." },
-            { at: "trap", k: "pick", q: "Which is right?", o: ["Er ist ein guter Freund.", "Er ist ein gute Freund.", "Er ist ein guten Freund."], a: 0, why: "ein + der, the subject: **-er**." },
+            { at: "r1", k: "type", cx: true, q: "(gut) Lukas ist ein ___ Freund.", a: ["guter"], r: ["adj.ein"], why: "ein with a der-noun as the subject: **-er** (guter)." },
+            { at: "r1", k: "pick", q: "Ich habe ein ___ Velo. (neu)", o: ["neues", "neue", "neuen"], a: 0, why: "ein with a das-noun: **-es** (neues)." },
+            { at: "r1", k: "pick", q: "Das ist mein ___ Chef. (neu)", o: ["neuer", "neue", "neuen"], a: 0, why: "mein with a der-noun as the subject: **-er** (neuer)." },
+            { at: "r2", k: "pick", q: "Wir suchen eine ___ Wohnung. (groß)", o: ["große", "großen", "großer"], a: 0, why: "After eine, the adjective takes **-e**." },
+            { at: "r2", k: "type", cx: true, q: "(warm) Hast du einen ___ Pullover?", a: ["warmen"], r: ["adj.eine"], why: "After einen, the adjective takes **-en**." },
+            { at: "r2", k: "pick", q: "nach einem ___ Tag (lang)", o: ["langen", "langer", "lange"], a: 0, why: "After einem (dative), **-en**." },
+            { at: "r3", k: "pick", q: "Meine ___ Freunde kommen. (alt)", o: ["alten", "alte", "alter"], a: 0, why: "In the plural after mein, always **-en**." },
+            { at: "r3", k: "type", cx: true, q: "(neu) Sie hat keine ___ Ideen.", a: ["neuen"], r: ["adj.kein"], why: "In the plural after kein, always **-en**." },
+            { at: "table", k: "pick", q: "ein ___ Haus (alt)", o: ["altes", "alte", "alter"], a: 0, why: "ein with a das-noun: **-es** (altes)." },
+            { at: "trap", k: "pick", q: "Which is right?", o: ["Er ist ein guter Freund.", "Er ist ein gute Freund.", "Er ist ein guten Freund."], a: 0, why: "ein with a der-noun as the subject: **-er** (guter)." },
           ] },
         { id: "cx.adj3", title: "No article: frisches Brot · der bessere Wein", qn: 3,
           struct: [["(no article)", "mid"], ["adjective + the article's ending", "end"], ["noun", "thing"]],
-          why: "With **no article**, the adjective does the article's job: heiß**er** Tee, kalt**e** Milch, frisch**es** Brot. And before a noun a comparative or superlative takes endings like any adjective: der **bessere** Wein.",
+          why: "With **no article**, the adjective does the article's job: heiß**er** Tee, kalt**e** Milch, frisch**es** Brot. Before a noun, a comparative or superlative takes endings like any adjective: der **bessere** Wein.",
           rid: ["adj.zero", "adj.zerodat", "adj.comp"],
           rules: [
-            "No article: the adjective takes der / die / das's ending — heiß**er** Tee · kalt**e** Milch · frisch**es** Brot · nett**e** Leute; as the object: heiß**en** Tee. Greetings too: Lieb**er** Marco · Lieb**e** Sara · Gut**en** Tag (den Tag).",
-            "In the dative too, the article's ending: mit frisch**em** Brot (dem) · mit kalt**er** Milch (der) · mit nett**en** Leuten (den). After numbers and viele the same: zwei nett**e** Kollegen · mit vielen nett**en** Leuten.",
-            "A comparative or superlative **before a noun** takes the endings too: der bess**ere** Wein · ein schnell**eres** Auto · die größ**te** Stadt · mit dem best**en** Freund. (After sein it's am …sten: Sie ist am größten.)",
+            "With no article, the adjective takes the ending der, die or das would have: heiß**er** Tee · kalt**e** Milch · frisch**es** Brot · nett**e** Leute. As the object: heiß**en** Tee. Greetings too: Lieb**er** Marco · Gut**en** Tag.",
+            "In the dative too, the adjective takes the article's ending: mit frisch**em** Brot (dem) · mit kalt**er** Milch (der) · mit nett**en** Leuten (den). After numbers and viele it's the same: zwei nett**e** Kollegen.",
+            "A comparative or superlative **before a noun** takes the normal endings: der bess**ere** Wein · ein schnell**eres** Auto · die größ**te** Stadt. After sein, use am …sten instead: Sie ist am größten.",
           ],
           table: { head: ["", "der", "die", "das", "pl."], rows: [
             ["nom.", "-**er**", "-e", "-**es**", "-e"],
@@ -113,30 +113,30 @@ cxPack({
             ["**Liebe** Frau Graf, **vielen** Dank für Ihre Hilfe!", "Dear Ms Graf, many thanks for your help!"],
             ["Das ist das **schönste** Zimmer im ganzen Hotel.", "That's the nicest room in the whole hotel."],
           ],
-          trap: "No article — the adjective must show the gender: frisch**es** Brot, not ~~frische Brot~~. And a superlative before a noun takes no am: die **größte** Stadt — never ~~die am größten Stadt~~.",
+          trap: "With no article, the adjective must show the gender: frisch**es** Brot, not ~~frische Brot~~. And a superlative before a noun has no am: die **größte** Stadt, never ~~die am größten Stadt~~.",
           quiz: [
-            { at: "r1", k: "pick", q: "Ich kaufe ___ Brot. (frisch)", o: ["frisches", "frische", "frischen"], a: 0, why: "das Brot, no article: **-es**." },
-            { at: "r1", k: "type", cx: true, q: "(heiß) Ich trinke morgens ___ Tee.", a: ["heißen"], r: ["adj.zero"], why: "den Tee → **heißen** Tee." },
-            { at: "r1", k: "pick", q: "Wir haben ___ Nachbarn. (nett)", o: ["nette", "netten", "netter"], a: 0, why: "Plural, no article: **-e**." },
-            { at: "r2", k: "type", cx: true, q: "(kalt) Ich trinke Tee nie mit ___ Milch.", a: ["kalter"], r: ["adj.zerodat"], why: "mit der Milch → mit **kalter** Milch." },
-            { at: "r1", k: "pick", q: "___ Sara, wie geht es dir? (lieb)", o: ["Liebe", "Lieber", "Lieben"], a: 0, why: "die Sara: **Liebe**." },
-            { at: "r2", k: "pick", q: "mit ___ Wasser (warm)", o: ["warmem", "warmen", "warmes"], a: 0, why: "mit dem Wasser → **warmem** Wasser." },
-            { at: "r3", k: "pick", q: "Wir suchen eine ___ Wohnung. (größer)", o: ["größere", "größer", "größeren"], a: 0, why: "eine + -e: **größere**." },
-            { at: "r3", k: "type", cx: true, q: "(gut) Das ist die ___ Idee!", a: ["beste"], r: ["adj.comp"], why: "gut → best- + die's -e: **beste**." },
-            { at: "table", k: "pick", q: "no article, das, the subject: ___ Wetter (gut)", o: ["gutes", "gute", "guter"], a: 0, why: "das → **-es**." },
-            { at: "trap", k: "pick", q: "the biggest town:", o: ["die größte Stadt", "die am größten Stadt", "die größten Stadt"], a: 0, why: "Before a noun no am: **die größte** Stadt." },
+            { at: "r1", k: "pick", q: "Ich kaufe ___ Brot. (frisch)", o: ["frisches", "frische", "frischen"], a: 0, why: "Brot is das and there's no article: **-es**." },
+            { at: "r1", k: "type", cx: true, q: "(heiß) Ich trinke morgens ___ Tee.", a: ["heißen"], r: ["adj.zero"], why: "Tee is der, here the object (den): **heißen** Tee." },
+            { at: "r1", k: "pick", q: "Wir haben ___ Nachbarn. (nett)", o: ["nette", "netten", "netter"], a: 0, why: "Plural with no article: **-e** (nette)." },
+            { at: "r2", k: "type", cx: true, q: "(kalt) Ich trinke Tee nie mit ___ Milch.", a: ["kalter"], r: ["adj.zerodat"], why: "mit takes the dative; Milch is die, dative der: **kalter**." },
+            { at: "r1", k: "pick", q: "___ Sara, wie geht es dir? (lieb)", o: ["Liebe", "Lieber", "Lieben"], a: 0, why: "Sara is a woman (die), so **Liebe**." },
+            { at: "r2", k: "pick", q: "mit ___ Wasser (warm)", o: ["warmem", "warmen", "warmes"], a: 0, why: "mit takes the dative; Wasser is das, dative dem: **warmem**." },
+            { at: "r3", k: "pick", q: "Wir suchen eine ___ Wohnung. (größer)", o: ["größere", "größer", "größeren"], a: 0, why: "After eine, the comparative adds -e: **größere**." },
+            { at: "r3", k: "type", cx: true, q: "(gut) Das ist die ___ Idee!", a: ["beste"], r: ["adj.comp"], why: "gut becomes best-, plus -e after die: **beste**." },
+            { at: "table", k: "pick", q: "no article, das, the subject: ___ Wetter (gut)", o: ["gutes", "gute", "guter"], a: 0, why: "Wetter is das and there's no article: **-es**." },
+            { at: "trap", k: "pick", q: "the biggest town:", o: ["die größte Stadt", "die am größten Stadt", "die größten Stadt"], a: 0, why: "Before a noun, no am: **die größte** Stadt." },
           ] },
       ],
       diag: [
-        { t: "extra", tok: "^am$", rule: "adj.comp", msg: "Before a noun there's no am — the superlative takes an ending: die **größte** Stadt." },
-        { t: "swap", from: "^(dunkel|edel|eitel|nobel|simpel|flexibel|sensibel|plausibel|komfortabel|miserabel|teuer|sauer|ungeheuer)e[nmrs]?$", to: "^(dunkl|edl|eitl|nobl|simpl|flexibl|sensibl|plausibl|komfortabl|miserabl|teur|saur|ungeheur)e[nmrs]?$", rule: "", hard: true, msg: "-el and -er drop their e before an ending: **{right}** (dunkel → dunklen · teuer → teures)." },
-        { t: "swap", from: "^(der|die|das|den|dem|des)$", to: "^(der|die|das|den|dem)$", rule: "", msg: "The article first: **{right}** — the case decides it (den = der as the object · dem, der = the dative)." },
-        { t: "ending", stem: "(ein|kein|mein|dein|sein|ihr|unser|eur|dies|jed|welch|solch|all|viel)", rule: "", msg: "The article word first: **{right}** — then the adjective's ending follows from it." },
-        { t: "ending", stem: "(alt|neu|klein|gross|gut|nett|jung|schon|rot|gelb|frisch|heiss|kalt|warm|lang|teu|dunk|lieb|ruhig|hell|interessant|stark|best|bess|hoh|hoch|hoh|billig|schnell|jung|lieb|ganz|freundlich|warm|stark|schweizerisch|deutsch|wichtig|spannend|letzt|nachst|erst|grun|blau|schwarz|weiss|gemutlich|grosser|grosst|jungst|jungere|alter|altest|neust|neuer|billigst|schnellst|teuerst)", rule: "", msg: "The right adjective, the wrong ending: **{right}**." },
+        { t: "extra", tok: "^am$", rule: "adj.comp", msg: "Before a noun there's no am; the superlative just takes an ending: die **größte** Stadt." },
+        { t: "swap", from: "^(dunkel|edel|eitel|nobel|simpel|flexibel|sensibel|plausibel|komfortabel|miserabel|teuer|sauer|ungeheuer)e[nmrs]?$", to: "^(dunkl|edl|eitl|nobl|simpl|flexibl|sensibl|plausibl|komfortabl|miserabl|teur|saur|ungeheur)e[nmrs]?$", rule: "", hard: true, msg: "Adjectives in -el and -er drop that e before an ending: **{right}** (dunklen, teures)." },
+        { t: "swap", from: "^(der|die|das|den|dem|des)$", to: "^(der|die|das|den|dem)$", rule: "", msg: "Check the article first: **{right}**. The case decides it: den is der as the object; dem and der are dative." },
+        { t: "ending", stem: "(ein|kein|mein|dein|sein|ihr|unser|eur|dies|jed|welch|solch|all|viel)", rule: "", msg: "Check the article word first: **{right}**. The adjective's ending depends on it." },
+        { t: "ending", stem: "(alt|neu|klein|gross|gut|nett|jung|schon|rot|gelb|frisch|heiss|kalt|warm|lang|teu|dunk|lieb|ruhig|hell|interessant|stark|best|bess|hoh|hoch|hoh|billig|schnell|jung|lieb|ganz|freundlich|warm|stark|schweizerisch|deutsch|wichtig|spannend|letzt|nachst|erst|grun|blau|schwarz|weiss|gemutlich|grosser|grosst|jungst|jungere|alter|altest|neust|neuer|billigst|schnellst|teuerst)", rule: "", msg: "Right adjective, wrong ending: **{right}**." },
       ],
       drills: [
         // ── our own: an ending or not? ──
-        { id: "dadj.pred", t: "pick", title: "heiß or heiße?", how: "Pick: after sein, werden, bleiben no ending · right before a noun an ending.", items: [
+        { id: "dadj.pred", t: "pick", title: "heiß or heiße?", how: "Pick. After sein, werden, bleiben: no ending. Right before a noun: an ending.", items: [
           { q: "Der Tee ist sehr ___.", o: ["heiß", "heißer", "heiße"], a: ["heiß"], r: ["adj.pred"] },
           { q: "Vorsicht, der ___ Tee!", o: ["heiße", "heiß"], a: ["heiße"], r: ["adj.e"] },
           { q: "Die Wohnung ist hell und ___.", o: ["ruhig", "ruhige"], a: ["ruhig"], r: ["adj.pred"] },
@@ -150,7 +150,7 @@ cxPack({
           { q: "Die ___ Brücke ist gesperrt.", o: ["alte", "alt"], a: ["alte"], r: ["adj.e"] },
         ] },
         // ── our own: after der, dieser, jeder ──
-        { id: "dadj.der", t: "type", title: "der alte · den alten", how: "Write the adjective with its ending — after der, dieser, jeder: -e or -en.", items: [
+        { id: "dadj.der", t: "type", title: "der alte · den alten", how: "Write the adjective with its ending. After der, dieser, jeder it's -e or -en.", items: [
           { q: "(neu) Der ___ Kollege spricht vier Sprachen.", a: ["neue"], r: ["adj.e"] },
           { q: "(klein) Die ___ Bäckerei am Platz ist super.", a: ["kleine"], r: ["adj.e"] },
           { q: "(alt) Das ___ Rathaus ist sehr schön.", a: ["alte"], r: ["adj.e"] },
@@ -167,7 +167,7 @@ cxPack({
           { q: "(schön) Jedes ___ Wochenende fahren wir in die Berge.", a: ["schöne"], r: ["adj.e"] },
         ] },
         // ── our own: after ein, mein, kein ──
-        { id: "dadj.ein", t: "type", title: "ein alter · ein altes", how: "Write the adjective with its ending — after ein, mein, kein.", items: [
+        { id: "dadj.ein", t: "type", title: "ein alter · ein altes", how: "Write the adjective with its ending, after ein, mein or kein.", items: [
           { q: "(gut) Lukas ist ein ___ Freund.", a: ["guter"], r: ["adj.ein"] },
           { q: "(neu) Ich habe seit gestern ein ___ Handy.", a: ["neues"], r: ["adj.ein"] },
           { q: "(klein) Wir suchen eine ___ Wohnung.", a: ["kleine"], r: ["adj.eine"] },
@@ -185,7 +185,7 @@ cxPack({
           { q: "(neu) Sie hat keine ___ Ideen.", a: ["neuen"], r: ["adj.kein"] },
         ] },
         // ── Übung 23•1: the endings in a phrase ──
-        { id: "d23.1", ex: "23.1", t: "type", title: "mit einem alten …", how: "Write the whole phrase — the preposition decides the case.", items: [
+        { id: "d23.1", ex: "23.1", t: "type", title: "mit einem alten …", how: "Write the whole phrase. The preposition decides the case.", items: [
           { q: "mit — ein, alt, Freund: ___", a: ["mit einem alten Freund"], r: ["adj.eine"] },
           { q: "für — diese, nett, Dame: ___", a: ["für diese nette Dame"], r: ["adj.e"] },
           { q: "ohne — mein, neu, Handy: ___", a: ["ohne mein neues Handy"], r: ["adj.ein"] },
@@ -202,7 +202,7 @@ cxPack({
           { q: "für — mein, klein, Bruder: ___", a: ["für meinen kleinen Bruder"], r: ["adj.eine"] },
         ] },
         // ── Übung 23•2: one phrase, every case ──
-        { id: "d23.2", ex: "23.2", t: "type", title: "One phrase, every case", how: "Write the phrase in the case asked — the article and the adjective change together.", items: [
+        { id: "d23.2", ex: "23.2", t: "type", title: "One phrase, every case", how: "Write the phrase in the case given. The article and the adjective change together.", items: [
           { q: "jeder alte Bahnhof → accusative: ___", a: ["jeden alten Bahnhof"], r: ["adj.en"] },
           { q: "jeder alte Bahnhof → dative: ___", a: ["jedem alten Bahnhof"], r: ["adj.en"] },
           { q: "ein kleines Dorf → accusative: ___", a: ["ein kleines Dorf"], r: ["adj.ein"] },
@@ -219,7 +219,7 @@ cxPack({
           { q: "viele neue Wörter → dative: ___", a: ["vielen neuen Wörtern"], r: ["adj.zerodat"] },
         ] },
         // ── our own: no article ──
-        { id: "dadj.zero", t: "type", title: "frisches Brot, mit warmer Milch", how: "Write the adjective with its ending — no article, so it takes the article's.", items: [
+        { id: "dadj.zero", t: "type", title: "frisches Brot, mit warmer Milch", how: "Write the adjective with its ending. With no article, it takes the article's ending.", items: [
           { q: "(frisch) Am Markt kaufe ich ___ Gemüse.", a: ["frisches"], r: ["adj.zero"] },
           { q: "(heiß) Ich trinke morgens ___ Tee.", a: ["heißen"], r: ["adj.zero"] },
           { q: "(kalt) ___ Milch schmeckt im Sommer super.", a: ["Kalte"], r: ["adj.zero"] },
@@ -237,7 +237,7 @@ cxPack({
           { q: "(lieb) ___ Marco, danke für die Einladung!", a: ["Lieber"], r: ["adj.zero"] },
         ] },
         // ── Übung 31•14: better and best before a noun ──
-        { id: "d31.14", ex: "31.14", t: "transform", title: "The better one, the best one", how: "Say it with the comparative or the superlative before the noun — with its ending.", items: [
+        { id: "d31.14", ex: "31.14", t: "transform", title: "The better one, the best one", how: "Use the comparative or superlative before the noun, with the right ending.", items: [
           { q: "Die guten Restaurants sind in Lugano. (→ comparative)", a: ["Die besseren Restaurants sind in Lugano."], r: ["adj.comp"] },
           { q: "Die guten Restaurants sind in Lugano. (→ superlative)", a: ["Die besten Restaurants sind in Lugano."], r: ["adj.comp"] },
           { q: "Wir suchen eine große Wohnung. (→ comparative)", a: ["Wir suchen eine größere Wohnung."], r: ["adj.comp"] },
@@ -252,7 +252,7 @@ cxPack({
           { q: "Ein billiges Hotel gibt es hier nicht. (→ comparative)", a: ["Ein billigeres Hotel gibt es hier nicht."], r: ["adj.comp"] },
         ] },
         // ── Production ──
-        { id: "dadj.build", t: "compose", end: true, low: true, title: "Build it yourself", how: "Make a sentence from the words — every adjective before a noun with its ending.", items: [
+        { id: "dadj.build", t: "compose", end: true, low: true, title: "Build it yourself", how: "Make a sentence from the words. Every adjective before a noun needs an ending.", items: [
           { w: ["der", "neu", "Kollege", "sein", "sehr", "nett"], a: ["Der neue Kollege ist sehr nett."], r: ["adj.e", "adj.pred"] },
           { w: ["kennst du", "das", "klein", "Café", "am See", "?"], a: ["Kennst du das kleine Café am See?"], r: ["adj.e"] },
           { w: ["die", "jung", "Leute", "sitzen", "im Park"], a: ["Die jungen Leute sitzen im Park."], r: ["adj.en"] },
@@ -265,7 +265,7 @@ cxPack({
           { w: ["das", "sein", "der", "teuerste", "Wein", "im Laden"], a: ["Das ist der teuerste Wein im Laden."], r: ["adj.comp"] },
           { w: ["wir", "danken", "unsere", "nett", "Nachbarn"], a: ["Wir danken unseren netten Nachbarn."], r: ["adj.kein"] },
         ] },
-        { id: "dp.adj", t: "translate", end: true, title: "Say it in German", how: "Translate — an adjective before a noun always takes an ending; after sein none.", items: [
+        { id: "dp.adj", t: "translate", end: true, title: "Say it in German", how: "Translate. An adjective before a noun always takes an ending; after sein, none.", items: [
           { q: "The old town hall is beautiful.", a: ["Das alte Rathaus ist schön."], r: ["adj.e", "adj.pred"] },
           { q: "Do you know the young man over there? (du)", a: ["Kennst du den jungen Mann dort?", "Kennst du den jungen Mann da drüben?", "Kennst du den jungen Mann dort drüben?"], r: ["adj.en"] },
           { q: "The children are playing in the big garden.", a: ["Die Kinder spielen im großen Garten.", "Die Kinder spielen in dem großen Garten."], r: ["adj.en"] },

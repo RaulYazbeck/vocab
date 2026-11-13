@@ -17,25 +17,25 @@ cxPack({
     "s2.indq": {
       testout: { n: 8, miss: 1 },
       rules: {
-        "iq.w": "a question inside a sentence keeps its W-word — the verb goes last",
-        "iq.two": "two verbs: the conjugated one last · ab-fährt joins up",
-        "iq.polite": "Können Sie mir sagen, … · Wissen Sie, … — the polite way to ask",
-        "iq.prep": "the preposition stays with its W-word: …, mit wem er spricht",
-        "iq.ob": "a yes/no question inside a sentence: ob — the verb last",
-        "iq.dassob": "dass — it's a fact · ob — it's open (yes or no?)",
-        "iq.wenn": "if = whether: ob · if = on that condition: wenn",
-        "iq.soll": "passing on a request: Er sagt, ich soll … · du sollst …",
+        "iq.w": "A W-question inside a sentence: the verb last",
+        "iq.two": "Two verbs: the conjugated one goes last",
+        "iq.polite": "Polite openings: Können Sie mir sagen, …",
+        "iq.prep": "The preposition stays with its W-word",
+        "iq.ob": "A yes/no question inside a sentence: ob",
+        "iq.dassob": "dass for a fact, ob for an open question",
+        "iq.wenn": "ob (whether) or wenn (on that condition)?",
+        "iq.soll": "Passing on a request: Er sagt, ich soll …",
       },
       sheets: [
         { id: "cx.iq1", title: "Ich weiß nicht, wo er wohnt", qn: 3,
           struct: [["Weißt du,", "thing"], ["wo", "pre"], ["er", "who"], ["…", "mid"], ["wohnt", "verb"], ["?", "mid"]],
-          why: "A question can sit **inside** a sentence: *I don't know where he lives.* The W-word stays, but now it opens a side sentence — so the verb goes to the **end**. It's also the polite way to ask a stranger.",
+          why: "A question can sit **inside** a sentence: *I don't know where he lives.* The W-word stays, but now it starts a side sentence, so the verb goes to the **end**. It's also how you ask strangers politely.",
           rid: ["iq.w", "iq.two", "iq.polite", "iq.prep"],
           rules: [
-            "The W-word opens the side sentence, the subject follows, and the conjugated verb goes **last**: Wo **wohnt** er? → Ich weiß nicht, **wo** er **wohnt**. · Was **kostet** das? → Weißt du, **was** das **kostet**?",
-            "With two verbs the conjugated one is last of all, and a separable verb joins up: Wann **fährt** der Zug **ab**? → …, wann der Zug **abfährt**. · Was **hat** sie gesagt? → …, was sie gesagt **hat**. · Wo **kann** ich parkieren? → …, wo ich parkieren **kann**.",
-            "Polite openings: **Können Sie mir sagen, … · Wissen Sie, … · Ich möchte wissen, … · Darf ich fragen, …** A question mark stands only when the opening itself asks: **Wissen Sie**, wo die Post ist**?** — Ich weiß nicht, wo die Post ist**.**",
-            "A preposition stays in front of its W-word: Mit wem spricht sie? → Ich weiß nicht, **mit wem** sie spricht. · …, **für wen** das Paket ist · …, **aus welchem** Land er kommt · …, **um wie viel Uhr** der Kurs beginnt.",
+            "Inside a sentence, the W-word comes first, then the subject, and the conjugated verb goes **last**. Wo **wohnt** er? → Ich weiß nicht, **wo** er **wohnt**. · Was **kostet** das? → Weißt du, **was** das **kostet**?",
+            "With two verbs, the conjugated one goes last of all, and a separable verb joins up again. Wann **fährt** der Zug **ab**? → …, wann der Zug **abfährt**. · Was **hat** sie gesagt? → …, was sie gesagt **hat**.",
+            "To ask a stranger politely, start with **Können Sie mir sagen, …** or **Wissen Sie, …**. Use a question mark only if the opening itself asks: **Wissen Sie**, wo die Post ist**?** But: Ich weiß nicht, wo die Post ist**.**",
+            "A preposition stays in front of its W-word. Mit wem spricht sie? → Ich weiß nicht, **mit wem** sie spricht. · …, **für wen** das Paket ist · …, **um wie viel Uhr** der Kurs beginnt.",
           ],
           table: { head: ["the question", "inside a sentence"], rows: [
             ["Wo **ist** die Post?", "…, wo die Post **ist**."],
@@ -49,29 +49,29 @@ cxPack({
             ["Können Sie mir sagen, **wie viel** das Billett **kostet**?", "Can you tell me how much the ticket costs?"],
             ["Weißt du, **mit wem** Tom gestern im Kino **war**?", "Do you know who Tom was at the cinema with yesterday?"],
           ],
-          trap: "Don't keep the question's word order inside the sentence: ~~Weißt du, wo ist die Post?~~ → Weißt du, wo die Post **ist**? The verb has to go to the end.",
+          trap: "Don't keep the question's word order inside a sentence: ~~Weißt du, wo ist die Post?~~ is wrong. The verb goes to the end: Weißt du, wo die Post **ist**?",
           quiz: [
-            { at: "r1", k: "pick", q: "Ich weiß nicht, wo ___.", o: ["er wohnt", "wohnt er"], a: 0, why: "Inside a sentence the verb goes last." },
-            { at: "r1", k: "order", q: "Build it: Do you know what that costs?", a: ["Weißt du,", "was", "das", "kostet?"], why: "The W-word, the subject — the verb last." },
-            { at: "r2", k: "pick", q: "Weißt du, wann der Zug ___?", o: ["abfährt", "fährt ab", "ab fährt"], a: 0, why: "At the end a separable verb joins up: **abfährt**." },
-            { at: "r2", k: "pick", q: "Ich möchte wissen, was er ___.", o: ["gesagt hat", "hat gesagt"], a: 0, why: "The auxiliary goes last: **gesagt hat**." },
-            { at: "r2", k: "type", cx: true, q: "Wo kann ich parkieren? → Wissen Sie, wo ich parkieren ___?", a: ["kann"], r: ["iq.two"], why: "The modal goes last: parkieren **kann**." },
-            { at: "r3", k: "pick", q: "The polite way to ask a stranger:", o: ["Können Sie mir sagen, wo die Toilette ist?", "Wo ist Toilette?", "Sagen Sie, wo ist die Toilette?"], a: 0, why: "**Können Sie mir sagen, …** + the verb last." },
-            { at: "r3", k: "pick", q: "Which one ends with a question mark?", o: ["Wissen Sie, wie spät es ist", "Ich weiß nicht, wie spät es ist", "Ich möchte wissen, wie spät es ist"], a: 0, why: "Only **Wissen Sie, …** asks — the others state something: a full stop." },
+            { at: "r1", k: "pick", q: "Ich weiß nicht, wo ___.", o: ["er wohnt", "wohnt er"], a: 0, why: "Inside a sentence the verb goes last: er **wohnt**." },
+            { at: "r1", k: "order", q: "Build it: Do you know what that costs?", a: ["Weißt du,", "was", "das", "kostet?"], why: "The W-word, then the subject, then the verb last." },
+            { at: "r2", k: "pick", q: "Weißt du, wann der Zug ___?", o: ["abfährt", "fährt ab", "ab fährt"], a: 0, why: "At the end, a separable verb joins up: **abfährt**." },
+            { at: "r2", k: "pick", q: "Ich möchte wissen, was er ___.", o: ["gesagt hat", "hat gesagt"], a: 0, why: "The conjugated verb goes last: gesagt **hat**." },
+            { at: "r2", k: "type", cx: true, q: "Wo kann ich parkieren? → Wissen Sie, wo ich parkieren ___?", a: ["kann"], r: ["iq.two"], why: "The modal verb goes last: parkieren **kann**." },
+            { at: "r3", k: "pick", q: "The polite way to ask a stranger:", o: ["Können Sie mir sagen, wo die Toilette ist?", "Wo ist Toilette?", "Sagen Sie, wo ist die Toilette?"], a: 0, why: "**Können Sie mir sagen, …** with the verb last is the polite way." },
+            { at: "r3", k: "pick", q: "Which one ends with a question mark?", o: ["Wissen Sie, wie spät es ist", "Ich weiß nicht, wie spät es ist", "Ich möchte wissen, wie spät es ist"], a: 0, why: "Only **Wissen Sie, …** asks. The others state something, so they end with a full stop." },
             { at: "r4", k: "pick", q: "Weißt du, ___ sie telefoniert?", o: ["mit wem", "wem mit", "wer mit"], a: 0, why: "The preposition stays in front: **mit wem**." },
-            { at: "r4", k: "pick", q: "Ich weiß nicht, ___ das Geschenk ist.", o: ["für wen", "wen für", "für wem"], a: 0, why: "für + the accusative: **für wen**." },
-            { at: "table", k: "pick", q: "Was hat er gekauft? → Ich weiß nicht, was er ___.", o: ["gekauft hat", "hat gekauft", "kauft hat"], a: 0, why: "**gekauft hat** — the auxiliary last." },
-            { at: "trap", k: "pick", q: "Which is right?", o: ["Wissen Sie, wo die Post ist?", "Wissen Sie, wo ist die Post?"], a: 0, why: "Inside the sentence the verb goes last." },
+            { at: "r4", k: "pick", q: "Ich weiß nicht, ___ das Geschenk ist.", o: ["für wen", "wen für", "für wem"], a: 0, why: "für takes the accusative: **für wen**." },
+            { at: "table", k: "pick", q: "Was hat er gekauft? → Ich weiß nicht, was er ___.", o: ["gekauft hat", "hat gekauft", "kauft hat"], a: 0, why: "The conjugated verb goes last: gekauft **hat**." },
+            { at: "trap", k: "pick", q: "Which is right?", o: ["Wissen Sie, wo die Post ist?", "Wissen Sie, wo ist die Post?"], a: 0, why: "Inside the sentence the verb goes last: die Post **ist**." },
           ] },
         { id: "cx.iq2", title: "ob — and dass or ob?", qn: 3,
           struct: [["Ich weiß nicht,", "thing"], ["ob", "pre"], ["er", "who"], ["…", "mid"], ["kommt", "verb"]],
-          why: "A yes/no question has no W-word to open the side sentence — **ob** (whether, if) does that job. And when someone tells you to do something, you pass it on with **sollen**.",
+          why: "A yes/no question has no W-word to start the side sentence, so **ob** (whether, if) does that job. And to pass on what someone told you to do, you use **sollen**.",
           rid: ["iq.ob", "iq.dassob", "iq.wenn", "iq.soll"],
           rules: [
-            "A **yes/no** question inside a sentence starts with **ob**, the verb last: **Kommt** er heute? → Ich weiß nicht, **ob** er heute **kommt**. · **Ist** der Laden offen? → Weißt du, **ob** der Laden offen **ist**?",
-            "**dass** or **ob**? **dass** — you state a fact: Ich weiß, **dass** er kommt. **ob** — it's open, yes or no: Ich weiß nicht, **ob** er kommt. · Er fragt, **ob** … · Ich bin nicht sicher, **ob** …",
-            "English *if* is two words: *if = whether* → **ob**: Ich frage ihn, **ob** er Zeit hat. *if = on that condition* → **wenn**: Ich komme, **wenn** ich Zeit habe. Test: can you add *or not*? Then it's ob.",
-            "Passing on what someone wants you to do — with **sollen**: «Trinken Sie viel!» → Der Arzt sagt, ich **soll** viel **trinken**. · «Ruf mich an!» → Sie sagt, du **sollst** sie **anrufen**. (With dass: …, dass ich viel trinken **soll**.)",
+            "A **yes/no** question inside a sentence starts with **ob**, and the verb goes last. **Kommt** er heute? → Ich weiß nicht, **ob** er heute **kommt**. · **Ist** der Laden offen? → Weißt du, **ob** er offen **ist**?",
+            "Use **dass** for a fact and **ob** for something still open (yes or no?). Ich weiß, **dass** er kommt. · Ich weiß nicht, **ob** er kommt. · Ich bin nicht sicher, **ob** es klappt.",
+            "English *if* is **ob** when it means *whether*, and **wenn** when it means *on that condition*. Ich frage ihn, **ob** er Zeit hat. · Ich komme, **wenn** ich Zeit habe. If you can add *or not*, it's ob.",
+            "To pass on what someone wants you to do, use **sollen**. «Trinken Sie viel!» → Der Arzt sagt, ich **soll** viel **trinken**. · «Ruf mich an!» → Sie sagt, du **sollst** sie **anrufen**.",
           ],
           table: { head: ["", "example"], rows: [
             ["**ob**", "Weißt du, **ob** er kommt?"],
@@ -85,36 +85,36 @@ cxPack({
             ["Meine Frau fragt, **ob** du mit uns essen **möchtest**.", "My wife is asking whether you'd like to eat with us."],
             ["Die Lehrerin sagt, wir **sollen** jeden Tag zehn Wörter **lernen**.", "The teacher says we should learn ten words every day."],
           ],
-          trap: "*I don't know if …* is **ob**, never wenn: ~~Ich weiß nicht, wenn er kommt~~ → Ich weiß nicht, **ob** er kommt. After *Ich weiß nicht* it's still open — ob. (*Ich wusste nicht, dass …* is fine: now it's a fact.)",
+          trap: "*I don't know if …* is **ob**, never wenn: ~~Ich weiß nicht, wenn er kommt~~ should be Ich weiß nicht, **ob** er kommt. *Ich wusste nicht, dass …* is fine: there it's a fact.",
           quiz: [
             { at: "r1", k: "pick", q: "Kommt Lea mit? → Ich weiß nicht, ___ Lea mitkommt.", o: ["ob", "dass", "wenn"], a: 0, why: "A yes/no question inside a sentence: **ob**." },
-            { at: "r1", k: "order", q: "Build it: Do you know if the shop is open?", a: ["Weißt du,", "ob", "der Laden", "offen", "ist?"], why: "ob, the subject — the verb last." },
-            { at: "r2", k: "pick", q: "Ich weiß, ___ der Kurs um acht beginnt.", o: ["dass", "ob"], a: 0, why: "You know it — a fact: **dass**." },
-            { at: "r2", k: "pick", q: "Ich bin nicht sicher, ___ der Kurs heute stattfindet.", o: ["ob", "dass"], a: 0, why: "It's open — yes or no: **ob**." },
-            { at: "r3", k: "pick", q: "Ich frage den Chef, ___ ich morgen frei haben kann.", o: ["ob", "wenn"], a: 0, why: "*whether (or not)*: **ob**." },
+            { at: "r1", k: "order", q: "Build it: Do you know if the shop is open?", a: ["Weißt du,", "ob", "der Laden", "offen", "ist?"], why: "ob, then the subject, then the verb last." },
+            { at: "r2", k: "pick", q: "Ich weiß, ___ der Kurs um acht beginnt.", o: ["dass", "ob"], a: 0, why: "You know it, so it's a fact: **dass**." },
+            { at: "r2", k: "pick", q: "Ich bin nicht sicher, ___ der Kurs heute stattfindet.", o: ["ob", "dass"], a: 0, why: "It's still open (yes or no?), so **ob**." },
+            { at: "r3", k: "pick", q: "Ich frage den Chef, ___ ich morgen frei haben kann.", o: ["ob", "wenn"], a: 0, why: "It means *whether (or not)*: **ob**." },
             { at: "r3", k: "pick", q: "Ich komme mit, ___ ich morgen frei habe.", o: ["wenn", "ob"], a: 0, why: "A condition: **wenn**." },
-            { at: "r4", k: "pick", q: "«Warten Sie hier!» → Er sagt, ich ___ hier warten.", o: ["soll", "will", "bin"], a: 0, why: "A request passed on: **sollen**." },
-            { at: "r4", k: "type", cx: true, q: "«Ruf mich bitte an!» → Mama sagt, du ___ sie anrufen.", a: ["sollst"], r: ["iq.soll"], why: "du **sollst**." },
-            { at: "table", k: "pick", q: "Weißt du, ___ der Bus schon weg ist?", o: ["ob", "wenn", "was"], a: 0, why: "Yes or no? — **ob**." },
-            { at: "trap", k: "pick", q: "Which is right?", o: ["Ich weiß nicht, ob er heute kommt.", "Ich weiß nicht, wenn er heute kommt."], a: 0, why: "*if = whether*: **ob**." },
+            { at: "r4", k: "pick", q: "«Warten Sie hier!» → Er sagt, ich ___ hier warten.", o: ["soll", "will", "bin"], a: 0, why: "A request passed on: **soll**." },
+            { at: "r4", k: "type", cx: true, q: "«Ruf mich bitte an!» → Mama sagt, du ___ sie anrufen.", a: ["sollst"], r: ["iq.soll"], why: "With du, sollen becomes **sollst**." },
+            { at: "table", k: "pick", q: "Weißt du, ___ der Bus schon weg ist?", o: ["ob", "wenn", "was"], a: 0, why: "A yes/no question: **ob**." },
+            { at: "trap", k: "pick", q: "Which is right?", o: ["Ich weiß nicht, ob er heute kommt.", "Ich weiß nicht, wenn er heute kommt."], a: 0, why: "*if* here means *whether*: **ob**." },
           ] },
       ],
       diag: [
-        { t: "swap", from: "^wenn$", to: "^ob$", rule: "iq.wenn", hard: true, msg: "*if = whether (or not)* is **ob** — wenn is a condition." },
-        { t: "swap", from: "^ob$", to: "^wenn$", rule: "iq.wenn", hard: true, msg: "It's a condition — *if that happens* — so **wenn**. (ob = whether or not.)" },
-        { t: "swap", from: "^dass$", to: "^ob$", rule: "iq.dassob", hard: true, msg: "It's open — yes or no? — so **ob**. (dass states a fact.)" },
-        { t: "swap", from: "^ob$", to: "^dass$", rule: "iq.dassob", hard: true, msg: "It's a fact, nothing is open: **dass**." },
+        { t: "swap", from: "^wenn$", to: "^ob$", rule: "iq.wenn", hard: true, msg: "*if* here means *whether (or not)*, so it's **ob**. wenn is for a condition." },
+        { t: "swap", from: "^ob$", to: "^wenn$", rule: "iq.wenn", hard: true, msg: "This is a condition (*if that happens*), so it's **wenn**. ob means *whether or not*." },
+        { t: "swap", from: "^dass$", to: "^ob$", rule: "iq.dassob", hard: true, msg: "It's still open (yes or no?), so it's **ob**. dass states a fact." },
+        { t: "swap", from: "^ob$", to: "^dass$", rule: "iq.dassob", hard: true, msg: "It's a fact and nothing is open, so it's **dass**." },
         { t: "swap", from: "^wen$", to: "^wem$", rule: "iq.prep", hard: true, msg: "This preposition takes the dative: **wem**." },
         { t: "swap", from: "^wem$", to: "^wen$", rule: "iq.prep", hard: true, msg: "This preposition takes the accusative: **wen**." },
-        { t: "missing", whole: true, tok: "^ob$", rule: "iq.ob", msg: "A yes/no question needs **ob** to join it: …, **ob** … + the verb last." },
-        { t: "extra", tok: "^ob$", rule: "iq.w", msg: "There's a W-word already — it joins the question by itself: no ob." },
-        { t: "missing", whole: true, tok: "^(soll|sollst|sollen|sollt)$", rule: "iq.soll", msg: "Pass the request on with **sollen**: …, ich **soll** … + the infinitive at the end." },
-        { t: "pos", tok: "^(bin|bist|ist|sind|seid|habe|hast|hat|haben|habt|muss|musst|mussen|kann|kannst|konnen|will|willst|wollen|darf|darfst|durfen|mochte|mochtest|mochten|war|waren|hatte|hatten|wird|werden)$", rule: "", msg: "The verb is out of place — it goes {where}. (Second in a main sentence, at the end of a side sentence.)" },
-        { t: "order", rule: "", msg: "The right words, another order: inside a sentence the question's conjugated verb goes **last** — …, wo er **wohnt**." },
+        { t: "missing", whole: true, tok: "^ob$", rule: "iq.ob", msg: "A yes/no question needs **ob** to join it on, with the verb last: …, **ob** er kommt." },
+        { t: "extra", tok: "^ob$", rule: "iq.w", msg: "There's a W-word already, and it joins the question on its own: no ob." },
+        { t: "missing", whole: true, tok: "^(soll|sollst|sollen|sollt)$", rule: "iq.soll", msg: "Pass the request on with **sollen**: …, ich **soll** …, with the infinitive at the end." },
+        { t: "pos", tok: "^(bin|bist|ist|sind|seid|habe|hast|hat|haben|habt|muss|musst|mussen|kann|kannst|konnen|will|willst|wollen|darf|darfst|durfen|mochte|mochtest|mochten|war|waren|hatte|hatten|wird|werden)$", rule: "", msg: "The verb is out of place: it goes {where}. It's second in a main sentence and at the end of a side sentence." },
+        { t: "order", rule: "", msg: "Right words, wrong order: inside a sentence the question's verb goes **last**: …, wo er **wohnt**." },
       ],
       drills: [
         // ── our own: where the verb goes ──
-        { id: "diq.verb", t: "pick", title: "Where does the verb go?", how: "Pick the ending with the verb in its place — last.", items: [
+        { id: "diq.verb", t: "pick", title: "Where does the verb go?", how: "Pick the ending with the verb in its place: last.", items: [
           { q: "Weißt du, wo ___?", o: ["mein Handy ist", "ist mein Handy"], a: ["mein Handy ist"], r: ["iq.w"] },
           { q: "Ich weiß nicht, warum ___.", o: ["sie nicht kommt", "sie kommt nicht", "kommt sie nicht"], a: ["sie nicht kommt"], r: ["iq.w"] },
           { q: "Können Sie mir sagen, wann ___?", o: ["der Zug ankommt", "der Zug kommt an", "kommt der Zug an"], a: ["der Zug ankommt"], r: ["iq.two"] },
@@ -128,7 +128,7 @@ cxPack({
           { q: "Niemand weiß, wem ___.", o: ["dieses Velo gehört", "gehört dieses Velo"], a: ["dieses Velo gehört"], r: ["iq.w"] },
         ] },
         // ── our own: the word that joins ──
-        { id: "diq.type", t: "type", title: "The joining word", how: "Write the W-word that fits the answer — or ob for a yes/no question.", items: [
+        { id: "diq.type", t: "type", title: "The joining word", how: "Write the W-word that fits the answer, or ob for a yes/no question.", items: [
           { q: "Weißt du, ___ der Kurs kostet? — 300 Franken.", a: ["wie viel", "was"], r: ["iq.w"] },
           { q: "Ich weiß nicht, ___ der Hauswart wohnt. — Im ersten Stock.", a: ["wo"], r: ["iq.w"] },
           { q: "Können Sie mir sagen, ___ der Bus fährt? — In fünf Minuten.", a: ["wann"], r: ["iq.w"] },
@@ -144,7 +144,7 @@ cxPack({
           { q: "Ich frage mich, ___ der Zug kommt. — Aus Genf.", a: ["woher"], r: ["iq.w"] },
         ] },
         // ── Übung 23•11: the question after an opening ──
-        { id: "d23.11", ex: "23.11", t: "transform", title: "Wir wissen nicht, …", how: "Put the question after the opening in brackets — the W-word stays, the verb goes to the end.", items: [
+        { id: "d23.11", ex: "23.11", t: "transform", title: "Wir wissen nicht, …", how: "Put the question after the words in brackets. The W-word stays; the verb goes to the end.", items: [
           { q: "Warum ist Sara früher gegangen? (Wir wissen nicht, …)", a: ["Wir wissen nicht, warum Sara früher gegangen ist."], r: ["iq.two"] },
           { q: "Was hat er in der Stadt gekauft? (Wir wissen nicht, …)", a: ["Wir wissen nicht, was er in der Stadt gekauft hat."], r: ["iq.two"] },
           { q: "Mit wem hat Lea Tennis gespielt? (Wir wissen nicht, …)", a: ["Wir wissen nicht, mit wem Lea Tennis gespielt hat."], r: ["iq.prep"] },
@@ -160,7 +160,7 @@ cxPack({
           { q: "Aus welchem Land kommt der neue Nachbar? (Weißt du, …)", a: ["Weißt du, aus welchem Land der neue Nachbar kommt?"], r: ["iq.prep"] },
         ] },
         // ── our own: asking a stranger politely ──
-        { id: "diq.polite", t: "transform", title: "Wissen Sie, …?", how: "Ask it politely: start with Wissen Sie, … — the verb goes to the end.", items: [
+        { id: "diq.polite", t: "transform", title: "Wissen Sie, …?", how: "Ask it politely, starting with Wissen Sie, … The verb goes to the end.", items: [
           { q: "Wo ist die Toilette?", a: ["Wissen Sie, wo die Toilette ist?"], r: ["iq.polite"] },
           { q: "Wann fährt der nächste Zug nach Bern?", a: ["Wissen Sie, wann der nächste Zug nach Bern fährt?"], r: ["iq.polite"] },
           { q: "Wie komme ich zum Bahnhof?", a: ["Wissen Sie, wie ich zum Bahnhof komme?"], r: ["iq.polite"] },
@@ -173,7 +173,7 @@ cxPack({
           { q: "Wann macht die Post auf?", a: ["Wissen Sie, wann die Post aufmacht?"], r: ["iq.polite", "iq.two"] },
         ] },
         // ── Übung 29•9: after "Ich weiß nicht" — ob where it's needed ──
-        { id: "d29.9", ex: "29.9", t: "transform", title: "Ich weiß nicht, …", how: "Start with Ich weiß nicht, … — a yes/no question needs ob; a W-word stays.", items: [
+        { id: "d29.9", ex: "29.9", t: "transform", title: "Ich weiß nicht, …", how: "Start with Ich weiß nicht, … A yes/no question needs ob; a W-word stays.", items: [
           { q: "Ist die Post weit von hier?", a: ["Ich weiß nicht, ob die Post weit von hier ist."], r: ["iq.ob"] },
           { q: "Wer wohnt in der Wohnung über uns?", a: ["Ich weiß nicht, wer in der Wohnung über uns wohnt."], r: ["iq.w"] },
           { q: "Hat Tom den Schlüssel gefunden?", a: ["Ich weiß nicht, ob Tom den Schlüssel gefunden hat."], r: ["iq.ob", "iq.two"] },
@@ -204,7 +204,7 @@ cxPack({
           { q: "Trinkst du nach der Arbeit einen Kaffee mit mir?", a: ["Er fragt mich, ob ich nach der Arbeit einen Kaffee mit ihm trinke.", "Er fragt mich, ob ich nach der Arbeit mit ihm einen Kaffee trinke."], r: ["iq.ob"] },
         ] },
         // ── our own: dass or ob ──
-        { id: "diq.dassob", t: "pick", title: "dass or ob?", how: "Pick: dass — it's a fact · ob — it's open, yes or no.", o: ["dass", "ob"], items: [
+        { id: "diq.dassob", t: "pick", title: "dass or ob?", how: "dass: it's a fact. ob: it's still open, yes or no.", o: ["dass", "ob"], items: [
           { q: "Ich weiß, ___ der Zug um acht fährt.", a: ["dass"], r: ["iq.dassob"] },
           { q: "Ich weiß nicht, ___ der Zug heute fährt.", a: ["ob"], r: ["iq.dassob"] },
           { q: "Er fragt, ___ wir Hilfe brauchen.", a: ["ob"], r: ["iq.dassob"] },
@@ -219,7 +219,7 @@ cxPack({
           { q: "Tut mir leid, ___ ich zu spät bin.", a: ["dass"], r: ["iq.dassob"] },
         ] },
         // ── our own: ob or wenn ──
-        { id: "diq.wenn", t: "pick", title: "ob or wenn?", how: "Both are *if*: ob — whether (or not) · wenn — on that condition.", o: ["ob", "wenn"], items: [
+        { id: "diq.wenn", t: "pick", title: "ob or wenn?", how: "Both mean *if*. ob: whether (or not). wenn: on that condition.", o: ["ob", "wenn"], items: [
           { q: "Ich weiß nicht, ___ ich morgen kommen kann.", a: ["ob"], r: ["iq.wenn"] },
           { q: "Ich komme morgen, ___ ich nicht arbeiten muss.", a: ["wenn"], r: ["iq.wenn"] },
           { q: "Frag den Verkäufer, ___ es die Jacke auch in Blau gibt.", a: ["ob"], r: ["iq.wenn"] },
@@ -234,7 +234,7 @@ cxPack({
           { q: "Nehmen Sie eine Tablette, ___ Sie Schmerzen haben.", a: ["wenn"], r: ["iq.wenn"] },
         ] },
         // ── Übung 26•12: what you were told to do ──
-        { id: "d26.12", ex: "26.12", t: "transform", title: "Der Arzt sagt, ich soll …", how: "You tell a friend what the doctor told you: Der Arzt sagt, ich soll … — the infinitive at the end.", items: [
+        { id: "d26.12", ex: "26.12", t: "transform", title: "Der Arzt sagt, ich soll …", how: "Tell a friend what the doctor said: Der Arzt sagt, ich soll …, with the infinitive at the end.", items: [
           { q: "«Trinken Sie viel Wasser!»", a: ["Der Arzt sagt, ich soll viel Wasser trinken.", "Der Arzt sagt, ich solle viel Wasser trinken."], r: ["iq.soll"] },
           { q: "«Bleiben Sie drei Tage im Bett!»", a: ["Der Arzt sagt, ich soll drei Tage im Bett bleiben.", "Der Arzt sagt, ich solle drei Tage im Bett bleiben."], r: ["iq.soll"] },
           { q: "«Rauchen Sie nicht!»", a: ["Der Arzt sagt, ich soll nicht rauchen.", "Der Arzt sagt, ich solle nicht rauchen."], r: ["iq.soll"] },
@@ -248,7 +248,7 @@ cxPack({
           { q: "«Machen Sie einen Termin für die Kontrolle!»", a: ["Der Arzt sagt, ich soll einen Termin für die Kontrolle machen.", "Der Arzt sagt, ich solle einen Termin für die Kontrolle machen."], r: ["iq.soll"] },
         ] },
         // ── Production ──
-        { id: "dp.iq", t: "translate", end: true, title: "Say it in German", how: "Translate — the question inside the sentence has its verb last; yes/no → ob.", items: [
+        { id: "dp.iq", t: "translate", end: true, title: "Say it in German", how: "Translate. A question inside a sentence has its verb last; a yes/no question takes ob.", items: [
           { q: "I don't know where he lives.", a: ["Ich weiß nicht, wo er wohnt."], r: ["iq.w"] },
           { q: "Do you know when the train arrives? (du)", a: ["Weißt du, wann der Zug ankommt?", "Weißt du, wann der Zug kommt?"], r: ["iq.two"] },
           { q: "Can you tell me where the station is? (Sie)", a: ["Können Sie mir sagen, wo der Bahnhof ist?"], r: ["iq.polite"] },
@@ -257,14 +257,14 @@ cxPack({
           { q: "I know that the shop is closed.", a: ["Ich weiß, dass der Laden zu ist.", "Ich weiß, dass der Laden geschlossen ist.", "Ich weiß, dass das Geschäft zu ist.", "Ich weiß, dass das Geschäft geschlossen ist."], r: ["iq.dassob"] },
           { q: "I'm not sure if the shop is open.", a: ["Ich bin nicht sicher, ob der Laden offen ist.", "Ich bin nicht sicher, ob der Laden geöffnet ist.", "Ich bin nicht sicher, ob das Geschäft offen ist.", "Ich bin mir nicht sicher, ob der Laden offen ist.", "Ich bin nicht sicher, ob das Geschäft geöffnet ist."], r: ["iq.dassob"] },
           { q: "Do you know who she's talking to? (du)", a: ["Weißt du, mit wem sie spricht?", "Weißt du, mit wem sie redet?"], r: ["iq.prep"] },
-          { q: "I'd like to know how much that costs.", a: ["Ich möchte wissen, wie viel das kostet.", "Ich möchte wissen, was das kostet.", "Ich möchte gern wissen, wie viel das kostet."], r: ["iq.polite"] },
+          { q: "I'd like to know how much that costs.", a: ["Ich möchte wissen, wie viel das kostet.", "Ich möchte wissen, was das kostet.", "Ich möchte gern wissen, wie viel das kostet.", "Ich würde gern wissen, wie viel das kostet."], r: ["iq.polite"] },
           { q: "I'll come if I have time.", a: ["Ich komme, wenn ich Zeit habe.", "Wenn ich Zeit habe, komme ich."], r: ["iq.wenn"] },
           { q: "Ask him if he has time. (du)", a: ["Frag ihn, ob er Zeit hat.", "Frag ihn, ob er Zeit hat!", "Frage ihn, ob er Zeit hat."], r: ["iq.wenn"] },
           { q: "The doctor says I should sleep more.", a: ["Der Arzt sagt, ich soll mehr schlafen.", "Der Arzt sagt, ich solle mehr schlafen.", "Der Arzt sagt, dass ich mehr schlafen soll.", "Die Ärztin sagt, ich soll mehr schlafen."], r: ["iq.soll"] },
           { q: "I don't know what he said.", a: ["Ich weiß nicht, was er gesagt hat."], r: ["iq.two"] },
           { q: "Do you know if this bus goes to the hospital? (Sie)", a: ["Wissen Sie, ob dieser Bus zum Spital fährt?", "Wissen Sie, ob dieser Bus zum Krankenhaus fährt?", "Wissen Sie, ob dieser Bus ins Spital fährt?", "Wissen Sie, ob dieser Bus ins Krankenhaus fährt?"], r: ["iq.ob", "iq.polite"] },
         ] },
-        { id: "diq.write", t: "write", end: true, title: "Ask and wonder", how: "Write your own sentences — saved for Claude to correct.", items: [
+        { id: "diq.write", t: "write", end: true, title: "Ask and wonder", how: "Write your own sentences. They're saved for Claude to correct.", items: [
           { q: "You're new in town. Ask a stranger three things politely. (Können Sie mir sagen, … / Wissen Sie, …)", model: ["Entschuldigung, können Sie mir sagen, wo die Post ist? Wissen Sie, wann sie aufmacht? Und wissen Sie, ob es hier einen Geldautomaten gibt?"], r: ["iq.polite"] },
           { q: "Three things you don't know yet about next year. (Ich weiß noch nicht, ob / wo / wann …)", model: ["Ich weiß noch nicht, ob ich nächstes Jahr eine neue Stelle habe. Ich weiß nicht, wohin wir in die Ferien fahren, und ich weiß auch nicht, wann ich die Prüfung mache."], r: ["iq.ob"] },
           { q: "What did the teacher (or your boss) tell you to do this week? (Sie sagt, ich soll …)", model: ["Meine Lehrerin sagt, ich soll jeden Tag zehn Minuten laut lesen. Sie sagt auch, ich soll mehr mit den Nachbarn sprechen."], r: ["iq.soll"] },

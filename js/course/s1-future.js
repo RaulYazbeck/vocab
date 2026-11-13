@@ -19,18 +19,18 @@ cxPack({
   sections: {
     "s1.fu": {
       diag: [
-        { t: "ending", stem: "(werd|wir[dst])", rule: "gs:fu1.r1", msg: "werden: ich werde · du wirst · er wird · wir werden · ihr werdet · sie werden — here **{right}**." },
-        { t: "seq", seq: ["(mussen|konnen|durfen|sollen|wollen)", "\\w+(en|n)"], rule: "gs:fu1.r2", msg: "Two infinitives at the end: the modal comes **last** — … arbeiten **müssen**, … kommen **können**." },
-        { t: "missing", tok: "^(wohl|sicher|bestimmt)$", rule: "gs:fu2.r3", msg: "A guess about now: werden + **wohl** (or sicher) — Sie **wird wohl** im Büro **sein**." },
-        { t: "missing", tok: "^(mussen|konnen|durfen|sollen|wollen)$", rule: "gs:fu1.r2", msg: "The modal stays — as an infinitive, after the other verb: … arbeiten **müssen**." },
-        { t: "missing", tok: "^(werde|wirst|wird|werden|werdet)$", rule: "gs:fu1.r2", msg: "The future needs **werden** in second place — and the verb at the end, as an infinitive." },
-        { t: "pos", tok: "^(werde|wirst|wird|werden|werdet)$", rule: "gs:fu1.r2", msg: "**werden** takes the second place (first in a yes/no question) — it goes {where}." },
-        { t: "pos", tok: "^(kommen|gehen|fahren|bleiben|sein|haben|machen|kaufen|arbeiten|helfen|anrufen|abholen|aufraumen|auspacken|ankommen|verstehen|finden|klappen|kochen|baden|lesen|spielen|schmecken|gefallen|regnen|schneien|treffen|beginnen|bekommen|ziehen|fliegen|wandern|warten|vergessen|tragen|waschen|erzahlen|reisen|bauen|suchen|sprechen|sehen|parken|ausfullen|schlafen|kosten|gehoren|freuen|essen|trinken)$", rule: "gs:fu1.r2", msg: "With werden the other verb goes to the very end, as an infinitive — {where}." },
-        { t: "swap", from: "^\\w+(st|t|e)$", to: "^(kommen|gehen|fahren|bleiben|sein|haben|machen|kaufen|arbeiten|helfen|anrufen|abholen|aufraumen|auspacken|ankommen|verstehen|finden|klappen|kochen|baden|lesen|spielen|schmecken|gefallen|regnen|schneien|treffen|beginnen|bekommen|ziehen|fliegen|wandern|warten|vergessen|tragen|waschen|erzahlen|reisen|bauen|suchen|sprechen|sehen|parken|ausfullen|schlafen|kosten|gehoren|freuen|essen|trinken|sprechen|aufbleiben|bauen|bringen|ausfullen|mahen|regnen|funktionieren|kennenlernen)$", rule: "gs:fu1.r2", msg: "With werden the verb at the end is the **infinitive**: **{right}**." },
+        { t: "ending", stem: "(werd|wir[dst])", rule: "gs:fu1.r1", msg: "The form of werden must match the subject: here **{right}**. (ich werde, du wirst, er wird, wir werden, ihr werdet, sie werden)" },
+        { t: "seq", seq: ["(mussen|konnen|durfen|sollen|wollen)", "\\w+(en|n)"], rule: "gs:fu1.r2", msg: "With two infinitives at the end, the modal comes **last**: … arbeiten **müssen**, … kommen **können**." },
+        { t: "missing", tok: "^(wohl|sicher|bestimmt)$", rule: "gs:fu2.r3", msg: "A guess about now needs **wohl** (or sicher) with werden: Sie **wird wohl** im Büro **sein**." },
+        { t: "missing", tok: "^(mussen|konnen|durfen|sollen|wollen)$", rule: "gs:fu1.r2", msg: "Keep the modal. It goes to the very end as an infinitive, after the other verb: … arbeiten **müssen**." },
+        { t: "missing", tok: "^(werde|wirst|wird|werden|werdet)$", rule: "gs:fu1.r2", msg: "The future needs **werden** in second place, and the other verb at the end as an infinitive." },
+        { t: "pos", tok: "^(werde|wirst|wird|werden|werdet)$", rule: "gs:fu1.r2", msg: "**werden** belongs in second place (first in a yes/no question): put it {where}." },
+        { t: "pos", tok: "^(kommen|gehen|fahren|bleiben|sein|haben|machen|kaufen|arbeiten|helfen|anrufen|abholen|aufraumen|auspacken|ankommen|verstehen|finden|klappen|kochen|baden|lesen|spielen|schmecken|gefallen|regnen|schneien|treffen|beginnen|bekommen|ziehen|fliegen|wandern|warten|vergessen|tragen|waschen|erzahlen|reisen|bauen|suchen|sprechen|sehen|parken|ausfullen|schlafen|kosten|gehoren|freuen|essen|trinken)$", rule: "gs:fu1.r2", msg: "With werden, the other verb goes to the very end as an infinitive: put it {where}." },
+        { t: "swap", from: "^\\w+(st|t|e)$", to: "^(kommen|gehen|fahren|bleiben|sein|haben|machen|kaufen|arbeiten|helfen|anrufen|abholen|aufraumen|auspacken|ankommen|verstehen|finden|klappen|kochen|baden|lesen|spielen|schmecken|gefallen|regnen|schneien|treffen|beginnen|bekommen|ziehen|fliegen|wandern|warten|vergessen|tragen|waschen|erzahlen|reisen|bauen|suchen|sprechen|sehen|parken|ausfullen|schlafen|kosten|gehoren|freuen|essen|trinken|sprechen|aufbleiben|bauen|bringen|ausfullen|mahen|regnen|funktionieren|kennenlernen)$", rule: "gs:fu1.r2", msg: "With werden, the verb at the end stays in the **infinitive**: **{right}**." },
       ],
       drills: [
         // ── Übung 11•8: into the future ──
-        { id: "d11.8", ex: "11.8", t: "transform", low: true, title: "Into the future", how: "Say it with werden — werden second, the verb at the end as an infinitive.", items: [
+        { id: "d11.8", ex: "11.8", t: "transform", low: true, title: "Into the future", how: "Say it in the future: werden in second place, the other verb at the end as an infinitive.", items: [
           { q: "Wir kaufen ein neues Sofa.", a: ["Wir werden ein neues Sofa kaufen."], r: ["gs:fu1.r2"], vf: [["kaufen", "fu", "wir"]] },
           { q: "Lea macht die Prüfung.", a: ["Lea wird die Prüfung machen."], r: ["gs:fu1.r2"], vf: [["machen", "fu", "er"]], cap: true },
           { q: "Hast du genug Zeit?", a: ["Wirst du genug Zeit haben?"], r: ["gs:fu1.r1"], vf: [["haben", "fu", "du"]] },
@@ -45,7 +45,7 @@ cxPack({
           { q: "Ihr bekommt eine Antwort.", a: ["Ihr werdet eine Antwort bekommen."], r: ["gs:fu1.r1"], vf: [["bekommen", "fu", "ihr"]] },
         ] },
         // ── Übung 11•6: next week — two ways ──
-        { id: "d11.6", ex: "11.6", t: "transform", fixed: true, title: "Next week — two ways", how: "Start with Nächste Woche — then the Präsens or werden, as the bracket says.", items: [
+        { id: "d11.6", ex: "11.6", t: "transform", fixed: true, title: "Next week — two ways", how: "Start with Nächste Woche. Use the Präsens or werden, as the brackets say.", items: [
           { q: "Ich habe Ferien. (Präsens)", a: ["Nächste Woche habe ich Ferien."], r: ["gs:fu2.r1"], vf: [["haben", "pr", "ich"]] },
           { q: "Der Kurs beginnt. (werden)", a: ["Nächste Woche wird der Kurs beginnen."], r: ["gs:fu1.r2"], vf: [["beginnen", "fu", "er"]] },
           { q: "Wir fahren ins Engadin. (Präsens)", a: ["Nächste Woche fahren wir ins Engadin."], r: ["gs:fu2.r1"], vf: [["fahren", "pr", "wir"]] },
@@ -58,9 +58,9 @@ cxPack({
           { q: "Ich hole das Paket auf der Post ab. (werden)", a: ["Nächste Woche werde ich das Paket auf der Post abholen."], r: ["gs:fu1.r2"], vf: [["abholen", "fu", "ich"]] },
           { q: "Meine Schwester besucht uns. (Präsens)", a: ["Nächste Woche besucht uns meine Schwester.", "Nächste Woche besucht meine Schwester uns."], r: ["gs:fu2.r1"] },
           { q: "Wir lernen die Nachbarn kennen. (werden)", a: ["Nächste Woche werden wir die Nachbarn kennenlernen."], r: ["gs:fu1.r2"], vf: [["kennenlernen", "fu", "wir"]] },
-        ].map(it => ({ ...it, diag: [{ t: "pos", tok: "^(ich|du|er|sie|es|wir|ihr|der|die|herr|mein|meine)$", rule: it.r[0], msg: "Nächste Woche takes the first place — the verb stays second, the subject comes right after it." }] })) },
+        ].map(it => ({ ...it, diag: [{ t: "pos", tok: "^(ich|du|er|sie|es|wir|ihr|der|die|herr|mein|meine)$", rule: it.r[0], msg: "**Nächste Woche** comes first, so the verb stays second and the subject comes right after it." }] })) },
         // ── Übung 11•9: the future — only where it's needed ──
-        { id: "d11.9", ex: "11.9", t: "transform", title: "Only where it's needed", how: "Put it in the future with werden — unless a time word already says when.", items: [
+        { id: "d11.9", ex: "11.9", t: "transform", title: "Only where it's needed", how: "Use werden for the future. If a time word already says when, the Präsens is enough.", items: [
           { q: "Das Konzert ist super.", a: ["Das Konzert wird super sein."], r: ["gs:fu2.r2"], vf: [["sein", "fu", "er"]] },
           { q: "Ich koche heute Abend ein Risotto.", a: ["Ich koche heute Abend ein Risotto.", "Ich werde heute Abend ein Risotto kochen."], r: ["gs:fu2.r1"] },
           { q: "Du findest bestimmt eine Lösung.", a: ["Du wirst bestimmt eine Lösung finden."], r: ["gs:fu2.r2"], vf: [["finden", "fu", "du"]] },
@@ -74,7 +74,7 @@ cxPack({
           { q: "Ihr versteht das später.", a: ["Ihr versteht das später.", "Ihr werdet das später verstehen."], r: ["gs:fu2.r1"] },
         ] },
         // ── Übung 11•11: a week in Ticino ──
-        { id: "d11.11", ex: "11.11", t: "transform", title: "A week in Ticino", how: "Familie Graf's week in Ticino: say it with werden — unless a time word already says when.", items: [
+        { id: "d11.11", ex: "11.11", t: "transform", title: "A week in Ticino", how: "The Graf family's week in Ticino: use werden, unless a time word already says when.", items: [
           { q: "Papa fährt das Auto.", a: ["Papa wird das Auto fahren."], r: ["gs:fu1.r2"], vf: [["fahren", "fu", "er"]], cap: true },
           { q: "Am ersten Tag schlafen alle lange.", a: ["Am ersten Tag schlafen alle lange.", "Am ersten Tag werden alle lange schlafen."], r: ["gs:fu2.r1"] },
           { q: "Mama kocht eine Polenta.", a: ["Mama wird eine Polenta kochen."], r: ["gs:fu1.r2"], vf: [["kochen", "fu", "er"]], cap: true },
@@ -89,7 +89,7 @@ cxPack({
           { q: "Nächsten Sommer fahren wir wieder ins Tessin.", a: ["Nächsten Sommer fahren wir wieder ins Tessin.", "Nächsten Sommer werden wir wieder ins Tessin fahren."], r: ["gs:fu2.r1"] },
         ] },
         // ── Übung 11•10: a modal in the future ──
-        { id: "d11.10", ex: "11.10", t: "transform", title: "A modal in the future", how: "Say it with werden — two infinitives at the end, the modal last: … arbeiten müssen.", items: [
+        { id: "d11.10", ex: "11.10", t: "transform", title: "A modal in the future", how: "Say it in the future: two infinitives at the end, the modal last (… arbeiten müssen).", items: [
           { q: "Ich muss am Samstag arbeiten.", a: ["Ich werde am Samstag arbeiten müssen."], r: ["gs:fu1.r2"], vf: [["müssen", "fu", "ich"]] },
           { q: "Du kannst bald gut Deutsch sprechen.", a: ["Du wirst bald gut Deutsch sprechen können."], r: ["gs:fu1.r2"], vf: [["können", "fu", "du"]] },
           { q: "Die Kinder dürfen länger aufbleiben.", a: ["Die Kinder werden länger aufbleiben dürfen."], r: ["gs:fu1.r2"], vf: [["dürfen", "fu", "sie"]] },
@@ -102,7 +102,7 @@ cxPack({
           { q: "Ohne Brille kann er nichts sehen.", a: ["Ohne Brille wird er nichts sehen können."], r: ["gs:fu1.r2"], vf: [["können", "fu", "er"]] },
         ] },
         // ── Übung 11•7: one sentence, three tenses ──
-        { id: "d11.7", ex: "11.7", t: "transform", title: "Past, Perfekt, future", how: "Say it in the tense in brackets — the Präteritum, the Perfekt or the future with werden.", items: [
+        { id: "d11.7", ex: "11.7", t: "transform", title: "Past, Perfekt, future", how: "Say it in the tense in brackets: the Präteritum, the Perfekt or the future with werden.", items: [
           { q: "Lena arbeitet in einer Bank. (Präteritum)", a: ["Lena arbeitete in einer Bank."], r: ["gs:pt21.r3"], vf: [["arbeiten", "pt", "er"]], cap: true },
           { q: "Lena arbeitet in einer Bank. (Perfekt)", a: ["Lena hat in einer Bank gearbeitet."], r: ["gs:pf1.r1"], vf: [["arbeiten", "pf", "er"]], cap: true },
           { q: "Lena arbeitet in einer Bank. (Futur)", a: ["Lena wird in einer Bank arbeiten."], r: ["gs:fu1.r2"], vf: [["arbeiten", "fu", "er"]], cap: true },
@@ -118,7 +118,7 @@ cxPack({
           { q: "Der Zug kommt pünktlich an. (Futur)", a: ["Der Zug wird pünktlich ankommen."], r: ["gs:fu1.r2"], vf: [["ankommen", "fu", "er"]] },
         ] },
         // ── Übung 11•12: probably… ──
-        { id: "d11.12", ex: "11.12", t: "answer", title: "Probably…", how: "Guess, with werden + wohl (or sicher) — the word in brackets is your guess.", items: [
+        { id: "d11.12", ex: "11.12", t: "answer", title: "Probably…", how: "Answer with a guess: werden + wohl (or sicher). The words in brackets are your guess.", items: [
           { q: "Wo sind die Nachbarn? (in den Ferien)", a: ["Sie werden wohl in den Ferien sein.", "Sie werden sicher in den Ferien sein.", "Die Nachbarn werden wohl in den Ferien sein."], r: ["gs:fu2.r3"], vf: [["sein", "fu", "sie"]] },
           { q: "Warum ist Tom so müde? (zu wenig schlafen)", a: ["Er wird wohl zu wenig schlafen.", "Er wird sicher zu wenig schlafen.", "Tom wird wohl zu wenig schlafen."], r: ["gs:fu2.r3"], vf: [["schlafen", "fu", "er"]] },
           { q: "Wie spät ist es? (schon acht Uhr)", a: ["Es wird wohl schon acht Uhr sein.", "Es wird sicher schon acht Uhr sein."], r: ["gs:fu2.r3"], vf: [["sein", "fu", "er"]] },
@@ -132,7 +132,7 @@ cxPack({
           { q: "Wo spielen die Kinder? (im Garten)", a: ["Sie werden wohl im Garten spielen.", "Sie werden sicher im Garten spielen.", "Die Kinder werden wohl im Garten spielen."], r: ["gs:fu2.r3"], vf: [["spielen", "fu", "sie"]] },
         ] },
         // ── Übung 11•13: build it — back home after the holiday ──
-        { id: "d11.13", ex: "11.13", t: "compose", end: true, title: "Back home", how: "The Grafs come home tomorrow: build what will happen — werden, or the Präsens with a time word.", items: [
+        { id: "d11.13", ex: "11.13", t: "compose", end: true, title: "Back home", how: "The Grafs come home tomorrow. Say what will happen: werden, or the Präsens with a time word.", items: [
           { w: ["morgen", "wir", "sein", "wieder", "zu Hause"], a: ["Morgen sind wir wieder zu Hause.", "Morgen werden wir wieder zu Hause sein."], r: ["gs:fu2.r1"] },
           { w: ["Papa", "auspacken", "das Auto"], a: ["Papa wird das Auto auspacken."], r: ["gs:fu1.r2"], vf: [["auspacken", "fu", "er"]], cap: true },
           { w: ["wir", "tragen", "die Koffer", "in die Wohnung"], a: ["Wir werden die Koffer in die Wohnung tragen."], r: ["gs:fu1.table"], vf: [["tragen", "fu", "wir"]] },
@@ -145,7 +145,7 @@ cxPack({
           { w: ["wir", "erzählen", "den Nachbarn", "von den Ferien"], a: ["Wir werden den Nachbarn von den Ferien erzählen."], r: ["gs:fu1.r2"], vf: [["erzählen", "fu", "wir"]] },
         ] },
         // ── Production: promises, predictions, guesses ──
-        { id: "dp.fu", t: "translate", end: true, title: "Say it in German", how: "Translate — a promise or a prediction: werden · a guess: werden + wohl.", items: [
+        { id: "dp.fu", t: "translate", end: true, title: "Say it in German", how: "Translate. A promise or a prediction takes werden; a guess takes werden + wohl.", items: [
           { q: "I'll help you, I promise. (du)", a: ["Ich werde dir helfen, versprochen!", "Ich werde dir helfen, das verspreche ich!"], r: ["gs:fu2.r2"], vf: [["helfen", "fu", "ich"]] },
           { q: "It will rain tomorrow.", a: ["Morgen wird es regnen.", "Morgen regnet es."], r: ["gs:fu2.r1"] },
           { q: "That will work, for sure.", a: ["Das wird sicher klappen.", "Das wird bestimmt klappen.", "Das wird sicher funktionieren.", "Das wird bestimmt funktionieren."], r: ["gs:fu2.r2"] },
@@ -163,7 +163,7 @@ cxPack({
           { q: "Your plans for next weekend — three of them (the Präsens is enough with a time word).", model: ["Am Samstag gehe ich auf den Markt. Am Nachmittag besuche ich meine Freundin, und am Sonntag fahren wir an den See."], r: ["gs:fu2.r1"] },
           { q: "Promise someone three things (Ich werde …).", model: ["Ich werde dich jeden Sonntag anrufen. Ich werde pünktlich sein. Ich werde dir beim Umzug helfen."], r: ["gs:fu2.r2"] },
           { q: "Switzerland in 2050: three predictions.", model: ["Im Jahr 2050 werden die Züge noch schneller sein. Es wird weniger Schnee geben, und viele Leute werden zu Hause arbeiten."], r: ["gs:fu2.r2", "gs:fu1.r2"] },
-          { q: "Your neighbour's lights are off all week. Guess why (wird wohl …).", model: ["Sie wird wohl in den Ferien sein. Oder sie wird bei ihrer Tochter in Bern wohnen."], r: ["gs:fu2.r3"] },
+          { q: "Your neighbour's lights are off all week. Guess why (wird wohl …).", model: ["Sie wird wohl in den Ferien sein. Oder sie wird bei ihrer Tochter in Bern sein."], r: ["gs:fu2.r3"] },
           { q: "After the fide test: what will you be able to do? (werde … können)", model: ["Nach dem Test werde ich mit den Nachbarn besser sprechen können. Ich werde auch eine bessere Stelle finden können."], r: ["gs:fu1.r2"] },
           { q: "Someone you know is becoming something (werden = become).", model: ["Mein Sohn wird Koch. Er macht eine Lehre in einem Hotel in Interlaken."], r: ["gs:fu1.trap"] },
           { q: "What will you have to do next month? (werde … müssen)", model: ["Nächsten Monat werde ich die Steuererklärung ausfüllen müssen. Ich werde auch den Mietvertrag verlängern müssen."], r: ["gs:fu1.r2"] },

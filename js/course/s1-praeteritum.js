@@ -14,21 +14,21 @@ cxPack({
   sections: {
     "s1.pt21": {
       diag: [
-        { t: "swap", from: "^\\w+test$", to: "^\\w+te$", rule: "gs:pt21.r2", msg: "ich and er/sie/es: no extra ending — **{right}**." },
-        { t: "swap", from: "^\\w+tet$", to: "^\\w+te$", rule: "gs:pt21.r2", msg: "ich and er/sie/es: no extra ending — **{right}**." },
-        { t: "swap", from: "^\\w+[^e]te(st|n|t)?$", to: "^\\w+ete(st|n|t)?$", rule: "gs:pt21.r3", msg: "After -t or -d (and in öffnen, atmen, regnen) the past adds **e**: **{right}**." },
-        { t: "swap", from: "^\\w+(e|st|t|en)$", to: "^\\w+te(st|n|t)?$", rule: "gs:pt21.r1", msg: "The Präteritum: the stem + **te** + the ending — **{right}**." },
-        { t: "ending", stem: "\\w+te", rule: "gs:pt21.table", msg: "The past, the wrong person: **{right}** — -te · -test · -te · -ten · -tet · -ten." },
+        { t: "swap", from: "^\\w+test$", to: "^\\w+te$", rule: "gs:pt21.r2", msg: "With ich and er/sie/es, there is no extra ending: **{right}**." },
+        { t: "swap", from: "^\\w+tet$", to: "^\\w+te$", rule: "gs:pt21.r2", msg: "With ich and er/sie/es, there is no extra ending: **{right}**." },
+        { t: "swap", from: "^\\w+[^e]te(st|n|t)?$", to: "^\\w+ete(st|n|t)?$", rule: "gs:pt21.r3", msg: "After -t or -d (and in öffnen, atmen, regnen), add an **e** before -te: **{right}**." },
+        { t: "swap", from: "^\\w+(e|st|t|en)$", to: "^\\w+te(st|n|t)?$", rule: "gs:pt21.r1", msg: "The Präteritum is the stem + **te** + the ending: **{right}**." },
+        { t: "ending", stem: "\\w+te", rule: "gs:pt21.table", msg: "Right past form, wrong person: **{right}**. The endings are -te, -test, -te, -ten, -tet, -ten." },
       ],
       drills: [
         // ── generated: Übung 14•1 — one verb, one person ──
         { id: "d14.1", ex: "14.1", t: "type", title: "The past: -te", how: "Write the Präteritum for the person given.", gen: { kind: "conj", verbs: ["spielen", "hören", "sagen", "fragen", "reisen", "machen", "stellen", "holen", "suchen", "kaufen", "tanzen", "zeigen", "brauchen", "glauben", "kochen", "lachen"], tense: "pt" }, n: 10, r: ["gs:pt21.r1", "gs:pt21.table"] },
         // ── generated: Übung 14•2 — every person of a verb ──
-        { id: "d14.2", ex: "14.2", t: "type", title: "Every person", how: "Write the Präteritum — ich and er are the same.", gen: { kind: "conj", verbs: ["lernen", "lächeln", "feiern", "leben", "lieben", "wohnen", "sammeln", "wandern"], tense: "pt" }, n: 10, r: ["gs:pt21.r2", "gs:pt21.table"] },
+        { id: "d14.2", ex: "14.2", t: "type", title: "Every person", how: "Write the Präteritum. ich and er have the same form.", gen: { kind: "conj", verbs: ["lernen", "lächeln", "feiern", "leben", "lieben", "wohnen", "sammeln", "wandern"], tense: "pt" }, n: 10, r: ["gs:pt21.r2", "gs:pt21.table"] },
         // ── generated: Übung 14•3 — stems in -t and -d ──
-        { id: "d14.3", ex: "14.3", t: "type", title: "-t, -d: arbeit-e-te", how: "Write the Präteritum — after -t or -d the past adds an e.", gen: { kind: "conj", verbs: ["enden", "reden", "antworten", "arbeiten", "warten", "baden", "öffnen", "atmen", "heiraten", "mieten", "landen"], tense: "pt" }, n: 10, r: ["gs:pt21.r3"] },
+        { id: "d14.3", ex: "14.3", t: "type", title: "-t, -d: arbeit-e-te", how: "Write the Präteritum. After -t or -d, add an e: arbeitete.", gen: { kind: "conj", verbs: ["enden", "reden", "antworten", "arbeiten", "warten", "baden", "öffnen", "atmen", "heiraten", "mieten", "landen"], tense: "pt" }, n: 10, r: ["gs:pt21.r3"] },
         // ── generated: Übung 14•4 — with prefixes ──
-        { id: "d14.4", ex: "14.4", t: "type", title: "With a prefix", how: "Write the Präteritum — a separable prefix goes after the verb (holte ab), an inseparable one stays (besuchte).", gen: { kind: "conj", verbs: ["besuchen", "erwarten", "abholen", "vorbereiten", "verkaufen", "zuhören", "aufhören", "einkaufen", "erzählen", "zumachen", "bezahlen", "aufräumen"], tense: "pt" }, n: 10, r: ["gs:pt21.r1", "gs:pt21.table"] },
+        { id: "d14.4", ex: "14.4", t: "type", title: "With a prefix", how: "Write the Präteritum. A separable prefix goes to the end (holte ab); others stay (besuchte).", gen: { kind: "conj", verbs: ["besuchen", "erwarten", "abholen", "vorbereiten", "verkaufen", "zuhören", "aufhören", "einkaufen", "erzählen", "zumachen", "bezahlen", "aufräumen"], tense: "pt" }, n: 10, r: ["gs:pt21.r1", "gs:pt21.table"] },
 
         // ── Übung 14•5: into the past ──
         { id: "d14.5", ex: "14.5", t: "transform", title: "Into the past", how: "Say it in the Präteritum.", items: [
@@ -49,7 +49,7 @@ cxPack({
           { q: "Er erzählt eine Geschichte.", a: ["Er erzählte eine Geschichte."], r: ["gs:pt21.r2"], vf: [["erzählen", "pt", "er"]] },
         ] },
         // ── Übung 14•6: Grandpa remembers the farm ──
-        { id: "d14.6", ex: "14.6", t: "type", title: "Grandpa remembers", how: "Opa tells you about his childhood on a farm — write the verb in the Präteritum.", items: [
+        { id: "d14.6", ex: "14.6", t: "type", title: "Grandpa remembers", how: "Opa tells you about his childhood on a farm. Write the verb in the Präteritum.", items: [
           { q: "Früher ___ wir auf einem Bauernhof im Emmental. (wohnen)", a: ["wohnten"], r: ["gs:pt21.table"], vf: [["wohnen", "pt", "wir"]] },
           { q: "Mein Vater ___ jeden Tag im Stall. (arbeiten)", a: ["arbeitete"], r: ["gs:pt21.r3"], vf: [["arbeiten", "pt", "er"]] },
           { q: "Meine Mutter ___ für die ganze Familie. (kochen)", a: ["kochte"], r: ["gs:pt21.r2"], vf: [["kochen", "pt", "er"]] },
@@ -64,7 +64,7 @@ cxPack({
           { q: "Wir ___ oft bis spät in die Nacht. (reden)", a: ["redeten"], r: ["gs:pt21.r3"], vf: [["reden", "pt", "wir"]] },
         ] },
         // ── Production: tell it in the past ──
-        { id: "dp.pt21", t: "translate", end: true, title: "Tell it in the past", how: "Translate — in the Präteritum, as when you tell a story.", items: [
+        { id: "dp.pt21", t: "translate", end: true, title: "Tell it in the past", how: "Translate into the Präteritum, as when you tell a story.", items: [
           { q: "We lived in Basel back then.", a: ["Wir wohnten damals in Basel.", "Damals wohnten wir in Basel."], r: ["gs:pt21.r1"], vf: [["wohnen", "pt", "wir"]] },
           { q: "My grandmother worked at a bank.", a: ["Meine Großmutter arbeitete bei einer Bank.", "Meine Großmutter arbeitete in einer Bank.", "Meine Oma arbeitete bei einer Bank.", "Meine Oma arbeitete in einer Bank."], r: ["gs:pt21.r3"], vf: [["arbeiten", "pt", "er"]] },
           { q: "I played football every day.", a: ["Ich spielte jeden Tag Fußball."], r: ["gs:pt21.r2"], vf: [["spielen", "pt", "ich"]] },
@@ -77,7 +77,7 @@ cxPack({
           { q: "I opened the window.", a: ["Ich öffnete das Fenster."], r: ["gs:pt21.r3"], vf: [["öffnen", "pt", "ich"]] },
           { q: "We picked up our grandparents.", a: ["Wir holten unsere Großeltern ab."], r: ["gs:pt21.r1"], vf: [["abholen", "pt", "wir"]] },
         ] },
-        { id: "dw.pt21", t: "write", end: true, title: "Write your own", how: "In your own words, in the Präteritum — saved for Claude to correct.", items: [
+        { id: "dw.pt21", t: "write", end: true, title: "Write your own", how: "Write in your own words, in the Präteritum. It is saved for Claude to correct.", items: [
           { q: "Where did you live as a child? What did your parents do?", model: ["Als Kind wohnte ich in Porto. Meine Mutter arbeitete in einem Spital, mein Vater reparierte Autos."], r: ["gs:pt21.r1", "gs:pt21.r3"] },
           { q: "A game you played as a child.", model: ["Wir spielten oft Verstecken im Garten, und meine Schwester zählte immer bis zwanzig."], r: ["gs:pt21.table"] },
           { q: "What did your grandparents tell you?", model: ["Mein Opa erzählte mir viele Geschichten von früher."], r: ["gs:pt21.r2"] },

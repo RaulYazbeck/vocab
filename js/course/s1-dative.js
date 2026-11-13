@@ -13,22 +13,22 @@ cxPack({
       // (no test-out after Stage 0 — sized so a check of every rule fits)
       testout: { n: 6, miss: 1 },
       rules: {
-        "dat.wem": "the person who gets it answers wem? — the dative",
-        "dat.art": "dem · der · dem · den — einem · einer · einem",
-        "dat.pl": "the dative plural: den … + -n on the noun",
-        "dat.words": "every word before the noun: -em · -er · -em · -en",
-        "dat.adj": "an adjective after them: always -en",
-        "dat.verbs": "geben, zeigen, schenken…: a dative person + an accusative thing",
+        "dat.wem": "The person who gets something answers wem? (dative)",
+        "dat.art": "Dative articles: dem, der, dem, den; einem, einer",
+        "dat.pl": "Dative plural: den, and the noun adds -n",
+        "dat.words": "Every word before the noun: -em, -er, -em, -en",
+        "dat.adj": "An adjective after them always ends in -en",
+        "dat.verbs": "Giving verbs: a dative person and an accusative thing",
       },
       sheets: [
         { id: "cx.dat1", title: "The dative: wem? — dem, der, dem, den", qn: 3,
           struct: [["Who", "who"], ["verb", "verb"], ["wem? · dative", "aux"], ["was? · accusative", "thing"]],
-          why: "Many verbs have two objects: the **thing** that is given, shown or sent (accusative) — and the **person** who gets it. That person is in the **dative**, the case that answers **wem?** (to whom?).",
+          why: "Many verbs have two objects: the **thing** that is given, shown or sent (accusative), and the **person** who gets it. That person is in the **dative**, which answers **wem?** (to whom?).",
           rid: ["dat.wem", "dat.art", "dat.pl"],
           rules: [
-            "The person who receives — the indirect object — answers **wem?**: Ich gebe **dem Kind** einen Apfel. — Wem gebe ich einen Apfel? **Dem Kind.** The thing (einen Apfel) stays in the accusative.",
-            "The dative articles: **dem** (der and das) · **der** (die) · **den** (plural) — **einem · einer · einem** — **keinen, meinen** (plural). Masculine and neuter look the same: **dem** Mann, **dem** Kind · **einem** Freund, **einem** Mädchen.",
-            "In the plural the noun itself adds **-n**: die Kinder → **den Kinder**n · die Freunde → **meinen Freunde**n. Not when it already ends in -n or takes -s: den Eltern · den Frauen · den Hotels.",
+            "The person who receives something is in the dative, which answers **wem** (to whom); the thing stays in the accusative. Ich gebe **dem Kind** einen Apfel. — Wem? **Dem Kind.**",
+            "In the dative, der and das become **dem**, die becomes **der**, and the plural takes **den**; *ein* becomes **einem** or **einer**. **dem** Mann · **dem** Kind · **der** Frau · **einem** Freund · **einer** Freundin",
+            "In the dative plural the noun itself adds **-n**: die Kinder, but **den Kinder**n. There is no extra -n if the plural already ends in -n or -s: den Eltern · den Frauen · den Hotels.",
           ],
           table: { head: ["", "m", "f", "n", "plural"], rows: [
             ["subject", "der · ein", "die · eine", "das · ein", "die · —"],
@@ -41,26 +41,26 @@ cxPack({
             ["Wir zeigen **den Kindern** den Zoo.", "We're showing the children the zoo."],
             ["Sie schreibt **ihrem Bruder** eine Nachricht.", "She's writing her brother a message."],
           ],
-          trap: "**der** is masculine as a subject but **feminine** in the dative: **Der** Mann gibt **der** Frau ein Buch. Ask: who gives? → der Mann · to whom? → der Frau.",
+          trap: "**der** is masculine as a subject but **feminine** in the dative: **Der** Mann gibt **der** Frau ein Buch. Ask who gives (der Mann) and to whom (der Frau).",
           quiz: [
-            { at: "r1", k: "pick", q: "Ich kaufe meinem Sohn ein Eis. — Wem kaufe ich ein Eis?", o: ["meinem Sohn", "ein Eis", "ich"], a: 0, why: "The person who gets it: **meinem Sohn** (dative)." },
-            { at: "r1", k: "pick", q: "Which one answers *wem?*", o: ["dem Lehrer", "den Lehrer", "der Lehrer"], a: 0, why: "wem? → the dative: **dem** Lehrer." },
-            { at: "r2", k: "pick", q: "Ich gebe ___ Mann den Schlüssel.", o: ["dem", "den", "der"], a: 0, why: "der Mann in the dative: **dem**." },
-            { at: "r2", k: "pick", q: "Er schreibt ___ Freundin eine Karte. (seine)", o: ["seiner", "seine", "seinem"], a: 0, why: "die Freundin in the dative: **seiner**." },
-            { at: "r2", k: "type", cx: true, q: "Wir zeigen ___ Gast das Zimmer. (der)", a: ["dem"], r: ["dat.art"], why: "der Gast in the dative: **dem**." },
-            { at: "r3", k: "pick", q: "Ich lese ___ eine Geschichte vor. (die Kinder)", o: ["den Kindern", "den Kinder", "die Kindern"], a: 0, why: "The dative plural: **den** + the noun with **-n**." },
-            { at: "r3", k: "type", cx: true, q: "Wir schicken unseren ___ ein Foto. (die Freunde)", a: ["Freunden"], r: ["dat.pl"], why: "The plural noun adds -n: **Freunden**." },
-            { at: "table", k: "pick", q: "The dative of *eine Lehrerin*:", o: ["einer Lehrerin", "einem Lehrerin", "eine Lehrerin"], a: 0, why: "Feminine: **einer**." },
-            { at: "trap", k: "pick", q: "Der Kellner gibt ___ Frau die Karte.", o: ["der", "die", "dem"], a: 0, why: "die Frau in the dative: **der** Frau." },
+            { at: "r1", k: "pick", q: "Ich kaufe meinem Sohn ein Eis. — Wem kaufe ich ein Eis?", o: ["meinem Sohn", "ein Eis", "ich"], a: 0, why: "The person who gets it is **meinem Sohn**: that's the dative." },
+            { at: "r1", k: "pick", q: "Which one answers *wem?*", o: ["dem Lehrer", "den Lehrer", "der Lehrer"], a: 0, why: "*wem?* asks for the dative: **dem** Lehrer." },
+            { at: "r2", k: "pick", q: "Ich gebe ___ Mann den Schlüssel.", o: ["dem", "den", "der"], a: 0, why: "*der Mann* in the dative is **dem** Mann." },
+            { at: "r2", k: "pick", q: "Er schreibt ___ Freundin eine Karte. (seine)", o: ["seiner", "seine", "seinem"], a: 0, why: "*die Freundin* in the dative is **seiner** Freundin." },
+            { at: "r2", k: "type", cx: true, q: "Wir zeigen ___ Gast das Zimmer. (der)", a: ["dem"], r: ["dat.art"], why: "*der Gast* in the dative is **dem** Gast." },
+            { at: "r3", k: "pick", q: "Ich lese ___ eine Geschichte vor. (die Kinder)", o: ["den Kindern", "den Kinder", "die Kindern"], a: 0, why: "Dative plural: **den**, and the noun adds **-n**." },
+            { at: "r3", k: "type", cx: true, q: "Wir schicken unseren ___ ein Foto. (die Freunde)", a: ["Freunden"], r: ["dat.pl"], why: "In the dative plural the noun adds -n: **Freunden**." },
+            { at: "table", k: "pick", q: "The dative of *eine Lehrerin*:", o: ["einer Lehrerin", "einem Lehrerin", "eine Lehrerin"], a: 0, why: "Feminine in the dative: **einer**." },
+            { at: "trap", k: "pick", q: "Der Kellner gibt ___ Frau die Karte.", o: ["der", "die", "dem"], a: 0, why: "*die Frau* in the dative is **der** Frau." },
           ] },
         { id: "cx.dat2", title: "Every word in the dative — and the giving verbs", qn: 3,
           struct: [["dies- · mein-", "verb"], ["-em · -er · -em · -en", "end"], ["+ adjective", "mid"], ["-en", "end"]],
-          why: "Every word before the noun takes the same dative endings — der-words and ein-words alike, and an adjective after them always ends in **-en**. And a short list of verbs nearly always brings a dative person with it.",
+          why: "In the dative, every word before the noun takes the same endings, and an adjective after them always ends in **-en**. Verbs of giving and telling usually bring a dative person with them.",
           rid: ["dat.words", "dat.adj", "dat.verbs"],
           rules: [
-            "der-words and ein-words share the dative endings **-em · -er · -em · -en**: dies**em** Mann · jed**er** Kundin · mein**em** Kind · unser**en** Gästen · welch**em** Kollegen?",
-            "An adjective after them always ends in **-en** in the dative: dem **alten** Mann · der **neuen** Kollegin · meinem **kleinen** Bruder · den **netten** Nachbarn.",
-            "Verbs of giving and telling take a **dative person** and an **accusative thing**: **geben · schenken · bringen · schicken · zeigen · erklären · erzählen · empfehlen · kaufen · leihen · schreiben**: Ich **erkläre dem Kunden den Weg**.",
+            "All der-words and ein-words take the same dative endings: **-em** (m), **-er** (f), **-em** (n), **-en** (plural). dies**em** Mann · jed**er** Kundin · mein**em** Kind · unser**en** Gästen",
+            "An adjective after these words always ends in **-en** in the dative. dem **alten** Mann · der **neuen** Kollegin · meinem **kleinen** Bruder · den **netten** Nachbarn",
+            "Verbs of giving and telling take a **dative person** and an **accusative thing**: geben, schenken, bringen, schicken, zeigen, erklären, erzählen, empfehlen, kaufen, leihen, schreiben. Ich **erkläre dem Kunden den Weg**.",
           ],
           table: { head: ["", "der-words · ein-words", "+ adjective"], rows: [
             ["m", "dies**em** · mein**em**", "dem alt**en** Mann"],
@@ -74,30 +74,30 @@ cxPack({
             ["Das Hotel gibt **jedem Gast** einen Stadtplan.", "The hotel gives every guest a city map."],
             ["Wir haben **unseren Nachbarn** ein Foto geschickt.", "We sent our neighbours a photo."],
           ],
-          trap: "A few masculine nouns add an **-n** here too: dem Kolleg**en**, dem Nachbar**n**, Herr**n** Graf, dem Jung**en**. Notice them for now — they get their own lesson later.",
+          trap: "A few masculine nouns add **-n** in the dative too: dem Kolleg**en**, dem Nachbar**n**, Herr**n** Graf, dem Jung**en**. Just notice them for now; they get their own lesson later.",
           quiz: [
-            { at: "r1", k: "pick", q: "Ich gebe ___ Kind ein Stück Kuchen. (jedes)", o: ["jedem", "jeden", "jeder"], a: 0, why: "das Kind in the dative: **jedem**." },
-            { at: "r1", k: "type", cx: true, q: "Wir schicken ___ Tante eine Karte. (unsere)", a: ["unserer"], r: ["dat.words"], why: "die Tante in the dative: **unserer**." },
-            { at: "r2", k: "pick", q: "Ich zeige dem ___ Gast das Zimmer. (neu)", o: ["neuen", "neue", "neuem"], a: 0, why: "In the dative, after dem: **-en**." },
-            { at: "r2", k: "type", cx: true, q: "Er erzählt der ___ Frau eine Geschichte. (alt)", a: ["alten"], r: ["dat.adj"], why: "In the dative, after der: **-en**." },
-            { at: "r3", k: "pick", q: "Which is right?", o: ["Ich gebe der Lehrerin das Heft.", "Ich gebe die Lehrerin das Heft."], a: 0, why: "geben: the person in the dative — **der** Lehrerin." },
-            { at: "r3", k: "order", q: "Build it: We're showing the guests the old town.", a: ["Wir", "zeigen", "den Gästen", "die Altstadt."], why: "The dative person, then the accusative thing." },
-            { at: "table", k: "pick", q: "Ich kaufe meinem ___ Bruder ein Spiel. (klein)", o: ["kleinen", "kleinem", "kleiner"], a: 0, why: "After meinem: **-en**." },
-            { at: "trap", k: "pick", q: "Ich schreibe ___ eine E-Mail. (der Kollege)", o: ["dem Kollegen", "dem Kollege", "den Kollege"], a: 0, why: "Kollege adds -n: **dem Kollegen**." },
+            { at: "r1", k: "pick", q: "Ich gebe ___ Kind ein Stück Kuchen. (jedes)", o: ["jedem", "jeden", "jeder"], a: 0, why: "*das Kind* in the dative is **jedem** Kind." },
+            { at: "r1", k: "type", cx: true, q: "Wir schicken ___ Tante eine Karte. (unsere)", a: ["unserer"], r: ["dat.words"], why: "*die Tante* in the dative is **unserer** Tante." },
+            { at: "r2", k: "pick", q: "Ich zeige dem ___ Gast das Zimmer. (neu)", o: ["neuen", "neue", "neuem"], a: 0, why: "After *dem*, the adjective ends in **-en**." },
+            { at: "r2", k: "type", cx: true, q: "Er erzählt der ___ Frau eine Geschichte. (alt)", a: ["alten"], r: ["dat.adj"], why: "After dative *der*, the adjective ends in **-en**." },
+            { at: "r3", k: "pick", q: "Which is right?", o: ["Ich gebe der Lehrerin das Heft.", "Ich gebe die Lehrerin das Heft."], a: 0, why: "With *geben* the person is in the dative: **der** Lehrerin." },
+            { at: "r3", k: "order", q: "Build it: We're showing the guests the old town.", a: ["Wir", "zeigen", "den Gästen", "die Altstadt."], why: "First the dative person, then the accusative thing." },
+            { at: "table", k: "pick", q: "Ich kaufe meinem ___ Bruder ein Spiel. (klein)", o: ["kleinen", "kleinem", "kleiner"], a: 0, why: "After *meinem*, the adjective ends in **-en**." },
+            { at: "trap", k: "pick", q: "Ich schreibe ___ eine E-Mail. (der Kollege)", o: ["dem Kollegen", "dem Kollege", "den Kollege"], a: 0, why: "*Kollege* adds -n in the dative: **dem Kollegen**." },
           ] },
       ],
       diag: [
-        { t: "swap", from: "^den$", to: "^dem$", rule: "dat.art", msg: "The dative of der and das is **dem** — den is the accusative (or the dative plural)." },
-        { t: "swap", from: "^der$", to: "^dem$", rule: "dat.art", msg: "Masculine and neuter in the dative: **dem**." },
-        { t: "swap", from: "^(dem|die)$", to: "^der$", rule: "dat.art", msg: "A feminine noun in the dative: **der**." },
-        { t: "swap", from: "^(die|das)$", to: "^(dem|den)$", rule: "dat.art", msg: "The person who gets it is in the dative: **{right}**." },
-        { t: "ending", stem: "k?ein", rule: "dat.art", msg: "Right word, wrong ending: **{right}** — einem (m, n), einer (f), keinen (plural)." },
-        { t: "ending", stem: "(dies|jed|welch|mein|dein|sein|ihr|unser|eu)", rule: "dat.words", msg: "Right word, wrong ending: **{right}** — the dative: -em · -er · -em · -en." },
-        { t: "ending", stem: "(alt|neu|klein|nett|jung|gross|lieb|best|freundlich|krank|italienisch)", rule: "dat.adj", msg: "In the dative an adjective after an article ends in **-en**: {right}." },
+        { t: "swap", from: "^den$", to: "^dem$", rule: "dat.art", msg: "The dative of der and das is **dem**. *den* is the accusative (or the dative plural)." },
+        { t: "swap", from: "^der$", to: "^dem$", rule: "dat.art", msg: "Masculine and neuter nouns take **dem** in the dative." },
+        { t: "swap", from: "^(dem|die)$", to: "^der$", rule: "dat.art", msg: "A feminine noun takes **der** in the dative." },
+        { t: "swap", from: "^(die|das)$", to: "^(dem|den)$", rule: "dat.art", msg: "The person who gets something is in the dative: **{right}**." },
+        { t: "ending", stem: "k?ein", rule: "dat.art", msg: "Right word, wrong ending: **{right}**. In the dative: einem (m, n), einer (f), keinen (plural)." },
+        { t: "ending", stem: "(dies|jed|welch|mein|dein|sein|ihr|unser|eu)", rule: "dat.words", msg: "Right word, wrong ending: **{right}**. Dative endings: -em (m, n), -er (f), -en (plural)." },
+        { t: "ending", stem: "(alt|neu|klein|nett|jung|gross|lieb|best|freundlich|krank|italienisch)", rule: "dat.adj", msg: "After an article in the dative, the adjective ends in **-en**: {right}." },
       ],
       drills: [
         // ── our own: recognise the dative ──
-        { id: "ddat.w", t: "pick", title: "To whom?", how: "Pick the dative — the person who gets it.", items: [
+        { id: "ddat.w", t: "pick", title: "To whom?", how: "Pick the dative form for the person who gets something.", items: [
           { q: "Ich gebe ___ Lehrer das Heft.", o: ["dem", "den", "der"], a: ["dem"], r: ["dat.art"] },
           { q: "Er schenkt ___ Frau Blumen.", o: ["seiner", "seine", "seinem"], a: ["seiner"], r: ["dat.art"] },
           { q: "Wir bringen ___ Kind ein Glas Milch.", o: ["dem", "das", "den"], a: ["dem"], r: ["dat.art"] },
@@ -126,7 +126,7 @@ cxPack({
           { q: "die Kinder → ___", a: ["den Kindern"], r: ["dat.pl"] },
         ] },
         // ── Übung 15•2: the indirect object in place ──
-        { id: "d15.2", ex: "15.2", t: "type", title: "Who gets it?", how: "Put the words in brackets in as the person who gets it — in the dative.", items: [
+        { id: "d15.2", ex: "15.2", t: "type", title: "Who gets it?", how: "Fill the gap with the person in brackets, in the dative.", items: [
           { q: "(mein Vater) Ich schicke ___ ein Paket.", a: ["meinem Vater"], r: ["dat.art"] },
           { q: "(meine Tante) Wir schenken ___ einen Gutschein.", a: ["meiner Tante"], r: ["dat.art"] },
           { q: "(ihr Sohn) Sie kauft ___ neue Schuhe.", a: ["ihrem Sohn"], r: ["dat.art"] },
@@ -139,7 +139,7 @@ cxPack({
           { q: "(meine Freundinnen) Ich erzähle ___ die Neuigkeit.", a: ["meinen Freundinnen"], r: ["dat.pl"] },
         ] },
         // ── Übung 15•8: der-words in the dative ──
-        { id: "d15.8", ex: "15.8", t: "type", title: "dem, der, diesem, jedem…", how: "Write the words in brackets as they stand in the gap — in the dative.", items: [
+        { id: "d15.8", ex: "15.8", t: "type", title: "dem, der, diesem, jedem…", how: "Write the words in brackets in the gap, in the dative.", items: [
           { q: "(diese Leute) Was zeigen Sie ___?", a: ["diesen Leuten"], r: ["dat.words", "dat.pl"] },
           { q: "(jeder Gast) Das Hotel schenkt ___ eine Flasche Wasser.", a: ["jedem Gast"], r: ["dat.words"] },
           { q: "(die Schüler) Die Lehrerin zeigt ___ die Bilder.", a: ["den Schülern"], r: ["dat.pl"] },
@@ -153,7 +153,7 @@ cxPack({
           { q: "(der Hauswart) Wir geben ___ den Schlüssel zurück.", a: ["dem Hauswart"], r: ["dat.art"] },
         ] },
         // ── Übung 15•9: with an adjective ──
-        { id: "d15.9", ex: "15.9", t: "type", title: "With an adjective: -en", how: "Write the words in brackets in the gap — in the dative, the adjective too.", items: [
+        { id: "d15.9", ex: "15.9", t: "type", title: "With an adjective: -en", how: "Write the words in brackets in the gap, in the dative. The adjective changes too.", items: [
           { q: "(nett / unsere Nachbarn) Wir bringen ___ einen Kuchen.", a: ["unseren netten Nachbarn"], r: ["dat.adj"] },
           { q: "(jung / die Ärztin) Ich gebe ___ meine Karte.", a: ["der jungen Ärztin"], r: ["dat.adj"] },
           { q: "(klein / mein Bruder) Ich kaufe ___ ein Spiel.", a: ["meinem kleinen Bruder"], r: ["dat.adj"] },
@@ -167,7 +167,7 @@ cxPack({
           { q: "(groß / ihr Sohn) Sie leiht ___ ihr Auto.", a: ["ihrem großen Sohn"], r: ["dat.adj"] },
         ] },
         // ── our own: add the person ──
-        { id: "ddat.o", t: "transform", title: "Add the person", how: "Add the person in brackets — in the dative, before the thing.", items: [
+        { id: "ddat.o", t: "transform", title: "Add the person", how: "Add the person in brackets, in the dative, before the thing.", items: [
           { q: "Ich schenke ein Buch. (meine Schwester)", a: ["Ich schenke meiner Schwester ein Buch."], r: ["dat.verbs", "dat.art"] },
           { q: "Der Kellner bringt die Rechnung. (der Gast)", a: ["Der Kellner bringt dem Gast die Rechnung."], r: ["dat.verbs", "dat.art"] },
           { q: "Wir zeigen die Altstadt. (unsere Freunde)", a: ["Wir zeigen unseren Freunden die Altstadt."], r: ["dat.verbs", "dat.pl"] },
@@ -180,7 +180,7 @@ cxPack({
           { q: "Die Ärztin gibt ein Rezept. (die Patientin)", a: ["Die Ärztin gibt der Patientin ein Rezept."], r: ["dat.verbs", "dat.art"] },
         ] },
         // ── Production: build it, say it ──
-        { id: "dp.dat", t: "compose", end: true, title: "Build it yourself", how: "Make a sentence — the person who gets it in the dative.", d: ["den", "der"], items: [
+        { id: "dp.dat", t: "compose", end: true, title: "Build it yourself", how: "Make a sentence. The person who gets something goes in the dative.", d: ["den", "der"], items: [
           { w: ["ich", "geben", "der", "Kellner", "das Geld"], a: ["Ich gebe dem Kellner das Geld."], r: ["dat.verbs", "dat.art"] },
           { w: ["wir", "schenken", "unsere", "Mutter", "ein", "Fahrrad"], a: ["Wir schenken unserer Mutter ein Fahrrad."], r: ["dat.verbs", "dat.art"] },
           { w: ["die Lehrerin", "erklären", "die", "Schüler", "die Aufgabe"], a: ["Die Lehrerin erklärt den Schülern die Aufgabe."], r: ["dat.verbs", "dat.pl"] },
@@ -210,21 +210,21 @@ cxPack({
       testout: { n: 6, miss: 1 },
       rules: {
         "datp.forms": "mir, dir, ihm, ihr, uns, euch, ihnen, Ihnen",
-        "datp.3": "ihm for der/das, ihr for die, ihnen for the plural",
-        "datp.vs": "mich or mir? the thing → accusative, the person who gets it → dative",
-        "ord.noun": "two nouns: the dative person first",
-        "ord.pron": "a pronoun before a noun",
-        "ord.both": "two pronouns: the accusative first — ich gebe es dir",
+        "datp.3": "ihm for der and das, ihr for die, ihnen for plurals",
+        "datp.vs": "mich or mir? The person who gets something takes mir",
+        "ord.noun": "Two nouns: the dative person first",
+        "ord.pron": "A pronoun comes before a noun",
+        "ord.both": "Two pronouns: the accusative first (Ich gebe es dir)",
       },
       sheets: [
         { id: "cx.datp1", title: "mir, dir, ihm, ihr…", qn: 3,
           struct: [["ich → mir", "who"], ["du → dir", "who"], ["er, es → ihm", "who"], ["sie → ihr", "who"]],
-          why: "The dative has its own pronouns — the *to me, to you* words. Two you know from the accusative (**uns**, **euch**); the rest are new: **mir, dir, ihm, ihr, ihnen, Ihnen**.",
+          why: "The dative has its own pronouns, the *to me, to you* words. **uns** and **euch** are the same as in the accusative; the rest are new: **mir, dir, ihm, ihr, ihnen, Ihnen**.",
           rid: ["datp.forms", "datp.3", "datp.vs"],
           rules: [
-            "**mir · dir · ihm · ihr · uns · euch · ihnen · Ihnen**: Gibst du **mir** das Salz? · Ich schreibe **dir** morgen. · Wir zeigen **Ihnen** das Zimmer.",
-            "The third person follows the noun: der Mann, das Kind → **ihm** · die Frau → **ihr** · die Leute → **ihnen**. **Ihnen** with a capital is the polite *you*: Darf ich **Ihnen** etwas bringen?",
-            "Accusative or dative? What the verb acts on is accusative (mich, dich, ihn…); the person who gets something is dative (mir, dir, ihm…): Er sieht **mich**. — Er gibt **mir** das Buch. · Ich frage **dich**. — Ich erkläre **dir** die Aufgabe.",
+            "The dative pronouns are **mir, dir, ihm, ihr, uns, euch, ihnen**, and **Ihnen** for polite *you*. Gibst du **mir** das Salz? · Ich schreibe **dir** morgen. · Wir zeigen **Ihnen** das Zimmer.",
+            "In the third person, use **ihm** for der and das nouns, **ihr** for die nouns and **ihnen** for plurals. der Mann, das Kind: **ihm** · die Frau: **ihr** · die Leute: **ihnen**. Darf ich **Ihnen** etwas bringen?",
+            "What the verb acts on is accusative (**mich, dich, ihn**…), but the person who gets something is dative (**mir, dir, ihm**…). Er sieht **mich**. — Er gibt **mir** das Buch. · Ich frage **dich**. — Ich erkläre **dir** die Aufgabe.",
           ],
           table: { head: ["", "nominative", "accusative", "dative"], rows: [
             ["I", "ich", "mich", "**mir**"], ["you", "du", "dich", "**dir**"], ["he · it", "er · es", "ihn · es", "**ihm**"], ["she", "sie", "sie", "**ihr**"],
@@ -236,27 +236,27 @@ cxPack({
             ["Lisa hat Geburtstag — was schenken wir **ihr**?", "It's Lisa's birthday — what shall we give her?"],
             ["Darf ich **Ihnen** einen Kaffee bringen?", "May I bring you a coffee?"],
           ],
-          trap: "**ihr** is two words: *you* (several people, the subject: **ihr** kommt) and *to her* (ich gebe **ihr** das Buch). And **ihnen** (to them) and **Ihnen** (to you, polite) differ only by the capital.",
+          trap: "**ihr** has two jobs: *you* for several people (**ihr** kommt) and *to her* (ich gebe **ihr** das Buch). **ihnen** (to them) and **Ihnen** (to you, polite) differ only in the capital.",
           quiz: [
-            { at: "r1", k: "pick", q: "Gibst du ___ bitte das Brot? (me)", o: ["mir", "mich", "ich"], a: 0, why: "To me: **mir**." },
-            { at: "r1", k: "type", cx: true, q: "Ich schreibe ___ morgen eine E-Mail. (du)", a: ["dir"], r: ["datp.forms"], why: "To you: **dir**." },
-            { at: "r2", k: "pick", q: "Das ist Tom. Ich gebe ___ den Schlüssel.", o: ["ihm", "ihn", "ihr"], a: 0, why: "To him: **ihm**." },
-            { at: "r2", k: "pick", q: "Das ist Anna. Ich zeige ___ den Weg.", o: ["ihr", "sie", "ihm"], a: 0, why: "To her: **ihr**." },
-            { at: "r2", k: "pick", q: "Die Kinder haben Hunger. Ich mache ___ ein Brot.", o: ["ihnen", "sie", "ihr"], a: 0, why: "To them: **ihnen**." },
-            { at: "r3", k: "pick", q: "Er besucht ___ morgen. (me)", o: ["mich", "mir"], a: 0, why: "besuchen: whom? → the accusative **mich**." },
-            { at: "r3", k: "pick", q: "Er bringt ___ einen Tee. (me)", o: ["mir", "mich"], a: 0, why: "I get the tea: the dative **mir**." },
-            { at: "table", k: "type", cx: true, q: "Wir erklären ___ das Problem. (sie — they)", a: ["ihnen"], r: ["datp.3"], why: "To them: **ihnen**." },
-            { at: "trap", k: "pick", q: "To her: Ich schicke ___ ein Foto.", o: ["ihr", "sie", "Ihnen"], a: 0, why: "To her: **ihr**." },
-            { at: "trap", k: "pick", q: "The polite *you*: Kann ich ___ etwas bringen?", o: ["Ihnen", "ihnen", "Sie"], a: 0, why: "**Ihnen** — with a capital." },
+            { at: "r1", k: "pick", q: "Gibst du ___ bitte das Brot? (me)", o: ["mir", "mich", "ich"], a: 0, why: "*To me* is **mir**." },
+            { at: "r1", k: "type", cx: true, q: "Ich schreibe ___ morgen eine E-Mail. (du)", a: ["dir"], r: ["datp.forms"], why: "*To you* (du) is **dir**." },
+            { at: "r2", k: "pick", q: "Das ist Tom. Ich gebe ___ den Schlüssel.", o: ["ihm", "ihn", "ihr"], a: 0, why: "*To him* is **ihm**." },
+            { at: "r2", k: "pick", q: "Das ist Anna. Ich zeige ___ den Weg.", o: ["ihr", "sie", "ihm"], a: 0, why: "*To her* is **ihr**." },
+            { at: "r2", k: "pick", q: "Die Kinder haben Hunger. Ich mache ___ ein Brot.", o: ["ihnen", "sie", "ihr"], a: 0, why: "*For them* is **ihnen**." },
+            { at: "r3", k: "pick", q: "Er besucht ___ morgen. (me)", o: ["mich", "mir"], a: 0, why: "*besuchen* acts on the person directly: accusative **mich**." },
+            { at: "r3", k: "pick", q: "Er bringt ___ einen Tee. (me)", o: ["mir", "mich"], a: 0, why: "I get the tea, so it's the dative: **mir**." },
+            { at: "table", k: "type", cx: true, q: "Wir erklären ___ das Problem. (sie — they)", a: ["ihnen"], r: ["datp.3"], why: "*To them* is **ihnen**." },
+            { at: "trap", k: "pick", q: "To her: Ich schicke ___ ein Foto.", o: ["ihr", "sie", "Ihnen"], a: 0, why: "*To her* is **ihr**." },
+            { at: "trap", k: "pick", q: "The polite *you*: Kann ich ___ etwas bringen?", o: ["Ihnen", "ihnen", "Sie"], a: 0, why: "The polite *you* in the dative is **Ihnen**, with a capital." },
           ] },
         { id: "cx.datp2", title: "Two objects: which comes first?", qn: 3,
           struct: [["verb", "verb"], ["pronoun", "who"], ["before", "mid"], ["noun", "thing"]],
-          why: "With two objects German follows a rule of thumb: **short before long** — a pronoun before a noun. Only when both are pronouns does the accusative go first.",
+          why: "With two objects, German follows a rule of thumb: **short before long**, so a pronoun comes before a noun. Only when both are pronouns does the accusative go first.",
           rid: ["ord.noun", "ord.pron", "ord.both"],
           rules: [
-            "Two nouns: usually the **dative person first**, then the accusative thing: Ich gebe **dem Kind** **einen Apfel**.",
-            "One pronoun: the **pronoun first**, whichever case it is: Ich gebe **ihm** einen Apfel. · Ich gebe **ihn** dem Kind.",
-            "Two pronouns: the **accusative first**, then the dative: Ich gebe **ihn ihm**. · Kannst du **es mir** zeigen? · Ich schicke **sie dir** morgen.",
+            "With two nouns, the **dative person** usually comes first, then the accusative thing. Ich gebe **dem Kind** **einen Apfel**.",
+            "With one pronoun and one noun, the **pronoun** comes first, whatever its case. Ich gebe **ihm** einen Apfel. · Ich gebe **ihn** dem Kind.",
+            "With two pronouns, the **accusative** comes first, then the dative. Ich gebe **ihn ihm**. · Kannst du **es mir** zeigen? · Ich schicke **sie dir** morgen.",
           ],
           table: { head: ["", "verb", "1st object", "2nd object"], rows: [
             ["Ich", "gebe", "dem Kind", "einen Apfel."], ["Ich", "gebe", "**ihm**", "einen Apfel."], ["Ich", "gebe", "**ihn**", "dem Kind."], ["Ich", "gebe", "**ihn**", "**ihm**."],
@@ -267,29 +267,29 @@ cxPack({
             ["Zeigst du den Gästen das Zimmer? — Ja, ich zeige **es ihnen**.", "Will you show the guests the room? — Yes, I'll show it to them."],
             ["Kannst du **mir** das bitte erklären?", "Can you explain that to me, please?"],
           ],
-          trap: "Two pronouns are never ~~ihm ihn~~ — the accusative goes first: ich gebe **ihn ihm**. In speech *es* often shrinks: Gib's mir! = Gib **es mir**!",
+          trap: "Two pronouns are never ~~ihm ihn~~; the accusative goes first: ich gebe **ihn ihm**. In speech *es* often shrinks: Gib's mir! means Gib **es mir**!",
           quiz: [
-            { at: "r1", k: "pick", q: "The usual order:", o: ["Ich schenke meiner Mutter die Blumen.", "Ich schenke die Blumen meiner Mutter."], a: 0, why: "Two nouns: usually the dative person first. (The other order stresses the person.)" },
-            { at: "r1", k: "order", q: "Build it: I'm showing the tourists the way.", a: ["Ich", "zeige", "den Touristen", "den Weg."], why: "The dative person, then the thing." },
-            { at: "r2", k: "pick", q: "Der Ball? Ich gebe ___ dem Kind.", o: ["ihn", "ihm", "er"], a: 0, why: "The ball (der Ball) as a pronoun: **ihn**, before the noun." },
-            { at: "r2", k: "pick", q: "The usual order:", o: ["Ich gebe ihm den Ball.", "Ich gebe den Ball ihm."], a: 0, why: "A pronoun before a noun." },
-            { at: "r3", k: "pick", q: "Das Buch? Ich gebe ___.", o: ["es dir", "dir es", "dich es"], a: 0, why: "Two pronouns: the accusative (es) first." },
-            { at: "r3", k: "order", q: "Build it: The letter? I'll send it to you tomorrow.", a: ["Ich", "schicke", "ihn", "dir", "morgen."], why: "Accusative (ihn), then dative (dir)." },
-            { at: "table", k: "pick", q: "den Apfel and dem Kind, both as pronouns: Ich gebe ___.", o: ["ihn ihm", "ihm ihn", "ihn ihn"], a: 0, why: "Accusative first: **ihn ihm**." },
-            { at: "trap", k: "pick", q: "Which is right?", o: ["Kannst du es mir zeigen?", "Kannst du mir es zeigen?"], a: 0, why: "Two pronouns: es (accusative) first." },
+            { at: "r1", k: "pick", q: "The usual order:", o: ["Ich schenke meiner Mutter die Blumen.", "Ich schenke die Blumen meiner Mutter."], a: 0, why: "Two nouns: the dative person usually comes first. The other order stresses the person." },
+            { at: "r1", k: "order", q: "Build it: I'm showing the tourists the way.", a: ["Ich", "zeige", "den Touristen", "den Weg."], why: "First the dative person, then the thing." },
+            { at: "r2", k: "pick", q: "Der Ball? Ich gebe ___ dem Kind.", o: ["ihn", "ihm", "er"], a: 0, why: "*der Ball* as a pronoun is **ihn**, and it goes before the noun." },
+            { at: "r2", k: "pick", q: "The usual order:", o: ["Ich gebe ihm den Ball.", "Ich gebe den Ball ihm."], a: 0, why: "A pronoun comes before a noun." },
+            { at: "r3", k: "pick", q: "Das Buch? Ich gebe ___.", o: ["es dir", "dir es", "dich es"], a: 0, why: "Two pronouns: the accusative (*es*) comes first." },
+            { at: "r3", k: "order", q: "Build it: The letter? I'll send it to you tomorrow.", a: ["Ich", "schicke", "ihn", "dir", "morgen."], why: "Accusative (*ihn*) first, then dative (*dir*)." },
+            { at: "table", k: "pick", q: "den Apfel and dem Kind, both as pronouns: Ich gebe ___.", o: ["ihn ihm", "ihm ihn", "ihn ihn"], a: 0, why: "Two pronouns: accusative first, so **ihn ihm**." },
+            { at: "trap", k: "pick", q: "Which is right?", o: ["Kannst du es mir zeigen?", "Kannst du mir es zeigen?"], a: 0, why: "Two pronouns: *es* (accusative) comes first." },
           ] },
       ],
       diag: [
         { t: "swap", from: "^(mich|dich|ihn|sie)$", to: "^(mir|dir|ihm|ihr|ihnen)$", rule: "datp.vs", msg: "The person who gets something is in the dative: **{right}**, not {typed}." },
-        { t: "swap", from: "^(mir|dir|ihm|ihr|ihnen)$", to: "^(mich|dich|ihn|sie|es)$", rule: "datp.vs", msg: "This one is what the verb acts on — the accusative: **{right}**, not {typed}." },
-        { t: "swap", from: "^(ich|du|er|wir)$", to: "^(mir|dir|ihm|uns)$", rule: "datp.forms", msg: "As the dative object: **{right}**." },
-        { t: "swap", from: "^(ihm|ihr|ihnen)$", to: "^(ihm|ihr|ihnen)$", rule: "datp.3", msg: "**{right}** — ihm for der and das, ihr for die, ihnen for the plural." },
-        { t: "pos", tok: "^(es|ihn)$", msg: "Short before long: the pronouns come right after the verb — and of two pronouns the accusative goes first: es / ihn goes {where}." },
-        { t: "pos", tok: "^(mir|dir|ihm|ihr|uns|euch|ihnen)$", msg: "Short before long: a pronoun comes before a noun, right after the verb — it goes {where}." },
+        { t: "swap", from: "^(mir|dir|ihm|ihr|ihnen)$", to: "^(mich|dich|ihn|sie|es)$", rule: "datp.vs", msg: "This is what the verb acts on, so it's accusative: **{right}**, not {typed}." },
+        { t: "swap", from: "^(ich|du|er|wir)$", to: "^(mir|dir|ihm|uns)$", rule: "datp.forms", msg: "The dative object here is **{right}**." },
+        { t: "swap", from: "^(ihm|ihr|ihnen)$", to: "^(ihm|ihr|ihnen)$", rule: "datp.3", msg: "It's **{right}**: ihm for der and das, ihr for die, ihnen for plurals." },
+        { t: "pos", tok: "^(es|ihn)$", msg: "Pronouns go right after the verb, and of two pronouns the accusative comes first. *es* or *ihn* goes {where}." },
+        { t: "pos", tok: "^(mir|dir|ihm|ihr|uns|euch|ihnen)$", msg: "A pronoun comes before a noun, right after the verb. It goes {where}." },
       ],
       drills: [
         // ── Übung 15•3: the dative pronoun ──
-        { id: "d15.3", ex: "15.3", t: "type", title: "mir, dir, ihm…", how: "Write the pronoun in brackets as the person who gets it — in the dative.", items: [
+        { id: "d15.3", ex: "15.3", t: "type", title: "mir, dir, ihm…", how: "Write the pronoun in brackets in the dative.", items: [
           { q: "Ich gebe ___ den Schlüssel. (du)", a: ["dir"], r: ["datp.forms"] },
           { q: "Kannst du ___ das Salz geben? (ich)", a: ["mir"], r: ["datp.forms"] },
           { q: "Wir schicken ___ eine Postkarte. (ihr)", a: ["euch"], r: ["datp.forms"] },
@@ -302,7 +302,7 @@ cxPack({
           { q: "Die Oma erzählt ___ von früher. (das Kind)", a: ["ihm"], r: ["datp.3"] },
         ] },
         // ── our own: mich or mir? ──
-        { id: "ddatp.vs", t: "pick", title: "mich or mir?", how: "Pick the pronoun: what the verb acts on → accusative · the person who gets something → dative.", items: [
+        { id: "ddatp.vs", t: "pick", title: "mich or mir?", how: "Pick the pronoun: accusative for what the verb acts on, dative for the person who gets something.", items: [
           { q: "Er ruft ___ morgen an. (me)", o: ["mich", "mir"], a: ["mich"], r: ["datp.vs"] },
           { q: "Sie schreibt ___ eine Karte. (me)", o: ["mir", "mich"], a: ["mir"], r: ["datp.vs"] },
           { q: "Kennst du ___? (him)", o: ["ihn", "ihm"], a: ["ihn"], r: ["datp.vs"] },
@@ -315,7 +315,7 @@ cxPack({
           { q: "Ich bringe ___ einen Kaffee. (them)", o: ["ihnen", "sie"], a: ["ihnen"], r: ["datp.vs"] },
         ] },
         // ── Übung 15•10: the sentence with the pronoun ──
-        { id: "d15.10", ex: "15.10", t: "transform", title: "Say it with the pronoun", how: "Write the sentence with the pronoun in brackets — in the dative.", items: [
+        { id: "d15.10", ex: "15.10", t: "transform", title: "Say it with the pronoun", how: "Write the sentence with the pronoun in brackets, in the dative.", items: [
           { q: "(du) Ich leihe ___ meinen Schirm.", a: ["Ich leihe dir meinen Schirm."], r: ["datp.forms"] },
           { q: "(wir) Die Nachbarn bringen ___ einen Kuchen.", a: ["Die Nachbarn bringen uns einen Kuchen."], r: ["datp.forms"] },
           { q: "(ihr) Ich zeige ___ morgen die Stadt.", a: ["Ich zeige euch morgen die Stadt."], r: ["datp.forms"] },
@@ -326,7 +326,7 @@ cxPack({
           { q: "(sie — she) Ich schreibe ___ eine E-Mail.", a: ["Ich schreibe ihr eine E-Mail."], r: ["datp.3"] },
         ] },
         // ── Übung 15•11: the person as a pronoun ──
-        { id: "d15.11", ex: "15.11", t: "transform", low: true, title: "The person as a pronoun", how: "Say the highlighted person with a pronoun — it moves before the thing.", items: [
+        { id: "d15.11", ex: "15.11", t: "transform", low: true, title: "The person as a pronoun", how: "Replace the highlighted person with a pronoun; it moves before the thing.", items: [
           { q: "Zeigst du den Gästen die Fotos?", hl: "den Gästen", a: ["Zeigst du ihnen die Fotos?"], r: ["datp.3", "ord.pron"] },
           { q: "Was schenkst du deiner Schwester?", hl: "deiner Schwester", a: ["Was schenkst du ihr?"], r: ["datp.3"] },
           { q: "Ich erkläre dem Kunden die Rechnung.", hl: "dem Kunden", a: ["Ich erkläre ihm die Rechnung."], r: ["datp.3", "ord.pron"] },
@@ -339,7 +339,7 @@ cxPack({
           { q: "Sie erzählt den Kindern eine Geschichte.", hl: "den Kindern", a: ["Sie erzählt ihnen eine Geschichte."], r: ["datp.3", "ord.pron"] },
         ] },
         // ── Übung 15•12: one pronoun, then two ──
-        { id: "d15.12", ex: "15.12", t: "transform", low: true, title: "One pronoun, then two", how: "Say it with pronouns as asked — two pronouns: the accusative first.", items: [
+        { id: "d15.12", ex: "15.12", t: "transform", low: true, title: "One pronoun, then two", how: "Use pronouns as asked. With two pronouns, the accusative comes first.", items: [
           { q: "Ich gebe dem Kellner das Geld. (the waiter → a pronoun)", a: ["Ich gebe ihm das Geld."], r: ["ord.pron"] },
           { q: "Ich gebe dem Kellner das Geld. (both → pronouns)", a: ["Ich gebe es ihm."], r: ["ord.both"] },
           { q: "Zeigst du den Gästen den Balkon? (the guests → a pronoun)", a: ["Zeigst du ihnen den Balkon?"], r: ["ord.pron"] },
@@ -352,7 +352,7 @@ cxPack({
           { q: "Ich schicke meinen Eltern die Fotos. (both → pronouns)", a: ["Ich schicke sie ihnen."], r: ["ord.both"] },
         ] },
         // ── our own: put the objects in order ──
-        { id: "ddatp.o", t: "compose", title: "Which object first?", how: "Make a sentence from the words — nouns: the person first · a pronoun before a noun · two pronouns: accusative first.", items: [
+        { id: "ddatp.o", t: "compose", title: "Which object first?", how: "Make a sentence. Two nouns: person first. A pronoun before a noun. Two pronouns: accusative first.", items: [
           { w: ["ich", "geben", "das Geld", "meinem Bruder"], a: ["Ich gebe meinem Bruder das Geld."], r: ["ord.noun"] },
           { w: ["ich", "geben", "es", "meinem Bruder"], a: ["Ich gebe es meinem Bruder."], r: ["ord.pron"] },
           { w: ["ich", "geben", "ihm", "es"], a: ["Ich gebe es ihm."], r: ["ord.both"] },
@@ -365,14 +365,14 @@ cxPack({
           { w: ["Anna", "leihen", "mir", "ihn (= den Schirm)", "nie"], a: ["Anna leiht ihn mir nie."], r: ["ord.both"], cap: true },
         ] },
         // ── Production: say it ──
-        { id: "dp.datp", t: "translate", end: true, title: "Say it in German", how: "Translate — the pronouns early, two pronouns accusative first.", items: [
+        { id: "dp.datp", t: "translate", end: true, title: "Say it in German", how: "Translate. Pronouns come early; with two, the accusative goes first.", items: [
           { q: "Can you give me the salt? (du)", a: ["Kannst du mir das Salz geben?", "Gibst du mir das Salz?"], r: ["datp.forms", "ord.pron"] },
           { q: "I'll show you the flat. (du)", a: ["Ich zeige dir die Wohnung."], r: ["datp.forms"] },
           { q: "What are we giving her?", a: ["Was schenken wir ihr?", "Was geben wir ihr?"], r: ["datp.3"] },
           { q: "I'm writing to them tomorrow.", a: ["Ich schreibe ihnen morgen.", "Morgen schreibe ich ihnen."], r: ["datp.3"] },
           { q: "May I bring you a coffee? (Sie)", a: ["Darf ich Ihnen einen Kaffee bringen?", "Kann ich Ihnen einen Kaffee bringen?"], r: ["datp.3"] },
           { q: "The book? I'll give it to you tomorrow. (du)", a: ["Das Buch? Ich gebe es dir morgen.", "Das Buch? Morgen gebe ich es dir."], r: ["ord.both"] },
-          { q: "He explained it to us.", a: ["Er hat es uns erklärt."], r: ["ord.both"] },
+          { q: "He explained it to us.", a: ["Er hat es uns erklärt.", "Er erklärte es uns."], r: ["ord.both"] },
           { q: "We're lending them our car.", a: ["Wir leihen ihnen unser Auto."], r: ["datp.3", "ord.pron"] },
           { q: "I'm giving him the key.", a: ["Ich gebe ihm den Schlüssel."], r: ["datp.3", "ord.pron"] },
           { q: "She visits me, and I show her the town.", a: ["Sie besucht mich, und ich zeige ihr die Stadt."], r: ["datp.vs"] },
@@ -393,19 +393,19 @@ cxPack({
     // ── 3 · the dative verbs ──
     "s1.datverb": {
       rules: {
-        "dv.verbs": "helfen, danken, antworten, gratulieren…: their object is dative",
-        "dv.gef": "gefallen, gehören, schmecken, passen: the thing is the subject",
-        "dv.phr": "Mir ist kalt · Das tut mir leid · Das ist mir egal",
+        "dv.verbs": "helfen, danken, antworten…: the object is dative",
+        "dv.gef": "gefallen, gehören, schmecken: the thing is the subject",
+        "dv.phr": "Dative phrases: Mir ist kalt. Das ist mir egal.",
       },
       sheets: [
         { id: "cx.dv1", title: "helfen, danken, gefallen: verbs with a dative", qn: 3,
           struct: [["Who", "who"], ["helfen · danken …", "verb"], ["wem? · dative", "aux"]],
-          why: "A few verbs take their only object in the dative, not the accusative — even where English has a plain *him* or *her*: I help **him** = Ich helfe **ihm**.",
+          why: "A few verbs take their only object in the dative, even where English just says *him* or *her*. I help **him**: Ich helfe **ihm**.",
           rid: ["dv.verbs", "dv.gef", "dv.phr"],
           rules: [
-            "These take a dative object: **helfen · danken · antworten · gratulieren · glauben · folgen · begegnen · zuhören · vertrauen**: Ich **helfe dir**. · Wir **danken Ihnen**. · Kannst du **mir antworten**?",
-            "**gefallen · gehören · schmecken · passen** turn the sentence round: the **thing** is the subject, the **person** is in the dative: Das Kleid **gefällt mir** (I like the dress). · Wem **gehört** das Velo? — Es gehört **meinem Bruder**. · **Passt Ihnen** Montag?",
-            "Everyday phrases with the dative: **Wie geht es dir?** · **Mir ist kalt / warm / schlecht.** · **Das tut mir leid.** · **Der Rücken tut mir weh.** · **Das ist mir egal.**",
+            "Some verbs always take a dative object: **helfen, danken, antworten, gratulieren, glauben, folgen, begegnen, zuhören, vertrauen**. Ich **helfe dir**. · Wir **danken Ihnen**. · Kannst du **mir antworten**?",
+            "With **gefallen, gehören, schmecken** and **passen**, the **thing** is the subject and the **person** is in the dative. Das Kleid **gefällt mir** (I like the dress). · Wem **gehört** das Velo? · **Passt Ihnen** Montag?",
+            "Many everyday phrases put the person who feels something in the dative. **Mir ist kalt.** · **Das tut mir leid.** · **Der Rücken tut mir weh.** · **Das ist mir egal.** · **Wie geht es dir?**",
           ],
           table: { head: ["verb", "example", "in English"], rows: [
             ["helfen", "Ich helfe **dir**.", "I'm helping you."], ["danken", "Wir danken **Ihnen**.", "We thank you."],
@@ -418,26 +418,26 @@ cxPack({
             ["Wem **gehört** dieser Schirm?", "Whose umbrella is this?"],
             ["**Mir ist** kalt — machst du das Fenster zu?", "I'm cold — will you close the window?"],
           ],
-          trap: "**fragen** and **anrufen** take the **accusative**: Ich frage **dich**. · Ich rufe **dich** an. But **antworten** takes the dative: Ich antworte **dir**. And with **gefallen** the verb agrees with the thing: Die Schuhe **gefallen** mir.",
+          trap: "**fragen** and **anrufen** take the **accusative**: Ich frage **dich**. But **antworten** takes the dative: Ich antworte **dir**. With **gefallen**, the verb agrees with the thing: Die Schuhe **gefallen** mir.",
           quiz: [
-            { at: "r1", k: "pick", q: "Kannst du ___ helfen? (me)", o: ["mir", "mich"], a: 0, why: "helfen + dative: **mir**." },
-            { at: "r1", k: "type", cx: true, q: "Wir danken ___ für alles. (Sie)", a: ["Ihnen"], r: ["dv.verbs"], why: "danken + dative: **Ihnen**." },
-            { at: "r1", k: "pick", q: "Ich gratuliere ___ zum Geburtstag! (du)", o: ["dir", "dich"], a: 0, why: "gratulieren + dative: **dir**." },
-            { at: "r2", k: "pick", q: "I like the flat. —", o: ["Die Wohnung gefällt mir.", "Ich gefalle die Wohnung.", "Die Wohnung gefällt mich."], a: 0, why: "The thing is the subject, the person dative: **gefällt mir**." },
-            { at: "r2", k: "pick", q: "Wem ___ das Velo? — Meinem Bruder.", o: ["gehört", "gehören", "gefällt"], a: 0, why: "belongs to: **gehört** + dative." },
-            { at: "r3", k: "pick", q: "I'm cold.", o: ["Mir ist kalt.", "Ich bin kalt.", "Mich ist kalt."], a: 0, why: "How you feel: **Mir ist** kalt." },
-            { at: "r3", k: "pick", q: "I don't mind. —", o: ["Das ist mir egal.", "Das ist mich egal.", "Ich bin egal."], a: 0, why: "**Das ist mir egal.**" },
-            { at: "table", k: "pick", q: "Schmeckt ___ der Kaffee? (du)", o: ["dir", "dich", "du"], a: 0, why: "schmecken + dative: **dir**." },
-            { at: "trap", k: "pick", q: "Ich frage ___, und du antwortest ___.", o: ["dich · mir", "dir · mich", "dir · mir"], a: 0, why: "fragen + accusative, antworten + dative." },
-            { at: "trap", k: "pick", q: "Die Schuhe ___ mir.", o: ["gefallen", "gefällt", "gefalle"], a: 0, why: "The verb agrees with the thing (plural): **gefallen**." },
+            { at: "r1", k: "pick", q: "Kannst du ___ helfen? (me)", o: ["mir", "mich"], a: 0, why: "*helfen* takes the dative: **mir**." },
+            { at: "r1", k: "type", cx: true, q: "Wir danken ___ für alles. (Sie)", a: ["Ihnen"], r: ["dv.verbs"], why: "*danken* takes the dative: **Ihnen**." },
+            { at: "r1", k: "pick", q: "Ich gratuliere ___ zum Geburtstag! (du)", o: ["dir", "dich"], a: 0, why: "*gratulieren* takes the dative: **dir**." },
+            { at: "r2", k: "pick", q: "I like the flat. —", o: ["Die Wohnung gefällt mir.", "Ich gefalle die Wohnung.", "Die Wohnung gefällt mich."], a: 0, why: "The thing is the subject and the person is dative: **gefällt mir**." },
+            { at: "r2", k: "pick", q: "Wem ___ das Velo? — Meinem Bruder.", o: ["gehört", "gehören", "gefällt"], a: 0, why: "*Belongs to* is **gehört**, with the owner in the dative." },
+            { at: "r3", k: "pick", q: "I'm cold.", o: ["Mir ist kalt.", "Ich bin kalt.", "Mich ist kalt."], a: 0, why: "For how you feel, use the dative: **Mir ist** kalt." },
+            { at: "r3", k: "pick", q: "I don't mind. —", o: ["Das ist mir egal.", "Das ist mich egal.", "Ich bin egal."], a: 0, why: "*I don't mind* is **Das ist mir egal.**" },
+            { at: "table", k: "pick", q: "Schmeckt ___ der Kaffee? (du)", o: ["dir", "dich", "du"], a: 0, why: "*schmecken* puts the person in the dative: **dir**." },
+            { at: "trap", k: "pick", q: "Ich frage ___, und du antwortest ___.", o: ["dich · mir", "dir · mich", "dir · mir"], a: 0, why: "*fragen* takes the accusative, *antworten* the dative." },
+            { at: "trap", k: "pick", q: "Die Schuhe ___ mir.", o: ["gefallen", "gefällt", "gefalle"], a: 0, why: "The verb agrees with the thing, which is plural: **gefallen**." },
           ] },
       ],
       diag: [
         { t: "swap", from: "^(mich|dich|ihn|sie)$", to: "^(mir|dir|ihm|ihr|ihnen)$", rule: "dv.verbs", msg: "This verb takes the **dative**: **{right}**, not {typed}." },
-        { t: "swap", from: "^(mir|dir|ihm|ihr|ihnen)$", to: "^(mich|dich|ihn|sie)$", rule: "dv.verbs", msg: "This verb takes the accusative: **{right}** (fragen, anrufen, sehen, mögen…)." },
+        { t: "swap", from: "^(mir|dir|ihm|ihr|ihnen)$", to: "^(mich|dich|ihn|sie)$", rule: "dv.verbs", msg: "This verb takes the accusative: **{right}**. So do fragen, anrufen, sehen, mögen…" },
         { t: "swap", from: "^(den|die|das)$", to: "^(dem|der|den)$", rule: "dv.verbs", msg: "This verb takes the dative: **{right}**." },
-        { t: "ending", stem: "(dies|jed|mein|dein|sein|ihr|unser|eu|k?ein)", rule: "dv.verbs", msg: "The dative ending: **{right}**." },
-        { t: "swap", from: "^(gefallt|gefallen|gehort|gehoren|schmeckt|schmecken|passt|passen)$", to: "^(gefallt|gefallen|gehort|gehoren|schmeckt|schmecken|passt|passen)$", rule: "dv.gef", msg: "The verb agrees with the **thing**: **{right}**." },
+        { t: "ending", stem: "(dies|jed|mein|dein|sein|ihr|unser|eu|k?ein)", rule: "dv.verbs", msg: "This verb takes the dative, so the ending is: **{right}**." },
+        { t: "swap", from: "^(gefallt|gefallen|gehort|gehoren|schmeckt|schmecken|passt|passen)$", to: "^(gefallt|gefallen|gehort|gehoren|schmeckt|schmecken|passt|passen)$", rule: "dv.gef", msg: "The verb agrees with the **thing**, not the person: **{right}**." },
         { t: "swap", from: "^(ich|du|er|wir|mich|dich)$", to: "^(mir|dir|ihm|uns)$", rule: "dv.gef", msg: "The person is in the dative: **{right}**." },
       ],
       drills: [
@@ -456,7 +456,7 @@ cxPack({
           { q: "Gehört ___ das Auto? (du)", o: ["dir", "dich", "du"], a: ["dir"], r: ["dv.gef"] },
         ] },
         // ── Übung 15•6: the dative after the verb ──
-        { id: "d15.6", ex: "15.6", t: "type", title: "helfen, danken, antworten…", how: "Write the pronoun in brackets in the form this verb takes — the dative.", items: [
+        { id: "d15.6", ex: "15.6", t: "type", title: "helfen, danken, antworten…", how: "Write the pronoun in brackets in the dative, as this verb needs.", items: [
           { q: "Kannst du ___ kurz helfen? (ich)", a: ["mir"], r: ["dv.verbs"] },
           { q: "Wir danken ___ für die Einladung. (Sie)", a: ["Ihnen"], r: ["dv.verbs"] },
           { q: "Warum antwortest du ___ nicht? (wir)", a: ["uns"], r: ["dv.verbs"] },
@@ -470,7 +470,7 @@ cxPack({
           { q: "Die Jacke passt ___ nicht mehr. (ich)", a: ["mir"], r: ["dv.gef"] },
         ] },
         // ── Übung 15•17: a noun after a dative verb ──
-        { id: "d15.17", ex: "15.17", t: "type", title: "Helping, thanking, belonging", how: "Write the words in brackets in the gap — in the dative.", items: [
+        { id: "d15.17", ex: "15.17", t: "type", title: "Helping, thanking, belonging", how: "Write the words in brackets in the gap, in the dative.", items: [
           { q: "Kannst du ___ helfen? (die alte Frau)", a: ["der alten Frau"], r: ["dv.verbs"] },
           { q: "Ich danke ___ für die Hilfe. (meine Nachbarin)", a: ["meiner Nachbarin"], r: ["dv.verbs"] },
           { q: "Das Haus gehört ___. (unsere Eltern)", a: ["unseren Eltern"], r: ["dv.gef"] },
@@ -484,7 +484,7 @@ cxPack({
           { q: "Wem gehört der Schlüssel? — ___. (der Hauswart)", a: ["Dem Hauswart"], r: ["dv.gef"] },
         ] },
         // ── our own: I like it → it pleases me ──
-        { id: "ddv.g", t: "transform", low: true, title: "Say it with gefallen, schmecken, gehören", how: "Say it with the verb in brackets — the thing becomes the subject, the person goes into the dative.", items: [
+        { id: "ddv.g", t: "transform", low: true, title: "Say it with gefallen, schmecken, gehören", how: "Use the verb in brackets: the thing becomes the subject, the person goes in the dative.", items: [
           { q: "Ich mag die Wohnung. (gefallen)", a: ["Die Wohnung gefällt mir.", "Mir gefällt die Wohnung."], r: ["dv.gef"], vf: [["gefallen", "pr", "er"]] },
           { q: "Wir mögen die Stadt. (gefallen)", a: ["Die Stadt gefällt uns.", "Uns gefällt die Stadt."], r: ["dv.gef"], vf: [["gefallen", "pr", "er"]] },
           { q: "Magst du die Schuhe? (gefallen)", a: ["Gefallen dir die Schuhe?"], r: ["dv.gef"], vf: [["gefallen", "pr", "sie"]] },
@@ -497,7 +497,7 @@ cxPack({
           { q: "Mögen Sie das Zimmer? (gefallen)", a: ["Gefällt Ihnen das Zimmer?"], r: ["dv.gef"], vf: [["gefallen", "pr", "er"]] },
         ] },
         // ── Production: say it ──
-        { id: "dp.dv", t: "translate", end: true, title: "Say it in German", how: "Translate — mind the dative.", items: [
+        { id: "dp.dv", t: "translate", end: true, title: "Say it in German", how: "Translate. Watch for the dative.", items: [
           { q: "Can I help you? (Sie)", a: ["Kann ich Ihnen helfen?"], r: ["dv.verbs"] },
           { q: "I like the flat. (gefallen)", a: ["Die Wohnung gefällt mir.", "Mir gefällt die Wohnung."], r: ["dv.gef"] },
           { q: "Whose bike is that? (gehören)", a: ["Wem gehört das Velo?", "Wem gehört das Fahrrad?"], r: ["dv.gef"] },
@@ -513,7 +513,7 @@ cxPack({
         { id: "dw.dv", t: "write", end: true, title: "Write your own", how: "In your own words — saved for Claude to correct.", items: [
           { q: "Three things you like in your town — with gefallen.", model: ["Mir gefällt der See, die Altstadt gefällt mir auch, und die Märkte gefallen mir sehr."], r: ["dv.gef"] },
           { q: "Someone helped you move. Thank them.", model: ["Ich danke dir für deine Hilfe beim Umzug!"], r: ["dv.verbs"] },
-          { q: "What do you like to eat — and what not? (schmecken)", model: ["Käse schmeckt mir sehr, aber Fisch schmeckt mir nicht."], r: ["dv.gef"] },
+          { q: "What do you like to eat — and what not? (schmecken)", model: ["Käse schmeckt mir sehr gut, aber Fisch schmeckt mir nicht."], r: ["dv.gef"] },
           { q: "At the lost and found: ask whose things these are.", model: ["Wem gehört diese Jacke? Gehört der Schirm Ihnen?"], r: ["dv.gef"] },
           { q: "Offer help to an older neighbour.", model: ["Kann ich Ihnen helfen? Ich trage Ihnen die Tasche."], r: ["dv.verbs"] },
           { q: "You don't feel well: say how you are.", model: ["Mir ist schlecht, und der Kopf tut mir weh."], r: ["dv.phr"] },
@@ -526,19 +526,19 @@ cxPack({
     // ── 4 · the contrast: accusative or dative? ──
     "s1.accdat": {
       rules: {
-        "ad.role": "wen? was? → accusative · wem? → dative",
-        "ad.forms": "den / dem · die / der · mich / mir · ihn / ihm",
-        "ad.verbs": "fragen + accusative, antworten + dative — learn the dative verbs",
+        "ad.role": "wen? or was? means accusative; wem? means dative",
+        "ad.forms": "Where they differ: den/dem, die/der, mich/mir, ihn/ihm",
+        "ad.verbs": "fragen takes the accusative, antworten the dative",
       },
       sheets: [
         { id: "cx.ad1", title: "Accusative or dative?", qn: 3,
           struct: [["wen? was?", "thing"], ["→ accusative", "end"], ["·", "mid"], ["wem?", "aux"], ["→ dative", "end"]],
-          why: "Two questions sort every object: **wen? / was?** → the accusative (what the verb acts on) · **wem?** → the dative (the person who gets something, or the object of a dative verb). Ask the question, then pick the form.",
+          why: "Two questions sort every object. **wen?** or **was?** asks for the accusative (what the verb acts on); **wem?** asks for the dative (the person who gets something, or the object of a dative verb).",
           rid: ["ad.role", "ad.forms", "ad.verbs"],
           rules: [
-            "**Accusative** — what the verb acts on: Ich sehe **den Mann**. · Ich kaufe **einen Tisch**. **Dative** — the person who receives, or who is told or shown: Ich gebe **dem Mann** das Geld. · Ich erkläre **der Kundin** den Weg.",
-            "Where the two differ: der → **den** / **dem** · die → die / **der** · das → das / **dem** · the plural die → die / **den …n** — and the pronouns: mich / **mir** · dich / **dir** · ihn / **ihm** · sie / **ihr** · sie / **ihnen**.",
-            "Learn the dative verbs as exceptions — **helfen, danken, antworten, gratulieren, gefallen, gehören** — and the classic pair: **fragen** + accusative, **antworten** + dative: Ich frage **dich**, du antwortest **mir**.",
+            "The **accusative** is what the verb acts on; the **dative** is the person who receives something or is told or shown it. Ich sehe **den Mann**. · Ich gebe **dem Mann** das Geld. · Ich erkläre **der Kundin** den Weg.",
+            "Accusative and dative look different here: masculine den / **dem**, feminine die / **der**, neuter das / **dem**, plural die / **den** …n. Pronouns: mich / **mir** · dich / **dir** · ihn / **ihm** · sie / **ihr** · sie / **ihnen**",
+            "A few verbs take the dative and simply have to be learned: **helfen, danken, antworten, gratulieren, gefallen, gehören**. The classic pair: **fragen** takes the accusative, **antworten** the dative. Ich frage **dich**, du antwortest **mir**.",
           ],
           table: { head: ["", "accusative · wen? was?", "dative · wem?"], rows: [
             ["m", "den · einen", "**dem** · **einem**"],
@@ -553,27 +553,27 @@ cxPack({
             ["Kennst du **die** neue Nachbarin? Ich habe **ihr** gestern geholfen.", "Do you know the new neighbour? I helped her yesterday."],
             ["Die Verkäuferin zeigt **der** Kundin **einen** Pullover.", "The shop assistant shows the customer a jumper."],
           ],
-          trap: "**den** can be two things: the masculine accusative (Ich sehe **den** Mann) or the dative plural (Ich gebe **den** Kinder**n** ein Eis) — the -n on the plural noun tells you which. And *her* is **sie** as the accusative but **ihr** as the dative: Ich sehe **sie**. · Ich helfe **ihr**.",
+          trap: "**den** is either masculine accusative (Ich sehe **den** Mann) or dative plural (Ich gebe **den** Kinder**n** ein Eis); the -n on the noun tells you which. *Her* is **sie** in the accusative, **ihr** in the dative.",
           quiz: [
-            { at: "r1", k: "pick", q: "Ich schreibe meiner Oma einen Brief. — *meiner Oma* is…", o: ["dative (wem?)", "accusative (wen?)", "the subject"], a: 0, why: "She gets the letter: wem? → dative." },
-            { at: "r1", k: "pick", q: "Ich besuche meine Oma jeden Sonntag. — *meine Oma* is…", o: ["accusative (wen?)", "dative (wem?)"], a: 0, why: "besuchen acts on her: wen? → accusative." },
-            { at: "r2", k: "pick", q: "Ich kenne ___ Mann. · Ich gebe ___ Mann die Hand.", o: ["den · dem", "dem · den", "den · den"], a: 0, why: "kennen: accusative **den** · geben (to whom?): dative **dem**." },
-            { at: "r2", k: "type", cx: true, q: "Ich sehe ihn. · Ich gebe ___ das Buch.", a: ["ihm"], r: ["ad.forms"], why: "To him: the dative **ihm**." },
-            { at: "r3", k: "pick", q: "Ich frage ___. Du antwortest ___.", o: ["dich · mir", "dir · mich", "dich · mich"], a: 0, why: "fragen + accusative, antworten + dative." },
-            { at: "r3", k: "pick", q: "Hilfst du ___? (ich)", o: ["mir", "mich"], a: 0, why: "helfen + dative: **mir**." },
-            { at: "table", k: "pick", q: "The dative plural of *die Freunde*:", o: ["den Freunden", "die Freunden", "den Freunde"], a: 0, why: "**den** + -n." },
-            { at: "trap", k: "pick", q: "Ich treffe ___ heute. (sie — she)", o: ["sie", "ihr"], a: 0, why: "treffen + accusative: **sie**." },
-            { at: "trap", k: "pick", q: "Ich gebe ___ Kindern ein Eis.", o: ["den", "dem", "die"], a: 0, why: "The dative plural: **den** Kindern." },
+            { at: "r1", k: "pick", q: "Ich schreibe meiner Oma einen Brief. — *meiner Oma* is…", o: ["dative (wem?)", "accusative (wen?)", "the subject"], a: 0, why: "She gets the letter, so it answers *wem?*: dative." },
+            { at: "r1", k: "pick", q: "Ich besuche meine Oma jeden Sonntag. — *meine Oma* is…", o: ["accusative (wen?)", "dative (wem?)"], a: 0, why: "*besuchen* acts on her directly, so it answers *wen?*: accusative." },
+            { at: "r2", k: "pick", q: "Ich kenne ___ Mann. · Ich gebe ___ Mann die Hand.", o: ["den · dem", "dem · den", "den · den"], a: 0, why: "*kennen* takes the accusative **den**; *geben* (to whom?) the dative **dem**." },
+            { at: "r2", k: "type", cx: true, q: "Ich sehe ihn. · Ich gebe ___ das Buch.", a: ["ihm"], r: ["ad.forms"], why: "*To him* is the dative **ihm**." },
+            { at: "r3", k: "pick", q: "Ich frage ___. Du antwortest ___.", o: ["dich · mir", "dir · mich", "dich · mich"], a: 0, why: "*fragen* takes the accusative, *antworten* the dative." },
+            { at: "r3", k: "pick", q: "Hilfst du ___? (ich)", o: ["mir", "mich"], a: 0, why: "*helfen* takes the dative: **mir**." },
+            { at: "table", k: "pick", q: "The dative plural of *die Freunde*:", o: ["den Freunden", "die Freunden", "den Freunde"], a: 0, why: "Dative plural: **den**, and the noun adds -n." },
+            { at: "trap", k: "pick", q: "Ich treffe ___ heute. (sie — she)", o: ["sie", "ihr"], a: 0, why: "*treffen* takes the accusative: **sie**." },
+            { at: "trap", k: "pick", q: "Ich gebe ___ Kindern ein Eis.", o: ["den", "dem", "die"], a: 0, why: "Dative plural: **den** Kindern." },
           ] },
       ],
       diag: [
-        { t: "swap", from: "^den$", to: "^dem$", rule: "ad.forms", msg: "wem? → the dative: **dem**, not den." },
-        { t: "swap", from: "^dem$", to: "^den$", rule: "ad.role", msg: "wen? was? → the accusative **den** (or the dative plural den …n)." },
-        { t: "swap", from: "^(die|das)$", to: "^(der|dem|den)$", rule: "ad.forms", msg: "wem? → the dative: **{right}**." },
-        { t: "swap", from: "^(der|dem)$", to: "^(die|das)$", rule: "ad.role", msg: "wen? was? → the accusative: **{right}**." },
-        { t: "swap", from: "^(mich|dich|ihn|sie)$", to: "^(mir|dir|ihm|ihr|ihnen)$", rule: "ad.forms", msg: "wem? → the dative pronoun **{right}**." },
-        { t: "swap", from: "^(mir|dir|ihm|ihr|ihnen)$", to: "^(mich|dich|ihn|sie)$", rule: "ad.forms", msg: "wen? → the accusative pronoun **{right}**." },
-        { t: "ending", stem: "(dies|jed|mein|dein|sein|ihr|unser|eu|k?ein)", rule: "ad.forms", msg: "Right word, the other case: **{right}**." },
+        { t: "swap", from: "^den$", to: "^dem$", rule: "ad.forms", msg: "This answers *wem?*, so it's the dative: **dem**, not den." },
+        { t: "swap", from: "^dem$", to: "^den$", rule: "ad.role", msg: "It's **den** here: the accusative (wen? was?) or the dative plural (den …n)." },
+        { t: "swap", from: "^(die|das)$", to: "^(der|dem|den)$", rule: "ad.forms", msg: "This answers *wem?*, so it's the dative: **{right}**." },
+        { t: "swap", from: "^(der|dem)$", to: "^(die|das)$", rule: "ad.role", msg: "This answers *wen?* or *was?*, so it's the accusative: **{right}**." },
+        { t: "swap", from: "^(mich|dich|ihn|sie)$", to: "^(mir|dir|ihm|ihr|ihnen)$", rule: "ad.forms", msg: "This answers *wem?*, so use the dative pronoun **{right}**." },
+        { t: "swap", from: "^(mir|dir|ihm|ihr|ihnen)$", to: "^(mich|dich|ihn|sie)$", rule: "ad.forms", msg: "This answers *wen?*, so use the accusative pronoun **{right}**." },
+        { t: "ending", stem: "(dies|jed|mein|dein|sein|ihr|unser|eu|k?ein)", rule: "ad.forms", msg: "Right word, wrong case: **{right}**." },
       ],
       drills: [
         // ── Übung 15•7: what completes it? ──
@@ -606,7 +606,7 @@ cxPack({
           { q: "(sie — she) Ich treffe ___ im Café.", a: ["sie"], r: ["ad.role", "ad.forms"] },
         ] },
         // ── Production: build it, say it ──
-        { id: "dp.ad", t: "compose", end: true, low: true, title: "Build it yourself", how: "Make a sentence — ask wen? or wem? for each object.", d: ["dem", "den", "mich", "mir"], items: [
+        { id: "dp.ad", t: "compose", end: true, low: true, title: "Build it yourself", how: "Make a sentence. Ask wen? or wem? for each object.", d: ["dem", "den", "mich", "mir"], items: [
           { w: ["ich", "schenken", "mein", "Vater", "ein", "Buch"], a: ["Ich schenke meinem Vater ein Buch."], r: ["ad.forms"] },
           { w: ["wir", "fragen", "der", "Lehrer"], a: ["Wir fragen den Lehrer."], r: ["ad.verbs"] },
           { w: ["der", "Lehrer", "antworten", "wir"], a: ["Der Lehrer antwortet uns."], r: ["ad.verbs"] },
@@ -623,7 +623,7 @@ cxPack({
           { q: "Your weekend: who did you see or visit — and what did you bring them?", model: ["Am Samstag habe ich meine Oma besucht und ihr Blumen gebracht."], r: ["ad.role", "ad.forms"] },
           { q: "A colleague asks you something. Write the question and your answer.", model: ["Mein Kollege fragt mich: «Hast du Zeit?» Ich antworte ihm: «Leider nicht.»"], r: ["ad.verbs"] },
           { q: "Someone you know well: what do you do for them, and with them?", model: ["Ich rufe meine Schwester oft an und helfe ihr mit den Kindern."], r: ["ad.verbs", "ad.forms"] },
-          { q: "A new neighbour: you meet him or her, and offer something.", model: ["Ich treffe die neue Nachbarin im Treppenhaus und zeige ihr den Waschraum."], r: ["ad.role", "ad.forms"] },
+          { q: "A new neighbour: you meet him or her, and offer something.", model: ["Ich treffe die neue Nachbarin im Treppenhaus und zeige ihr die Waschküche."], r: ["ad.role", "ad.forms"] },
           { q: "What do your children (or friends) like — and what don't they? (gefallen)", model: ["Den Kindern gefällt der Zoo, aber das Museum gefällt ihnen nicht."], r: ["ad.verbs"] },
           { q: "Thank someone and say what you'll give them.", model: ["Ich danke meinem Nachbarn für die Hilfe und schenke ihm eine Flasche Wein."], r: ["ad.verbs", "ad.forms"] },
           { q: "At the shop: what do you look for, and what does the assistant show you?", model: ["Ich suche einen Pullover. Die Verkäuferin zeigt mir einen blauen Pullover."], r: ["ad.role", "ad.forms"] },

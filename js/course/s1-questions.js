@@ -13,13 +13,13 @@ cxPack({
       // (no test-out after Stage 0 — sized so a check of every rule fits)
       testout: { n: 7, miss: 1 },
       rules: {
-        "wer.case": "wer (subject) · wen (accusative) · wem (dative)",
-        "wer.prep": "a preposition first: mit wem? für wen?",
-        "wer.was": "was for things — wer and was take a singular verb",
-        "wer.wessen": "wessen? whose? — the answer: mein, sein, ihr…",
-        "wer.welch": "welcher takes der's endings: welchen, welchem…",
-        "wer.wasfur": "was für ein = what kind of; ein takes the noun's case",
-        "wer.answer": "welcher → point to one · was für → describe it",
+        "wer.case": "wer (subject), wen (accusative), wem (dative)",
+        "wer.prep": "The preposition comes first: mit wem? für wen?",
+        "wer.was": "was for things; wer and was take a singular verb",
+        "wer.wessen": "wessen means whose; answer with mein, sein, ihr…",
+        "wer.welch": "welcher has der's endings: welchen, welchem…",
+        "wer.wasfur": "was für ein means what kind of; ein takes the case",
+        "wer.answer": "Answer welcher by pointing, was für by describing",
       },
       sheets: [
         { id: "cx.wer1", title: "wer, wen, wem, wessen — the question takes the case", qn: 3,

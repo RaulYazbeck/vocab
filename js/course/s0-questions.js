@@ -11,21 +11,21 @@ cxPack({
       testout: { n: 6, miss: 1 },
       rules: {
         "v2.second": "the verb is the second element",
-        "v2.front": "something else first: the subject after the verb",
+        "v2.front": "something else first: the subject goes after the verb",
         "v2.end": "the second verb part goes to the end",
         "v2.q": "a yes/no question starts with the verb",
         "v2.qend": "in a question too, the second part goes last",
-        "v2.ja": "ja, nein — and doch after a negative question",
+        "v2.ja": "ja, nein, and doch to answer a negative question",
       },
       sheets: [
         { id: "cx.v2q1", title: "The verb is second", qn: 3,
           struct: [["1st: anything", "thing"], ["verb", "verb"], ["the rest …", "mid"]],
-          why: "German doesn't mind what comes first — but the conjugated verb always stands in **second** place, and the rest is arranged around it.",
+          why: "German is flexible about what comes first, but the conjugated verb always stands in **second** place. The rest of the sentence is arranged around it.",
           rid: ["v2.second", "v2.front", "v2.end"],
           rules: [
-            "In a statement the conjugated verb is the **second element** — not always the second word: [Ich] **wohne** in Basel. · [Mein Bruder] **wohnt** in Bern. · [Die Kinder von nebenan] **spielen** Fußball.",
-            "Put something else first — a time, a place, an object — and the subject moves **behind** the verb: [Heute] **arbeite** ich. · [Im Sommer] **fahren** wir nach Italien. · [Den Film] **kenne** ich.",
-            "A second verb part goes to the **end** — the verb's bracket: Ich **kann** heute nicht **kommen**. · Ich **rufe** dich morgen **an**. · Wir **haben** schon **gegessen**.",
+            "In a statement, the conjugated verb is the **second element**, which is not always the second word: [Ich] **wohne** in Basel. [Mein Bruder] **wohnt** in Bern. [Die Kinder von nebenan] **spielen** Fußball.",
+            "If something else comes first (a time, a place, an object), the subject moves **after** the verb: [Heute] **arbeite** ich. [Im Sommer] **fahren** wir nach Italien. [Den Film] **kenne** ich.",
+            "A second verb part goes to the **end**, so the two parts frame the sentence: Ich **kann** heute nicht **kommen**. Ich **rufe** dich morgen **an**. Wir **haben** schon **gegessen**.",
           ],
           table: { head: ["1st", "verb", "…", "end"], rows: [
             ["Ich", "**fahre**", "morgen nach Bern.", ""], ["Morgen", "**fahre**", "ich nach Bern.", ""],
@@ -37,25 +37,25 @@ cxPack({
             ["Wir **möchten** heute Pizza **essen**.", "We'd like to eat pizza today."],
             ["Nach der Arbeit **gehe** ich einkaufen.", "After work I go shopping."],
           ],
-          trap: "English keeps the subject before the verb even after a time word — German never does: ~~Heute ich arbeite~~ → **Heute arbeite ich.**",
+          trap: "English keeps the subject before the verb even after a time word. German never does: not ~~Heute ich arbeite~~ but **Heute arbeite ich.**",
           quiz: [
-            { at: "r1", k: "pick", q: "Which is right?", o: ["Mein Bruder wohnt in Bern.", "Mein wohnt Bruder in Bern.", "Mein Bruder in Bern wohnt."], a: 0, why: "[Mein Bruder] is one element; the verb comes second." },
-            { at: "r1", k: "order", q: "Build it: My colleague is from Chur.", a: ["Meine Kollegin", "kommt", "aus Chur."], why: "The subject, then the verb." },
-            { at: "r2", k: "pick", q: "Which is right?", o: ["Morgen fahre ich nach Bern.", "Morgen ich fahre nach Bern."], a: 0, why: "Morgen first → the verb, then ich." },
-            { at: "r2", k: "order", q: "Build it: On Sunday we sleep in.", a: ["Am Sonntag", "schlafen", "wir", "lange."], why: "Time first, the verb second, then the subject." },
-            { at: "r3", k: "pick", q: "Which is right?", o: ["Ich kann heute nicht kommen.", "Ich kann kommen heute nicht."], a: 0, why: "kommen, the second part, goes to the end." },
-            { at: "r3", k: "type", cx: true, q: "Ich rufe dich morgen ___. (anrufen)", a: ["an"], r: ["v2.end"], why: "The prefix goes to the end: rufe … an." },
-            { at: "table", k: "pick", q: "Morgen ___ ich nach Bern.", o: ["fahre", "fahren", "ich fahre"], a: 0, why: "Second place: the verb." },
-            { at: "trap", k: "pick", q: "Today I'm working.", o: ["Heute arbeite ich.", "Heute ich arbeite."], a: 0, why: "After heute: the verb, then ich." },
+            { at: "r1", k: "pick", q: "Which is right?", o: ["Mein Bruder wohnt in Bern.", "Mein wohnt Bruder in Bern.", "Mein Bruder in Bern wohnt."], a: 0, why: "[Mein Bruder] is one element, so the verb comes right after it." },
+            { at: "r1", k: "order", q: "Build it: My colleague is from Chur.", a: ["Meine Kollegin", "kommt", "aus Chur."], why: "The subject first, then the verb." },
+            { at: "r2", k: "pick", q: "Which is right?", o: ["Morgen fahre ich nach Bern.", "Morgen ich fahre nach Bern."], a: 0, why: "Morgen comes first, so the verb follows, then ich." },
+            { at: "r2", k: "order", q: "Build it: On Sunday we sleep in.", a: ["Am Sonntag", "schlafen", "wir", "lange."], why: "The time first, the verb second, then the subject." },
+            { at: "r3", k: "pick", q: "Which is right?", o: ["Ich kann heute nicht kommen.", "Ich kann kommen heute nicht."], a: 0, why: "kommen, the second verb part, goes to the end." },
+            { at: "r3", k: "type", cx: true, q: "Ich rufe dich morgen ___. (anrufen)", a: ["an"], r: ["v2.end"], why: "The prefix an goes to the end: Ich rufe dich morgen an." },
+            { at: "table", k: "pick", q: "Morgen ___ ich nach Bern.", o: ["fahre", "fahren", "ich fahre"], a: 0, why: "The verb takes second place: Morgen fahre ich." },
+            { at: "trap", k: "pick", q: "Today I'm working.", o: ["Heute arbeite ich.", "Heute ich arbeite."], a: 0, why: "After heute comes the verb, then ich." },
           ] },
         { id: "cx.v2q2", title: "Yes/no questions: the verb first", qn: 3,
           struct: [["verb", "verb"], ["subject", "who"], ["… ?", "mid"]],
-          why: "To ask a yes/no question, bring the verb to the front. German has no *do*: Do you live here? = **Wohnst** du hier?",
+          why: "To ask a yes/no question, put the verb first. German has no helper like *do*: *Do you live here?* is **Wohnst** du hier?",
           rid: ["v2.q", "v2.qend", "v2.ja"],
           rules: [
-            "A yes/no question starts with the **verb**, then the subject: **Kommst** du morgen mit? · **Hat** der Laden heute offen? · **Ist** das Ihr Platz? — no *do*, no *does*.",
-            "The second verb part still goes to the **end**: **Kannst** du mir kurz **helfen**? · **Rufst** du mich **an**? · **Hast** du schon **gegessen**?",
-            "Answer **Ja** or **Nein** + a normal statement. To a *negative* question, *yes* is **doch**: Kommst du nicht? — **Doch**, ich komme.",
+            "A yes/no question starts with the **verb**, followed by the subject: **Kommst** du morgen mit? **Hat** der Laden heute offen? **Ist** das Ihr Platz? German adds no *do* or *does*.",
+            "A second verb part still goes to the **end**: **Kannst** du mir kurz **helfen**? **Rufst** du mich **an**? **Hast** du schon **gegessen**?",
+            "Answer with **Ja** or **Nein** and a normal statement. To say *yes* to a negative question, use **doch**: Kommst du nicht? **Doch**, ich komme.",
           ],
           table: { head: ["statement", "question"], rows: [
             ["Du wohnst hier.", "**Wohnst** du hier?"], ["Er kann Deutsch.", "**Kann** er Deutsch?"],
@@ -67,21 +67,21 @@ cxPack({
             ["Hast du keine Zeit? — **Doch**, ein bisschen.", "Don't you have time? — Yes, a little."],
             ["**Ist** hier noch frei?", "Is this seat free?"],
           ],
-          trap: "Don't translate *do*: ~~Machst du sprechen Deutsch?~~ → **Sprichst** du Deutsch? The verb itself goes first.",
+          trap: "Don't translate *do*. The verb itself goes first: not ~~Machst du sprechen Deutsch?~~ but **Sprichst** du Deutsch?",
           quiz: [
-            { at: "r1", k: "pick", q: "Do you live here?", o: ["Wohnst du hier?", "Machst du hier wohnen?", "Wohnen du hier?"], a: 0, why: "The verb first — no *do*." },
-            { at: "r1", k: "order", q: "Build it: Is the shop open today?", a: ["Hat", "der Laden", "heute", "offen?"], why: "The verb, then the subject." },
-            { at: "r2", k: "pick", q: "Which is right?", o: ["Kannst du mir kurz helfen?", "Kannst kurz helfen du mir?"], a: 0, why: "helfen stays at the end." },
-            { at: "r2", k: "order", q: "Build it: Are you calling me?", a: ["Rufst", "du", "mich", "an?"], why: "The verb first, its prefix last." },
-            { at: "r3", k: "pick", q: "Kommst du nicht mit? — ___, ich komme!", o: ["Doch", "Ja", "Nein"], a: 0, why: "Yes to a negative question: doch." },
-            { at: "r3", k: "pick", q: "Hast du Zeit? — ___, heute nicht.", o: ["Nein", "Doch", "Kein"], a: 0, why: "Nein + the statement." },
-            { at: "table", k: "pick", q: "Er kann Deutsch. → the question:", o: ["Kann er Deutsch?", "Er kann Deutsch?", "Kann Deutsch er?"], a: 0, why: "The verb to the front." },
-            { at: "trap", k: "pick", q: "Do you speak French?", o: ["Sprichst du Französisch?", "Machst du Französisch sprechen?", "Tust du Französisch sprechen?"], a: 0, why: "No *do* in German." },
+            { at: "r1", k: "pick", q: "Do you live here?", o: ["Wohnst du hier?", "Machst du hier wohnen?", "Wohnen du hier?"], a: 0, why: "Put the verb first. German has no *do*." },
+            { at: "r1", k: "order", q: "Build it: Is the shop open today?", a: ["Hat", "der Laden", "heute", "offen?"], why: "The verb first, then the subject." },
+            { at: "r2", k: "pick", q: "Which is right?", o: ["Kannst du mir kurz helfen?", "Kannst kurz helfen du mir?"], a: 0, why: "helfen, the second verb part, stays at the end." },
+            { at: "r2", k: "order", q: "Build it: Are you calling me?", a: ["Rufst", "du", "mich", "an?"], why: "The verb first, its prefix an at the end." },
+            { at: "r3", k: "pick", q: "Kommst du nicht mit? — ___, ich komme!", o: ["Doch", "Ja", "Nein"], a: 0, why: "To say yes to a negative question, use doch." },
+            { at: "r3", k: "pick", q: "Hast du Zeit? — ___, heute nicht.", o: ["Nein", "Doch", "Kein"], a: 0, why: "Nein, followed by a normal statement." },
+            { at: "table", k: "pick", q: "Er kann Deutsch. → the question:", o: ["Kann er Deutsch?", "Er kann Deutsch?", "Kann Deutsch er?"], a: 0, why: "Move the verb to the front: Kann er Deutsch?" },
+            { at: "trap", k: "pick", q: "Do you speak French?", o: ["Sprichst du Französisch?", "Machst du Französisch sprechen?", "Tust du Französisch sprechen?"], a: 0, why: "German has no *do*: the verb itself goes first." },
           ] },
       ],
       drills: [
         // ── our own: which order? ──
-        { id: "dv2.p", t: "pick", title: "Which order is right?", how: "Pick the sentence with the verb in its place.", items: [
+        { id: "dv2.p", t: "pick", title: "Which order is right?", how: "Pick the sentence with the verb in the right place.", items: [
           { q: "In winter we go skiing. ___", o: ["Im Winter fahren wir Ski.", "Im Winter wir fahren Ski."], a: ["Im Winter fahren wir Ski."], r: ["v2.front"] },
           { q: "My parents live in Geneva. ___", o: ["Meine Eltern wohnen in Genf.", "Meine Eltern in Genf wohnen."], a: ["Meine Eltern wohnen in Genf."], r: ["v2.second"] },
           { q: "I have to work late today. ___", o: ["Ich muss heute lange arbeiten.", "Ich muss arbeiten heute lange."], a: ["Ich muss heute lange arbeiten."], r: ["v2.end"] },
@@ -94,7 +94,7 @@ cxPack({
           { q: "Is the post office open on Saturday? ___", o: ["Hat die Post am Samstag offen?", "Hat am Samstag offen die Post?"], a: ["Hat die Post am Samstag offen?"], r: ["v2.q"] },
         ] },
         // ── Übung 6•7: start with the highlighted part ──
-        { id: "d6.7", ex: "6.7", t: "transform", fixed: true, low: true, title: "Start with something else", how: "Begin with the highlighted part — the verb stays second.", items: [
+        { id: "d6.7", ex: "6.7", t: "transform", fixed: true, low: true, title: "Start with something else", how: "Begin with the highlighted part. The verb stays second.", items: [
           { q: "Wir fahren am Samstag nach Luzern.", hl: "am Samstag", a: ["Am Samstag fahren wir nach Luzern."], r: ["v2.front"] },
           { q: "Ich trinke morgens keinen Kaffee.", hl: "morgens", a: ["Morgens trinke ich keinen Kaffee."], r: ["v2.front"] },
           { q: "Der Kurs beginnt um neun Uhr.", hl: "um neun Uhr", a: ["Um neun Uhr beginnt der Kurs."], r: ["v2.front"] },
@@ -159,7 +159,7 @@ cxPack({
           { q: "Ihr seid morgen in Basel.", a: ["Seid ihr morgen in Basel?"], r: ["v2.q"] },
         ] },
         // ── Übung 28•11: questions with a second verb part ──
-        { id: "d28.11", ex: "28.11", t: "transform", low: true, title: "Questions with two verb parts", how: "Ask it as a yes/no question — the second part stays at the end.", items: [
+        { id: "d28.11", ex: "28.11", t: "transform", low: true, title: "Questions with two verb parts", how: "Ask it as a yes/no question. The second verb part stays at the end.", items: [
           { q: "Du kannst mir morgen helfen.", a: ["Kannst du mir morgen helfen?"], r: ["v2.qend"] },
           { q: "Sie hat den Brief geschickt.", a: ["Hat sie den Brief geschickt?"], r: ["v2.qend"] },
           { q: "Ihr kommt am Sonntag mit.", a: ["Kommt ihr am Sonntag mit?"], r: ["v2.qend"] },
@@ -172,7 +172,7 @@ cxPack({
           { q: "Die Kinder stehen am Samstag früh auf.", a: ["Stehen die Kinder am Samstag früh auf?"], r: ["v2.qend"] },
         ] },
         // ── Übung 6•10: ask it in German ──
-        { id: "d6.10", ex: "6.10", t: "translate", end: true, title: "Ask it in German", how: "Translate the question — no *do* in German.", items: [
+        { id: "d6.10", ex: "6.10", t: "translate", end: true, title: "Ask it in German", how: "Translate the question. German has no *do*.", items: [
           { q: "Are you working today? (du)", a: ["Arbeitest du heute?"], r: ["v2.q"] },
           { q: "Do you live in Bern? (Sie)", a: ["Wohnen Sie in Bern?"], r: ["v2.q"] },
           { q: "Does the train stop in Aarau?", a: ["Hält der Zug in Aarau?"], r: ["v2.q"] },
@@ -198,7 +198,7 @@ cxPack({
           { q: "Don't you have a ticket? — Yes, I do, here.", a: ["Hast du kein Ticket? — Doch, hier.", "Hast du kein Billett? — Doch, hier.", "Haben Sie kein Ticket? — Doch, hier."], r: ["v2.ja"] },
         ] },
         // ── Production: build it ──
-        { id: "dp.v2q", t: "compose", end: true, title: "Build it yourself", how: "Make a sentence or a question from the words — conjugate the verb.", d: ["ich", "du"], items: [
+        { id: "dp.v2q", t: "compose", end: true, title: "Build it yourself", how: "Make a sentence or a question from the words. Give the verb its right ending.", d: ["ich", "du"], items: [
           { w: ["am Montag", "ich", "arbeiten", "im Büro"], a: ["Am Montag arbeite ich im Büro.", "Ich arbeite am Montag im Büro."], r: ["v2.front"] },
           { w: ["mein Bruder", "wohnen", "in Thun"], a: ["Mein Bruder wohnt in Thun."], r: ["v2.second"] },
           { w: ["heute", "wir", "können", "nicht", "kommen"], a: ["Heute können wir nicht kommen.", "Wir können heute nicht kommen."], r: ["v2.end", "v2.front"] },
@@ -229,18 +229,18 @@ cxPack({
         "wq.words": "wer, was, wann, wo, wie, warum, welcher",
         "wq.v2": "the W-word first, the verb second",
         "wq.wo": "wo, wohin, woher",
-        "wq.wie": "wie alt, wie viel(e), wie oft, wie lange — wie heißt",
+        "wq.wie": "wie alt, wie viel(e), wie oft, wie lange; wie heißt",
       },
       sheets: [
         { id: "cx.wq1", title: "W-questions: the W-word, then the verb", qn: 3,
           struct: [["W-word", "pre"], ["verb", "verb"], ["subject", "who"], ["… ?", "mid"]],
-          why: "A W-question is a statement with a W-word in first place: the verb stays **second**, the subject comes after it.",
+          why: "A W-question works like a statement with the W-word in first place: the verb stays **second** and the subject follows it.",
           rid: ["wq.words", "wq.v2", "wq.wo", "wq.wie"],
           rules: [
-            "The W-words: **wer** who · **was** what · **wann** when · **wo** where · **wie** how · **warum** why · **welcher** which · **was für ein** what kind of.",
-            "W-word first, the verb **second**, then the subject: **Wo wohnst** du? · **Wann kommt** der Zug? A second verb part still goes last: Wann **rufst** du **an**? No W-word: a yes/no question, the verb first.",
-            "Three wheres: **wo** = where something is (Wo ist der Bahnhof?) · **wohin** = where to (Wohin fährst du?) · **woher** = where from (Woher kommen Sie?).",
-            "**wie** + a word asks for a measure: wie **alt** · wie **viel** (how much) · wie **viele** (how many) · wie **oft** · wie **lange** · wie **groß** — and **Wie heißt** du? = What's your name?",
+            "Each W-word asks about one thing: **wer** who, **was** what, **wann** when, **wo** where, **wie** how, **warum** why, **welcher** which, **was für ein** what kind of.",
+            "The W-word comes first, the verb **second**, then the subject: **Wo wohnst** du? **Wann kommt** der Zug? A second verb part still goes last: Wann **rufst** du **an**? Without a W-word, the verb goes first.",
+            "German has three words for *where*: **wo** asks where something is (Wo ist der Bahnhof?), **wohin** where to (Wohin fährst du?), **woher** where from (Woher kommen Sie?).",
+            "**wie** + another word asks for an amount or measure: wie **alt**, wie **viel** (how much), wie **viele** (how many), wie **oft**, wie **lange**, wie **groß**. *What's your name?* is **Wie heißt** du?",
           ],
           table: { head: ["to ask about…", "W-word", "example"], rows: [
             ["a person", "wer", "**Wer** ist die Frau dort?"], ["a thing", "was", "**Was** kostet das?"],
@@ -254,23 +254,23 @@ cxPack({
             ["**Wann** fährt der nächste Zug?", "When's the next train?"],
             ["**Wohin** gehst du nach der Arbeit?", "Where are you going after work?"],
           ],
-          trap: "**wer** is *who* and **wo** is *where* — not their English look-alikes: **Wer** wohnt hier? (Who lives here?) · **Wo** wohnt sie? (Where does she live?)",
+          trap: "**wer** means *who* and **wo** means *where*, whatever they look like in English: **Wer** wohnt hier? (Who lives here?) **Wo** wohnt sie? (Where does she live?)",
           quiz: [
-            { at: "r1", k: "pick", q: "___ ist das? — Meine Nachbarin.", o: ["Wer", "Wo", "Was"], a: 0, why: "A person: wer." },
-            { at: "r1", k: "pick", q: "___ beginnt der Film? — Um acht.", o: ["Wann", "Wer", "Wo"], a: 0, why: "A time: wann." },
-            { at: "r2", k: "pick", q: "Which is right?", o: ["Wo wohnst du?", "Wo du wohnst?", "Wohnst wo du?"], a: 0, why: "W-word, verb, subject." },
-            { at: "r2", k: "order", q: "Build it: When does the course begin?", a: ["Wann", "beginnt", "der Kurs?"], why: "W-word, then the verb." },
-            { at: "r3", k: "pick", q: "___ fährst du am Wochenende? — Nach Genf.", o: ["Wohin", "Wo", "Woher"], a: 0, why: "Where to: wohin." },
-            { at: "r3", k: "type", cx: true, q: "___ kommen Sie? — Aus Indien.", a: ["Woher"], r: ["wq.wo"], why: "Where from: woher." },
-            { at: "r4", k: "pick", q: "___ bist du? — 32.", o: ["Wie alt", "Wie viel", "Wann"], a: 0, why: "An age: wie alt." },
-            { at: "r4", k: "pick", q: "___ Kinder haben Sie? — Zwei.", o: ["Wie viele", "Wie viel", "Was"], a: 0, why: "A number of things: wie viele." },
-            { at: "table", k: "pick", q: "To ask for a reason:", o: ["warum", "wann", "wie"], a: 0, why: "warum = why." },
-            { at: "trap", k: "pick", q: "Who's calling?", o: ["Wer ruft an?", "Wo ruft an?", "Was ruft an?"], a: 0, why: "who = wer." },
+            { at: "r1", k: "pick", q: "___ ist das? — Meine Nachbarin.", o: ["Wer", "Wo", "Was"], a: 0, why: "To ask about a person, use wer." },
+            { at: "r1", k: "pick", q: "___ beginnt der Film? — Um acht.", o: ["Wann", "Wer", "Wo"], a: 0, why: "To ask about a time, use wann." },
+            { at: "r2", k: "pick", q: "Which is right?", o: ["Wo wohnst du?", "Wo du wohnst?", "Wohnst wo du?"], a: 0, why: "The W-word, then the verb, then the subject." },
+            { at: "r2", k: "order", q: "Build it: When does the course begin?", a: ["Wann", "beginnt", "der Kurs?"], why: "The W-word first, the verb second." },
+            { at: "r3", k: "pick", q: "___ fährst du am Wochenende? — Nach Genf.", o: ["Wohin", "Wo", "Woher"], a: 0, why: "To ask where to, use wohin." },
+            { at: "r3", k: "type", cx: true, q: "___ kommen Sie? — Aus Indien.", a: ["Woher"], r: ["wq.wo"], why: "To ask where from, use woher." },
+            { at: "r4", k: "pick", q: "___ bist du? — 32.", o: ["Wie alt", "Wie viel", "Wann"], a: 0, why: "To ask someone's age, use wie alt." },
+            { at: "r4", k: "pick", q: "___ Kinder haben Sie? — Zwei.", o: ["Wie viele", "Wie viel", "Was"], a: 0, why: "For things you can count, use wie viele." },
+            { at: "table", k: "pick", q: "To ask for a reason:", o: ["warum", "wann", "wie"], a: 0, why: "warum means why." },
+            { at: "trap", k: "pick", q: "Who's calling?", o: ["Wer ruft an?", "Wo ruft an?", "Was ruft an?"], a: 0, why: "*Who* is wer: Wer ruft an?" },
           ] },
       ],
       diag: [
-        { t: "swap", from: "^(wo|wohin|woher)$", to: "^(wo|wohin|woher)$", rule: "wq.wo", msg: "**{right}** here: wo = where it is, wohin = where to, woher = where from." },
-        { t: "swap", from: "^(wer|was|wo|wann|wie|warum)$", to: "^(wer|was|wo|wann|wie|warum)$", rule: "wq.words", msg: "**{right}** here — wer = who, was = what, wo = where, wann = when." },
+        { t: "swap", from: "^(wo|wohin|woher)$", to: "^(wo|wohin|woher)$", rule: "wq.wo", msg: "It's **{right}** here. wo asks where something is, wohin where to, woher where from." },
+        { t: "swap", from: "^(wer|was|wo|wann|wie|warum)$", to: "^(wer|was|wo|wann|wie|warum)$", rule: "wq.words", msg: "It's **{right}** here. wer means who, was what, wo where, wann when, wie how, warum why." },
       ],
       drills: [
         // ── Übung 4•6: wer or was? ──
@@ -287,7 +287,7 @@ cxPack({
           { q: "___ ist das? — Das ist ein Geschenk für dich.", a: ["Was"], r: ["wq.words"] },
         ] },
         // ── Übung 4•4: wo, wohin, woher ──
-        { id: "d4.4", ex: "4.4", t: "type", title: "Wo, wohin or woher?", how: "Write the W-word the answer asks for.", items: [
+        { id: "d4.4", ex: "4.4", t: "type", title: "Wo, wohin or woher?", how: "Write the W-word that fits the answer.", items: [
           { q: "___ ist Frau Brunner? — Im Büro.", a: ["Wo"], r: ["wq.wo"] },
           { q: "___ fährt der Bus? — Zum Bahnhof.", a: ["Wohin"], r: ["wq.wo"] },
           { q: "___ kommt dein Kollege? — Aus Polen.", a: ["Woher"], r: ["wq.wo"] },
@@ -300,8 +300,8 @@ cxPack({
           { q: "___ kommt dieser Kaffee? — Aus Kolumbien.", a: ["Woher"], r: ["wq.wo"] },
         ] },
         // ── Übung 6•8: the question word given ──
-        { id: "d6.8", ex: "6.8", t: "transform", low: true, title: "Ask with the W-word", how: "Ask for the part the W-word asks about.", items: [
-          { q: "Die Kinder kommen morgen. (wer)", a: ["Wer kommt morgen?"], r: ["wq.v2", "wq.words"], note: "wer takes the singular verb, even for several people: Wer **kommt**?" },
+        { id: "d6.8", ex: "6.8", t: "transform", low: true, title: "Ask with the W-word", how: "Ask a question with the W-word in brackets.", items: [
+          { q: "Die Kinder kommen morgen. (wer)", a: ["Wer kommt morgen?"], r: ["wq.v2", "wq.words"], note: "wer always takes a singular verb, even when the answer is several people: Wer **kommt**?" },
           { q: "Ihr kocht heute Abend Risotto. (was)", a: ["Was kocht ihr heute Abend?"], r: ["wq.v2"] },
           { q: "Lisa fährt nach Lugano. (wohin)", a: ["Wohin fährt Lisa?"], r: ["wq.wo", "wq.v2"] },
           { q: "Der Film beginnt um acht. (wann)", a: ["Wann beginnt der Film?"], r: ["wq.v2"] },
@@ -313,7 +313,7 @@ cxPack({
           { q: "Der Bus fährt alle zehn Minuten. (wie oft)", a: ["Wie oft fährt der Bus?"], r: ["wq.wie"] },
         ] },
         // ── Übung 6•11: with or without a W-word ──
-        { id: "d6.11", ex: "6.11", t: "transform", low: true, title: "Yes/no or W?", how: "Make it a question — with the W-word if one is given.", items: [
+        { id: "d6.11", ex: "6.11", t: "transform", low: true, title: "Yes/no or W?", how: "Make it a question. Use the W-word if one is given.", items: [
           { q: "Ali kommt heute. (—)", a: ["Kommt Ali heute?"], r: ["wq.v2"] },
           { q: "Ali kommt heute. (wann)", a: ["Wann kommt Ali?"], r: ["wq.v2"] },
           { q: "Ihr wohnt jetzt in Chur. (—)", a: ["Wohnt ihr jetzt in Chur?"], r: ["wq.v2"] },
@@ -352,8 +352,8 @@ cxPack({
           { q: "Die Großmutter wird nächste Woche neunzig.", hl: "neunzig", a: ["Wie alt wird die Großmutter?"], r: ["wq.wie"] },
         ] },
         // ── Übung 4•5: wie heißt…? ──
-        { id: "d4.5", ex: "4.5", t: "answer", title: "What's the name?", how: "Answer — or ask — in a whole sentence.", items: [
-          { q: "«Wie heißt die neue Ärztin?» (Doktor Frei)", a: ["Sie heißt Doktor Frei.", "Die neue Ärztin heißt Doktor Frei."], r: ["wq.wie"] },
+        { id: "d4.5", ex: "4.5", t: "answer", title: "What's the name?", how: "Answer or ask in a whole sentence.", items: [
+          { q: "«Wie heißt die neue Ärztin?» (Anna Frei)", a: ["Sie heißt Anna Frei.", "Die neue Ärztin heißt Anna Frei."], r: ["wq.wie"] },
           { q: "«Wie heißt dein Bruder?» (Luca)", a: ["Er heißt Luca.", "Mein Bruder heißt Luca."], r: ["wq.wie"] },
           { q: "«Wie heißen Sie?» (You're Eva Roth.)", a: ["Ich heiße Eva Roth.", "Mein Name ist Eva Roth."], r: ["wq.wie"] },
           { q: "«Wie heißt das Dorf?» (Leuk)", a: ["Es heißt Leuk.", "Das Dorf heißt Leuk."], r: ["wq.wie"] },

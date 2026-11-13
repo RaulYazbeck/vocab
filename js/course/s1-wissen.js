@@ -9,19 +9,19 @@ cxPack({
   sections: {
     "s1.wissen": {
       rules: {
-        "wk.forms": "ich weiß · du weißt · er weiß · wir wissen · ihr wisst",
-        "wk.fact": "wissen: a fact — wo, wie, dass … · das, es, nichts",
-        "wk.kennen": "kennen: a person, a place, a thing you've met",
+        "wk.forms": "ich weiß, du weißt, er weiß, wir wissen, ihr wisst",
+        "wk.fact": "wissen for a fact: wo, wie, dass…, das, nichts",
+        "wk.kennen": "kennen for a person, a place or a thing you know",
       },
       sheets: [
         { id: "cx.wk1", title: "wissen or kennen?", qn: 3,
           struct: [["wissen", "verb"], ["+ wo · wie · dass · das", "mid"], ["kennen", "aux"], ["+ a person, a place", "thing"]],
-          why: "English has one *know*; German has two. **wissen** is knowing a fact — what, where, that something is so. **kennen** is knowing a person, a place or a thing because you've met it.",
+          why: "English has one *know*; German has two. **wissen** is knowing a fact: what, where, that something is so. **kennen** is knowing a person, a place or a thing from experience.",
           rid: ["wk.forms", "wk.fact", "wk.kennen"],
           rules: [
-            "**wissen** is irregular, like a modal: ich **weiß** · du **weißt** · er **weiß** · wir **wissen** · ihr **wisst** · sie **wissen**. ich and er are the same — no -t.",
-            "**wissen** = know a **fact** — mostly before wo, wie, wann, was, dass…, or with das, es, nichts, alles: Ich **weiß**, wo der Bahnhof ist. · **Weißt** du, wie spät es ist? · Das **weiß** ich nicht.",
-            "**kennen** = know a **person, a place, a thing** — you've met it, you're familiar with it; a noun follows: Ich **kenne** deinen Bruder. · **Kennst** du Luzern? · Wir **kennen** das Restaurant. It's regular: ich kenne, du kennst, er kennt.",
+            "**wissen** is irregular, like a modal: ich **weiß** · du **weißt** · er **weiß** · wir **wissen** · ihr **wisst** · sie **wissen**. ich and er have the same form, with no -t.",
+            "**wissen** means knowing a **fact**. It usually comes before wo, wie, wann, was, dass…, or with das, es, nichts, alles: Ich **weiß**, wo der Bahnhof ist. · Das **weiß** ich nicht.",
+            "**kennen** means knowing a **person, a place or a thing** you are familiar with, and a noun follows: Ich **kenne** deinen Bruder. · **Kennst** du Luzern? It is regular: ich kenne, du kennst, er kennt.",
           ],
           table: { head: ["", "wissen", "kennen"], rows: [
             ["ich", "**weiß**", "kenne"], ["du", "**weißt**", "kennst"], ["er · sie · es", "**weiß**", "kennt"],
@@ -33,25 +33,25 @@ cxPack({
             ["Das **weiß** ich leider nicht.", "Unfortunately I don't know that."],
             ["**Kennen** Sie Frau Meier? — Ja, ich **weiß** sogar, wo sie wohnt.", "Do you know Ms Meier? — Yes, I even know where she lives."],
           ],
-          trap: "A language is neither: Er **kann** gut Deutsch (or: Er spricht gut Deutsch). And it's **ich weiß** — never ~~ich weiße~~, never ~~er weißt~~.",
+          trap: "For a language, use neither: Er **kann** gut Deutsch (or Er spricht gut Deutsch). And it's **ich weiß**, never ~~ich weiße~~, and **er weiß**, never ~~er weißt~~.",
           quiz: [
-            { at: "r1", k: "pick", q: "Er ___ es nicht.", o: ["weiß", "weißt", "wisst"], a: 0, why: "er = ich, no ending: **weiß**." },
-            { at: "r1", k: "type", cx: true, q: "___ ihr, wo der Bahnhof ist? (wissen)", a: ["Wisst"], r: ["wk.forms"], why: "ihr: **wisst**." },
-            { at: "r1", k: "pick", q: "ich ___ (wissen)", o: ["weiß", "weiße", "wisse"], a: 0, why: "**ich weiß** — no ending." },
-            { at: "r2", k: "pick", q: "Ich ___, wo das Museum ist.", o: ["weiß", "kenne"], a: 0, why: "A fact (where it is): **wissen**." },
-            { at: "r2", k: "pick", q: "___ du, wie spät es ist?", o: ["Weißt", "Kennst"], a: 0, why: "A fact: **wissen**." },
-            { at: "r3", k: "pick", q: "Ich ___ deine Schwester.", o: ["kenne", "weiß"], a: 0, why: "A person: **kennen**." },
-            { at: "r3", k: "pick", q: "___ du Basel?", o: ["Kennst", "Weißt"], a: 0, why: "A place: **kennen**." },
-            { at: "r3", k: "type", cx: true, q: "Wir ___ das Restaurant gut. (kennen)", a: ["kennen"], r: ["wk.kennen"], why: "A place you've been: **kennen**." },
+            { at: "r1", k: "pick", q: "Er ___ es nicht.", o: ["weiß", "weißt", "wisst"], a: 0, why: "er has the same form as ich, with no ending: **weiß**." },
+            { at: "r1", k: "type", cx: true, q: "___ ihr, wo der Bahnhof ist? (wissen)", a: ["Wisst"], r: ["wk.forms"], why: "With ihr: **wisst**." },
+            { at: "r1", k: "pick", q: "ich ___ (wissen)", o: ["weiß", "weiße", "wisse"], a: 0, why: "**ich weiß**, with no ending." },
+            { at: "r2", k: "pick", q: "Ich ___, wo das Museum ist.", o: ["weiß", "kenne"], a: 0, why: "Where something is is a fact: **wissen**." },
+            { at: "r2", k: "pick", q: "___ du, wie spät es ist?", o: ["Weißt", "Kennst"], a: 0, why: "The time is a fact: **wissen**." },
+            { at: "r3", k: "pick", q: "Ich ___ deine Schwester.", o: ["kenne", "weiß"], a: 0, why: "A person you know: **kennen**." },
+            { at: "r3", k: "pick", q: "___ du Basel?", o: ["Kennst", "Weißt"], a: 0, why: "A place you know: **kennen**." },
+            { at: "r3", k: "type", cx: true, q: "Wir ___ das Restaurant gut. (kennen)", a: ["kennen"], r: ["wk.kennen"], why: "A place you have been to: **kennen**." },
             { at: "table", k: "pick", q: "sie (she) ___ (kennen)", o: ["kennt", "kennst", "kenne"], a: 0, why: "kennen is regular: **sie kennt**." },
-            { at: "trap", k: "pick", q: "He speaks good German:", o: ["Er kann gut Deutsch.", "Er weiß gut Deutsch.", "Er kennt gut Deutsch."], a: 0, why: "A language: **können**." },
+            { at: "trap", k: "pick", q: "He speaks good German:", o: ["Er kann gut Deutsch.", "Er weiß gut Deutsch.", "Er kennt gut Deutsch."], a: 0, why: "For a language, use **können**." },
           ] },
       ],
       diag: [
-        { t: "swap", from: "^(kenne|kennst|kennt|kennen)$", to: "^(weiss|weisst|wissen|wisst)$", rule: "wk.fact", msg: "A fact — where, how, that…: **{right}** (wissen)." },
-        { t: "swap", from: "^(weiss|weisst|wissen|wisst)$", to: "^(kenne|kennst|kennt|kennen)$", rule: "wk.kennen", msg: "A person, a place, a thing you've met: **{right}** (kennen)." },
-        { t: "ending", stem: "(weiss|wiss)", rule: "wk.forms", msg: "wissen: ich weiß · du weißt · er weiß · ihr wisst — here **{right}**." },
-        { t: "swap", from: "^(wisse|weisse|wissst)$", to: "^(weiss|weisst|wisst)$", rule: "wk.forms", msg: "wissen: ich weiß · du weißt · er weiß · ihr wisst — here **{right}**." },
+        { t: "swap", from: "^(kenne|kennst|kennt|kennen)$", to: "^(weiss|weisst|wissen|wisst)$", rule: "wk.fact", msg: "A fact (where, how, that…) takes wissen: **{right}**." },
+        { t: "swap", from: "^(weiss|weisst|wissen|wisst)$", to: "^(kenne|kennst|kennt|kennen)$", rule: "wk.kennen", msg: "A person, a place or a thing you know takes kennen: **{right}**." },
+        { t: "ending", stem: "(weiss|wiss)", rule: "wk.forms", msg: "The forms are ich weiß, du weißt, er weiß, ihr wisst. Here: **{right}**." },
+        { t: "swap", from: "^(wisse|weisse|wissst)$", to: "^(weiss|weisst|wisst)$", rule: "wk.forms", msg: "The forms are ich weiß, du weißt, er weiß, ihr wisst. Here: **{right}**." },
         { t: "ending", stem: "kenn", rule: "wk.kennen", msg: "kennen is regular: **{right}**." },
       ],
       drills: [
@@ -69,7 +69,7 @@ cxPack({
           { q: "Ich ___ nicht, was ich sagen soll. (wissen)", a: ["weiß"], r: ["wk.forms"], vf: [["wissen", "pr", "ich"]] },
         ] },
         // ── our own: wissen or kennen? ──
-        { id: "dwk.p", t: "pick", title: "weiß or kenne?", how: "Pick the verb: a fact → wissen · a person, a place, a thing → kennen.", items: [
+        { id: "dwk.p", t: "pick", title: "weiß or kenne?", how: "Pick the verb: wissen for a fact, kennen for a person, a place or a thing.", items: [
           { q: "Ich ___ nicht, wo mein Handy ist.", o: ["weiß", "kenne"], a: ["weiß"], r: ["wk.fact"] },
           { q: "___ du meinen Mann?", o: ["Kennst", "Weißt"], a: ["Kennst"], r: ["wk.kennen"] },
           { q: "Wir ___ Zürich sehr gut.", o: ["kennen", "wissen"], a: ["kennen"], r: ["wk.kennen"] },
@@ -98,7 +98,7 @@ cxPack({
           { q: "Ich ___ ein gutes Restaurant am See.", a: ["kenne"], r: ["wk.kennen"], vf: [["kennen", "pr", "ich"]] },
         ] },
         // ── Übung 18•3: say it in German ──
-        { id: "d18.3", ex: "18.3", t: "translate", end: true, title: "Say it in German", how: "Translate — a fact: wissen · a person, a place: kennen.", items: [
+        { id: "d18.3", ex: "18.3", t: "translate", end: true, title: "Say it in German", how: "Translate: wissen for a fact, kennen for a person or a place.", items: [
           { q: "Do you know where the station is? (du)", a: ["Weißt du, wo der Bahnhof ist?"], r: ["wk.fact"] },
           { q: "I don't know anything.", a: ["Ich weiß nichts."], r: ["wk.fact"] },
           { q: "Mr Huber knows Geneva well.", a: ["Herr Huber kennt Genf gut."], r: ["wk.kennen"] },
@@ -111,7 +111,7 @@ cxPack({
           { q: "We know the town well.", a: ["Wir kennen die Stadt gut."], r: ["wk.kennen"] },
           { q: "I know that you're tired. (du)", a: ["Ich weiß, dass du müde bist."], r: ["wk.fact"] },
         ] },
-        { id: "dw.wk", t: "write", end: true, title: "Write your own", how: "In your own words — saved for Claude to correct.", items: [
+        { id: "dw.wk", t: "write", end: true, title: "Write your own", how: "Write in your own words. It is saved for Claude to correct.", items: [
           { q: "Your town: three places you know well (kennen).", model: ["Ich kenne in Bern ein gutes Café, den Rosengarten und einen kleinen Markt."], r: ["wk.kennen"] },
           { q: "Three things you know about Switzerland (Ich weiß, dass …).", model: ["Ich weiß, dass die Schweiz vier Landessprachen hat und dass Bern die Hauptstadt ist."], r: ["wk.fact"] },
           { q: "Someone at work or school: do you know them well? What do you know about them?", model: ["Ich kenne meine Kollegin Sara gut. Ich weiß, dass sie aus Lugano kommt."], r: ["wk.kennen", "wk.fact"] },
