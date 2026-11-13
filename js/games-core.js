@@ -961,8 +961,10 @@ function launchGame(id, opts = {}) {
   gamePreferKeys = opts.prefer && opts.prefer.size ? opts.prefer : null;
   const maxRank = gameRankOf(def.id);
   // (a bonus round is played at your rank, so the stars it earns are your rank's)
-  // (a minion fight keeps its easy handling: it is no game round and earns no stars)
+  // (a minion fight keeps its easy handling: it is no game round and earns no stars;
+  // a bonus round goes by your choice — 🏅 rank up at your rank, or 🐣 easy)
   ctx.rank = opts.rank !== undefined ? Math.min(opts.rank, maxRank) : opts.bossMode === "minion" ? Math.min(maxRank, 1) : maxRank;
+  if (size === "bonus" && opts.rank === undefined && opts.bossMode !== "minion") bonusModeApply(ctx);
   // Deferred: the keypress that opened this screen (e.g. Enter in Drill
   // triggering a Surprise Round) is still bubbling and must not reach us.
   gTimeout(() => gListen(document, "keydown", e => gameKeydown(e, ctx)), 0);
@@ -1036,6 +1038,7 @@ function showStartCard(ctx, onGo) {
     if (!o) return;
     o.querySelectorAll(".g-rank").forEach(b => b.onclick = () => { ctx.rank = +b.dataset.r; updateHudRun(ctx); render(); });
     bindTwistLine(ctx, render);
+    if (bonusChoice) bonusModeBind("g-bmode-splash", () => { bonusModeApply(ctx); updateHudRun(ctx); render(); });
     armOverlayButton(o.querySelector("#g-go"), () => { overlay(""); startWithTwistLog(ctx, onGo); });
   };
   render();
@@ -1260,16 +1263,20 @@ function overlay(html) {
 }
 function showGameIntro(ctx, onGo) {
   const d = ctx.def;
+  // (a bonus round met for the first time: the 🏅 / 🐣 switch here too)
+  const bonusChoice = ctx.size === "bonus" && !ctx.opts.bossMode && ctx.opts.rank === undefined && !ctx.started;
   const o = overlay(`<div class="g-card">
       <div class="g-card-icon">${d.icon}</div>
       <div class="g-card-title">${escapeHtml(gameName(d))}</div>
       <div class="g-card-skill">${escapeHtml(d.skill)}</div>
       ${gameRankLineHtml(d.id)}
       <ul class="g-howto">${(typeof d.howTo === "function" ? d.howTo() : d.howTo).map(l => `<li>${l}</li>`).join("")}</ul>
+      ${bonusChoice ? bonusModeHtml(d.id, "g-bmode-splash") : ""}
       <button class="g-big-btn" id="g-go">${ctx.started ? "Resume" : "Let's go"}</button>
       <button class="g-link-btn" onclick="quitGame()">${ctx.started ? "Quit game" : ctx.size === "bonus" ? "Skip bonus" : "← Back"}</button>
     </div>`);
   if (!o) return;
+  if (bonusChoice) bonusModeBind("g-bmode-splash", () => { bonusModeApply(ctx); updateHudRun(ctx); showGameIntro(ctx, onGo); });
   armOverlayButton(o.querySelector("#g-go"), () => { overlay(""); onGo(); });
 }
 // Rank, stars and best score — on the game's intro, not its hub tile.
@@ -1283,12 +1290,14 @@ function gameRankLineHtml(id) {
 }
 function showRoundSplash(ctx, onGo) {
   const d = ctx.def;
-  const sub = ctx.size === "bonus" ? `🎁 Bonus round — ${escapeHtml(bonusGoalText(d.id))}${bonusUntimed(d.id) ? " · no clock, take your time" : ""}<br><small>${rankLabel(ctx.rank)} · ${bonusStarsText()}</small>` : escapeHtml(d.skill);
+  const bonusChoice = ctx.size === "bonus" && !ctx.opts.bossMode && ctx.opts.rank === undefined;
+  const sub = () => ctx.size === "bonus" ? `🎁 Bonus round — ${escapeHtml(bonusGoalText(d.id))}${bonusUntimed(d.id) ? " · no clock, take your time" : ""}${bonusChoice ? "" : `<br><small>${rankLabel(ctx.rank)}</small>`}` : escapeHtml(d.skill);
   const render = () => {
     const o = overlay(`<div class="g-card">
         <div class="g-card-icon">${d.icon}</div>
         <div class="g-card-title">${escapeHtml(gameName(d))}</div>
-        <div class="g-card-skill">${sub}</div>
+        <div class="g-card-skill">${sub()}</div>
+        ${bonusChoice ? bonusModeHtml(d.id, "g-bmode-splash") + `<div class="g-bmode-note">${ctx.noStars ? "Easy handling — just practice, no stars." : bonusStarsText()}</div>` : ""}
         ${twistLineHtml(ctx)}
         <button class="g-big-btn" id="g-go">Start</button>
         <button class="g-link-btn" id="g-skip">${ctx.size === "bonus" ? "Skip bonus" : gameRun && gameRun.kind === "daily" ? "← Leave — finished rounds are kept" : "← Leave"}</button>
@@ -1472,6 +1481,33 @@ function bonusGoalText(id) {
 }
 // "no clock" for untimed games — said on the offer and the splash.
 function bonusUntimed(id) { const g = getGame(id); return !!g && !g.timed; }
+// A bonus round: 🏅 Rank up (your rank, it earns stars) or 🐣 Easy (the
+// lowest rank, no stars). The choice is yours on every bonus offer and start
+// card, and it is remembered (S.games.bonusEasy — it syncs with the rest).
+function bonusEasy() { return !!(S.games && S.games.bonusEasy); }
+function bonusModeApply(ctx) {
+  ctx.rank = bonusEasy() ? 0 : gameRankOf(ctx.def.id);
+  ctx.noStars = bonusEasy();
+}
+function bonusModeSet(easy) {
+  if (!S.games) return;
+  S.games.bonusEasy = !!easy;
+  if (typeof logEvent === "function") logEvent("bonus_mode", { easy: !!easy });
+  saveState();
+}
+// The two-way switch, for the offer card and the start card.
+function bonusModeHtml(id, idAttr = "g-bmode") {
+  const easy = bonusEasy(), r = gameRankOf(id);
+  return `<div class="g-bmode" id="${idAttr}" role="radiogroup" aria-label="Bonus round difficulty">
+    <button type="button" role="radio" aria-checked="${!easy}" class="g-bmode-opt${easy ? "" : " on"}" data-easy="0">🏅 Rank up<small>${rankLabel(r)} · earns ★</small></button>
+    <button type="button" role="radio" aria-checked="${easy}" class="g-bmode-opt${easy ? " on" : ""}" data-easy="1">🐣 Easy<small>${rankLabel(0)} · no stars</small></button>
+  </div>`;
+}
+function bonusModeBind(rootId, onChange) {
+  const box = document.getElementById(rootId);
+  if (!box) return;
+  box.querySelectorAll(".g-bmode-opt").forEach(b => b.onclick = e => { e.preventDefault(); e.stopPropagation(); const v = b.dataset.easy === "1"; if (v !== bonusEasy()) { bonusModeSet(v); onChange(); } });
+}
 // A bonus round's stars — it is short, so it counts how clean it was, at
 // your rank: the target reached ★ · with one mistake at most ★★ · without a
 // mistake ★★★ (which ranks the game up, as a full round's ★★★ does). A
@@ -1818,6 +1854,7 @@ function renderSurpriseResult(sum, run) {
         <div class="result-title">${minion ? (cleared ? "Minion defeated!" : "The minion escaped") : cleared ? "Bonus cleared ✓"
           : (sum.result.correct || 0) >= bonusGoal(sum.def && sum.def.id) - 1 ? "So close!" : "Good practice"}</div>
         ${sum.result.note ? `<div class="g-best-line">${escapeHtml(sum.result.note)}</div>` : ""}
+        ${sum.size === "bonus" && !sum.starred && !sum.result.minion ? `<div class="g-rank-line">🐣 Easy round — practice, no stars</div>` : ""}
         ${sum.starred ? `<div class="g-stars-row">${starsHtml(sum.stars, 3, "big")}</div>
         <div class="g-rank-line">${sum.rankedUp ? `<span class="g-rankup">${rankLabel(sum.rank + 1)} unlocked!</span>`
           : `${escapeHtml(gameName(sum.def))} · ${rankLabel(sum.rank)} · ${bonusStarsLine(sum)}`}</div>` : ""}

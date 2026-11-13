@@ -1060,5 +1060,15 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   ok(!leaks.length, "a start is written in only when the task shows it word for word — never in a gap item", leaks.slice(0, 4));
   ok(!C.cxLead(it("dcj.nach", "Nachdem ich gefrühstückt habe, gehe ich zur Arbeit."), C.cxSet("dcj.nach")), "«Nachdem ich gefrühstückt habe,» is the work, not given: not written in");
 }
+// ── Feedback: the one word out of place (13 Nov 2026) ──
+{
+  ok(C.cxMovedWord(["das", "ist", "die", "arztin", "die", "hat", "mich", "operiert"], ["das", "ist", "die", "arztin", "die", "mich", "operiert", "hat"], ["Das", "ist", "die", "Ärztin", "die", "mich", "operiert", "hat"]) === "«hat» goes at the very end", "one word moved: named, with where it goes");
+  ok(C.cxMovedWord(["ich", "oft", "sehe", "ihn"], ["ich", "sehe", "ihn", "oft"]) !== "" && C.cxMovedWord(["a", "b", "c", "d"], ["d", "c", "b", "a"]) === "", "…a real shuffle names no single word");
+  const it = C.cxSet("d22.6").items.find(x => x.a[0] === "Das ist die Ärztin, die mich operiert hat.");
+  const r = C.cxCheck(it, "Das ist die Ärztin, die hat mich operiert.", C.cxSection("s2.rel"));
+  ok(/«hat» goes at the very end/.test(r.msg || ""), "the lesson's own order message gets the concrete word too", r.msg);
+  const plain = C.cxCheck({ q: "x", a: ["Ich sehe ihn heute nicht."], r: ["neg.kein"] }, "Ich sehe heute ihn nicht.", null);
+  ok(/only one is out of place/.test(plain.msg || ""), "with no lesson message: «only one is out of place: …»", plain.msg);
+}
 console.log(`course unit: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

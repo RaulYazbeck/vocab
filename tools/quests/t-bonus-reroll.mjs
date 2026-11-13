@@ -36,6 +36,21 @@ const out = await page.evaluate(async () => {
   S.games.rank[id] = 0; S.games.rankStars[id] = [0, 0, 0, 0, 0];
   launchGame(id, { pool, size: "full" }); await wait(30); const fc = activeGame.ctx; finishGame(fc, { score: 0, correct: 1, wrong: 0 }); await wait(30);
   ok(gameRankStars(id, 0) === 0, "a full round still goes by its score");
+  // 🐣 Easy or 🏅 Rank up — your choice, remembered
+  S.games.rank[id] = 2; S.games.rankStars[id] = [3, 3, 0, 0, 0]; S.games.stars[id] = 3;
+  bonusModeSet(true);
+  r = await play(id, { correct: goal, wrong: 0 });
+  ok(r.ctx.rank === 0 && r.ctx.noStars && gameRankStars(id, 2) === 0 && gameRankOf(id) === 2 && /Easy round/.test(r.html), "🐣 Easy: played at the lowest rank, no stars, no rank change — and the card says so", [r.ctx.rank, gameRankOf(id)]);
+  ok(S.games.bonusEasy === true, "…the choice is kept (it syncs with the games)");
+  launchGame(id, { pool, size: "bonus" }); await wait(40);
+  const sp = document.getElementById("g-bmode-splash");
+  ok(!!sp && sp.querySelector(".g-bmode-opt.on").dataset.easy === "1", "the start card (or a game's first intro) shows the switch, on 🐣 Easy", sp && sp.outerHTML.slice(0, 80));
+  sp.querySelector('.g-bmode-opt[data-easy="0"]').click(); await wait(30);
+  ok(!S.games.bonusEasy && activeGame.ctx.rank === 2 && !activeGame.ctx.noStars && document.querySelector("#g-bmode-splash .g-bmode-opt.on").dataset.easy === "0", "a tap on 🏅 Rank up: your rank, stars again — remembered", [S.games.bonusEasy, activeGame.ctx.rank]);
+  stopActiveGame(); gameRun = null;
+  launchGame("boss", { pool, size: "bonus", bossMode: "minion", deck: (S.games && Object.keys(S.games.rank)[0]) || "" }); await wait(30);
+  ok(!document.getElementById("g-bmode-splash"), "a minion fight has no switch (it earns no stars either way)");
+  stopActiveGame();
   // the offer in Today says so
   ok(/★/.test(bonusStarsText()) && typeof renderPathBonusOffer === "function", "the offer and the splash say how the stars are earned");
   // ── the 🎲 reroll: a real draw, which may arrive done ──

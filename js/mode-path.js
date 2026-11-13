@@ -1092,10 +1092,10 @@ function pathMinion(take) {
 function renderPathBonusOffer(it) {
   const s = pathSession;
   if (it.minion) return renderPathMinionOffer(it);
-  const pick = pathBonusGame();
+  const pick = it.pick || pathBonusGame();
   if (!pick) { pathNext(); return; }
+  if (!it.pick) s.bonusShown++; // (counted once — a redraw after the 🐣 / 🏅 choice isn't a new offer)
   it.pick = pick;
-  s.bonusShown++;
   pathShowTyped(false);
   const g = getGame(pick.id);
   document.getElementById("p-card").innerHTML = `
@@ -1104,8 +1104,11 @@ function renderPathBonusOffer(it) {
       <div class="p-bonus-title">Bonus round?</div>
       <div class="p-bonus-sub">${g.icon} ${escapeHtml(gameName(g))} — <strong>${bonusGoalText(pick.id)}</strong> to clear it</div>
       <div class="p-sub">${pick.prefer.size ? "The words you missed come first" : "With this session's words"} · optional${bonusUntimed(pick.id) ? " · no clock" : ""}</div>
-      <div class="p-bonus-stars"><span class="p-bonus-rank">${rankLabel(gameRankOf(pick.id))}</span><span class="p-bonus-st">${starsHtml(gameRankProgress(pick.id).stars, 3)}</span><span class="p-bonus-how">no mistake: ★★★${gameRankOf(pick.id) < GAME_RANKS.length - 1 ? " + next rank" : ""}</span></div>
+      ${bonusModeHtml(pick.id, "p-bmode")}
+      <div class="p-bonus-stars">${bonusEasy() ? `<span class="p-bonus-how">Easy handling — just practice, no stars</span>`
+        : `<span class="p-bonus-st">${starsHtml(gameRankProgress(pick.id).stars, 3)}</span><span class="p-bonus-how">no mistake: ★★★${gameRankOf(pick.id) < GAME_RANKS.length - 1 ? " + next rank" : ""}</span>`}</div>
     </div>`;
+  bonusModeBind("p-bmode", () => renderPathBonusOffer(it));
   pathSetActions(`
     <button class="g-sec-btn" onclick="pathBonus(false)">Skip</button>
     <button class="g-big-btn p-main" onclick="pathBonus(true)">Play ▶</button>`);

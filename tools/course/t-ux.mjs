@@ -123,6 +123,17 @@ ok(lt === true, "the start deleted and only the rest typed: right too");
 await ev(() => { renderCourseDrill("s2.indq", "d29.9"); const cur = _cx.list[_cx.i]; cur.mode = "tiles"; cur.bank = null; cur.picked = []; cxRender(); }); await page.waitForTimeout(150);
 const lp = await ev(() => [...document.querySelectorAll("#cx-built .gs-tok")].map(b => b.textContent).join(" "));
 ok(/^ich weiß nicht$/i.test(lp), "with tiles: its words already placed", lp);
+// ── 8 · tiles: the first word takes its capital once placed ──
+await ev(() => { renderCourseDrill("s2.rel", "d22.6"); const cur = _cx.list[_cx.i]; cur.mode = "tiles"; cur.bank = null; cur.picked = []; cxRender(); });
+const cap = await ev(() => { const cur = _cx.list[_cx.i]; const b0 = cur.bank.findIndex(b => b.i === 0);
+  const inBank = document.querySelector(`#cx-bank .gs-tok[data-b="${b0}"]`).textContent;
+  document.querySelector(`#cx-bank .gs-tok[data-b="${b0}"]`).click();
+  const placed = document.querySelector("#cx-built .gs-tok").textContent;
+  const b1 = cur.bank.findIndex(b => b.i === 1); document.querySelector(`#cx-built .gs-tok`).click(); document.querySelector(`#cx-bank .gs-tok[data-b="${b1}"]`).click();
+  return { inBank, placed, other: document.querySelector("#cx-built .gs-tok").textContent }; });
+ok(cap.inBank === "das" && cap.placed === "Das" && cap.other === "Ist", "a tile waits small in the bank, takes its capital in first place (and gives it up when it isn't first)", cap);
+await ev(() => { renderCourseDrill("s1.zu", "d24.5"); const cur = _cx.list[_cx.i]; cur.mode = "tiles"; cur.bank = null; cur.picked = []; cxRender(); const b0 = cur.bank.findIndex(b => b.i === 0); document.querySelector(`#cx-bank .gs-tok[data-b="${b0}"]`).click(); });
+ok(await ev(() => /^[a-zäöü]/.test(document.querySelector("#cx-built .gs-tok").textContent)), "…a phrase that isn't a sentence (eine neue Sprache zu lernen) stays small");
 let fail = 0; res.forEach(([c2, m]) => { console.log((c2 ? "✓ " : "✗ ") + m); if (!c2) fail++; });
 if (errors.length) { console.log("page errors:", errors.slice(0, 3)); fail++; }
 console.log(fail ? `t-ux: ${fail} FAILED` : "t-ux: all passed");

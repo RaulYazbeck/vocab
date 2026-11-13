@@ -95,7 +95,7 @@ function cxRender() {
   } else if (k === "order") {
     // Lines of a conversation to put in order: tap them one by one.
     if (!cur.bank) { cur.bank = item.a.map((w, i) => ({ w, i })); for (let t = 0; t < 8; t++) { shuffle(cur.bank); if (cur.bank.some((b, i) => b.i !== i)) break; } }
-    body = `<div class="gs-qtext">${gsMd(item.q || "Put the lines in order.")}</div><div class="gs-built cx-lines" id="cx-built" aria-label="Your order">${cur.picked.map((bi, j) => `<button class="gs-tok on" data-j="${j}">${escapeHtml(cur.bank[bi].w)}</button>`).join("") || `<span class="gs-built-ph">tap the lines in order</span>`}</div>
+    body = `<div class="gs-qtext">${gsMd(item.q || "Put the lines in order.")}</div><div class="gs-built cx-lines" id="cx-built" aria-label="Your order">${cur.picked.map((bi, j) => `<button class="gs-tok on" data-j="${j}">${escapeHtml(cxTileShow(cur, bi, j))}</button>`).join("") || `<span class="gs-built-ph">tap the lines in order</span>`}</div>
       <div class="gs-bank cx-lines" id="cx-bank">${cur.bank.map((t, bi) => `<button class="gs-tok" data-b="${bi}" ${cur.picked.includes(bi) ? "disabled" : ""}>${escapeHtml(t.w)}</button>`).join("")}</div>`;
   } else if (k === "transform" && cur.mode === "place") {
     body = `<div class="gs-qtext cx-place-q">${item.hl ? cxQHtml({ q: item.q.replace(/\([^)]*\)\s*$/, "").trim(), hl: item.hl }) : "Where does it go?"}</div>${cxPlaceHtml(cur)}`;
@@ -108,7 +108,7 @@ function cxRender() {
     }
     // (with the tiles, the cue in another order: in sentence order it was the answer)
     const cue = k === "compose" ? `<div class="cx-cue">${cxCueOrder(item, true).map(w => `<span class="gs-chip">${escapeHtml(w)}</span>`).join("")}</div>` : `<div class="gs-qtext">${cxQHtml(item)}</div>`;
-    body = `${cue}<div class="gs-built" id="cx-built" aria-label="Your sentence">${cur.picked.map((bi, j) => `<button class="gs-tok on" data-j="${j}">${escapeHtml(cur.bank[bi].w)}</button>`).join("") || `<span class="gs-built-ph">tap the words in order</span>`}</div>
+    body = `${cue}<div class="gs-built" id="cx-built" aria-label="Your sentence">${cur.picked.map((bi, j) => `<button class="gs-tok on" data-j="${j}">${escapeHtml(cxTileShow(cur, bi, j))}</button>`).join("") || `<span class="gs-built-ph">tap the words in order</span>`}</div>
       <div class="gs-bank" id="cx-bank">${cur.bank.map((t, bi) => `<button class="gs-tok" data-b="${bi}" ${cur.picked.includes(bi) ? "disabled" : ""}>${escapeHtml(t.w)}</button>`).join("")}</div>`;
   } else if (k === "compose") {
     body = `<div class="cx-cue">${cxCueOrder(item, false).map(w => `<span class="gs-chip">${escapeHtml(w)}</span>`).join("")}</div>${input("your sentence…")}`;
@@ -129,6 +129,20 @@ function cxRender() {
     <div class="gs-step fwd" id="cx-step"><div class="gs-quiz">${pos}${how}${body}<div class="gs-qfb" id="cx-fb" aria-live="polite"></div>
       <div class="gs-qact" id="cx-act">${check ? `<button class="g-big-btn" id="cx-check" onclick="cxCheckCur()">${actLabel}</button>` : ""}${cur.mode === "tiles" || cur.mode === "place" ? `<button class="tc-link cx-typeit" onclick="cxTypeInstead()">⌨️ type it instead</button>` : ""}</div></div></div></div>`;
   cxBind();
+}
+// The first sentence of a rule's text (it states the rule on its own).
+function cxFirstSentence(t) {
+  t = String(t || "");
+  const m = /^[\s\S]*?[.!?](?:\*\*)?(?=\s+(?:\*\*)?[A-ZÄÖÜ(]|\s*$)/.exec(t);
+  return m && m[0].length >= 25 ? m[0] : t;
+}
+// A tile in your sentence: the one in first place takes its capital (in the
+// bank it waits small — a capital there would say which word starts). A
+// conversation's lines are shown as they are.
+function cxTileShow(cur, bi, j) {
+  const w = String(cur.bank[bi].w);
+  // (only where the answer is a sentence — a phrase like «eine neue Sprache zu lernen» stays small)
+  return j === 0 && /^[A-ZÄÖÜ]/.test(String((cur.item.a || [])[0] || "")) ? w.charAt(0).toUpperCase() + w.slice(1) : w;
 }
 // A compose cue's words. With tiles they come in another order (the same
 // each time for an item) — "?" and a cue in brackets stay last; typed, as written.
@@ -275,7 +289,7 @@ function cxRefreshTiles() {
   const r = _cx, cur = r.list[r.i];
   const built = document.getElementById("cx-built"), bank = document.getElementById("cx-bank");
   if (!built || !bank) return;
-  built.innerHTML = cur.picked.map((bi, j) => `<button class="gs-tok on" data-j="${j}">${escapeHtml(cur.bank[bi].w)}</button>`).join("") || `<span class="gs-built-ph">tap the words in order</span>`;
+  built.innerHTML = cur.picked.map((bi, j) => `<button class="gs-tok on" data-j="${j}">${escapeHtml(cxTileShow(cur, bi, j))}</button>`).join("") || `<span class="gs-built-ph">tap the words in order</span>`;
   bank.querySelectorAll(".gs-tok").forEach(b => { b.disabled = cur.picked.includes(+b.dataset.b); });
   cxBind();
 }
@@ -311,7 +325,7 @@ function cxCheckCur() {
     val = cxPlaceText(cxPlace(item, set), cur.at);
   } else if (cur.mode === "tiles" && (k === "transform" || k === "compose")) {
     if (!cur.picked.length) { shakeEl(document.getElementById("cx-built")); return; }
-    val = cur.picked.map(bi => cur.bank[bi].w).join(" ");
+    val = cur.picked.map((bi, j) => cxTileShow(cur, bi, j)).join(" "); // (as shown: the first word with its capital)
   } else {
     const inp = document.getElementById("cx-input");
     val = inp ? inp.value : "";
@@ -404,7 +418,8 @@ function cxShowAnswered() {
   const also = (item.a || []).filter(a => a !== res.right);
   // A miss: your answer with the fix marked (it holds the right answer),
   // why in one line, and the rule's name — a tap opens its sheet.
-  const why = rule ? `<div class="cx-why">${gsMd(res.msg || rule.text)}</div><button class="tc-link cx-see" onclick="gsPeek('${rule.sheet}')">📏 ${escapeHtml(rule.title)} ›</button>` : "";
+  // (no message for this mistake: the rule's first sentence — it says the rule on its own; the link opens the whole sheet)
+  const why = rule ? `<div class="cx-why">${gsMd(res.msg || cxFirstSentence(rule.text))}</div><button class="tc-link cx-see" onclick="gsPeek('${rule.sheet}')">📏 ${escapeHtml(rule.title)} ›</button>` : "";
   let html;
   const tap = a => typeof sayTapAttrs === "function" ? sayTapAttrs(cxSayText(item, set, a)) : "";
   if (self) html = `<div class="p-ok">✓ Saved for Claude to correct</div>${(item.model || []).length ? `<div class="cx-also">A model: <i${sayTapAttrs(cxSayText(item, set))}>${escapeHtml(item.model[0])}</i></div>` : ""}`;

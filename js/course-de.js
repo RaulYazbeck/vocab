@@ -676,6 +676,23 @@ function cxNounGender(noun) {
   }
   return _cxGender.get(normalize(String(noun || "").replace(/[.,!?;:]+$/, ""))) || null;
 }
+// The same words, one of them moved: which, and where it goes — «ist» goes
+// right before «die Ärztin …». (Two words swapped is one move too.) → text or "".
+function cxMovedWord(T, A, orig = null) {
+  if (!cxBagEq(T, A) || T.length < 2) return "";
+  const W = orig && orig.length === A.length ? orig : A;
+  const same = (x, y) => x.length === y.length && x.every((t, i) => t === y[i]);
+  for (let i = 0; i < T.length; i++) {
+    const t2 = T.filter((_, k) => k !== i);
+    for (let j = 0; j < A.length; j++) {
+      if (A[j] !== T[i] || !same(t2, A.filter((_, k) => k !== j))) continue;
+      const word = W[j];
+      const where = j === A.length - 1 ? "at the very end" : j === 0 ? "first" : `right before «${W.slice(j + 1, j + 3).join(" ")}${A.length > j + 3 ? " …" : ""}»`;
+      return `«${word}» goes ${where}`;
+    }
+  }
+  return "";
+}
 function cxDiagnose(item, T, A, sec, orig = null, best = "") {
   const list = [...(item.diag || []), ...((sec && sec.diag) || [])];
   // the right word as the answer spells it (möchte, not mochte), small
@@ -741,14 +758,17 @@ function cxDiagnose(item, T, A, sec, orig = null, best = "") {
     // order: the right words in another order — the lesson says which order
     // it teaches (the verb last in a side sentence) instead of the bare
     // "another order". Put it last: a pos detector that fits says more.
-    else if (d.t === "order") { if (cxBagEq(T, A)) o = {}; }
+    else if (d.t === "order") { if (cxBagEq(T, A)) { o = {}; const mv = cxMovedWord(T, A, orig); if (mv) o.tail = ` Here: ${mv}.`; } }
     if (o) {
       // (a rule that exists: the course's own, or a verb sheet's point — gs:fu1.r1)
       const rule = d.rule && (!item.r || item.r.includes(d.rule) || cxRule(d.rule) || cxRuleView(d.rule)) ? d.rule : (item.r || [])[0];
-      return { rule, msg: fill(d.msg, o) + (o.gender ? " " + o.gender : ""), hard: !!d.hard };
+      return { rule, msg: fill(d.msg, o) + (o.gender ? " " + o.gender : "") + (o.tail || ""), hard: !!d.hard };
     }
   }
-  if (cxBagEq(T, A)) return { rule: (item.r || [])[0], msg: "The right words, another order." };
+  if (cxBagEq(T, A)) {
+    const mv = cxMovedWord(T, A, orig);
+    return { rule: (item.r || [])[0], msg: mv ? `All the right words — only one is out of place: ${mv}.` : "All the right words, in another order — compare your line with the answer." };
+  }
   return null;
 }
 
