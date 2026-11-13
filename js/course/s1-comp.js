@@ -14,22 +14,22 @@ cxPack({
     "s1.comp": {
       testout: { n: 6, miss: 1 },
       rules: {
-        "comp.er": "more: the adjective + -er, then als — kleiner als",
+        "comp.er": "comparing two: add -er, then als (kleiner als)",
         "comp.uml": "short words often take an umlaut: älter, größer, jünger",
-        "comp.am": "the most: am …sten — am ältesten after -t, -d, -s, -z",
-        "comp.wie": "the same: so … wie — als only after an -er",
-        "comp.irr": "gut → besser · viel → mehr · hoch → höher · nah → näher",
-        "comp.gern": "gern → lieber → am liebsten",
+        "comp.am": "the most: am …sten (am ältesten after -t, -d, -s, -z)",
+        "comp.wie": "as … as: so … wie (als only after -er)",
+        "comp.irr": "irregular: besser (gut), mehr (viel), höher, näher",
+        "comp.gern": "gern, lieber, am liebsten: like, prefer, like most",
       },
       sheets: [
         { id: "cx.comp1", title: "größer als · am größten", qn: 3,
           struct: [["adjective", "thing"], ["+ er", "end"], ["als …", "pre"], ["·", "mid"], ["am", "pre"], ["…sten", "end"]],
-          why: "Two things compared: the adjective + **-er**, then **als**. The most of all: **am** + …**sten**. German never builds it with *more* or *most* — a long word just adds -er too: interessant**er**.",
+          why: "To compare two things, add **-er** to the adjective and use **als** for *than*. For the most of all, use **am** …**sten**. German never uses *more* or *most* here: interessant**er**.",
           rid: ["comp.er", "comp.uml", "comp.am"],
           rules: [
-            "**-er** + **als** compares two: klein → klein**er als** · schnell → schnell**er als**. Long words the same: interessant**er**, praktisch**er** — never ~~mehr interessant~~. -el and -er drop an e: dunkel → **dunkler** · teuer → **teurer**.",
-            "Many short words take an **umlaut**: alt → **älter** · groß → **größer** · jung → **jünger** — and warm, kalt, lang, kurz, stark, oft: **wärmer, kälter, länger, kürzer, stärker, öfter**.",
-            "The most of all: **am** + …**sten**: am klein**sten** · am schnell**sten** · am **ä**lte**sten**. After -t, -d, -s, -ß, -z an **e** comes in: am ält**esten** · am heiß**esten** · am kürz**esten**.",
+            "To compare two things, add **-er** and use **als**: klein**er als** · schnell**er als**. Long words work the same: interessant**er**, never ~~mehr interessant~~. Words in -el or -er drop an e: **dunkler**, **teurer**.",
+            "Many short words also take an **umlaut**: alt → **älter** · groß → **größer** · jung → **jünger**. The same goes for warm, kalt, lang, kurz, stark, oft: **wärmer, kälter, länger, kürzer, stärker, öfter**.",
+            "For the most of all, use **am** + **-sten**: am klein**sten** · am schnell**sten**. After -t, -d, -s, -ß or -z, add an **e**: am ält**esten** · am kürz**esten**. One exception: am **größten**.",
           ],
           table: { head: ["", "-er", "am …sten"], rows: [
             ["klein", "kleiner", "am kleinsten"], ["schnell", "schneller", "am schnellsten"],
@@ -38,31 +38,31 @@ cxPack({
           ex: [
             ["Der Zug ist **schneller als** das Auto — und viel bequemer.", "The train is faster than the car — and much more comfortable."],
             ["Im Tessin ist es meistens **wärmer als** in Basel.", "In Ticino it's usually warmer than in Basel."],
-            ["Im Dezember sind die Tage **am kürzesten**.", "In December the days are the shortest."],
+            ["Im Dezember sind die Tage **am kürzesten**.", "In December the days are at their shortest."],
             ["Diese Wohnung ist **teurer**, aber auch **heller**.", "This flat is more expensive, but brighter too."],
           ],
-          trap: "*than* is **als** — never ~~dann~~, never ~~wie~~: größer **als** Bern. And no *more* in front of a long word: ~~mehr teuer~~ → **teurer**.",
+          trap: "*Than* is always **als**, never ~~dann~~ or ~~wie~~: größer **als** Bern. And don't put *more* in front: **teurer**, not ~~mehr teuer~~.",
           quiz: [
-            { at: "r1", k: "pick", q: "Bern ist ___ als Zürich. (klein)", o: ["kleiner", "mehr klein", "am kleinsten"], a: 0, why: "Two compared: **-er** + als." },
-            { at: "r1", k: "type", cx: true, q: "(teuer) Ein Taxi ist ___ als der Bus.", a: ["teurer"], r: ["comp.er"], why: "teuer drops its e: **teurer**." },
+            { at: "r1", k: "pick", q: "Bern ist ___ als Zürich. (klein)", o: ["kleiner", "mehr klein", "am kleinsten"], a: 0, why: "Comparing two things: add **-er**, then als." },
+            { at: "r1", k: "type", cx: true, q: "(teuer) Ein Taxi ist ___ als der Bus.", a: ["teurer"], r: ["comp.er"], why: "teuer drops an e before -er: **teurer**." },
             { at: "r1", k: "pick", q: "more interesting:", o: ["interessanter", "mehr interessant"], a: 0, why: "Long words add -er too: **interessanter**." },
             { at: "r2", k: "pick", q: "Mein Bruder ist ___ als ich. (alt)", o: ["älter", "alter", "mehr alt"], a: 0, why: "alt takes an umlaut: **älter**." },
-            { at: "r2", k: "type", cx: true, q: "(jung) Lea ist zwei Jahre ___ als Tom.", a: ["jünger"], r: ["comp.uml"], why: "jung → **jünger**." },
-            { at: "r2", k: "pick", q: "(lang) Im Juni sind die Tage ___.", o: ["länger", "langer", "mehr lang"], a: 0, why: "lang → **länger**." },
-            { at: "r3", k: "pick", q: "Im Juli ist es am ___. (heiß)", o: ["heißesten", "heißsten", "heißer"], a: 0, why: "After -ß an e comes in: am **heißesten**." },
-            { at: "r3", k: "type", cx: true, q: "(schnell) Wer läuft am ___?", a: ["schnellsten"], r: ["comp.am"], why: "am **schnellsten**." },
-            { at: "table", k: "pick", q: "kurz → am ___", o: ["kürzesten", "kürzsten", "kurzen"], a: 0, why: "After -z: am **kürzesten**." },
-            { at: "trap", k: "pick", q: "bigger than Bern:", o: ["größer als Bern", "größer dann Bern", "größer wie Bern"], a: 0, why: "*than* is **als**." },
-            { at: "trap", k: "pick", q: "more expensive:", o: ["teurer", "mehr teuer"], a: 0, why: "No *more*: **teurer**." },
+            { at: "r2", k: "type", cx: true, q: "(jung) Lea ist zwei Jahre ___ als Tom.", a: ["jünger"], r: ["comp.uml"], why: "jung takes an umlaut: **jünger**." },
+            { at: "r2", k: "pick", q: "(lang) Im Juni sind die Tage ___.", o: ["länger", "langer", "mehr lang"], a: 0, why: "lang takes an umlaut: **länger**." },
+            { at: "r3", k: "pick", q: "Im Juli ist es am ___. (heiß)", o: ["heißesten", "heißsten", "heißer"], a: 0, why: "heiß ends in -ß, so add an e: am **heißesten**." },
+            { at: "r3", k: "type", cx: true, q: "(schnell) Wer läuft am ___?", a: ["schnellsten"], r: ["comp.am"], why: "After am, add -sten: am **schnellsten**." },
+            { at: "table", k: "pick", q: "kurz → am ___", o: ["kürzesten", "kürzsten", "kurzen"], a: 0, why: "kurz ends in -z, so add an e (and an umlaut): am **kürzesten**." },
+            { at: "trap", k: "pick", q: "bigger than Bern:", o: ["größer als Bern", "größer dann Bern", "größer wie Bern"], a: 0, why: "*Than* is always **als**." },
+            { at: "trap", k: "pick", q: "more expensive:", o: ["teurer", "mehr teuer"], a: 0, why: "Don't use mehr; just add -er: **teurer**." },
           ] },
         { id: "cx.comp2", title: "so … wie · besser · lieber", qn: 3,
           struct: [["so", "pre"], ["adjective", "thing"], ["wie", "pre"], ["·", "mid"], ["gut", "thing"], ["besser", "end"], ["am besten", "end"]],
-          why: "**so … wie** is *as … as* (nicht so … wie: *not as*). A few everyday words change completely: **gut → besser**, **viel → mehr** — and **gern → lieber → am liebsten**.",
+          why: "**so … wie** means *as … as*, and **nicht so … wie** means *not as … as*. A few common words are irregular: **gut, besser** · **viel, mehr** · **gern, lieber, am liebsten**.",
           rid: ["comp.wie", "comp.irr", "comp.gern"],
           rules: [
-            "The same: **so** groß **wie** · **genauso** teuer **wie** · not as: **nicht so** schnell **wie**. **als** only after an -er (größer **als**) — after so it's **wie**.",
-            "Irregular: gut → **besser** → am **besten** · viel → **mehr** → am **meisten** · hoch → **höher** → am **höchsten** · nah → **näher** → am **nächsten**. More and more: **immer** besser, **immer** teurer.",
-            "**gern** → **lieber** → **am liebsten**, with any verb — what you like, prefer, like most: Ich fahre **gern** Velo. · Ich trinke **lieber** Tee als Kaffee. · **Am liebsten** wandere ich.",
+            "For *as … as*, use **so … wie**: **so** groß **wie** · **genauso** teuer **wie** · **nicht so** schnell **wie**. Use **als** only after an -er word: größer **als**.",
+            "Some words are irregular: gut, **besser**, am **besten** · viel, **mehr**, am **meisten** · hoch, **höher**, am **höchsten** · nah, **näher**, am **nächsten**. *More and more* is **immer** + -er: immer besser.",
+            "**gern**, **lieber** and **am liebsten** go with any verb and mean *like*, *prefer*, *like most*: Ich fahre **gern** Velo. · Ich trinke **lieber** Tee als Kaffee. · **Am liebsten** wandere ich.",
           ],
           table: { head: ["", "more", "the most"], rows: [
             ["gut", "besser", "am besten"], ["viel", "mehr", "am meisten"], ["gern", "lieber", "am liebsten"],
@@ -74,36 +74,36 @@ cxPack({
             ["Ich wohne **lieber** auf dem Land **als** in der Stadt.", "I'd rather live in the country than in town."],
             ["Was isst du **am liebsten**? — Raclette!", "What do you like eating most? — Raclette!"],
           ],
-          trap: "so … **wie**, -er … **als**: so alt **wie** ich · älter **als** ich — never ~~so alt als~~, never ~~älter wie~~. And *more* is **mehr**, not ~~vieler~~: Ich brauche **mehr** Zeit.",
+          trap: "After so it's **wie**, after -er it's **als**: so alt **wie** ich, älter **als** ich. Not ~~so alt als~~, not ~~älter wie~~. And *more* is **mehr**, not ~~vieler~~.",
           quiz: [
-            { at: "r1", k: "pick", q: "Lena ist so groß ___ ihre Mutter.", o: ["wie", "als"], a: 0, why: "so … **wie**." },
-            { at: "r1", k: "pick", q: "Heute ist es wärmer ___ gestern.", o: ["als", "wie"], a: 0, why: "After an -er: **als**." },
-            { at: "r1", k: "pick", q: "not as expensive as the house:", o: ["nicht so teuer wie das Haus", "nicht so teuer als das Haus", "nicht teurer wie das Haus"], a: 0, why: "**nicht so … wie**." },
-            { at: "r2", k: "type", cx: true, q: "(gut) Dein Deutsch wird immer ___.", a: ["besser"], r: ["comp.irr"], why: "gut → **besser**." },
-            { at: "r2", k: "pick", q: "(viel) Wir brauchen ___ Zeit.", o: ["mehr", "vieler", "mehrere"], a: 0, why: "viel → **mehr**." },
-            { at: "r2", k: "pick", q: "Welcher Berg ist am ___? (hoch)", o: ["höchsten", "hohesten", "hochesten"], a: 0, why: "hoch → höher → am **höchsten**." },
-            { at: "r3", k: "pick", q: "I'd rather drink tea: Ich trinke ___ Tee.", o: ["lieber", "gerner", "mehr gern"], a: 0, why: "gern → **lieber**." },
-            { at: "r3", k: "type", cx: true, q: "(gern) Was machst du am ___?", a: ["liebsten"], r: ["comp.gern"], why: "am **liebsten**." },
-            { at: "table", k: "pick", q: "viel → am ___", o: ["meisten", "vielsten", "mehrsten"], a: 0, why: "viel → mehr → am **meisten**." },
-            { at: "trap", k: "pick", q: "Which is right?", o: ["Er ist so alt wie ich.", "Er ist so alt als ich.", "Er ist älter wie ich."], a: 0, why: "so … **wie** · älter **als**." },
+            { at: "r1", k: "pick", q: "Lena ist so groß ___ ihre Mutter.", o: ["wie", "als"], a: 0, why: "After so, use **wie**." },
+            { at: "r1", k: "pick", q: "Heute ist es wärmer ___ gestern.", o: ["als", "wie"], a: 0, why: "After an -er word, use **als**." },
+            { at: "r1", k: "pick", q: "not as expensive as the house:", o: ["nicht so teuer wie das Haus", "nicht so teuer als das Haus", "nicht teurer wie das Haus"], a: 0, why: "*Not as … as* is **nicht so … wie**." },
+            { at: "r2", k: "type", cx: true, q: "(gut) Dein Deutsch wird immer ___.", a: ["besser"], r: ["comp.irr"], why: "gut is irregular: **besser**." },
+            { at: "r2", k: "pick", q: "(viel) Wir brauchen ___ Zeit.", o: ["mehr", "vieler", "mehrere"], a: 0, why: "viel is irregular: **mehr**." },
+            { at: "r2", k: "pick", q: "Welcher Berg ist am ___? (hoch)", o: ["höchsten", "hohesten", "hochesten"], a: 0, why: "hoch is irregular: höher, am **höchsten**." },
+            { at: "r3", k: "pick", q: "I'd rather drink tea: Ich trinke ___ Tee.", o: ["lieber", "gerner", "mehr gern"], a: 0, why: "*Rather* is **lieber**, the comparative of gern." },
+            { at: "r3", k: "type", cx: true, q: "(gern) Was machst du am ___?", a: ["liebsten"], r: ["comp.gern"], why: "*Like most* is am **liebsten**." },
+            { at: "table", k: "pick", q: "viel → am ___", o: ["meisten", "vielsten", "mehrsten"], a: 0, why: "viel is irregular: mehr, am **meisten**." },
+            { at: "trap", k: "pick", q: "Which is right?", o: ["Er ist so alt wie ich.", "Er ist so alt als ich.", "Er ist älter wie ich."], a: 0, why: "so … **wie**, but älter **als**." },
           ] },
       ],
       diag: [
-        { t: "swap", from: "^wie$", to: "^als$", rule: "comp.er", msg: "After an -er word: **als** — größer als, besser als." },
-        { t: "swap", from: "^als$", to: "^wie$", rule: "comp.wie", msg: "After so (genauso, nicht so): **wie** — so groß wie." },
-        { t: "seq", seq: ["^mehr$", "^(schon|interessant|teuer|wichtig|gross|klein|schnell|langsam|alt|jung|lang|kurz|gunstig|billig|warm|kalt|spannend|bequem|praktisch|gesund|hell|dunkel|ruhig|laut|schwer|leicht|einfach|gut|nah|hoch|stark)$"], rule: "comp.er", msg: "German adds **-er** — long words too: teurer, interessanter. Never *mehr* + the adjective." },
-        { t: "swap", from: "^(guter|gutest\\w*|gutst\\w*|vieler|vielst\\w*|vielest\\w*|hocher|hochst\\w*|hohest\\w*|hochest\\w*|nahst\\w*|nahest\\w*|gerner|gernst\\w*|gernest\\w*)$", to: "^(besser|best\\w*|mehr|meist\\w*|hoher|hochst\\w*|naher|nachst\\w*)$", rule: "comp.irr", hard: true, msg: "This one is irregular: **{right}** — gut → besser → am besten · viel → mehr → am meisten · hoch → höher → am höchsten · nah → näher → am nächsten." },
-        { t: "swap", from: "^(gern|gerne|gerner|gernst\\w*|mehr)$", to: "^(lieber|liebst\\w*)$", rule: "comp.gern", hard: true, msg: "gern → **lieber** → am liebsten: **{right}**." },
-        { t: "swap", from: "^(dunkel|edel|eitel|nobel|simpel|flexibel|sensibel|plausibel|komfortabel|miserabel|teuer|sauer|ungeheuer)er$", to: "^(dunkl|edl|eitl|nobl|simpl|flexibl|sensibl|plausibl|komfortabl|miserabl|teur|saur|ungeheur)er$", rule: "comp.er", hard: true, msg: "-el and -er drop their e before -er: **{right}** (dunkel → dunkler · teuer → teurer)." },
-        { t: "swap", from: "^\\w+[tdsz]sten$", to: "^\\w+esten$", rule: "comp.am", hard: true, msg: "After -t, -d, -s, -ß, -z an e comes in: am **{right}**." },
-        { t: "swap", from: "^\\w+[^tdszaeiouh]esten$", to: "^\\w+[^e]sten$", rule: "comp.am", hard: true, msg: "Only after -t, -d, -s, -ß, -z is it -esten — here am **{right}**." },
-        { t: "missing", tok: "^am$", rule: "comp.am", msg: "The most of all, after the verb: **am** …sten — am schnellsten." },
-        { t: "ending", stem: "\\w+st", rule: "comp.am", msg: "After am the superlative always ends in **-sten**: am {right}." },
-        { t: "ending", stem: "(billig|teu|dunk|interessant|gross|alt|neu|schnell|langsam|schwer|leicht|kurz|lang|nah|warm|kalt|jung|stark|ruhig|fruh|spat|gesund|hell|laut|oft|praktisch|bequem|gemutlich|wichtig|suss|heiss|klein|fleissig)", rule: "", msg: "The right word, the wrong form: **{right}** — two compared: + -er · the most: am …sten." },
+        { t: "swap", from: "^wie$", to: "^als$", rule: "comp.er", msg: "After an -er word, *than* is **als**: größer als, besser als." },
+        { t: "swap", from: "^als$", to: "^wie$", rule: "comp.wie", msg: "After so, genauso or nicht so, use **wie**: so groß wie." },
+        { t: "seq", seq: ["^mehr$", "^(schon|interessant|teuer|wichtig|gross|klein|schnell|langsam|alt|jung|lang|kurz|gunstig|billig|warm|kalt|spannend|bequem|praktisch|gesund|hell|dunkel|ruhig|laut|schwer|leicht|einfach|gut|nah|hoch|stark)$"], rule: "comp.er", msg: "Don't use mehr here: add **-er** to the adjective, even a long one: teurer, interessanter." },
+        { t: "swap", from: "^(guter|gutest\\w*|gutst\\w*|vieler|vielst\\w*|vielest\\w*|hocher|hochst\\w*|hohest\\w*|hochest\\w*|nahst\\w*|nahest\\w*|gerner|gernst\\w*|gernest\\w*)$", to: "^(besser|best\\w*|mehr|meist\\w*|hoher|hochst\\w*|naher|nachst\\w*)$", rule: "comp.irr", hard: true, msg: "This one is irregular: **{right}**. (gut, besser, am besten · viel, mehr, am meisten · hoch, höher, am höchsten · nah, näher, am nächsten)" },
+        { t: "swap", from: "^(gern|gerne|gerner|gernst\\w*|mehr)$", to: "^(lieber|liebst\\w*)$", rule: "comp.gern", hard: true, msg: "gern is irregular: gern, **lieber**, am liebsten. Here it's **{right}**." },
+        { t: "swap", from: "^(dunkel|edel|eitel|nobel|simpel|flexibel|sensibel|plausibel|komfortabel|miserabel|teuer|sauer|ungeheuer)er$", to: "^(dunkl|edl|eitl|nobl|simpl|flexibl|sensibl|plausibl|komfortabl|miserabl|teur|saur|ungeheur)er$", rule: "comp.er", hard: true, msg: "Words ending in -el or -er drop that e before the ending: **{right}** (dunkler, teurer)." },
+        { t: "swap", from: "^\\w+[tdsz]sten$", to: "^\\w+esten$", rule: "comp.am", hard: true, msg: "After -t, -d, -s, -ß or -z, add an e: am **{right}**." },
+        { t: "swap", from: "^\\w+[^tdszaeiouh]esten$", to: "^\\w+[^e]sten$", rule: "comp.am", hard: true, msg: "-esten is only for words ending in -t, -d, -s, -ß or -z. Here it's am **{right}**." },
+        { t: "missing", tok: "^am$", rule: "comp.am", msg: "For *the most* after a verb, use **am** + -sten: am schnellsten." },
+        { t: "ending", stem: "\\w+st", rule: "comp.am", msg: "After am, the superlative always ends in **-sten**: am **{right}**." },
+        { t: "ending", stem: "(billig|teu|dunk|interessant|gross|alt|neu|schnell|langsam|schwer|leicht|kurz|lang|nah|warm|kalt|jung|stark|ruhig|fruh|spat|gesund|hell|laut|oft|praktisch|bequem|gemutlich|wichtig|suss|heiss|klein|fleissig)", rule: "", msg: "Right word, wrong form: **{right}**. To compare two, add -er; for the most, use am …sten." },
       ],
       drills: [
         // ── Übung 20•8: the comparative ──
-        { id: "d20.8", ex: "20.8", t: "type", title: "-er", how: "Write the comparative: + -er (short words often with an umlaut).", items: [
+        { id: "d20.8", ex: "20.8", t: "type", title: "-er", how: "Write the comparative: add -er (short words often take an umlaut).", items: [
           { q: "schnell → ___", a: ["schneller"], r: ["comp.er"] },
           { q: "langsam → ___", a: ["langsamer"], r: ["comp.er"] },
           { q: "billig → ___", a: ["billiger"], r: ["comp.er"] },
@@ -121,7 +121,7 @@ cxPack({
           { q: "praktisch → ___", a: ["praktischer"], r: ["comp.er"] },
         ] },
         // ── our own: the umlaut — picked (typing never asks for it) ──
-        { id: "dcomp.uml", t: "pick", title: "älter or alter?", how: "Pick the comparative — many short words take an umlaut.", items: [
+        { id: "dcomp.uml", t: "pick", title: "älter or alter?", how: "Pick the comparative. Many short words take an umlaut.", items: [
           { q: "Mein Bruder ist zwei Jahre ___ als ich. (alt)", o: ["älter", "alter"], a: ["älter"], r: ["comp.uml"] },
           { q: "Zürich ist ___ als Bern. (groß)", o: ["größer", "großer"], a: ["größer"], r: ["comp.uml"] },
           { q: "Im Tessin ist es meistens ___ als in Basel. (warm)", o: ["wärmer", "warmer"], a: ["wärmer"], r: ["comp.uml"] },
@@ -149,7 +149,7 @@ cxPack({
           { q: "(spät) Der Zug kommt heute zehn Minuten ___.", a: ["später"], r: ["comp.er"] },
         ] },
         // ── our own: the most — am …sten ──
-        { id: "dcomp.am", t: "type", title: "am …sten", how: "Write the superlative after am: …sten (…esten after -t, -d, -s, -ß, -z).", items: [
+        { id: "dcomp.am", t: "type", title: "am …sten", how: "Write the superlative after am: -sten, or -esten after -t, -d, -s, -ß, -z.", items: [
           { q: "(heiß) Im Juli ist es am ___.", a: ["heißesten"], r: ["comp.am"] },
           { q: "(bequem) Mit dem Zug reist man am ___.", a: ["bequemsten"], r: ["comp.am"] },
           { q: "(alt) In unserer Familie ist mein Opa am ___.", a: ["ältesten"], r: ["comp.am", "comp.uml"] },
@@ -164,7 +164,7 @@ cxPack({
           { q: "(süß) Die Erdbeeren aus dem Wallis sind am ___.", a: ["süßesten"], r: ["comp.am"] },
         ] },
         // ── our own: als or wie? ──
-        { id: "dcomp.wie", t: "pick", title: "als or wie?", how: "Pick: after an -er word als · after so, genauso, nicht so: wie.", o: ["als", "wie"], items: [
+        { id: "dcomp.wie", t: "pick", title: "als or wie?", how: "Pick als after an -er word, wie after so, genauso or nicht so.", o: ["als", "wie"], items: [
           { q: "Lena ist so groß ___ ihre Mutter.", a: ["wie"], r: ["comp.wie"] },
           { q: "Der Bus ist langsamer ___ der Zug.", a: ["als"], r: ["comp.er"] },
           { q: "Bern ist nicht so groß ___ Zürich.", a: ["wie"], r: ["comp.wie"] },
@@ -178,7 +178,7 @@ cxPack({
           { q: "Der Test war nicht so schwer ___ der letzte.", a: ["wie"], r: ["comp.wie"] },
         ] },
         // ── our own: besser, mehr, höher, näher ──
-        { id: "dcomp.irr", t: "type", title: "besser, mehr, am höchsten", how: "Write the comparative or the superlative — these are irregular.", items: [
+        { id: "dcomp.irr", t: "type", title: "besser, mehr, am höchsten", how: "Write the comparative or the superlative. These words are irregular.", items: [
           { q: "(gut) Dein Deutsch ist schon viel ___!", a: ["besser"], r: ["comp.irr"] },
           { q: "(viel) Im Sommer arbeite ich ___ als im Winter.", a: ["mehr"], r: ["comp.irr"] },
           { q: "(gut) Welcher Käse schmeckt dir am ___?", a: ["besten"], r: ["comp.irr"] },
@@ -192,7 +192,7 @@ cxPack({
           { q: "(teuer) Alles wird immer ___!", a: ["teurer"], r: ["comp.irr", "comp.er"] },
         ] },
         // ── our own: gern, lieber, am liebsten ──
-        { id: "dcomp.gern", t: "type", title: "gern, lieber, am liebsten", how: "Write gern, lieber or liebsten — like, prefer, like most.", items: [
+        { id: "dcomp.gern", t: "type", title: "gern, lieber, am liebsten", how: "Write gern, lieber or liebsten (like, prefer, like most).", items: [
           { q: "(gern) Ich trinke Kaffee, aber noch ___ Tee.", a: ["lieber"], r: ["comp.gern"] },
           { q: "(gern) Was machst du am Wochenende am ___?", a: ["liebsten"], r: ["comp.gern"] },
           { q: "(gern) Wir fahren ___ mit dem Zug als mit dem Auto.", a: ["lieber"], r: ["comp.gern"] },
@@ -205,7 +205,7 @@ cxPack({
           { q: "(gern) Sie tanzt sehr ___.", a: ["gern", "gerne"], r: ["comp.gern"] },
         ] },
         // ── Übung 20•9: compare — then the most ──
-        { id: "d20.9", ex: "20.9", t: "transform", title: "More — and the most", how: "With als: compare with the cue · with am …sten: the cue is the most of all.", items: [
+        { id: "d20.9", ex: "20.9", t: "transform", title: "More — and the most", how: "With als, compare the sentence with the cue. With am …sten, the cue is the most of all.", items: [
           { q: "Basel ist groß. (Bern → als)", a: ["Basel ist größer als Bern."], r: ["comp.uml"] },
           { q: "Basel ist groß. (Zürich → am …sten)", a: ["Zürich ist am größten."], r: ["comp.am"] },
           { q: "Das Tram fährt schnell. (der Bus → als)", a: ["Das Tram fährt schneller als der Bus."], r: ["comp.er"] },
@@ -216,11 +216,11 @@ cxPack({
           { q: "Der Juli war heiß. (der August → am …sten)", a: ["Der August war am heißesten."], r: ["comp.am"] },
           { q: "Die Miete in Thun ist teuer. (in Biel → als)", a: ["Die Miete in Thun ist teurer als in Biel."], r: ["comp.er"] },
           { q: "Die Miete in Thun ist teuer. (in Zürich → am …sten)", a: ["Die Miete in Zürich ist am teuersten.", "In Zürich ist die Miete am teuersten."], r: ["comp.am"] },
-          { q: "Unsere Gäste sind früh gekommen. (die Nachbarn → als)", a: ["Unsere Gäste sind früher gekommen als die Nachbarn."], r: ["comp.er"] },
+          { q: "Unsere Gäste sind früh gekommen. (die Nachbarn → als)", a: ["Unsere Gäste sind früher gekommen als die Nachbarn.", "Unsere Gäste sind früher als die Nachbarn gekommen."], r: ["comp.er"] },
           { q: "Unsere Gäste sind früh gekommen. (meine Eltern → am …sten)", a: ["Meine Eltern sind am frühesten gekommen."], r: ["comp.am"] },
         ] },
         // ── Production ──
-        { id: "dp.comp", t: "translate", end: true, title: "Say it in German", how: "Translate — -er + als, so … wie, am …sten; gut → besser, gern → lieber.", items: [
+        { id: "dp.comp", t: "translate", end: true, title: "Say it in German", how: "Translate: -er + als, so … wie, am …sten, and the irregular besser, mehr, lieber.", items: [
           { q: "Bern is smaller than Zürich.", a: ["Bern ist kleiner als Zürich."], r: ["comp.er"] },
           { q: "My sister is as tall as me.", a: ["Meine Schwester ist so groß wie ich.", "Meine Schwester ist genauso groß wie ich."], r: ["comp.wie"] },
           { q: "The train is faster than the car.", a: ["Der Zug ist schneller als das Auto."], r: ["comp.er"] },

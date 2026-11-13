@@ -9,9 +9,9 @@ cxPack({
       testout: { n: 7, miss: 1 },
       rules: {
         "gen.three": "every noun has der, die or das",
-        "gen.people": "people: der for men, die for women — das Kind",
-        "gen.in": "-in: the woman, always die",
-        "gen.comp": "a compound: the last noun decides",
+        "gen.people": "people: der for men, die for women (but das Kind)",
+        "gen.in": "-in makes the female form, always die",
+        "gen.comp": "compound nouns: the last noun decides",
         "gen.die": "die: -ung, -heit, -keit, -ion, -tät, most -e",
         "gen.das": "das: -chen, -um, -ment, a verb as a noun",
         "gen.der": "der: days, months, seasons, -ling",
@@ -19,13 +19,13 @@ cxPack({
       sheets: [
         { id: "cx.gen1", title: "der, die, das — and people", qn: 3,
           struct: [["der", "who"], ["·", "mid"], ["die", "end"], ["·", "mid"], ["das", "thing"], ["→ learn it with the noun", "mid"]],
-          why: "Every noun has a gender — der, die or das — and the words around it follow it. Learn each noun with its article, like a surname.",
+          why: "Every noun is der, die or das, and the words around it change to match. Learn each noun together with its article.",
           rid: ["gen.three", "gen.people", "gen.in", "gen.comp"],
           rules: [
-            "Every noun has **der** (masculine), **die** (feminine) or **das** (neuter) — things too: **der** Tisch, **die** Lampe, **das** Bett. Learn the article **with** the noun.",
-            "People mostly go by sex: **der** Mann, **der** Vater · **die** Frau, **die** Mutter. But **das** Kind, and **das** Mädchen (-chen makes it das).",
-            "**-in** makes the woman, always **die**: der Lehrer → **die** Lehrer**in** · der Arzt → **die** Ärzt**in** (often with an umlaut).",
-            "In a compound the **last** noun decides: das Haus + **die** Tür → **die** Haustür · die Hand + **der** Schuh → **der** Handschuh.",
+            "Every noun has an article: **der** (masculine), **die** (feminine) or **das** (neuter). Things have one too: **der** Tisch, **die** Lampe, **das** Bett. Learn the article together with the noun.",
+            "For people, the article usually follows the person's sex: **der** Mann, **der** Vater, **die** Frau, **die** Mutter. Exceptions: **das** Kind, and **das** Mädchen (because of -chen).",
+            "Adding **-in** makes the female form, and it is always **die**: der Lehrer, **die** Lehrer**in**. Often the vowel gets an umlaut too: der Arzt, **die** Ärzt**in**.",
+            "In a compound noun, the **last** noun decides the article: das Haus + **die** Tür = **die** Haustür. die Hand + **der** Schuh = **der** Handschuh.",
           ],
           table: { head: ["der — a man", "die — a woman"], rows: [
             ["der Lehrer", "die Lehrer**in**"], ["der Arzt", "die Ärzt**in**"], ["der Koch", "die Köch**in**"],
@@ -37,27 +37,27 @@ cxPack({
             ["**Der** Fahrplan ist neu.", "The timetable is new."],
             ["Wo ist **die** Haltestelle?", "Where is the stop?"],
           ],
-          trap: "**das Mädchen** is neuter though it's a girl — the ending **-chen** decides, not the person. And **die** Person is feminine, even for a man.",
+          trap: "**das Mädchen** is neuter even though it means a girl: the ending **-chen** decides, not the person. Likewise **die** Person is feminine, even for a man.",
           quiz: [
-            { at: "r1", k: "pick", q: "A noun's article…", o: ["is learned with the noun", "depends on what the thing is", "is always das for things"], a: 0, why: "der Tisch, die Lampe, das Bett — things take all three." },
-            { at: "r1", k: "pick", q: "the bed", o: ["das Bett", "der Bett", "die Bett"], a: 0, why: "das Bett: learn it with its article." },
-            { at: "r2", k: "pick", q: "___ Kind spielt im Garten.", o: ["Das", "Der", "Die"], a: 0, why: "das Kind — a child is neuter." },
-            { at: "r2", k: "pick", q: "___ Vater kocht heute.", o: ["Der", "Die", "Das"], a: 0, why: "A man: der." },
-            { at: "r3", k: "type", cx: true, q: "der Koch → die ___", a: ["Köchin"], r: ["gen.in"], why: "-in, and here an umlaut: die Köchin." },
-            { at: "r3", k: "pick", q: "der Nachbar → ___ Nachbarin", o: ["die", "der", "das"], a: 0, why: "-in is always die." },
-            { at: "r4", k: "pick", q: "das Bett + die Decke → ___ Bettdecke", o: ["die", "das", "der"], a: 0, why: "The last noun decides: die Decke." },
-            { at: "r4", k: "pick", q: "der Bahnhof + das Café → ___ Bahnhofcafé", o: ["das", "der", "die"], a: 0, why: "The last noun decides: das Café." },
-            { at: "table", k: "pick", q: "the colleague (a woman)", o: ["die Kollegin", "der Kollegin", "die Kollege"], a: 0, why: "der Kollege → die Kollegin." },
-            { at: "trap", k: "pick", q: "___ Mädchen heißt Lea.", o: ["Das", "Die", "Der"], a: 0, why: "-chen → das, even for a girl." },
+            { at: "r1", k: "pick", q: "A noun's article…", o: ["is learned with the noun", "depends on what the thing is", "is always das for things"], a: 0, why: "Things can be der, die or das: der Tisch, die Lampe, das Bett." },
+            { at: "r1", k: "pick", q: "the bed", o: ["das Bett", "der Bett", "die Bett"], a: 0, why: "It's das Bett. Learn each noun with its article." },
+            { at: "r2", k: "pick", q: "___ Kind spielt im Garten.", o: ["Das", "Der", "Die"], a: 0, why: "The word for a child is neuter: das Kind." },
+            { at: "r2", k: "pick", q: "___ Vater kocht heute.", o: ["Der", "Die", "Das"], a: 0, why: "A father is a man, so it's der Vater." },
+            { at: "r3", k: "type", cx: true, q: "der Koch → die ___", a: ["Köchin"], r: ["gen.in"], why: "Add -in, and here an umlaut too: die Köchin." },
+            { at: "r3", k: "pick", q: "der Nachbar → ___ Nachbarin", o: ["die", "der", "das"], a: 0, why: "The female form in -in is always die." },
+            { at: "r4", k: "pick", q: "das Bett + die Decke → ___ Bettdecke", o: ["die", "das", "der"], a: 0, why: "The last noun decides: die Decke, so die Bettdecke." },
+            { at: "r4", k: "pick", q: "der Bahnhof + das Café → ___ Bahnhofcafé", o: ["das", "der", "die"], a: 0, why: "The last noun decides: das Café, so das Bahnhofcafé." },
+            { at: "table", k: "pick", q: "the colleague (a woman)", o: ["die Kollegin", "der Kollegin", "die Kollege"], a: 0, why: "The man is der Kollege, the woman die Kollegin." },
+            { at: "trap", k: "pick", q: "___ Mädchen heißt Lea.", o: ["Das", "Die", "Der"], a: 0, why: "-chen makes a noun das, even when it is a girl." },
           ] },
         { id: "cx.gen2", title: "Endings that tell you", qn: 3,
           struct: [["-ung · -heit · -ion", "end"], ["→ die", "mid"], ["-chen · -um", "thing"], ["→ das", "mid"]],
-          why: "Most nouns don't show their gender — but some endings give it away almost every time.",
+          why: "Most nouns don't show their gender, but some endings give it away almost every time.",
           rid: ["gen.die", "gen.das", "gen.der"],
           rules: [
-            "**die**: -ung, -heit, -keit, -schaft, -ion, -tät, -ie — and most nouns in **-e**: die Wohnung, die Freiheit, die Information, die Woche.",
-            "**das**: -chen and -lein (small things), -um, -ment — and a verb used as a noun: das Brötchen, das Museum, das Dokument, das Essen.",
-            "**der**: days, months and seasons (der Montag, der Mai, der Winter), -ling and -ismus (der Frühling, der Tourismus) — and many things in -er/-el: der Computer, der Löffel.",
+            "Nouns ending in -ung, -heit, -keit, -schaft, -ion, -tät or -ie are **die**, and so are most nouns in **-e**: die Wohnung, die Freiheit, die Information, die Woche.",
+            "Nouns ending in -chen, -lein (small things), -um or -ment are **das**, and so is a verb used as a noun: das Brötchen, das Museum, das Dokument, das Essen.",
+            "Days, months and seasons are **der** (der Montag, der Mai, der Winter), and so are nouns in -ling and -ismus (der Frühling, der Tourismus). Many things in -er or -el are der too: der Löffel.",
           ],
           table: { head: ["Ending", "Article", "Examples"], rows: [
             ["-ung · -heit · -keit", "die", "Zeitung · Gesundheit · Möglichkeit"],
@@ -73,22 +73,22 @@ cxPack({
             ["**Die** Wohnung ist hell und ruhig.", "The flat is bright and quiet."],
             ["**Das** Brötchen ist noch warm.", "The roll is still warm."],
             ["**Das** Museum ist am Montag geschlossen.", "The museum is closed on Monday."],
-            ["**Der** Frühling kommt spät dieses Jahr.", "Spring is late this year."],
+            ["**Der** Frühling kommt dieses Jahr spät.", "Spring is late this year."],
           ],
-          trap: "A noun in **-e** is usually die — but men and male animals in -e are **der**: der Junge, der Kollege, der Löwe. And a few things too: der Name, der Käse.",
+          trap: "Nouns in **-e** are usually die, but men and male animals in -e are **der**: der Junge, der Kollege, der Löwe. So are a few things: der Name, der Käse.",
           quiz: [
-            { at: "r1", k: "pick", q: "___ Zeitung", o: ["die", "der", "das"], a: 0, why: "-ung → die." },
-            { at: "r1", k: "type", cx: true, q: "___ Information (der, die or das?)", a: ["die"], r: ["gen.die"], why: "-ion → die." },
-            { at: "r2", k: "pick", q: "___ Museum", o: ["das", "der", "die"], a: 0, why: "-um → das." },
-            { at: "r2", k: "pick", q: "___ Essen ist fertig.", o: ["Das", "Der", "Die"], a: 0, why: "A verb as a noun (essen → das Essen)." },
-            { at: "r3", k: "pick", q: "___ Dienstag", o: ["der", "die", "das"], a: 0, why: "Days are der." },
-            { at: "r3", k: "pick", q: "___ Frühling", o: ["der", "das", "die"], a: 0, why: "Seasons, and -ling: der." },
-            { at: "table", k: "pick", q: "Which ending says **die**?", o: ["-ung", "-chen", "-ling"], a: 0, why: "-ung → die; -chen → das; -ling → der." },
-            { at: "trap", k: "pick", q: "___ Junge ist zwölf.", o: ["Der", "Die", "Das"], a: 0, why: "-e, but a boy: der Junge." },
+            { at: "r1", k: "pick", q: "___ Zeitung", o: ["die", "der", "das"], a: 0, why: "Nouns in -ung are die." },
+            { at: "r1", k: "type", cx: true, q: "___ Information (der, die or das?)", a: ["die"], r: ["gen.die"], why: "Nouns in -ion are die." },
+            { at: "r2", k: "pick", q: "___ Museum", o: ["das", "der", "die"], a: 0, why: "Nouns in -um are das." },
+            { at: "r2", k: "pick", q: "___ Essen ist fertig.", o: ["Das", "Der", "Die"], a: 0, why: "A verb used as a noun is das: essen, das Essen." },
+            { at: "r3", k: "pick", q: "___ Dienstag", o: ["der", "die", "das"], a: 0, why: "Days of the week are der." },
+            { at: "r3", k: "pick", q: "___ Frühling", o: ["der", "das", "die"], a: 0, why: "Seasons are der, and so are nouns in -ling." },
+            { at: "table", k: "pick", q: "Which ending says **die**?", o: ["-ung", "-chen", "-ling"], a: 0, why: "-ung means die; -chen means das; -ling means der." },
+            { at: "trap", k: "pick", q: "___ Junge ist zwölf.", o: ["Der", "Die", "Das"], a: 0, why: "It ends in -e, but a boy is male: der Junge." },
           ] },
       ],
       diag: [
-        { t: "swap", from: "^(der|die|das)$", to: "^(der|die|das)$", msg: "It's **{right}**, not {typed} — learn the noun with its article." },
+        { t: "swap", from: "^(der|die|das)$", to: "^(der|die|das)$", msg: "It's **{right}**, not {typed}. Learn each noun together with its article." },
       ],
       drills: [
         // ── Übung 1•2: der or die — people ──
@@ -124,7 +124,7 @@ cxPack({
           { q: "___ Kätzchen", a: ["das"], r: ["gen.das"] },
         ] },
         // ── our own: compounds ──
-        { id: "dgen.c", t: "type", title: "Compound nouns", how: "Write der, die or das — the last noun decides.", items: [
+        { id: "dgen.c", t: "type", title: "Compound nouns", how: "Write der, die or das. The last noun decides.", items: [
           { q: "___ Haustür (das Haus + die Tür)", a: ["die"], r: ["gen.comp"] },
           { q: "___ Fahrkarte (fahren + die Karte)", a: ["die"], r: ["gen.comp"] },
           { q: "___ Kühlschrank (kühl + der Schrank)", a: ["der"], r: ["gen.comp"] },
@@ -151,7 +151,7 @@ cxPack({
           { q: "(Bett) ___ ist zu kurz.", a: ["Das Bett ist zu kurz."], r: ["gen.three"] },
         ] },
         // ── Production: say it ──
-        { id: "dp.gen", t: "translate", end: true, title: "Say it in German", how: "Translate — the article counts.", items: [
+        { id: "dp.gen", t: "translate", end: true, title: "Say it in German", how: "Translate. The article counts.", items: [
           { q: "The teacher (a woman) is ill.", a: ["Die Lehrerin ist krank."], r: ["gen.in"] },
           { q: "The girl is six.", a: ["Das Mädchen ist sechs.", "Das Mädchen ist sechs Jahre alt."], r: ["gen.people"] },
           { q: "The table is too small.", a: ["Der Tisch ist zu klein."], r: ["gen.three"] },
@@ -164,7 +164,7 @@ cxPack({
           { q: "The museum is closed.", a: ["Das Museum ist zu.", "Das Museum ist geschlossen."], r: ["gen.das"] },
         ] },
         // ── Production: your own ──
-        { id: "dw.gen", t: "write", end: true, title: "Write your own", how: "In your own words — saved for Claude to correct.", items: [
+        { id: "dw.gen", t: "write", end: true, title: "Write your own", how: "Write it in your own words. It is saved for Claude to correct.", items: [
           { q: "Name five things in your kitchen, each with der, die or das.", model: ["der Kühlschrank, die Tasse, das Glas, der Teller, die Pfanne"], r: ["gen.three"] },
           { q: "Your family: three people with der or die.", model: ["der Bruder, die Schwester, die Großmutter"], r: ["gen.people"] },
           { q: "Three jobs — the man and the woman (der Lehrer, die Lehrerin).", model: ["der Arzt, die Ärztin · der Koch, die Köchin · der Verkäufer, die Verkäuferin"], r: ["gen.in"] },

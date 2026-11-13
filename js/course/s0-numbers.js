@@ -8,24 +8,24 @@ cxPack({
     "s0.num": {
       testout: { n: 7, miss: 1 },
       rules: {
-        "num.base": "0–19: sechzehn, siebzehn",
-        "num.und": "21–99 back to front: einundzwanzig",
+        "num.base": "0 to 19 (watch sechzehn, siebzehn)",
+        "num.und": "21 to 99, units first: einundzwanzig",
         "num.big": "hundreds, thousands, prices, years",
-        "num.eins": "eins when counting, ein/eine before a noun",
+        "num.eins": "eins when counting, ein or eine before a noun",
         "num.uhr": "the clock: um, Viertel nach, halb, Viertel vor",
-        "num.am": "am Montag · im Mai",
+        "num.am": "am for days, im for months and seasons",
         "num.ord": "dates: der dritte, am dritten",
       },
       sheets: [
         { id: "cx.num1", title: "Numbers and prices", qn: 3,
           struct: [["ein", "verb"], ["und", "mid"], ["zwanzig", "end"], ["= 21", "mid"]],
-          why: "German numbers are built like Lego — and from 21 on they're said back to front: *one-and-twenty*.",
+          why: "German numbers are built from parts, like Lego. From 21 on, the units come first: *one-and-twenty*.",
           rid: ["num.base", "num.und", "num.big", "num.eins"],
           rules: [
-            "0–12 are words of their own: null, eins, zwei, drei, vier, fünf, sechs, sieben, acht, neun, zehn, elf, zwölf. 13–19 = number + zehn: drei**zehn**, vier**zehn** — but **sech**zehn, **sieb**zehn.",
-            "21–99 back to front, in one word: ein**und**zwanzig (1 + 20) · fünf**und**sechzig. The tens end in **-zig** — but drei**ßig** — and sech**zig**, sieb**zig** drop a letter.",
-            "Big numbers are one word too: hundert · zweihundertfünfzig · tausend · eine Million. Prices: CHF 4.50 = vier Franken fünfzig. Years: 2026 = zweitausendsechsundzwanzig, 1998 = neunzehnhundertachtundneunzig.",
-            "Counting: **eins**. Before a noun: **ein / eine** — ein Kaffee, eine Stunde. The clock says **ein Uhr** — or **um eins**.",
+            "The numbers 0 to 12 are words of their own: null, eins, zwei … zehn, elf, zwölf. For 13 to 19, add zehn: drei**zehn**, vier**zehn**. Watch **sech**zehn and **sieb**zehn: they drop letters.",
+            "From 21 to 99, say the units first, then **und**, then the tens, all in one word: ein**und**zwanzig, fünf**und**sechzig. The tens end in **-zig**, except drei**ßig**; sech**zig** and sieb**zig** drop letters.",
+            "Big numbers are one word too: hundert, zweihundertfünfzig, tausend. Prices: CHF 4.50 is vier Franken fünfzig. Years: 2026 is zweitausendsechsundzwanzig, but 1998 is neunzehnhundertachtundneunzig.",
+            "Say **eins** when counting, but **ein** or **eine** before a noun: ein Kaffee, eine Stunde. For the clock, say **ein Uhr** or **um eins**.",
           ],
           table: { head: ["number", "in German"], rows: [
             ["16 · 17", "sechzehn · siebzehn"], ["20 · 30", "zwanzig · dreißig"], ["21", "einundzwanzig"],
@@ -36,29 +36,29 @@ cxPack({
             ["Das macht **zwölf Franken achtzig**.", "That's twelve francs eighty."],
             ["Ich wohne seit **zweitausendzweiundzwanzig** in der Schweiz.", "I've lived in Switzerland since 2022."],
             ["Der Bus Nummer **einunddreißig** fährt zum Zoo.", "Bus number 31 goes to the zoo."],
-            ["Wir sind **vier** Personen.", "We're four people."],
+            ["Wir sind **vier** Personen.", "There are four of us."],
           ],
-          trap: "Don't say it in English order: 46 is **sechs**undvierzig (6 + 40), never ~~vierzigsechs~~. The units come first.",
+          trap: "Don't use the English order: 46 is **sechs**undvierzig (six and forty), never ~~vierzigsechs~~. The units always come first.",
           quiz: [
-            { at: "r1", k: "pick", q: "16 = ___", o: ["sechzehn", "sechszehn", "zehnsechs"], a: 0, why: "sechs loses its s: sechzehn." },
-            { at: "r1", k: "type", cx: true, q: "13 = ___", a: ["dreizehn"], r: ["num.base"], why: "drei + zehn." },
-            { at: "r2", k: "pick", q: "45 = ___", o: ["fünfundvierzig", "vierzigfünf", "vierundfünfzig"], a: 0, why: "Back to front: five-and-forty." },
-            { at: "r2", k: "type", cx: true, q: "30 = ___", a: ["dreißig"], r: ["num.und"], why: "dreißig — with ß, not -zig." },
-            { at: "r3", k: "pick", q: "CHF 7.20 = ___", o: ["sieben Franken zwanzig", "sieben zwanzig Franken", "zwanzig Franken sieben"], a: 0, why: "Franken, then the Rappen: sieben Franken zwanzig." },
-            { at: "r3", k: "pick", q: "2025 = ___", o: ["zweitausendfünfundzwanzig", "zwanzig fünfundzwanzig", "zweitausendzwanzigfünf"], a: 0, why: "From 2000: zweitausend… in one word." },
-            { at: "r4", k: "pick", q: "Ich zähle: ___, zwei, drei …", o: ["eins", "ein", "eine"], a: 0, why: "Counting: eins." },
-            { at: "r4", k: "pick", q: "Das dauert ___ Stunde.", o: ["eine", "eins"], a: 0, why: "Before a noun: eine Stunde." },
-            { at: "table", k: "pick", q: "99 = ___", o: ["neunundneunzig", "neunzigneun", "neunneunzig"], a: 0, why: "nine-and-ninety." },
-            { at: "trap", k: "pick", q: "46 = ___", o: ["sechsundvierzig", "vierzigsechs", "vierundsechzig"], a: 0, why: "The units first: six-and-forty." },
+            { at: "r1", k: "pick", q: "16 = ___", o: ["sechzehn", "sechszehn", "zehnsechs"], a: 0, why: "sechs drops its s: sechzehn." },
+            { at: "r1", k: "type", cx: true, q: "13 = ___", a: ["dreizehn"], r: ["num.base"], why: "drei + zehn: dreizehn." },
+            { at: "r2", k: "pick", q: "45 = ___", o: ["fünfundvierzig", "vierzigfünf", "vierundfünfzig"], a: 0, why: "The units first: fünfundvierzig, *five and forty*." },
+            { at: "r2", k: "type", cx: true, q: "30 = ___", a: ["dreißig"], r: ["num.und"], why: "dreißig is spelled with ß, not -zig." },
+            { at: "r3", k: "pick", q: "CHF 7.20 = ___", o: ["sieben Franken zwanzig", "sieben zwanzig Franken", "zwanzig Franken sieben"], a: 0, why: "The francs first, then the Rappen: sieben Franken zwanzig." },
+            { at: "r3", k: "pick", q: "2025 = ___", o: ["zweitausendfünfundzwanzig", "zwanzig fünfundzwanzig", "zweitausendzwanzigfünf"], a: 0, why: "Years from 2000 on: zweitausend… in one word." },
+            { at: "r4", k: "pick", q: "Ich zähle: ___, zwei, drei …", o: ["eins", "ein", "eine"], a: 0, why: "When counting, say eins." },
+            { at: "r4", k: "pick", q: "Das dauert ___ Stunde.", o: ["eine", "eins"], a: 0, why: "Before a noun, use ein or eine: eine Stunde." },
+            { at: "table", k: "pick", q: "99 = ___", o: ["neunundneunzig", "neunzigneun", "neunneunzig"], a: 0, why: "The units first: *nine and ninety*." },
+            { at: "trap", k: "pick", q: "46 = ___", o: ["sechsundvierzig", "vierzigsechs", "vierundsechzig"], a: 0, why: "The units come first: *six and forty*." },
           ] },
         { id: "cx.num2", title: "The clock and the calendar", qn: 3,
           struct: [["um", "pre"], ["halb neun", "verb"], ["= 8:30", "mid"]],
-          why: "Clock times and dates follow a few fixed patterns — learn them as chunks: **um halb neun**, **am Montag**, **im Mai**, **am dritten Mai**.",
+          why: "Clock times and dates follow a few fixed patterns. Learn them as set phrases: **um halb neun**, **am Montag**, **im Mai**, **am dritten Mai**.",
           rid: ["num.uhr", "num.am", "num.ord"],
           rules: [
-            "The clock: **um** acht Uhr (at eight). 8:15 = Viertel **nach** acht · 8:30 = **halb neun** (half *to* nine!) · 8:45 = Viertel **vor** neun · 8:10 = zehn nach acht. Timetables say it straight: acht Uhr dreißig.",
-            "**am** + a day or part of the day: am Montag, am Wochenende, am Abend. **im** + a month or a season: im Mai, im Winter. A year stands alone: 2027 fahre ich nach Spanien (or: im Jahr 2027).",
-            "Dates use ordinals: der **erste**, zweite, **dritte**, vierte … **siebte**, achte … neunzehnte — from 20 on **-ste**: der zwanzigste. Heute ist der 3. Mai (**der dritte**). On a date: **am** 3. Mai = am **dritten** Mai.",
+            "Clock times take **um**: um acht Uhr. 8:10 is zehn **nach** acht, 8:15 Viertel **nach** acht, 8:30 **halb neun** (halfway *to* nine), 8:45 Viertel **vor** neun. Timetables just say acht Uhr dreißig.",
+            "Use **am** with a day or part of the day (am Montag, am Wochenende, am Abend) and **im** with a month or season (im Mai, im Winter). A year needs no word: 2027 fahre ich nach Spanien.",
+            "Dates use ordinal numbers: der **erste**, zweite, **dritte**, vierte, **siebte** … neunzehnte, then **-ste** from 20: der zwanzigste. Heute ist der 3. Mai (**dritte**), but **am** 3. Mai is am **dritten** Mai.",
           ],
           table: { head: ["", "in German"], rows: [
             ["at 7:00", "um sieben Uhr"], ["7:15", "Viertel nach sieben"], ["7:30", "halb acht"], ["7:45", "Viertel vor acht"],
@@ -67,26 +67,26 @@ cxPack({
           ex: [
             ["Der Zug fährt um **halb acht**.", "The train leaves at half past seven."],
             ["Mein Geburtstag ist **am zwölften Juni**.", "My birthday is on the twelfth of June."],
-            ["**Im August** ist der Nationalfeiertag — **am ersten**.", "In August is the national holiday — on the first."],
-            ["Wir treffen uns **am Freitag um Viertel nach sechs**.", "We'll meet on Friday at quarter past six."],
+            ["**Im August** ist der Nationalfeiertag — **am ersten**.", "The national holiday is in August, on the first."],
+            ["Wir treffen uns **am Freitag um Viertel nach sechs**.", "We're meeting on Friday at quarter past six."],
           ],
-          trap: "**halb neun** is 8:30, not 9:30: German counts the half *towards* the next hour. When in doubt, say it like a timetable: acht Uhr dreißig.",
+          trap: "**halb neun** is 8:30, not 9:30: German counts the half *towards* the next hour. If unsure, say it like a timetable: acht Uhr dreißig.",
           quiz: [
-            { at: "r1", k: "pick", q: "8:30 = ___", o: ["halb neun", "halb acht", "acht halb"], a: 0, why: "Half towards nine." },
-            { at: "r1", k: "type", cx: true, q: "Der Kurs beginnt ___ neun Uhr.", a: ["um"], r: ["num.uhr"], why: "A clock time: um." },
-            { at: "r1", k: "pick", q: "6:45 = ___", o: ["Viertel vor sieben", "Viertel nach sechs", "halb sieben"], a: 0, why: "A quarter before seven." },
-            { at: "r2", k: "pick", q: "___ Montag habe ich frei.", o: ["Am", "Im", "Um"], a: 0, why: "A day: am." },
-            { at: "r2", k: "pick", q: "___ Juli fahren wir weg.", o: ["Im", "Am", "Um"], a: 0, why: "A month: im." },
-            { at: "r3", k: "pick", q: "Heute ist der ___ Mai. (3.)", o: ["dritte", "dreite", "dritten"], a: 0, why: "der dritte — after der: -e." },
-            { at: "r3", k: "type", cx: true, q: "Ich komme am ___ Juni. (7.)", a: ["siebten"], r: ["num.ord"], why: "am + date: -en, and sieben → siebt-." },
-            { at: "table", k: "pick", q: "on the 1st of August", o: ["am ersten August", "im ersten August", "am eins August"], a: 0, why: "am + ordinal with -en." },
-            { at: "trap", k: "pick", q: "halb neun is…", o: ["8:30", "9:30", "8:15"], a: 0, why: "Half towards nine: 8:30." },
+            { at: "r1", k: "pick", q: "8:30 = ___", o: ["halb neun", "halb acht", "acht halb"], a: 0, why: "halb neun is halfway towards nine: 8:30." },
+            { at: "r1", k: "type", cx: true, q: "Der Kurs beginnt ___ neun Uhr.", a: ["um"], r: ["num.uhr"], why: "A clock time takes um." },
+            { at: "r1", k: "pick", q: "6:45 = ___", o: ["Viertel vor sieben", "Viertel nach sechs", "halb sieben"], a: 0, why: "6:45 is a quarter before seven: Viertel vor sieben." },
+            { at: "r2", k: "pick", q: "___ Montag habe ich frei.", o: ["Am", "Im", "Um"], a: 0, why: "A day takes am: am Montag." },
+            { at: "r2", k: "pick", q: "___ Juli fahren wir weg.", o: ["Im", "Am", "Um"], a: 0, why: "A month takes im: im Juli." },
+            { at: "r3", k: "pick", q: "Heute ist der ___ Mai. (3.)", o: ["dritte", "dreite", "dritten"], a: 0, why: "After der, the ordinal ends in -e: der dritte." },
+            { at: "r3", k: "type", cx: true, q: "Ich komme am ___ Juni. (7.)", a: ["siebten"], r: ["num.ord"], why: "After am it ends in -en, and sieben becomes siebt-: siebten." },
+            { at: "table", k: "pick", q: "on the 1st of August", o: ["am ersten August", "im ersten August", "am eins August"], a: 0, why: "am + the ordinal with -en: am ersten August." },
+            { at: "trap", k: "pick", q: "halb neun is…", o: ["8:30", "9:30", "8:15"], a: 0, why: "Halfway towards nine: 8:30." },
           ] },
       ],
       diag: [
-        { t: "swap", from: "^(am|im)$", to: "^um$", rule: "num.uhr", msg: "A clock time takes **um**." },
-        { t: "swap", from: "^(am|im|um)$", to: "^(am|im)$", rule: "num.am", msg: "**{right}** here — am + a day or a date, im + a month or a season." },
-        { t: "ending", stem: "(erst|zweit|dritt|viert|fünft|sechst|siebt|acht|neunt|zehnt|elft|zwölft)", rule: "num.ord", msg: "The ending: der …**e**, but am …**en**: **{right}**." },
+        { t: "swap", from: "^(am|im)$", to: "^um$", rule: "num.uhr", msg: "A clock time takes **um**, not am or im." },
+        { t: "swap", from: "^(am|im|um)$", to: "^(am|im)$", rule: "num.am", msg: "It's **{right}** here: am with a day or a date, im with a month or a season." },
+        { t: "ending", stem: "(erst|zweit|dritt|viert|fünft|sechst|siebt|acht|neunt|zehnt|elft|zwölft)", rule: "num.ord", msg: "Wrong ending: it's **{right}**. After der the date ends in -e, after am in -en." },
       ],
       drills: [
         // ── Übung 6•5: the sum in words ──
@@ -105,7 +105,7 @@ cxPack({
           { q: "5 − 4 = ___", a: ["eins"], r: ["num.eins"] },
         ] },
         // ── Übung 6•6: dates with ordinals ──
-        { id: "d6.6", ex: "6.6", t: "type", title: "The first, the second…", how: "Write the ordinal with its ending: der …e, am / im …en.", items: [
+        { id: "d6.6", ex: "6.6", t: "type", title: "The first, the second…", how: "Write the ordinal with its ending: -e after der, -en after am or im.", items: [
           { q: "(2.) Heute ist der ___ Dezember.", a: ["zweite"], r: ["num.ord"] },
           { q: "(11.) Mein Termin ist am ___ Juni.", a: ["elften"], r: ["num.ord"] },
           { q: "(3.) Wir wohnen im ___ Stock.", a: ["dritten"], r: ["num.ord"] },
@@ -145,7 +145,7 @@ cxPack({
           { q: "4:20 → ___", a: ["zwanzig nach vier"], r: ["num.uhr"] },
         ] },
         // ── Übung 4•7: wann? ──
-        { id: "d4.7", ex: "4.7", t: "answer", title: "When?", how: "Answer with the cue — am, im, um.", items: [
+        { id: "d4.7", ex: "4.7", t: "answer", title: "When?", how: "Answer with the cue, using am, im or um.", items: [
           { q: "Wann ist der Elternabend? (Dienstag)", a: ["Am Dienstag.", "Der Elternabend ist am Dienstag."], r: ["num.am"] },
           { q: "Wann ist das Fest? (Juli)", a: ["Im Juli.", "Das Fest ist im Juli."], r: ["num.am"] },
           { q: "Wann hast du Geburtstag? (14. Mai)", a: ["Am vierzehnten Mai.", "Ich habe am vierzehnten Mai Geburtstag.", "Mein Geburtstag ist am vierzehnten Mai."], r: ["num.ord"] },
@@ -158,7 +158,7 @@ cxPack({
           { q: "Wann kommt der Hauswart? (8:45)", a: ["Um Viertel vor neun.", "Er kommt um Viertel vor neun.", "Der Hauswart kommt um Viertel vor neun."], r: ["num.uhr"] },
         ] },
         // ── Production: say it ──
-        { id: "dp.num", t: "translate", end: true, title: "Say it in German", how: "Translate — the numbers in words.", items: [
+        { id: "dp.num", t: "translate", end: true, title: "Say it in German", how: "Translate. Write the numbers in words.", items: [
           { q: "The train leaves at half past eight.", a: ["Der Zug fährt um halb neun.", "Um halb neun fährt der Zug.", "Der Zug fährt um acht Uhr dreißig."], r: ["num.uhr"] },
           { q: "My birthday is on the third of May.", a: ["Mein Geburtstag ist am dritten Mai.", "Ich habe am dritten Mai Geburtstag."], r: ["num.ord"] },
           { q: "That costs twelve francs fifty.", a: ["Das kostet zwölf Franken fünfzig.", "Das macht zwölf Franken fünfzig."], r: ["num.big"] },
@@ -171,7 +171,7 @@ cxPack({
           { q: "One coffee and two teas, please.", a: ["Ein Kaffee und zwei Tee, bitte.", "Einen Kaffee und zwei Tee, bitte.", "Ein Kaffee und zwei Tees, bitte.", "Einen Kaffee und zwei Tees, bitte."], r: ["num.eins"] },
         ] },
         // ── Production: your own ──
-        { id: "dw.num", t: "write", end: true, title: "Write your own", how: "In your own words — saved for Claude to correct.", items: [
+        { id: "dw.num", t: "write", end: true, title: "Write your own", how: "Write it in your own words. It is saved for Claude to correct.", items: [
           { q: "Your week: three days, what you do and at what time.", model: ["Am Montag arbeite ich bis fünf. Am Mittwoch gehe ich um sieben ins Fitness. Am Samstag schlafe ich lange."], r: ["num.am", "num.uhr"] },
           { q: "Your birthday and two other dates that matter to you.", model: ["Mein Geburtstag ist am zwölften Juni. Am ersten August ist der Nationalfeiertag."], r: ["num.ord"] },
           { q: "An invented phone number and a house number, in words.", model: ["Meine Nummer ist null sieben neun, drei vier fünf, sechs sieben, acht neun. Ich wohne an der Bahnhofstrasse siebenundzwanzig."], r: ["num.base", "num.und"] },

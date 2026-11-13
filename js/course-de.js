@@ -80,15 +80,21 @@ function cxPack(pack) {
     if (c.testout !== undefined) sec.testout = c.testout;
     // A stage's checkpoint (a recap section): { n: questions, pass: share }.
     if (c.checkpoint) sec.checkpoint = Object.assign({ n: 20, pass: 0.8 }, c.checkpoint);
+    // (an id used twice would silently replace the first — and a sheet's id
+    // carries the learner's progress: the validator fails on CX.dups)
+    const once = (map, k, what) => { if (map[k]) CX.dups = (CX.dups || []).concat(`${what} ${k} (${id})`); };
     (c.sheets || []).forEach(sh => {
+      once(CX.sheets, sh.id, "sheet");
       Object.assign(sh, { cx: true, sec: id });
       CX.sheets[sh.id] = sh; sec.sheets.push(sh.id);
       (sh.rid || []).forEach((rid, i) => {
+        once(CX.rules, rid, "rule");
         CX.rules[rid] = { id: rid, title: (c.rules || {})[rid] || rid, text: (sh.rules || [])[i] || "", sheet: sh.id, at: "r" + (i + 1), sec: id };
         sec.rules.push(rid);
       });
     });
     (c.drills || []).forEach(d => {
+      once(CX.sets, d.id, "drill set");
       Object.assign(d, { sec: id });
       // fixed: the order is the point (a fronting drill) — no other order counts.
       if (d.fixed) (d.items || []).forEach(it => { it.fixed = true; });
@@ -324,7 +330,8 @@ function cxOrders(item) {
     }
     // (b) Time + verb + pronoun + … → Pronoun + verb + (pronoun objects) + time + …
     const n = cxTimeLen(w, 0);
-    if (n && w[n + 1] && CX_PRON_SUBJ.test(w[n + 1].toLowerCase()) && w.length > n + 2) {
+    // (not «Immer wenn es regnete, …»: the word after the time word must be the verb, not a joining word)
+    if (n && w[n + 1] && CX_PRON_SUBJ.test(w[n + 1].toLowerCase()) && w.length > n + 2 && !/^(wenn|als|weil|dass|ob|bevor|nachdem|obwohl|damit|falls|sobald|seit|seitdem|bis|während|wo|was|wer|wie|wann|warum)$/i.test(w[n])) {
       const chunk = w.slice(0, n).map(small), verb = w[n], subj = w[n + 1], rest = w.slice(n + 2);
       let k = 0; while (k < rest.length && CX_PRON_OBJ.test(rest[k].toLowerCase())) k++;
       out.push(join([subj, verb, ...rest.slice(0, k), ...chunk, ...rest.slice(k)]));
@@ -360,7 +367,8 @@ function cxGapFills(item) {
   if (parts.length !== 2 || !(parts[0].trim() || parts[1].trim())) return [];
   const esc = s => s.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   // (a gap that closes the sentence — "…, aber ___." — has only the full stop after it, no space)
-  const tail = parts[1].trim(), punct = /^[.!?]+$/.test(tail);
+  // (so has a gap followed by a comma — "Der Zug, ___, hat Verspätung.")
+  const tail = parts[1].trim(), punct = /^[.!?,;:]/.test(tail);
   const re = new RegExp("^" + (esc(parts[0]) ? esc(parts[0]) + "\\s+" : "") + "(.+?)" + (tail ? (punct ? "\\s*" : "\\s+") + esc(parts[1]) : "") + "$", "i");
   const out = [];
   (item.a || []).map(String).forEach(a => { const m = re.exec(a.trim()); if (m && m[1] && !out.includes(m[1])) out.push(m[1]); });
@@ -372,17 +380,37 @@ function cxGapFills(item) {
 // (the rest must be the sentence as shown). → those words, or null.
 function cxGapInner(item, typed) {
   if (item.k === "order" || typeof item.q !== "string" || !/(^|[^A-Za-zÄÖÜäöüß])___([^A-Za-zÄÖÜäöüß]|$)/.test(item.q)) return null;
-  const parts = item.q.replace(/\([^)]*\)/g, " ").replace(/\s+/g, " ").trim().split("___");
-  if (parts.length !== 2 || /→/.test(parts[0])) return null;
-  const P0 = cxToks(parts[0]), P1 = cxToks(parts[1]), T = cxToks(typed);
-  if (!P0.length && !P1.length || T.length <= P0.length + P1.length) return null;
-  // (only where the answers are the gap's words: an item whose answers are whole sentences checks those)
-  const holds = a => { const A = cxToks(a); return A.length > P0.length + P1.length && P0.every((x, i) => A[i] === x) && P1.every((x, i) => A[A.length - P1.length + i] === x); };
-  if ((item.a || []).some(holds)) return null;
-  if (P0.some((x, i) => T[i] !== x) || P1.some((x, i) => T[T.length - P1.length + i] !== x)) return null;
-  const W = String(typed).replace(/[.,!?;:„“"«»‚‘’()…–—]/g, " ").split(/\s+/).filter(Boolean);
   const tpl = item.q.replace(/\([^)]*\)/g, " ").replace(/\s+/g, " ").trim();
-  return { text: (W.length === T.length ? W : T).slice(P0.length, T.length - P1.length).join(" "), whole: fill => tpl.replace("___", fill) };
+  if (tpl.split("___").length !== 2) return null;
+  // The sentence the gap sits in: the whole prompt, or — in a two-part one —
+  // the part with the gap ("Ich habe einen Termin. → Ich habe ___ Termin.":
+  // what comes after the arrow · "___ wartest du? — Auf das Tram.": the question).
+  const segs = [tpl];
+  const cut = t => t.split(/\s*→\s*|\s+[—–]\s+/).find(x => x.includes("___"));
+  if (cut(tpl) && cut(tpl) !== tpl) segs.push(cut(tpl).trim());
+  const T = cxToks(typed);
+  const W = String(typed).replace(/[.,!?;:„“"«»‚‘’()…–—→]/g, " ").split(/\s+/).filter(Boolean);
+  const fills = [...(item.a || []).map(String), ...cxGapFills(item)].map(cxLoose);
+  let full = null;
+  for (const seg of segs) {
+    const parts = seg.split("___"), P0 = cxToks(parts[0]), P1 = cxToks(parts[1]);
+    if (!P0.length && !P1.length) continue;
+    // (only where the answers are the gap's words: an item whose answers are whole sentences checks those)
+    const holds = a => { const A = cxToks(a); return A.length > P0.length + P1.length && P0.every((x, i) => A[i] === x) && P1.every((x, i) => A[A.length - P1.length + i] === x); };
+    if (seg === tpl && (item.a || []).some(holds)) return null;
+    // i words of the sentence before the gap, j after it — typed around the gap's own
+    for (let i = P0.length; i >= 0; i--) for (let j = P1.length; j >= 0; j--) {
+      if (!i && !j || T.length <= i + j) continue;
+      if (P0.slice(P0.length - i).some((x, k) => T[k] !== x) || P1.slice(0, j).some((x, k) => T[T.length - j + k] !== x)) continue;
+      const text = (W.length === T.length ? W : T).slice(i, T.length - j).join(" ");
+      const out = { text, whole: fill => tpl.replace("___", fill) };
+      // the gap's words right, with some of the sentence around them: that's the answer
+      if (fills.includes(cxLoose(text))) return out;
+      // the whole sentence, the gap's words not right: its slip is the gap's (shown whole)
+      if (i === P0.length && j === P1.length && !full) full = out;
+    }
+  }
+  return full;
 }
 // ── WHAT IS SAID AFTER AN ANSWER ──────────────
 // The one place that says what the course speaks (course-ui.js after an
@@ -571,7 +599,7 @@ function cxCheck(item, typed, sec) {
   // almost — one more try.
   const miss = cxMinus(A, T), extra = cxMinus(T, A);
   if (miss.length === 1 && extra.length === 1 && miss[0].length >= 4 && !CX_GRAMMAR_TOK.test(miss[0]) && cxLev(miss[0], extra[0]) === 1 && !cxEndingSlip(miss[0], extra[0])) res.near = true;
-  const d = cxDiagnose(item, T, A, sec, String(best).normalize("NFC").replace(/[.,!?;:„“"«»‚‘’()…–—]/g, " ").split(/\s+/).filter(Boolean));
+  const d = cxDiagnose(item, T, A, sec, String(best).normalize("NFC").replace(/[.,!?;:„“"«»‚‘’()…–—]/g, " ").split(/\s+/).filter(Boolean), best);
   if (d) { res.rule = d.rule; res.msg = d.msg; if (d.hard) delete res.near; }
   if (!res.rule) res.rule = (item.r || [])[0] || null;
   return res;
@@ -610,7 +638,12 @@ function cxUmlautChoice(item, typed) {
 //   ending  { stem }      the right word, the wrong ending
 //   seq     { seq: [a, b] } you wrote a, then b (nicht ein…)
 //   pos     { tok }       the same words, `tok` in another place
-//   missing { tok } / extra { tok }
+//   missing { tok } / extra { tok }   (whole: true — really absent, not misspelt;
+//                        comma: true with count — the one right after a comma;
+//                        missing + count: true — left out, though
+//                        another word of its kind is in the sentence)
+//   grow    { add }      the right word is yours plus an ending (Auto → Autos: add "e?s")
+//   order                the same words, another order (a lesson's own message for it)
 // hard: true on a detector — what it finds is the grammar, never "almost,
 // check the spelling" (teuerer for teurer is one letter off, but it's the rule)
 // Messages fill {right} (the word that goes there), {typed} and {where}
@@ -643,11 +676,29 @@ function cxNounGender(noun) {
   }
   return _cxGender.get(normalize(String(noun || "").replace(/[.,!?;:]+$/, ""))) || null;
 }
-function cxDiagnose(item, T, A, sec, orig = null) {
+// The same words, one of them moved: which, and where it goes — «ist» goes
+// right before «die Ärztin …». (Two words swapped is one move too.) → text or "".
+function cxMovedWord(T, A, orig = null) {
+  if (!cxBagEq(T, A) || T.length < 2) return "";
+  const W = orig && orig.length === A.length ? orig : A;
+  const same = (x, y) => x.length === y.length && x.every((t, i) => t === y[i]);
+  for (let i = 0; i < T.length; i++) {
+    const t2 = T.filter((_, k) => k !== i);
+    for (let j = 0; j < A.length; j++) {
+      if (A[j] !== T[i] || !same(t2, A.filter((_, k) => k !== j))) continue;
+      const word = W[j];
+      const where = j === A.length - 1 ? "at the very end" : j === 0 ? "first" : `right before «${W.slice(j + 1, j + 3).join(" ")}${A.length > j + 3 ? " …" : ""}»`;
+      return `«${word}» goes ${where}`;
+    }
+  }
+  return "";
+}
+function cxDiagnose(item, T, A, sec, orig = null, best = "") {
   const list = [...(item.diag || []), ...((sec && sec.diag) || [])];
   // the right word as the answer spells it (möchte, not mochte), small
   const W0 = orig && orig.length === A.length ? orig : null;
-  const spell = t => { const k = A.indexOf(t); return W0 && k >= 0 ? W0[k].toLowerCase() : t; };
+  // (a noun keeps its capital — Hauses, not hauses; a sentence's first word is written small)
+  const spell = t => { const k = A.indexOf(t); return W0 && k >= 0 ? (k === 0 && A.length > 1 ? W0[k].toLowerCase() : W0[k]) : t; };
   const fill = (m, o) => String(m || "").replace(/\{(\w+)\}/g, (s, k) => o[k] !== undefined ? o[k] : s);
   for (const d of list) {
     let o = null;
@@ -676,18 +727,48 @@ function cxDiagnose(item, T, A, sec, orig = null) {
       // (only when that word is what's missing — another sentence altogether
       // is not "a missing nicht": it stays the item's own rule)
       const re = cxRx(d.tok);
-      if (A.some(x => re.test(x)) && !T.some(x => re.test(x)) && cxMinus(A, T).filter(x => !re.test(x)).length <= 1) o = {};
+      // (count: the word was simply left out — nothing else differs — even when
+      // another word of its kind is there: «der Schirm, ich gekauft habe» lacks
+      // its den although der is in the sentence)
+      if (d.count) {
+        const lost = cxMinus(A, T);
+        if (lost.length === 1 && re.test(lost[0]) && !cxMinus(T, A).length) {
+          // comma: only the one right after a comma — the relative pronoun, not the
+          // noun's article («Das ist Ärztin, die …» lacks an article, not its pronoun)
+          let k = -1; for (let i = 0; i < A.length; i++) if (A[i] === lost[0] && cxBagEq(A.filter((_, j) => j !== i), T) && A.filter((_, j) => j !== i).every((x, j) => x === T[j])) { k = i; break; }
+          const raw = String(best || "").trim().split(/\s+/);
+          if (!d.comma || (k > 0 && raw.length === A.length && /,$/.test(raw[k - 1]))) o = { right: spell(lost[0]) };
+        }
+      }
+      // (whole: not when the word is there, misspelt — «mic» for mich is a slip, not a missing word)
+      else if (A.some(x => re.test(x)) && !T.some(x => re.test(x)) && cxMinus(A, T).filter(x => !re.test(x)).length <= 1
+        && !(d.whole && cxMinus(A, T).filter(x => re.test(x)).some(x => cxMinus(T, A).some(y => cxLev(x, y) <= (x.length <= 4 ? 1 : 2) && y.length >= 2 && y[0] === x[0])))) o = {};
     } else if (d.t === "extra") {
       const re = cxRx(d.tok);
-      if (T.some(x => re.test(x)) && !A.some(x => re.test(x)) && cxMinus(T, A).filter(x => !re.test(x)).length <= 1) o = {};
+      // (count: exactly that word too many — «Wessen die Jacke ist das?» — even when
+      // the answer has another word of its kind)
+      if (d.count) { const more = cxMinus(T, A); if (more.length === 1 && re.test(more[0]) && !cxMinus(A, T).length) o = { typed: more[0] }; }
+      else if (T.some(x => re.test(x)) && !A.some(x => re.test(x)) && cxMinus(T, A).filter(x => !re.test(x)).length <= 1) o = {};
+    } else if (d.t === "grow") {
+      // grow { add }: the right word is the one you wrote plus an ending
+      // (des Auto → des Autos · des Mann → des Mannes) — add: a regex of endings.
+      const more = cxMinus(T, A), lost = cxMinus(A, T);
+      for (const x of more) { const at = lost.find(y => y.startsWith(x) && y.length > x.length && cxRx(d.add).test(y.slice(x.length))); if (at) { o = { typed: x, right: spell(at) }; break; } }
     }
+    // order: the right words in another order — the lesson says which order
+    // it teaches (the verb last in a side sentence) instead of the bare
+    // "another order". Put it last: a pos detector that fits says more.
+    else if (d.t === "order") { if (cxBagEq(T, A)) { o = {}; const mv = cxMovedWord(T, A, orig); if (mv) o.tail = ` Here: ${mv}.`; } }
     if (o) {
       // (a rule that exists: the course's own, or a verb sheet's point — gs:fu1.r1)
       const rule = d.rule && (!item.r || item.r.includes(d.rule) || cxRule(d.rule) || cxRuleView(d.rule)) ? d.rule : (item.r || [])[0];
-      return { rule, msg: fill(d.msg, o) + (o.gender ? " " + o.gender : ""), hard: !!d.hard };
+      return { rule, msg: fill(d.msg, o) + (o.gender ? " " + o.gender : "") + (o.tail || ""), hard: !!d.hard };
     }
   }
-  if (cxBagEq(T, A)) return { rule: (item.r || [])[0], msg: "The right words, another order." };
+  if (cxBagEq(T, A)) {
+    const mv = cxMovedWord(T, A, orig);
+    return { rule: (item.r || [])[0], msg: mv ? `All the right words — only one is out of place: ${mv}.` : "All the right words, in another order — compare your line with the answer." };
+  }
   return null;
 }
 
@@ -729,8 +810,84 @@ function cxTiles(set, item) {
   const src = item.tiles || String(item.a[0]).replace(/[.!?]+$/, "").split(/\s+/).map(w => w.replace(/[,;:]$/, ""));
   const tiles = src.map((w, i) => i === 0 && !item.cap && (set.low || CX_SMALL_START.test(w)) ? w.toLowerCase() : w);
   const have = new Set(tiles.map(w => w.toLowerCase()));
-  const extra = shuffle((item.d || set.d || []).filter(w => !have.has(String(w).toLowerCase())).slice()).slice(0, 2);
+  const given = (item.d || set.d || []).filter(w => !have.has(String(w).toLowerCase()));
+  const extra = shuffle([...given, ...cxDecoys(set, item, have).filter(w => !given.some(g => String(g).toLowerCase() === w.toLowerCase()))].slice()).slice(0, given.length ? 3 : 2);
   return { tiles, extra };
+}
+// Decoys for a build-it item (13 Nov 2026): the cue's words that the answer
+// changed — der Zug → den Zug brings «der» to choose against «den», sich
+// freuen → freue mich brings «sich» and «freuen» — so the tiles never hold
+// the forms ready-made. Never a word any accepted answer has.
+function cxDecoys(set, item, have) {
+  if (cxItemKind(set, item) !== "compose" || !(item.w || []).length || set.decoys === false) return [];
+  const used = new Set(cxAnswers(item).concat(cxOrders(item)).flatMap(a => cxToks(a)));
+  const out = [];
+  item.w.forEach(c => String(c).replace(/\([^)]*\)/g, " ").split(/\s+/).forEach(w => {
+    w = w.replace(/[,;:]$/, "");
+    if (!w || !/^[A-Za-zÄÖÜäöüß]+$/.test(w) || have.has(w.toLowerCase()) || used.has(cxLoose(w)) || out.some(x => x.toLowerCase() === w.toLowerCase())) return;
+    out.push(w);
+  }));
+  // (the same few every time for an item: by its text, not at random)
+  const h = [...String(item.q || item.w.join(" "))].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) >>> 0, 7);
+  return out.map((w, i) => ({ w, k: (h + i * 2654435761) >>> 0 })).sort((a, b) => a.k - b.k).slice(0, 2).map(x => x.w);
+}
+// The start every answer shares, when the task gives it word for word (the
+// prompt or the instruction: "Start with Ich weiß nicht, …", "(Weißt du, …)",
+// a main clause to copy): written in for you — up to its last comma.
+// Never a gap item, never words the task doesn't show. → the start, or "".
+function cxLead(item, set) {
+  const k = cxItemKind(set, item);
+  if (!["transform", "compose", "answer", "translate"].includes(k) || /___/.test(item.q || "") || !(item.a || []).length || set.lead === false) return "";
+  const W = item.a.map(a => String(a).trim().split(/\s+/));
+  let p = 0; while (W.every(w => w[p] !== undefined && w[p] === W[0][p])) p++;
+  let c = -1; for (let i = 0; i < p; i++) if (/,$/.test(W[0][i])) c = i;
+  if (c < 1) return "";
+  const lead = W[0].slice(0, c + 1).join(" ");
+  return cxLoose((item.q || "") + " " + (set.how || "") + " " + (set.title || "")).includes(cxLoose(lead)) ? lead : "";
+}
+
+// ── PLACE THE WORD ────────────────────────────
+// "Put nicht in", "say it again with sehr": the sentence is given and one
+// word (or a short phrase) goes into it — nothing else changes. Such an item
+// is answered by placing that word in the sentence (course-ui.js), not by
+// writing the sentence again. Only when the word itself is given: the cue
+// in brackets, or a plain negation word — never a form to work out (kein →
+// keinen, meine Schwester → meiner Schwester: those stay tiles / typed).
+// → { words, run, end, slots: the right places } or null. A set opts out
+// with place: false.
+const CX_PLACE_GIVEN = /^(nicht|nie|gar|gar nicht|überhaupt nicht|nicht mehr|noch nicht|auch|schon|noch)$/i;
+function cxPlace(item, set) {
+  if (!item || (set && set.place === false) || item.place === false || typeof item.q !== "string" || /___|→/.test(item.q) || !(item.a || []).length) return null;
+  const cue = (/\(([^()]+)\)\s*$/.exec(item.q) || [])[1] || "";
+  const bare = item.q.replace(/\([^)]*\)/g, " ").replace(/\s+/g, " ").trim();
+  const end = (bare.match(/[.!?]+$/) || [""])[0];
+  const split = t => String(t).replace(/[.!?]+$/, "").trim().split(/\s+/).filter(Boolean);
+  const key = w => cxLoose(w);
+  const Q = split(bare);
+  if (Q.length < 2) return null;
+  let run = null; const slots = [];
+  for (const a of item.a) {
+    const A = split(a), k = A.length - Q.length;
+    if (k < 1 || k > 3) return null;
+    let at = -1;
+    for (let i = 0; i <= Q.length && at < 0; i++) if (Q.slice(0, i).every((w, j) => key(w) === key(A[j])) && Q.slice(i).every((w, j) => key(w) === key(A[i + k + j]))) at = i;
+    if (at < 0) return null;
+    const r = A.slice(at, at + k).join(" ").replace(/[,;:]$/, "");
+    if (run !== null && key(run) !== key(r)) return null;
+    run = r; if (!slots.includes(at)) slots.push(at);
+  }
+  if (!(CX_PLACE_GIVEN.test(run) || (cue && key(cue) === key(run)))) return null;
+  return { words: Q, run: run.charAt(0).toLowerCase() === run.charAt(0) ? run : (CX_PLACE_GIVEN.test(run) || /^[a-zäöü]/.test(cue) ? run.toLowerCase() : run), end, slots };
+}
+// The sentence with the word placed before words[at] (at = words.length: at
+// the end). In first place it takes the capital; the old first word gives it
+// up unless it is a noun or a name.
+function cxPlaceText(pl, at) {
+  const w = pl.words.slice();
+  let run = pl.run;
+  if (at === 0) { run = run.charAt(0).toUpperCase() + run.slice(1); if (CX_SMALL_START.test(w[0])) w[0] = w[0].charAt(0).toLowerCase() + w[0].slice(1); }
+  w.splice(at, 0, run);
+  return w.join(" ") + pl.end;
 }
 
 // ── PICKING ITEMS ─────────────────────────────

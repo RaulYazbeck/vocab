@@ -15,22 +15,22 @@ cxPack({
     "s1.refl": {
       testout: { n: 6, miss: 1 },
       rules: {
-        "refl.forms": "mich · dich · sich · uns · euch · sich",
-        "refl.vs": "another person: ihn · the same person: sich",
-        "refl.verbs": "sich freuen, sich beeilen, sich erkälten — right after the verb",
-        "refl.dat": "with a thing as well: mir · dir (Ich kaufe mir …)",
-        "refl.body": "body and clothes: Ich putze mir die Zähne",
-        "refl.prep": "after a preposition: für sich · bei dir",
+        "refl.forms": "mich, dich, sich, uns, euch, sich",
+        "refl.vs": "Another person: ihn; the same person: sich",
+        "refl.verbs": "sich freuen, sich beeilen: sich right after the verb",
+        "refl.dat": "With a thing as well: mir, dir (Ich kaufe mir …)",
+        "refl.body": "Body and clothes: Ich putze mir die Zähne",
+        "refl.prep": "After a preposition: für sich, bei dir",
       },
       sheets: [
         { id: "cx.refl1", title: "sich: the object is the subject", qn: 3,
           struct: [["Who", "who"], ["verb", "verb"], ["mich · sich", "refl"], ["…", "mid"]],
-          why: "When you do something to **yourself**, the object is the same person as the subject — and German uses a reflexive pronoun: Ich wasche **mich**. Most of them you know already; only one is new: **sich**.",
+          why: "When you do something to **yourself**, the object is the same person as the subject, and German uses a reflexive pronoun: Ich wasche **mich**. You know most of them already; only **sich** is new.",
           rid: ["refl.forms", "refl.vs", "refl.verbs"],
           rules: [
-            "The reflexive pronouns are the accusative ones — **mich · dich · uns · euch** — except for er, sie, es, man, sie (they) and Sie, which all take **sich**: Ich wasche **mich**. · Er wäscht **sich**. · Die Kinder freuen **sich**.",
-            "Another person → the normal pronoun; the same person → the reflexive: Lea fragt **sie** (her — someone else). · Lea fragt **sich** (herself). · Ich stelle **ihn** vor. · Ich stelle **mich** vor.",
-            "Some verbs always have it — learn them with *sich*: **sich freuen · sich beeilen · sich erkälten · sich setzen · sich treffen**. It comes right after the verb (or a pronoun subject): Ich **freue mich**. · Heute **freue ich mich**.",
+            "The reflexive pronouns are the accusative ones (**mich, dich, uns, euch**), except that er, sie, es, man, sie (they) and Sie all take **sich**: Ich wasche **mich**. · Er wäscht **sich**. · Die Kinder freuen **sich**.",
+            "For another person, use the normal pronoun; for the same person, use the reflexive: Lea fragt **sie** (someone else). · Lea fragt **sich** (herself). · Ich stelle **ihn** vor. · Ich stelle **mich** vor.",
+            "Some verbs always have the reflexive, so learn them with *sich*: **sich freuen, sich beeilen, sich erkälten, sich setzen**. It comes right after the verb, or after a pronoun subject: Ich **freue mich**. · Heute **freue ich mich**.",
           ],
           table: { head: ["", "someone else", "the same"], rows: [
             ["ich", "Er sieht **mich**.", "Ich sehe **mich**."],
@@ -46,26 +46,26 @@ cxPack({
             ["Bitte **setzen Sie sich**!", "Please sit down."],
             ["Mein Sohn hat **sich** schon wieder erkältet.", "My son has caught a cold again."],
           ],
-          trap: "**sich** is only for er, sie, es, man, sie (they) and Sie: ich wasche **mich**, wir waschen **uns** — never ~~wir waschen sich~~.",
+          trap: "**sich** is only for er, sie, es, man, sie (they) and Sie: ich wasche **mich**, wir waschen **uns**, never ~~wir waschen sich~~.",
           quiz: [
-            { at: "r1", k: "pick", q: "Er wäscht ___.", o: ["sich", "ihn", "er"], a: 0, why: "er: **sich**." },
-            { at: "r1", k: "pick", q: "Wir freuen ___ auf die Ferien.", o: ["uns", "sich", "euch"], a: 0, why: "wir: **uns**." },
-            { at: "r1", k: "type", cx: true, q: "Beeil ___! (du)", a: ["dich"], r: ["refl.forms"], why: "du: **dich**." },
-            { at: "r2", k: "pick", q: "Tom sieht ___ im Spiegel. (himself)", o: ["sich", "ihn"], a: 0, why: "The same person: **sich**." },
-            { at: "r2", k: "pick", q: "Lea sieht ihre Freundin und ruft ___. (her friend)", o: ["sie", "sich"], a: 0, why: "Another person: **sie**." },
-            { at: "r3", k: "pick", q: "Darf ich ___ vorstellen? Ich bin Tom.", o: ["mich", "mir", "sich"], a: 0, why: "ich: **mich**." },
-            { at: "r3", k: "order", q: "Build it: Today I'm looking forward to the film.", a: ["Heute", "freue", "ich", "mich", "auf den Film."], why: "The verb, the subject — and the reflexive right after." },
-            { at: "table", k: "pick", q: "Ihr seht ___ im Spiegel.", o: ["euch", "sich", "uns"], a: 0, why: "ihr: **euch**." },
-            { at: "trap", k: "pick", q: "Which is right?", o: ["Wir waschen uns.", "Wir waschen sich."], a: 0, why: "wir: **uns** — sich is for er, sie, es and Sie." },
+            { at: "r1", k: "pick", q: "Er wäscht ___.", o: ["sich", "ihn", "er"], a: 0, why: "With er: **sich**." },
+            { at: "r1", k: "pick", q: "Wir freuen ___ auf die Ferien.", o: ["uns", "sich", "euch"], a: 0, why: "With wir: **uns**." },
+            { at: "r1", k: "type", cx: true, q: "Beeil ___! (du)", a: ["dich"], r: ["refl.forms"], why: "With du: **dich**." },
+            { at: "r2", k: "pick", q: "Tom sieht ___ im Spiegel. (himself)", o: ["sich", "ihn"], a: 0, why: "It is the same person: **sich**." },
+            { at: "r2", k: "pick", q: "Lea sieht ihre Freundin und ruft ___. (her friend)", o: ["sie", "sich"], a: 0, why: "It is another person: **sie**." },
+            { at: "r3", k: "pick", q: "Darf ich ___ vorstellen? Ich bin Tom.", o: ["mich", "mir", "sich"], a: 0, why: "With ich: **mich**." },
+            { at: "r3", k: "order", q: "Build it: Today I'm looking forward to the film.", a: ["Heute", "freue", "ich", "mich", "auf den Film."], why: "The verb, then the subject, then the reflexive right after." },
+            { at: "table", k: "pick", q: "Ihr seht ___ im Spiegel.", o: ["euch", "sich", "uns"], a: 0, why: "With ihr: **euch**." },
+            { at: "trap", k: "pick", q: "Which is right?", o: ["Wir waschen uns.", "Wir waschen sich."], a: 0, why: "With wir: **uns**. sich is only for er, sie, es and Sie." },
           ] },
         { id: "cx.refl2", title: "mir or mich? — with a thing as well", qn: 3,
           struct: [["Who", "who"], ["verb", "verb"], ["mir · dir · sich", "refl"], ["the thing", "thing"]],
-          why: "When the sentence has a **thing** as the object, the person becomes **dative**: Ich wasche **mich** — but Ich wasche **mir** die Hände. Only *ich* and *du* look different; the rest stay the same.",
+          why: "When the sentence also has a **thing** as the object, the reflexive is **dative**: Ich wasche **mich**, but Ich wasche **mir** die Hände. Only *ich* and *du* look different.",
           rid: ["refl.dat", "refl.body", "refl.prep"],
           rules: [
-            "With a thing as well, the reflexive is dative: **mir · dir · sich · uns · euch · sich**: Ich kaufe **mir** ein Velo. · Bestellst du **dir** einen Kaffee? · Er nimmt **sich** ein Stück Kuchen. Only ich and du change: mich → **mir**, dich → **dir**.",
-            "Body and clothes: German says **mir die** where English says *my*: Ich putze **mir die** Zähne. · Zieh **dir** eine Jacke an! — with nothing else it's the accusative: Ich ziehe **mich** an.",
-            "After a preposition, the reflexive too: Sie kauft das nur für **sich**. · Hast du Geld bei **dir**? · Er spricht gern über **sich**.",
+            "When there is a thing as well, the reflexive is dative: Ich kaufe **mir** ein Velo. · Bestellst du **dir** einen Kaffee? · Er nimmt **sich** ein Stück Kuchen. Only ich and du change (**mir**, **dir**); the rest stay the same.",
+            "For the body and clothes, German says **mir die** where English says *my*: Ich putze **mir die** Zähne. · Zieh **dir** eine Jacke an! With no thing, it is the accusative: Ich ziehe **mich** an.",
+            "After a preposition, use the reflexive too when it is the same person: Sie kauft das nur für **sich**. · Hast du Geld bei **dir**? · Er spricht gern über **sich**.",
           ],
           table: { head: ["Ich wasche …", "alone", "with a thing"], rows: [
             ["ich", "**mich**", "**mir** die Hände"],
@@ -81,28 +81,28 @@ cxPack({
             ["Ich kann **mir** das gut vorstellen.", "I can easily imagine that."],
             ["Hast du einen Schirm **bei dir**?", "Have you got an umbrella with you?"],
           ],
-          trap: "**sich vorstellen** has two meanings: Ich stelle **mich** vor (I introduce myself) · Ich stelle **mir** das vor (I imagine it — a thing as well, so dative).",
+          trap: "**sich vorstellen** has two meanings. Ich stelle **mich** vor: I introduce myself. Ich stelle **mir** das vor: I imagine it (there's a thing as well, so dative).",
           quiz: [
-            { at: "r1", k: "pick", q: "Ich kaufe ___ ein Eis.", o: ["mir", "mich"], a: 0, why: "A thing as well (ein Eis): **mir**." },
-            { at: "r1", k: "pick", q: "Ich wasche ___.", o: ["mich", "mir"], a: 0, why: "Nothing else: **mich**." },
-            { at: "r1", k: "type", cx: true, q: "Du wäschst ___ die Hände.", a: ["dir"], r: ["refl.dat"], why: "A thing as well (die Hände): **dir**." },
-            { at: "r2", k: "pick", q: "Ich putze ___ die Zähne.", o: ["mir", "mich", "meine"], a: 0, why: "The body: **mir die** Zähne." },
-            { at: "r2", k: "pick", q: "It's cold — put a jacket on! (du)", o: ["Zieh dir eine Jacke an!", "Zieh dich eine Jacke an!"], a: 0, why: "A thing as well (eine Jacke): **dir**." },
+            { at: "r1", k: "pick", q: "Ich kaufe ___ ein Eis.", o: ["mir", "mich"], a: 0, why: "There's a thing as well (ein Eis): **mir**." },
+            { at: "r1", k: "pick", q: "Ich wasche ___.", o: ["mich", "mir"], a: 0, why: "There's nothing else: **mich**." },
+            { at: "r1", k: "type", cx: true, q: "Du wäschst ___ die Hände.", a: ["dir"], r: ["refl.dat"], why: "There's a thing as well (die Hände): **dir**." },
+            { at: "r2", k: "pick", q: "Ich putze ___ die Zähne.", o: ["mir", "mich", "meine"], a: 0, why: "For the body, German says **mir die** Zähne." },
+            { at: "r2", k: "pick", q: "It's cold — put a jacket on! (du)", o: ["Zieh dir eine Jacke an!", "Zieh dich eine Jacke an!"], a: 0, why: "There's a thing as well (eine Jacke): **dir**." },
             { at: "r3", k: "pick", q: "Sie kauft das nur für ___. (herself)", o: ["sich", "sie", "ihr"], a: 0, why: "After a preposition, the same person: **sich**." },
-            { at: "r3", k: "pick", q: "Hast du Geld bei ___?", o: ["dir", "dich", "sich"], a: 0, why: "bei + dative, du: **dir**." },
-            { at: "table", k: "pick", q: "Wir waschen ___ die Hände.", o: ["uns", "sich", "unsere"], a: 0, why: "wir: **uns**, either way." },
-            { at: "trap", k: "pick", q: "I'm imagining it:", o: ["Ich stelle es mir vor.", "Ich stelle mich es vor."], a: 0, why: "A thing as well (es): **mir**." },
+            { at: "r3", k: "pick", q: "Hast du Geld bei ___?", o: ["dir", "dich", "sich"], a: 0, why: "bei takes the dative; with du: **dir**." },
+            { at: "table", k: "pick", q: "Wir waschen ___ die Hände.", o: ["uns", "sich", "unsere"], a: 0, why: "With wir it is **uns** either way." },
+            { at: "trap", k: "pick", q: "I'm imagining it:", o: ["Ich stelle es mir vor.", "Ich stelle mich es vor."], a: 0, why: "There's a thing as well (es): **mir**." },
           ] },
       ],
       diag: [
         { t: "swap", from: "^(mich|dich)$", to: "^(mir|dir)$", rule: "refl.dat", msg: "There's a thing as well, so the person is dative: **{right}**." },
-        { t: "swap", from: "^(mir|dir)$", to: "^(mich|dich)$", rule: "refl.dat", msg: "Nothing else is the object here: the accusative **{right}**." },
-        { t: "swap", from: "^(ihn|sie|ihm|ihr|ihnen|er)$", to: "^sich$", rule: "refl.vs", msg: "The same person as the subject: **sich**." },
-        { t: "swap", from: "^sich$", to: "^(mich|dich|uns|euch|mir|dir)$", rule: "refl.forms", msg: "**sich** is only for er, sie, es, man and Sie — here: **{right}**." },
-        { t: "swap", from: "^sich$", to: "^(ihn|sie|ihm|ihr|ihnen)$", rule: "refl.vs", msg: "Another person, not the subject: **{right}** — no sich." },
-        { t: "swap", from: "^(ich|du|er|wir|ihr)$", to: "^(mich|dich|sich|uns|euch|mir|dir)$", rule: "refl.forms", msg: "As the object: **{right}**." },
-        { t: "swap", from: "^(meine|meinen|deine|deinen|seine|seinen|ihre|ihren|unsere|eure)$", to: "^(die|den|das)$", rule: "refl.body", msg: "Body and clothes: **mir die** … — the reflexive already says whose." },
-        { t: "pos", tok: "^(mich|dich|sich|uns|euch)$", rule: "refl.verbs", msg: "The reflexive goes right after the verb (or after a pronoun subject) — it goes {where}." },
+        { t: "swap", from: "^(mir|dir)$", to: "^(mich|dich)$", rule: "refl.dat", msg: "Nothing else is the object here, so use the accusative **{right}**." },
+        { t: "swap", from: "^(ihn|sie|ihm|ihr|ihnen|er)$", to: "^sich$", rule: "refl.vs", msg: "The object is the same person as the subject: **sich**." },
+        { t: "swap", from: "^sich$", to: "^(mich|dich|uns|euch|mir|dir)$", rule: "refl.forms", msg: "**sich** is only for er, sie, es, man and Sie. Here it is **{right}**." },
+        { t: "swap", from: "^sich$", to: "^(ihn|sie|ihm|ihr|ihnen)$", rule: "refl.vs", msg: "This is another person, not the subject: **{right}**, not sich." },
+        { t: "swap", from: "^(ich|du|er|wir|ihr)$", to: "^(mich|dich|sich|uns|euch|mir|dir)$", rule: "refl.forms", msg: "As the object, use **{right}**, not {typed}." },
+        { t: "swap", from: "^(meine|meinen|deine|deinen|seine|seinen|ihre|ihren|unsere|eure)$", to: "^(die|den|das)$", rule: "refl.body", msg: "For the body and clothes, say **mir die** …: the reflexive already says whose." },
+        { t: "pos", tok: "^(mich|dich|sich|uns|euch)$", rule: "refl.verbs", msg: "The reflexive goes right after the verb, or after a pronoun subject: it goes {where}." },
       ],
       drills: [
         // ── our own: which pronoun? ──
@@ -120,7 +120,7 @@ cxPack({
           { q: "Herr Meier, setzen Sie ___ doch!", o: ["sich", "Sie", "Ihnen"], a: ["sich"], r: ["refl.forms"] },
         ] },
         // ── Übung 23•5: the object becomes the subject itself ──
-        { id: "d23.5", ex: "23.5", t: "transform", title: "Do it to yourself", how: "Replace the highlighted object with a reflexive pronoun — the subject does it to itself.", items: [
+        { id: "d23.5", ex: "23.5", t: "transform", title: "Do it to yourself", how: "Replace the highlighted object with a reflexive pronoun: the subject does it to itself.", items: [
           { q: "Ich stelle meinen Kollegen vor.", hl: "meinen Kollegen", a: ["Ich stelle mich vor."], r: ["refl.vs"] },
           { q: "Wir haben den Chef geärgert.", hl: "den Chef", a: ["Wir haben uns geärgert."], r: ["refl.vs"] },
           { q: "Du musst das Kind vor der Sonne schützen.", hl: "das Kind", a: ["Du musst dich vor der Sonne schützen."], r: ["refl.vs"] },
@@ -133,7 +133,7 @@ cxPack({
           { q: "Die Eltern beruhigen die Kinder.", hl: "die Kinder", a: ["Die Eltern beruhigen sich."], r: ["refl.forms"] },
         ] },
         // ── Übung 23•6: the dative object becomes the subject itself ──
-        { id: "d23.6", ex: "23.6", t: "transform", title: "Something for yourself", how: "Replace the highlighted person with a reflexive pronoun — there's a thing as well, so it's dative.", items: [
+        { id: "d23.6", ex: "23.6", t: "transform", title: "Something for yourself", how: "Replace the highlighted person with a reflexive pronoun. There's a thing as well, so it's dative.", items: [
           { q: "Papa wäscht dem Baby die Haare.", hl: "dem Baby", a: ["Papa wäscht sich die Haare."], r: ["refl.body"], cap: true },
           { q: "Ich kaufe meinem Sohn ein Velo.", hl: "meinem Sohn", a: ["Ich kaufe mir ein Velo."], r: ["refl.dat"] },
           { q: "Tom und Lea wollen uns ein Auto kaufen.", hl: "uns", a: ["Tom und Lea wollen sich ein Auto kaufen."], r: ["refl.dat"], cap: true },
@@ -146,7 +146,7 @@ cxPack({
           { q: "Zieht ihr den Kindern die Jacken an?", hl: "den Kindern", a: ["Zieht ihr euch die Jacken an?"], r: ["refl.body"] },
         ] },
         // ── Übung 23•7: accusative or dative — make it reflexive ──
-        { id: "d23.7", ex: "23.7", t: "transform", title: "Mich or mir?", how: "Replace the highlighted person with a reflexive pronoun — accusative or dative, as the sentence needs.", items: [
+        { id: "d23.7", ex: "23.7", t: "transform", title: "Mich or mir?", how: "Replace the highlighted person with a reflexive pronoun, accusative or dative.", items: [
           { q: "Er kann seinem Nachbarn nicht helfen.", hl: "seinem Nachbarn", a: ["Er kann sich nicht helfen."], r: ["refl.dat"] },
           { q: "Wir haben den neuen Kollegen vorgestellt.", hl: "den neuen Kollegen", a: ["Wir haben uns vorgestellt."], r: ["refl.vs"] },
           { q: "Sie erinnert ihren Mann an den Termin.", hl: "ihren Mann", a: ["Sie erinnert sich an den Termin."], r: ["refl.vs"] },
@@ -159,7 +159,7 @@ cxPack({
           { q: "Die Kinder holen uns ein Glace.", hl: "uns", a: ["Die Kinder holen sich ein Glace."], r: ["refl.dat"] },
         ] },
         // ── Übung 23•4: make the highlighted part reflexive — after a preposition too ──
-        { id: "d23.4", ex: "23.4", t: "transform", title: "For yourself", how: "Replace the highlighted part with a reflexive pronoun — after a verb or after a preposition.", items: [
+        { id: "d23.4", ex: "23.4", t: "transform", title: "For yourself", how: "Replace the highlighted part with a reflexive pronoun, after a verb or a preposition.", items: [
           { q: "Jonas kocht etwas für seine Eltern.", hl: "seine Eltern", a: ["Jonas kocht etwas für sich."], r: ["refl.prep"], cap: true },
           { q: "Du redest nur über deinen Hund.", hl: "deinen Hund", a: ["Du redest nur über dich."], r: ["refl.prep"] },
           { q: "Ich hole meinem Mann eine Decke.", hl: "meinem Mann", a: ["Ich hole mir eine Decke."], r: ["refl.dat"] },
@@ -174,7 +174,7 @@ cxPack({
           { q: "Kann ich das Kind hier umziehen?", hl: "das Kind", a: ["Kann ich mich hier umziehen?"], r: ["refl.verbs"] },
         ] },
         // ── Übung 23•8: the same sentence, a new subject ──
-        { id: "d23.8", ex: "23.8", t: "transform", title: "A new subject", how: "Say it for the person in brackets — the verb changes, and the pronoun becomes reflexive.", items: [
+        { id: "d23.8", ex: "23.8", t: "transform", title: "A new subject", how: "Say it for the person in brackets. The verb changes, and the pronoun becomes reflexive.", items: [
           { q: "(ich) Mia kauft das nur für ihn.", a: ["Ich kaufe das nur für mich."], r: ["refl.prep"], vf: [["kaufen", "pr", "ich"]] },
           { q: "(du) Mia kauft das nur für ihn.", a: ["Du kaufst das nur für dich."], r: ["refl.prep"], vf: [["kaufen", "pr", "du"]] },
           { q: "(wir) Mia kauft das nur für ihn.", a: ["Wir kaufen das nur für uns."], r: ["refl.prep"], vf: [["kaufen", "pr", "wir"]] },
@@ -203,7 +203,7 @@ cxPack({
           { q: "Hast du deinen Ausweis bei ___?", o: ["dir", "dich", "sich"], a: ["dir"], r: ["refl.prep"] },
         ] },
         // ── Production: build it, say it ──
-        { id: "dp.refl", t: "compose", end: true, title: "Build it yourself", how: "Make a sentence — sich becomes mich, dich, uns… as the subject needs.", d: ["sich", "mich"], items: [
+        { id: "dp.refl", t: "compose", end: true, title: "Build it yourself", how: "Make a sentence. Change sich to mich, dich, uns… to match the subject.", d: ["sich", "mich"], items: [
           { w: ["ich", "sich freuen", "auf", "das Wochenende"], a: ["Ich freue mich auf das Wochenende.", "Ich freue mich aufs Wochenende."], r: ["refl.verbs"] },
           { w: ["wir", "sich treffen", "um sieben", "vor dem Kino"], a: ["Wir treffen uns um sieben vor dem Kino."], r: ["refl.forms"] },
           { w: ["du", "sich beeilen", "müssen"], a: ["Du musst dich beeilen."], r: ["refl.forms"] },
@@ -217,7 +217,7 @@ cxPack({
           { k: "translate", q: "We're looking forward to the holidays.", a: ["Wir freuen uns auf die Ferien."], r: ["refl.verbs"] },
         ] },
         // ── Übung 23•9: the other way round — a noun for the reflexive ──
-        { id: "d23.9", ex: "23.9", t: "write", end: true, title: "For someone else", how: "Make it about someone else — a noun instead of the reflexive. Saved for Claude to correct.", items: [
+        { id: "d23.9", ex: "23.9", t: "write", end: true, title: "For someone else", how: "Make it about someone else, with a noun instead of the reflexive. Saved for Claude to correct.", items: [
           { q: "Ich kaufe mir einen warmen Pullover. — for whom else?", model: ["Ich kaufe meinem Vater einen warmen Pullover."], r: ["refl.dat"] },
           { q: "Braucht ihr das Geld für euch? — for whom else?", model: ["Braucht ihr das Geld für eure Kinder?"], r: ["refl.prep"] },
           { q: "Sie setzt sich auf die Bank. — whom does she put there?", model: ["Sie setzt ihren kleinen Sohn auf die Bank."], r: ["refl.vs"] },
@@ -229,7 +229,7 @@ cxPack({
           { q: "Er wäscht sich die Hände. — whose hands?", model: ["Er wäscht seinem Sohn die Hände."], r: ["refl.body"] },
           { q: "Ich stelle mich vor. — whom do you introduce?", model: ["Ich stelle meinen neuen Kollegen vor."], r: ["refl.vs"] },
         ] },
-        { id: "dw.refl", t: "write", end: true, title: "Write your own", how: "In your own words — saved for Claude to correct.", items: [
+        { id: "dw.refl", t: "write", end: true, title: "Write your own", how: "Write in your own words. It is saved for Claude to correct.", items: [
           { q: "Your morning routine (sich waschen, sich anziehen, sich die Zähne putzen…).", model: ["Ich stehe um sechs auf, dusche und ziehe mich an. Dann putze ich mir die Zähne."], r: ["refl.forms", "refl.body"] },
           { q: "What are you looking forward to? (sich freuen auf)", model: ["Ich freue mich auf die Ferien und auf den Besuch meiner Schwester."], r: ["refl.verbs"] },
           { q: "Introduce yourself to a new colleague.", model: ["Darf ich mich vorstellen? Ich heiße Ana und arbeite seit Montag hier."], r: ["refl.verbs"] },

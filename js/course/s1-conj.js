@@ -15,21 +15,21 @@ cxPack({
     // ── 1 · und, aber, oder, denn, sondern ──
     "s1.conj1": {
       rules: {
-        "co.zero": "und, aber, oder, denn, sondern: no place of their own",
-        "co.denn": "denn = because — the verb stays second",
-        "co.sondern": "sondern after nicht / kein · aber after anything",
-        "co.drop": "the same subject can be left out",
+        "co.zero": "und, aber, oder, denn, sondern don't change the order",
+        "co.denn": "denn means because, and the verb stays second",
+        "co.sondern": "sondern after nicht or kein, aber after anything",
+        "co.drop": "With the same subject, you can leave it out",
       },
       sheets: [
         { id: "cx.co1", title: "und, aber, oder, denn, sondern — nothing moves", qn: 3,
           struct: [["sentence 1,", "thing"], ["aber", "pre"], ["subject", "who"], ["verb", "verb"], ["…", "mid"]],
-          why: "Five little words join two whole sentences without touching their order: after them the second sentence starts just as it would on its own — the subject, then the verb.",
+          why: "Five short words join two whole sentences without changing their word order. After them, the second sentence starts as it would on its own: the subject, then the verb.",
           rid: ["co.zero", "co.denn", "co.sondern", "co.drop"],
           rules: [
-            "**und** (and) · **aber** (but) · **oder** (or) · **denn** (because) · **sondern** (but rather) take **no place** in the sentence: after them comes the subject, then the verb, as usual: Ich bin müde, **aber ich gehe** noch einkaufen. · Kommst du mit, **oder bleibst du** hier?",
-            "**denn** gives the reason, and the verb stays second: Ich nehme den Zug, **denn er ist** schneller. It answers **warum?** — and never starts the sentence.",
-            "**sondern** comes only after **nicht** or **kein** — *not this, but that*: Das ist **nicht** mein Velo, **sondern** das von Tom. · Ich trinke **keinen** Kaffee, **sondern** Tee. **aber** is *but* after anything: Die Wohnung ist klein, **aber** hell.",
-            "When both parts have the same subject, the second can drop it: Ich koche **und** räume auf. · Er arbeitet nicht, **sondern** schläft. A comma goes before **aber, denn, sondern** — before und and oder only if you like.",
+            "**und** (and), **aber** (but), **oder** (or), **denn** (because) and **sondern** (but rather) don't change the word order: the subject comes next, then the verb. Ich bin müde, **aber ich gehe** noch einkaufen.",
+            "**denn** gives the reason, and the verb stays second: Ich nehme den Zug, **denn er ist** schneller. It answers **warum?**, but it never starts the sentence.",
+            "**sondern** comes only after **nicht** or **kein**: *not this, but that*. Das ist **nicht** mein Velo, **sondern** das von Tom. After anything else, *but* is **aber**: Die Wohnung ist klein, **aber** hell.",
+            "If both parts have the same subject, the second part can leave it out: Ich koche **und** räume auf. Put a comma before **aber, denn, sondern**; before und and oder it is optional.",
           ],
           table: { head: ["", "then: subject, verb"], rows: [
             ["**und**", "…, und **er kommt**."],
@@ -44,28 +44,28 @@ cxPack({
             ["Nimmst du den Bus, **oder** fährst du mit dem Velo?", "Are you taking the bus or going by bike?"],
             ["Das ist kein Hotel, **sondern** eine Jugendherberge.", "That's not a hotel but a youth hostel."],
           ],
-          trap: "**denn** and **deshalb** look alike but work the other way round: Ich esse jetzt, **denn ich habe** Hunger (because — subject, then verb). · Ich habe Hunger, **deshalb esse ich** jetzt (so — the verb comes at once).",
+          trap: "**denn** and **deshalb** work in opposite ways. After **denn** (because) comes the subject: …, **denn ich habe** Hunger. After **deshalb** (so) comes the verb: …, **deshalb esse ich** jetzt.",
           quiz: [
-            { at: "r1", k: "pick", q: "Ich bin müde, aber ___ noch einkaufen.", o: ["ich gehe", "gehe ich"], a: 0, why: "aber takes no place: the subject, then the verb." },
-            { at: "r1", k: "pick", q: "Kommst du mit, oder ___ hier?", o: ["bleibst du", "du bleibst"], a: 0, why: "After oder the question goes on as a question: **bleibst du**." },
-            { at: "r1", k: "order", q: "Build it: The flat is small, but it is bright.", a: ["Die Wohnung ist klein,", "aber", "sie", "ist", "hell."], why: "aber, then the second sentence as usual." },
-            { at: "r2", k: "pick", q: "Ich nehme den Schirm, ___ es regnet.", o: ["denn", "sondern", "oder"], a: 0, why: "The reason: **denn**." },
+            { at: "r1", k: "pick", q: "Ich bin müde, aber ___ noch einkaufen.", o: ["ich gehe", "gehe ich"], a: 0, why: "aber doesn't change the order: the subject, then the verb." },
+            { at: "r1", k: "pick", q: "Kommst du mit, oder ___ hier?", o: ["bleibst du", "du bleibst"], a: 0, why: "After oder, the question stays a question: **bleibst du**." },
+            { at: "r1", k: "order", q: "Build it: The flat is small, but it is bright.", a: ["Die Wohnung ist klein,", "aber", "sie", "ist", "hell."], why: "After aber, the second sentence keeps its usual order." },
+            { at: "r2", k: "pick", q: "Ich nehme den Schirm, ___ es regnet.", o: ["denn", "sondern", "oder"], a: 0, why: "It gives the reason: **denn**." },
             { at: "r2", k: "pick", q: "Which is right?", o: ["Ich esse jetzt, denn ich habe Hunger.", "Ich esse jetzt, denn habe ich Hunger."], a: 0, why: "After denn: the subject, then the verb." },
-            { at: "r3", k: "pick", q: "Das ist nicht mein Handy, ___ das von Lea.", o: ["sondern", "aber", "denn"], a: 0, why: "After nicht — not this, but that: **sondern**." },
-            { at: "r3", k: "pick", q: "Die Jacke ist schön, ___ zu teuer.", o: ["aber", "sondern", "denn"], a: 0, why: "Nothing negated: **aber**." },
-            { at: "r4", k: "pick", q: "Er arbeitet nicht, sondern ___.", o: ["schläft", "schlafen", "er schlafen"], a: 0, why: "The same subject: it can drop out — **schläft**." },
-            { at: "r4", k: "pick", q: "Where does the comma go?", o: ["Es ist spät, aber ich bin noch wach.", "Es ist spät aber, ich bin noch wach."], a: 0, why: "Before **aber**." },
-            { at: "table", k: "pick", q: "Gehen wir ins Kino, ___ bleiben wir zu Hause?", o: ["oder", "aber", "denn"], a: 0, why: "Two choices: **oder**." },
-            { at: "trap", k: "pick", q: "I'm hungry, so I'm eating now:", o: ["Ich habe Hunger, deshalb esse ich jetzt.", "Ich habe Hunger, denn esse ich jetzt."], a: 0, why: "*so* is **deshalb** — and it pulls the verb forward." },
+            { at: "r3", k: "pick", q: "Das ist nicht mein Handy, ___ das von Lea.", o: ["sondern", "aber", "denn"], a: 0, why: "After nicht (not this, but that): **sondern**." },
+            { at: "r3", k: "pick", q: "Die Jacke ist schön, ___ zu teuer.", o: ["aber", "sondern", "denn"], a: 0, why: "Nothing is negated, so **aber**." },
+            { at: "r4", k: "pick", q: "Er arbeitet nicht, sondern ___.", o: ["schläft", "schlafen", "er schlafen"], a: 0, why: "The subject is the same, so it can be left out: **schläft**." },
+            { at: "r4", k: "pick", q: "Where does the comma go?", o: ["Es ist spät, aber ich bin noch wach.", "Es ist spät aber, ich bin noch wach."], a: 0, why: "The comma goes before **aber**." },
+            { at: "table", k: "pick", q: "Gehen wir ins Kino, ___ bleiben wir zu Hause?", o: ["oder", "aber", "denn"], a: 0, why: "A choice between two things: **oder**." },
+            { at: "trap", k: "pick", q: "I'm hungry, so I'm eating now:", o: ["Ich habe Hunger, deshalb esse ich jetzt.", "Ich habe Hunger, denn esse ich jetzt."], a: 0, why: "*so* is **deshalb**, and the verb comes right after it." },
           ] },
       ],
       diag: [
-        { t: "swap", from: "^aber$", to: "^sondern$", rule: "co.sondern", msg: "After **nicht** or **kein** — not this, but that: **sondern**." },
-        { t: "swap", from: "^sondern$", to: "^aber$", rule: "co.sondern", msg: "Nothing is replaced here: **aber**. (sondern only after nicht or kein — not this, but that.)" },
-        { t: "swap", from: "^(weil|deshalb)$", to: "^denn$", rule: "co.denn", msg: "With the verb second after it, the reason word is **denn**." },
-        { t: "swap", from: "^(und|aber|oder|sondern)$", to: "^denn$", rule: "co.denn", msg: "It's the reason: **denn**." },
-        { t: "swap", from: "^(denn|aber|sondern)$", to: "^(und|oder)$", rule: "co.zero", msg: "**{right}** fits here." },
-        { t: "seq", seq: ["^denn$", "^(bin|bist|ist|sind|seid|habe|hast|hat|haben|habt|gehe|geht|nehme|nimmt|komme|kommt|bleibe|bleibt|arbeite|arbeitet|wohne|wohnt|fahre|fahrt|muss|kann|will|schlafe|schlaft|brauche|braucht|mochte)$"], rule: "co.denn", msg: "«{typed}»: after denn the subject comes first, then the verb — denn takes no place of its own." },
+        { t: "swap", from: "^aber$", to: "^sondern$", rule: "co.sondern", msg: "After **nicht** or **kein** (not this, but that), use **sondern**." },
+        { t: "swap", from: "^sondern$", to: "^aber$", rule: "co.sondern", msg: "Nothing is negated here, so use **aber**. sondern only comes after nicht or kein." },
+        { t: "swap", from: "^(weil|deshalb)$", to: "^denn$", rule: "co.denn", msg: "With the verb second after it, the word for *because* is **denn**." },
+        { t: "swap", from: "^(und|aber|oder|sondern)$", to: "^denn$", rule: "co.denn", msg: "This part gives the reason, so use **denn**." },
+        { t: "swap", from: "^(denn|aber|sondern)$", to: "^(und|oder)$", rule: "co.zero", msg: "The word that fits here is **{right}**." },
+        { t: "seq", seq: ["^denn$", "^(bin|bist|ist|sind|seid|habe|hast|hat|haben|habt|gehe|geht|nehme|nimmt|komme|kommt|bleibe|bleibt|arbeite|arbeitet|wohne|wohnt|fahre|fahrt|muss|kann|will|schlafe|schlaft|brauche|braucht|mochte)$"], rule: "co.denn", msg: "«{typed}»: after denn, the subject comes first, then the verb. denn doesn't change the order." },
       ],
       drills: [
         // ── our own: which one fits? ──
@@ -80,10 +80,10 @@ cxPack({
           { q: "Ich habe kein Auto, ___ ein Velo.", o: ["sondern", "aber", "denn"], a: ["sondern"], r: ["co.sondern"] },
           { q: "Zahlen Sie bar ___ mit Karte?", o: ["oder", "und", "denn"], a: ["oder"], r: ["co.zero"] },
           { q: "Lisa spielt Gitarre, ___ ihr Bruder singt.", o: ["und", "sondern", "denn"], a: ["und"], r: ["co.zero"] },
-          { q: "Die Wohnung ist nicht groß, ___ sie ist hell.", o: ["aber", "sondern"], a: ["aber"], r: ["co.sondern"], note: "Not big — but still bright: aber. sondern would take *groß* back." },
+          { q: "Die Wohnung ist nicht groß, ___ sie ist hell.", o: ["aber", "sondern"], a: ["aber"], r: ["co.sondern"], note: "Not big, but still bright: aber. sondern would need a replacement for *groß*: nicht groß, sondern klein." },
         ] },
         // ── Übung 29•1: which of the two? ──
-        { id: "d29.1", ex: "29.1", t: "transform", title: "Which of the two?", how: "Join the two sentences with the word that fits — the second sentence keeps its order.", items: [
+        { id: "d29.1", ex: "29.1", t: "transform", title: "Which of the two?", how: "Join the two sentences with the word that fits. The second sentence keeps its order.", items: [
           { q: "(aber / denn) Wir gehen an den See. Es ist heute heiß.", a: ["Wir gehen an den See, denn es ist heute heiß."], r: ["co.denn"] },
           { q: "(oder / sondern) Ich habe den Schlüssel nicht verloren. Ich habe ihn im Auto vergessen.", a: ["Ich habe den Schlüssel nicht verloren, sondern ich habe ihn im Auto vergessen.", "Ich habe den Schlüssel nicht verloren, sondern ihn im Auto vergessen.", "Ich habe den Schlüssel nicht verloren, sondern im Auto vergessen."], r: ["co.sondern"] },
           { q: "(und / denn) Mia studiert in Basel. Sie wohnt in einer WG.", a: ["Mia studiert in Basel, und sie wohnt in einer WG.", "Mia studiert in Basel und wohnt in einer WG."], r: ["co.zero"], cap: true },
@@ -109,7 +109,7 @@ cxPack({
           { q: "(denn) Die Touristen fragen nach dem Weg. Sie haben keinen Stadtplan.", a: ["Die Touristen fragen nach dem Weg, denn sie haben keinen Stadtplan."], r: ["co.denn"] },
         ] },
         // ── Übung 29•3: build it from the words ──
-        { id: "d29.3", ex: "29.3", t: "compose", low: true, title: "Build it", how: "Make a sentence from the words — add what's missing, the verb in the right form.", items: [
+        { id: "d29.3", ex: "29.3", t: "compose", low: true, title: "Build it", how: "Make a sentence from the words. Add what's missing and put the verb in the right form.", items: [
           { w: ["kommen", "morgen", "und", "mitbringen", "ein Kuchen", "!"], a: ["Komm morgen und bring einen Kuchen mit!"], r: ["co.drop"], vf: [["kommen", "im", "du"], ["mitbringen", "im", "du"]] },
           { w: ["die Kinder", "müssen", "Hausaufgaben", "machen", "oder", "sie", "dürfen", "nicht", "fernsehen"], a: ["Die Kinder müssen Hausaufgaben machen, oder sie dürfen nicht fernsehen."], r: ["co.zero"] },
           { w: ["die Erdbeeren", "sein", "schön", "aber", "wie viel", "kosten", "das Kilo", "?"], a: ["Die Erdbeeren sind schön, aber wie viel kostet das Kilo?"], r: ["co.zero"] },
@@ -120,7 +120,7 @@ cxPack({
           { w: ["Lea", "arbeiten", "heute", "nicht", "sondern", "sie", "haben", "frei"], a: ["Lea arbeitet heute nicht, sondern sie hat frei.", "Lea arbeitet heute nicht, sondern hat frei."], r: ["co.sondern"], cap: true },
         ] },
         // ── Übung 13•5: warum? — answer with denn ──
-        { id: "d13.5", ex: "13.5", t: "answer", title: "Why? — because…", how: "Answer the question with the reason in brackets — join them with denn.", items: [
+        { id: "d13.5", ex: "13.5", t: "answer", title: "Why? Because…", how: "Answer the question with the reason in brackets, joined with denn.", items: [
           { q: "Warum ist Sara heute in Zürich? (Sie besucht ihre Tante.)", a: ["Sara ist heute in Zürich, denn sie besucht ihre Tante.", "Sie ist heute in Zürich, denn sie besucht ihre Tante."], r: ["co.denn"] },
           { q: "Warum ist Sara heute in Zürich? (Sie hat dort einen Termin.)", a: ["Sara ist heute in Zürich, denn sie hat dort einen Termin.", "Sie ist heute in Zürich, denn sie hat dort einen Termin."], r: ["co.denn"] },
           { q: "Warum ist Sara heute in Zürich? (Sie sucht eine Wohnung.)", a: ["Sara ist heute in Zürich, denn sie sucht eine Wohnung.", "Sie ist heute in Zürich, denn sie sucht eine Wohnung."], r: ["co.denn"] },
@@ -132,7 +132,7 @@ cxPack({
           { q: "Warum kaufst du ein Velo? (Ich will mehr Sport machen.)", a: ["Ich kaufe ein Velo, denn ich will mehr Sport machen."], r: ["co.denn"] },
         ] },
         // ── Übung 29•2: change the second part ──
-        { id: "d29.2", ex: "29.2", t: "type", title: "The second part", how: "Finish the sentence with the English in brackets — the second part keeps its own order.", items: [
+        { id: "d29.2", ex: "29.2", t: "type", title: "The second part", how: "Finish the sentence from the English in brackets. The second part keeps its own order.", items: [
           { q: "Ich gehe joggen, aber ___. (my wife stays in bed)", a: ["Ich gehe joggen, aber meine Frau bleibt im Bett."], r: ["co.zero"] },
           { q: "Er hat mich gewarnt, aber ___. (I didn't hear him)", a: ["Er hat mich gewarnt, aber ich habe ihn nicht gehört."], r: ["co.zero"] },
           { q: "Ich konnte nicht schlafen, denn ___. (the noise was too loud)", a: ["Ich konnte nicht schlafen, denn der Lärm war zu laut."], r: ["co.denn"] },
@@ -145,7 +145,7 @@ cxPack({
           { q: "Ich habe die Anleitung gelesen, aber ___. (I didn't understand anything)", a: ["Ich habe die Anleitung gelesen, aber ich habe nichts verstanden."], r: ["co.zero"] },
         ] },
         // ── Production: say it ──
-        { id: "dp.co", t: "translate", end: true, title: "Say it in German", how: "Translate — after und, aber, oder, denn, sondern the sentence goes on as usual.", items: [
+        { id: "dp.co", t: "translate", end: true, title: "Say it in German", how: "Translate. After und, aber, oder, denn and sondern, the word order doesn't change.", items: [
           { q: "I'm taking the train because it's faster. (denn)", a: ["Ich nehme den Zug, denn er ist schneller."], r: ["co.denn"] },
           { q: "The flat is small but bright.", a: ["Die Wohnung ist klein, aber hell.", "Die Wohnung ist klein, aber sie ist hell."], r: ["co.zero"] },
           { q: "Are you coming with us, or are you staying here? (du)", a: ["Kommst du mit, oder bleibst du hier?", "Kommst du mit uns, oder bleibst du hier?"], r: ["co.zero"] },
@@ -158,7 +158,7 @@ cxPack({
           { q: "He isn't working today — he's sleeping instead. (sondern)", a: ["Er arbeitet heute nicht, sondern schläft.", "Er arbeitet heute nicht, sondern er schläft.", "Heute arbeitet er nicht, sondern schläft.", "Heute arbeitet er nicht, sondern er schläft."], r: ["co.sondern", "co.drop"] },
         ] },
         // ── Übung 29•4 and 23•12: your own sentences ──
-        { id: "d29.4", ex: "29.4", also: ["23.12"], t: "write", end: true, title: "Write your own", how: "Finish the sentence, or write your own — saved for Claude to correct.", items: [
+        { id: "d29.4", ex: "29.4", also: ["23.12"], t: "write", end: true, title: "Write your own", how: "Finish the sentence or write your own. It is saved for Claude to correct.", items: [
           { q: "Write a sentence with **aber**.", model: ["Ich wohne gern in Zürich, aber die Wohnungen sind sehr teuer."], r: ["co.zero"] },
           { q: "Write a sentence with **denn**.", model: ["Ich gehe heute früh ins Bett, denn morgen muss ich um fünf aufstehen."], r: ["co.denn"] },
           { q: "Write a sentence with **oder**.", model: ["Wollen wir am Samstag wandern, oder hast du keine Zeit?"], r: ["co.zero"] },
@@ -177,23 +177,23 @@ cxPack({
     "s1.conj2": {
       testout: { n: 7, miss: 1 },
       rules: {
-        "sub.end": "after weil and dass the verb goes to the end",
-        "sub.two": "two verbs: the conjugated one last · ab-fährt joins up",
-        "sub.weil": "denn + verb second · weil + verb last",
+        "sub.end": "After weil and dass, the verb goes to the end",
+        "sub.two": "Two verbs: the conjugated one last; abfahren joins up",
+        "sub.weil": "denn keeps the verb second, weil sends it last",
         "sub.dass": "dass after saying, knowing, hoping",
-        "sub.wenn": "wenn = if / whenever — the verb last",
-        "sub.first": "side sentence first → verb, comma, verb",
-        "sub.mid": "the rest keeps its place — nicht right before the verb",
+        "sub.wenn": "wenn (if, whenever) sends the verb last",
+        "sub.first": "Side sentence first: then verb, comma, verb",
+        "sub.mid": "Everything else stays; nicht goes before the verb",
       },
       sheets: [
         { id: "cx.sub1", title: "weil and dass: the verb goes last", qn: 3,
           struct: [["main sentence,", "thing"], ["weil · dass", "pre"], ["subject", "who"], ["…", "mid"], ["verb", "verb"]],
-          why: "**weil** (because) and **dass** (that) open a *side* sentence — one that can't stand on its own. In it the conjugated verb leaves the second place and goes to the **very end**.",
+          why: "**weil** (because) and **dass** (that) start a *side sentence*, one that can't stand on its own. In it, the conjugated verb leaves second place and goes to the **very end**.",
           rid: ["sub.end", "sub.two", "sub.weil", "sub.dass"],
           rules: [
-            "After **weil** and **dass** the subject comes straight after them, and the conjugated verb goes to the **end**: Ich bleibe zu Hause, **weil** ich krank **bin**. · Ich glaube, **dass** der Bus schon weg **ist**. A comma always stands before them.",
-            "With two verbs the conjugated one is last of all: …, weil ich heute arbeiten **muss** · …, dass er schon gegangen **ist**. A separable verb joins up again: Der Zug fährt um acht ab → …, weil der Zug um acht **abfährt**.",
-            "**weil** or **denn**? Both say *because*: after **denn** the verb stays second, after **weil** it goes last: …, **denn** ich **bin** müde · …, **weil** ich müde **bin**. A short answer to *warum?* can start with weil: Warum kommst du nicht? — **Weil** ich keine Zeit **habe**.",
+            "After **weil** and **dass**, the subject comes next and the conjugated verb goes to the **end**: Ich bleibe zu Hause, **weil** ich krank **bin**. · Ich glaube, **dass** der Bus schon weg **ist**. A comma always comes before them.",
+            "With two verbs, the conjugated one comes last of all: …, weil ich heute arbeiten **muss** · …, dass er schon gegangen **ist**. A separable verb joins up: …, weil der Zug um acht **abfährt**.",
+            "**denn** and **weil** both mean *because*, but after **denn** the verb stays second and after **weil** it goes last: …, **denn** ich **bin** müde · …, **weil** ich müde **bin**. A short answer to *warum?* can start with weil.",
             "**dass** follows verbs of saying, knowing, thinking and feeling: Ich weiß, **dass** … · Sie sagt, **dass** … · Ich hoffe, **dass** … · Es ist schön, **dass** du da bist.",
           ],
           table: { head: ["", "the verb last"], rows: [
@@ -204,32 +204,32 @@ cxPack({
           ] },
           ex: [
             ["Ich lerne Deutsch, **weil** ich hier arbeiten **möchte**.", "I'm learning German because I'd like to work here."],
-            ["Der Arzt sagt, **dass** ich mehr schlafen **soll**.", "The doctor says that I should sleep more."],
+            ["Der Arzt sagt, **dass** ich mehr schlafen **soll**.", "The doctor says I should sleep more."],
             ["Wir nehmen das Tram, **weil** es **regnet**.", "We're taking the tram because it's raining."],
-            ["Ich hoffe, **dass** du am Samstag **kommst**.", "I hope that you're coming on Saturday."],
+            ["Ich hoffe, **dass** du am Samstag **kommst**.", "I hope you're coming on Saturday."],
           ],
-          trap: "In speech you'll hear *weil ich bin müde* — but write and say **weil ich müde bin**: after weil, the verb goes last. And **dass** (that — it joins) is not **das** (the, this).",
+          trap: "In speech you will hear *weil ich bin müde*, but write and say **weil ich müde bin**. And **dass** (that, joining two sentences) is not **das** (the, this).",
           quiz: [
-            { at: "r1", k: "pick", q: "Ich bleibe zu Hause, weil ___.", o: ["ich krank bin", "ich bin krank", "bin ich krank"], a: 0, why: "After weil the verb goes to the end." },
-            { at: "r1", k: "pick", q: "Ich glaube, dass ___.", o: ["der Bus schon weg ist", "der Bus ist schon weg"], a: 0, why: "After dass the verb goes to the end." },
-            { at: "r1", k: "order", q: "Build it: I know that you're tired.", a: ["Ich weiß,", "dass", "du", "müde", "bist."], why: "dass, the subject — the verb last." },
-            { at: "r2", k: "pick", q: "…, weil ich heute lange ___.", o: ["arbeiten muss", "muss arbeiten"], a: 0, why: "Two verbs: the conjugated one last of all." },
-            { at: "r2", k: "pick", q: "…, dass der Zug schon ___.", o: ["abgefahren ist", "ist abgefahren"], a: 0, why: "The auxiliary goes last: **abgefahren ist**." },
-            { at: "r2", k: "type", cx: true, q: "Der Film fängt um acht an. → Ich weiß, dass der Film um acht ___.", a: ["anfängt"], r: ["sub.two"], why: "At the end a separable verb joins up: **anfängt**." },
-            { at: "r3", k: "pick", q: "Ich esse jetzt, ___ ich habe Hunger.", o: ["denn", "weil"], a: 0, why: "The verb is second: **denn**." },
-            { at: "r3", k: "pick", q: "Ich esse jetzt, ___ ich Hunger habe.", o: ["weil", "denn"], a: 0, why: "The verb is last: **weil**." },
-            { at: "r4", k: "pick", q: "Ich hoffe, ___ das Wetter morgen schön ist.", o: ["dass", "das", "weil"], a: 0, why: "After hoffen: **dass**." },
-            { at: "table", k: "pick", q: "Sie bleibt hier, weil sie ___.", o: ["arbeiten muss", "muss arbeiten", "arbeitet muss"], a: 0, why: "The infinitive, then the modal: **arbeiten muss**." },
-            { at: "trap", k: "pick", q: "Which is right?", o: ["Ich komme nicht, weil ich müde bin.", "Ich komme nicht, weil ich bin müde."], a: 0, why: "After weil the verb goes last." },
+            { at: "r1", k: "pick", q: "Ich bleibe zu Hause, weil ___.", o: ["ich krank bin", "ich bin krank", "bin ich krank"], a: 0, why: "After weil, the verb goes to the end." },
+            { at: "r1", k: "pick", q: "Ich glaube, dass ___.", o: ["der Bus schon weg ist", "der Bus ist schon weg"], a: 0, why: "After dass, the verb goes to the end." },
+            { at: "r1", k: "order", q: "Build it: I know that you're tired.", a: ["Ich weiß,", "dass", "du", "müde", "bist."], why: "dass, then the subject, and the verb last." },
+            { at: "r2", k: "pick", q: "…, weil ich heute lange ___.", o: ["arbeiten muss", "muss arbeiten"], a: 0, why: "With two verbs, the conjugated one goes last of all." },
+            { at: "r2", k: "pick", q: "…, dass der Zug schon ___.", o: ["abgefahren ist", "ist abgefahren"], a: 0, why: "The helping verb ist goes last: **abgefahren ist**." },
+            { at: "r2", k: "type", cx: true, q: "Der Film fängt um acht an. → Ich weiß, dass der Film um acht ___.", a: ["anfängt"], r: ["sub.two"], why: "At the end, a separable verb joins up: **anfängt**." },
+            { at: "r3", k: "pick", q: "Ich esse jetzt, ___ ich habe Hunger.", o: ["denn", "weil"], a: 0, why: "The verb is second, so **denn**." },
+            { at: "r3", k: "pick", q: "Ich esse jetzt, ___ ich Hunger habe.", o: ["weil", "denn"], a: 0, why: "The verb is last, so **weil**." },
+            { at: "r4", k: "pick", q: "Ich hoffe, ___ das Wetter morgen schön ist.", o: ["dass", "das", "weil"], a: 0, why: "After hoffen comes **dass**." },
+            { at: "table", k: "pick", q: "Sie bleibt hier, weil sie ___.", o: ["arbeiten muss", "muss arbeiten", "arbeitet muss"], a: 0, why: "The infinitive first, then the modal: **arbeiten muss**." },
+            { at: "trap", k: "pick", q: "Which is right?", o: ["Ich komme nicht, weil ich müde bin.", "Ich komme nicht, weil ich bin müde."], a: 0, why: "After weil, the verb goes last." },
           ] },
         { id: "cx.sub2", title: "wenn — and the side sentence first", qn: 3,
           struct: [["Wenn … verb,", "pre"], ["verb", "verb"], ["subject", "who"], ["…", "mid"]],
-          why: "**wenn** (if, whenever) works like weil: the verb goes last. And any of these side sentences can come **first** — then it fills the first place, and the main sentence starts with its verb: verb, comma, verb.",
+          why: "**wenn** (if, whenever) works like weil: the verb goes last. A side sentence can also come **first**. Then it fills the first place, and the main sentence starts with its verb.",
           rid: ["sub.wenn", "sub.first", "sub.mid"],
           rules: [
-            "**wenn** = *if* or *whenever*, the verb last: Ruf mich an, **wenn** du Zeit **hast**. · Ich trinke Tee, **wenn** ich krank **bin**.",
-            "The side sentence can come **first**. Then it counts as the first place, and the main sentence starts with its **verb**: **Wenn** ich Zeit habe, **komme** ich mit. · **Weil** es regnet, **bleiben** wir zu Hause. — verb, comma, verb.",
-            "Everything else keeps its place — **nicht** too, which now stands right before the verb: Er kommt heute **nicht**. → Ich glaube, dass er heute **nicht kommt**.",
+            "**wenn** means *if* or *whenever*, and the verb goes last: Ruf mich an, **wenn** du Zeit **hast**. · Ich trinke Tee, **wenn** ich krank **bin**.",
+            "If the side sentence comes **first**, it fills the first place, so the main sentence starts with its **verb**: **Wenn** ich Zeit habe, **komme** ich mit. · **Weil** es regnet, **bleiben** wir zu Hause.",
+            "Everything else keeps its place, so **nicht** ends up right before the verb: Er kommt heute **nicht**. → Ich glaube, dass er heute **nicht kommt**.",
           ],
           table: { head: ["the side sentence,", "then the verb"], rows: [
             ["Wenn ich Zeit **habe**,", "**komme** ich mit."],
@@ -242,26 +242,26 @@ cxPack({
             ["**Weil** der Zug Verspätung **hatte**, **bin** ich zu spät gekommen.", "Because the train was late, I arrived late."],
             ["Ich glaube, dass sie heute **nicht kommt**.", "I don't think she's coming today."],
           ],
-          trap: "After the side sentence the subject can't come first: ~~Wenn ich Zeit habe, ich komme mit~~ → Wenn ich Zeit habe, **komme ich** mit.",
+          trap: "After a side sentence, the subject can't come first: not ~~Wenn ich Zeit habe, ich komme mit~~ but Wenn ich Zeit habe, **komme ich** mit.",
           quiz: [
-            { at: "r1", k: "pick", q: "Ruf mich an, wenn ___.", o: ["du Zeit hast", "du hast Zeit", "hast du Zeit"], a: 0, why: "After wenn the verb goes last." },
-            { at: "r1", k: "pick", q: "___ es regnet, nehme ich das Tram.", o: ["Wenn", "Denn", "Dass"], a: 0, why: "If, whenever: **wenn**." },
-            { at: "r2", k: "pick", q: "Wenn ich Zeit habe, ___ mit.", o: ["komme ich", "ich komme"], a: 0, why: "The side sentence is first: then the verb." },
-            { at: "r2", k: "order", q: "Build it: If it's nice, we'll go to the lake.", a: ["Wenn es schön ist,", "gehen", "wir", "an den See."], why: "Verb, comma, verb." },
+            { at: "r1", k: "pick", q: "Ruf mich an, wenn ___.", o: ["du Zeit hast", "du hast Zeit", "hast du Zeit"], a: 0, why: "After wenn, the verb goes last." },
+            { at: "r1", k: "pick", q: "___ es regnet, nehme ich das Tram.", o: ["Wenn", "Denn", "Dass"], a: 0, why: "*If* or *whenever* is **wenn**." },
+            { at: "r2", k: "pick", q: "Wenn ich Zeit habe, ___ mit.", o: ["komme ich", "ich komme"], a: 0, why: "The side sentence comes first, so the verb comes next." },
+            { at: "r2", k: "order", q: "Build it: If it's nice, we'll go to the lake.", a: ["Wenn es schön ist,", "gehen", "wir", "an den See."], why: "The side sentence takes first place: verb, comma, verb." },
             { at: "r2", k: "pick", q: "Weil es kalt ist, ___ eine Jacke.", o: ["nehme ich", "ich nehme"], a: 0, why: "Verb, comma, verb: **nehme ich**." },
-            { at: "r3", k: "pick", q: "Er kommt heute nicht. → Ich glaube, dass er heute ___.", o: ["nicht kommt", "kommt nicht"], a: 0, why: "nicht stays put, the verb goes after it to the end." },
-            { at: "table", k: "pick", q: "Wenn du willst, ___ morgen telefonieren.", o: ["können wir", "wir können"], a: 0, why: "The side sentence is first: the verb, then the subject." },
-            { at: "trap", k: "pick", q: "Which is right?", o: ["Wenn ich Zeit habe, komme ich mit.", "Wenn ich Zeit habe, ich komme mit."], a: 0, why: "Verb, comma, verb." },
+            { at: "r3", k: "pick", q: "Er kommt heute nicht. → Ich glaube, dass er heute ___.", o: ["nicht kommt", "kommt nicht"], a: 0, why: "nicht stays where it was; the verb goes after it, at the end." },
+            { at: "table", k: "pick", q: "Wenn du willst, ___ morgen telefonieren.", o: ["können wir", "wir können"], a: 0, why: "The side sentence comes first, so the verb, then the subject." },
+            { at: "trap", k: "pick", q: "Which is right?", o: ["Wenn ich Zeit habe, komme ich mit.", "Wenn ich Zeit habe, ich komme mit."], a: 0, why: "After the side sentence comes the verb: **komme ich**." },
           ] },
       ],
       diag: [
-        { t: "swap", from: "^denn$", to: "^weil$", rule: "sub.weil", msg: "With the verb at the end it's **weil** — denn keeps the verb second." },
-        { t: "swap", from: "^weil$", to: "^denn$", rule: "sub.weil", msg: "With the verb second it's **denn** — weil sends the verb to the end." },
-        { t: "swap", from: "^das$", to: "^dass$", rule: "sub.dass", msg: "The joining word is **dass** (with ss) — das is *the* or *this*." },
-        { t: "swap", from: "^(dass|weil|denn)$", to: "^wenn$", rule: "sub.wenn", msg: "If, whenever: **wenn**." },
-        { t: "pos", tok: "^nicht$", rule: "sub.mid", msg: "nicht keeps its place, right before the verb at the end — it goes {where}." },
-        { t: "pos", tok: "^(bin|bist|ist|sind|seid|habe|hast|hat|haben|habt|muss|musst|mussen|musst|kann|kannst|konnen|will|willst|wollen|soll|sollst|sollen|darf|darfst|durfen|mochte|mochtest|mochten|war|hatte)$", rule: "sub.end", msg: "After weil, dass, wenn the conjugated verb goes to the end — it goes {where}." },
-        { t: "pos", tok: "^(ich|du|er|sie|es|wir|ihr|man)$", rule: "sub.first", msg: "After the side sentence comes the verb, then the subject — it goes {where}." },
+        { t: "swap", from: "^denn$", to: "^weil$", rule: "sub.weil", msg: "With the verb at the end, the word is **weil**. denn keeps the verb second." },
+        { t: "swap", from: "^weil$", to: "^denn$", rule: "sub.weil", msg: "With the verb second, the word is **denn**. weil sends the verb to the end." },
+        { t: "swap", from: "^das$", to: "^dass$", rule: "sub.dass", msg: "The joining word is **dass**, with ss. das means *the* or *this*." },
+        { t: "swap", from: "^(dass|weil|denn)$", to: "^wenn$", rule: "sub.wenn", msg: "*If* or *whenever* is **wenn**." },
+        { t: "pos", tok: "^nicht$", rule: "sub.mid", msg: "nicht stays right before the verb at the end: it goes {where}." },
+        { t: "pos", tok: "^(bin|bist|ist|sind|seid|habe|hast|hat|haben|habt|muss|musst|mussen|musst|kann|kannst|konnen|will|willst|wollen|soll|sollst|sollen|darf|darfst|durfen|mochte|mochtest|mochten|war|hatte)$", rule: "sub.end", msg: "After weil, dass and wenn, the conjugated verb goes to the end: it goes {where}." },
+        { t: "pos", tok: "^(ich|du|er|sie|es|wir|ihr|man)$", rule: "sub.first", msg: "After the side sentence comes the verb, then the subject: it goes {where}." },
       ],
       drills: [
         // ── our own: where does the verb go? ──
@@ -279,7 +279,7 @@ cxPack({
           { q: "Es ist schön, ___ du da bist.", o: ["dass", "das", "weil"], a: ["dass"], r: ["sub.dass"] },
         ] },
         // ── Übung 14•9: after dass, after weil ──
-        { id: "d14.9", ex: "14.9", t: "transform", title: "dass … · weil …", how: "Put the sentence in brackets after dass or weil — its verb goes to the end.", items: [
+        { id: "d14.9", ex: "14.9", t: "transform", title: "dass … · weil …", how: "Put the sentence in brackets after dass or weil. Its verb goes to the end.", items: [
           { q: "Ich weiß, dass ___ (Du hast ein neues Velo.)", a: ["Ich weiß, dass du ein neues Velo hast."], r: ["sub.end"] },
           { q: "Ich weiß, dass ___ (Meine Nachbarn wohnen seit Jahren hier.)", a: ["Ich weiß, dass meine Nachbarn seit Jahren hier wohnen."], r: ["sub.end"] },
           { q: "Ich weiß, dass ___ (Frau Huber arbeitet bei der Post.)", a: ["Ich weiß, dass Frau Huber bei der Post arbeitet."], r: ["sub.end"] },
@@ -292,7 +292,7 @@ cxPack({
           { q: "Mein Onkel wohnt in Lugano, weil ___ (Er kann dort Italienisch sprechen.)", a: ["Mein Onkel wohnt in Lugano, weil er dort Italienisch sprechen kann."], r: ["sub.two"] },
         ] },
         // ── our own: denn → weil ──
-        { id: "dsub.w", t: "transform", title: "denn → weil", how: "Say it with weil instead of denn — the verb goes to the end.", items: [
+        { id: "dsub.w", t: "transform", title: "denn → weil", how: "Say it with weil instead of denn. The verb goes to the end.", items: [
           { q: "Ich nehme den Schirm mit, denn es regnet.", hl: "denn", a: ["Ich nehme den Schirm mit, weil es regnet."], r: ["sub.weil"] },
           { q: "Wir bleiben zu Hause, denn das Wetter ist schlecht.", hl: "denn", a: ["Wir bleiben zu Hause, weil das Wetter schlecht ist."], r: ["sub.weil"] },
           { q: "Lea lernt viel, denn sie hat bald eine Prüfung.", hl: "denn", a: ["Lea lernt viel, weil sie bald eine Prüfung hat."], r: ["sub.weil"], cap: true },
@@ -305,7 +305,7 @@ cxPack({
           { q: "Sie bleibt im Bett, denn sie hat Fieber.", hl: "denn", a: ["Sie bleibt im Bett, weil sie Fieber hat."], r: ["sub.weil"] },
         ] },
         // ── our own: two verbs at the end ──
-        { id: "dsub.two", t: "transform", title: "Two verbs at the end", how: "Put the sentence in brackets in — the conjugated verb goes last, after the other one.", items: [
+        { id: "dsub.two", t: "transform", title: "Two verbs at the end", how: "Add the sentence in brackets. The conjugated verb goes last, after the other verb.", items: [
           { q: "Ich komme heute nicht, weil ___ (Ich muss arbeiten.)", a: ["Ich komme heute nicht, weil ich arbeiten muss."], r: ["sub.two"] },
           { q: "Er sagt, dass ___ (Er kann morgen nicht kommen.)", a: ["Er sagt, dass er morgen nicht kommen kann."], r: ["sub.two", "sub.mid"] },
           { q: "Ich glaube, dass ___ (Der Zug ist schon abgefahren.)", a: ["Ich glaube, dass der Zug schon abgefahren ist."], r: ["sub.two"] },
@@ -318,7 +318,7 @@ cxPack({
           { q: "Ich bin traurig, weil ___ (Meine Freundin zieht nach Genf um.)", a: ["Ich bin traurig, weil meine Freundin nach Genf umzieht."], r: ["sub.two"] },
         ] },
         // ── our own: wenn — the verb last ──
-        { id: "dsub.wenn", t: "type", title: "wenn — the verb last", how: "Write the verb in brackets — after wenn it goes to the end.", items: [
+        { id: "dsub.wenn", t: "type", title: "wenn: the verb last", how: "Write the verb in brackets. After wenn, it goes to the end.", items: [
           { q: "Ruf mich an, wenn du Zeit ___. (haben)", a: ["hast"], r: ["sub.wenn"], vf: [["haben", "pr", "du"]] },
           { q: "Wenn es morgen ___, bleiben wir zu Hause. (regnen)", a: ["regnet"], r: ["sub.wenn"], vf: [["regnen", "pr", "er"]] },
           { q: "Ich trinke immer Tee, wenn ich krank ___. (sein)", a: ["bin"], r: ["sub.wenn"], vf: [["sein", "pr", "ich"]] },
@@ -331,7 +331,7 @@ cxPack({
           { q: "Wenn der Kurs um sieben ___, bin ich pünktlich. (anfangen)", a: ["anfängt"], r: ["sub.wenn", "sub.two"] },
         ] },
         // ── our own: the side sentence first ──
-        { id: "dsub.f", t: "transform", fixed: true, title: "Start with it", how: "Start with the side sentence — then the verb comes straight after the comma.", items: [
+        { id: "dsub.f", t: "transform", fixed: true, title: "Start with it", how: "Start with the side sentence. Then the verb comes straight after the comma.", items: [
           { q: "Ich komme mit, wenn ich Zeit habe.", a: ["Wenn ich Zeit habe, komme ich mit."], r: ["sub.first"] },
           { q: "Wir grillen, wenn das Wetter schön ist.", a: ["Wenn das Wetter schön ist, grillen wir."], r: ["sub.first"] },
           { q: "Ich nehme das Tram, weil es regnet.", a: ["Weil es regnet, nehme ich das Tram."], r: ["sub.first"] },
@@ -344,7 +344,7 @@ cxPack({
           { q: "Du kannst bei uns schlafen, wenn du willst.", a: ["Wenn du willst, kannst du bei uns schlafen."], r: ["sub.first"] },
         ] },
         // ── Übung 14•10: which one fits? ──
-        { id: "d14.10", ex: "14.10", t: "pick", title: "Which one fits?", how: "Pick what completes the sentence — the joining word or the order that fits.", items: [
+        { id: "d14.10", ex: "14.10", t: "pick", title: "Which one fits?", how: "Pick what completes the sentence: the right joining word or the right order.", items: [
           { q: "Er geht nicht zur Arbeit, ___ er hat Fieber.", o: ["denn", "weil", "dass"], a: ["denn"], r: ["sub.weil"] },
           { q: "Er geht nicht zur Arbeit, ___ er Fieber hat.", o: ["weil", "denn", "dass"], a: ["weil"], r: ["sub.weil"] },
           { q: "Alle wissen, ___ Herr Graf gern Ski fährt.", o: ["dass", "denn", "oder"], a: ["dass"], r: ["sub.dass"] },
@@ -358,7 +358,7 @@ cxPack({
           { q: "Sie sagt, dass sie heute nicht ___.", o: ["kommen kann", "kann kommen"], a: ["kommen kann"], r: ["sub.two"] },
         ] },
         // ── Production: build it, say it ──
-        { id: "dp.sub", t: "compose", end: true, title: "Build it yourself", how: "Make a sentence — after weil, dass, wenn the verb goes last.", items: [
+        { id: "dp.sub", t: "compose", end: true, title: "Build it yourself", how: "Make a sentence. After weil, dass and wenn, the verb goes last.", items: [
           { w: ["ich", "gehen", "heute", "nicht", "joggen", "weil", "es", "regnen"], a: ["Ich gehe heute nicht joggen, weil es regnet."], r: ["sub.end"] },
           { w: ["ich", "wissen", "dass", "du", "viel", "Arbeit", "haben"], a: ["Ich weiß, dass du viel Arbeit hast."], r: ["sub.dass"] },
           { w: ["er", "sagen", "dass", "der Zug", "Verspätung", "haben"], a: ["Er sagt, dass der Zug Verspätung hat."], r: ["sub.dass"] },
@@ -371,7 +371,7 @@ cxPack({
           { k: "translate", q: "Call me when you're at home. (du)", a: ["Ruf mich an, wenn du zu Hause bist."], r: ["sub.wenn"] },
           { k: "translate", q: "Because the lift is broken, we're taking the stairs.", a: ["Weil der Lift kaputt ist, nehmen wir die Treppe.", "Weil der Aufzug kaputt ist, nehmen wir die Treppe."], r: ["sub.first"] },
         ] },
-        { id: "dw.sub", t: "write", end: true, title: "Write your own", how: "In your own words — saved for Claude to correct.", items: [
+        { id: "dw.sub", t: "write", end: true, title: "Write your own", how: "Write in your own words. It is saved for Claude to correct.", items: [
           { q: "Why do you live where you live? Give three reasons with weil.", model: ["Ich wohne in Winterthur, weil die Mieten nicht so hoch sind, weil ich in Zürich arbeite und weil es hier viele Parks gibt."], r: ["sub.end"] },
           { q: "What do you know about your neighbours? (Ich weiß, dass …)", model: ["Ich weiß, dass meine Nachbarin Lehrerin ist und dass sie zwei Katzen hat."], r: ["sub.dass"] },
           { q: "What do you do when it rains at the weekend? (Wenn …)", model: ["Wenn es am Wochenende regnet, gehe ich ins Museum oder lese zu Hause."], r: ["sub.wenn", "sub.first"] },

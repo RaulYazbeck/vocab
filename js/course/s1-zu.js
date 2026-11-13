@@ -17,25 +17,25 @@ cxPack({
     "s1.zu": {
       testout: { n: 8, miss: 1 },
       rules: {
-        "zu.end": "zu + the infinitive close the sentence — the rest comes before",
+        "zu.end": "zu + the infinitive go last; the rest comes before",
         "zu.sep": "a separable verb takes zu inside, one word: anzurufen",
-        "zu.verbs": "zu after versuchen, vergessen, anfangen, Lust haben, Es ist wichtig …",
+        "zu.verbs": "zu after versuchen, Lust haben, Es ist wichtig …",
         "zu.modal": "never zu after a modal or werden: Ich muss arbeiten.",
-        "zu.um": "um … zu = in order to",
-        "zu.ohne": "ohne … zu = without …ing",
-        "zu.statt": "(an)statt … zu = instead of …ing",
-        "zu.front": "the zu-part first: a comma, then the verb — Um … zu …, fahre ich",
+        "zu.um": "um … zu means in order to",
+        "zu.ohne": "ohne … zu means without …ing",
+        "zu.statt": "(an)statt … zu means instead of …ing",
+        "zu.front": "zu-part first: after the comma, the verb comes next",
       },
       sheets: [
         { id: "cx.zu1", title: "zu + the infinitive — at the end", qn: 3,
           struct: [["Es ist wichtig,", "pre"], ["…", "mid"], ["zu", "aux"], ["infinitive", "inf"]],
-          why: "English *to* + a verb is **zu** + the infinitive — at the very **end**: Es ist wichtig, Deutsch **zu lernen**. Many verbs and phrases bring it; a modal never does.",
+          why: "English *to* + a verb is often **zu** + the infinitive, at the very **end**: Es ist wichtig, Deutsch **zu lernen**. Many verbs and phrases bring zu; a modal never does.",
           rid: ["zu.end", "zu.sep", "zu.verbs", "zu.modal"],
           rules: [
-            "**zu** + the infinitive **close** the sentence; whatever belongs to the verb comes before: Es ist wichtig, jeden Tag ein bisschen Deutsch **zu lernen**. (A comma before the zu-part is usual.)",
-            "A **separable** verb takes zu **inside**, written as one word: an**zu**rufen · auf**zu**stehen · mit**zu**kommen · ein**zu**kaufen. An inseparable one doesn't: **zu** besuchen · **zu** verstehen · **zu** vergessen.",
-            "What brings zu: **versuchen, vergessen, anfangen, aufhören, hoffen, vorhaben, versprechen** · **Lust / Zeit / Angst haben** · **Es ist wichtig / schwierig / schön / verboten, …**: Ich habe keine Zeit, ein**zu**kaufen.",
-            "**Never zu after a modal** (or werden, or möchte): Ich **muss** heute **arbeiten** · Ich **werde** dich **anrufen** — but: Ich **versuche**, heute **zu arbeiten**.",
+            "**zu** + the infinitive go at the very **end**; everything else in that part comes before: Es ist wichtig, jeden Tag Deutsch **zu lernen**. A comma usually comes before the zu-part.",
+            "A **separable** verb takes zu **inside**, all in one word: an**zu**rufen · auf**zu**stehen · ein**zu**kaufen. An inseparable verb takes zu in front: **zu** besuchen · **zu** verstehen.",
+            "Many verbs and phrases bring zu: **versuchen, vergessen, anfangen, aufhören, hoffen, vorhaben, versprechen**, **Lust / Zeit / Angst haben**, **Es ist wichtig / schwierig / verboten, …**: Ich habe keine Zeit, ein**zu**kaufen.",
+            "**Never use zu after a modal**, werden or möchte: Ich **muss** heute **arbeiten**. · Ich **werde** dich **anrufen**. But: Ich **versuche**, heute **zu arbeiten**.",
           ],
           table: { head: ["", "… zu + infinitive"], rows: [
             ["lernen", "Deutsch **zu lernen**"],
@@ -49,29 +49,29 @@ cxPack({
             ["Hast du Lust, am Sonntag **mitzukommen**?", "Do you feel like coming along on Sunday?"],
             ["Wir versuchen, zu Hause nur Deutsch **zu sprechen**.", "We try to speak only German at home."],
           ],
-          trap: "zu goes **inside** a separable verb: an**zu**rufen — never ~~zu anrufen~~. And after a modal there's no zu at all: Ich kann **kommen** — never ~~Ich kann zu kommen~~.",
+          trap: "zu goes **inside** a separable verb: an**zu**rufen, never ~~zu anrufen~~. And after a modal there's no zu at all: Ich kann **kommen**, never ~~Ich kann zu kommen~~.",
           quiz: [
-            { at: "r1", k: "pick", q: "Es ist wichtig, ___.", o: ["Deutsch zu lernen", "zu lernen Deutsch", "zu Deutsch lernen"], a: 0, why: "zu + the infinitive at the very end." },
-            { at: "r1", k: "order", q: "Build it: It's difficult to understand the dialect.", a: ["Es ist schwierig,", "den Dialekt", "zu", "verstehen."], why: "The rest first, zu + the infinitive last." },
-            { at: "r2", k: "pick", q: "Vergiss nicht, mich ___!", o: ["anzurufen", "zu anrufen", "anrufen"], a: 0, why: "A separable verb: zu inside — **anzurufen**." },
-            { at: "r2", k: "type", cx: true, q: "(aufstehen) Es ist schwer, um fünf ___.", a: ["aufzustehen"], r: ["zu.sep"], why: "auf**zu**stehen — one word." },
-            { at: "r2", k: "pick", q: "Es ist nicht leicht, alles ___.", o: ["zu verstehen", "verzustehen"], a: 0, why: "ver- is inseparable: **zu verstehen**." },
-            { at: "r3", k: "pick", q: "Ich habe keine Zeit, ___.", o: ["einzukaufen", "einkaufen", "kaufe ein"], a: 0, why: "keine Zeit haben + **zu**." },
-            { at: "r3", k: "pick", q: "Wir versuchen, pünktlich ___.", o: ["zu sein", "sein", "sind"], a: 0, why: "versuchen + **zu**." },
-            { at: "r4", k: "pick", q: "Ich muss heute länger ___.", o: ["arbeiten", "zu arbeiten"], a: 0, why: "After a modal: **no zu**." },
-            { at: "r4", k: "pick", q: "Ich werde dich morgen ___.", o: ["anrufen", "anzurufen"], a: 0, why: "After werden: **no zu**." },
-            { at: "table", k: "pick", q: "mitkommen → with zu:", o: ["mitzukommen", "zu mitkommen", "mit zu kommen"], a: 0, why: "**mitzukommen** — one word." },
-            { at: "trap", k: "pick", q: "Which is right?", o: ["Ich kann heute kommen.", "Ich kann heute zu kommen."], a: 0, why: "No zu after a modal." },
+            { at: "r1", k: "pick", q: "Es ist wichtig, ___.", o: ["Deutsch zu lernen", "zu lernen Deutsch", "zu Deutsch lernen"], a: 0, why: "zu + the infinitive go at the very end." },
+            { at: "r1", k: "order", q: "Build it: It's difficult to understand the dialect.", a: ["Es ist schwierig,", "den Dialekt", "zu", "verstehen."], why: "Everything else first, then zu + the infinitive last." },
+            { at: "r2", k: "pick", q: "Vergiss nicht, mich ___!", o: ["anzurufen", "zu anrufen", "anrufen"], a: 0, why: "anrufen is separable, so zu goes inside: **anzurufen**." },
+            { at: "r2", k: "type", cx: true, q: "(aufstehen) Es ist schwer, um fünf ___.", a: ["aufzustehen"], r: ["zu.sep"], why: "aufstehen is separable: auf**zu**stehen, in one word." },
+            { at: "r2", k: "pick", q: "Es ist nicht leicht, alles ___.", o: ["zu verstehen", "verzustehen"], a: 0, why: "ver- doesn't separate, so zu goes in front: **zu verstehen**." },
+            { at: "r3", k: "pick", q: "Ich habe keine Zeit, ___.", o: ["einzukaufen", "einkaufen", "kaufe ein"], a: 0, why: "keine Zeit haben brings **zu**, here inside the verb." },
+            { at: "r3", k: "pick", q: "Wir versuchen, pünktlich ___.", o: ["zu sein", "sein", "sind"], a: 0, why: "versuchen brings **zu**: zu sein." },
+            { at: "r4", k: "pick", q: "Ich muss heute länger ___.", o: ["arbeiten", "zu arbeiten"], a: 0, why: "müssen is a modal, so **no zu**." },
+            { at: "r4", k: "pick", q: "Ich werde dich morgen ___.", o: ["anrufen", "anzurufen"], a: 0, why: "After werden, **no zu**." },
+            { at: "table", k: "pick", q: "mitkommen → with zu:", o: ["mitzukommen", "zu mitkommen", "mit zu kommen"], a: 0, why: "Separable, so zu goes inside: **mitzukommen**, one word." },
+            { at: "trap", k: "pick", q: "Which is right?", o: ["Ich kann heute kommen.", "Ich kann heute zu kommen."], a: 0, why: "können is a modal, so no zu." },
           ] },
         { id: "cx.zu2", title: "um … zu, ohne … zu, anstatt … zu", qn: 3,
           struct: [[", um · ohne · anstatt", "pre"], ["…", "mid"], ["zu", "aux"], ["infinitive", "inf"]],
-          why: "Three words give a zu-part a meaning: **um … zu** *in order to*, **ohne … zu** *without …ing*, **anstatt … zu** *instead of …ing*. It can also come first.",
+          why: "Three words give a zu-part its meaning: **um … zu** (*in order to*), **ohne … zu** (*without …ing*), **anstatt … zu** (*instead of …ing*). The zu-part can also come first.",
           rid: ["zu.um", "zu.ohne", "zu.statt", "zu.front"],
           rules: [
-            "**um … zu** = *in order to* — why you do it: Ich lerne Deutsch, **um** eine bessere Stelle **zu finden**. (*Why?* — **Um** Geld **zu sparen**.)",
-            "**ohne … zu** = *without …ing*: Er ist gegangen, **ohne** tschüss **zu sagen**. · Sie hat unterschrieben, **ohne** den Vertrag **zu lesen**.",
-            "**anstatt … zu** (or **statt … zu**) = *instead of …ing*: Ich gehe zu Fuß, **anstatt** den Bus **zu nehmen**.",
-            "The zu-part can come **first** — it takes the first place, so after its comma comes the **verb**, then the subject: **Um Geld zu sparen, fahre ich** Velo. · **Ohne zu fragen, hat er** mein Velo genommen.",
+            "**um … zu** means *in order to* and says why you do something: Ich lerne Deutsch, **um** eine bessere Stelle **zu finden**. It can answer *Warum?* on its own: **Um** Geld **zu sparen**.",
+            "**ohne … zu** means *without …ing*: Er ist gegangen, **ohne** tschüss **zu sagen**. · Sie hat unterschrieben, **ohne** den Vertrag **zu lesen**.",
+            "**anstatt … zu** (or **statt … zu**) means *instead of …ing*: Ich gehe zu Fuß, **anstatt** den Bus **zu nehmen**.",
+            "When the zu-part comes **first**, it fills the first place, so the **verb** comes right after its comma, then the subject: **Um Geld zu sparen, fahre ich** Velo.",
           ],
           table: { head: ["", "…, + … zu + infinitive"], rows: [
             ["um", "…, **um** Geld **zu sparen**."],
@@ -84,34 +84,34 @@ cxPack({
             ["**Anstatt** fernzusehen, lese ich ein Buch.", "Instead of watching TV, I read a book."],
             ["**Um** besser Deutsch **zu sprechen**, rede ich viel mit den Nachbarn.", "To speak better German, I talk a lot with the neighbours."],
           ],
-          trap: "*in order to* needs **um** — not ~~für zu~~: …, **um** Geld **zu sparen**. And with the zu-part first, the verb comes right after the comma: Um Geld zu sparen, **fahre ich** — never ~~Um Geld zu sparen, ich fahre~~.",
+          trap: "*In order to* needs **um**, not ~~für~~: …, **um** Geld **zu sparen**. And with the zu-part first, the verb comes right after the comma: Um Geld zu sparen, **fahre ich**, not ~~ich fahre~~.",
           quiz: [
-            { at: "r1", k: "pick", q: "Ich spare, ___ ein Auto zu kaufen.", o: ["um", "für", "ohne"], a: 0, why: "*in order to*: **um … zu**." },
-            { at: "r1", k: "type", cx: true, q: "Warum fährst du Velo? — ___ Geld zu sparen.", a: ["Um"], r: ["zu.um"], why: "**Um** … zu." },
-            { at: "r2", k: "pick", q: "He left without saying goodbye:", o: ["Er ist gegangen, ohne tschüss zu sagen.", "Er ist gegangen, ohne tschüss sagen.", "Er ist gegangen, ohne zu tschüss sagen."], a: 0, why: "**ohne** … **zu** + the infinitive last." },
-            { at: "r2", k: "pick", q: "Sie unterschreibt, ___ den Vertrag zu lesen.", o: ["ohne", "um", "anstatt"], a: 0, why: "*without reading*: **ohne … zu**." },
-            { at: "r3", k: "pick", q: "Ich gehe zu Fuß, ___ den Bus zu nehmen.", o: ["anstatt", "um", "ohne"], a: 0, why: "*instead of*: **anstatt … zu**." },
-            { at: "r3", k: "pick", q: "instead of watching TV:", o: ["anstatt fernzusehen", "anstatt zu fernsehen", "anstatt fernsehen"], a: 0, why: "anstatt + **fernzusehen** (zu inside)." },
-            { at: "r4", k: "pick", q: "Um Geld zu sparen, ___.", o: ["fahre ich Velo", "ich fahre Velo"], a: 0, why: "The zu-part first: the verb right after the comma." },
+            { at: "r1", k: "pick", q: "Ich spare, ___ ein Auto zu kaufen. (in order to)", o: ["um", "für", "ohne"], a: 0, why: "*In order to* is **um … zu**." },
+            { at: "r1", k: "type", cx: true, q: "Warum fährst du Velo? — ___ Geld zu sparen.", a: ["Um"], r: ["zu.um"], why: "A reason with zu starts with **Um**." },
+            { at: "r2", k: "pick", q: "He left without saying goodbye:", o: ["Er ist gegangen, ohne tschüss zu sagen.", "Er ist gegangen, ohne tschüss sagen.", "Er ist gegangen, ohne zu tschüss sagen."], a: 0, why: "**ohne**, then the rest, then **zu** + the infinitive last." },
+            { at: "r2", k: "pick", q: "Sie unterschreibt, ___ den Vertrag zu lesen. (without)", o: ["ohne", "um", "anstatt"], a: 0, why: "*Without reading* is **ohne … zu**." },
+            { at: "r3", k: "pick", q: "Ich gehe zu Fuß, ___ den Bus zu nehmen. (instead of)", o: ["anstatt", "um", "ohne"], a: 0, why: "*Instead of* is **anstatt … zu**." },
+            { at: "r3", k: "pick", q: "instead of watching TV:", o: ["anstatt fernzusehen", "anstatt zu fernsehen", "anstatt fernsehen"], a: 0, why: "fernsehen is separable, so zu goes inside: **fernzusehen**." },
+            { at: "r4", k: "pick", q: "Um Geld zu sparen, ___.", o: ["fahre ich Velo", "ich fahre Velo"], a: 0, why: "With the zu-part first, the verb comes right after the comma." },
             { at: "r4", k: "order", q: "Build it: Instead of calling, I write an e-mail.", a: ["Anstatt anzurufen,", "schreibe", "ich", "eine E-Mail."], why: "The zu-part first, then the verb, then the subject." },
-            { at: "table", k: "pick", q: "…, ___ Geld zu sparen. (in order to)", o: ["um", "für", "damit"], a: 0, why: "**um … zu**." },
-            { at: "trap", k: "pick", q: "Which is right?", o: ["Um Deutsch zu lernen, besuche ich einen Kurs.", "Um Deutsch zu lernen, ich besuche einen Kurs.", "Für Deutsch zu lernen, besuche ich einen Kurs."], a: 0, why: "um … zu, then the verb first after the comma." },
+            { at: "table", k: "pick", q: "…, ___ Geld zu sparen. (in order to)", o: ["um", "für", "damit"], a: 0, why: "*In order to* is **um … zu**, never für or damit." },
+            { at: "trap", k: "pick", q: "Which is right?", o: ["Um Deutsch zu lernen, besuche ich einen Kurs.", "Um Deutsch zu lernen, ich besuche einen Kurs.", "Für Deutsch zu lernen, besuche ich einen Kurs."], a: 0, why: "**um** … zu, and the verb comes right after the comma." },
           ] },
       ],
       diag: [
         // (the answer's an-zu-rufen word is what's missing — written apart, zu before it, or no zu:
         // a detector on that word alone, so «um zu Hause», «fängt an zu regnen» never set it off)
-        { t: "missing", tok: "^(an|auf|aus|ein|mit|ab|vor|zuruck|um|weg|los|fern|kennen|wieder|nach|zusammen|hin|her)zu\\w+$", rule: "zu.sep", msg: "A separable verb takes zu **inside**, written as one word: an**zu**rufen, auf**zu**stehen — not zu anrufen, not an zu rufen." },
-        { t: "swap", from: "^\\w+zu\\w+(en|n)$", to: "^(an|auf|aus|ein|mit|ab|vor|zuruck|um|weg|los|fern|kennen)\\w{3,}(en|n)$", rule: "zu.modal", hard: true, msg: "No zu after a modal or werden: **{right}**." },
-        { t: "extra", tok: "^zu$", rule: "zu.modal", msg: "No zu after a modal, werden or möchte — just the infinitive: Ich muss **arbeiten**." },
-        { t: "swap", from: "^(fur|damit|zum)$", to: "^um$", rule: "zu.um", msg: "*in order to* is **um … zu**: …, **um** Geld zu sparen." },
-        { t: "missing", tok: "^um$", rule: "zu.um", msg: "*in order to* needs **um** at the start: …, **um** … zu + the infinitive." },
-        { t: "missing", tok: "^zu$", rule: "", msg: "It needs **zu**, right before the infinitive: … Deutsch **zu** lernen." },
-        { t: "pos", tok: "^zu$", rule: "zu.end", msg: "zu + the infinitive go to the very end — zu goes {where}." },
+        { t: "missing", tok: "^(an|auf|aus|ein|mit|ab|vor|zuruck|um|weg|los|fern|kennen|wieder|nach|zusammen|hin|her)zu\\w+$", rule: "zu.sep", msg: "A separable verb takes zu **inside**, as one word: an**zu**rufen, auf**zu**stehen. Not zu anrufen, not an zu rufen." },
+        { t: "swap", from: "^\\w+zu\\w+(en|n)$", to: "^(an|auf|aus|ein|mit|ab|vor|zuruck|um|weg|los|fern|kennen)\\w{3,}(en|n)$", rule: "zu.modal", hard: true, msg: "After a modal or werden there's no zu: **{right}**." },
+        { t: "extra", tok: "^zu$", rule: "zu.modal", msg: "No zu after a modal, werden or möchte: just the infinitive, as in Ich muss **arbeiten**." },
+        { t: "swap", from: "^(fur|damit|zum)$", to: "^um$", rule: "zu.um", msg: "*In order to* is **um … zu**: …, **um** Geld zu sparen." },
+        { t: "missing", tok: "^um$", rule: "zu.um", msg: "*In order to* needs **um** at the start of the zu-part: …, **um** Geld **zu** sparen." },
+        { t: "missing", tok: "^zu$", rule: "", msg: "**zu** is missing. It goes right before the infinitive: … Deutsch **zu** lernen." },
+        { t: "pos", tok: "^zu$", rule: "zu.end", msg: "zu + the infinitive go at the very end: put zu {where}." },
       ],
       drills: [
         // ── Übung 24•5: a sentence becomes a zu-part ──
-        { id: "d24.5", ex: "24.5", t: "transform", title: "… zu + infinitive", how: "Make it a zu-part: the subject goes, the verb becomes zu + the infinitive, at the end.", items: [
+        { id: "d24.5", ex: "24.5", t: "transform", title: "… zu + infinitive", how: "Make it a zu-part: drop the subject and put zu + the infinitive at the end.", items: [
           { q: "Wir lernen eine neue Sprache.", a: ["eine neue Sprache zu lernen"], r: ["zu.end"] },
           { q: "Ich gebe dir zehn Franken.", a: ["dir zehn Franken zu geben"], r: ["zu.end"] },
           { q: "Er bringt den Gästen einen Kaffee.", a: ["den Gästen einen Kaffee zu bringen"], r: ["zu.end"] },
@@ -125,7 +125,7 @@ cxPack({
           { q: "Wir kochen am Abend zusammen.", a: ["am Abend zusammen zu kochen"], r: ["zu.end"] },
         ] },
         // ── Übung 24•6: with a prefix ──
-        { id: "d24.6", ex: "24.6", t: "transform", title: "anzurufen · zu verstehen", how: "Make it a zu-part — a separable verb takes zu inside: anzurufen.", items: [
+        { id: "d24.6", ex: "24.6", t: "transform", title: "anzurufen · zu verstehen", how: "Make it a zu-part. A separable verb takes zu inside: anzurufen.", items: [
           { q: "Wir besuchen am Samstag die Großeltern.", a: ["am Samstag die Großeltern zu besuchen"], r: ["zu.sep"] },
           { q: "Er vergisst das Passwort.", a: ["das Passwort zu vergessen"], r: ["zu.sep"] },
           { q: "Der Zug kommt um acht Uhr an.", a: ["um acht Uhr anzukommen"], r: ["zu.sep"] },
@@ -141,7 +141,7 @@ cxPack({
           { q: "Er versteht die Frage nicht.", a: ["die Frage nicht zu verstehen"], r: ["zu.sep"] },
         ] },
         // ── our own: zu or not? ──
-        { id: "dzu.modal", t: "pick", title: "zu or not?", how: "Pick: after a modal or werden no zu · after versuchen, vergessen, Lust haben, Es ist … : zu.", items: [
+        { id: "dzu.modal", t: "pick", title: "zu or not?", how: "Pick. No zu after a modal or werden; zu after versuchen, Lust haben, Es ist …", items: [
           { q: "Ich muss morgen früh ___.", o: ["aufstehen", "aufzustehen"], a: ["aufstehen"], r: ["zu.modal"] },
           { q: "Ich versuche, morgen früh ___.", o: ["aufzustehen", "aufstehen", "zu aufstehen"], a: ["aufzustehen"], r: ["zu.sep"] },
           { q: "Wir können leider nicht ___.", o: ["kommen", "zu kommen"], a: ["kommen"], r: ["zu.modal"] },
@@ -152,11 +152,11 @@ cxPack({
           { q: "Vergiss nicht, mich ___!", o: ["anzurufen", "zu anrufen", "anrufen"], a: ["anzurufen"], r: ["zu.sep"] },
           { q: "Er will heute nicht ___.", o: ["mitkommen", "mitzukommen"], a: ["mitkommen"], r: ["zu.modal"] },
           { q: "Hör bitte auf, so laut ___!", o: ["zu singen", "singen"], a: ["zu singen"], r: ["zu.verbs"] },
-          { q: "Möchtest du etwas ___?", o: ["trinken", "zu trinken"], a: ["trinken"], r: ["zu.modal"] },
+          { q: "Möchtest du einen Tee ___?", o: ["trinken", "zu trinken"], a: ["trinken"], r: ["zu.modal"] },
           { q: "Ich habe heute keine Zeit, ___.", o: ["einzukaufen", "einkaufen", "zu einkaufen"], a: ["einzukaufen"], r: ["zu.sep"] },
         ] },
         // ── Übung 24•8: Es ist schwierig, … / Ist es leicht, …? ──
-        { id: "d24.8", ex: "24.8", t: "transform", title: "Es ist schwierig, …", how: "Make the sentence in brackets the zu-part — its subject goes.", items: [
+        { id: "d24.8", ex: "24.8", t: "transform", title: "Es ist schwierig, …", how: "Turn the sentence in brackets into the zu-part, without its subject.", items: [
           { q: "Es ist schwierig, ___. (Ich finde eine Wohnung in Zürich.)", a: ["Es ist schwierig, eine Wohnung in Zürich zu finden."], r: ["zu.verbs"] },
           { q: "Es ist schwierig, ___. (Man versteht den Dialekt.)", a: ["Es ist schwierig, den Dialekt zu verstehen."], r: ["zu.verbs"] },
           { q: "Es ist schwierig, ___. (Wir parken in der Altstadt.)", a: ["Es ist schwierig, in der Altstadt zu parken."], r: ["zu.end"] },
@@ -169,7 +169,7 @@ cxPack({
           { q: "Ist es leicht, ___? (Sie ist Lehrerin.)", a: ["Ist es leicht, Lehrerin zu sein?"], r: ["zu.end"] },
         ] },
         // ── Übung 24•10: it's healthy, necessary, forbidden … ──
-        { id: "d24.10", ex: "24.10", t: "transform", title: "Es ist gesund, notwendig, verboten …", how: "Finish the sentence with the one in brackets as a zu-part (man → sich where it's reflexive).", items: [
+        { id: "d24.10", ex: "24.10", t: "transform", title: "Es ist gesund, notwendig, verboten …", how: "Add the sentence in brackets as a zu-part. A reflexive verb keeps sich.", items: [
           { q: "Es ist sehr gesund, ___. (Ich gehe jeden Tag spazieren.)", a: ["Es ist sehr gesund, jeden Tag spazieren zu gehen."], r: ["zu.verbs"] },
           { q: "Es ist sehr gesund, ___. (Man isst viel Gemüse.)", a: ["Es ist sehr gesund, viel Gemüse zu essen."], r: ["zu.verbs"] },
           { q: "Es ist sehr gesund, ___. (Wir fahren mit dem Velo zur Arbeit.)", a: ["Es ist sehr gesund, mit dem Velo zur Arbeit zu fahren."], r: ["zu.end"] },
@@ -183,7 +183,7 @@ cxPack({
           { q: "Es ist nicht möglich, ___. (Ich komme vor acht Uhr.)", a: ["Es ist nicht möglich, vor acht Uhr zu kommen."], r: ["zu.end"] },
         ] },
         // ── Übung 24•11: it was a pity, a good idea, kind of you … ──
-        { id: "d24.11", ex: "24.11", t: "transform", title: "Es war schade, … · eine gute Idee, …", how: "Finish the sentence with the one in brackets as a zu-part — zu + the infinitive at the end.", items: [
+        { id: "d24.11", ex: "24.11", t: "transform", title: "Es war schade, … · eine gute Idee, …", how: "Add the sentence in brackets as a zu-part, with zu + the infinitive at the end.", items: [
           { q: "Es war schade, ___. (Wir verpassen den letzten Zug.)", a: ["Es war schade, den letzten Zug zu verpassen."], r: ["zu.end"] },
           { q: "Es war schade, ___. (Ich sehe dich nur so kurz.)", a: ["Es war schade, dich nur so kurz zu sehen."], r: ["zu.end"] },
           { q: "Es war schade, ___. (Wir verlassen Lugano.)", a: ["Es war schade, Lugano zu verlassen."], r: ["zu.end"] },
@@ -211,7 +211,7 @@ cxPack({
           { q: "Ich verspreche dir. Ich bin pünktlich.", a: ["Ich verspreche dir, pünktlich zu sein."], r: ["zu.verbs"] },
         ] },
         // ── Übung 24•9: anstatt, ohne, um … zu ──
-        { id: "d24.9", ex: "24.9", t: "transform", title: "anstatt … zu, ohne … zu, um … zu", how: "Finish the sentence with the one in brackets — after anstatt, ohne or um, as a zu-part.", items: [
+        { id: "d24.9", ex: "24.9", t: "transform", title: "anstatt … zu, ohne … zu, um … zu", how: "Add the sentence in brackets as a zu-part after anstatt, ohne or um.", items: [
           { q: "Tom sitzt einfach da, anstatt ___. (Er hilft uns.)", a: ["Tom sitzt einfach da, anstatt uns zu helfen."], r: ["zu.statt"] },
           { q: "Tom sitzt einfach da, anstatt ___. (Er räumt sein Zimmer auf.)", a: ["Tom sitzt einfach da, anstatt sein Zimmer aufzuräumen."], r: ["zu.statt", "zu.sep"] },
           { q: "Tom sitzt einfach da, anstatt ___. (Er lernt für die Prüfung.)", a: ["Tom sitzt einfach da, anstatt für die Prüfung zu lernen."], r: ["zu.statt"] },
@@ -226,7 +226,7 @@ cxPack({
           { q: "Du bist jetzt alt genug, um ___. (Du bleibst allein zu Hause.)", a: ["Du bist jetzt alt genug, um allein zu Hause zu bleiben."], r: ["zu.um"] },
         ] },
         // ── our own: why? — um … zu ──
-        { id: "dzu.um", t: "answer", title: "Why? — um … zu", how: "Answer with um … zu — the words in brackets are the reason.", items: [
+        { id: "dzu.um", t: "answer", title: "Why? — um … zu", how: "Answer with um … zu. The words in brackets are the reason.", items: [
           { q: "Warum lernst du Deutsch? (die Prüfung bestehen)", a: ["Ich lerne Deutsch, um die Prüfung zu bestehen.", "Um die Prüfung zu bestehen."], r: ["zu.um"] },
           { q: "Warum fährst du mit dem Velo? (Geld sparen)", a: ["Ich fahre mit dem Velo, um Geld zu sparen.", "Um Geld zu sparen."], r: ["zu.um"] },
           { q: "Warum gehst du zur Gemeinde? (mich anmelden)", a: ["Ich gehe zur Gemeinde, um mich anzumelden.", "Um mich anzumelden."], r: ["zu.um", "zu.sep"] },
@@ -239,7 +239,7 @@ cxPack({
           { q: "Warum nimmst du einen Schirm mit? (nicht nass werden)", a: ["Ich nehme einen Schirm mit, um nicht nass zu werden.", "Um nicht nass zu werden."], r: ["zu.um"] },
         ] },
         // ── our own: the zu-part first ──
-        { id: "dzu.front", t: "transform", fixed: true, title: "The zu-part first", how: "Start with the zu-part — after its comma, the verb, then the subject.", items: [
+        { id: "dzu.front", t: "transform", fixed: true, title: "The zu-part first", how: "Start with the zu-part. After its comma comes the verb, then the subject.", items: [
           { q: "Ich fahre Velo, um Geld zu sparen.", a: ["Um Geld zu sparen, fahre ich Velo."], r: ["zu.front"] },
           { q: "Wir stehen früh auf, um den Zug nicht zu verpassen.", a: ["Um den Zug nicht zu verpassen, stehen wir früh auf."], r: ["zu.front"] },
           { q: "Er hat die Wohnung verlassen, ohne das Licht auszumachen.", a: ["Ohne das Licht auszumachen, hat er die Wohnung verlassen."], r: ["zu.front"] },
@@ -250,9 +250,9 @@ cxPack({
           { q: "Ich gehe zu Fuß, anstatt den Bus zu nehmen.", a: ["Anstatt den Bus zu nehmen, gehe ich zu Fuß."], r: ["zu.front"] },
           { q: "Man muss sich anmelden, um mitzumachen.", a: ["Um mitzumachen, muss man sich anmelden."], r: ["zu.front"] },
           { q: "Die Kinder rennen nach Hause, um den Film zu sehen.", a: ["Um den Film zu sehen, rennen die Kinder nach Hause."], r: ["zu.front"] },
-        ].map(it => ({ ...it, diag: [{ t: "pos", tok: "^(ich|du|er|sie|es|wir|ihr|man|tom|die)$", rule: "zu.front", msg: "The zu-part takes the first place: after its comma comes the **verb**, then the subject." }] })) },
+        ].map(it => ({ ...it, diag: [{ t: "pos", tok: "^(ich|du|er|sie|es|wir|ihr|man|tom|die)$", rule: "zu.front", msg: "The zu-part fills the first place, so the **verb** comes right after its comma, then the subject." }] })) },
         // ── Production ──
-        { id: "dp.zu", t: "translate", end: true, title: "Say it in German", how: "Translate — zu + the infinitive at the end (inside a separable verb); no zu after a modal.", items: [
+        { id: "dp.zu", t: "translate", end: true, title: "Say it in German", how: "Translate. zu + the infinitive go at the end; no zu after a modal.", items: [
           { q: "It's important to be on time.", a: ["Es ist wichtig, pünktlich zu sein."], r: ["zu.verbs"] },
           { q: "I'm trying to speak German every day.", a: ["Ich versuche, jeden Tag Deutsch zu sprechen."], r: ["zu.verbs"] },
           { q: "Don't forget to call me! (du)", a: ["Vergiss nicht, mich anzurufen!"], r: ["zu.sep"] },
@@ -268,7 +268,7 @@ cxPack({
           { q: "To save money, we cook at home.", a: ["Um Geld zu sparen, kochen wir zu Hause.", "Wir kochen zu Hause, um Geld zu sparen."], r: ["zu.um", "zu.front"] },
         ] },
         // ── Übung 24•13: finish it two ways ──
-        { id: "d24.13", ex: "24.13", t: "write", end: true, title: "Finish it two ways", how: "Finish each sentence twice, with your own zu-parts — saved for Claude to correct.", items: [
+        { id: "d24.13", ex: "24.13", t: "write", end: true, title: "Finish it two ways", how: "Finish each sentence twice with your own zu-parts. Saved for Claude to correct.", items: [
           { q: "___ ist nicht leicht. (two ways — the zu-part first)", model: ["Eine Wohnung in Zürich zu finden ist nicht leicht. Jeden Morgen um fünf aufzustehen ist nicht leicht."], r: ["zu.end"] },
           { q: "Es ist wichtig, ___ (two things for life in Switzerland)", model: ["Es ist wichtig, pünktlich zu sein. Es ist auch wichtig, den Abfall richtig zu trennen."], r: ["zu.verbs"] },
           { q: "Mein Freund hat mir versprochen, ___ (two promises)", model: ["Mein Freund hat mir versprochen, beim Umzug zu helfen. Er hat auch versprochen, die Getränke mitzubringen."], r: ["zu.verbs", "zu.sep"] },
@@ -279,7 +279,7 @@ cxPack({
           { q: "Hast du Zeit, ___? (two invitations)", model: ["Hast du am Samstag Zeit, mit uns zu wandern? Hast du Zeit, morgen einen Kaffee zu trinken?"], r: ["zu.verbs"] },
         ] },
         // ── Übung 24•14: your own endings — um, ohne, anstatt ──
-        { id: "d24.14", ex: "24.14", t: "write", end: true, title: "Write your own endings", how: "Finish each sentence your way, with a zu-part — saved for Claude to correct.", items: [
+        { id: "d24.14", ex: "24.14", t: "write", end: true, title: "Write your own endings", how: "Finish each sentence your way with a zu-part. Saved for Claude to correct.", items: [
           { q: "Mein Sohn spielt den ganzen Tag am Handy, anstatt … (three endings)", model: ["…, anstatt seine Hausaufgaben zu machen. · …, anstatt draußen zu spielen. · …, anstatt sein Zimmer aufzuräumen."], r: ["zu.statt"] },
           { q: "Unser Nachbar ist ausgezogen, ohne … (three endings)", model: ["…, ohne tschüss zu sagen. · …, ohne den Keller zu putzen. · …, ohne uns seine neue Adresse zu geben."], r: ["zu.ohne"] },
           { q: "Ich spare jeden Monat Geld, um … (three endings)", model: ["…, um im Sommer nach Portugal zu fliegen. · …, um ein neues Velo zu kaufen. · …, um später eine Wohnung zu kaufen."], r: ["zu.um"] },

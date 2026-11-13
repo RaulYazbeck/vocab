@@ -13,14 +13,14 @@ cxPack({
     "s1.sep": {
       // What a wrong answer gives away (pr6's points).
       diag: [
-        { t: "extra", tok: "^(zu|auf|an|ab|ein|mit|aus|um|fern)(mach|steh|komm|ruf|kauf|raum|bring|lad|nehm|fahr|fang|steig|hor|sieh|seh|wach)\\w*$", rule: "gs:pr6.r1", msg: "A separable prefix splits off and goes to the very end: du machst … **zu**." },
-        { t: "pos", tok: "^(zu|auf|an|ab|ein|mit|aus|um|fern)$", rule: "gs:pr6.r1", msg: "The prefix goes to the very end ({where})." },
+        { t: "extra", tok: "^(zu|auf|an|ab|ein|mit|aus|um|fern)(mach|steh|komm|ruf|kauf|raum|bring|lad|nehm|fahr|fang|steig|hor|sieh|seh|wach)\\w*$", rule: "gs:pr6.r1", msg: "A separable prefix splits off and goes to the end: du machst das Fenster **zu**." },
+        { t: "pos", tok: "^(zu|auf|an|ab|ein|mit|aus|um|fern)$", rule: "gs:pr6.r1", msg: "The separable prefix belongs at the end: it goes {where}." },
       ],
       drills: [
         // ── generated: the tables ──
-        { id: "d12.1", ex: "12.1", also: ["12.2"], t: "type", title: "be-, ver-, er-…: the prefix stays", how: "Write the verb's form — an inseparable prefix stays on.", gen: { kind: "conj", verbs: ["bekommen", "besuchen", "verstehen", "verkaufen", "empfehlen", "gefallen", "zerstören", "entdecken", "erzählen", "bezahlen", "vergessen", "gewinnen", "beginnen", "erklären"], tense: "pr" }, n: 10, r: ["gs:pr6.r2"] },
-        { id: "d12.3", ex: "12.3", also: ["12.4"], t: "type", title: "an-, auf-, mit-…: the prefix goes last", how: "Write the verb's form — both parts: kommt an.", gen: { kind: "conj", verbs: ["ankommen", "mitnehmen", "aufstehen", "anrufen", "einkaufen", "aufräumen", "zumachen", "aufmachen", "abfahren", "mitbringen", "einladen", "anfangen", "aussteigen", "fernsehen"], tense: "pr" }, n: 10, r: ["gs:pr6.r1"] },
-        { id: "d12.9", ex: "12.9", t: "type", title: "Separable or not?", how: "Write the verb's form — split it only if the prefix is separable.", gen: { kind: "conj", verbs: ["verstehen", "aufstehen", "bekommen", "ankommen", "verkaufen", "einkaufen", "besuchen", "abholen", "erzählen", "zuhören"], tense: "pr" }, n: 10, r: ["gs:pr6.r1", "gs:pr6.r2"] },
+        { id: "d12.1", ex: "12.1", also: ["12.2"], t: "type", title: "be-, ver-, er-…: the prefix stays", how: "Write the verb form. An inseparable prefix stays attached.", gen: { kind: "conj", verbs: ["bekommen", "besuchen", "verstehen", "verkaufen", "empfehlen", "gefallen", "zerstören", "entdecken", "erzählen", "bezahlen", "vergessen", "gewinnen", "beginnen", "erklären"], tense: "pr" }, n: 10, r: ["gs:pr6.r2"] },
+        { id: "d12.3", ex: "12.3", also: ["12.4"], t: "type", title: "an-, auf-, mit-…: the prefix goes last", how: "Write the verb form with both parts, like kommt an.", gen: { kind: "conj", verbs: ["ankommen", "mitnehmen", "aufstehen", "anrufen", "einkaufen", "aufräumen", "zumachen", "aufmachen", "abfahren", "mitbringen", "einladen", "anfangen", "aussteigen", "fernsehen"], tense: "pr" }, n: 10, r: ["gs:pr6.r1"] },
+        { id: "d12.9", ex: "12.9", t: "type", title: "Separable or not?", how: "Write the verb form. Split it only if the prefix is separable.", gen: { kind: "conj", verbs: ["verstehen", "aufstehen", "bekommen", "ankommen", "verkaufen", "einkaufen", "besuchen", "abholen", "erzählen", "zuhören"], tense: "pr" }, n: 10, r: ["gs:pr6.r1", "gs:pr6.r2"] },
 
         // ── our own: which is right? ──
         { id: "dsep.p", t: "pick", title: "Split or not?", how: "Pick the right sentence.", items: [
@@ -36,7 +36,7 @@ cxPack({
           { q: "We're inviting you. ___", o: ["Wir laden dich ein.", "Wir einladen dich."], a: ["Wir laden dich ein."], r: ["gs:pr6.r1"] },
         ] },
         // ── Übung 12•6: inseparable verbs, a new subject ──
-        { id: "d12.6", ex: "12.6", t: "transform", title: "be-, ver-, er-: a new subject", how: "Say it with the subject in brackets — the prefix stays on the verb.", items: [
+        { id: "d12.6", ex: "12.6", t: "transform", title: "be-, ver-, er-: a new subject", how: "Use the subject in brackets. The prefix stays on the verb.", items: [
           { q: "Ich bekomme viele Pakete. (du)", a: ["Du bekommst viele Pakete."], r: ["gs:pr6.r2"], vf: [["bekommen", "pr", "du"]] },
           { q: "Wir empfehlen das Restaurant. (er)", a: ["Er empfiehlt das Restaurant."], r: ["gs:pr6.r2", "gs:pr4.r3"], vf: [["empfehlen", "pr", "er"]] },
           { q: "Ich vergesse oft den Schirm. (sie — she)", a: ["Sie vergisst oft den Schirm."], r: ["gs:pr6.r2", "gs:pr4.r2"], vf: [["vergessen", "pr", "er"]] },
@@ -49,7 +49,7 @@ cxPack({
           { q: "Ich verkaufe das alte Velo. (mein Bruder)", a: ["Mein Bruder verkauft das alte Velo."], r: ["gs:pr6.r2"], vf: [["verkaufen", "pr", "er"]] },
         ] },
         // ── Übung 12•7: separable verbs, a new subject ──
-        { id: "d12.7", ex: "12.7", t: "transform", title: "an-, auf-, mit-: a new subject", how: "Say it with the subject in brackets — the prefix stays at the end.", items: [
+        { id: "d12.7", ex: "12.7", t: "transform", title: "an-, auf-, mit-: a new subject", how: "Use the subject in brackets. The prefix stays at the end.", items: [
           { q: "Ich mache das Fenster zu. (du)", a: ["Du machst das Fenster zu."], r: ["gs:pr6.r1"], vf: [["zumachen", "pr", "du"]] },
           { q: "Er bringt einen Kuchen mit. (wir)", a: ["Wir bringen einen Kuchen mit."], r: ["gs:pr6.r1"], vf: [["mitbringen", "pr", "wir"]] },
           { q: "Sie sieht heute sehr müde aus. (ihr)", a: ["Ihr seht heute sehr müde aus."], r: ["gs:pr6.r1"], vf: [["aussehen", "pr", "ihr"]] },
@@ -62,7 +62,7 @@ cxPack({
           { q: "Der Zug kommt um acht an. (die Züge)", a: ["Die Züge kommen um acht an."], r: ["gs:pr6.r1"], vf: [["ankommen", "pr", "sie"]] },
         ] },
         // ── Übung 12•8: build it — separable verbs ──
-        { id: "d12.8", ex: "12.8", t: "compose", low: true, title: "Build it: the prefix last", how: "Make a sentence in the present — the prefix goes to the end.", d: ["an", "auf"], items: [
+        { id: "d12.8", ex: "12.8", t: "compose", low: true, title: "Build it: the prefix last", how: "Make a sentence in the present. The prefix goes to the end.", d: ["an", "auf"], items: [
           { w: ["die Kinder", "aufstehen", "um sieben Uhr"], a: ["Die Kinder stehen um sieben Uhr auf.", "Um sieben Uhr stehen die Kinder auf."], r: ["gs:pr6.r1"], vf: [["aufstehen", "pr", "sie"]] },
           { w: ["warum", "aufmachen", "du", "das Fenster", "?"], a: ["Warum machst du das Fenster auf?"], r: ["gs:pr6.r1"], vf: [["aufmachen", "pr", "du"]] },
           { w: ["die Schüler", "zuhören", "gut"], a: ["Die Schüler hören gut zu."], r: ["gs:pr6.r1"], vf: [["zuhören", "pr", "sie"]] },
@@ -75,7 +75,7 @@ cxPack({
           { w: ["mitkommen", "du", "?"], a: ["Kommst du mit?"], r: ["gs:pr6.r1"], vf: [["mitkommen", "pr", "du"]] },
         ] },
         // ── our own: with a modal the verb stays whole ──
-        { id: "dsep.m", t: "transform", title: "With a modal: whole again", how: "Add the modal in brackets — the verb goes to the end, whole.", items: [
+        { id: "dsep.m", t: "transform", title: "With a modal: whole again", how: "Add the modal in brackets. The verb goes to the end in one piece.", items: [
           { q: "Ich rufe dich an. (müssen)", a: ["Ich muss dich anrufen."], r: ["gs:pr6.r3"], vf: [["müssen", "pr", "ich"]] },
           { q: "Wir stehen früh auf. (wollen)", a: ["Wir wollen früh aufstehen."], r: ["gs:pr6.r3"], vf: [["wollen", "pr", "wir"]] },
           { q: "Kommst du mit? (können)", a: ["Kannst du mitkommen?"], r: ["gs:pr6.r3"], vf: [["können", "pr", "du"]] },
@@ -86,7 +86,7 @@ cxPack({
           { q: "Wir fangen jetzt an. (sollen)", a: ["Wir sollen jetzt anfangen.", "Jetzt sollen wir anfangen."], r: ["gs:pr6.r3"], vf: [["sollen", "pr", "wir"]] },
         ] },
         // ── our own: after weil and dass the verb is whole, at the end ──
-        { id: "dsep.w", t: "transform", fixed: true, title: "…, weil ich früh aufstehe", how: "Join them with the word in brackets — the verb goes to the end, whole.", items: [
+        { id: "dsep.w", t: "transform", fixed: true, title: "…, weil ich früh aufstehe", how: "Join them with the word in brackets. The verb goes to the end in one piece.", items: [
           { q: "Ich bin müde. Ich stehe jeden Tag um fünf auf. (weil)", a: ["Ich bin müde, weil ich jeden Tag um fünf aufstehe."], r: ["gs:pr6.trap"] },
           { q: "Ich weiß es. Der Zug kommt um acht an. (dass)", a: ["Ich weiß, dass der Zug um acht ankommt."], r: ["gs:pr6.trap"] },
           { q: "Wir warten noch. Lea ruft gleich an. (weil)", a: ["Wir warten noch, weil Lea gleich anruft."], r: ["gs:pr6.trap"] },
@@ -98,7 +98,7 @@ cxPack({
         ] },
 
         // ── Production · Übung 12•10: build it — separable or not ──
-        { id: "d12.10", ex: "12.10", t: "compose", end: true, low: true, title: "Build it: split or not?", how: "Make a sentence in the present — split the verb only if its prefix is separable.", d: ["ver", "be"], items: [
+        { id: "d12.10", ex: "12.10", t: "compose", end: true, low: true, title: "Build it: split or not?", how: "Make a sentence in the present. Split the verb only if its prefix is separable.", d: ["ver", "be"], items: [
           { w: ["meine Schwester", "aufwachen", "sehr früh"], a: ["Meine Schwester wacht sehr früh auf."], r: ["gs:pr6.r1"], vf: [["aufwachen", "pr", "er"]] },
           { w: ["wir", "besuchen", "unsere Tante", "in Basel"], a: ["Wir besuchen unsere Tante in Basel."], r: ["gs:pr6.r2"], vf: [["besuchen", "pr", "wir"]] },
           { w: ["ich", "verstehen", "die Frage", "nicht"], a: ["Ich verstehe die Frage nicht."], r: ["gs:pr6.r2"], vf: [["verstehen", "pr", "ich"]] },
@@ -111,7 +111,7 @@ cxPack({
           { w: ["der Film", "anfangen", "um halb neun"], a: ["Der Film fängt um halb neun an.", "Um halb neun fängt der Film an."], r: ["gs:pr6.r1"], vf: [["anfangen", "pr", "er"]] },
         ] },
         // ── Production: say it ──
-        { id: "dp.sep", t: "translate", end: true, title: "Say it in German", how: "Translate — a separable prefix goes last, unless a modal keeps the verb whole.", items: [
+        { id: "dp.sep", t: "translate", end: true, title: "Say it in German", how: "Translate. A separable prefix goes last, unless a modal keeps the verb in one piece.", items: [
           { q: "When are you getting up tomorrow? (du)", a: ["Wann stehst du morgen auf?"], r: ["gs:pr6.r1"], vf: [["aufstehen", "pr", "du"]] },
           { q: "I'll call you tonight. (du)", a: ["Ich rufe dich heute Abend an.", "Heute Abend rufe ich dich an."], r: ["gs:pr6.r1"], vf: [["anrufen", "pr", "ich"]] },
           { q: "Do you understand me? (du)", a: ["Verstehst du mich?"], r: ["gs:pr6.r2"], vf: [["verstehen", "pr", "du"]] },

@@ -378,8 +378,9 @@ function gsQuizVerb(Q) {
   return m ? vxVerb(m[1]) : null;
 }
 function gsQuizGrade(val, Q) {
-  const tries = vxGradeTries(val, vxIsCommand(Q));
-  const uml = vxUmlautOnly(val, Q.a, vxIsCommand(Q));
+  // (the whole prompt typed back with its gap filled in counts as the gap's words)
+  const tries = vxGradeTries(val, vxIsCommand(Q)).concat(typeof vxGapTries === "function" ? vxGapTries(val, Q.q) : []);
+  const uml = vxUmlautOnly(val, Q.a, vxIsCommand(Q)) || tries.slice(1).some(t => vxUmlautOnly(t, Q.a, vxIsCommand(Q)));
   if (uml || tries.some(t => Q.a.some(a => vxEq(a, t)))) return { ok: true, uml, extra: false };
   const x = gsQuizVerb(Q);
   const extra = !!x && vxExtraOk(tries, Q.a, x);
