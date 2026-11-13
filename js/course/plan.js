@@ -89,7 +89,7 @@ cxDefine({
     // leave that month between the two Präteritum lessons. (Session 4: after
     // wo? vs wohin?, so the contrast comes straight after the two-way lesson.) Level and stage stay
     // B1 (it is listed under B1 in the course map).
-    { id: "s2.pt2", ses: 7, stage: 2, level: "B1", prio: "S", after: ["s1.pf", "s1.pt21"], kind: "verb", title: "Strong and mixed Präteritum · Plusquamperfekt", verb: ["pt22", "pt23", "pt24", "pq1", "pq2"], book: [["c11", "Past perfect tense"], ["c16", ""], ["c11", "The past perfect tense"], ["c16", "Strong verbs"], ["c16", "e to a"], ["c16", "a to u"], ["c16", "gehen"], ["c16", "trinken"], ["c16", "tun"], ["c16", "essen"], ["c16", "Mixed verbs"], ["c16", "haben, sein, and werden"], ["c16", "Irregular past tense"], ["c16", "The verbs haben, sein, and werden"]] },
+    { id: "s2.pt2", ses: 7, stage: 2, level: "B1", prio: "S", after: ["s1.pf", "s1.pt21"], kind: "verb", title: "Strong Präteritum · Plusquamperfekt", verb: ["pt22", "pt23", "pt24", "pq1", "pq2"], book: [["c11", "Past perfect tense"], ["c16", ""], ["c11", "The past perfect tense"], ["c16", "Strong verbs"], ["c16", "e to a"], ["c16", "a to u"], ["c16", "gehen"], ["c16", "trinken"], ["c16", "tun"], ["c16", "essen"], ["c16", "Mixed verbs"], ["c16", "haben, sein, and werden"], ["c16", "Irregular past tense"], ["c16", "The verbs haben, sein, and werden"]] },
     // weil, dass, wenn before the modals (Session 4): the modal lesson's
     // second sheet puts the modal at the end of a weil / dass clause.
     { id: "s1.conj2", ses: 4, stage: 1, level: "A2", prio: "M", n: 2, after: ["s0.v2q"], title: "weil, dass, wenn — the verb goes last", book: [["c29", "Subordinating conjunctions"], ["c29", "Using subordinating conjunctions"]] },

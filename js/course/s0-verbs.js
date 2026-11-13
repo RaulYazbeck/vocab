@@ -336,7 +336,7 @@ cxPack({
         { id: "d17.7", ex: "17.7", t: "pick", title: "Which modal form?", how: "Pick the form that fits.", items: [
           { q: "Niemand ___ mir helfen.", o: ["kann", "können", "kannst"], a: ["kann"], r: ["gs:pr5.r1"] },
           { q: "___ du morgen arbeiten?", o: ["Musst", "Muss", "Müsst"], a: ["Musst"], r: ["gs:pr5.r1"] },
-          { q: "Ich ___ gestern nicht kommen.", o: ["konnte", "kann", "könnte"], a: ["konnte"], r: ["gs:pt12.trap"] },
+          { q: "Ich ___ gestern nicht kommen.", o: ["konnte", "kann", "könnte"], a: ["konnte"], r: ["gs:pt12.trap"], note: "**konnte** is the past (gestern); **könnte**, with the umlaut, means *could, would be able* — the Konjunktiv II." },
           { q: "Wir ___ hier nicht parken.", o: ["dürfen", "darf", "dürft"], a: ["dürfen"], r: ["gs:pr5.r2"] },
           { q: "Was ___ Sie trinken?", o: ["möchten", "möchtet", "möchte"], a: ["möchten"], r: ["gs:pr5.r2"] },
           { q: "Als Kind ___ er Pilot werden.", o: ["wollte", "will", "wollten"], a: ["wollte"], r: ["gs:pt12.r2"] },

@@ -421,6 +421,13 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
     [...document.querySelectorAll(".cx-ex")].find(b => /^16\.1 /.test(b.querySelector(".gr-stt").innerText)).click();
     ok(_cx && _cx.list.length >= 8 && _cx.list.every(e => e.set === "d16.1" && e.item.gen && e.item.t === "pt"), "Übung 16.1 (generated: the strong Präteritum) runs on its own");
     cxClose();
+    // a pick whose options differ only by an umlaut: the miss says which one fits (not "a spelling slip"), and its note why
+    renderCourseDrill("s2.modpf", "d24.4");
+    { const it = cxSet("d24.4").items.find(x => x.q === "Ich ___ gestern leider nicht anrufen."), k = _cx.list.findIndex(e => e.item === it); const [e] = _cx.list.splice(k, 1); _cx.list.unshift(e); _cx.i = 0; cxRender();
+      const o = [...document.querySelectorAll("#cx-run .gs-opt")].find(b => b.querySelector(".g-opt-text").textContent === "könnte"); o.click();
+      const t = document.getElementById("cx-fb").innerText;
+      ok(/without the umlaut/.test(t) && /Konjunktiv II/.test(t) && !/No umlaut here/.test(t), `an umlaut-only pick missed: «It's konnte — without the umlaut» and the note (${t.replace(/\s+/g, " ").slice(0, 160)})`); }
+    cxClose();
     renderCourseChapter("c22");
     [...document.querySelectorAll(".cx-ex")].find(b => /^22\.6 /.test(b.querySelector(".gr-stt").innerText)).click();
     ok(_cx && _cx.list.every(e => e.set === "d22.6") && /Chapter 22/.test(document.querySelector(".screen-top .back-btn").textContent), "Übung 22.6 runs on its own; back goes to chapter 22");

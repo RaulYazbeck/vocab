@@ -1036,6 +1036,18 @@ Size: the course is 1.6 MB, 345 KB zipped (61 of 73 lessons built, 293 rules, 5,
 ms. Voice: 186 changed sentences recorded (7,948 characters); November now **757,177 — ≈192,800 left under 950,000**.
 All green again: validator (+ book check), `t-unit`, `t-course`, `t-ux`, `t-edge`, voice status and tests.
 
+**With my real backup (13 Nov 2026):** my state (`gv5_de`, 13 Nov) loaded in the real app on the code before and
+after Session 7: every key, all 5,317 word records, the seven lessons and thirteen verb sheets come back unchanged
+after a load and save; today's plan is the same on both (the W-questions lesson: test-out, sheet, drill, reviews);
+the pace green, all lessons ≈28 Jun for a 6 Jul target (one sheet more than estimated: +1 day). `sim-journey` with my
+state to the finish date (275 days, my measured accuracy): every word met 6 Jun and Known 9 Jul, the verb ledger done
+16 Jun, no day left owing, the pace never amber, ≈170 answers a day in 3–5 sessions, the course 14 questions a day now
+→ ≈40 in May–July. Every kind of card answered right and wrong on a phone with my profile and looked at. Fixed: a
+pick whose options differ only by an umlaut (konnte / könnte, älter / alter) said "No umlaut here" — a spelling
+note, where the umlaut was the choice — now "It's **konnte** — without the umlaut", and the könnte items say why
+(the Konjunktiv II); the verb lesson's title cut to one line (*Strong Präteritum · Plusquamperfekt*); one writing
+prompt's English.
+
 ### Session 8 — Stage 3, conversation
 
 **Upload:** chapters 30, 31. *(from the course map: `node tools/course/session.mjs 8`)*

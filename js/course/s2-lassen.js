@@ -220,7 +220,7 @@ cxPack({
           { q: "He has the documents translated.", a: ["Er lässt die Dokumente übersetzen."], r: ["lass.do"] },
         ] },
         { id: "dw.lass", t: "write", end: true, title: "Write your own", how: "Write in your own words. Saved for Claude to correct.", items: [
-          { q: "What do you have done by others? (the hairdresser, the garage …)", model: ["Ich lasse mir alle zwei Monate die Haare schneiden. Mein Auto lasse ich jeden Herbst in der Garage kontrollieren."], r: ["lass.do"] },
+          { q: "What do you have done for you? (the hairdresser, the garage …)", model: ["Ich lasse mir alle zwei Monate die Haare schneiden. Mein Auto lasse ich jeden Herbst in der Garage kontrollieren."], r: ["lass.do"] },
           { q: "Suggest three things to do with a friend this weekend. (Lass uns …)", model: ["Lass uns am Samstag auf den Markt gehen! Lass uns danach zusammen kochen. Und am Sonntag lass uns an den See fahren!"], r: ["lass.let"] },
           { q: "What did your parents let you do as a child, and what not?", model: ["Meine Eltern ließen mich jeden Tag draußen spielen. Sie ließen mich aber nie allein in die Stadt fahren."], r: ["lass.let"] },
           { q: "Something you had done recently. (Ich habe … lassen.)", model: ["Letzte Woche habe ich meine Brille reparieren lassen. Ich habe auch einen neuen Schlüssel machen lassen."], r: ["lass.pf"] },

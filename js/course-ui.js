@@ -303,7 +303,11 @@ function cxPick(oi) {
     const o = +b.dataset.o; b.disabled = true;
     if (opts[o] === item.a[0]) b.classList.add("right"); else if (o === oi) b.classList.add("wrong");
   });
-  const res = ok ? { ok: true, soft: [], right: item.a[0] } : cxCheck(item, opts[oi], cxSection(set.sec));
+  let res = ok ? { ok: true, soft: [], right: item.a[0] } : cxCheck(item, opts[oi], cxSection(set.sec));
+  // (two options that differ only by an umlaut: the checker would call it a
+  // spelling slip — here the umlaut was the choice, so say which one fits)
+  if (!ok && cxLoose(opts[oi]) === cxLoose(item.a[0])) res = { ...res, ok: false, right: item.a[0], rule: res.rule || (item.r || [])[0] || null,
+    msg: `It's **${item.a[0]}** — ${/[äöüÄÖÜ]/.test(item.a[0]) ? "with" : "without"} the umlaut.` };
   cxAnswered(ok, opts[oi], res, false);
 }
 function cxCheckCur() {

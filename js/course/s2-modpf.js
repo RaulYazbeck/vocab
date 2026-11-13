@@ -128,11 +128,11 @@ cxPack({
           { q: "Das habe ich nicht ___.", o: ["gewollt", "wollen", "gewollen"], a: ["gewollt"], r: ["mpf.alone"] },
           { q: "Wir ___ lange warten müssen.", o: ["haben", "sind", "wurden"], a: ["haben"], r: ["mpf.dbl"] },
           { q: "Die Sängerin wird in Zürich singen ___.", o: ["wollen", "gewollt", "will"], a: ["wollen"], r: ["mpf.dbl"] },
-          { q: "Ich ___ gestern leider nicht anrufen.", o: ["konnte", "könnte", "kann"], a: ["konnte"], r: ["mpf.prat"] },
+          { q: "Ich ___ gestern leider nicht anrufen.", o: ["konnte", "könnte", "kann"], a: ["konnte"], r: ["mpf.prat"], note: "**konnte** is the past (gestern); **könnte**, with the umlaut, means *could, would be able* — the Konjunktiv II." },
           { q: "Sie ist gegangen, weil sie ___.", o: ["hat arbeiten müssen", "arbeiten müssen hat", "hat müssen arbeiten"], a: ["hat arbeiten müssen"], r: ["mpf.sub"] },
           { q: "Hast du Ski fahren ___?", o: ["dürfen", "gedurft", "darfst"], a: ["dürfen"], r: ["mpf.dbl"] },
           { q: "Die Kinder haben das nicht ___.", o: ["gedurft", "dürfen", "durften"], a: ["gedurft"], r: ["mpf.alone"] },
-          { q: "Letzten Montag ___ wir zum Arzt.", o: ["mussten", "müssten", "gemusst"], a: ["mussten"], r: ["mpf.prat"] },
+          { q: "Letzten Montag ___ wir zum Arzt.", o: ["mussten", "müssten", "gemusst"], a: ["mussten"], r: ["mpf.prat"], note: "**mussten** is the past; **müssten**, with the umlaut, means *would have to* — the Konjunktiv II." },
         ] },
         // ── our own: Präteritum or Perfekt? ──
         { id: "dmpf.prat", t: "transform", title: "As people say it", how: "Say it the way people usually do: the modal in the Präteritum.", items: [
