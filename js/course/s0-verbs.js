@@ -14,14 +14,14 @@ cxPack({
     "s0.verbs": {
       drills: [
         // ── generated: the tables ──
-        { id: "d6.1", ex: "6.1", also: ["6.4", "6.12"], t: "type", title: "Regular verbs: the endings", how: "Write the form.", gen: { kind: "conj", verbs: ["machen", "fragen", "sagen", "hören", "zeigen", "lachen", "wohnen", "kaufen", "spielen", "gehen"], tense: "pr" }, n: 10, r: ["gs:pr1.r2"] },
-        { id: "d6.2", ex: "6.2", t: "type", title: "-t and -d stems: the extra e", how: "Write the form.", gen: { kind: "conj", verbs: ["arbeiten", "finden", "warten", "antworten", "reden", "öffnen"], tense: "pr" }, n: 10, r: ["gs:pr2.r1"] },
-        { id: "d6.3", ex: "6.3", t: "type", title: "s, ß, z stems: du takes -t", how: "Write the form.", gen: { kind: "conj", verbs: ["heißen", "tanzen", "sitzen", "reisen", "schließen", "putzen"], tense: "pr" }, n: 10, r: ["gs:pr2.r2"] },
-        { id: "d8.1", ex: "8.1", also: ["8.2"], t: "type", title: "a → ä: fahren, schlafen…", how: "Write the form.", gen: { kind: "conj", verbs: ["fahren", "schlafen", "tragen", "waschen", "laufen", "halten", "lassen", "fallen", "fangen"], tense: "pr" }, n: 10, r: ["gs:pr4.r1"] },
-        { id: "d8.3", ex: "8.3", also: ["8.4"], t: "type", title: "e → i: sprechen, essen…", how: "Write the form.", gen: { kind: "conj", verbs: ["sprechen", "essen", "nehmen", "geben", "helfen", "treffen", "vergessen", "werfen"], tense: "pr" }, n: 10, r: ["gs:pr4.r2"] },
-        { id: "d8.5", ex: "8.5", also: ["8.6"], t: "type", title: "e → ie: sehen, lesen…", how: "Write the form.", gen: { kind: "conj", verbs: ["sehen", "lesen", "empfehlen", "stehlen"], tense: "pr" }, n: 10, r: ["gs:pr4.r3"] },
-        { id: "d17.1", ex: "17.1", also: ["17.2"], t: "type", title: "The modals", how: "Write the form.", gen: { kind: "conj", verbs: ["können", "müssen", "wollen", "dürfen", "sollen", "mögen"], tense: "pr" }, n: 10, r: ["gs:pr5.r1", "gs:pr5.r2"] },
-        { id: "d9.1", ex: "9.1", also: ["9.6", "12.17"], t: "type", title: "Commands: du, ihr, Sie", how: "Write the command — with Sie, Sie is part of it.", gen: { kind: "conj", verbs: ["trinken", "nehmen", "essen", "sprechen", "schlafen", "gehen", "kaufen", "sein", "arbeiten", "lesen", "helfen", "fahren"], tense: "im" }, n: 10, r: ["gs:im1.r1", "gs:im1.r2", "gs:im1.r3"] },
+        { id: "d6.1", ex: "6.1", also: ["6.4", "6.12"], t: "type", title: "Regular verbs: the endings", how: "Write the verb form.",gen: { kind: "conj", verbs: ["machen", "fragen", "sagen", "hören", "zeigen", "lachen", "wohnen", "kaufen", "spielen", "gehen"], tense: "pr" }, n: 10, r: ["gs:pr1.r2"] },
+        { id: "d6.2", ex: "6.2", t: "type", title: "-t and -d stems: the extra e", how: "Write the verb form.",gen: { kind: "conj", verbs: ["arbeiten", "finden", "warten", "antworten", "reden", "öffnen"], tense: "pr" }, n: 10, r: ["gs:pr2.r1"] },
+        { id: "d6.3", ex: "6.3", t: "type", title: "s, ß, z stems: du takes -t", how: "Write the verb form.",gen: { kind: "conj", verbs: ["heißen", "tanzen", "sitzen", "reisen", "schließen", "putzen"], tense: "pr" }, n: 10, r: ["gs:pr2.r2"] },
+        { id: "d8.1", ex: "8.1", also: ["8.2"], t: "type", title: "a → ä: fahren, schlafen…", how: "Write the verb form.",gen: { kind: "conj", verbs: ["fahren", "schlafen", "tragen", "waschen", "laufen", "halten", "lassen", "fallen", "fangen"], tense: "pr" }, n: 10, r: ["gs:pr4.r1"] },
+        { id: "d8.3", ex: "8.3", also: ["8.4"], t: "type", title: "e → i: sprechen, essen…", how: "Write the verb form.",gen: { kind: "conj", verbs: ["sprechen", "essen", "nehmen", "geben", "helfen", "treffen", "vergessen", "werfen"], tense: "pr" }, n: 10, r: ["gs:pr4.r2"] },
+        { id: "d8.5", ex: "8.5", also: ["8.6"], t: "type", title: "e → ie: sehen, lesen…", how: "Write the verb form.",gen: { kind: "conj", verbs: ["sehen", "lesen", "empfehlen", "stehlen"], tense: "pr" }, n: 10, r: ["gs:pr4.r3"] },
+        { id: "d17.1", ex: "17.1", also: ["17.2"], t: "type", title: "The modals", how: "Write the verb form.",gen: { kind: "conj", verbs: ["können", "müssen", "wollen", "dürfen", "sollen", "mögen"], tense: "pr" }, n: 10, r: ["gs:pr5.r1", "gs:pr5.r2"] },
+        { id: "d9.1", ex: "9.1", also: ["9.6", "12.17"], t: "type", title: "Commands: du, ihr, Sie", how: "Write the command. With Sie, the word Sie is part of it.", gen: { kind: "conj", verbs: ["trinken", "nehmen", "essen", "sprechen", "schlafen", "gehen", "kaufen", "sein", "arbeiten", "lesen", "helfen", "fahren"], tense: "im" }, n: 10, r: ["gs:im1.r1", "gs:im1.r2", "gs:im1.r3"] },
 
         // ── Übung 6•14 · 6•21 · 6•26: the present in a sentence ──
         { id: "d6.14", ex: "6.14", also: ["6.21", "6.26"], t: "type", title: "The present in a sentence", how: "Write the verb's form.", items: [
@@ -91,7 +91,7 @@ cxPack({
           { q: "___ ihr am Wochenende oft weg? (fahren)", a: ["Fahrt"], r: ["gs:pr4.r1"], vf: [["fahren", "pr", "ihr"]] },
         ] },
         // ── Übung 8•10 · 8•15: a Saturday, the stem changers ──
-        { id: "d8.10", ex: "8.10", also: ["8.15"], t: "type", title: "Nina's Saturday", how: "Write the verb's form — watch the vowel.", items: [
+        { id: "d8.10", ex: "8.10", also: ["8.15"], t: "type", title: "Nina's Saturday", how: "Write the verb's form. Watch the vowel.", items: [
           { q: "Am Samstag ___ Nina lange. (schlafen)", a: ["schläft"], r: ["gs:pr4.r1"], vf: [["schlafen", "pr", "er"]] },
           { q: "Dann ___ sie mit dem Velo in die Stadt. (fahren)", a: ["fährt"], r: ["gs:pr4.r1"], vf: [["fahren", "pr", "er"]] },
           { q: "Auf dem Markt ___ sie Gemüse. (kaufen)", a: ["kauft"], r: ["gs:pr1.r2"], vf: [["kaufen", "pr", "er"]] },
@@ -132,7 +132,7 @@ cxPack({
           { q: "Wohin laufen Sie jeden Morgen?", a: ["Wohin läufst du jeden Morgen?"], r: ["gs:pr4.r1"], vf: [["laufen", "pr", "du"]] },
         ] },
         // ── Übung 8•14: nicht oft ──
-        { id: "d8.14", ex: "8.14", t: "answer", title: "Not often", how: "Answer with nicht oft — the verb in the ich-form.", items: [
+        { id: "d8.14", ex: "8.14", t: "answer", title: "Not often", how: "Answer with nicht oft, using the ich-form of the verb.", items: [
           { q: "Wie oft fährst du Velo?", a: ["Ich fahre nicht oft Velo."], r: ["gs:pr4.r1"], vf: [["fahren", "pr", "ich"]] },
           { q: "Wie oft liest du Bücher?", a: ["Ich lese nicht oft Bücher."], r: ["gs:pr4.r3"], vf: [["lesen", "pr", "ich"]] },
           { q: "Wie oft isst du Fleisch?", a: ["Ich esse nicht oft Fleisch."], r: ["gs:pr4.r2"], vf: [["essen", "pr", "ich"]] },
@@ -172,7 +172,7 @@ cxPack({
           { q: "(to your kids) das Zimmer aufräumen", a: ["Räumt das Zimmer auf!", "Räumt euer Zimmer auf!"], r: ["gs:im3.r1"], vf: [["aufräumen", "im", "ihr"]] },
         ] },
         // ── Übung 9•3: signs and announcements ──
-        { id: "d9.3", ex: "9.3", t: "transform", low: true, title: "Signs and announcements", how: "Say it the way a sign or a loudspeaker does: the infinitive, last.", items: [
+        { id: "d9.3", ex: "9.3", t: "transform", low: true, title: "Signs and announcements", how: "Say it the way a sign or an announcement does, with the infinitive at the end.", items: [
           { q: "On the platform, a train comes in: zurückbleiben", a: ["Bitte zurückbleiben!", "Zurückbleiben!"], r: ["gs:im1.r3"] },
           { q: "A sign in the museum: nicht berühren", a: ["Nicht berühren!", "Bitte nicht berühren!"], r: ["gs:im1.r3"] },
           { q: "A sign in the train: nicht rauchen", a: ["Nicht rauchen!", "Bitte nicht rauchen!"], r: ["gs:im1.r3"] },
@@ -185,7 +185,7 @@ cxPack({
           { q: "In the plane: sich anschnallen (bitte)", a: ["Bitte anschnallen!", "Anschnallen!"], r: ["gs:im1.r3"] },
         ] },
         // ── Übung 9•4 · 12•15: let's — the wir-form first ──
-        { id: "d9.4", ex: "9.4", also: ["12.15"], t: "transform", low: true, title: "Let's…", how: "Let's …: the wir-form first, then wir — Gehen wir!", items: [
+        { id: "d9.4", ex: "9.4", also: ["12.15"], t: "transform", low: true, title: "Let's…", how: "Say *let's*: the wir-form of the verb first, then wir. Gehen wir!", items: [
           { q: "Let's: ins Kino gehen", a: ["Gehen wir ins Kino!"], r: ["gs:im1.r3"], vf: [["gehen", "pr", "wir"]] },
           { q: "Let's: eine Pause machen", a: ["Machen wir eine Pause!"], r: ["gs:im1.r3"], vf: [["machen", "pr", "wir"]] },
           { q: "Let's: den Bus nehmen", a: ["Nehmen wir den Bus!"], r: ["gs:im1.r3"], vf: [["nehmen", "pr", "wir"]] },
@@ -198,7 +198,7 @@ cxPack({
           { q: "Let's: jetzt anfangen", a: ["Fangen wir jetzt an!"], r: ["gs:im3.r1"], vf: [["anfangen", "pr", "wir"]] },
         ] },
         // ── Übung 9•5: lass uns … ──
-        { id: "d9.5", ex: "9.5", t: "transform", low: true, title: "Lass uns…", how: "Let's — with lassen: lass uns (du) · lasst uns (ihr) · lassen Sie uns (Sie) + the infinitive at the end.", items: [
+        { id: "d9.5", ex: "9.5", t: "transform", low: true, title: "Lass uns…", how: "Say *let's* with lassen: lass uns, lasst uns or lassen Sie uns, and the infinitive at the end.", items: [
           { q: "(to a friend) Wir gehen nach Hause.", a: ["Lass uns nach Hause gehen!"], r: ["gs:im1.r1"], vf: [["lassen", "im", "du"]] },
           { q: "(to a friend) Wir reden später darüber.", a: ["Lass uns später darüber reden!"], r: ["gs:im1.r1"], vf: [["lassen", "im", "du"]] },
           { q: "(to your friends) Wir bestellen eine Pizza.", a: ["Lasst uns eine Pizza bestellen!"], r: ["gs:im1.r2"], vf: [["lassen", "im", "ihr"]] },
@@ -211,7 +211,7 @@ cxPack({
           { q: "(to your friends) Wir fahren mit dem Zug.", a: ["Lasst uns mit dem Zug fahren!"], r: ["gs:im1.r2"], vf: [["lassen", "im", "ihr"]] },
         ] },
         // ── Übung 9•7: commands with a prefix ──
-        { id: "d9.7", ex: "9.7", t: "type", title: "Commands with a prefix", how: "Write the command — a separable prefix goes last.", items: [
+        { id: "d9.7", ex: "9.7", t: "type", title: "Commands with a prefix", how: "Write the command. A separable prefix goes last.", items: [
           { q: "(du) ___! (aufstehen)", a: ["Steh auf", "Stehe auf"], r: ["gs:im3.r1"], vf: [["aufstehen", "im", "du"]] },
           { q: "(ihr) ___! (mitkommen)", a: ["Kommt mit"], r: ["gs:im3.r1"], vf: [["mitkommen", "im", "ihr"]] },
           { q: "(Sie) ___! (einsteigen)", a: ["Steigen Sie ein"], r: ["gs:im3.r1"], vf: [["einsteigen", "im", "Sie"]] },
@@ -238,7 +238,7 @@ cxPack({
         ] },
         // ── Übung 18•4 (Session 4): one sentence, a command for du, ihr or Sie ──
         // (chapter 18 is wissen and kennen; its last exercise practises commands)
-        { id: "d18.4", ex: "18.4", t: "transform", low: true, title: "du, ihr or Sie?", how: "Turn the sentence into a command — for du, ihr or Sie, as the brackets say.", items: [
+        { id: "d18.4", ex: "18.4", t: "transform", low: true, title: "du, ihr or Sie?", how: "Turn the sentence into a command for du, ihr or Sie, as the brackets say.", items: [
           { q: "(du) Lisa erklärt es auf Deutsch.", a: ["Erklär es auf Deutsch!", "Erkläre es auf Deutsch!"], r: ["gs:im1.r1"], vf: [["erklären", "im", "du"]] },
           { q: "(ihr) Wir empfehlen ein Hotel.", a: ["Empfehlt ein Hotel!"], r: ["gs:im1.r2"], vf: [["empfehlen", "im", "ihr"]] },
           { q: "(Sie) Wir bleiben in der Stadt.", a: ["Bleiben Sie in der Stadt!"], r: ["gs:im1.r3"], vf: [["bleiben", "im", "Sie"]] },
@@ -320,7 +320,7 @@ cxPack({
           { q: "Wir sollen um acht da sein.", a: ["Wir sollten um acht da sein."], r: ["gs:pt12.r2"], vf: [["sollen", "pt", "wir"]] },
         ] },
         // ── Übung 17•4: add möchte ──
-        { id: "d17.4", ex: "17.4", t: "transform", title: "Add möchte", how: "Say it with möchte — the verb goes to the end.", d: ["möchten", "will"], items: [
+        { id: "d17.4", ex: "17.4", t: "transform", title: "Add möchte", how: "Say it with möchte. The other verb goes to the end.", d: ["möchten", "will"], items: [
           { q: "Ich trinke einen Tee.", a: ["Ich möchte einen Tee trinken."], r: ["gs:pr5.r3"], vf: [["möchten", "pr", "ich"]] },
           { q: "Wir essen heute im Restaurant.", a: ["Wir möchten heute im Restaurant essen."], r: ["gs:pr5.r3"], vf: [["möchten", "pr", "wir"]] },
           { q: "Fahren Sie nach Bern?", a: ["Möchten Sie nach Bern fahren?"], r: ["gs:pr5.r3"], vf: [["möchten", "pr", "sie"]] },
@@ -360,7 +360,7 @@ cxPack({
           { q: "Sie (they) haben den Film ___. (sehen)", a: ["gesehen"], r: ["gs:pf1.r2"] },
         ] },
         // ── our own: war and hatte (pt11, pt13) ──
-        { id: "dpt.11", t: "type", title: "war and hatte", how: "Write it in the past: war, hatte… (es gab).", items: [
+        { id: "dpt.11", t: "type", title: "war and hatte", how: "Write the past form: war, hatte or gab.", items: [
           { q: "Gestern ___ ich krank. (sein)", a: ["war"], r: ["gs:pt11.r1"], vf: [["sein", "pt", "ich"]] },
           { q: "Wir ___ keine Zeit. (haben)", a: ["hatten"], r: ["gs:pt11.r2"], vf: [["haben", "pt", "wir"]] },
           { q: "___ du schon in Luzern? (sein)", a: ["Warst"], r: ["gs:pt11.r1"], vf: [["sein", "pt", "du"]] },
@@ -374,7 +374,7 @@ cxPack({
         ] },
 
         // ── Production: Übung 8•8 · 8•9 · 8•11 · 8•12 — build it ──
-        { id: "d8.8", ex: "8.8", also: ["8.9", "8.11", "8.12"], t: "compose", end: true, title: "Build it yourself", how: "Make a sentence from the words — mind the vowel change.", d: ["schlafst", "fahrt", "esst"], items: [
+        { id: "d8.8", ex: "8.8", also: ["8.9", "8.11", "8.12"], t: "compose", end: true, title: "Build it yourself", how: "Make a sentence from the words. Watch the vowel change.", d: ["schlafst", "fahrt", "esst"], items: [
           { w: ["Paul", "schlafen", "bis zehn Uhr"], a: ["Paul schläft bis zehn Uhr."], r: ["gs:pr4.r1"], cap: true, vf: [["schlafen", "pr", "er"]] },
           { w: ["du", "laufen", "sehr schnell"], a: ["Du läufst sehr schnell."], r: ["gs:pr4.r1"], vf: [["laufen", "pr", "du"]] },
           { w: ["meine Oma", "essen", "jeden Tag", "einen Apfel"], a: ["Meine Oma isst jeden Tag einen Apfel."], r: ["gs:pr4.r2"], vf: [["essen", "pr", "er"]] },
@@ -387,7 +387,7 @@ cxPack({
           { w: ["das Kind", "tragen", "einen Rucksack"], a: ["Das Kind trägt einen Rucksack."], r: ["gs:pr4.r1"], vf: [["tragen", "pr", "er"]] },
         ] },
         // ── Production: Übung 6•13 — say it ──
-        { id: "d6.13", ex: "6.13", t: "translate", end: true, title: "Say it in German", how: "Translate — one present for *I do* and *I'm doing*.", items: [
+        { id: "d6.13", ex: "6.13", t: "translate", end: true, title: "Say it in German", how: "Translate. German has one present for both *I do* and *I'm doing*.", items: [
           { q: "The course is starting.", a: ["Der Kurs beginnt.", "Der Kurs fängt an."], r: ["gs:pr1.trap"] },
           { q: "Lara, what do you need?", a: ["Lara, was brauchst du?"], r: ["gs:pr1.r2"] },
           { q: "Mrs Graf, what do you need?", a: ["Frau Graf, was brauchen Sie?"], r: ["gs:pr1.r3"] },
