@@ -378,7 +378,7 @@ cxPack({
           { q: "The jacket? I'll take it.", a: ["Die Jacke? Ich nehme sie."], r: ["accp.gender"] },
           { q: "Do you know us? (Sie)", a: ["Kennen Sie uns?"], r: ["accp.forms"] },
           { q: "You can't park here.", a: ["Hier kann man nicht parken.", "Man kann hier nicht parken.", "Hier darf man nicht parken.", "Man darf hier nicht parken.", "Hier kann man nicht parkieren.", "Man kann hier nicht parkieren.", "Hier darf man nicht parkieren.", "Man darf hier nicht parkieren."], r: ["man.rule"] },
-          { q: "How do you say that in German?", a: ["Wie sagt man das auf Deutsch?"], r: ["man.verb"] },
+          { q: "How do you say that in French?", a: ["Wie sagt man das auf Französisch?"], r: ["man.verb"] },
           { q: "In Switzerland people separate the rubbish.", a: ["In der Schweiz trennt man den Abfall."], r: ["man.verb"] },
         ] },
         // ── Übung 7•12: a noun for the pronoun — your own ──

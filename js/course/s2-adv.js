@@ -187,7 +187,7 @@ cxPack({
         ] },
         // ── our own: the adverb first ──
         { id: "dadv.front", t: "transform", fixed: true, title: "The adverb first", how: "Start with the highlighted adverb. Then the verb, then the subject.", items: [
-          { q: "Ich habe leider keine Zeit.", hl: "leider", a: ["Leider habe ich keine Zeit."], r: ["adv.pos"] },
+          { q: "Ich habe heute leider keine Zeit.", hl: "leider", a: ["Leider habe ich heute keine Zeit."], r: ["adv.pos"] },
           { q: "Er kommt vielleicht morgen.", hl: "vielleicht", a: ["Vielleicht kommt er morgen."], r: ["adv.pos"] },
           { q: "Wir sehen uns hoffentlich bald wieder.", hl: "hoffentlich", a: ["Hoffentlich sehen wir uns bald wieder."], r: ["adv.pos"] },
           { q: "Meine Großeltern wohnen dort.", hl: "dort", a: ["Dort wohnen meine Großeltern."], r: ["adv.pos"] },

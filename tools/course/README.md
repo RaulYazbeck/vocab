@@ -30,6 +30,12 @@ the 📖 Course / 🧩 Practise / 📚 By chapter / ✍️ Writing screens) and 
                                (s2-conj) · indirect questions, dass or ob (s2-indq) · wo- / da- compounds
                                (s2-woda) · relative clauses ×2 (s2-rel) · the genitive and its prepositions
                                (s2-gen — its ids are geni.*: gen.* is the gender lesson's) · adverbs (s2-adv)
+                               Stage 2B (Session 7): the strong and mixed Präteritum and the Plusquamperfekt's
+                               book exercises (s2-praeteritum) · Konjunktiv II's (s2-k2) · the passive's
+                               (s2-passive) · if and wishes, als ob (s2-cond) · modals in the Perfekt (s2-modpf) ·
+                               lassen (s2-lassen) · man and the impersonal passive (s2-man) · modal particles
+                               (s2-part) · short answers and emphasis (s2-short) · participles as adjectives
+                               (s2-ptadj) · n-nouns and adjectives as nouns (s2-ndecl) · the Stage 2 checkpoint (s2-recap)
     js/course/writing.js       the writing themes (cxJournalThemes) and prompts (cxJournal)
 
 German app only (`de/index.html` loads them; the French app never does).
@@ -78,7 +84,11 @@ a later session that uploads its chapter.
      Pure tables are generated, never
      written: `gen: { kind: "conj", verbs, tense: "pr" | "pt" | "im" | "pf", persons? }` (a
      command asks du · ihr · Sie and wants the whole command: *kommen Sie*; the Perfekt wants
-     the auxiliary and the participle: *hat gegessen*).
+     the auxiliary and the participle: *hat gegessen*; the Plusquamperfekt `pq` the same with hatte /
+     war; the Konjunktiv II `k2` the verb's own form where it has one — wäre, könnte, wüsste — else würde +
+     the infinitive, the one-word form accepted: käme). A `vf` may name any of the engine's form kinds
+     (`k2w` würde + infinitive · `k2o` wäre, könnte · `k2s` käme · `pvpr` / `pvpt` / `pvpf` / `pvmod` the passive):
+     the verb log files them under their tense, and a passive form is checked but not logged.
      In the app the same `vf` feeds the learning log's verbs (`learnNoteVerb`): the form
      counts right when it's in what was written, and a miss logs the word written in its
      place. Umlauts are never typed (agreed): a missing one is never a mistake (one typed where
