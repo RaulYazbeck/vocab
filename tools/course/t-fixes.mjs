@@ -140,14 +140,27 @@ const HELP = () => {
     const wA = pathSpotWeight(S.words[A[0]], now), wB = pathSpotWeight(S.words[B[0]], now), want = wB / (wA + wB);
     ok(Math.abs(share(B) - want) < 0.04, `missed six times: ${(share(B) * 100).toFixed(1)} % of the picks (the weights say ${(want * 100).toFixed(1)} %, ×${(wB / wA).toFixed(1)} a word)`);
     ok(share(A) > 0.12, `never missed: still ${(share(A) * 100).toFixed(1)} % of the picks`);
-    // 2 · time: the same misses, last right 20 days ago (a game; locked 40 days ago) or 120 days ago
-    A.forEach(k => lock(k, { wrong: 1, sAt: now - 40 * day, lastAnsweredAt: now - 20 * day }));
+    // 2 · time: the same misses, last right 20 days ago (a game sets spotAt; locked 40 days ago) or 120 days ago
+    A.forEach(k => lock(k, { wrong: 1, sAt: now - 40 * day, spotAt: now - 20 * day }));
     B.forEach(k => lock(k, { wrong: 1, sAt: now - 120 * day, lastAnsweredAt: now - 120 * day }));
     share = draw(keys);
     ok(share(B) > 0.7 && share(A) > 0.05, `unseen 120 days: ${(share(B) * 100).toFixed(1)} % · unseen 20 days: ${(share(A) * 100).toFixed(1)} %`);
-    // 3 · a word answered right in a game yesterday: almost never
-    lock(A[0], { wrong: 6, lastAnsweredAt: now - day });
-    ok(pathSpotWeight(S.words[A[0]], now) < pathSpotWeight(S.words[A[1]], now) / 5, "answered right yesterday (a game): its weight is tiny");
+    // 3 · answered right in a game (the real srs.js): its weight drops, and it can't come for 14 days
+    lock(A[0], { wrong: 6, sAt: now - 60 * day });
+    const w0 = pathSpotWeight(S.words[A[0]]);
+    applyCorrect(S.words[A[0]], { quiet: true, kind: "recognition" });
+    ok(S.words[A[0]].st === STAGE_LOCKED && pathSpotWeight(S.words[A[0]]) < w0 / 50 && !pathSpotOk(S.words[A[0]]), `answered right in a game: still 💎, weight ${w0.toFixed(3)} → ${pathSpotWeight(S.words[A[0]]).toFixed(5)}, blocked 14 days`);
+    // an "≈ Almost" (Today sets lastAnsweredAt and near): the odds don't drop
+    lock(A[10], { wrong: 2, sAt: now - 60 * day });
+    const w1 = pathSpotWeight(S.words[A[10]]);
+    Object.assign(S.words[A[10]], { lastAnsweredAt: Date.now(), near: 1 });
+    ok(pathSpotWeight(S.words[A[10]]) === w1 && pathSpotOk(S.words[A[10]]), "an ≈ Almost: its odds unchanged, it can still come");
+    // a 💎 word missed in a multiple choice (the real srs.js): flagged → owed a typed check as a fix, never a spot check
+    lock(A[11], { wrong: 0, sAt: now - 60 * day });
+    applyWrong(S.words[A[11]], { kind: "recognition" });
+    ok(S.words[A[11]].fl === 1 && !pathSpotOk(S.words[A[11]]), "missed in a multiple choice (⚠️ flagged): not spot-checked");
+    lock(A[12], { sAt: now - 60 * day, lrn: 1 });
+    ok(!pathSpotOk(S.words[A[12]]), "relearning: not spot-checked");
     // 4 · the hard block: locked in (or checked in, or repaired) under 30 days ago, spot-checked
     // under 14 days ago, due, in repair, a verb on the verb track → never, whatever its weight
     lock(A[1], { sAt: now - 1 * day, wrong: 6, lastAnsweredAt: 0 }); lock(A[2], { sAt: now - 29 * day, wrong: 6, lastAnsweredAt: 0 });
@@ -174,6 +187,18 @@ const HELP = () => {
     let c = (document.getElementById("p-count") || {}).textContent;
     ok(!pathSession.items.some(x => x.t === "spot") && +c.split("/")[1] <= 60, `none forced: long ${c}, no spot check`);
     pathSession = null; backToMenu();
+    // 6b · the word of the day is the only 💎 word that can come: it comes once (as the word of the day), the count the length
+    keys.forEach(k => lock(k, { spotAt: now - day }));
+    lock(keys[5], { spotAt: 0, sAt: now - 60 * day });
+    invalidatePathScan();
+    ok(pathSpotCandidates(3).length === 1, "one 💎 word can come");
+    const wkWas = window.questWotdKey; window.questWotdKey = () => keys[5];
+    S.path.spotToday = 0;
+    startPathSession("long", { noBonus: true });
+    c = (document.getElementById("p-count") || {}).textContent;
+    const mine = pathSession.items.filter(x => x.w && !x.w.vx && x.w.deckId + "_" + x.w.idx === keys[5] && !x.warm);
+    ok(mine.length === 1 && mine[0].wotd && +c.split("/")[1] <= 60, `the word of the day = the spot word: once (${mine.map(x => x.t + (x.wotd ? ":wotd" : "")).join(", ")}), long ${c}`);
+    pathSession = null; backToMenu(); window.questWotdKey = wkWas;
     // 7 · PATH.SPOT_PER_DAY a day: the 3rd still comes, then none
     keys.forEach(k => lock(k, { spotAt: 0, sAt: now - 30 * day, lastAnsweredAt: now - 30 * day }));
     invalidatePathScan();

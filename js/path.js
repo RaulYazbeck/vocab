@@ -666,8 +666,10 @@ function pathDues(now = Date.now()) {
 // Not a plain lottery: the words most likely to have slipped come up
 // more often. A word's weight is the chance it has faded since you last
 // got it right — 1 − e^(−t / span):
-//   t     days since you last answered it right (anywhere: a game counts),
-//         or since it was locked in, checked in or spot-checked
+//   t     days since you last answered it right — anywhere, a game too
+//         (srs.js: a right answer of a 💎 word sets spotAt; its lock-in,
+//         check-ins and repair set sAt). Not lastAnsweredAt: an "≈ Almost"
+//         sets that too, and a near miss must not make a word less likely.
 //   span  how long it holds: SPOT_SPAN days (a ⭐ word at normal ease
 //         holds at ~90 % after 30 days — your measured accuracy there),
 //         × its ease (a word you found hard holds less), ÷ its misses on
@@ -678,7 +680,7 @@ function pathDues(now = Date.now()) {
 const SPOT_SPAN = 270;           // days (−30 / ln 0.895)
 const SPOT_MISS = 0.5, SPOT_MISS_CAP = 6;
 function pathSpotWeight(ws, now = Date.now()) {
-  const last = Math.max(ws.lastAnsweredAt || 0, ws.spotAt || 0, ws.sAt || 0);
+  const last = Math.max(ws.spotAt || 0, ws.sAt || 0);
   const t = Math.max(0, (now - last) / 864e5);
   const span = SPOT_SPAN * Math.max(EASE.MIN, ws.k || 1) / (1 + SPOT_MISS * Math.min(SPOT_MISS_CAP, ws.wrong || 0));
   return 1 - Math.exp(-t / span);
@@ -696,11 +698,12 @@ function pathWeightedOrder(list, rng = Math.random) {
 //     block finds more slipped words per check, the same on the finish date)
 //   • not within SPOT_AGAIN days of its last spot check — or of any
 //     right answer of it elsewhere (a game…: srs.js sets spotAt then too)
-//   • not due (its check-in asks it), not in repair, not a verb the verb
-//     track has taken over
+//   • not due (its check-in asks it), not in repair, not flagged or
+//     relearning (a miss: it is already owed a typed check as a fix), not
+//     a verb the verb track has taken over
 const SPOT_BLOCK = 30, SPOT_AGAIN = 14; // days
 function pathSpotOk(ws, now = Date.now()) {
-  return !!ws && ws.st >= STAGE_LOCKED && !ws.rp && !ws.rt && !(ws.dueAt && ws.dueAt <= now)
+  return !!ws && ws.st >= STAGE_LOCKED && !ws.rp && !ws.fl && !ws.lrn && !ws.rt && !(ws.dueAt && ws.dueAt <= now)
     && now - (ws.sAt || 0) >= SPOT_BLOCK * 864e5 && now - (ws.spotAt || 0) >= SPOT_AGAIN * 864e5;
 }
 function pathSpotCandidates(n = 1, rng = Math.random) {
@@ -1032,7 +1035,7 @@ function buildPathQueue(lenKey, opts = {}) {
       const spare = budget - reviews.length - nNew0 * 3 - grammarQ - spots.length;
       const room = pathDeadlineOn() ? Math.max(0, Math.min(Math.round(budget / 3), spare))
         : Math.min(Math.round(budget / 3), Math.max(Math.round(budget / 5), spare));
-      const have = new Set(reviews.map(r => r.w.deckId + "_" + r.w.idx));
+      const have = new Set([...reviews.map(r => r.w.deckId + "_" + r.w.idx), ...spots.map(w => w.deckId + "_" + w.idx)]);
       const per = Math.ceil(room / nudges.focus.length), extra = [];
       nudges.focus.forEach(({ focus: f, param }) => {
         focusWords(f, param).filter(x => !have.has(x.d.id + "_" + x.i)).slice(0, per).forEach(x => {
@@ -1050,6 +1053,8 @@ function buildPathQueue(lenKey, opts = {}) {
     // the last word review; never in a "+5" round — new words only)
     if (wk && !opts.extra) {
       const di = wk.lastIndexOf("_"), dId = wk.substring(0, di), idx = +wk.slice(di + 1);
+      // (the spot check's word: the word of the day takes its place — its quest needs that card)
+      if (spots.some(w => w.deckId === dId && w.idx === idx)) spots = [];
       if (getDeck(dId) && isMet(dId, idx) && !reviews.some(r => r.w && r.w.deckId === dId && r.w.idx === idx)) {
         const used = reviews.filter(r => !["learn", "sheet", "cx"].includes(r.t)).length + nNew0 * 3 + grammarQ + spots.length;
         let drop = -1;
