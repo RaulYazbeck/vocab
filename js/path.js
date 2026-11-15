@@ -662,17 +662,44 @@ function pathDues(now = Date.now()) {
   const n = o => o.fix.length + o.due.length;
   return { words, verbs, rules, n: n(words) + n(verbs) + n(rules) };
 }
+// ── 💎 SPOT CHECKS: WHICH WORD ────────────────
+// Not a plain lottery: the words most likely to have slipped come up
+// more often. A word's weight is the chance it has faded since you last
+// got it right — 1 − e^(−t / span):
+//   t     days since you last answered it right (anywhere: a game counts),
+//         or since it was locked in, checked in or spot-checked
+//   span  how long it holds: SPOT_SPAN days (a ⭐ word at normal ease
+//         holds at ~90 % after 30 days — your measured accuracy there),
+//         × its ease (a word you found hard holds less), ÷ its misses on
+//         the way up: ×1 never missed, ×1.5 once, ×2 twice … ×4 from six
+// So a word missed four times weighs about three times one never missed,
+// a word not seen for months more than one seen last week — and a
+// never-missed word keeps a fair chance: still a sample of all of them.
+const SPOT_SPAN = 270;           // days (−30 / ln 0.895)
+const SPOT_MISS = 0.5, SPOT_MISS_CAP = 6;
+function pathSpotWeight(ws, now = Date.now()) {
+  const last = Math.max(ws.lastAnsweredAt || 0, ws.spotAt || 0, ws.sAt || 0);
+  const t = Math.max(0, (now - last) / 864e5);
+  const span = SPOT_SPAN * Math.max(EASE.MIN, ws.k || 1) / (1 + SPOT_MISS * Math.min(SPOT_MISS_CAP, ws.wrong || 0));
+  return 1 - Math.exp(-t / span);
+}
+// A weighted shuffle (each item drawn in turn with odds ∝ its weight —
+// Efraimidis–Spirakis keys): [{ …, wt }] → the same items, reordered.
+function pathWeightedOrder(list, rng = Math.random) {
+  return list.map(x => ({ x, key: Math.pow(rng() || 1e-12, 1 / Math.max(1e-9, x.wt)) }))
+    .sort((a, b) => b.key - a.key).map(o => o.x);
+}
 function pathSpotCandidates(n = 1, rng = Math.random) {
   const out = [];
-  const cutoff = Date.now() - 14 * 864e5;
+  const now = Date.now(), cutoff = now - 14 * 864e5;
   vocabGroups().forEach(g => g.decks.forEach(d => {
     for (let i = 0; i < d.words.length; i++) {
       const ws = S.words[d.id + "_" + i];
       const last = Math.max(ws ? ws.spotAt || 0 : 0, ws ? ws.sAt || 0 : 0);
-      if (ws && ws.st >= STAGE_LOCKED && !ws.rp && !ws.rt && !(ws.dueAt && ws.dueAt <= Date.now()) && last < cutoff) out.push(pathWord(d.id, i));
+      if (ws && ws.st >= STAGE_LOCKED && !ws.rp && !ws.rt && !(ws.dueAt && ws.dueAt <= now) && last < cutoff) out.push({ w: pathWord(d.id, i), wt: pathSpotWeight(ws, now) });
     }
   }));
-  return seededShuffle(out, rng).slice(0, n);
+  return pathWeightedOrder(out, rng).slice(0, n).map(o => o.w);
 }
 
 // ── ITEM FORMAT ───────────────────────────────
@@ -761,7 +788,7 @@ function focusWords(focus, param) {
   const byDue = (a, b) => (b.due - a.due) || (a.ws.st - b.ws.st);
   if (focus === "stale") out.sort((a, b) => (a.ws.lastAnsweredAt || 0) - (b.ws.lastAnsweredAt || 0));
   else if (focus === "oldest") out.sort((a, b) => (a.ws.sAt || 0) - (b.ws.sAt || 0));
-  else if (focus === "spot") seededShuffle(out, Math.random);
+  else if (focus === "spot") { const now2 = Date.now(); out.splice(0, out.length, ...pathWeightedOrder(out.map(x => ({ ...x, wt: pathSpotWeight(x.ws, now2) })))); }
   else out.sort(byDue);
   return out;
 }
@@ -944,10 +971,10 @@ function buildPathQueue(lenKey, opts = {}) {
     // questions take room from word reviews, never from new words. What
     // doesn't fit waits for the next session (pathGrammarFit).
     const gfit = pathGrammarFit(Math.max(0, budget - nNew0 * 3), scan);
-    // Spot check (at most 2 a day): one question inside the length you
+    // Spot check (at most PATH.SPOT_PER_DAY a day, one a session): one question inside the length you
     // picked — it takes a review's place, never one more on top (none when
     // the new words and the grammar fill the session).
-    spots = (S.path.spotToday || 0) < 2 && budget >= 15 && budget - nNew0 * 3 - gfit.q >= 1 ? pathSpotCandidates(1, rng) : [];
+    spots = (S.path.spotToday || 0) < PATH.SPOT_PER_DAY && budget >= 15 && budget - nNew0 * 3 - gfit.q >= 1 ? pathSpotCandidates(1, rng) : [];
     // The room the new words and the grammar leave goes to the rest of the
     // day's work, every part its share of each session when it doesn't all
     // fit (pathShares): the words' owed reviews, the verb track's due items

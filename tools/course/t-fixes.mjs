@@ -3,6 +3,8 @@
 //   1 · the session length is the length: the grammar inside it — the
 //       learner's own day (the A1 verb lesson 12/13: its last sheet in a
 //       Long 60 that still reads x/60)
+//   1b · 💎 spot checks: the count still the length; weighted towards the
+//       words likely to have slipped; PATH.SPOT_PER_DAY a day; none forced
 //   2 · ✍️ a writing starter tapped is typed, at the cursor
 //   4 · the Journey's coming days count the course; "out of reach" counts it
 //   5 · a twist round ranks up when the twist is neutral or harder, never
@@ -112,6 +114,69 @@ const HELP = () => {
     return { log: __log, fails: __fails };
   });
   say(r, "the length is the length");
+  if (errors.length) { console.log("ERRORS", errors.slice(0, 5)); fails++; }
+  await browser.close();
+}
+
+// ── 💎 spot checks: weighted towards the words likely to have slipped,
+// PATH.SPOT_PER_DAY a day, none when no word qualifies ──
+{
+  const { browser, page, errors } = await openApp({ course: true });
+  await page.evaluate(HELP);
+  const r = await page.evaluate(() => {
+    const now = Date.now(), day = 864e5;
+    const keys = Object.keys(S.words).filter(k => !/^(cx|vx)_/.test(k) && S.words[k].st >= STAGE_KNOWN && !S.words[k].rt).slice(0, 40);
+    ok(keys.length === 40, `40 words to lock in (${keys.length})`);
+    // every other word of the profile: not a 💎 (only these 40 can come)
+    Object.values(S.words).forEach(ws => { if (ws.st >= STAGE_LOCKED) ws.st = STAGE_STRONG; });
+    const lock = (k, o) => Object.assign(S.words[k], { st: STAGE_LOCKED, rp: 0, rt: 0, fl: 0, lrn: 0, spotAt: 0, k: 1, dueAt: now + 60 * day, ...o });
+    const draw = (set, n = 4000) => { const c = new Map(); for (let i = 0; i < n; i++) { const w = pathSpotCandidates(1)[0]; const k = w && w.deckId + "_" + w.idx; c.set(k, (c.get(k) || 0) + 1); } return sel => sel.reduce((a, x) => a + (c.get(x) || 0), 0) / n; };
+    // 1 · misses: 20 never missed, 20 missed six times — the same days unseen
+    const A = keys.slice(0, 20), B = keys.slice(20);
+    A.forEach(k => lock(k, { wrong: 0, sAt: now - 30 * day, lastAnsweredAt: now - 30 * day }));
+    B.forEach(k => lock(k, { wrong: 6, sAt: now - 30 * day, lastAnsweredAt: now - 30 * day }));
+    let share = draw(keys);
+    const wA = pathSpotWeight(S.words[A[0]], now), wB = pathSpotWeight(S.words[B[0]], now), want = wB / (wA + wB);
+    ok(Math.abs(share(B) - want) < 0.04, `missed six times: ${(share(B) * 100).toFixed(1)} % of the picks (the weights say ${(want * 100).toFixed(1)} %, ×${(wB / wA).toFixed(1)} a word)`);
+    ok(share(A) > 0.12, `never missed: still ${(share(A) * 100).toFixed(1)} % of the picks`);
+    // 2 · time: the same misses, last right 20 or 120 days ago
+    A.forEach(k => lock(k, { wrong: 1, sAt: now - 20 * day, lastAnsweredAt: now - 20 * day }));
+    B.forEach(k => lock(k, { wrong: 1, sAt: now - 120 * day, lastAnsweredAt: now - 120 * day }));
+    share = draw(keys);
+    ok(share(B) > 0.7 && share(A) > 0.05, `unseen 120 days: ${(share(B) * 100).toFixed(1)} % · unseen 20 days: ${(share(A) * 100).toFixed(1)} %`);
+    // 3 · a word answered right in a game yesterday: almost never
+    lock(A[0], { wrong: 6, lastAnsweredAt: now - day });
+    ok(pathSpotWeight(S.words[A[0]], now) < pathSpotWeight(S.words[A[1]], now) / 5, "answered right yesterday (a game): its weight is tiny");
+    // 4 · the rules of who can come are unchanged: locked or checked < 14 days ago, due, in repair → never
+    lock(A[1], { sAt: now - 5 * day }); lock(A[2], { spotAt: now - 3 * day }); lock(A[3], { dueAt: now - day }); lock(A[4], { rp: 1 });
+    share = draw(keys, 3000);
+    ok([1, 2, 3, 4].every(i => share([A[i]]) === 0), "locked 5 days ago / spot-checked 3 days ago / due / in repair: never picked");
+    // 5 · the Practise list "Spot checks": every 💎 word, weighted order
+    const fl = focusWords("spot");
+    ok(fl.length === 40 && new Set(fl.map(x => x.d.id + "_" + x.i)).size === 40, `🎯 Spot checks lists all 40 (${fl.length})`);
+    // 6 · nothing to spot-check → no spot check, the length still the length
+    keys.forEach(k => lock(k, { spotAt: now - day }));
+    invalidatePathScan();
+    ok(pathSpotCandidates(3).length === 0, "every 💎 checked yesterday: no candidate");
+    S.path.spotToday = 0;
+    startPathSession("long", { noBonus: true });
+    let c = (document.getElementById("p-count") || {}).textContent;
+    ok(!pathSession.items.some(x => x.t === "spot") && +c.split("/")[1] <= 60, `none forced: long ${c}, no spot check`);
+    pathSession = null; backToMenu();
+    // 7 · PATH.SPOT_PER_DAY a day: the 3rd still comes, then none
+    keys.forEach(k => lock(k, { spotAt: 0, sAt: now - 30 * day, lastAnsweredAt: now - 30 * day }));
+    invalidatePathScan();
+    ok(PATH.SPOT_PER_DAY === 3, `${PATH.SPOT_PER_DAY} a day`);
+    for (const [done, want2] of [[2, true], [3, false]]) {
+      S.path.spotToday = done;
+      startPathSession("long", { noBonus: true });
+      c = (document.getElementById("p-count") || {}).textContent;
+      ok(pathSession.items.some(x => x.t === "spot") === want2 && +c.split("/")[1] <= 60, `${done} done today: ${want2 ? "one more comes" : "no more"} (long ${c})`);
+      pathSession = null; backToMenu();
+    }
+    return { log: __log, fails: __fails };
+  });
+  say(r, "💎 spot checks: weighted, 3 a day, never forced");
   if (errors.length) { console.log("ERRORS", errors.slice(0, 5)); fails++; }
   await browser.close();
 }
