@@ -96,6 +96,19 @@ const HELP = () => {
       if (len === "quick") ok(!cx.some(x => /^(testout|sheet|drill)/.test(x)), "quick: the lesson doesn't fit whole — none of it");
       pathSession = null; backToMenu();
     }
+    // With a 💎 spot check (a Locked word unseen for two weeks): it takes a
+    // review's place — the count is still the length, never one over.
+    const old = Date.now() - 30 * 864e5;
+    Object.keys(S.words).filter(k => !/^(cx|vx)_/.test(k) && S.words[k].st >= STAGE_KNOWN).slice(0, 20)
+      .forEach(k => Object.assign(S.words[k], { st: STAGE_LOCKED, sAt: old, spotAt: 0, rp: 0, rt: 0, dueAt: Date.now() + 60 * 864e5 }));
+    invalidatePathScan();
+    for (const [len, n] of [["quick", 15], ["regular", 30], ["long", 60]]) {
+      S.path.spotToday = 0;
+      startPathSession(len, { noBonus: true });
+      const c = (document.getElementById("p-count") || {}).textContent, spot = pathSession.items.some(x => x.t === "spot");
+      ok(spot && +c.split("/")[1] <= n, `${len} with a spot check: ${c}${spot ? "" : " (no spot check came)"}`);
+      pathSession = null; backToMenu();
+    }
     return { log: __log, fails: __fails };
   });
   say(r, "the length is the length");

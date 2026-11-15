@@ -944,6 +944,10 @@ function buildPathQueue(lenKey, opts = {}) {
     // questions take room from word reviews, never from new words. What
     // doesn't fit waits for the next session (pathGrammarFit).
     const gfit = pathGrammarFit(Math.max(0, budget - nNew0 * 3), scan);
+    // Spot check (at most 2 a day): one question inside the length you
+    // picked — it takes a review's place, never one more on top (none when
+    // the new words and the grammar fill the session).
+    spots = (S.path.spotToday || 0) < 2 && budget >= 15 && budget - nNew0 * 3 - gfit.q >= 1 ? pathSpotCandidates(1, rng) : [];
     // The room the new words and the grammar leave goes to the rest of the
     // day's work, every part its share of each session when it doesn't all
     // fit (pathShares): the words' owed reviews, the verb track's due items
@@ -951,7 +955,7 @@ function buildPathQueue(lenKey, opts = {}) {
     // fixed share for the verbs, nothing left out for a whole session: a
     // day with many verbs gets them all, over its sessions. A backlog the
     // plan leaves for the coming days (plan.leave) takes what room is left.
-    const room = Math.max(0, budget - nNew0 * 3 - gfit.q);
+    const room = Math.max(0, budget - nNew0 * 3 - gfit.q - spots.length);
     let vxNewN = 0, cellN = 0;
     if (vxOnNow) {
       const vq = vxQuotas(scan);
@@ -985,7 +989,7 @@ function buildPathQueue(lenKey, opts = {}) {
     if (nudges && nudges.focus.length) {
       // With a finish date, today's plan comes first: quest words only
       // take room the plan's reviews and new words leave free.
-      const spare = budget - reviews.length - nNew0 * 3 - grammarQ;
+      const spare = budget - reviews.length - nNew0 * 3 - grammarQ - spots.length;
       const room = pathDeadlineOn() ? Math.max(0, Math.min(Math.round(budget / 3), spare))
         : Math.min(Math.round(budget / 3), Math.max(Math.round(budget / 5), spare));
       const have = new Set(reviews.map(r => r.w.deckId + "_" + r.w.idx));
@@ -1000,8 +1004,6 @@ function buildPathQueue(lenKey, opts = {}) {
         extra.slice(0, room).forEach((it, i) => reviews.splice(Math.min(reviews.length, i * step + 1), 0, it));
       }
     }
-    // Spot check (at most 2 a day).
-    spots = (S.path.spotToday || 0) < 2 && budget >= 15 ? pathSpotCandidates(1, rng) : [];
     // Word of the day (a quest): slip it in once per session.
     const wk = typeof questWotdKey === "function" ? questWotdKey() : null;
     // (inside the length: when the session is full it takes the place of

@@ -75,7 +75,11 @@ function cxRender() {
   const cur = r.list[r.i], set = cxSet(cur.set), item = cur.item, k = cxItemKind(set, item);
   // (the book's exercise number only outside Today — in a session it's noise)
   const src = o.mode !== "path" && set.ex ? "Übung " + set.ex : "";
-  const pos = `<div class="gs-qpos">${cur.first ? `${r.i + 1 - r.list.slice(0, r.i).filter(e => !e.first).length} / ${r.n}` : "Once more"}${src ? ` · <span class="cx-src">${escapeHtml(src)}</span>` : ""}</div>`;
+  // A test-out (Stage 0 only) says what it is: it comes before the lesson.
+  const toSec = o.kind === "testout" && o.sec ? cxSection(o.sec) : null;
+  const toMiss = toSec && toSec.testout && toSec.testout.miss !== undefined ? toSec.testout.miss : CX_TESTOUT.miss;
+  const toNote = toSec ? `<div class="gs-qpos cx-tonote">Do you know it already? ${Math.max(1, r.n - toMiss)} of ${r.n} right and you skip this lesson — otherwise its sheet comes next.</div>` : "";
+  const pos = `<div class="gs-qpos">${cur.first ? `${r.i + 1 - r.list.slice(0, r.i).filter(e => !e.first).length} / ${r.n}` : "Once more"}${src ? ` · <span class="cx-src">${escapeHtml(src)}</span>` : ""}</div>${toNote}`;
   // What to do: the set's name in bold, how in a line under it.
   const how = `<div class="cx-task">${set.title ? `<b>${escapeHtml(set.title)}</b>` : ""}${set.how ? `<span>${gsMd(set.how)}</span>` : ""}</div>`;
   let body = "";
