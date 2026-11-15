@@ -689,14 +689,27 @@ function pathWeightedOrder(list, rng = Math.random) {
   return list.map(x => ({ x, key: Math.pow(rng() || 1e-12, 1 / Math.max(1e-9, x.wt)) }))
     .sort((a, b) => b.key - a.key).map(o => o.x);
 }
+// Who can come at all (a hard block, whatever the weight):
+//   • not within SPOT_BLOCK days of its lock-in — nor of a 💎 check-in or
+//     a 💎 repair (each sets sAt): it has just proved itself after a
+//     30-day gap; asking again sooner tells little (modelled: a longer
+//     block finds more slipped words per check, the same on the finish date)
+//   • not within SPOT_AGAIN days of its last spot check — or of any
+//     right answer of it elsewhere (a game…: srs.js sets spotAt then too)
+//   • not due (its check-in asks it), not in repair, not a verb the verb
+//     track has taken over
+const SPOT_BLOCK = 30, SPOT_AGAIN = 14; // days
+function pathSpotOk(ws, now = Date.now()) {
+  return !!ws && ws.st >= STAGE_LOCKED && !ws.rp && !ws.rt && !(ws.dueAt && ws.dueAt <= now)
+    && now - (ws.sAt || 0) >= SPOT_BLOCK * 864e5 && now - (ws.spotAt || 0) >= SPOT_AGAIN * 864e5;
+}
 function pathSpotCandidates(n = 1, rng = Math.random) {
   const out = [];
-  const now = Date.now(), cutoff = now - 14 * 864e5;
+  const now = Date.now();
   vocabGroups().forEach(g => g.decks.forEach(d => {
     for (let i = 0; i < d.words.length; i++) {
       const ws = S.words[d.id + "_" + i];
-      const last = Math.max(ws ? ws.spotAt || 0 : 0, ws ? ws.sAt || 0 : 0);
-      if (ws && ws.st >= STAGE_LOCKED && !ws.rp && !ws.rt && !(ws.dueAt && ws.dueAt <= now) && last < cutoff) out.push({ w: pathWord(d.id, i), wt: pathSpotWeight(ws, now) });
+      if (pathSpotOk(ws, now)) out.push({ w: pathWord(d.id, i), wt: pathSpotWeight(ws, now) });
     }
   }));
   return pathWeightedOrder(out, rng).slice(0, n).map(o => o.w);

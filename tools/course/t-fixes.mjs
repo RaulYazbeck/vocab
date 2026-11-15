@@ -4,7 +4,8 @@
 //       learner's own day (the A1 verb lesson 12/13: its last sheet in a
 //       Long 60 that still reads x/60)
 //   1b · 💎 spot checks: the count still the length; weighted towards the
-//       words likely to have slipped; PATH.SPOT_PER_DAY a day; none forced
+//       words likely to have slipped; never within 30 days of a lock-in;
+//       PATH.SPOT_PER_DAY a day; none forced
 //   2 · ✍️ a writing starter tapped is typed, at the cursor
 //   4 · the Journey's coming days count the course; "out of reach" counts it
 //   5 · a twist round ranks up when the twist is neutral or harder, never
@@ -133,25 +134,35 @@ const HELP = () => {
     const draw = (set, n = 4000) => { const c = new Map(); for (let i = 0; i < n; i++) { const w = pathSpotCandidates(1)[0]; const k = w && w.deckId + "_" + w.idx; c.set(k, (c.get(k) || 0) + 1); } return sel => sel.reduce((a, x) => a + (c.get(x) || 0), 0) / n; };
     // 1 · misses: 20 never missed, 20 missed six times — the same days unseen
     const A = keys.slice(0, 20), B = keys.slice(20);
-    A.forEach(k => lock(k, { wrong: 0, sAt: now - 30 * day, lastAnsweredAt: now - 30 * day }));
-    B.forEach(k => lock(k, { wrong: 6, sAt: now - 30 * day, lastAnsweredAt: now - 30 * day }));
+    A.forEach(k => lock(k, { wrong: 0, sAt: now - 40 * day, lastAnsweredAt: now - 40 * day }));
+    B.forEach(k => lock(k, { wrong: 6, sAt: now - 40 * day, lastAnsweredAt: now - 40 * day }));
     let share = draw(keys);
     const wA = pathSpotWeight(S.words[A[0]], now), wB = pathSpotWeight(S.words[B[0]], now), want = wB / (wA + wB);
     ok(Math.abs(share(B) - want) < 0.04, `missed six times: ${(share(B) * 100).toFixed(1)} % of the picks (the weights say ${(want * 100).toFixed(1)} %, ×${(wB / wA).toFixed(1)} a word)`);
     ok(share(A) > 0.12, `never missed: still ${(share(A) * 100).toFixed(1)} % of the picks`);
-    // 2 · time: the same misses, last right 20 or 120 days ago
-    A.forEach(k => lock(k, { wrong: 1, sAt: now - 20 * day, lastAnsweredAt: now - 20 * day }));
+    // 2 · time: the same misses, last right 20 days ago (a game; locked 40 days ago) or 120 days ago
+    A.forEach(k => lock(k, { wrong: 1, sAt: now - 40 * day, lastAnsweredAt: now - 20 * day }));
     B.forEach(k => lock(k, { wrong: 1, sAt: now - 120 * day, lastAnsweredAt: now - 120 * day }));
     share = draw(keys);
     ok(share(B) > 0.7 && share(A) > 0.05, `unseen 120 days: ${(share(B) * 100).toFixed(1)} % · unseen 20 days: ${(share(A) * 100).toFixed(1)} %`);
     // 3 · a word answered right in a game yesterday: almost never
     lock(A[0], { wrong: 6, lastAnsweredAt: now - day });
     ok(pathSpotWeight(S.words[A[0]], now) < pathSpotWeight(S.words[A[1]], now) / 5, "answered right yesterday (a game): its weight is tiny");
-    // 4 · the rules of who can come are unchanged: locked or checked < 14 days ago, due, in repair → never
-    lock(A[1], { sAt: now - 5 * day }); lock(A[2], { spotAt: now - 3 * day }); lock(A[3], { dueAt: now - day }); lock(A[4], { rp: 1 });
+    // 4 · the hard block: locked in (or checked in, or repaired) under 30 days ago, spot-checked
+    // under 14 days ago, due, in repair, a verb on the verb track → never, whatever its weight
+    lock(A[1], { sAt: now - 1 * day, wrong: 6, lastAnsweredAt: 0 }); lock(A[2], { sAt: now - 29 * day, wrong: 6, lastAnsweredAt: 0 });
+    lock(A[3], { spotAt: now - 13 * day }); lock(A[4], { dueAt: now - day }); lock(A[5], { rp: 1 }); lock(A[6], { rt: 1 });
+    lock(A[7], { sAt: now - 31 * day }); lock(A[8], { spotAt: now - 15 * day, sAt: now - 60 * day });
+    ok(PATH && SPOT_BLOCK === 30 && SPOT_AGAIN === 14, `the block: ${SPOT_BLOCK} days after a lock-in / check-in, ${SPOT_AGAIN} after a spot check`);
     share = draw(keys, 3000);
-    ok([1, 2, 3, 4].every(i => share([A[i]]) === 0), "locked 5 days ago / spot-checked 3 days ago / due / in repair: never picked");
+    ok([1, 2, 3, 4, 5, 6].every(i => share([A[i]]) === 0), "locked yesterday / 29 days ago (even missed six times) / spot-checked 13 days ago / due / in repair / on the verb track: never picked");
+    ok(pathSpotOk(S.words[A[7]]) && pathSpotOk(S.words[A[8]]), "locked 31 days ago / spot-checked 15 days ago: can come");
+    // a real lock-in (srs.js) starts the block: the word that just reached 💎 can't come
+    const L = A[9]; Object.assign(S.words[L], { st: STAGE_STRONG, rp: 0, rt: 0, fl: 0, lrn: 0, cf: 0, k: 1, sAt: now - 31 * day, dueAt: now - day, spotAt: 0 });
+    applyCorrect(S.words[L], { quiet: true, kind: "recall" });
+    ok(S.words[L].st === STAGE_LOCKED && !pathSpotOk(S.words[L]), `just locked in (st ${S.words[L].st}): blocked`);
     // 5 · the Practise list "Spot checks": every 💎 word, weighted order
+    keys.forEach(k => lock(k, {}));
     const fl = focusWords("spot");
     ok(fl.length === 40 && new Set(fl.map(x => x.d.id + "_" + x.i)).size === 40, `🎯 Spot checks lists all 40 (${fl.length})`);
     // 6 · nothing to spot-check → no spot check, the length still the length
@@ -176,7 +187,7 @@ const HELP = () => {
     }
     return { log: __log, fails: __fails };
   });
-  say(r, "💎 spot checks: weighted, 3 a day, never forced");
+  say(r, "💎 spot checks: weighted, blocked 30 days after a lock-in, 3 a day, never forced");
   if (errors.length) { console.log("ERRORS", errors.slice(0, 5)); fails++; }
   await browser.close();
 }
