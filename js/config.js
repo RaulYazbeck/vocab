@@ -175,6 +175,11 @@ const PATH = {
   AUTO_PAUSE_DAYS: 3,
   SESSION_LENGTHS: { quick: 15, regular: 30, long: 60 },
   EXTRA_NEW: 5,
+  // 💎 spot checks a day (one per session at most). 3: modelled on the
+  // real pace to the finish date — up to the 3rd, a spot check finds a
+  // forgotten word at least as often as a ⭐ review does (~10 %); from
+  // the 4th it drops below.
+  SPOT_PER_DAY: 3,
 };
 // Start of the study day `offset` days from today (4 AM rollover).
 function studyDayStart(offset = 0, now = Date.now()) {
