@@ -357,11 +357,19 @@ function cxAnswers(item) {
   const full = a.map(x => m[1] + x + m[2]).filter(x => !a.includes(x));
   return [...a, ...full];
 }
+// A conversation's missing line — «Wohin gehst du?» — ___ — «Holst du …?» —
+// is no gap in a sentence: its answers are whole lines, checked as they are
+// (Session 8: the gap logic took «Sie Nora» for «Sie heißt Nora.», the
+// words around the gap being another speaker's line).
+function cxLineGap(q) {
+  const tpl = String(q || "").replace(/\([^)]*\)/g, " ").replace(/\s+/g, " ").trim();
+  return /«/.test(tpl) && tpl.split(/\s+[—–]\s+/).some(x => x.trim() === "___");
+}
 // A sentence item shown with a bare gap — "(Museum) ___ ist am Montag zu." —
 // also accepts just what fills the gap ("das Museum"): the words of the
 // answer that sit where the ___ is, the rest of the sentence being given.
 function cxGapFills(item) {
-  if (item.k === "order" || typeof item.q !== "string" || !/(^|[^A-Za-zÄÖÜäöüß])___([^A-Za-zÄÖÜäöüß]|$)/.test(item.q)) return [];
+  if (item.k === "order" || typeof item.q !== "string" || !/(^|[^A-Za-zÄÖÜäöüß])___([^A-Za-zÄÖÜäöüß]|$)/.test(item.q) || cxLineGap(item.q)) return [];
   const tpl = item.q.replace(/\([^)]*\)/g, " ").replace(/\s+/g, " ").trim();
   const parts = tpl.split("___");
   if (parts.length !== 2 || !(parts[0].trim() || parts[1].trim())) return [];
@@ -379,7 +387,7 @@ function cxGapFills(item) {
 // rennen durch den Park.» — is checked as the words that sit in the gap
 // (the rest must be the sentence as shown). → those words, or null.
 function cxGapInner(item, typed) {
-  if (item.k === "order" || typeof item.q !== "string" || !/(^|[^A-Za-zÄÖÜäöüß])___([^A-Za-zÄÖÜäöüß]|$)/.test(item.q)) return null;
+  if (item.k === "order" || typeof item.q !== "string" || !/(^|[^A-Za-zÄÖÜäöüß])___([^A-Za-zÄÖÜäöüß]|$)/.test(item.q) || cxLineGap(item.q)) return null;
   const tpl = item.q.replace(/\([^)]*\)/g, " ").replace(/\s+/g, " ").trim();
   if (tpl.split("___").length !== 2) return null;
   // The sentence the gap sits in: the whole prompt, or — in a two-part one —

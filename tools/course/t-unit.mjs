@@ -202,7 +202,7 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
       const rid = ["zu.a1", "zu.a2", "zu.b1", "zu.b2"];
       const sets = pilot.sets.map(id => CX.sets[id]).filter(s => !s.gen).map((s, i) => ({ ...s, id: "d.t.zu." + i, ex: undefined,
         items: s.items.map((it, j) => ({ ...it, r: [rid[(i + j) % 4]] })) }));
-      cxPack({ id: "t-zu", sections: { "s3.travel": { rules: Object.fromEntries(rid.map(r => [r, r])), sheets: [mk("cx.t.zu1", rid.slice(0, 2)), mk("cx.t.zu2", rid.slice(2))], drills: sets } } });
+      cxPack({ id: "t-zu", sections: { "s4.k1": { rules: Object.fromEntries(rid.map(r => [r, r])), sheets: [mk("cx.t.zu1", rid.slice(0, 2)), mk("cx.t.zu2", rid.slice(2))], drills: sets } } });
       cxPack({ id: "t-recap", sections: { "s0.recap": { checkpoint: { n: 12 } } } });
     })();` });
   const fresh2 = () => {
@@ -215,30 +215,30 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
     C2.migrateCourse();
   };
   fresh2();
-  // a two-sheet lesson not built yet (s3.travel, Session 8's — s1.zu was used here until
-  // Session 5, s2.conj3 until Session 6, s2.cond until Session 7): only the section's own
-  // rules matter here (every other lesson done, the verb lessons too — it waits for Konjunktiv II)
-  C2.S.course.sec = Object.fromEntries(C2.CX.sections.filter(s => s.id !== "s3.travel" && s.stage < 4).map(s => [s.id, { st: 3 }]));
+  // a two-sheet lesson not built yet (s4.k1, Konjunktiv I — Session 9's; s1.zu was used here
+  // until Session 5, s2.conj3 until Session 6, s2.cond until Session 7, s3.travel until Session 8):
+  // only the section's own rules matter here (every other lesson done, the verb lessons too)
+  C2.S.course.sec = Object.fromEntries(C2.CX.sections.filter(s => s.id !== "s4.k1" && s.stage < 4).map(s => [s.id, { st: 3 }]));
   C2.CX.sections.forEach(s => (s.verb || []).forEach(v => { C2.S.verb.sh[v] = 100; }));
-  ok(C2.cxNextSections(1)[0].id === "s3.travel", "the several-sheet section is next");
+  ok(C2.cxNextSections(1)[0].id === "s4.k1", "the several-sheet section is next");
   ok(J(C2.cxTodayParts().filter(p => p.part !== "write").map(p => p.part + ":" + (p.sheet || ""))) === J(["sheet:cx.t.zu1", "drill:"]), "day 1: its first sheet, then a drill", J(C2.cxTodayParts()));
   C2.cxSheetResult("cx.t.zu1", 1, true, "path");
   ok(["zu.a1", "zu.a2"].every(r => C2.S.words["cx_" + r]) && !C2.S.words["cx_zu.b1"], "sheet 1 passed: its own rules go into review, not sheet 2's");
-  let list = C2.cxPartList({ part: "drill", sec: "s3.travel" });
+  let list = C2.cxPartList({ part: "drill", sec: "s4.k1" });
   ok(list.length >= 6 && list.every(e => e.item.r.every(r => ["zu.a1", "zu.a2"].includes(r))), `day 1's drill keeps to sheet 1's rules (${list.length} items)`);
-  C2.cxDrillDone("s3.travel", 10, 12); C2.cxPartDone({ part: "drill", sec: "s3.travel" });
-  ok(!C2.cxSecDone("s3.travel"), "not done after day 1");
+  C2.cxDrillDone("s4.k1", 10, 12); C2.cxPartDone({ part: "drill", sec: "s4.k1" });
+  ok(!C2.cxSecDone("s4.k1"), "not done after day 1");
   C2.S.course.day = "2000-01-01";
   C2.__today = "2026-10-19";
-  ok(J(C2.cxTodayParts().filter(p => p.sec === "s3.travel").map(p => p.part + ":" + (p.sheet || ""))) === J(["sheet:cx.t.zu2", "drill:"]), "the next day: its second sheet at once (a lesson's sheets on consecutive days)", J(C2.cxTodayParts()));
+  ok(J(C2.cxTodayParts().filter(p => p.sec === "s4.k1").map(p => p.part + ":" + (p.sheet || ""))) === J(["sheet:cx.t.zu2", "drill:"]), "the next day: its second sheet at once (a lesson's sheets on consecutive days)", J(C2.cxTodayParts()));
   C2.__today = "2026-10-18";
   C2.S.course.day = "2000-01-01"; C2.S.course.last = "2000-01-01"; C2.S.course.seen = Array.from({ length: 10 }, (_, i) => C2.addDays("2026-10-08", i));
-  ok(J(C2.cxTodayParts().filter(p => p.sec === "s3.travel").map(p => p.part + ":" + (p.sheet || ""))) === J(["sheet:cx.t.zu2", "drill:"]), "its day: the second sheet, then the drill");
+  ok(J(C2.cxTodayParts().filter(p => p.sec === "s4.k1").map(p => p.part + ":" + (p.sheet || ""))) === J(["sheet:cx.t.zu2", "drill:"]), "its day: the second sheet, then the drill");
   C2.cxSheetResult("cx.t.zu2", 1, true, "path");
-  list = C2.cxPartList({ part: "drill", sec: "s3.travel" });
+  list = C2.cxPartList({ part: "drill", sec: "s4.k1" });
   ok(list.some(e => e.item.r.some(r => ["zu.b1", "zu.b2"].includes(r))), "day 2's drill: the whole section");
-  C2.cxDrillDone("s3.travel", 12, 14);
-  ok(C2.cxSecDone("s3.travel"), "both sheets and the drill: the section is done");
+  C2.cxDrillDone("s4.k1", 12, 14);
+  ok(C2.cxSecDone("s4.k1"), "both sheets and the drill: the section is done");
   // s0.recap: the stage's checkpoint
   fresh2();
   ok(!C2.cxCheckpointReady(C2.CX.byId["s0.recap"]) && !C2.cxTodayParts().some(p => p.part === "checkpoint"), "the checkpoint waits while stage 0 has sections to do (coming ones too)");
@@ -743,8 +743,8 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
     if (s.id === "s1.zu") break;
   }
   ok(J(order) === J(["s1.front", "s1.conj1", "s1.neg2", "s1.resp", "s1.pf", "s1.sep", "s1.accprep", "s1.pt21", "s1.dat", "s1.datpron", "s1.datverb", "s1.accdat", "s1.wer",
-    "s1.datprep", "s1.twoway", "s1.wowohin", "s2.pt2", "s1.conj2", "s1.modal", "s1.poss", "s1.wissen", "s1.refl", "s1.verbprep", "s1.fu", "s1.comp", "s1.adj", "s1.zu"]),
-    "Stage 0 done: the possessives after the modals, verb + preposition after the reflexives (built in Session 6), then the future, comparison, adjective endings, zu + infinitive", J(order));
+    "s1.datprep", "s3.greet", "s1.twoway", "s1.wowohin", "s3.way", "s2.pt2", "s1.conj2", "s1.modal", "s1.poss", "s1.wissen", "s1.refl", "s1.verbprep", "s3.bus", "s1.fu", "s1.comp", "s1.adj", "s3.shop", "s1.zu"]),
+    "Stage 0 done: the possessives after the modals, verb + preposition after the reflexives (built in Session 6), then the future, comparison, adjective endings, zu + infinitive — and the conversation units (Session 8) each right after the lesson it needs", J(order));
   // the checkpoint waits for the whole stage — it never comes before its last lesson
   ok(!order.includes("s1.recap"), "the checkpoint comes after every Stage 1 lesson, verb + preposition too");
   delete C.S.course.sec["s1.verbprep"];
@@ -767,7 +767,8 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   ok(ready("s1.zu"), "weil / dass and the modals done: zu + infinitive is ready");
   // no test-out after Stage 0: the lesson opens with its first sheet
   fresh(); C.CX.sections.filter(s => s.stage === 0 && !s.verb).forEach(s => { C.S.course.sec[s.id] = { st: 3, at: "2026-10-01" }; });
-  C.CX.sections.filter(s => s.stage === 1 && C.CX.sections.indexOf(s) < C.CX.sections.indexOf(C.cxSection("s1.poss"))).forEach(s => { if (!s.verb) C.S.course.sec[s.id] = { st: 3, at: "2026-10-01" }; });
+  // (every lesson before it in the course: Stage 1's and, since Session 8, the conversation units among them)
+  C.CX.sections.filter(s => (s.stage === 1 || s.stage === 3) && C.CX.sections.indexOf(s) < C.CX.sections.indexOf(C.cxSection("s1.poss"))).forEach(s => { if (!s.verb) C.S.course.sec[s.id] = { st: 3, at: "2026-10-01" }; });
   C.CX.sections.filter(s => s.verb).forEach(s => s.verb.forEach(v => { if (!["fu1", "fu2"].includes(v)) C.S.verb.sh[v] = 100; }));
   C.S.course.last = "2026-10-01";
   ok(C.cxClockLesson().id === "s1.poss", `the modals done: the possessives next (${C.cxClockLesson().id})`);
@@ -948,7 +949,8 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   ["s1.conj2", "s1.front"].forEach(id => { C.S.course.sec[id] = { st: 3 }; });
   ok(ready("s2.conj3") && ready("s2.indq") && ready("s2.rel") && ready("s2.adv"), "weil / dass and fronting done: the joining words, indirect questions, relative pronouns and adverbs are ready");
   // no test-out after Stage 0: a Session 6 lesson opens with its first sheet
-  fresh(); C.CX.sections.filter(s => s.stage <= 1 && !s.verb && s.id !== "s1.verbprep" && s.id !== "s1.recap").forEach(s => { C.S.course.sec[s.id] = { st: 3, at: "2026-10-01" }; });
+  // (and the conversation units before it in the course — greetings, the way — built in Session 8)
+  fresh(); C.CX.sections.filter(s => (s.stage <= 1 || (s.stage === 3 && C.CX.sections.indexOf(s) < C.CX.sections.indexOf(C.cxSection("s1.verbprep")))) && !s.verb && s.id !== "s1.verbprep" && s.id !== "s1.recap").forEach(s => { C.S.course.sec[s.id] = { st: 3, at: "2026-10-01" }; });
   C.CX.sections.filter(s => s.verb).forEach(s => s.verb.forEach(v => { C.S.verb.sh[v] = 100; }));
   C.S.course.last = "2026-10-01";
   ok(C.cxClockLesson().id === "s1.verbprep", `everything before it done: verb + preposition is next, wherever I am (${C.cxClockLesson().id})`);
@@ -1088,6 +1090,82 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   delete C.learnNoteVerb;
   // writing prompts open with their lessons
   ["w.ifonly", "w.done", "w.ourway"].forEach(id => ok(!!C.cxJournalPrompt(id) && [...S7, ...V7].includes(C.cxJournalPrompt(id).sec), `writing prompt ${id} belongs to a Session 7 lesson`));
+}
+// ── Session 8: Stage 3 built — the six conversation units ──
+{
+  const S8 = ["s3.greet", "s3.way", "s3.bus", "s3.shop", "s3.school", "s3.travel"];
+  ok(S8.every(id => C.cxLearnable(C.cxSection(id))), "the six conversation units are built");
+  ok(J(S8.map(id => C.cxSection(id).sheets.length)) === J([2, 2, 2, 2, 2, 2]), "two sheets each — the estimate held, so the pace doesn't move", J(S8.map(id => C.cxSection(id).sheets.length)));
+  ok(!C.CX.dups, `no sheet, rule or drill-set id is used twice (${(C.CX.dups || []).join(", ")})`);
+  const unitRules = new Set(S8.flatMap(id => C.cxSection(id).rules));
+  ok(unitRules.size >= 40 && [0, 1, 2].every(st => !C.cxStageRules(st).some(r => unitRules.has(r))), `their ${unitRules.size} rules are in no stage's checkpoint (their own part, 💬)`);
+  C.vxOn = () => true;
+  // where they come: all of Stage 0 done → Stages 1 and 2 in course order, each unit right after the lesson it needs
+  fresh(); C.S.course.last = "2026-10-01";
+  C.CX.sections.filter(s => s.stage === 0 && !s.verb).forEach(s => { C.S.course.sec[s.id] = { st: 3, at: "2026-10-01" }; });
+  C.CX.sections.filter(s => s.verb && s.stage === 0).forEach(s => s.verb.forEach(v => { C.S.verb.sh[v] = 100; }));
+  const order = [];
+  for (let k = 0; k < 90; k++) {
+    const s = C.cxClockLesson();
+    if (!s) break;
+    order.push(s.id);
+    if (s.verb) s.verb.forEach(v => { C.S.verb.sh[v] = 100; }); else C.S.course.sec[s.id] = { st: 3, at: "2026-10-01" };
+    if (s.id === "s2.recap") break;
+  }
+  const after = (u, prev) => order.indexOf(u) === order.indexOf(prev) + 1;
+  ok(after("s3.greet", "s1.datprep") && after("s3.way", "s1.wowohin") && after("s3.bus", "s1.verbprep") && after("s3.shop", "s1.adj") && after("s3.school", "s1.recap") && after("s3.travel", "s2.k2"),
+    "in the real order, each unit comes right after the lesson its dialogue needs", J(order));
+  ok(S8.every(id => order.includes(id)) && order.indexOf("s2.recap") === order.length - 1, "all six come before the Stage 2 checkpoint closes the course's B1");
+  // what waits for what
+  fresh();
+  const ready = id => C.cxLessonReady(C.cxSection(id));
+  C.CX.sections.filter(s => s.stage === 0 && !s.verb).forEach(s => { C.S.course.sec[s.id] = { st: 3 }; });
+  ok(S8.every(id => !ready(id)), "with Stage 0 done none of them is ready yet");
+  ["s1.resp", "s1.dat", "s1.datprep"].forEach(id => { C.S.course.sec[id] = { st: 3 }; });
+  ok(ready("s3.greet") && !ready("s3.way"), "set responses and the dative prepositions done: the greetings are ready — the way still waits");
+  ["s1.accprep", "s1.twoway", "s1.wowohin"].forEach(id => { C.S.course.sec[id] = { st: 3 }; });
+  ok(ready("s3.way") && !ready("s3.bus"), "wo? vs wohin? done: asking the way is ready");
+  ["s1.datpron", "s1.refl", "s1.verbprep"].forEach(id => { C.S.course.sec[id] = { st: 3 }; });
+  ok(ready("s3.bus") && !ready("s3.shop"), "verb + preposition done: the bus stop is ready; shopping waits for the modals and the endings");
+  ["s1.conj2", "s1.modal", "s1.comp", "s1.adj"].forEach(id => { C.S.course.sec[id] = { st: 3 }; });
+  ok(ready("s3.shop") && !ready("s3.school") && !ready("s3.travel"), "the endings done: shopping is ready; school waits for the Stage 1 checkpoint, travel for Konjunktiv II");
+  C.S.course.sec["s1.recap"] = { st: 3 };
+  ok(ready("s3.school") && !ready("s3.travel"), "Stage 1's checkpoint done: school and study is ready");
+  C.cxSection("s2.k2").verb.forEach(v => { C.S.verb.sh[v] = 100; });
+  ok(ready("s3.travel"), "Konjunktiv II passed: travel is ready");
+  // the stages' checkpoints never wait for them
+  fresh();
+  C.CX.sections.filter(s => s.stage <= 1 && s.id !== "s1.recap").forEach(s => { if (s.verb) s.verb.forEach(v => { C.S.verb.sh[v] = 100; }); else C.S.course.sec[s.id] = { st: 3 }; });
+  ok(C.cxCheckpointReady(C.cxSection("s1.recap")), "Stage 1 done, no conversation unit done: its checkpoint opens all the same");
+  // each sheet's day: the sheets read so far, production last — six days of its rotation
+  S8.forEach(id => C.cxSection(id).sheets.forEach((sh, k) => {
+    fresh();
+    const allow = new Set(C.cxSection(id).sheets.slice(0, k + 1).flatMap(x => C.cxSheet(x).rid));
+    for (let d = 0; d < 6; d++) {
+      const plan = C.cxDrillPlan(id, 14, allow), last = plan[plan.length - 1];
+      ok(plan.length >= 8 && plan.every(e => e.item.r.every(r => allow.has(r))) && ["compose", "translate", "write", "answer"].includes(C.cxItemKind(C.cxSet(last.set), last.item)),
+        `${id} after sheet ${k + 1} (day ${d + 1} of its rotation): ${plan.length} items on the sheets read, production last (${last && last.set})`);
+      plan.forEach(e => { const ds = C.S.course.ds[e.set] || (C.S.course.ds[e.set] = [0, 0, 0]); ds[1]++; });
+    }
+  }));
+  S8.forEach(id => {
+    fresh();
+    const plan = C.cxDrillPlan(id);
+    ok(plan.length >= 10 && plan.length <= 14 && ["compose", "translate", "write", "answer"].includes(C.cxItemKind(C.cxSet(plan[plan.length - 1].set), plan[plan.length - 1].item)), `${id}: a day's drill of ${plan.length}, production last`);
+    ok(plan.some(e => ["order", "respond", "answer"].includes(C.cxItemKind(C.cxSet(e.set), e.item))), `${id}: its day has conversation work (order, a reply or an answer)`);
+    C.cxSection(id).rules.forEach(r => ok(C.cxRulePool(r).filter(e => !["write", "open"].includes(C.cxItemKind(C.cxSet(e.set), e.item))).length >= 3, `${r}: three or more checked items to review it with`));
+    // the dialogue: German lines with their English, said on a tap
+    C.cxSection(id).sheets.forEach(sid => { const L = C.cxSheet(sid).lines || []; ok(L.length >= 8 && L.every(l => l.length === 3), `${sid}: a dialogue of ${L.length} lines, each with its English`); });
+  });
+  // a miss in a conversation unit goes to its rule, which enters review like any lesson's
+  fresh();
+  const it = C.cxSet("d30.12").items.find(x => x.q === "(du) Du nimmst den Bus.");
+  const res = C.cxCheck(it, "Nimmst den Bus!", C.cxSection("s3.way"));
+  ok(!res.ok && res.rule === "way.cmddu", "a miss names the unit's rule (way.cmddu)", J(res));
+  // writing prompts open with their units
+  ["w.newhere", "w.wayhome", "w.commute", "w.buyclothes", "w.mytraining", "w.tripplan"].forEach((id, i) => ok(!!C.cxJournalPrompt(id) && C.cxJournalPrompt(id).sec === ["s3.greet", "s3.way", "s3.bus", "s3.shop", "s3.school", "s3.travel"][i], `writing prompt ${id} opens with ${C.cxJournalPrompt(id) && C.cxJournalPrompt(id).sec}`));
+  // school and study is a Should: when behind and not begun, it gives way to the Must lessons (§5)
+  ok(C.cxSection("s3.school").prio === "S" && ["s3.greet", "s3.way", "s3.bus", "s3.shop", "s3.travel"].every(id => C.cxSection(id).prio === "M"), "school and study is Should, the other five Must");
 }
 // ── Exercise comfort (13 Nov 2026): more typed than asked · a word placed ──
 {

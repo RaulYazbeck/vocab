@@ -275,8 +275,20 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
   };
   await page.evaluate(() => renderCourse()); await noOverflow("Course");
   await page.evaluate(() => renderCourseSection("s0.neg")); await noOverflow("section");
-  // (a lesson not built yet: a Stage 3 conversation, Session 8's — s2.cond, used here until Session 7, is built)
-  await page.evaluate(() => renderCourseSection("s3.travel")); await noOverflow("a coming section");
+  // (a lesson not built yet: a post-B1 lesson, Session 9's — s2.cond until Session 7, s3.travel until Session 8)
+  await page.evaluate(() => renderCourseSection("s4.k1")); await noOverflow("a coming section");
+  // (Session 8) a conversation unit's sheet: its dialogue, each line with its English, the German said on a tap
+  for (const id of ["cx.greet1", "cx.way2", "cx.bus1", "cx.shop1", "cx.school2", "cx.travel2"]) {
+    const d = await page.evaluate(id => {
+      renderCourseSheet(id);
+      for (let k = 0; k < 8 && !document.querySelector("#main-screen .gs-dialogue"); k++) { const n = document.querySelector("#main-screen .gs-next:not([disabled])"); if (!n) break; n.click(); }
+      const L = [...document.querySelectorAll("#main-screen .gs-dialogue .gs-line")];
+      return { n: L.length, want: cxSheet(id).lines.length, said: L.filter(l => l.querySelector("span[data-tap-say]")).length, en: L.filter(l => (l.querySelector(".gs-line-en") || {}).textContent).length,
+        first: L[0] ? [L[0].querySelector("b").textContent, L[0].querySelector("span").getAttribute("data-tap-say")] : null };
+    }, id);
+    await page.evaluate(([id, d]) => ok(d.n === d.want && d.n >= 8 && d.said === d.n && d.en === d.n && d.first[1] === cxSheet(id).lines[0][1].replace(/\*+/g, ""), `${id}: its dialogue — ${d.n} lines, each said on a tap, each with its English (${JSON.stringify(d)})`), [id, d]);
+    await noOverflow(`the dialogue of ${id}`);
+  }
   // (Session 4 on) a sheet's table fits the phone whole — no sideways scrolling to find a column
   if (tag === "phone") await page.evaluate(() => {
     const wide = [], seen = [];
@@ -402,7 +414,13 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
     ok(exOf("c11") === "11.1,11.2,11.3,11.4,11.5,11.6,11.7,11.8,11.9,11.10,11.11,11.12,11.13", "chapter 11: all thirteen (Session 7: the past perfect's 11.1–11.5)");
     ok(exOf("c20") === "20.1,20.2,20.3,20.4,20.5,20.6,20.7,20.8,20.9", "chapter 20: all nine (Session 6: the genitive's 20.1–20.3, 20.5–20.7)");
     ok(exOf("c24") === "24.1,24.2,24.3,24.4,24.5,24.6,24.8,24.9,24.10,24.11,24.12,24.13,24.14", "chapter 24: all but the skipped 24.7 (Session 7: 24.1–24.4, the double infinitive)");
-    ok(exOf("c31") === "31.14" && exOf("c23") === "23.1,23.2,23.3,23.4,23.5,23.6,23.7,23.8,23.9,23.10,23.11,23.12,23.13", "chapter 31: 31.14 (with the adjective endings) · chapter 23: all thirteen (Session 6: 23.3, 23.11, 23.13)");
+    ok(exOf("c31") === "31.1,31.2,31.3,31.4,31.5,31.6,31.7,31.8,31.9,31.10,31.11,31.12,31.13,31.14" && exOf("c23") === "23.1,23.2,23.3,23.4,23.5,23.6,23.7,23.8,23.9,23.10,23.11,23.12,23.13", "chapter 31: all fourteen (Session 8: the conversations; 31.14 with the adjective endings) · chapter 23: all thirteen (Session 6: 23.3, 23.11, 23.13)");
+    // Session 8's chapters: the conversations
+    ok(exOf("c30") === "30.1,30.2,30.3,30.4,30.5,30.6,30.7,30.8,30.9,30.10,30.11,30.12,30.13,30.14", `chapter 30: all fourteen (${exOf("c30")})`);
+    renderCourseChapter("c30");
+    [...document.querySelectorAll(".cx-ex")].find(b => /^30\.9 /.test(b.querySelector(".gr-stt").innerText)).click();
+    ok(_cx && _cx.list.every(e => e.set === "d30.9") && /Chapter 30/.test(document.querySelector(".screen-top .back-btn").textContent), "Übung 30.9 (a conversation in order) runs on its own; back goes to chapter 30");
+    cxClose();
     // Session 6's chapters
     ok(exOf("c22") === "22.1,22.2,22.4,22.5,22.6,22.7,22.8,22.10,22.12,22.13,22.14,22.15,22.20", `chapter 22: every Übung has its drill — 22.3 · 22.9 with 22.12, 22.11 with 22.7, 22.16 with 22.10, 22.17–22.19 with 22.14 (${exOf("c22")})`);
     ok(["22.3", "22.9", "22.11", "22.16", "22.17", "22.18", "22.19"].every(x => new RegExp("\\b" + x.replace(".", "\\.") + "\\b").test(document.getElementById("main-screen").innerText)), "…the ones drilled together are named on their set");

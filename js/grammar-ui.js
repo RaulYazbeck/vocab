@@ -78,9 +78,17 @@ function gsTableHtml(sh) {
     return `<div class="gs-table-wrap"><table class="gs-table"><thead><tr>${t.head.map(h => `<th>${gsMd(h)}</th>`).join("")}</tr></thead>
       <tbody>${t.rows.map(r => `<tr>${r.map((c, i) => i ? `<td>${gsCellHtml(c)}</td>` : `<th scope="row">${gsMd(c)}</th>`).join("")}</tr>`).join("")}</tbody></table></div>`;
   }
-  if (sh.lines) return `<div class="gs-lines">${sh.lines.map(([l, x]) => `<div class="gs-line"><b>${gsMd(l)}</b><span>${gsMd(x)}</span></div>`).join("")}</div>`;
+  // A conversation (a course scenario's dialogue): [speaker, German line, English] —
+  // the line plays on a tap (German app; the voice pack records it: gsLineSay,
+  // tools/audio/runtime.mjs), its English under it. Two-part lines stay as they were.
+  if (sh.lines) return `<div class="gs-lines${sh.lines.some(l => l.length > 2) ? " gs-dialogue" : ""}">${sh.lines.map(([l, x, en]) => {
+    const say = en !== undefined && typeof sayTapAttrs === "function" ? sayTapAttrs(gsLineSay(x)) : "";
+    return `<div class="gs-line"><b>${gsMd(l)}</b><span${say}>${gsMd(x)}</span>${en ? `<i class="gs-line-en">${gsMd(en)}</i>` : ""}</div>`;
+  }).join("")}</div>`;
   return "";
 }
+// What a dialogue line says on a tap (and the voice pack records): the German, no markup.
+function gsLineSay(x) { return gsSayText(x); }
 // A table cell: each whole German sentence in it ("Heute arbeite ich
 // **nicht**. · Sie fährt …") plays on a tap (German app; the voice pack
 // records them: gsCellSays, tools/audio/runtime.mjs).

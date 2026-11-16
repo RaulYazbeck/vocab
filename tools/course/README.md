@@ -36,6 +36,10 @@ the 📖 Course / 🧩 Practise / 📚 By chapter / ✍️ Writing screens) and 
                                lassen (s2-lassen) · man and the impersonal passive (s2-man) · modal particles
                                (s2-part) · short answers and emphasis (s2-short) · participles as adjectives
                                (s2-ptadj) · n-nouns and adjectives as nouns (s2-ndecl) · the Stage 2 checkpoint (s2-recap)
+    js/course/s3-*.js          Stage 3 (Session 8): the six conversation units, each placed right after the
+                               grammar its dialogue needs — greetings and introductions (s3-greet) · asking
+                               the way (s3-way) · at the bus stop (s3-bus) · shopping and prices (s3-shop) ·
+                               school and study (s3-school) · travel (s3-travel)
     js/course/writing.js       the writing themes (cxJournalThemes) and prompts (cxJournal)
 
 German app only (`de/index.html` loads them; the French app never does).
@@ -146,9 +150,14 @@ a later session that uploads its chapter.
      opens once every other section of the stage is done, asks the stage's rules mixed,
      and comes back the next day when missed — after 3 tries the stage moves on anyway.
    - Scenario units (Stage 3 — each placed right after the lesson its dialogue needs, so its
-     sentences use only the grammar taught by then; see PLAN.md §6): a sheet holding the dialogue (`lines`), key phrases as
-     rules, drill sets of kinds `order` (the conversation), `respond` and `type`, and a
-     `write` set — no new code needed.
+     sentences use only the grammar taught by then; see PLAN.md §6): a sheet holding the dialogue
+     in `lines: [[speaker, German line, English], …]` (in place of a table: 8+ lines, two speakers or
+     more, a quiz question `at: "lines"`; each German line plays on a tap and the voice pack records
+     it), key phrases as rules, drill sets of kinds `order` (the conversation), `respond` or `answer`,
+     `type`, and a `write` set; a writing prompt that opens with it. A conversation's missing line —
+     `«…» — ___ — «…» (cue)` — is answered by whole lines: the gap logic (the gap's words alone, or
+     with the sentence around them) doesn't apply to it (`cxLineGap`). The validator's Session 8 block
+     checks all of it.
    - Writing prompts tied to the section (optional): `cxJournal([{ id: "w.<name>", th, lv, de,
      t, help, sec: "<section id>" }])` — they open once the section is done. Free writing,
      never graded: saved to `S.writing` (kept forever, one cloud doc a year) and listed in the learning log for correction.

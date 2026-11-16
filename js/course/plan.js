@@ -74,11 +74,11 @@ cxDefine({
     { id: "s1.wer", ses: 3, stage: 1, level: "A2", prio: "M", n: 2, after: ["s0.wq", "s0.acc", "s1.dat"], title: "wer / wen / wem, welcher, was für", book: [["c13", ""], ["c28", "Interrogative words"], ["c28", "Wer"], ["c28", "Was"]] },
     { id: "s1.datprep", ses: 4, stage: 1, level: "A2", prio: "M", n: 2, after: ["s1.dat"], title: "Dative prepositions", book: [["c15", "Dative prepositions"], ["appB", "Dative"]] },
     // 💬 Greetings and introductions: ich komme aus …, wohne seit …, arbeite bei … — after the dative prepositions.
-    { id: "s3.greet", ses: 8, stage: 3, level: "A2", prio: "M", n: 2, after: ["s1.resp", "s1.datprep"], kind: "scenario", title: "Greetings and introductions", book: [["c30", "Greetings and introductions"]] },
+    { id: "s3.greet", ses: 8, stage: 3, level: "A2", prio: "M", n: 2, after: ["s1.resp", "s1.datprep"], kind: "scenario", title: "Greetings and introductions", book: [["c30", "Greetings and introductions"], ["c30", "Conversation: In der Hauptstraße (On Main"]] },
     { id: "s1.twoway", ses: 4, stage: 1, level: "A2", prio: "M", n: 2, after: ["s1.accprep", "s1.datprep"], title: "Two-way prepositions", book: [["c19", "Dative-accusative prepositions"], ["c19", ""], ["appB", "Dative/Accusative"]] },
     { id: "s1.wowohin", ses: 4, stage: 1, level: "A2", prio: "M", n: 1, after: ["s1.twoway"], kind: "contrast", title: "Contrast: wo? vs wohin?", book: [["c19", "Dative case"], ["c19", "Accusative case"]] },
     // 💬 Asking the way: commands, in / an / neben …, links, geradeaus — after wo? vs wohin?
-    { id: "s3.way", ses: 8, stage: 3, level: "A2", prio: "M", n: 2, after: ["s1.wowohin"], kind: "scenario", title: "Asking the way", book: [["c30", "Conversation: In der Hauptstraße (On Main"], ["c30", "Commands"]] },
+    { id: "s3.way", ses: 8, stage: 3, level: "A2", prio: "M", n: 2, after: ["s1.wowohin"], kind: "scenario", title: "Asking the way", book: [["c30", "Commands"]] },
     // A B1 lesson taught here, among the A2 ones (Oct 2026): strong and mixed
     // Präteritum (+ Plusquamperfekt) a month after the regular Präteritum — time
     // to settle the -te forms and the Perfekt first — instead of near the end
