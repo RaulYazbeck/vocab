@@ -9887,6 +9887,7 @@ s	_course:s3.school	Mein Bruder studiert Wirtschaft an der Uni St. Gallen.
 s	_course:s3.school	Mein Deutschkurs ist jeden Dienstag und Donnerstag in Olten. Wir lesen, sprechen viel und schreiben jede Woche einen Test.
 s	_course:s3.school	Mein Lieblingsfach ist Biologie.
 s	_course:s3.school	Mein Lieblingsfach ist Geschichte.
+s	_course:s3.school	Mein Lieblingsfach ist Sport.
 s	_course:s3.school	Mein Sohn hat schon lesen können.
 s	_course:s3.school	Mein Sohn ist acht. Er ist Schüler.
 s	_course:s3.school	Mein Sohn kann schon lesen.
@@ -9896,7 +9897,6 @@ s	_course:s3.school	Meine Schwester studiert in Basel Medizin.
 s	_course:s3.school	Meine Tochter geht in die Primarschule, mein Sohn ins Gymnasium.
 s	_course:s3.school	Mit der Matura kann man an die Uni.
 s	_course:s3.school	Morgen ist schulfrei!
-s	_course:s3.school	Morgen musst du um acht in der Schule sein.
 s	_course:s3.school	Nach der Sekundarschule macht sie eine Lehre als Köchin.
 s	_course:s3.school	Natürlich. Und nicht vergessen: Am Freitag schreiben wir einen Test.
 s	_course:s3.school	Nein, Unihockey.
@@ -10046,7 +10046,7 @@ s	_course:s3.shop	Einen Liter Milch, bitte.
 s	_course:s3.shop	Einen Liter Milch.
 s	_course:s3.shop	Er gefällt mir gar nicht.
 s	_course:s3.shop	Er gefällt mir überhaupt nicht.
-s	_course:s3.shop	Er zieht seinen Mantel aus.
+s	_course:s3.shop	Er zieht den grauen Mantel aus.
 s	_course:s3.shop	Gefällt Ihnen der Pulli?
 s	_course:s3.shop	Gefällt Ihnen die Farbe?
 s	_course:s3.shop	Gern, ich brauche eine neue Jacke.
@@ -10244,7 +10244,6 @@ s	_course:s3.travel	Das kostet zwanzig Franken pro Nacht.
 s	_course:s3.travel	Der Flug ist teurer als der Zug.
 s	_course:s3.travel	Der Flug ist teurer.
 s	_course:s3.travel	Der Flug.
-s	_course:s3.travel	Der Zug fährt früh.
 s	_course:s3.travel	Der Zug ist ausgefallen, darum habe ich den Anschluss verpasst.
 s	_course:s3.travel	Der Zug ist bequemer als das Flugzeug.
 s	_course:s3.travel	Der Zug ist billiger als das Flugzeug.
@@ -10269,6 +10268,7 @@ s	_course:s3.travel	Fährst du lieber ans Meer oder in die Berge?
 s	_course:s3.travel	Für drei Nächte.
 s	_course:s3.travel	Für wie viele Nächte?
 s	_course:s3.travel	Für zwei Nächte.
+s	_course:s3.travel	Gern.
 s	_course:s3.travel	Gern. Bitte lächeln!
 s	_course:s3.travel	Gern. Ich wünsche Ihnen einen schönen Aufenthalt!
 s	_course:s3.travel	Grüezi, ich hätte gern ein Billett nach Interlaken, hin und zurück, zweite Klasse. Ich habe ein Halbtax.
@@ -10365,6 +10365,7 @@ s	_course:s3.travel	Können Sie mir bitte helfen?
 s	_course:s3.travel	Könnten Sie mir bitte den Weg zeigen?
 s	_course:s3.travel	Könnten Sie mir bitte helfen? Mein Koffer ist so schwer.
 s	_course:s3.travel	Könnten Sie mir bitte mit dem Koffer helfen?
+s	_course:s3.travel	Könnten Sie uns morgen um sechs wecken?
 s	_course:s3.travel	Letzten Sommer waren wir zwei Wochen in Portugal. Wir sind mit dem Zug gereist. Das Wetter war super, nur einmal hat es geregnet.
 s	_course:s3.travel	Letztes Jahr sind wir in Griechenland gewesen.
 s	_course:s3.travel	Letztes Jahr waren wir in Griechenland.
@@ -10372,7 +10373,6 @@ s	_course:s3.travel	Letztes Jahr waren wir in Kroatien.
 s	_course:s3.travel	Lieber in die Berge.
 s	_course:s3.travel	Lieber in eine Stadt fahren.
 s	_course:s3.travel	Lieber in eine Stadt.
-s	_course:s3.travel	Mein Zug fährt früh.
 s	_course:s3.travel	Mein Zug ist ausgefallen!
 s	_course:s3.travel	Mit Halbtax?
 s	_course:s3.travel	Mit dem Nachtzug nach Wien.
@@ -10385,6 +10385,7 @@ s	_course:s3.travel	Perfekt. Ich schaue mir heute Abend die Preise an.
 s	_course:s3.travel	Perfekt. Könnten Sie uns morgen um sechs wecken? Unser Zug fährt früh.
 s	_course:s3.travel	Schon wieder in die Berge?
 s	_course:s3.travel	Schon wieder? Ich würde lieber in eine Stadt fahren.
+s	_course:s3.travel	Selbstverständlich.
 s	_course:s3.travel	Sie fahren in die Türkei.
 s	_course:s3.travel	Sie kostet zwanzig Franken pro Nacht.
 s	_course:s3.travel	Stimmt, und wir müssten kein Hotel für die erste Nacht zahlen.
@@ -10393,19 +10394,12 @@ s	_course:s3.travel	Super! Wir waren zwei Wochen in Portugal.
 s	_course:s3.travel	Super, das Hotel war sehr schön.
 s	_course:s3.travel	Und ab wann gibt es Frühstück?
 s	_course:s3.travel	Und das Meer? Ich möchte unbedingt einmal ans Meer.
-s	_course:s3.travel	Unser Zug fährt früh.
 s	_course:s3.travel	Unser Zug ist ausgefallen.
 s	_course:s3.travel	War das bequem?
 s	_course:s3.travel	Warum fährst du lieber mit dem Zug?
-s	_course:s3.travel	Warum müssen Sie so früh aufstehen?
 s	_course:s3.travel	Was ist teurer, der Flug oder der Zug?
 s	_course:s3.travel	Was kostet die Garage?
 s	_course:s3.travel	Was würdest du gern einmal sehen?
-s	_course:s3.travel	Weil der Zug früh fährt.
-s	_course:s3.travel	Weil mein Zug früh abfährt.
-s	_course:s3.travel	Weil mein Zug früh fährt.
-s	_course:s3.travel	Weil unser Zug früh abfährt.
-s	_course:s3.travel	Weil unser Zug früh fährt.
 s	_course:s3.travel	Wie könnten wir nach Wien fahren?
 s	_course:s3.travel	Wie seid ihr nach Wien gefahren?
 s	_course:s3.travel	Wie waren die Ferien?
