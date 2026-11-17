@@ -69,7 +69,7 @@ cxPack({
           rid: ["travel.book", "travel.polite", "travel.tell"],
           rules: [
             "Ask with **Ich hätte gern** + the accusative: **ein Billett** nach Lugano, **hin und zurück** (Swiss: **retour**), zweite Klasse · **ein Doppelzimmer** für zwei Nächte. Then: **Ist das Frühstück inbegriffen?**",
-            "Polite questions: **Könnten Sie** mir helfen? · **Würden Sie** bitte ein Foto machen? · **Wäre es möglich**, früher einzuchecken? Problems: Der Zug **ist ausgefallen** (cancelled) · Ich **habe** den Anschluss **verpasst**.",
+            "Ask politely with **Könnten Sie …?** or **Würden Sie …?**, and say a problem in the Perfekt: Der Zug **ist ausgefallen** (cancelled) · Ich **habe** den Anschluss **verpasst**. Also: **Wäre es möglich**, früher einzuchecken?",
             "Tell the trip in the Perfekt, with **war** and **hatte**: Wir **sind** nach Wien **gefahren**, das Hotel **war** toll. For *when* at one moment in the past, **als** + the verb last, often in the Präteritum: **Als** wir ankamen, regnete es.",
           ],
           lines: [
@@ -171,7 +171,7 @@ cxPack({
           { q: "«Eine Stadt ist viel interessanter als die Berge!» (agree)", a: ["Da hast du recht.", "Stimmt.", "Ja, stimmt.", "Ja, das finde ich auch.", "Das finde ich auch.", "Du hast recht.", "Genau.", "Finde ich auch."], r: ["travel.compare"] },
           { q: "«Ist das Frühstück inbegriffen?» (you're at the hotel desk: yes, from seven to ten)", a: ["Ja, von sieben bis zehn Uhr.", "Ja, von sieben bis zehn.", "Ja, es gibt Frühstück von sieben bis zehn Uhr."], r: ["travel.book"] },
           { q: "«Was kostet die Garage?» (you're at the hotel desk: 20 francs a night)", a: ["Zwanzig Franken pro Nacht.", "Sie kostet zwanzig Franken pro Nacht.", "Das kostet zwanzig Franken pro Nacht.", "20 Franken pro Nacht."], r: ["travel.book"] },
-          { q: "«Warum müssen Sie so früh aufstehen?» (your train leaves early)", a: ["Unser Zug fährt früh.", "Weil unser Zug früh fährt.", "Mein Zug fährt früh.", "Weil mein Zug früh fährt.", "Weil unser Zug früh abfährt.", "Weil mein Zug früh abfährt.", "Weil der Zug früh fährt.", "Der Zug fährt früh."], r: ["travel.polite"] },
+          { q: "«Könnten Sie uns morgen um sechs wecken?» (you're at the hotel desk: of course)", a: ["Natürlich.", "Ja, natürlich.", "Gern.", "Ja, gern.", "Selbstverständlich.", "Kein Problem."], r: ["travel.polite"] },
         ] },
         // ── Production: build the sentence ──
         { id: "dtravel.c", t: "compose", low: true, end: true, title: "Build the sentence", how: "Build the sentence. Put each word in its form; the brackets say the tense where it isn't the present.", items: [

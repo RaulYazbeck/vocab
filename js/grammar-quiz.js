@@ -351,10 +351,12 @@ function gqPointStep(at) {
   return { id: "ex", trap: true };
 }
 // en: in English whatever the app (the learning log is for a tutor).
-function gqPointName(at, en = false) {
+// (sh: the sheet — a course conversation's lines are "the conversation", not a list)
+function gqPointName(at, en = false, sh = null) {
   const T = en ? s => s.replace("{0}", at.slice(1)) : vxT;
-  if (en) return at === "why" ? "the structure" : /^r\d$/.test(at) ? T("rule {0}") : at === "table" ? "the table" : at === "lines" ? "the list" : "the trap";
-  return at === "why" ? vxT("the structure") : /^r\d$/.test(at) ? vxT("rule {0}", at.slice(1)) : at === "table" ? vxT("the table") : at === "lines" ? vxT("the list") : vxT("the trap");
+  const talk = at === "lines" && sh && (sh.lines || []).some(l => l.length > 2);
+  if (en) return at === "why" ? "the structure" : /^r\d$/.test(at) ? T("rule {0}") : at === "table" ? "the table" : talk ? "the conversation" : at === "lines" ? "the list" : "the trap";
+  return at === "why" ? vxT("the structure") : /^r\d$/.test(at) ? vxT("rule {0}", at.slice(1)) : at === "table" ? vxT("the table") : talk ? "the conversation" : at === "lines" ? vxT("the list") : vxT("the trap");
 }
 
 if (typeof module !== "undefined") module.exports = { gqSheetQuiz, gqMasteryQuiz, gqSheetSize, gqPoints, gqResolve, GQ_SETS };

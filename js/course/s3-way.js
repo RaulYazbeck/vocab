@@ -70,7 +70,7 @@ cxPack({
           rules: [
             "To someone you call Sie, start with the verb and put **Sie** after it: **Gehen Sie** geradeaus! **Nehmen Sie** den Bus! A separable verb sends its prefix to the end: **Steigen Sie** am Paradeplatz **um**!",
             "To a friend, take the du form and drop **du** and **-st**: du gehst → **Geh**!, du nimmst → **Nimm**! (ä goes back to a: **Fahr**!) To two or more, the ihr form: **Geht** links! **sein**: **Sei** · **Seid** · **Seien Sie**.",
-            "With **in, an, auf, über, vor, hinter, neben**: **wohin?** (where to) takes the accusative — **in die** Altstadt, **über die** Brücke, **an den** See; **wo?** (where) takes the dative — **in der** Altstadt, **am** See. zu and nach always take the dative.",
+            "After **in, an, auf, über, vor, hinter, neben**, a direction takes the accusative and a place the dative: **in die** Altstadt (wohin) — **in der** Altstadt (wo), **an den** See — **am** See. zu and nach always take the dative.",
           ],
           lines: [
             ["Jan", "Hallo Mia, ich bin am Bahnhof. Wie komme ich zu dir?", "Hi Mia, I'm at the station. How do I get to your place?"],

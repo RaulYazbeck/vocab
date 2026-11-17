@@ -27,7 +27,7 @@ cxPack({
           why: "At a stop you ask three things: when it comes, where it goes, and where to change. The key verbs are separable (abfahren, umsteigen, aussteigen), and waiting is always warten auf.",
           rid: ["bus.when", "bus.wait", "bus.change", "bus.ticket"],
           rules: [
-            "Ask **Wann fährt der Bus nach …?** or **Wann kommt der nächste?** The answer comes with **um** 8.15 (acht Uhr fünfzehn), **in** fünf Minuten, or **alle** zehn Minuten (every ten minutes). **abfahren** splits: Der Bus **fährt** um acht **ab**.",
+            "The bus **fährt** um acht **ab** (abfahren splits) and comes **in** fünf Minuten or **alle** zehn Minuten (every ten minutes). Ask **Wann fährt der Bus nach …?** or **Wann kommt der nächste?**",
             "Waiting is **warten auf** + the accusative: Ich warte **auf den** Bus. Still waiting: **seit** + the present — Wir warten **seit** zehn Minuten (*have been waiting*). Late: Der Bus **hat** fünf Minuten **Verspätung**.",
             "Getting on, off and changing: **einsteigen**, **aussteigen**, **umsteigen**. The prefix goes to the end: Wir **steigen** am Bahnhof **um**. After a modal the verb stays whole at the end: Wo **muss** ich **aussteigen**?",
             "Tickets: **ein Billett** (Swiss for eine Fahrkarte — you **lösen** or buy it), **eine Tageskarte**, **ein Abo** (a pass), **das Halbtax** (the half-fare card). You buy it **am Automaten** or **in der App**.",
@@ -67,7 +67,7 @@ cxPack({
           why: "Small talk at the stop is often about other people: who they are, where they're from, what they do. Jobs and nationalities come without ein, and kennen or wissen says whether you know a person or a fact.",
           rid: ["bus.who", "bus.know", "bus.talk"],
           rules: [
-            "Say who someone is with **Das ist** + the name. A job or a nationality takes **sein** and no article: Er ist **Student**. Sie ist **Österreicherin** (a woman's word often adds **-in**). Studies: Er **studiert** Medizin.",
+            "A job or a nationality takes **sein** and no article: Er ist **Student**. Sie ist **Österreicherin** (a woman's word often adds **-in**). Introduce with **Das ist** + the name; studies: Er **studiert** Medizin.",
             "Use **kennen** for a person or a place (Kennst du die Frau dort?) and **wissen** for a fact (Ich **weiß** es nicht · Weißt du, **dass** sie Lehrerin ist?). Ask **Woher kennst du sie?** — Aus dem Deutschkurs.",
             "Keep a short chat going: talk about the weather (**Kalt heute, nicht?**) or ask **Fahren Sie auch nach …?** Agree with **Ja, stimmt.** or **Ich auch.**, and leave with **Da kommt mein Bus. Schönen Tag noch!**",
           ],

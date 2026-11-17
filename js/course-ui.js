@@ -137,8 +137,12 @@ function cxRender() {
 // The first sentence of a rule's text (it states the rule on its own).
 function cxFirstSentence(t) {
   t = String(t || "");
-  const m = /^[\s\S]*?[.!?](?:\*\*)?(?=\s+(?:\*\*)?[A-ZÄÖÜ(]|\s*$)/.exec(t);
-  return m && m[0].length >= 25 ? m[0] : t;
+  const re = /^[\s\S]*?[.!?](?:\*\*)?(?=\s+(?:\*\*)?[A-ZÄÖÜ(]|\s*$)/, m = re.exec(t);
+  if (!m || m[0].length < 25) return t;
+  // (an example cut after its question — "…for things too: Der Zug?" — keeps its answer: "Er hat Verspätung.")
+  const tail = m[0].replace(/\*\*/g, "").split(":").pop().trim();
+  if (/\?$/.test(tail) && tail.split(/\s+/).length <= 2) { const n = re.exec(t.slice(m[0].length).trimStart()); if (n) return m[0] + " " + n[0]; }
+  return m[0];
 }
 // A tile in your sentence: the one in first place takes its capital (in the
 // bank it waits small — a capital there would say which word starts). A

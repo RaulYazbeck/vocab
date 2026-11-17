@@ -32,10 +32,10 @@ cxPack({
           why: "Buying clothes is a short script: say what you're looking for, try it on, ask for another size or colour, decide. Use the adjective endings you've learned: die rote Jacke, einen warmen Pulli.",
           rid: ["shop.help", "shop.try", "shop.size", "shop.take"],
           rules: [
-            "The assistant asks **Kann ich Ihnen helfen?** You answer **Ich suche …** or **Ich möchte …** + the accusative: Ich suche **einen** warmen Pulli. If you're only looking: **Danke, ich schaue nur.**",
-            "Ask **Darf ich das anprobieren?** — **Die Kabine ist dort hinten.** Then say how it is with the dative: Die Hose **passt mir** (fits me) · Die Farbe **steht mir** (suits me) · Der Pulli **gefällt mir** (I like it).",
-            "Ask **Haben Sie das eine Nummer größer / kleiner?** · **Gibt es die Jacke auch in Schwarz?** Before a noun a colour takes its ending (die **rote** Jacke, den **blauen** Pulli); after sein, none: Die Jacke ist **rot**.",
-            "To decide, use a pronoun for the thing, by its gender, in the accusative. First in the sentence: **den / die / das** — Der Pulli? **Den** nehme ich. After the verb: **ihn / sie / es** — Ich nehme **ihn**. Not yet? **Ich überlege es mir noch.**",
+            "Say what you want with **Ich suche …** or **Ich möchte …** + the accusative: Ich suche **einen** warmen Pulli. To **Kann ich Ihnen helfen?** you can also say **Danke, ich schaue nur.**",
+            "**passen**, **stehen** and **gefallen** take the dative: Die Hose **passt mir** (fits me) · Die Farbe **steht mir** (suits me) · Der Pulli **gefällt mir** (I like it). To try on: **Darf ich das anprobieren?**",
+            "Before a noun a colour takes its ending: die **rote** Jacke, den **blauen** Pulli; after sein, none: Die Jacke ist **rot**. Ask **Haben Sie das eine Nummer größer?** · **Gibt es die Jacke auch in Schwarz?**",
+            "The thing you take is the object, so its pronoun is accusative, by its gender. First in the sentence: **den / die / das** — Der Pulli? **Den** nehme ich. After the verb: **ihn / sie / es** — Ich nehme **ihn**. Not yet? **Ich überlege es mir noch.**",
           ],
           lines: [
             ["Verkäuferin", "Grüezi! Kann ich Ihnen helfen?", "Hello! Can I help you?"],
@@ -158,7 +158,7 @@ cxPack({
           { q: "(die billigen Handschuhe) Ich nehme ___.", a: ["die billigen Handschuhe"], r: ["shop.take"] },
           { q: "(ein schwarzer Hut) In diesem Laden gibt es ___.", a: ["einen schwarzen Hut"], r: ["shop.size"] },
           { q: "(die neue Bäckerei) Ich gehe schnell in ___.", a: ["die neue Bäckerei"], r: ["shop.size"] },
-          { q: "(sein Mantel) Er zieht ___ aus.", a: ["seinen Mantel"], r: ["shop.help"] },
+          { q: "(der graue Mantel) Er zieht ___ aus.", a: ["den grauen Mantel"], r: ["shop.size"] },
           { q: "(ich) Das gestreifte Hemd steht ___ nicht.", a: ["mir"], r: ["shop.try"] },
           { q: "(dein Vater) Die Krawatte steht ___ gut.", a: ["deinem Vater"], r: ["shop.try"] },
           { q: "(der Verkäufer) Die Farbe gefällt ___ auch.", a: ["dem Verkäufer"], r: ["shop.try"] },

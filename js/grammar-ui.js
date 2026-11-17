@@ -497,7 +497,7 @@ function gsQuizShowAnswered() {
   const right = Q.k === "type" ? Q.a[0] : Q.k === "order" ? Q.a.join(" ") : Q.o[Q.a];
   const why = `<div class="gs-qwhy">${gsMd(Q.why)}${Q.whyHtml ? `<div class="gs-qrule">${Q.whyHtml}</div>` : ""}</div>`;
   const sh = gsSheetOf(Q.sid);
-  const where = sh ? `${gqPointName(Q.at)}${g.mastery ? ` ${VX_FR ? "de" : "of"} “${escapeHtml(sh.title)}”` : ""}` : "";
+  const where = sh ? `${gqPointName(Q.at, false, sh)}${g.mastery ? ` ${VX_FR ? "de" : "of"} “${escapeHtml(sh.title)}”` : ""}` : "";
   const fb = document.getElementById("gs-qfb");
   if (fb) fb.innerHTML = ok ? `<div class="p-ok">${vxT("✓ Right")}${cur.uml ? ` <span class="vx-uml">${vxT("— spelt {0}", `<b>${escapeHtml(right)}</b>`)}</span>` : ""}${cur.extra ? ` <span class="vx-uml">${vxT("— only the verb was needed")}</span>` : ""}</div>${why}`
     : `<div class="p-bad">${vxT("✗ Answer:").replace("✗", typoMark("✗"))} <strong>${escapeHtml(right)}</strong></div>${why}
@@ -514,8 +514,12 @@ function gsQuizShowAnswered() {
   });
   // The whole right sentence, once answered: shown to tap, said once (German app).
   const say = typeof sayTapOn === "function" && sayTapOn() && typeof cxQuizSayText === "function" ? cxQuizSayText(Q) : "";
+  // (a miss whose answer already is that sentence: the answer itself is tapped — not shown twice)
+  const same = say && !ok && gsSayText(right).replace(/\s+/g, " ").trim() === say;
+  const strong = same && fb && fb.querySelector(".p-bad strong");
+  if (strong) { strong.setAttribute("data-tap-say", say); strong.title = "Tap to hear"; }
   if (fb && say) {
-    fb.querySelector(".p-ok, .p-bad").insertAdjacentHTML("afterend", `<div class="cx-heard"${sayTapAttrs(say)}>${escapeHtml(say)}</div>`);
+    if (!strong) fb.querySelector(".p-ok, .p-bad").insertAdjacentHTML("afterend", `<div class="cx-heard"${sayTapAttrs(say)}>${escapeHtml(say)}</div>`);
     fb.setAttribute("data-say-zone", "");
     const my = cur;
     // (once: not again when the question is redrawn after a look at the sheet)
@@ -556,7 +560,7 @@ function gsQuizSettle() {
 function gsMissedHtml(q) {
   if (!q.missed.length) return "";
   return `<div class="gs-missed"><b>${vxT("To look at again")}</b>${q.missed.map((m, j) => { const sh = gsSheetOf(m.q.sid);
-    return `<button class="gs-miss" onclick="gsOpenPoint('${m.q.sid}','${m.q.at}')"><span>${gsMd(m.q.q)}</span><small>${escapeHtml(gqPointName(m.q.at))}${_gs.mastery && sh ? ` · ${escapeHtml(sh.title)}` : ""} ›</small></button>`; }).join("")}</div>`;
+    return `<button class="gs-miss" onclick="gsOpenPoint('${m.q.sid}','${m.q.at}')"><span>${gsMd(m.q.q)}</span><small>${escapeHtml(gqPointName(m.q.at, false, sh))}${_gs.mastery && sh ? ` · ${escapeHtml(sh.title)}` : ""} ›</small></button>`; }).join("")}</div>`;
 }
 // From the result screen: that point of the sheet, then back here.
 function gsOpenPoint(sid, at) {

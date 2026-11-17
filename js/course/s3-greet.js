@@ -15,7 +15,7 @@ cxPack({
       rules: {
         "greet.hello": "Hello and your name: Grüezi, ich heiße …",
         "greet.from": "Where from, where you live, your work: aus, seit, bei",
-        "greet.dusie": "du, ihr or Sie — and the words that go with it",
+        "greet.dusie": "The person decides the verb: du hast, ihr habt, Sie haben",
         "greet.back": "Answering about you and asking back: Und Sie?",
         "greet.intro": "Introducing someone: Darf ich Ihnen meinen Mann vorstellen?",
         "greet.family": "Family words, and whose: die Frau von meinem Bruder",
@@ -29,7 +29,7 @@ cxPack({
           rules: [
             "Say hello with **Grüezi** or **Guten Tag** to someone you call Sie, and **Hallo** or **Salü** to a friend. Then give your name: **Ich heiße …** or **Mein Name ist …**. The other person says **Freut mich!**",
             "Where you're from takes **aus**, where you live **in**, since when **seit** + the present: Ich komme **aus** Spanien und wohne **seit** zwei Jahren **in** Bern. Your work: Ich arbeite **bei** der Post · Ich bin **Koch** (no ein).",
-            "With **Sie**, everything that goes with it changes too: **Ihr** (your), **Ihnen** (to you), **Kommen Sie!** With **du**: **dein**, **dir**, **Komm!** With two friends or more, **ihr**: **euer**, **euch**, **Kommt!**",
+            "The person decides the verb and the words with it: du **hast**, ihr **habt**, Sie **haben**, Lea **hat**. With **Sie**: **Ihr** (your), **Ihnen**, **Kommen Sie!** · **du**: **dein**, **dir**, **Komm!** · **ihr**: **euer**, **euch**, **Kommt!**",
             "Keep the talk going: answer, then ask back with **Und Sie?** or **Und du?** Good questions are **Woher kommen Sie?**, **Wo wohnen Sie?** and **Was machen Sie beruflich?** (what's your job).",
           ],
           lines: [
@@ -67,8 +67,8 @@ cxPack({
           why: "Introducing someone takes one sentence: **Das ist …**. In a polite introduction the person is the object (Darf ich Ihnen **meinen** Mann vorstellen?), so watch the accusative. Family words say who they are.",
           rid: ["greet.intro", "greet.family", "greet.bye"],
           rules: [
-            "Introduce someone with **Das ist …** (Das ist mein Bruder) or, politely, **Darf ich Ihnen … vorstellen?** The person is then the object: **meinen** Mann, **den** Chef. Ask **Kennst du … schon?** — Nein, noch nicht.",
-            "In-laws: **der Schwager**, **die Schwägerin**, **die Schwiegereltern**. Your partner's children from before: **der Stiefsohn**, **die Stieftochter**. To say whose, use **von** + the dative: die Frau **von meinem** Bruder.",
+            "The person you introduce, know or pick up is the object (accusative): Darf ich Ihnen **meinen** Mann vorstellen? · Kennst du **den** Chef schon? Simply: **Das ist** mein Bruder.",
+            "Talk about family with the in-law and step words — **der Schwager**, **die Schwiegereltern**, **die Stieftochter** — and say whose with **von** + the dative: die Frau **von meinem** Bruder.",
             "To leave, say that you have to go: **Ich muss los.** · **Ich habe es eilig.** Then **Grüß** … **von mir!** (du) or **Grüßen Sie** … **von mir!** (Sie), and **Bis bald!**",
           ],
           lines: [
@@ -139,10 +139,10 @@ cxPack({
           { q: "(ein Freund von mir) Ich hole heute ___ ab.", a: ["einen Freund von mir"], r: ["greet.intro"] },
           { q: "(das Mädchen) Kennt ihr ___ schon?", a: ["das Mädchen"], r: ["greet.intro"] },
           { q: "(der Chef) Stell mir bitte ___ vor!", a: ["den Chef"], r: ["greet.intro"] },
-          { q: "(meine Schwiegereltern) Am Sonntag besuchen wir ___.", a: ["meine Schwiegereltern"], r: ["greet.family"] },
+          { q: "(meine Schwiegereltern) Am Sonntag besuchen wir ___.", a: ["meine Schwiegereltern"], r: ["greet.intro"] },
           { q: "(ihr Bruder) Lea holt ___ am Bahnhof ab.", a: ["ihren Bruder"], r: ["greet.intro"] },
           { q: "(der Gast) Wer holt ___ ab?", a: ["den Gast"], r: ["greet.intro"] },
-          { q: "(euer Stiefsohn) Wir kennen ___ noch nicht.", a: ["euren Stiefsohn", "eueren Stiefsohn"], r: ["greet.family"] },
+          { q: "(euer Stiefsohn) Wir kennen ___ noch nicht.", a: ["euren Stiefsohn", "eueren Stiefsohn"], r: ["greet.intro"] },
           { q: "(Frau Keller) Morgen stelle ich dir ___ vor.", a: ["Frau Keller"], r: ["greet.intro"] },
         ] },
         // ── Übung 30•1: the same lines, to someone you call Sie ──

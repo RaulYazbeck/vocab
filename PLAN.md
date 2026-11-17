@@ -1138,6 +1138,18 @@ what I wrote → the right answer, a drill's writing is saved with its prompt an
 the real app. Voice: 396 changed sentences recorded (12,391 characters). All green again (listed in the review's
 reply).
 
+**Second look (17 Nov 2026), my request — every success and every fail:** all 51 drill sets of the units run in the real
+app on a phone, one item right and one wrong (102 cards): each has its verdict, the answer, a reason and on a miss the
+rule's link, Next in view, nothing sticking out; the writing cards save and show a model; "almost", an empty Check, the
+quiz's right and wrong, a drill's result looked at. Fixed: (1) a miss with no message of its own shows the rule's first
+sentence — eight of the units' rules opened with a phrase list or a question, one was cut at its own «wohin?» («With
+in, an, …: wohin?»): each now opens with its rule; five sets' items were tagged with a rule whose sentence didn't fit
+them (Hungry? Thirsty? showed the Sie rule) — rules and tags fixed; the validator now checks every rule of the course
+opens with a sentence that states it; older ones cut after an example's question («…for things too: Der Zug?») keep
+the answer that follows. (2) The quiz's link back to a dialogue said «See it in the sheet — the list»: now «— the
+conversation». (3) A quiz missed whose answer is the whole sentence showed it twice: now the answer itself is the one
+to tap. My real backup: identical on the pushed code and this one, the pace green, all done by 6 Jul 2027.
+
 ### Session 9 — polish
 
 **Upload:** chapters 12, 21, 25, 26, 27. *(from the course map: `node tools/course/session.mjs 9`)*

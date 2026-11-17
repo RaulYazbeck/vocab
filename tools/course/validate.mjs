@@ -722,6 +722,16 @@ if (neg && neg.built) {
     const s = CX.sets[set], it = s.items.find(x => x.q === key || (x.a || [])[0] === key), r = it && C.cxCheck(it, typed, C.cxSection(s.sec));
     ok(r && !r.ok && !r.near, `"${typed}": the grammar — a mistake, not almost`);
   });
+  // after a miss with no message of its own, the card shows the rule's first sentence (course-ui.js
+  // cxFirstSentence): it must state the rule — not a phrase list, not cut at an example's question
+  {
+    const ui = fs.readFileSync(path.join(ROOT, "js/course-ui.js"), "utf8").match(/function cxFirstSentence[\s\S]*?\n}/)[0];
+    const first = new Function(ui + "; return cxFirstSentence;")();
+    Object.values(CX.sheets).forEach(sh => sh.rules.forEach((r, i) => {
+      const f = first(r).replace(/\*\*/g, "").trim(), tail = f.split(":").pop().trim();
+      ok(f.length >= 18 && !(/\?$/.test(tail) && tail.split(/\s+/).length <= 2), `${sh.id} ${sh.rid[i]}: its first sentence states the rule («${f.slice(0, 70)}»)`);
+    }));
+  }
   // a conversation's missing line is a whole line: never just the words around a gap
   {
     const it = CX.sets["d30.5"].items.find(x => (x.a || [])[0] === "Sie heißt Nora."), sec = C.cxSection("s3.greet");

@@ -71,7 +71,7 @@ cxPack({
           rules: [
             "**studieren** is studying a subject at a university: Sie **studiert** Jura. **lernen** is learning something, or revising: Ich **lerne** Deutsch · Ich **lerne** für den Test. A child at school **lernt**, never *studiert*.",
             "In class: **Wie bitte?** · **Können Sie das bitte wiederholen?** · **Was bedeutet** «Feierabend»? · **Wie schreibt man** das? · **Auf welcher Seite** sind wir? · **Ich habe das nicht verstanden.**",
-            "School subjects are **Fächer**: Mathe, Deutsch, Geschichte, Biologie, Sport. **Mein Lieblingsfach ist …** · Am Montag **schreiben** wir **einen Test** (we have a test) · Die **Hausaufgaben** sind auf Seite 12.",
+            "School subjects are **Fächer**, and you **schreiben** a test: **Mein Lieblingsfach ist** Geschichte · Am Montag **schreiben** wir **einen Test**. The homework is **die Hausaufgaben**.",
           ],
           lines: [
             ["Frau Weber", "Guten Morgen zusammen! Habt ihr die Hausaufgaben gemacht?", "Good morning, everyone! Did you do the homework?"],
@@ -134,7 +134,7 @@ cxPack({
           { q: "Heute Abend ___ ich für den Test. (studieren or lernen)", a: ["lerne"], r: ["school.stud"] },
           { q: "Die Kinder ___ in der Schule schwimmen. (studieren or lernen)", a: ["lernen"], r: ["school.stud"] },
           { q: "Was ___ du an der Uni? (studieren)", a: ["studierst"], r: ["school.stud"] },
-          { q: "Morgen ___ du um acht in der Schule sein. (müssen)", a: ["musst"], r: ["school.subj"] },
+          { q: "Mein ___ ist Sport. (favourite subject)", a: ["Lieblingsfach"], r: ["school.subj"] },
           { q: "Ich habe die Prüfung ___. (bestehen)", a: ["bestanden"], r: ["school.past"], vf: [["bestehen", "p2only", "ich"]] },
           { q: "Er ___ in Mathe durchgefallen. (sein or haben)", a: ["ist"], r: ["school.past"] },
           { q: "In der Schweiz ist die ___ die beste Note. (six)", a: ["Sechs", "6"], r: ["school.grade"] },
