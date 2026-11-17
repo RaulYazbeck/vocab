@@ -9255,6 +9255,7 @@ s	_course:s2.woda	Wozu brauchst du das Geld?
 s	_course:s2.woda	Wozu brauchst du den Hammer? Zum Aufhängen der Bilder.
 s	_course:s2.woda	Zwischen wem steht Tom?
 s	_course:s2.woda	Über wen ärgert sich Tom?
+s	_course:s3.bus	12 Minuten.
 s	_course:s3.bus	Ah, und woher kennst du ihn?
 s	_course:s3.bus	Am Automaten oder in der App.
 s	_course:s3.bus	Am Bahnhof Altstetten.
@@ -9263,66 +9264,75 @@ s	_course:s3.bus	An meiner Haltestelle sehe ich oft eine Frau. Sie kommt aus Eri
 s	_course:s3.bus	Aus Irland.
 s	_course:s3.bus	Aus dem Büro.
 s	_course:s3.bus	Aus dem Büro. Er spricht schon gut Deutsch, aber mit Akzent.
-s	_course:s3.bus	Da kommt er ja! Haben Sie schon ein Billett?
-s	_course:s3.bus	Da kommt mein Bus. Tschüss!
+s	_course:s3.bus	Da kommt mein Bus. Schönen Tag noch!
+s	_course:s3.bus	Da kommt sie ja! Haben Sie schon ein Billett?
 s	_course:s3.bus	Dann fährt ein Nachtbus.
 s	_course:s3.bus	Dann komme ich zu spät zum Zug!
 s	_course:s3.bus	Dann nehmen Sie die S-Bahn.
 s	_course:s3.bus	Das Tram fällt heute aus. Wie komme ich jetzt zum Bahnhof? Gibt es einen Bus?
 s	_course:s3.bus	Das Tram hat fünf Minuten Verspätung.
 s	_course:s3.bus	Das Tram kommt alle zehn Minuten.
-s	_course:s3.bus	Das ist Tom.
+s	_course:s3.bus	Das ist Tom, ein Kollege.
+s	_course:s3.bus	Das ist Tom, mein Kollege.
+s	_course:s3.bus	Das ist Tom. Er ist ein Kollege.
+s	_course:s3.bus	Das ist Tom. Er ist mein Kollege.
 s	_course:s3.bus	Das ist Tom. Er kommt aus Irland und macht ein Praktikum bei uns.
+s	_course:s3.bus	Das ist mein Kollege Tom.
 s	_course:s3.bus	Das ist mein Kollege.
 s	_course:s3.bus	Das ist meine Nachbarin.
+s	_course:s3.bus	Der Bus Nummer 7 fährt zum Bahnhof.
 s	_course:s3.bus	Der Bus Nummer 7.
 s	_course:s3.bus	Der Bus fährt um acht Uhr ab.
 s	_course:s3.bus	Der Bus fährt um acht Uhr fünfzehn ab.
 s	_course:s3.bus	Der Bus hat zwölf Minuten Verspätung.
 s	_course:s3.bus	Der Zug hat zehn Minuten Verspätung.
+s	_course:s3.bus	Der Zug ist zehn Minuten zu spät.
+s	_course:s3.bus	Die 7.
 s	_course:s3.bus	Die Nummer 7 fährt zum Bahnhof.
 s	_course:s3.bus	Die Nummer 7.
 s	_course:s3.bus	Die Nummer sieben.
+s	_course:s3.bus	Du kennst die Frau mit dem Hund.
 s	_course:s3.bus	Du musst am Hauptbahnhof umsteigen. Nimm dann das Tram 11 und steig beim Zoo aus.
 s	_course:s3.bus	Echt? Dann kennen sie sich vielleicht!
 s	_course:s3.bus	Ein Billett nach Bern und zurück, bitte. Ich habe ein Halbtax.
 s	_course:s3.bus	Eine Tageskarte, bitte.
 s	_course:s3.bus	Entschuldigung, fährt dieser Bus zum Bahnhof?
 s	_course:s3.bus	Entschuldigung, fährt dieser Bus zum Bahnhof? Und wann kommt der nächste?
-s	_course:s3.bus	Er fährt um neun Uhr zweiunddreißig ab.
+s	_course:s3.bus	Er fährt um halb zehn ab.
 s	_course:s3.bus	Er hat zehn Minuten Verspätung.
 s	_course:s3.bus	Er hat zwölf Minuten Verspätung.
-s	_course:s3.bus	Er heißt Tom.
 s	_course:s3.bus	Er ist Student und kommt aus Irland.
-s	_course:s3.bus	Er kennt ihn aus dem Büro.
 s	_course:s3.bus	Er kommt aus Irland.
-s	_course:s3.bus	Er wartet seit einer Viertelstunde.
-s	_course:s3.bus	Er wartet seit fünfzehn Minuten.
 s	_course:s3.bus	Es ist heute kalt, nicht?
 s	_course:s3.bus	Es ist heute kalt, oder?
 s	_course:s3.bus	Es ist kalt heute, nicht?
 s	_course:s3.bus	Es kommt in zwei Minuten.
-s	_course:s3.bus	Es kommt in zwei Minuten. Ich warte auch schon lange.
+s	_course:s3.bus	Es kommt in zwei Minuten. Ja, wir warten schon lange.
 s	_course:s3.bus	Fahren Sie auch in die Stadt?
 s	_course:s3.bus	Fährt dieser Bus nach Wallisellen?
 s	_course:s3.bus	Gleich dort drüben.
 s	_course:s3.bus	Haben Sie ein Billett?
+s	_course:s3.bus	Haben Sie schon ein Billett?
 s	_course:s3.bus	Hallo! Wartest du auch auf die Nummer 3?
-s	_course:s3.bus	Hat Frau Meier ein Billett?
 s	_course:s3.bus	Hat der Zug Verspätung?
+s	_course:s3.bus	Heute ist es kalt, gell?
 s	_course:s3.bus	Heute ist es kalt, nicht?
 s	_course:s3.bus	Heute ist es kalt, oder?
 s	_course:s3.bus	Hoffentlich!
+s	_course:s3.bus	Ich fahre nach Basel.
 s	_course:s3.bus	Ich glaube, sie kommt gleich.
 s	_course:s3.bus	Ich kaufe das Billett am Automaten.
 s	_course:s3.bus	Ich kenne Marta aus dem Deutschkurs. Ich weiß, dass sie zwei Kinder hat.
+s	_course:s3.bus	Ich kenne ihn aus dem Büro.
 s	_course:s3.bus	Ich möchte eine Tageskarte, bitte. — Mit Halbtax?
+s	_course:s3.bus	Ich warte schon seit einer Viertelstunde.
 s	_course:s3.bus	Ich warte schon seit zwanzig Minuten auf den Bus.
 s	_course:s3.bus	Ich warte schon zwanzig Minuten auf den Bus.
+s	_course:s3.bus	Ich warte seit einer Viertelstunde.
+s	_course:s3.bus	Ich warte seit fünfzehn Minuten.
 s	_course:s3.bus	Ich warte seit zehn Minuten auf den Bus.
 s	_course:s3.bus	Ich warte seit zwanzig Minuten auf den Bus.
 s	_course:s3.bus	Ich weiß, dass er aus Irland kommt.
-s	_course:s3.bus	Ihr Zug fährt um neun Uhr zweiunddreißig ab.
 s	_course:s3.bus	In fünf Minuten.
 s	_course:s3.bus	In zwei Minuten.
 s	_course:s3.bus	Ja, am Hauptbahnhof.
@@ -9332,17 +9342,18 @@ s	_course:s3.bus	Ja, das ist Sofia. Sie ist Griechin und arbeitet als Pflegefach
 s	_course:s3.bus	Ja, das ist jeden Tag so.
 s	_course:s3.bus	Ja, ein Abo.
 s	_course:s3.bus	Ja, fünf Minuten.
+s	_course:s3.bus	Ja, ich habe ein Billett in der App.
+s	_course:s3.bus	Ja, ich habe eins in der App.
 s	_course:s3.bus	Ja, im Haus gegenüber.
 s	_course:s3.bus	Ja, in der App steht: zwölf Minuten Verspätung.
 s	_course:s3.bus	Ja, in der App.
 s	_course:s3.bus	Ja, in der App. Vielen Dank und schönen Tag!
 s	_course:s3.bus	Ja, natürlich.
 s	_course:s3.bus	Ja, seit zehn Minuten.
-s	_course:s3.bus	Ja, sie hat ein Billett in der App.
-s	_course:s3.bus	Ja, sie hat eins in der App.
 s	_course:s3.bus	Ja, stimmt. Und windig!
 s	_course:s3.bus	Ja, vom Sehen.
 s	_course:s3.bus	Ja, zur Arbeit.
+s	_course:s3.bus	Kalt heute, gell?
 s	_course:s3.bus	Kalt heute, nicht?
 s	_course:s3.bus	Kalt heute, nicht? Wo bleibt nur das Tram?
 s	_course:s3.bus	Kalt heute, nicht? — Ja, sehr. — Fahren Sie auch in die Stadt? — Nein, nach Hause. Oh, da kommt mein Bus. Schönen Tag noch!
@@ -9356,8 +9367,12 @@ s	_course:s3.bus	Kennst du den Mann mit dem Hund?
 s	_course:s3.bus	Kennst du die Frau dort?
 s	_course:s3.bus	Kennst du die Frau dort? — Ja, aber nur vom Sehen.
 s	_course:s3.bus	Kennst du die Frau mit dem Hund?
+s	_course:s3.bus	Krankenschwester.
+s	_course:s3.bus	Mein Zug fährt um halb zehn ab.
 s	_course:s3.bus	Meine Nachbarin ist Lehrerin.
 s	_course:s3.bus	Mit dem Halbtax zahle ich nur die Hälfte.
+s	_course:s3.bus	Mit dem Halbtax-Abo zahle ich nur die Hälfte.
+s	_course:s3.bus	Mit dem Halbtaxabo zahle ich nur die Hälfte.
 s	_course:s3.bus	Muss ich umsteigen?
 s	_course:s3.bus	Nach Basel.
 s	_course:s3.bus	Nach Basel. Mein Zug fährt um neun Uhr zweiunddreißig ab.
@@ -9366,48 +9381,52 @@ s	_course:s3.bus	Nein, der fährt nur bis zum Spital. Zum Bahnhof fährt die Num
 s	_course:s3.bus	Nein, nehmen Sie die Nummer 4.
 s	_course:s3.bus	Nimmt der Automat auch Karten?
 s	_course:s3.bus	Normalerweise alle zehn Minuten. Aber ich warte schon seit einer Viertelstunde.
-s	_course:s3.bus	Oh nein! Hat er Verspätung?
+s	_course:s3.bus	Nummer 7.
+s	_course:s3.bus	Oh nein! Hat sie Verspätung?
 s	_course:s3.bus	Pflegefachfrau.
 s	_course:s3.bus	Schau mal, wer ist der Mann dort beim Kiosk?
+s	_course:s3.bus	Schon seit einer Viertelstunde.
 s	_course:s3.bus	Schon wieder!
+s	_course:s3.bus	Seit 15 Minuten.
 s	_course:s3.bus	Seit einer Viertelstunde.
 s	_course:s3.bus	Seit fünfzehn Minuten.
-s	_course:s3.bus	Seit wann wartet Herr Okafor?
+s	_course:s3.bus	Seit wann warten Sie schon?
 s	_course:s3.bus	Seit zehn Minuten warte ich auf den Bus.
 s	_course:s3.bus	Seit zehn Minuten.
 s	_course:s3.bus	Seit zwanzig Minuten warte ich auf den Bus.
-s	_course:s3.bus	Sie arbeitet als Pflegefachfrau im Spital.
 s	_course:s3.bus	Sie arbeitet als Pflegefachfrau.
-s	_course:s3.bus	Sie fährt nach Basel.
+s	_course:s3.bus	Sie ist Krankenpflegerin und kommt aus Griechenland.
 s	_course:s3.bus	Sie ist Krankenschwester und kommt aus Griechenland.
+s	_course:s3.bus	Sie ist Krankenschwester.
 s	_course:s3.bus	Sie ist Lehrerin.
 s	_course:s3.bus	Sie ist Pflegefachfrau und kommt aus Griechenland.
 s	_course:s3.bus	Sie ist Pflegefachfrau.
 s	_course:s3.bus	Sie ist Pflegerin und kommt aus Griechenland.
+s	_course:s3.bus	Sie ist Pflegerin.
 s	_course:s3.bus	Sorry, mein Bus hat Verspätung. Ich warte schon seit zwanzig Minuten! Ich komme etwa um acht.
 s	_course:s3.bus	Tom studiert Geschichte an der Uni.
 s	_course:s3.bus	Tom studiert an der Uni Geschichte.
-s	_course:s3.bus	Tom.
-s	_course:s3.bus	Tschüss, schönen Abend!
 s	_course:s3.bus	Um Mitternacht.
 s	_course:s3.bus	Um acht Uhr fährt der Bus ab.
-s	_course:s3.bus	Um neun Uhr zweiunddreißig.
+s	_course:s3.bus	Um halb zehn.
 s	_course:s3.bus	Und am Wochenende?
 s	_course:s3.bus	Und dann?
 s	_course:s3.bus	Und die Frau neben ihm? Ist das seine Freundin?
 s	_course:s3.bus	Und wann kommt die Nummer 7?
 s	_course:s3.bus	Und wo hält die?
+s	_course:s3.bus	Wann fährt Ihr Zug ab?
 s	_course:s3.bus	Wann fährt der Bus nach Uster ab?
 s	_course:s3.bus	Wann fährt der Bus nach Wil ab? — In fünf Minuten.
 s	_course:s3.bus	Wann fährt der letzte Bus?
 s	_course:s3.bus	Wann fährt der nächste Bus nach Baden ab?
+s	_course:s3.bus	Wann fährt der nächste Bus nach Baden los?
 s	_course:s3.bus	Wann fährt der nächste Bus nach Baden?
-s	_course:s3.bus	Wann fährt ihr Zug ab?
+s	_course:s3.bus	Wann geht der nächste Bus nach Baden?
 s	_course:s3.bus	Wann kommt das Tram?
 s	_course:s3.bus	Was ist Sofia von Beruf?
 s	_course:s3.bus	Was macht sie?
 s	_course:s3.bus	Weißt du, dass meine Schwester auch im Spital arbeitet?
-s	_course:s3.bus	Wer ist der Mann beim Kiosk?
+s	_course:s3.bus	Wer ist der Mann dort beim Kiosk?
 s	_course:s3.bus	Wer ist der Mann dort?
 s	_course:s3.bus	Wer ist die Frau dort?
 s	_course:s3.bus	Wie lange wartest du schon?
@@ -9416,20 +9435,24 @@ s	_course:s3.bus	Wir müssen am Bahnhof umsteigen.
 s	_course:s3.bus	Wir steigen am Bahnhof aus.
 s	_course:s3.bus	Wir steigen an der Post aus.
 s	_course:s3.bus	Wir steigen bei der Post aus.
+s	_course:s3.bus	Wir warten schon seit zwanzig Minuten.
+s	_course:s3.bus	Wir warten schon zwanzig Minuten.
 s	_course:s3.bus	Wir warten seit zwanzig Minuten.
 s	_course:s3.bus	Wo bleibt der Bus?
 s	_course:s3.bus	Wo kann ich ein Billett kaufen?
 s	_course:s3.bus	Wo muss ich umsteigen? — Am Bahnhof Oerlikon.
 s	_course:s3.bus	Wo steigen Sie aus?
+s	_course:s3.bus	Woher kennst du ihn?
 s	_course:s3.bus	Woher kennst du ihn? — Aus dem Deutschkurs.
 s	_course:s3.bus	Woher kennst du sie?
-s	_course:s3.bus	Woher kennt Luca ihn?
-s	_course:s3.bus	Woher kommt Tom?
+s	_course:s3.bus	Woher kommt er?
 s	_course:s3.bus	Wohin fahren Sie denn?
-s	_course:s3.bus	Wohin fährt Frau Meier?
+s	_course:s3.bus	Wohin fahren Sie?
 s	_course:s3.bus	Wohnt er hier?
+s	_course:s3.bus	Zwölf Minuten Verspätung.
 s	_course:s3.bus	Zwölf Minuten.
 s	_course:s3.greet	Am Sonntag besuchen wir meine Schwiegereltern.
+s	_course:s3.greet	Ana Lopes.
 s	_course:s3.greet	Arbeiten Sie auch hier?
 s	_course:s3.greet	Arbeitest du auch hier?
 s	_course:s3.greet	Aus Lausanne. Und wo wohnen Sie?
@@ -9438,6 +9461,8 @@ s	_course:s3.greet	Aus Portugal, aus Porto. Und Sie? Sind Sie von hier?
 s	_course:s3.greet	Aus Portugal.
 s	_course:s3.greet	Bei der Post.
 s	_course:s3.greet	Besuchst du sie oft?
+s	_course:s3.greet	Bis Samstag!
+s	_course:s3.greet	Bis am Samstag!
 s	_course:s3.greet	Danke.
 s	_course:s3.greet	Dann fahren Sie jeden Tag mit dem Zug?
 s	_course:s3.greet	Darf ich Ihnen die Nachbarin vorstellen?
@@ -9448,7 +9473,6 @@ s	_course:s3.greet	Darf ich dir meine Frau vorstellen?
 s	_course:s3.greet	Das ist Ben, mein Schwager.
 s	_course:s3.greet	Das ist Elena, die Frau von meinem Bruder. Elena, das ist Sandra. Wir arbeiten zusammen.
 s	_course:s3.greet	Das ist Elena, meine Schwägerin.
-s	_course:s3.greet	Das ist Peter Graf. Nein, er ist ein Freund von Tom.
 s	_course:s3.greet	Das ist die Frau von meinem Cousin.
 s	_course:s3.greet	Das ist mein Schwager Ben.
 s	_course:s3.greet	Das ist mein Schwager, Ben.
@@ -9457,18 +9481,30 @@ s	_course:s3.greet	Das ist meine Schwägerin, Elena.
 s	_course:s3.greet	Das ist meine Schwägerin.
 s	_course:s3.greet	Das ist seine Mutter.
 s	_course:s3.greet	Die Nichte von Marco hat fünf Geschwister.
+s	_course:s3.greet	Ein Buch.
+s	_course:s3.greet	Einen Laptop.
+s	_course:s3.greet	Einen neuen Laptop.
+s	_course:s3.greet	Er stellt gerade seinen Schwager vor.
+s	_course:s3.greet	Er stellt seinen Schwager vor.
 s	_course:s3.greet	Fahren Sie jeden Tag mit dem Zug?
+s	_course:s3.greet	Freut mich sehr, Frau Rossi!
 s	_course:s3.greet	Freut mich! Ich bin Ruth Brunner. Woher kommen Sie?
 s	_course:s3.greet	Freut mich, Frau Brunner!
 s	_course:s3.greet	Freut mich, Frau Rossi!
+s	_course:s3.greet	Freut mich, ich bin Ana.
+s	_course:s3.greet	Freut mich, ich heiße Ana.
 s	_course:s3.greet	Fährst du jeden Tag mit dem Zug?
 s	_course:s3.greet	Fünf? Wow!
-s	_course:s3.greet	Gehst du am Samstag auch zum Fest? Ja, aber jetzt habe ich es eilig. Tschüss!
 s	_course:s3.greet	Gern, aber nur kurz. Ich muss um acht los.
 s	_course:s3.greet	Grüezi! Ich heiße Ana Lopes. Ich komme aus Portugal und wohne seit einem Monat hier. Und Sie? Wohnen Sie schon lange hier?
 s	_course:s3.greet	Grüezi! Wohnen Sie auch hier im Haus?
-s	_course:s3.greet	Grüezi, ich bin die neue Nachbarin. Freut mich auch!
+s	_course:s3.greet	Grüezi, ich bin Ana. Freut mich!
+s	_course:s3.greet	Grüezi, ich habe es eilig.
+s	_course:s3.greet	Grüezi, ich habe es leider eilig.
+s	_course:s3.greet	Grüezi, ich heiße Ana. Freut mich!
 s	_course:s3.greet	Grüezi, ich heiße Ruth Brunner.
+s	_course:s3.greet	Grüezi, leider habe ich es eilig.
+s	_course:s3.greet	Grüezi, mein Name ist Ana. Freut mich!
 s	_course:s3.greet	Grüß deine Eltern von mir!
 s	_course:s3.greet	Grüß deinen Mann von mir!
 s	_course:s3.greet	Grüße deinen Mann von mir!
@@ -9476,14 +9512,18 @@ s	_course:s3.greet	Grüßen Sie Ihre Eltern von mir!
 s	_course:s3.greet	Grüßen Sie Ihren Mann von mir!
 s	_course:s3.greet	Grüßt eure Eltern von mir!
 s	_course:s3.greet	Gut, danke. Und dir?
-s	_course:s3.greet	Guten Tag, Frau Doktor Meier. Ich habe es auch eilig. Auf Wiedersehen!
+s	_course:s3.greet	Guten Tag, ich bin Ana. Freut mich!
+s	_course:s3.greet	Guten Tag, ich habe es eilig.
+s	_course:s3.greet	Guten Tag, ich habe es leider eilig.
+s	_course:s3.greet	Guten Tag, ich heiße Ana. Freut mich!
+s	_course:s3.greet	Guten Tag, leider habe ich es eilig.
+s	_course:s3.greet	Guten Tag, mein Name ist Ana. Freut mich!
 s	_course:s3.greet	Haben Sie Durst?
 s	_course:s3.greet	Haben Sie Zeit für einen Kaffee?
 s	_course:s3.greet	Haben die Gäste Durst?
 s	_course:s3.greet	Haben die Kinder Durst?
 s	_course:s3.greet	Habt ihr einen Hund?
 s	_course:s3.greet	Hallo Sandra, freut mich! Marco erzählt oft von dir.
-s	_course:s3.greet	Hast du Geschwister? Wie alt ist sie?
 s	_course:s3.greet	Hast du Zeit für einen Kaffee?
 s	_course:s3.greet	Hat Lea Hunger?
 s	_course:s3.greet	Hat dein Sohn Hunger?
@@ -9492,6 +9532,7 @@ s	_course:s3.greet	Ich arbeite als Informatiker.
 s	_course:s3.greet	Ich arbeite als Informatikerin.
 s	_course:s3.greet	Ich arbeite als Koch.
 s	_course:s3.greet	Ich arbeite als Köchin.
+s	_course:s3.greet	Ich arbeite auf der Post.
 s	_course:s3.greet	Ich arbeite bei der Post.
 s	_course:s3.greet	Ich bin Ana Lopes.
 s	_course:s3.greet	Ich bin Elektriker.
@@ -9503,10 +9544,17 @@ s	_course:s3.greet	Ich bin Köchin.
 s	_course:s3.greet	Ich bin Mia.
 s	_course:s3.greet	Ich bin Tom. Und du?
 s	_course:s3.greet	Ich bin aus Brasilien.
+s	_course:s3.greet	Ich bin aus Lausanne. Und wo wohnen Sie?
+s	_course:s3.greet	Ich bin aus Lausanne. Wo wohnen Sie?
+s	_course:s3.greet	Ich gehe zum Bahnhof.
+s	_course:s3.greet	Ich habe einen Laptop bekommen.
+s	_course:s3.greet	Ich habe einen neuen Laptop bekommen.
 s	_course:s3.greet	Ich heiße Ana Lopes.
 s	_course:s3.greet	Ich heiße Mia.
 s	_course:s3.greet	Ich helfe euch.
 s	_course:s3.greet	Ich hole heute einen Freund von mir ab.
+s	_course:s3.greet	Ich hole meinen Cousin ab.
+s	_course:s3.greet	Ich hole meinen Cousin am Bahnhof ab.
 s	_course:s3.greet	Ich kenne diesen Mann nicht.
 s	_course:s3.greet	Ich komme aus Bern. Und Sie?
 s	_course:s3.greet	Ich komme aus Chile. Und Sie?
@@ -9515,12 +9563,15 @@ s	_course:s3.greet	Ich komme aus Lausanne. Und wo wohnen Sie?
 s	_course:s3.greet	Ich komme aus Lausanne. Wo wohnen Sie?
 s	_course:s3.greet	Ich komme aus Peru.
 s	_course:s3.greet	Ich komme aus Portugal.
+s	_course:s3.greet	Ich lebe schon seit zwei Jahren in Zug.
+s	_course:s3.greet	Ich lebe seit zwei Jahren in Zug.
 s	_course:s3.greet	Ich muss gehen. Grüß deine Frau von mir!
 s	_course:s3.greet	Ich muss gehen. Grüße deine Frau von mir!
 s	_course:s3.greet	Ich muss leider los.
 s	_course:s3.greet	Ich muss los. Grüß Lea von mir!
 s	_course:s3.greet	Ich muss los. Grüß deine Frau von mir!
 s	_course:s3.greet	Ich muss los. Grüße deine Frau von mir!
+s	_course:s3.greet	Ich schenke ihm ein Buch.
 s	_course:s3.greet	Ich wohne in Winterthur.
 s	_course:s3.greet	Ich wohne schon seit zwei Jahren in Zug.
 s	_course:s3.greet	Ich wohne seit einer Woche hier.
@@ -9528,31 +9579,45 @@ s	_course:s3.greet	Ich wohne seit zwei Jahren in Zug.
 s	_course:s3.greet	Ich zeige Ihnen die Waschküche.
 s	_course:s3.greet	Ich zeige dir die Waschküche.
 s	_course:s3.greet	Ihr Mann, zum Geburtstag.
+s	_course:s3.greet	Ihr Name ist Nora.
 s	_course:s3.greet	Im Juni.
 s	_course:s3.greet	In Italien, in einem Dorf.
 s	_course:s3.greet	In Winterthur.
+s	_course:s3.greet	Ist Peter dein Bruder?
 s	_course:s3.greet	Ist das Ihr Sohn?
 s	_course:s3.greet	Ist das Ihre Tochter?
 s	_course:s3.greet	Ist das Velo von deiner Schwägerin neu?
 s	_course:s3.greet	Ist das das Haus von deinem Bruder?
-s	_course:s3.greet	Ist das das Haus von deinem Stiefbruder? Wo wohnt er denn?
+s	_course:s3.greet	Ist das dein Bruder?
 s	_course:s3.greet	Ist das dein Sohn?
 s	_course:s3.greet	Ist das deine Tochter?
 s	_course:s3.greet	Ist das euer Auto?
+s	_course:s3.greet	Ist dein Onkel auch fünfzig?
+s	_course:s3.greet	Ist er dein Bruder?
+s	_course:s3.greet	Ist ihr Mann auch fünfzig?
 s	_course:s3.greet	Ja, aber das geht schnell. Und Sie? Arbeiten Sie auch?
+s	_course:s3.greet	Ja, beide.
+s	_course:s3.greet	Ja, direkt nebenan.
+s	_course:s3.greet	Ja, eine Schwester.
 s	_course:s3.greet	Ja, einen Sohn.
-s	_course:s3.greet	Ja, einen Sohn. Und mein Mann hat eine Tochter, also meine Stieftochter.
+s	_course:s3.greet	Ja, einen Sohn. Und mein Mann hat noch eine Tochter, meine Stieftochter.
 s	_course:s3.greet	Ja, er ist sehr nett.
-s	_course:s3.greet	Ja, er wohnt noch in Lugano. Und wie alt ist er jetzt?
 s	_course:s3.greet	Ja, ganz neu.
+s	_course:s3.greet	Ja, gleich nebenan.
 s	_course:s3.greet	Ja, ich bin in Winterthur geboren. Was machen Sie beruflich?
 s	_course:s3.greet	Ja, ich habe Hunger.
+s	_course:s3.greet	Ja, ich habe eine Schwester.
 s	_course:s3.greet	Ja, ich habe großen Hunger.
+s	_course:s3.greet	Ja, nebenan.
 s	_course:s3.greet	Ja, sehr.
 s	_course:s3.greet	Ja, seit einer Woche. Ich heiße Silva, Paulo Silva.
 s	_course:s3.greet	Ja, sie haben Durst.
+s	_course:s3.greet	Ja, sie wohnt direkt nebenan.
+s	_course:s3.greet	Ja, sie wohnt gleich nebenan.
+s	_course:s3.greet	Ja, sie wohnt nebenan.
 s	_course:s3.greet	Ja, und sie wohnen alle zusammen.
 s	_course:s3.greet	Ja, wir haben Hunger.
+s	_course:s3.greet	Ja, wir haben beide Hunger.
 s	_course:s3.greet	Ja, wir haben einen Sohn.
 s	_course:s3.greet	Ja, wir haben großen Hunger.
 s	_course:s3.greet	Ja, zwei. Das sind jetzt meine Stiefgeschwister.
@@ -9575,37 +9640,58 @@ s	_course:s3.greet	Kennt ihr meine Schwester?
 s	_course:s3.greet	Komm herein!
 s	_course:s3.greet	Lea holt ihren Bruder am Bahnhof ab.
 s	_course:s3.greet	Lebt Ihr Schwager noch?
+s	_course:s3.greet	Lebt dein Stiefvater noch in Lugano?
 s	_course:s3.greet	Lebt dein Vater allein?
+s	_course:s3.greet	Lebt er noch allein?
+s	_course:s3.greet	Lebt er noch alleine?
 s	_course:s3.greet	Leider muss ich jetzt los, ich habe es eilig. Grüß deine Schwester von mir! Bis bald!
 s	_course:s3.greet	Mach ich, danke!
+s	_course:s3.greet	Marco stellt seinen Schwager vor.
 s	_course:s3.greet	Mein Name ist Ana Lopes.
 s	_course:s3.greet	Meine Schwiegereltern.
-s	_course:s3.greet	Meine Tante ist fünfzig. Nein, er ist schon sechzig.
-s	_course:s3.greet	Mit wem wohnt Lea zusammen? Ah, die kenne ich!
+s	_course:s3.greet	Meine Schwägerin Elena.
+s	_course:s3.greet	Meinen Cousin.
+s	_course:s3.greet	Mia.
+s	_course:s3.greet	Mit Toms Schwester.
+s	_course:s3.greet	Mit der Schwester von Tom.
 s	_course:s3.greet	Morgen stelle ich dir Frau Keller vor.
 s	_course:s3.greet	Möchten Sie unseren Sohn kennenlernen?
-s	_course:s3.greet	Möchtest du meine Kollegin kennenlernen? Gern! Wie heißt sie?
 s	_course:s3.greet	Möchtet ihr etwas trinken?
 s	_course:s3.greet	Nehmen Sie Platz! · Nimm Platz! · Nehmt Platz!
 s	_course:s3.greet	Nehmt den Schirm mit!
 s	_course:s3.greet	Nein, aber zwei Katzen.
+s	_course:s3.greet	Nein, danke, es geht mir gut.
 s	_course:s3.greet	Nein, danke, ich habe keinen Durst.
 s	_course:s3.greet	Nein, danke.
 s	_course:s3.greet	Nein, er hat eine Partnerin.
 s	_course:s3.greet	Nein, er hat keinen Hunger.
 s	_course:s3.greet	Nein, er ist letztes Jahr gestorben.
 s	_course:s3.greet	Nein, er wohnt in Uster.
+s	_course:s3.greet	Nein, er wohnt nicht hier in der Nähe.
+s	_course:s3.greet	Nein, er wohnt nicht in der Nähe.
+s	_course:s3.greet	Nein, er wohnt weit weg.
+s	_course:s3.greet	Nein, es geht mir gut, danke.
+s	_course:s3.greet	Nein, es geht mir gut.
+s	_course:s3.greet	Nein, ich bin gesund.
 s	_course:s3.greet	Nein, ich bin pensioniert. Herzlich willkommen in Winterthur!
 s	_course:s3.greet	Nein, ich habe keinen Durst, danke.
+s	_course:s3.greet	Nein, in Spanien.
 s	_course:s3.greet	Nein, in Zug. Mein Mann und ich haben dort eine Wohnung.
+s	_course:s3.greet	Nein, mir geht es gut, danke.
+s	_course:s3.greet	Nein, mir geht es gut.
+s	_course:s3.greet	Nein, mir geht's gut, danke.
+s	_course:s3.greet	Nein, mir geht's gut.
 s	_course:s3.greet	Nein, noch nicht. Guten Abend, freut mich sehr!
+s	_course:s3.greet	Nein, sie leben in Spanien.
+s	_course:s3.greet	Nein, sie wohnen in Spanien.
 s	_course:s3.greet	Nimm Platz!
 s	_course:s3.greet	Nimm den Schirm mit!
+s	_course:s3.greet	Nora.
 s	_course:s3.greet	Oh, das tut mir leid.
 s	_course:s3.greet	Salü Sandra! Kennst du schon meine Schwägerin?
 s	_course:s3.greet	Salü! Wohnst du auch hier im Haus? — Ja, seit einer Woche. Ich heiße Paulo. Und du?
 s	_course:s3.greet	Schade! Bis bald!
-s	_course:s3.greet	Schade! Dann grüß deinen Mann von mir!
+s	_course:s3.greet	Schade! Dann grüß deinen Mann von mir, Sandra!
 s	_course:s3.greet	Schenkst du deinem Götti ein Foto?
 s	_course:s3.greet	Schenkst du deiner Schwägerin Blumen?
 s	_course:s3.greet	Schenkst du ihm diesen Roman?
@@ -9613,6 +9699,7 @@ s	_course:s3.greet	Schenkst du mir einen Pulli?
 s	_course:s3.greet	Schenkst du uns ein Spiel?
 s	_course:s3.greet	Sehr erfreut, Frau Rossi!
 s	_course:s3.greet	Sehr gern! Freut mich.
+s	_course:s3.greet	Seinen Schwager.
 s	_course:s3.greet	Seit einem Monat.
 s	_course:s3.greet	Seit einer Woche wohne ich hier.
 s	_course:s3.greet	Seit einer Woche.
@@ -9620,26 +9707,30 @@ s	_course:s3.greet	Seit wann wohnen Sie in Bern?
 s	_course:s3.greet	Seit wann wohnst du in Bern?
 s	_course:s3.greet	Seit zwei Jahren wohne ich in Zug.
 s	_course:s3.greet	Sie haben kein Haustier.
-s	_course:s3.greet	Sind Sie krank, Herr Graf? Das freut mich.
+s	_course:s3.greet	Sie heißt Nora.
+s	_course:s3.greet	Sie wohnt mit Toms Schwester zusammen.
+s	_course:s3.greet	Sie wohnt mit der Schwester von Tom zusammen.
 s	_course:s3.greet	Stell mir bitte den Chef vor!
-s	_course:s3.greet	Und deine Eltern?
+s	_course:s3.greet	Tschüss, bis Samstag!
+s	_course:s3.greet	Tschüss, bis am Samstag!
+s	_course:s3.greet	Und dein Onkel? Ist er auch fünfzig?
 s	_course:s3.greet	Und die Frau?
+s	_course:s3.greet	Und eure Eltern?
 s	_course:s3.greet	Und habt ihr Kinder?
 s	_course:s3.greet	Und ich bin Mia.
+s	_course:s3.greet	Und ich heiße Mia.
+s	_course:s3.greet	Und ihr Mann? Ist er auch fünfzig?
 s	_course:s3.greet	Und wer wohnt hier?
+s	_course:s3.greet	Und wohnt er noch allein?
 s	_course:s3.greet	Vielen Dank! Auf Wiedersehen, Frau Brunner.
 s	_course:s3.greet	Wann heiratet deine Schwester?
 s	_course:s3.greet	Was arbeiten Sie?
-s	_course:s3.greet	Was hast du von deinem Götti bekommen? Wow, ist er reich?
+s	_course:s3.greet	Was ist Ihr Beruf?
 s	_course:s3.greet	Was machen Sie beruflich? — Ich bin Pflegefachfrau.
 s	_course:s3.greet	Was machst du beruflich?
-s	_course:s3.greet	Was schenkst du deinem Schwager zum Geburtstag? Gute Idee, er liest gern.
-s	_course:s3.greet	Wen holst du am Bahnhof ab? Ah, den kenne ich noch nicht.
-s	_course:s3.greet	Wen stellt Marco gerade vor? Den kenne ich nicht. Wie heißt er?
 s	_course:s3.greet	Wer hat es ihr geschenkt?
 s	_course:s3.greet	Wer holt den Gast ab?
 s	_course:s3.greet	Wer ist das auf dem Foto?
-s	_course:s3.greet	Wie alt ist dein Großvater? Er ist neunzig.
 s	_course:s3.greet	Wie geht es Ihnen?
 s	_course:s3.greet	Wie geht es dir?
 s	_course:s3.greet	Wie geht es euch?
@@ -9647,6 +9738,7 @@ s	_course:s3.greet	Wie geht's Ihnen?
 s	_course:s3.greet	Wie geht's dir?
 s	_course:s3.greet	Wie geht's euch?
 s	_course:s3.greet	Wir arbeiten zusammen.
+s	_course:s3.greet	Wir kennen eueren Stiefsohn noch nicht.
 s	_course:s3.greet	Wir kennen euren Stiefsohn noch nicht.
 s	_course:s3.greet	Wirklich? Wohnst du auch in Luzern?
 s	_course:s3.greet	Wo kommt ihr her?
@@ -9657,9 +9749,12 @@ s	_course:s3.greet	Woher kennst du Marco?
 s	_course:s3.greet	Woher kommen Sie? Seit wann wohnen Sie in der Schweiz? Was machen Sie beruflich?
 s	_course:s3.greet	Woher kommst du? — Aus Italien. Und du?
 s	_course:s3.greet	Woher kommt ihr?
-s	_course:s3.greet	Wohin gehst du? Holst du dort deine Tante ab?
-s	_course:s3.greet	Wohnen deine Eltern auch in der Schweiz? Sprechen sie auch Deutsch?
-s	_course:s3.greet	Wohnt deine Tante in der Nähe? Dann ist sie ja deine Nachbarin!
+s	_course:s3.greet	Woher seid ihr?
+s	_course:s3.greet	Wohnt dein Stiefvater noch in Lugano?
+s	_course:s3.greet	Wohnt er immer noch allein?
+s	_course:s3.greet	Wohnt er noch allein?
+s	_course:s3.greet	Wohnt er noch alleine?
+s	_course:s3.greet	Zum Bahnhof.
 s	_course:s3.school	Am Donnerstag schreiben wir einen Test in Deutsch.
 s	_course:s3.school	Am Montag haben wir einen Deutschtest.
 s	_course:s3.school	Am Montag haben wir einen Test in Deutsch.
@@ -9670,42 +9765,54 @@ s	_course:s3.school	An der Uni Bern?
 s	_course:s3.school	Auf Seite 24, die Nummer 3. Was bedeutet «Feierabend»?
 s	_course:s3.school	Auf Seite 32.
 s	_course:s3.school	Auf welcher Seite ist die Übung?
-s	_course:s3.school	Bei einer Firma in Thun.
+s	_course:s3.school	Bei einer Schreinerei in Thun.
 s	_course:s3.school	Danke. Aber ich verstehe die Aufgabe nicht.
+s	_course:s3.school	Darfst du die Prüfung wiederholen?
+s	_course:s3.school	Darfst du sie noch einmal machen?
+s	_course:s3.school	Darfst du sie wiederholen?
+s	_course:s3.school	Das ist Leas Lehrerin.
+s	_course:s3.school	Das ist die Lehrerin von Lea.
 s	_course:s3.school	Das ist die Zeit nach der Arbeit. Ihr habt Feierabend, wenn ihr nach Hause geht.
 s	_course:s3.school	Der neue Schüler aus Genf ist sehr sportlich.
 s	_course:s3.school	Die Hausaufgaben für morgen.
 s	_course:s3.school	Die Kinder haben ein Gedicht auswendig gelernt.
 s	_course:s3.school	Die Kinder lernen ein Gedicht auswendig.
 s	_course:s3.school	Die Kinder lernen in der Schule schwimmen.
-s	_course:s3.school	Die Professorin unterrichtet an der ETH. Was unterrichtet sie?
+s	_course:s3.school	Die Lehrerin von Lea.
 s	_course:s3.school	Die beste Note in der Schweiz ist die Sechs.
 s	_course:s3.school	Doch, du schaffst das.
 s	_course:s3.school	Dreihundert Franken.
 s	_course:s3.school	Du hast den Brief übersetzt.
 s	_course:s3.school	Du übersetzt den Brief.
-s	_course:s3.school	Eine Drei? Das ist in der Schweiz ja ungenügend!
+s	_course:s3.school	Ein bisschen, er besucht einen Deutschkurs.
+s	_course:s3.school	Ein bisschen, er besucht einen Kurs.
+s	_course:s3.school	Ein bisschen, er macht einen Deutschkurs.
+s	_course:s3.school	Ein bisschen, er macht einen Kurs.
+s	_course:s3.school	Ein bisschen, er macht gerade einen Kurs.
+s	_course:s3.school	Ein bisschen. Er macht einen Kurs.
+s	_course:s3.school	Ein wenig, er macht einen Kurs.
+s	_course:s3.school	Eine Drei? Das ist ja ungenügend!
 s	_course:s3.school	Eine Lehre als Schreiner.
 s	_course:s3.school	Entschuldigung, können Sie das bitte wiederholen? Was bedeutet Gemeinde?
 s	_course:s3.school	Entschuldigung, was bedeutet «Znüni»?
 s	_course:s3.school	Er hat die Prüfung nicht bestanden.
+s	_course:s3.school	Er hat seine Note verbessern wollen.
 s	_course:s3.school	Er ist Student und studiert Informatik an der ETH.
+s	_course:s3.school	Er ist bei der Prüfung durchgefallen.
 s	_course:s3.school	Er ist durch die Prüfung gefallen.
 s	_course:s3.school	Er ist in Mathe durchgefallen.
 s	_course:s3.school	Er ist in der Prüfung durchgefallen.
 s	_course:s3.school	Er ist zehn und geht in die vierte Klasse.
-s	_course:s3.school	Er kommt aus Kanada. Spricht er Deutsch?
 s	_course:s3.school	Er will seine Note verbessern.
 s	_course:s3.school	Er wollte seine Note verbessern.
 s	_course:s3.school	Es ist ein Feiertag.
 s	_course:s3.school	Für den Test?
 s	_course:s3.school	Gefällt es ihr?
-s	_course:s3.school	Gehst du gern in die Schule, Leo? Ja, aber ich habe oft schlechte Noten.
 s	_course:s3.school	Genau. Aber am Ende habe ich die Abschlussprüfung bestanden.
+s	_course:s3.school	Geschichte ist mein Lieblingsfach.
 s	_course:s3.school	Gute Idee! Lernt zusammen, das hilft immer.
 s	_course:s3.school	Guten Morgen zusammen! Habt ihr die Hausaufgaben gemacht?
 s	_course:s3.school	Haben Sie einen Kurs für Anfänger?
-s	_course:s3.school	Hast du die Matura schon gemacht? Und was möchtest du studieren?
 s	_course:s3.school	Hat Herr Graf die Tests schon zurückgegeben?
 s	_course:s3.school	Heute Abend lerne ich für den Test.
 s	_course:s3.school	Heute Abend lerne ich für die Prüfung.
@@ -9713,11 +9820,12 @@ s	_course:s3.school	Ich auch, in der Berufsschule. In Mathe hatte ich oft eine D
 s	_course:s3.school	Ich auch. Mein Bruder studiert Germanistik, vielleicht hilft er uns.
 s	_course:s3.school	Ich auch. Wir müssen mehr lernen.
 s	_course:s3.school	Ich bekomme ein schlechtes Zeugnis.
-s	_course:s3.school	Ich bin einmal in der Fahrprüfung durchgefallen. Ich musste noch zehn Stunden nehmen, dann habe ich sie bestanden.
+s	_course:s3.school	Ich bin einmal bei der Fahrprüfung durchgefallen. Ich musste noch zehn Fahrstunden nehmen, dann habe ich sie bestanden.
 s	_course:s3.school	Ich bin in Lima in die Primarschule gegangen. Dann war ich im Gymnasium und habe Wirtschaft studiert.
-s	_course:s3.school	Ich bin in der Prüfung durchgefallen. Ja, im Juni kann ich sie noch einmal machen.
 s	_course:s3.school	Ich bin so nervös!
 s	_course:s3.school	Ich erkläre sie dir.
+s	_course:s3.school	Ich habe Elektriker gelernt.
+s	_course:s3.school	Ich habe Elektrikerin gelernt.
 s	_course:s3.school	Ich habe das Kapitel gelesen.
 s	_course:s3.school	Ich habe die Aufgabe nicht verstanden.
 s	_course:s3.school	Ich habe die Prüfung bestanden.
@@ -9736,38 +9844,56 @@ s	_course:s3.school	Ich mache einen Deutschkurs.
 s	_course:s3.school	Ich musste viel lernen.
 s	_course:s3.school	Ich verstehe die Aufgabe nicht.
 s	_course:s3.school	Ich war im Gymnasium und habe dann Biologie studiert.
-s	_course:s3.school	In Chemie bekomme ich dieses Jahr eine schlechte Note. Dann lernen wir zusammen!
 s	_course:s3.school	In Französisch hatte ich immer eine Sechs!
 s	_course:s3.school	In Mathe war ich schlecht, ich hatte oft eine Vier. Aber in Sprachen hatte ich immer eine Sechs.
+s	_course:s3.school	In der Schweiz ist 6 die beste Note.
+s	_course:s3.school	In der Schweiz ist die 6 die beste Note.
 s	_course:s3.school	In der Schweiz ist die Sechs die beste Note.
 s	_course:s3.school	In der Schweiz ist eine Drei ungenügend.
 s	_course:s3.school	In der Schweiz ist eine Sechs die beste Note.
 s	_course:s3.school	In der Schweiz ist sechs die beste Note.
+s	_course:s3.school	In welchem Fach?
+s	_course:s3.school	In welchen Fächern?
+s	_course:s3.school	Ist er auch Student?
 s	_course:s3.school	Ja, ab Montag!
 s	_course:s3.school	Ja, aber eine Übung habe ich nicht verstanden.
 s	_course:s3.school	Ja, am Dienstagabend.
+s	_course:s3.school	Ja, die habe ich letztes Jahr gemacht.
+s	_course:s3.school	Ja, ein bisschen, er macht einen Kurs.
 s	_course:s3.school	Ja, er ist schon morgen!
 s	_course:s3.school	Ja, ich besuche jeden Montag einen Kurs. Ich muss viel lernen.
-s	_course:s3.school	Jan ist ein Kollege aus dem Kurs. Nein, er macht eine Lehre als Koch.
+s	_course:s3.school	Ja, ich habe die Matura letztes Jahr gemacht.
+s	_course:s3.school	Ja, ich habe sie letztes Jahr bestanden.
+s	_course:s3.school	Ja, ich habe sie letztes Jahr gemacht.
+s	_course:s3.school	Ja, letztes Jahr habe ich sie gemacht.
+s	_course:s3.school	Ja, letztes Jahr.
 s	_course:s3.school	Jura, in Freiburg.
+s	_course:s3.school	Kannst du die Prüfung noch einmal machen?
+s	_course:s3.school	Kannst du die Prüfung wiederholen?
+s	_course:s3.school	Kannst du sie noch einmal machen?
+s	_course:s3.school	Kannst du sie nochmal machen?
+s	_course:s3.school	Kannst du sie wiederholen?
 s	_course:s3.school	Können Sie das bitte langsamer sagen?
+s	_course:s3.school	Können Sie das bitte noch einmal sagen?
 s	_course:s3.school	Können Sie das wiederholen, bitte?
 s	_course:s3.school	Könnten Sie das bitte wiederholen?
+s	_course:s3.school	Könnten Sie das wiederholen, bitte?
 s	_course:s3.school	Lea fällt in der Prüfung durch.
 s	_course:s3.school	Lea ist in der Prüfung durchgefallen.
+s	_course:s3.school	Leas Lehrerin.
 s	_course:s3.school	Lernst du heute Abend mit mir?
 s	_course:s3.school	Mein Bruder studiert Medizin in Zürich.
 s	_course:s3.school	Mein Bruder studiert Wirtschaft an der Uni St. Gallen.
-s	_course:s3.school	Mein Deutschkurs ist am Dienstag und Donnerstag. Wir lesen, sprechen viel und schreiben jede Woche einen Test.
+s	_course:s3.school	Mein Deutschkurs ist jeden Dienstag und Donnerstag in Olten. Wir lesen, sprechen viel und schreiben jede Woche einen Test.
 s	_course:s3.school	Mein Lieblingsfach ist Biologie.
 s	_course:s3.school	Mein Lieblingsfach ist Geschichte.
+s	_course:s3.school	Mein Sohn hat schon lesen können.
 s	_course:s3.school	Mein Sohn ist acht. Er ist Schüler.
 s	_course:s3.school	Mein Sohn kann schon lesen.
 s	_course:s3.school	Mein Sohn konnte schon lesen.
 s	_course:s3.school	Meine Schwester studiert Medizin in Basel.
 s	_course:s3.school	Meine Schwester studiert in Basel Medizin.
 s	_course:s3.school	Meine Tochter geht in die Primarschule, mein Sohn ins Gymnasium.
-s	_course:s3.school	Meine Tochter macht eine Lehre. Und mein Sohn geht ins Gymnasium.
 s	_course:s3.school	Mit der Matura kann man an die Uni.
 s	_course:s3.school	Morgen ist schulfrei!
 s	_course:s3.school	Morgen musst du um acht in der Schule sein.
@@ -9778,26 +9904,36 @@ s	_course:s3.school	Nein, erst am Montag.
 s	_course:s3.school	Nein, in Basel. Aber in Chemie bin ich einmal durchgefallen!
 s	_course:s3.school	Nora bekommt in Mathe eine Sechs.
 s	_course:s3.school	Nora hat in Mathe eine Sechs bekommen.
-s	_course:s3.school	Nächstes Jahr kommt Mia in die Primarschule. Im Mai wird sie sechs.
 s	_course:s3.school	Nächstes Jahr möchte ich einen Kurs in Buchhaltung machen, weil ich eine bessere Stelle suche.
 s	_course:s3.school	Oh nein! Dann muss ich am Wochenende viel lernen.
 s	_course:s3.school	Oh, so viele!
 s	_course:s3.school	Okay, um sieben bei mir.
+s	_course:s3.school	Physik.
+s	_course:s3.school	Sechs ist in der Schweiz die beste Note.
 s	_course:s3.school	Sechzig? Das schaffe ich nie!
 s	_course:s3.school	Sie hat die Matura bestanden.
 s	_course:s3.school	Sie hat die Matura gemacht.
+s	_course:s3.school	Sie hat die Matura geschafft.
 s	_course:s3.school	Sie hat eine Berufsschule besuchen müssen.
 s	_course:s3.school	Sie ist leider durchgefallen.
 s	_course:s3.school	Sie macht eine Lehre und geht einmal pro Woche in die Berufsschule.
 s	_course:s3.school	Sie muss eine Berufsschule besuchen.
 s	_course:s3.school	Sie musste eine Berufsschule besuchen.
 s	_course:s3.school	Sie studiert Architektur an der ETH.
+s	_course:s3.school	Sie unterrichtet Physik.
 s	_course:s3.school	Spielt er Fußball?
 s	_course:s3.school	Sport.
+s	_course:s3.school	Studiert er auch an der Uni?
+s	_course:s3.school	Studiert er auch?
+s	_course:s3.school	Studiert er?
 s	_course:s3.school	Toll! Wo denn?
 s	_course:s3.school	Und am Nachmittag?
 s	_course:s3.school	Und heute? Machst du noch Weiterbildungen?
 s	_course:s3.school	Und wie viel kostet er?
+s	_course:s3.school	Wann hat er die Matura?
+s	_course:s3.school	Wann macht er Matura?
+s	_course:s3.school	Wann macht er denn die Matura?
+s	_course:s3.school	Wann macht er die Matura?
 s	_course:s3.school	Warum denn?
 s	_course:s3.school	Was bedeutet Znüni?
 s	_course:s3.school	Was haben wir morgen?
@@ -9809,21 +9945,32 @@ s	_course:s3.school	Was studierst du an der Uni?
 s	_course:s3.school	Was studiert deine Schwester?
 s	_course:s3.school	Welche denn?
 s	_course:s3.school	Wer hat bei euch Englisch unterrichtet?
-s	_course:s3.school	Wer steht dort vor der Schule? Ah, sie unterrichtet also Lea.
 s	_course:s3.school	Wer unterrichtet bei euch Englisch?
+s	_course:s3.school	Wie alt ist sie denn jetzt?
+s	_course:s3.school	Wie alt ist sie denn?
+s	_course:s3.school	Wie alt ist sie jetzt?
+s	_course:s3.school	Wie alt ist sie?
 s	_course:s3.school	Wie lange hat der Kurs gedauert?
 s	_course:s3.school	Wir fahren mit der Klasse nach Bern.
+s	_course:s3.school	Wir haben am Montag einen Deutschtest.
+s	_course:s3.school	Wir haben am Montag einen Test in Deutsch.
 s	_course:s3.school	Wir haben einen Test geschrieben.
 s	_course:s3.school	Wir müssen bis Freitag sechzig Seiten lesen.
+s	_course:s3.school	Wir schreiben am Montag einen Deutschtest.
+s	_course:s3.school	Wir schreiben am Montag einen Test in Deutsch.
 s	_course:s3.school	Wir schreiben einen Test.
 s	_course:s3.school	Wir sind mit der Klasse nach Bern gefahren.
 s	_course:s3.school	Zuerst Mathe, dann Französisch.
+s	_course:s3.shop	12 Franken.
 s	_course:s3.shop	200 Gramm Schinken, bitte.
-s	_course:s3.shop	300 Gramm Bergkäse.
+s	_course:s3.shop	300 Gramm Bergkäse, bitte.
 s	_course:s3.shop	Achtzehn Franken sechzig.
 s	_course:s3.shop	Am Stück oder in Scheiben?
+s	_course:s3.shop	Am Stück, bitte.
 s	_course:s3.shop	Am Stück, bitte. Und was kosten die Äpfel?
-s	_course:s3.shop	Braucht sie eine Tasche?
+s	_course:s3.shop	Am Stück.
+s	_course:s3.shop	Brauchen Sie eine Tasche?
+s	_course:s3.shop	Danke, ich schaue mich nur um.
 s	_course:s3.shop	Danke, ich schaue nur.
 s	_course:s3.shop	Dann ein halbes Kilo, bitte.
 s	_course:s3.shop	Dann nehme ich den blauen.
@@ -9831,7 +9978,9 @@ s	_course:s3.shop	Dann nehme ich zwei Kilo.
 s	_course:s3.shop	Darf es ein bisschen mehr sein?
 s	_course:s3.shop	Darf ich das Kleid anprobieren? — Natürlich, die Kabine ist dort links.
 s	_course:s3.shop	Darf ich das anprobieren?
+s	_course:s3.shop	Darf ich es anprobieren?
 s	_course:s3.shop	Das Brot kostet vier Franken zwanzig.
+s	_course:s3.shop	Das Kilo kostet vier Franken zwanzig.
 s	_course:s3.shop	Das Sofa ist zwei Meter lang und 90 Zentimeter tief.
 s	_course:s3.shop	Das Wohnzimmer ist fünf Meter breit.
 s	_course:s3.shop	Das blaue Hemd? Das nehme ich.
@@ -9839,11 +9988,18 @@ s	_course:s3.shop	Das blaue Hemd? Ich nehme es.
 s	_course:s3.shop	Das gestreifte Hemd steht mir nicht.
 s	_course:s3.shop	Das ist zu teuer!
 s	_course:s3.shop	Das ist zu teuer.
+s	_course:s3.shop	Das macht achtzehn Franken sechzig.
+s	_course:s3.shop	Das macht vierunddreißig Franken fünfzig. Bar oder Karte?
+s	_course:s3.shop	Das macht vierunddreißig Franken fünfzig. Bar oder mit Karte?
+s	_course:s3.shop	Das macht vierunddreißig Franken fünfzig. Zahlen Sie bar oder mit Karte?
 s	_course:s3.shop	Das macht vierzehn Franken fünfzig. — Mit Karte, bitte.
 s	_course:s3.shop	Das macht zusammen achtzehn Franken sechzig.
 s	_course:s3.shop	Das macht zweiundzwanzig Franken.
+s	_course:s3.shop	Den Pulli nehme ich.
 s	_course:s3.shop	Den Pulli, bitte.
 s	_course:s3.shop	Den Pulli.
+s	_course:s3.shop	Den blauen, bitte.
+s	_course:s3.shop	Den blauen.
 s	_course:s3.shop	Der Haarschnitt kostet achtunddreißig Franken fünfzig.
 s	_course:s3.shop	Der Pool ist zwei Meter tief.
 s	_course:s3.shop	Der Pulli oder das Hemd?
@@ -9853,19 +10009,22 @@ s	_course:s3.shop	Der Rock? Den nehme ich.
 s	_course:s3.shop	Der Tisch ist fünfundsiebzig Zentimeter hoch.
 s	_course:s3.shop	Der Zürichsee ist einhundertsechsunddreißig Meter tief.
 s	_course:s3.shop	Der Zürichsee ist hundertsechsunddreißig Meter tief.
-s	_course:s3.shop	Der rote Pulli oder der blaue? Gute Wahl, der steht dir gut.
-s	_course:s3.shop	Die Bohrmaschine kostet nur 49 Franken. Haben Sie sie noch?
+s	_course:s3.shop	Der blaue, bitte.
+s	_course:s3.shop	Der blaue.
+s	_course:s3.shop	Der gefällt mir gar nicht.
 s	_course:s3.shop	Die Farbe gefällt dem Verkäufer auch.
 s	_course:s3.shop	Die Hose passt mir nicht.
 s	_course:s3.shop	Die Hose passt mir nicht. Haben Sie sie eine Nummer kleiner?
+s	_course:s3.shop	Die Hosen passen mir nicht.
 s	_course:s3.shop	Die Kabine ist dort hinten.
+s	_course:s3.shop	Die Kabine ist hinten.
 s	_course:s3.shop	Die Krawatte steht deinem Vater gut.
 s	_course:s3.shop	Die Schuhe kosten einhundertneunzehn Franken.
 s	_course:s3.shop	Die Schuhe kosten hundertneunzehn Franken.
 s	_course:s3.shop	Die Schuhe? Die nehme ich! — Oder: Danke, ich überlege es mir noch.
 s	_course:s3.shop	Die Schuhe? Die nehme ich.
 s	_course:s3.shop	Die Tickets kosten fünfundvierzig Franken.
-s	_course:s3.shop	Die graue ist zu eng.
+s	_course:s3.shop	Die kosten zwölf Franken.
 s	_course:s3.shop	Die neue Wohnung hat fünfundachtzig Quadratmeter.
 s	_course:s3.shop	Die passt mir gut, und die Farbe gefällt mir. Was kostet sie?
 s	_course:s3.shop	Diese Handschuhe kosten vierundzwanzig Franken neunzig.
@@ -9874,9 +10033,9 @@ s	_course:s3.shop	Diese Woche ist sie im Ausverkauf: 89 Franken statt 129.
 s	_course:s3.shop	Diese Woche sind sie im Ausverkauf: 59 Franken statt 99.
 s	_course:s3.shop	Dieses Brett ist achtzig Zentimeter lang.
 s	_course:s3.shop	Dieses Velo kostet sechshundertfünfzig Franken.
+s	_course:s3.shop	Dort hinten ist die Kabine.
 s	_course:s3.shop	Dort hinten.
-s	_course:s3.shop	Dreihundert Gramm Bergkäse.
-s	_course:s3.shop	Dunkelblau.
+s	_course:s3.shop	Dreihundert Gramm Bergkäse, bitte.
 s	_course:s3.shop	Ein Kilo Tomaten kostet drei Franken neunzig.
 s	_course:s3.shop	Ein Kilo Tomaten, bitte.
 s	_course:s3.shop	Ein Kilo kostet vier Franken zwanzig.
@@ -9885,16 +10044,16 @@ s	_course:s3.shop	Eine warme Jacke für den Winter.
 s	_course:s3.shop	Eine warme Jacke.
 s	_course:s3.shop	Einen Liter Milch, bitte.
 s	_course:s3.shop	Einen Liter Milch.
-s	_course:s3.shop	Er hat Größe L.
-s	_course:s3.shop	Er sucht eine warme Jacke für den Winter.
-s	_course:s3.shop	Er sucht eine warme Jacke.
+s	_course:s3.shop	Er gefällt mir gar nicht.
+s	_course:s3.shop	Er gefällt mir überhaupt nicht.
 s	_course:s3.shop	Er zieht seinen Mantel aus.
 s	_course:s3.shop	Gefällt Ihnen der Pulli?
 s	_course:s3.shop	Gefällt Ihnen die Farbe?
-s	_course:s3.shop	Gehen wir heute ins Shoppingcenter? Ich auch, ich brauche Schuhe.
-s	_course:s3.shop	Gern. Rufen Sie mich, wenn Sie Fragen haben.
+s	_course:s3.shop	Gern, ich brauche eine neue Jacke.
+s	_course:s3.shop	Gern. Sagen Sie einfach, wenn Sie Fragen haben.
 s	_course:s3.shop	Gern. Sonst noch etwas?
 s	_course:s3.shop	Gibt es das Hemd auch in Weiß?
+s	_course:s3.shop	Gibt es das eine Nummer größer?
 s	_course:s3.shop	Gibt es den Pulli auch in Grün?
 s	_course:s3.shop	Größe 39.
 s	_course:s3.shop	Größe L.
@@ -9907,284 +10066,352 @@ s	_course:s3.shop	Gute Wahl!
 s	_course:s3.shop	Haben Sie auch einen größeren Rock?
 s	_course:s3.shop	Haben Sie das eine Nummer größer?
 s	_course:s3.shop	Haben Sie die Schuhe eine Nummer größer?
-s	_course:s3.shop	Haben Sie diese Hose auch in Schwarz? Super, dann probiere ich sie an.
 s	_course:s3.shop	Haben Sie es eine Nummer größer?
+s	_course:s3.shop	Haben Sie ihn eine Nummer größer?
+s	_course:s3.shop	Haben Sie sie eine Nummer größer?
 s	_course:s3.shop	Hm, sie ist ein bisschen zu eng. Haben Sie sie eine Nummer größer?
 s	_course:s3.shop	Ich gehe schnell in die neue Bäckerei.
+s	_course:s3.shop	Ich habe Größe 42, aber die Schuhe sind ein bisschen zu klein. Haben Sie sie eine Nummer größer?
+s	_course:s3.shop	Ich habe Größe L.
 s	_course:s3.shop	Ich kaufe zwei Kilo Kartoffeln.
+s	_course:s3.shop	Ich kaufe zwei Kilogramm Kartoffeln.
 s	_course:s3.shop	Ich möchte 200 Gramm Schinken und einen Liter Milch.
 s	_course:s3.shop	Ich möchte 300 Gramm Bergkäse, bitte.
+s	_course:s3.shop	Ich möchte 300 Gramm Bergkäse.
+s	_course:s3.shop	Ich möchte dreihundert Gramm Bergkäse, bitte.
+s	_course:s3.shop	Ich möchte dreihundert Gramm Bergkäse.
 s	_course:s3.shop	Ich möchte ein Kilo Tomaten, 200 Gramm Käse und einen Liter Milch. Was macht das zusammen?
 s	_course:s3.shop	Ich möchte ein Pfund Hackfleisch.
+s	_course:s3.shop	Ich möchte ein halbes Kilo Hackfleisch.
+s	_course:s3.shop	Ich möchte fünfhundert Gramm Hackfleisch, bitte.
 s	_course:s3.shop	Ich möchte fünfhundert Gramm Hackfleisch.
-s	_course:s3.shop	Ich möchte jetzt einen Kaffee. Wir haben genug Zeit, es ist erst zehn.
 s	_course:s3.shop	Ich möchte zwei Kilo Äpfel.
+s	_course:s3.shop	Ich möchte zwei Kilo.
 s	_course:s3.shop	Ich nehme den Pulli.
+s	_course:s3.shop	Ich nehme den blauen.
 s	_course:s3.shop	Ich nehme die billigen Handschuhe.
 s	_course:s3.shop	Ich nehme die schwarzen Schuhe.
+s	_course:s3.shop	Ich nehme zwei Kilo.
+s	_course:s3.shop	Ich suche eine warme Jacke für den Winter.
 s	_course:s3.shop	Ich suche eine warme Jacke.
 s	_course:s3.shop	Ich suche einen warmen Mantel.
 s	_course:s3.shop	Ich suche einen warmen Pulli. — Welche Größe?
+s	_course:s3.shop	Ich trage Größe L.
 s	_course:s3.shop	Ich weiß nicht, sie ist ziemlich teuer.
 s	_course:s3.shop	Ihre neue Wohnung kostet im Monat zweitausendeinhundert Franken.
 s	_course:s3.shop	Ihre neue Wohnung kostet im Monat zweitausendhundert Franken.
 s	_course:s3.shop	Ihre neue Wohnung kostet zweitausendeinhundert Franken im Monat.
 s	_course:s3.shop	Ihre neue Wohnung kostet zweitausendhundert Franken im Monat.
 s	_course:s3.shop	In Braun leider nicht. Aber in Schwarz, hier.
+s	_course:s3.shop	In Grau leider nicht, aber in Dunkelblau.
 s	_course:s3.shop	In Grau leider nicht. Aber in Dunkelblau, hier.
+s	_course:s3.shop	In Grau nicht, aber in Dunkelblau.
 s	_course:s3.shop	In diesem Laden gibt es einen schwarzen Hut.
 s	_course:s3.shop	Ja, bitte.
+s	_course:s3.shop	Ja, der gefällt mir sehr.
+s	_course:s3.shop	Ja, die nehme ich.
+s	_course:s3.shop	Ja, einen Liter Milch, bitte.
+s	_course:s3.shop	Ja, einen Liter Milch.
 s	_course:s3.shop	Ja, einen Liter Milch. Das ist alles.
 s	_course:s3.shop	Ja, er gefällt mir sehr gut.
 s	_course:s3.shop	Ja, er gefällt mir sehr.
-s	_course:s3.shop	Ja, er kauft sie.
-s	_course:s3.shop	Ja, er nimmt sie.
 s	_course:s3.shop	Ja, gern.
+s	_course:s3.shop	Ja, gern. Ich brauche eine neue Jacke.
 s	_course:s3.shop	Ja, gern. Ich suche eine warme Jacke für den Winter.
 s	_course:s3.shop	Ja, gerne.
+s	_course:s3.shop	Ja, hier ist sie.
+s	_course:s3.shop	Ja, hier, bitte.
+s	_course:s3.shop	Ja, hier.
+s	_course:s3.shop	Ja, ich brauche eine neue Jacke.
+s	_course:s3.shop	Ja, ich brauche nämlich eine neue Jacke.
+s	_course:s3.shop	Ja, ich nehme sie gern.
+s	_course:s3.shop	Ja, ich nehme sie.
 s	_course:s3.shop	Ja, ich suche Winterschuhe.
 s	_course:s3.shop	Ja, kein Problem.
+s	_course:s3.shop	Ja, klar.
 s	_course:s3.shop	Ja, leider.
+s	_course:s3.shop	Ja, natürlich, hier.
+s	_course:s3.shop	Ja, noch zwei Stück.
+s	_course:s3.shop	Ja, noch zwei.
 s	_course:s3.shop	Ja, sehr gut.
-s	_course:s3.shop	Ja.
+s	_course:s3.shop	Ja, wir haben noch zwei Stück.
+s	_course:s3.shop	Ja, wir haben noch zwei.
+s	_course:s3.shop	Jetzt schon? Wir müssen noch viel einkaufen.
+s	_course:s3.shop	Jetzt schon? Wir müssen noch viel kaufen.
 s	_course:s3.shop	Kann ich das anprobieren?
+s	_course:s3.shop	Kann ich es anprobieren?
 s	_course:s3.shop	Kann ich mit Karte bezahlen?
 s	_course:s3.shop	Kann ich mit Karte zahlen? Eine Tasche brauche ich nicht, danke.
 s	_course:s3.shop	Kann ich mit der Karte bezahlen?
 s	_course:s3.shop	Kann ich mit der Karte zahlen?
-s	_course:s3.shop	Kauft Herr Rossi die Jacke?
-s	_course:s3.shop	Mit Karte.
-s	_course:s3.shop	Möchte sie den Käse in Scheiben?
+s	_course:s3.shop	Klar.
+s	_course:s3.shop	Leider nicht in Grau, aber in Dunkelblau.
 s	_course:s3.shop	Möchten Sie sie eine Nummer größer?
 s	_course:s3.shop	Natürlich, die Kabine ist dort hinten.
+s	_course:s3.shop	Natürlich.
 s	_course:s3.shop	Natürlich. Brauchen Sie eine Quittung?
 s	_course:s3.shop	Natürlich. Brauchen Sie eine Tasche?
 s	_course:s3.shop	Nein danke, das ist alles.
-s	_course:s3.shop	Nein, am Stück.
+s	_course:s3.shop	Nein danke, ich habe eine dabei.
 s	_course:s3.shop	Nein, danke, das ist alles.
 s	_course:s3.shop	Nein, danke, ich habe eine dabei.
+s	_course:s3.shop	Nein, danke, ich habe eine.
 s	_course:s3.shop	Nein, danke, ich schaue nur.
+s	_course:s3.shop	Nein, danke. Das ist alles.
+s	_course:s3.shop	Nein, das ist alles.
+s	_course:s3.shop	Nein, das ist zu groß.
+s	_course:s3.shop	Nein, die sind zu klein.
+s	_course:s3.shop	Nein, es ist dir zu groß.
+s	_course:s3.shop	Nein, es ist ein bisschen zu groß.
+s	_course:s3.shop	Nein, es ist leider zu groß.
+s	_course:s3.shop	Nein, es ist zu groß.
 s	_course:s3.shop	Nein, nur in Rot und Blau.
-s	_course:s3.shop	Nein, sie hat eine dabei.
-s	_course:s3.shop	Nein, sie hat schon eine.
-s	_course:s3.shop	Nein, sie möchte ihn am Stück.
+s	_course:s3.shop	Nein, sie ist ein bisschen zu eng.
+s	_course:s3.shop	Nein, sie ist mir ein bisschen zu eng.
+s	_course:s3.shop	Nein, sie ist mir zu eng.
+s	_course:s3.shop	Nein, sie ist zu eng.
 s	_course:s3.shop	Nein, sie passen mir nicht. Sie sind zu klein.
+s	_course:s3.shop	Nein, sie passt mir nicht, sie ist zu eng.
+s	_course:s3.shop	Nein, sie sind leider zu klein.
+s	_course:s3.shop	Nein, sie sind mir zu klein.
 s	_course:s3.shop	Nein, sie sind zu klein.
+s	_course:s3.shop	Nein, zu groß.
 s	_course:s3.shop	Nein, zu klein.
-s	_course:s3.shop	Nein.
+s	_course:s3.shop	Nicht in Grau, aber in Dunkelblau.
 s	_course:s3.shop	Nicht schlecht. Darf ich sie anprobieren?
 s	_course:s3.shop	Normalerweise L.
 s	_course:s3.shop	Passen Ihnen die Schuhe?
-s	_course:s3.shop	Passt mir das Kleid? Dann probiere ich es eine Nummer kleiner.
+s	_course:s3.shop	Passt Ihnen die Jacke?
+s	_course:s3.shop	Schon jetzt? Wir müssen noch viel einkaufen.
+s	_course:s3.shop	Schon jetzt? Wir müssen noch viel kaufen.
 s	_course:s3.shop	Sechs Franken das Kilo.
 s	_course:s3.shop	Sehr gut, aber es kostet 200 Franken.
-s	_course:s3.shop	Sie ist dort hinten.
-s	_course:s3.shop	Sie ist dunkelblau.
-s	_course:s3.shop	Sie ist zu eng.
-s	_course:s3.shop	Sie kauft einen Liter Milch.
-s	_course:s3.shop	Sie kauft noch einen Liter Milch.
-s	_course:s3.shop	Sie kauft zwei Kilo Äpfel.
-s	_course:s3.shop	Sie kauft zwei Kilo.
-s	_course:s3.shop	Sie muss achtzehn Franken sechzig zahlen.
-s	_course:s3.shop	Sie möchte 300 Gramm Bergkäse.
-s	_course:s3.shop	Sie möchte dreihundert Gramm Bergkäse.
+s	_course:s3.shop	Sie kosten 12 Franken.
+s	_course:s3.shop	Sie kosten zwölf Franken.
+s	_course:s3.shop	Sie können den blauen Pulli anprobieren.
 s	_course:s3.shop	Sie sind leider zu klein.
-s	_course:s3.shop	Sie sollten den blauen Pulli anprobieren.
-s	_course:s3.shop	Sie zahlt mit Karte.
-s	_course:s3.shop	Sonst noch etwas? Gut, das macht neun Franken.
+s	_course:s3.shop	Sonst noch etwas?
 s	_course:s3.shop	Super, die nehme ich!
 s	_course:s3.shop	Und, nehmen Sie die Jacke?
 s	_course:s3.shop	Unser Hund wiegt zwölf Kilo.
+s	_course:s3.shop	Unser Hund wiegt zwölf Kilogramm.
 s	_course:s3.shop	Vier Franken zwanzig das Kilo.
 s	_course:s3.shop	Vier Franken zwanzig.
+s	_course:s3.shop	Vierunddreißig Franken fünfzig. Bar oder Karte?
+s	_course:s3.shop	Vierunddreißig Franken fünfzig. Bar oder mit Karte?
+s	_course:s3.shop	Vierunddreißig fünfzig. Bar oder mit Karte?
 s	_course:s3.shop	Warum hast du diesen Regenmantel gekauft?
 s	_course:s3.shop	Warum hast du eine blaue Bluse gekauft?
 s	_course:s3.shop	Warum hast du einen roten Rock gekauft?
-s	_course:s3.shop	Warum probiert er eine zweite Jacke an?
 s	_course:s3.shop	Warum ziehst du die neue Jacke nicht an?
 s	_course:s3.shop	Was darf es sein?
-s	_course:s3.shop	Was kauft sie noch?
 s	_course:s3.shop	Was kosten die Erdbeeren?
 s	_course:s3.shop	Was kosten die Schuhe?
 s	_course:s3.shop	Was kosten die Socken?
 s	_course:s3.shop	Was kosten die Tomaten? — Drei Franken das Kilo.
-s	_course:s3.shop	Was kosten diese Socken? Das ist mir zu teuer.
-s	_course:s3.shop	Was kostet ein Kilo Äpfel?
-s	_course:s3.shop	Was macht das zusammen? Mit Karte, bitte.
-s	_course:s3.shop	Was möchte Frau Amini zuerst?
-s	_course:s3.shop	Was sucht Herr Rossi?
-s	_course:s3.shop	Weil die graue zu eng ist.
-s	_course:s3.shop	Weil sie zu eng ist.
-s	_course:s3.shop	Welche Farbe hat die zweite Jacke?
+s	_course:s3.shop	Was kosten die Äpfel?
+s	_course:s3.shop	Was macht das zusammen?
+s	_course:s3.shop	Was suchen Sie?
 s	_course:s3.shop	Welche Größe haben Sie?
-s	_course:s3.shop	Welche Größe hat er?
 s	_course:s3.shop	Wie gefällt Ihnen diese hier, die graue?
 s	_course:s3.shop	Wie gefällt dir das Kleid?
-s	_course:s3.shop	Wie gefällt dir der Mantel? Echt? Ich finde ihn schön.
 s	_course:s3.shop	Wie passen die Schuhe?
 s	_course:s3.shop	Wie viel kosten die Schuhe?
-s	_course:s3.shop	Wie viel muss sie zahlen?
-s	_course:s3.shop	Wie viele Äpfel kauft sie?
-s	_course:s3.shop	Wie zahlt sie?
+s	_course:s3.shop	Wie viele Äpfel möchten Sie?
 s	_course:s3.shop	Wir brauchen drei Meter Stoff.
-s	_course:s3.shop	Wo ist die Kabine?
+s	_course:s3.shop	Wo kann ich das anprobieren?
 s	_course:s3.shop	Zieht euch schnell um!
 s	_course:s3.shop	Zwei Kaffee kosten neun Franken vierzig.
+s	_course:s3.shop	Zwei Kilo, bitte.
 s	_course:s3.shop	Zwei Kilo.
+s	_course:s3.shop	Zwölf Franken.
+s	_course:s3.travel	20 Franken pro Nacht.
 s	_course:s3.travel	Ab sieben Uhr.
 s	_course:s3.travel	Als wir angekommen sind, hat es geregnet.
 s	_course:s3.travel	Als wir ankamen, hat es geregnet.
 s	_course:s3.travel	Als wir ankamen, regnete es.
 s	_course:s3.travel	Als wir ankamen, war das Hotel schon zu.
 s	_course:s3.travel	Als wir in Lugano ankamen, war es schon dunkel.
-s	_course:s3.travel	Als wir in Rom ankamen, war unser Hotel schon voll. Zum Glück hatten sie noch ein Zimmer im Hotel nebenan.
+s	_course:s3.travel	Als wir in Rom ankamen, war das Hotel schon voll. Zum Glück hatte das Hotel nebenan noch ein Zimmer.
 s	_course:s3.travel	Als wir in Wien ankamen, regnete es.
 s	_course:s3.travel	Am Meer ist es mir zu heiß.
-s	_course:s3.travel	An die Küste, nach Kroatien.
 s	_course:s3.travel	Ans Meer.
 s	_course:s3.travel	Da hast du recht.
-s	_course:s3.travel	Da ist es im Mai schon warm.
 s	_course:s3.travel	Dann buche ich die Fähre.
 s	_course:s3.travel	Dann fahren wir nach Wien und danach nach Kroatien, an die Küste.
 s	_course:s3.travel	Das finde ich auch.
+s	_course:s3.travel	Das kostet zwanzig Franken pro Nacht.
 s	_course:s3.travel	Der Flug ist teurer als der Zug.
 s	_course:s3.travel	Der Flug ist teurer.
 s	_course:s3.travel	Der Flug.
-s	_course:s3.travel	Der Zug ist ausgefallen, und ich habe den Anschluss verpasst.
+s	_course:s3.travel	Der Zug fährt früh.
+s	_course:s3.travel	Der Zug ist ausgefallen, darum habe ich den Anschluss verpasst.
 s	_course:s3.travel	Der Zug ist bequemer als das Flugzeug.
 s	_course:s3.travel	Der Zug ist billiger als das Flugzeug.
+s	_course:s3.travel	Der Zug ist billiger als der Flug.
 s	_course:s3.travel	Der Zug ist günstiger als das Flugzeug.
 s	_course:s3.travel	Der Zug ist schneller als der Bus.
 s	_course:s3.travel	Die Berge sind ruhiger als das Meer, aber am Meer ist es wärmer. Ich fahre lieber ans Meer.
 s	_course:s3.travel	Dieses Jahr fahren wir in die USA.
-s	_course:s3.travel	Dort ist es im Mai schon warm.
+s	_course:s3.travel	Du hast recht.
 s	_course:s3.travel	Ein Billett nach Basel, hin und zurück, bitte.
 s	_course:s3.travel	Eine Stadt ist viel interessanter als die Berge!
 s	_course:s3.travel	Einfach oder hin und zurück?
-s	_course:s3.travel	Entschuldigung, mein Zug ist ausgefallen. Welchen Zug könnte ich jetzt nehmen?
+s	_course:s3.travel	Einmal Olten retour, bitte.
+s	_course:s3.travel	Entschuldigung, mein Zug ist ausgefallen. Welchen Zug kann ich jetzt nehmen?
 s	_course:s3.travel	Entschuldigung, würden Sie ein Foto von uns machen?
 s	_course:s3.travel	Er ist bequemer als das Auto.
-s	_course:s3.travel	Er möchte in die Berge fahren.
-s	_course:s3.travel	Er möchte ins Engadin fahren.
-s	_course:s3.travel	Er möchte unbedingt ans Meer.
-s	_course:s3.travel	Er würde gern in die Berge fahren.
-s	_course:s3.travel	Er würde gern ins Engadin fahren.
+s	_course:s3.travel	Es hat geregnet, als wir angekommen sind.
+s	_course:s3.travel	Es hat geregnet, als wir ankamen.
+s	_course:s3.travel	Es regnete, als wir ankamen.
+s	_course:s3.travel	Finde ich auch.
 s	_course:s3.travel	Fährst du lieber ans Meer oder in die Berge?
 s	_course:s3.travel	Für drei Nächte.
 s	_course:s3.travel	Für wie viele Nächte?
 s	_course:s3.travel	Für zwei Nächte.
+s	_course:s3.travel	Gern. Bitte lächeln!
 s	_course:s3.travel	Gern. Ich wünsche Ihnen einen schönen Aufenthalt!
-s	_course:s3.travel	Gern. Lächeln, bitte!
 s	_course:s3.travel	Grüezi, ich hätte gern ein Billett nach Interlaken, hin und zurück, zweite Klasse. Ich habe ein Halbtax.
 s	_course:s3.travel	Gut. Wir hätten gern ein ruhiges Zimmer, wenn möglich.
 s	_course:s3.travel	Gute Idee!
-s	_course:s3.travel	Gute Idee! Aber der Flug ist teurer als der Zug nach Wien.
+s	_course:s3.travel	Gute Idee! Aber der Flug ist teuer.
+s	_course:s3.travel	Gute Idee! Aber der Flug ist teuer. Der Zug nach Wien ist billiger.
 s	_course:s3.travel	Gute Idee! Dort ist das Meer so schön.
+s	_course:s3.travel	Gute Idee, aber der Flug ist teuer.
+s	_course:s3.travel	Gute Idee, aber der Flug ist ziemlich teuer.
 s	_course:s3.travel	Guten Abend! Kann ich Ihnen helfen?
 s	_course:s3.travel	Guten Abend. Ich habe ein Zimmer reserviert. Mein Name ist Roth.
 s	_course:s3.travel	Haben Sie noch ein Zimmer frei?
 s	_course:s3.travel	Hattet ihr gutes Wetter?
 s	_course:s3.travel	Hier, bitte. Ist das Frühstück inbegriffen?
 s	_course:s3.travel	Hin und zurück, bitte.
-s	_course:s3.travel	Ich bin nach Spanien gefahren, in die Türkei und ans Meer. Ich war in Spanien, in der Türkei und am Meer.
+s	_course:s3.travel	Ich bin nach Spanien gefahren und war zwei Wochen in Valencia. Dann bin ich in die Türkei geflogen und war in Antalya am Meer.
 s	_course:s3.travel	Ich fahre im Sommer lieber ans Meer.
 s	_course:s3.travel	Ich fahre lieber in die Berge.
 s	_course:s3.travel	Ich fahre lieber mit dem Zug als mit dem Auto.
-s	_course:s3.travel	Ich fahre lieber mit dem Zug, das ist bequemer als das Auto.
+s	_course:s3.travel	Ich fahre lieber mit dem Zug, das ist bequemer als mit dem Auto.
 s	_course:s3.travel	Ich habe den Anschluss verpasst.
 s	_course:s3.travel	Ich habe meinen Anschluss verpasst.
-s	_course:s3.travel	Ich hätte gern ein Billett hin und zurück nach Zug, bitte.
+s	_course:s3.travel	Ich hätte gern ein Billett hin und zurück nach Olten, bitte.
 s	_course:s3.travel	Ich hätte gern ein Billett nach Chur, hin und zurück.
 s	_course:s3.travel	Ich hätte gern ein Billett nach Lugano.
-s	_course:s3.travel	Ich hätte gern ein Billett nach Zug und zurück, bitte.
-s	_course:s3.travel	Ich hätte gern ein Billett nach Zug, hin und zurück, bitte.
+s	_course:s3.travel	Ich hätte gern ein Billett nach Olten retour, bitte.
+s	_course:s3.travel	Ich hätte gern ein Billett nach Olten und zurück, bitte.
+s	_course:s3.travel	Ich hätte gern ein Billett nach Olten, hin und zurück, bitte.
 s	_course:s3.travel	Ich hätte gern ein Einzelzimmer.
+s	_course:s3.travel	Ich hätte gern ein Retourbillett nach Olten, bitte.
 s	_course:s3.travel	Ich hätte gern ein Zimmer mit Balkon.
+s	_course:s3.travel	Ich möchte ein Billett nach Olten, hin und zurück, bitte.
 s	_course:s3.travel	Ich möchte einmal nach Japan fahren.
+s	_course:s3.travel	Ich möchte einmal nach Japan fliegen.
 s	_course:s3.travel	Ich möchte einmal nach Japan reisen.
+s	_course:s3.travel	Ich möchte gern einmal nach Japan fahren.
 s	_course:s3.travel	Ich möchte gern einmal nach Japan reisen.
+s	_course:s3.travel	Ich möchte gern nach Island fahren.
+s	_course:s3.travel	Ich möchte in die Berge, ins Engadin.
+s	_course:s3.travel	Ich möchte in die Berge.
+s	_course:s3.travel	Ich möchte ins Engadin.
+s	_course:s3.travel	Ich möchte lieber in eine Stadt fahren.
+s	_course:s3.travel	Ich möchte lieber in eine Stadt.
+s	_course:s3.travel	Ich möchte unbedingt ans Meer.
+s	_course:s3.travel	Ich möchte unbedingt einmal ans Meer fahren.
+s	_course:s3.travel	Ich möchte unbedingt einmal ans Meer.
+s	_course:s3.travel	Ich möchte wieder in die Berge.
 s	_course:s3.travel	Ich würde gern einmal Island sehen.
 s	_course:s3.travel	Ich würde gern einmal nach Island fahren.
 s	_course:s3.travel	Ich würde gern einmal nach Japan fahren.
 s	_course:s3.travel	Ich würde gern einmal nach Japan fliegen.
 s	_course:s3.travel	Ich würde gern einmal nach Japan reisen.
-s	_course:s3.travel	Ich würde gern einmal nach Kanada fahren. Dort würde ich wandern und Bären sehen.
+s	_course:s3.travel	Ich würde gern einmal nach Kanada reisen. Dort würde ich wandern und Bären sehen.
+s	_course:s3.travel	Ich würde gern in die Berge fahren.
+s	_course:s3.travel	Ich würde gern ins Engadin fahren.
+s	_course:s3.travel	Ich würde gern irgendwann nach Japan reisen.
 s	_course:s3.travel	Ich würde gern mal nach Japan fahren.
+s	_course:s3.travel	Ich würde gern mal nach Japan fliegen.
 s	_course:s3.travel	Ich würde gern mal nach Japan reisen.
 s	_course:s3.travel	Ich würde gern nach Island fahren.
 s	_course:s3.travel	Ich würde gern nach Norwegen fahren.
 s	_course:s3.travel	Ich würde gern wieder in die Berge fahren, ins Engadin.
-s	_course:s3.travel	Ihr Zug fährt früh.
+s	_course:s3.travel	Ich würde lieber in eine Stadt fahren.
+s	_course:s3.travel	Ich würde lieber in eine Stadt.
 s	_course:s3.travel	Im August fahren wir ans Meer.
-s	_course:s3.travel	Im Mai ist es dort schon warm.
 s	_course:s3.travel	Im Sommer fahre ich lieber ans Meer.
 s	_course:s3.travel	Im Tessin.
 s	_course:s3.travel	In der Garage hinter dem Hotel. Das kostet zwanzig Franken pro Nacht.
 s	_course:s3.travel	In die Berge, ins Engadin.
 s	_course:s3.travel	In die Berge.
 s	_course:s3.travel	In die Türkei.
-s	_course:s3.travel	In eine Stadt fahren.
+s	_course:s3.travel	In eine Stadt.
 s	_course:s3.travel	Ins Engadin.
 s	_course:s3.travel	Ist Frühstück inbegriffen?
 s	_course:s3.travel	Ist das Frühstück dabei?
+s	_course:s3.travel	Ist das Frühstück im Preis inbegriffen?
 s	_course:s3.travel	Ist das Frühstück inbegriffen?
+s	_course:s3.travel	Ist das Frühstück inklusive?
 s	_course:s3.travel	Ja, das finde ich auch.
 s	_course:s3.travel	Ja, ein Doppelzimmer für zwei Nächte. Darf ich Ihren Ausweis sehen?
 s	_course:s3.travel	Ja, ein Doppelzimmer ist noch frei.
+s	_course:s3.travel	Ja, es gibt Frühstück von sieben bis zehn Uhr.
 s	_course:s3.travel	Ja, es ist im Preis inbegriffen.
 s	_course:s3.travel	Ja, nur einmal hat es geregnet.
 s	_course:s3.travel	Ja, stimmt.
 s	_course:s3.travel	Ja, von sieben bis zehn Uhr, im ersten Stock.
+s	_course:s3.travel	Ja, von sieben bis zehn Uhr.
+s	_course:s3.travel	Ja, von sieben bis zehn.
 s	_course:s3.travel	Ja, wir haben gut geschlafen.
-s	_course:s3.travel	Kein Problem, Ihr Zimmer geht auf den Garten.
+s	_course:s3.travel	Ja.
+s	_course:s3.travel	Kein Problem, Ihr Zimmer geht auf den Garten hinaus.
 s	_course:s3.travel	Können Sie mir bitte helfen?
 s	_course:s3.travel	Könnten Sie mir bitte den Weg zeigen?
 s	_course:s3.travel	Könnten Sie mir bitte helfen? Mein Koffer ist so schwer.
 s	_course:s3.travel	Könnten Sie mir bitte mit dem Koffer helfen?
 s	_course:s3.travel	Letzten Sommer waren wir zwei Wochen in Portugal. Wir sind mit dem Zug gereist. Das Wetter war super, nur einmal hat es geregnet.
+s	_course:s3.travel	Letztes Jahr sind wir in Griechenland gewesen.
 s	_course:s3.travel	Letztes Jahr waren wir in Griechenland.
 s	_course:s3.travel	Letztes Jahr waren wir in Kroatien.
 s	_course:s3.travel	Lieber in die Berge.
 s	_course:s3.travel	Lieber in eine Stadt fahren.
+s	_course:s3.travel	Lieber in eine Stadt.
+s	_course:s3.travel	Mein Zug fährt früh.
 s	_course:s3.travel	Mein Zug ist ausgefallen!
 s	_course:s3.travel	Mit Halbtax?
 s	_course:s3.travel	Mit dem Nachtzug nach Wien.
 s	_course:s3.travel	Mit dem Nachtzug.
+s	_course:s3.travel	Mit dem Zug ist es billiger als mit dem Flugzeug.
 s	_course:s3.travel	Nach Genf.
-s	_course:s3.travel	Nach Kroatien, an die Küste.
-s	_course:s3.travel	Nach Kroatien.
 s	_course:s3.travel	Natürlich, gern!
 s	_course:s3.travel	Nehmen Sie den nächsten, auf Gleis 7.
-s	_course:s3.travel	Perfekt. Ich schaue heute Abend die Preise an.
+s	_course:s3.travel	Perfekt. Ich schaue mir heute Abend die Preise an.
 s	_course:s3.travel	Perfekt. Könnten Sie uns morgen um sechs wecken? Unser Zug fährt früh.
+s	_course:s3.travel	Schon wieder in die Berge?
 s	_course:s3.travel	Schon wieder? Ich würde lieber in eine Stadt fahren.
 s	_course:s3.travel	Sie fahren in die Türkei.
 s	_course:s3.travel	Sie kostet zwanzig Franken pro Nacht.
-s	_course:s3.travel	Sie könnten mit dem Nachtzug fahren.
-s	_course:s3.travel	Sie würde lieber in eine Stadt fahren.
 s	_course:s3.travel	Stimmt, und wir müssten kein Hotel für die erste Nacht zahlen.
 s	_course:s3.travel	Stimmt.
 s	_course:s3.travel	Super! Wir waren zwei Wochen in Portugal.
 s	_course:s3.travel	Super, das Hotel war sehr schön.
 s	_course:s3.travel	Und ab wann gibt es Frühstück?
 s	_course:s3.travel	Und das Meer? Ich möchte unbedingt einmal ans Meer.
+s	_course:s3.travel	Unser Zug fährt früh.
 s	_course:s3.travel	Unser Zug ist ausgefallen.
 s	_course:s3.travel	War das bequem?
 s	_course:s3.travel	Warum fährst du lieber mit dem Zug?
-s	_course:s3.travel	Warum muss Frau Roth um sechs aufstehen?
-s	_course:s3.travel	Warum schlägt Ben Lissabon vor?
+s	_course:s3.travel	Warum müssen Sie so früh aufstehen?
 s	_course:s3.travel	Was ist teurer, der Flug oder der Zug?
 s	_course:s3.travel	Was kostet die Garage?
-s	_course:s3.travel	Was würde Lara lieber machen?
 s	_course:s3.travel	Was würdest du gern einmal sehen?
-s	_course:s3.travel	Weil es dort im Mai schon warm ist.
-s	_course:s3.travel	Weil ihr Zug früh abfährt.
-s	_course:s3.travel	Weil ihr Zug früh fährt.
-s	_course:s3.travel	Wie könnten sie nach Wien fahren?
+s	_course:s3.travel	Weil der Zug früh fährt.
+s	_course:s3.travel	Weil mein Zug früh abfährt.
+s	_course:s3.travel	Weil mein Zug früh fährt.
+s	_course:s3.travel	Weil unser Zug früh abfährt.
+s	_course:s3.travel	Weil unser Zug früh fährt.
+s	_course:s3.travel	Wie könnten wir nach Wien fahren?
 s	_course:s3.travel	Wie seid ihr nach Wien gefahren?
 s	_course:s3.travel	Wie waren die Ferien?
 s	_course:s3.travel	Wie waren eure Ferien?
 s	_course:s3.travel	Wie wär's mit dem Tessin?
+s	_course:s3.travel	Wie wäre es mit Lissabon?
 s	_course:s3.travel	Wie wäre es mit Lissabon? Da ist es im Mai schon warm.
 s	_course:s3.travel	Wie wäre es mit Sardinien?
 s	_course:s3.travel	Wie wäre es mit dem Tessin?
@@ -10193,28 +10420,30 @@ s	_course:s3.travel	Wie wäre es mit einem Ausflug nach Luzern?
 s	_course:s3.travel	Wie wäre es mit einem Wochenende im Tessin?
 s	_course:s3.travel	Wie wäre es mit einem Wochenende in Luzern? Wir könnten mit dem Schiff fahren, das wäre schön.
 s	_course:s3.travel	Wie wäre es mit einem Wochenende in Paris?
+s	_course:s3.travel	Wieder in die Berge, ins Engadin.
 s	_course:s3.travel	Wir fahren dieses Jahr in die USA.
 s	_course:s3.travel	Wir fahren in die Türkei.
 s	_course:s3.travel	Wir fahren in die Türkei. Unsere Freunde wohnen in der Türkei.
 s	_course:s3.travel	Wir fahren nach Italien.
 s	_course:s3.travel	Wir fliegen in die Türkei.
+s	_course:s3.travel	Wir gehen in die Türkei.
 s	_course:s3.travel	Wir könnten ans Meer fahren.
 s	_course:s3.travel	Wir könnten auch mit dem Nachtzug nach Wien fahren. Das wäre bequemer.
+s	_course:s3.travel	Wir könnten mit dem Nachtzug fahren.
 s	_course:s3.travel	Wir könnten mit dem Velo fahren.
 s	_course:s3.travel	Wir reisen in die Türkei.
+s	_course:s3.travel	Wir sind letztes Jahr in Griechenland gewesen.
 s	_course:s3.travel	Wir waren letztes Jahr in Griechenland.
 s	_course:s3.travel	Wir waren zwei Wochen in Portugal.
 s	_course:s3.travel	Wo wart ihr letzten Sommer?
-s	_course:s3.travel	Wohin fahren sie nach Wien?
 s	_course:s3.travel	Wohin fahren wir dieses Jahr in die Ferien?
 s	_course:s3.travel	Wohin fahren wir im Sommer?
 s	_course:s3.travel	Wohin fahrt ihr in die Ferien?
-s	_course:s3.travel	Wohin möchte Ben fahren?
-s	_course:s3.travel	Wohin möchte Ben unbedingt einmal?
+s	_course:s3.travel	Wohin möchtest du in die Ferien?
+s	_course:s3.travel	Wohin möchtest du unbedingt einmal?
 s	_course:s3.travel	Wohin müssen Sie denn?
 s	_course:s3.travel	Wunderbar. Und wo kann ich parkieren?
 s	_course:s3.travel	Zwanzig Franken pro Nacht.
-s	_course:s3.travel	Zwanzig Franken.
 s	_course:s3.way	Also bis zur Ampel, dann rechts. Danke!
 s	_course:s3.way	Am Bahnhof, beim Ausgang.
 s	_course:s3.way	Beim Kunsthaus, das ist die vierte Haltestelle.
@@ -10225,11 +10454,13 @@ s	_course:s3.way	Dann fragen wir die Frau dort.
 s	_course:s3.way	Dann links, über die Brücke, und dann die zweite Straße rechts.
 s	_course:s3.way	Dann nehmen wir den Bus.
 s	_course:s3.way	Das Café ist in der Altstadt.
+s	_course:s3.way	Das Hotel ist gegenüber dem Kino.
 s	_course:s3.way	Das Hotel ist gegenüber vom Kino.
 s	_course:s3.way	Das Hotel ist gegenüber von dem Kino.
 s	_course:s3.way	Das Hotel ist gegenüber von der Schule.
 s	_course:s3.way	Das Hotel ist in der Altstadt.
 s	_course:s3.way	Das Kino ist gleich um die Ecke.
+s	_course:s3.way	Das sind nur zehn Minuten zu Fuß.
 s	_course:s3.way	Die Apotheke ist neben der Bank.
 s	_course:s3.way	Die Bank ist neben der Post.
 s	_course:s3.way	Die Haltestelle ist vor dem Hotel.
@@ -10245,6 +10476,7 @@ s	_course:s3.way	Du nimmst den Bus.
 s	_course:s3.way	Du schaust auf die Karte.
 s	_course:s3.way	Du steigst beim Zoo um.
 s	_course:s3.way	Ein bisschen. Kann ich Ihnen helfen?
+s	_course:s3.way	Entschuldigen Sie, wie komme ich zum Bahnhof?
 s	_course:s3.way	Entschuldigung! Wie komme ich zum Kunsthaus?
 s	_course:s3.way	Entschuldigung, gibt es hier in der Nähe eine Apotheke? Ist es weit?
 s	_course:s3.way	Entschuldigung, welcher Bus fährt zum Spital? Und wo muss ich aussteigen?
@@ -10271,23 +10503,29 @@ s	_course:s3.way	Gehen Sie bis zur Ampel.
 s	_course:s3.way	Gehen Sie bis zur Kreuzung und dann links.
 s	_course:s3.way	Gehen Sie bis zur Kreuzung.
 s	_course:s3.way	Gehen Sie einfach geradeaus.
+s	_course:s3.way	Gehen Sie geradeaus bis zur Ampel und dann links.
+s	_course:s3.way	Gehen Sie geradeaus bis zur Ampel, dann links.
 s	_course:s3.way	Gehen Sie geradeaus bis zur Ampel.
 s	_course:s3.way	Gehen Sie geradeaus!
 s	_course:s3.way	Gehen Sie hier geradeaus bis zur Ampel. Dann gehen Sie links und über die Brücke. Der Bahnhof ist gleich rechts.
 s	_course:s3.way	Gehen Sie über die Brücke und dann links!
 s	_course:s3.way	Gehen wir zu Fuß?
 s	_course:s3.way	Geht über die Brücke!
+s	_course:s3.way	Geradeaus bis zur Ampel und dann links.
 s	_course:s3.way	Geradeaus bis zur Ampel, dann links.
 s	_course:s3.way	Gern geschehen.
 s	_course:s3.way	Gern geschehen. Schönen Tag noch!
 s	_course:s3.way	Gib mir deine Adresse!
 s	_course:s3.way	Gibt es eine Apotheke in der Nähe?
 s	_course:s3.way	Gibt es einen Bus?
+s	_course:s3.way	Gibt es hier eine Apotheke in der Nähe?
 s	_course:s3.way	Gibt es hier eine Apotheke?
 s	_course:s3.way	Gibt es hier einen Bancomat?
+s	_course:s3.way	Gibt es hier einen Bancomaten?
 s	_course:s3.way	Gibt es hier in der Nähe eine Apotheke?
 s	_course:s3.way	Gibt es hier in der Nähe einen Bancomat? — Ja, neben der Migros.
 s	_course:s3.way	Gibt es hier in der Nähe einen Supermarkt?
+s	_course:s3.way	Gibt es in der Nähe eine Apotheke?
 s	_course:s3.way	Gleich dort drüben, links.
 s	_course:s3.way	Gleich dort drüben, neben dem Kiosk.
 s	_course:s3.way	Gut, warte dort, ich hole dich ab.
@@ -10312,6 +10550,7 @@ s	_course:s3.way	Ist das weit?
 s	_course:s3.way	Ist es weit bis zum Bahnhof?
 s	_course:s3.way	Ist es weit?
 s	_course:s3.way	Ist es weit? Nein, nur zehn Minuten zu Fuß.
+s	_course:s3.way	Ist hier eine Apotheke in der Nähe?
 s	_course:s3.way	Ist hier in der Nähe eine Apotheke?
 s	_course:s3.way	Ja, die Nummer 10.
 s	_course:s3.way	Ja, ich arbeite bis sieben.
@@ -10320,8 +10559,8 @@ s	_course:s3.way	Ja, wo ist der Bahnhof?
 s	_course:s3.way	Ja, zu Fuß etwa eine halbe Stunde.
 s	_course:s3.way	Kinder, wartet an der Ecke!
 s	_course:s3.way	Kommt um acht ins Café Rio. Nehmt das Tram bis zum Bellevue und geht dann zwei Minuten zu Fuß.
-s	_course:s3.way	Mein Lieblingscafé ist in der Altstadt, neben der Kirche, gleich um die Ecke.
-s	_course:s3.way	Meine Arbeit ist nicht weit. Ich fahre zehn Minuten mit dem Velo oder nehme das Tram.
+s	_course:s3.way	Mein Lieblingscafé ist in der Altstadt, neben der Kirche.
+s	_course:s3.way	Meine Arbeit ist nicht weit weg. Ich fahre zehn Minuten mit dem Velo oder nehme das Tram.
 s	_course:s3.way	Nehmen Sie das Tram.
 s	_course:s3.way	Nehmen Sie den Bus Nummer 31 und steigen Sie am Bahnhof aus.
 s	_course:s3.way	Nehmen Sie den Bus.
@@ -10364,6 +10603,7 @@ s	_course:s3.way	Wartet an der Ecke, Kinder!
 s	_course:s3.way	Warum?
 s	_course:s3.way	Welches Tram fährt dorthin?
 s	_course:s3.way	Wie komme ich zur Post?
+s	_course:s3.way	Wir fahren in die Altstadt.
 s	_course:s3.way	Wir gehen heute in die Altstadt.
 s	_course:s3.way	Wir gehen in die Altstadt.
 s	_course:s3.way	Wir gehen in die Altstadt. — Das Café ist in der Altstadt.
@@ -10375,6 +10615,7 @@ s	_course:s3.way	Wo ist das Hotel Rose?
 s	_course:s3.way	Wo kann ich hier parkieren?
 s	_course:s3.way	Wohin gehst du?
 s	_course:s3.way	Zu Fuß etwa fünfzehn Minuten. Oder Sie nehmen das Tram.
+s	_course:s3.way	Zu Fuß sind es nur zehn Minuten.
 s	_course:s3.way	Zum Kunsthaus? Gehen Sie hier geradeaus bis zur Ampel.
 s	_idioms	Am Sonntag ist in der Stadt tote Hose.
 s	_idioms	Am Wochenende schlafe ich bis in die Puppen.
@@ -10611,7 +10852,6 @@ s	_sheet:cx.art1	Er ist kein Arzt, er ist Zahnarzt.
 s	_sheet:cx.art1	Heute ist keine Schule.
 s	_sheet:cx.art1	Hier gibt es keine Parkplätze.
 s	_sheet:cx.art1	Ich bin Lehrer.
-s	_sheet:cx.art1	Sie ist Pflegerin.
 s	_sheet:cx.art1	eine
 s	_sheet:cx.art2	Anna und ihr Bruder
 s	_sheet:cx.art2	Diese Woche bin ich in Basel.
@@ -10640,7 +10880,7 @@ s	_sheet:cx.bus1	Every ten minutes: Das Tram kommt alle zehn Minuten.
 s	_sheet:cx.bus2	Im Spital.
 s	_sheet:cx.bus2	Sie ist Österreicherin.
 s	_sheet:cx.bus2	Tom ist Student.
-s	_sheet:cx.bus2	Weißt du, dass Tom Ire ist? Nein, das weiß ich nicht.
+s	_sheet:cx.bus2	Wo wohnt Tom? Das weiß ich nicht.
 s	_sheet:cx.cj1	Bevor ich esse, wasche ich mir die Hände.
 s	_sheet:cx.cj1	Bevor ich gehe, schließe ich die Fenster.
 s	_sheet:cx.cj1	Ich rufe dich an, bevor ich losfahre.
@@ -10720,7 +10960,6 @@ s	_sheet:cx.datp2	Ich zeige den Touristen den Weg.
 s	_sheet:cx.datp2	Kannst du es mir zeigen?
 s	_sheet:cx.dpr1	Ich fahre mit dem Bus.
 s	_sheet:cx.dpr1	Ich gehe mit ihm.
-s	_sheet:cx.dpr1	Ich gehe zum Bahnhof.
 s	_sheet:cx.dpr1	Ich wohne bei ihnen.
 s	_sheet:cx.dpr1	Kommst du mit uns?
 s	_sheet:cx.dpr1	Lisa wohnt bei ihrer Schwester.
@@ -10785,11 +11024,11 @@ s	_sheet:cx.greet1	Grüezi, Frau Frei!
 s	_sheet:cx.greet1	Ich heiße Paulo Silva.
 s	_sheet:cx.greet1	Ich wohne seit drei Jahren hier.
 s	_sheet:cx.greet2	Darf ich Ihnen meinen Sohn vorstellen?
+s	_sheet:cx.greet2	Die Schwägerin von Marco.
 s	_sheet:cx.greet2	Grüßen Sie Ihre Frau von mir!
 s	_sheet:cx.greet2	Ich kenne deinen Bruder nicht.
 s	_sheet:cx.greet2	Ich muss los.
 s	_sheet:cx.greet2	Kennst du unseren Chef schon?
-s	_sheet:cx.greet2	Marcos Schwägerin.
 s	_sheet:cx.greet2	Schwager
 s	_sheet:cx.greet2	die Frau von meinem Bruder
 s	_sheet:cx.iq1	Ich möchte wissen, was er gesagt hat.
@@ -11041,6 +11280,7 @@ s	_sheet:cx.school2	Die Kinder lernen in der Schule lesen.
 s	_sheet:cx.school2	Ich lerne für die Prüfung.
 s	_sheet:cx.school2	Sie studiert Jura.
 s	_sheet:cx.shop1	Das Kleid steht dir gut.
+s	_sheet:cx.shop1	Die graue ist zu eng.
 s	_sheet:cx.shop1	Haben Sie die Jacke eine Nummer größer?
 s	_sheet:cx.shop1	Ich nehme den blauen Pulli.
 s	_sheet:cx.shop1	Ich suche einen Mantel.
@@ -11048,7 +11288,6 @@ s	_sheet:cx.shop1	Kann ich Ihnen helfen? Danke, ich schaue nur.
 s	_sheet:cx.shop2	Bar oder mit Karte?
 s	_sheet:cx.shop2	Ein Kilo Äpfel, bitte.
 s	_sheet:cx.shop2	Ich kaufe drei Kilo Kartoffeln.
-s	_sheet:cx.shop2	Sonst noch etwas?
 s	_sheet:cx.shop2	zwei Liter Milch
 s	_sheet:cx.shop2	zwölf Franken achtzig
 s	_sheet:cx.short	Also, gehen wir!
