@@ -101,11 +101,8 @@ const ANKI = {
 };
 
 // The Anki day rolls over at 4 AM, not midnight — a 1 AM session still
-// counts as "yesterday". The whole app uses this clock (todayISO), in
-// the device's local time zone.
-function ankiToday() {
-  return new Date(Date.now() - ANKI.ROLLOVER_HOUR * 3600 * 1000).toLocaleDateString('en-CA');
-}
+// counts as "yesterday". The whole app uses one study day (ankiToday =
+// studyToday = todayISO): THE STUDY DAY below.
 function ankiNewPerDay() {
   return ANKI.NEW_PER_DAY_OPTIONS.includes(S.ankiNewPerDay) ? S.ankiNewPerDay : ANKI.NEW_PER_DAY_DEFAULT;
 }
@@ -181,16 +178,213 @@ const PATH = {
   // the 4th it drops below.
   SPOT_PER_DAY: 3,
 };
-// Start of the study day `offset` days from today (4 AM rollover).
-function studyDayStart(offset = 0, now = Date.now()) {
+// ── THE STUDY DAY ─────────────────────────────
+// The day rolls over at 4 AM on this device's clock, in whatever time
+// zone the device is in now: travel moves the day with you, so a day can
+// run longer (flying west) or shorter (flying east) than 24 hours. Every
+// part of the app asks here (ankiToday = studyToday = todayISO,
+// studyDayStart, usageDateOf), so they all agree on the day.
+//
+// S.dayClock = { day, start, act }: the day in progress, the instant it
+// began, and how much was done on it (dayNoteStudy). The start is a real
+// moment, not "4 AM": a day begun in Zurich began then, wherever the
+// device is now.
+//
+// The clock can read an EARLIER day than the one in progress: the device
+// moved west, or its time zone was still the old one when the day began
+// (the laptop opened on a plane). Then
+//   • a day with study in it is kept until the clock reaches it again
+//     (at most DAY_HOLD_MAX days ahead; further, the clock was wrong):
+//     never moved back, never lived twice;
+//   • a day with nothing done yet is taken back, and the day before
+//     returns as it was when it ended (its quests, plan and counters)
+//     with any 🧊 freeze the early rollover spent (dayRollBack).
+// Flying east can't be helped this way: the clock runs ahead of the day
+// and the day ends at the new 4 AM.
+const DAY_HOLD_MAX = 2; // UTC+14 → UTC−12 moves the clock back 26 h: 2 days with a 4 AM rollover
+const DAY_UNDO_KEY = STORAGE_KEY + "_dayundo"; // this device only (dayRollForward)
+// The day / the start of a day by the clock alone: the wall clock's date,
+// or the date before until 4 AM — on the nights the clocks change too
+// (4 hours of time before now would turn the day at 3 or 5 AM then).
+function clockDayOf(t = Date.now()) {
+  const d = new Date(t);
+  if (isNaN(d)) return "Invalid Date";
+  if (d.getHours() < ANKI.ROLLOVER_HOUR) d.setDate(d.getDate() - 1);
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function clockDayStart(offset = 0, now = Date.now()) {
   const d = new Date(now);
   d.setHours(ANKI.ROLLOVER_HOUR, 0, 0, 0);
   if (now < d.getTime()) d.setDate(d.getDate() - 1);
   if (offset) d.setDate(d.getDate() + offset);
   return d.getTime();
 }
+const ISO_DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+let _daySeen = { day: "", t: 0 }; // the last moment this page was on the day in progress
+function ankiToday() {
+  const now = Date.now(), clock = clockDayOf(now);
+  if (typeof S === "undefined" || !S || typeof S !== "object") return clock;
+  const dc = S.dayClock;
+  if (!dc || typeof dc !== "object" || !ISO_DAY_RE.test(dc.day || "")) {
+    S.dayClock = { day: clock, start: clockDayStart(0, now) };
+  } else if (clock > dc.day) {
+    dayRollForward(clock, now);
+  } else if (clock < dc.day) {
+    if (daysBetween(clock, dc.day) <= DAY_HOLD_MAX && dayTouched(dc)) { _daySeen = { day: dc.day, t: now }; return dc.day; }
+    dayRollBack(clock, now);
+  }
+  _daySeen = { day: clock, t: now };
+  return clock;
+}
 // ISO date of the current study day (same clock as the Anki day).
 function studyToday() { return ankiToday(); }
+// Start of the study day `offset` days from today: today's from when it
+// really began; the others at 4 AM on the clock, counted from today's
+// date (a held day's tomorrow is the day after it, not after the clock's).
+// A moment other than now goes by the clock alone.
+function studyDayStart(offset = 0, now = Date.now()) {
+  if (Math.abs(now - Date.now()) > 60000 || typeof S === "undefined" || !S) return clockDayStart(offset, now);
+  const today = ankiToday();
+  if (!offset) {
+    const dc = S.dayClock;
+    return dc && dc.day === today && dayStartOk(dc.start, now) ? dc.start : clockDayStart(0, now);
+  }
+  return clockDayStart(offset + daysBetween(clockDayOf(now), today), now);
+}
+// A day's recorded start is believable: a real past moment, at most a
+// held day's length ago.
+function dayStartOk(t, now = Date.now()) {
+  return typeof t === "number" && t <= now && now - t < (DAY_HOLD_MAX + 2) * 864e5;
+}
+
+// The pieces of state that belong to one day — each with how to read its
+// day, and the fields to put back when a day is taken back. Kept at each
+// rollover (dayRollForward), before any of them has turned the page:
+// they only learn of the new day from ankiToday. New state that resets
+// with the day belongs here (and, if it syncs by day, in sync-merge.js).
+const DAY_PIECES = [
+  ["quests", q => q.day, ["day", "list", "m", "dayDone", "flash", "weekend", "dbl", "missedYesterday", "prevOk", "history", "week", "saga"]],
+  ["path", p => [p.day || "", (p.plan && p.plan.day) || ""].sort().pop(), ["day", "introducedToday", "extraToday", "extraBtn", "extraUndo", "extraAt", "spotToday", "plan", "autoPaused", "autoPausedOn"]],
+  ["verb", v => v.day, ["day", "ni", "nc", "ns", "su", "sq"]],
+  ["course", c => c.day, ["day", "dd", "dq", "idle", "seen"]],
+  ["games.daily", d => d.date, ["date", "done", "ids"]],
+  ["", s => s.drillMilestonesDate, ["drillMilestonesDate", "drillCorrectToday", "drillMilestonesClaimed"]],
+  ["", s => s.gameCorrectDate, ["gameCorrectDate", "gameCorrectToday"]],
+  ["", s => s.timerWinsDate, ["timerWinsDate", "timerWinsToday"]],
+];
+function dayPieceObj(at) {
+  let o = S;
+  for (const k of at ? at.split(".") : []) { o = o && typeof o === "object" ? o[k] : undefined; }
+  return o && typeof o === "object" ? o : null;
+}
+function dayPiecesCapture() {
+  return DAY_PIECES.map(([at, , keys]) => {
+    const o = dayPieceObj(at);
+    if (!o) return null;
+    const v = {};
+    keys.forEach(k => { if (o[k] !== undefined) v[k] = o[k]; });
+    return JSON.parse(JSON.stringify(v));
+  });
+}
+// Put back the pieces that moved past `from` since they were kept (one
+// still on `from` — not turned, or brought in by a sync — stays as it is).
+function dayPiecesRestore(saved, from) {
+  DAY_PIECES.forEach(([at, dayOf, keys], i) => {
+    const o = dayPieceObj(at), v = saved[i];
+    if (!o || !v || typeof v !== "object") return;
+    let d = "";
+    try { d = String(dayOf(o) || ""); } catch (e) {}
+    if (!(d > from)) return;
+    keys.forEach(k => { if (v[k] === undefined) delete o[k]; else o[k] = v[k]; });
+  });
+}
+function dayUndoRead() {
+  try { const u = JSON.parse(localStorage.getItem(DAY_UNDO_KEY) || "null"); return u && typeof u === "object" ? u : null; } catch (e) { return null; }
+}
+function dayUndoWrite(u) {
+  try { if (u) localStorage.setItem(DAY_UNDO_KEY, JSON.stringify(u)); else localStorage.removeItem(DAY_UNDO_KEY); } catch (e) {}
+}
+// The clock reached a later day: the new day starts now (at its 4 AM, or
+// later if this page was still on the old day after that — a day begun
+// in another time zone ran until then), and the old day is kept, one
+// step, in case the clock turns back to it.
+function dayRollForward(clock, now) {
+  const dc = S.dayClock;
+  let pieces = null;
+  try { pieces = dayPiecesCapture(); } catch (e) {}
+  dayUndoWrite(pieces ? { from: dc.day, to: clock, at: now, clock: { day: dc.day, start: dc.start, act: dc.act || 0 }, pieces } : null);
+  const seen = _daySeen.day === dc.day && _daySeen.t < now ? _daySeen.t + 1 : 0;
+  S.dayClock = { day: clock, start: Math.max(clockDayStart(0, now), seen) };
+  _dayTouchedMemo = null;
+}
+// The clock turned back to an earlier day and the day in progress has
+// nothing in it: back to the clock's day — as it was when it ended, if
+// this device kept it (one step back, see dayRollForward).
+function dayRollBack(clock, now) {
+  const from = S.dayClock.day, u = dayUndoRead();
+  const back = !!(u && u.to === from && u.from === clock && u.clock && Array.isArray(u.pieces));
+  S.dayClock = back ? { day: clock, start: dayStartOk(u.clock.start, now) ? u.clock.start : clockDayStart(0, now), act: u.clock.act || 0 }
+    : { day: clock, start: clockDayStart(0, now) };
+  _dayTouchedMemo = null;
+  if (back) { try { dayPiecesRestore(u.pieces, clock); } catch (e) { console.warn("day undo failed", e); } }
+  else dayUndoWrite(null);
+  if (typeof questBackTo === "function") questBackTo(clock);
+  if (typeof logEvent === "function") logEvent("day_back", { from, to: clock, undo: back ? 1 : 0 });
+  // Saved at once (right after the caller is done with S); the kept day
+  // is let go only then — a page closed before still finds it next time.
+  setTimeout(() => {
+    if (typeof saveLocalOnly === "function") saveLocalOnly();
+    const cur = back ? dayUndoRead() : null;
+    if (cur && cur.at === u.at) dayUndoWrite(null);
+    if (typeof dayChanged === "function") dayChanged();
+  }, 0);
+}
+// Something was done today: an answer (right or wrong), a game, a session,
+// a lesson part… (quests.js questEvent; usage-log.js logEvent). A day
+// with anything done in it is never taken back.
+function dayNoteStudy() {
+  if (typeof S === "undefined" || !S) return;
+  const today = ankiToday(), dc = S.dayClock;
+  if (dc && dc.day === today) dc.act = (dc.act || 0) + 1;
+}
+// Was anything done on the day in progress? dayNoteStudy counts it
+// (dayClock.act); the quests, the counters and the words' last answers
+// back that up. Asked only while the clock reads an earlier day — never
+// in a day at home.
+let _dayTouchedMemo = null;
+function dayTouched(dc) {
+  const key = dc.day + "|" + dc.start, now = Date.now();
+  if (_dayTouchedMemo && _dayTouchedMemo.key === key && (_dayTouchedMemo.yes || now - _dayTouchedMemo.at < 2000)) return _dayTouchedMemo.yes;
+  let yes = false;
+  try { yes = dayTouchedNow(dc); } catch (e) { yes = true; } // unsure: keep the day
+  _dayTouchedMemo = { key, at: now, yes };
+  return yes;
+}
+function dayTouchedNow(dc) {
+  const day = dc.day, n = x => typeof x === "number" && x > 0;
+  if (n(dc.act)) return true;
+  const Q = S.quests;
+  if (Q && Q.day === day) {
+    const m = Q.m || {};
+    if (n(m.ok) || n(m.game) || Q.dayDone || (Array.isArray(Q.list) && Q.list.some(q => q && q.done))) return true;
+  }
+  const P = S.path;
+  if (P && P.day === day && (n(P.extraToday) || n(P.extraBtn) || n(P.extraUndo) || n(P.spotToday))) return true;
+  const V = S.verb;
+  if (V && V.day === day && (n(V.ni) || n(V.nc) || n(V.ns))) return true;
+  const C = S.course;
+  if (C && C.day === day && ((C.dd && Object.keys(C.dd).length) || (C.dq && Object.keys(C.dq).length))) return true;
+  const D = S.games && S.games.daily;
+  if (D && D.date === day && Array.isArray(D.done) && D.done.length) return true;
+  if (S.drillMilestonesDate === day && n(S.drillCorrectToday)) return true;
+  if (S.gameCorrectDate === day && n(S.gameCorrectToday)) return true;
+  if (S.timerWinsDate === day && n(S.timerWinsToday)) return true;
+  const t0 = dayStartOk(dc.start) ? dc.start : clockDayStart(0) - 864e5; // (unknown start: lean towards keeping the day)
+  for (const ws of Object.values(S.words || {})) {
+    if (ws && (ws.lastAnsweredAt >= t0 || (ws.anki && ws.anki.at >= t0))) return true;
+  }
+  return false;
+}
 
 // "2027-09-27" → "27 Sep 2027"
 function fmtShortDate(iso) {
@@ -279,7 +473,8 @@ function isCorrect(input, answer) {
 
 // ── DATE HELPERS ──────────────────────────────
 // The app's day rolls over at 4 AM (like Anki): a 1 AM session still
-// counts as yesterday, for quests, goals, streaks and the Path alike.
+// counts as yesterday, for quests, goals, streaks and the Path alike —
+// and it travels with you (THE STUDY DAY above).
 function todayISO() {
   return ankiToday();
 }

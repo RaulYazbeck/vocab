@@ -24,10 +24,11 @@
 //     counts; mistake histories are combined.
 //   • Today's quests and the path's day (its plan, extra words…) — from
 //     the device whose day is later, unless all it did was roll the day
-//     over (nothing answered yet): its copy may be days old, so its new
+//     over (nothing done on it yet): its copy may be days old, so its new
 //     day and plan were made from stale progress — the other side's are
 //     kept and the app rolls the day over again on the merged progress.
-//     Same day: the one with more done; a tie, the cloud's.
+//     Same day: the one with more done; a tie, the cloud's. The study
+//     day's clock (dayClock — config.js) goes with the quests' day.
 //   • Everything else (settings, game progress, chests and items…) —
 //     compared piece by piece with the last state both devices shared: a
 //     piece only one device changed since comes from that device, so an
@@ -187,6 +188,13 @@ function syncQuestProgress(q) {
   const m = syncIsObj(q.m) ? q.m : {};
   return syncNum(m.ok) + syncNum(m.game) + (Array.isArray(q.list) ? q.list.filter(x => x && x.done).length : 0) + (q.dayDone ? 1 : 0);
 }
+// Anything done on the quests' day — progress, or any study at all (the
+// study day's clock counts it: a wrong answer, a lesson part… — config.js,
+// THE STUDY DAY).
+function syncQuestTouched(state) {
+  const q = state.quests, dc = state.dayClock;
+  return syncQuestProgress(q) > 0 || (syncIsObj(q) && syncIsObj(dc) && dc.day === q.day && syncNum(dc.act) > 0);
+}
 function syncPathDay(p) {
   return [String(p.day || ""), String((syncIsObj(p.plan) && p.plan.day) || "")].sort().pop();
 }
@@ -198,10 +206,11 @@ function syncPathProgress(state) {
 // Which side's day to keep (true = local): the later day if anything was
 // done on it, else the earlier one; the same day — the one with more
 // done, a tie the cloud's (local may not have seen the cloud's progress
-// yet when it started its day).
-function syncLocalDay(ld, cd, lp, cp) {
+// yet when it started its day). lt / ct: anything at all done on that
+// side's day (by default, any progress).
+function syncLocalDay(ld, cd, lp, cp, lt = lp > 0, ct = cp > 0) {
   if (ld === cd) return lp > cp;
-  return ld > cd ? lp > 0 : !(cp > 0);
+  return ld > cd ? !!lt : !ct;
 }
 function syncDeckOf(key) { return key.substring(0, key.lastIndexOf("_")); }
 
@@ -320,7 +329,7 @@ function mergeStates(local, cloud, opts = {}) {
 
   if (syncIsObj(local.quests) && syncIsObj(cloud.quests)) {
     const lq = local.quests, cq = cloud.quests, ld = String(lq.day || ""), cd = String(cq.day || "");
-    const useLocal = syncLocalDay(ld, cd, syncQuestProgress(lq), syncQuestProgress(cq));
+    const useLocal = syncLocalDay(ld, cd, syncQuestProgress(lq), syncQuestProgress(cq), syncQuestTouched(local), syncQuestTouched(cloud));
     const src = useLocal ? lq : cq;
     // An untouched day rolled over on an old copy is dropped whole: what
     // that rollover changed (freezes spent, the week, the saga…) was worked
@@ -332,9 +341,17 @@ function mergeStates(local, cloud, opts = {}) {
       if (k && !SYNC_QUEST_DAY_KEYS.includes(k)) { const v = (who === "l" ? lq : cq)[k]; if (v === undefined) delete Q[k]; else Q[k] = syncClone(v); }
     });
     out.quests = Q;
+    // The study day's clock (config.js, THE STUDY DAY) goes with the day
+    // its quests are on.
+    const dcA = (useLocal ? local : cloud).dayClock, dcB = (useLocal ? cloud : local).dayClock;
+    const dc = syncIsObj(dcA) ? syncClone(dcA) : syncIsObj(dcB) ? syncClone(dcB) : null;
+    // (the same day on both: whatever either did on it counts)
+    if (dc && syncIsObj(dcA) && syncIsObj(dcB) && dcA.day === dcB.day) dc.act = Math.max(syncNum(dcA.act), syncNum(dcB.act));
+    if (dc) out.dayClock = dc; else delete out.dayClock;
   }
   if (syncIsObj(local.path) && syncIsObj(cloud.path)) {
-    const useLocal = syncLocalDay(syncPathDay(local.path), syncPathDay(cloud.path), syncPathProgress(local), syncPathProgress(cloud));
+    const pathTouched = st => syncPathProgress(st) > 0 || (syncIsObj(st.quests) && st.quests.day === syncPathDay(st.path) && syncQuestTouched(st));
+    const useLocal = syncLocalDay(syncPathDay(local.path), syncPathDay(cloud.path), syncPathProgress(local), syncPathProgress(cloud), pathTouched(local), pathTouched(cloud));
     const src = useLocal ? local.path : cloud.path;
     SYNC_PATH_DAY_KEYS.forEach(k => { if (src[k] === undefined) delete out.path[k]; else out.path[k] = syncClone(src[k]); });
     ["lastActiveDay", "planDoneOn"].forEach(k => {
