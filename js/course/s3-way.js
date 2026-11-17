@@ -1,0 +1,230 @@
+// ── COURSE PACK · Stage 3 · 💬 Asking the way ──
+// Book: chapter 30 "Commands" (Übung 30•12 commands for du, ihr and Sie ·
+// 30•13 a short conversation in order · 30•14 say a line with another
+// word). Our own dialogues: a tourist in Zurich, a friend on the phone.
+// It comes right after wo? vs wohin?, so it uses the two-way prepositions
+// and the commands (A1), and nothing taught later: no weil / dass, no
+// indirect questions (Können Sie mir sagen, wo …? is B1), no adjective
+// endings to work out — die erste / zweite Straße are set phrases.
+cxPack({
+  id: "s3-way",
+  sections: {
+    "s3.way": {
+      testout: { n: 7, miss: 1 },
+      rules: {
+        "way.ask": "Asking: Entschuldigung, wie komme ich zum …?",
+        "way.dir": "Directions: geradeaus, links, bis zur Ampel",
+        "way.place": "Where it is: neben der Post, vor dem Bahnhof",
+        "way.far": "How far and how: zu Fuß, mit dem Tram, aussteigen",
+        "way.cmd": "The Sie command: Gehen Sie geradeaus!",
+        "way.cmddu": "The du and ihr commands: Nimm den Bus! Nehmt …!",
+        "way.wowohin": "wohin? + accusative, wo? + dative: in die / in der Altstadt",
+      },
+      sheets: [
+        { id: "cx.way1", title: "Asking the way", qn: 3,
+          struct: [["Entschuldigung,", "aux"], ["wie komme ich", "verb"], ["zum Bahnhof?", "end"]],
+          why: "To ask the way you need one question, and a handful of words to understand the answer: left, right, straight on, and where things are. The answer usually comes as commands: Gehen Sie …, Nehmen Sie …",
+          rid: ["way.ask", "way.dir", "way.place", "way.far"],
+          rules: [
+            "Start with **Entschuldigung** and ask **Wie komme ich zum / zur …?** (zum Bahnhof, zur Post) or **Wo ist hier …?** When any one will do: **Gibt es hier in der Nähe** einen Bancomat? Thank with **Vielen Dank!**",
+            "The directions: **geradeaus** (straight on), **links**, **rechts**, **die erste / zweite Straße links**, **bis zur Ampel** (as far as the lights), **über die Brücke**, **um die Ecke** (round the corner).",
+            "Where something is (wo?) takes the dative: **neben der** Post, **vor dem** Bahnhof, **hinter dem** Kino, **an der** Ecke, **gegenüber von der** Kirche. Or simply: **hier links**, **dort drüben** (over there).",
+            "How far and how to get there: **Ist es weit?** — **Nein, nur fünf Minuten zu Fuß.** · **Nehmen Sie das Tram Nummer 4.** · **Steigen Sie beim Zoo aus.** · Das ist **die dritte Haltestelle**.",
+          ],
+          lines: [
+            ["Frau Lin", "Entschuldigung! Wie komme ich zum Kunsthaus?", "Excuse me! How do I get to the Kunsthaus (the art museum)?"],
+            ["Herr Weber", "Zum Kunsthaus? Gehen Sie hier geradeaus bis zur Ampel.", "To the Kunsthaus? Go straight on here as far as the traffic lights."],
+            ["Frau Lin", "Bis zur Ampel, gut. Und dann?", "As far as the lights, fine. And then?"],
+            ["Herr Weber", "Dann links, über die Brücke, und dann die zweite Straße rechts.", "Then left, over the bridge, and then the second street on the right."],
+            ["Frau Lin", "Ist es weit?", "Is it far?"],
+            ["Herr Weber", "Zu Fuß etwa fünfzehn Minuten. Oder Sie nehmen das Tram.", "About fifteen minutes on foot. Or you take the tram."],
+            ["Frau Lin", "Welches Tram fährt dorthin?", "Which tram goes there?"],
+            ["Herr Weber", "Die Nummer drei. Die Haltestelle ist dort drüben, vor der Apotheke.", "Number three. The stop is over there, in front of the pharmacy."],
+            ["Frau Lin", "Und wo muss ich aussteigen?", "And where do I have to get off?"],
+            ["Herr Weber", "Beim Kunsthaus. Das ist die vierte Haltestelle.", "At the Kunsthaus. That's the fourth stop."],
+            ["Frau Lin", "Vielen Dank!", "Thank you very much!"],
+            ["Herr Weber", "Gern geschehen. Schönen Tag noch!", "You're welcome. Have a nice day!"],
+          ],
+          ex: [
+            ["Entschuldigung, wo ist hier **die Post**? — Gleich **um die Ecke**.", "Excuse me, where's the post office? — Just round the corner."],
+            ["Gibt es hier in der Nähe **einen** Bancomat? — Ja, **neben der** Migros.", "Is there a cash machine near here? — Yes, next to Migros."],
+            ["Gehen Sie **bis zur** Kreuzung und dann **links**.", "Go as far as the crossroads and then left."],
+            ["Nehmen Sie den Bus Nummer 31 und steigen Sie **am Bahnhof** aus.", "Take bus number 31 and get off at the station."],
+          ],
+          trap: "**zum** / **zur** is for where you're going; **neben**, **vor** or **bei** say where it is: Ich gehe **zur** Post — die Post ist **neben dem** Bahnhof. And *on foot* is **zu Fuß**, not ~~mit dem Fuß~~.",
+          quiz: [
+            { at: "r1", k: "pick", q: "Entschuldigung, wie komme ich ___ Bahnhof?", o: ["zum", "zur", "nach"], a: 0, why: "der Bahnhof: **zum** Bahnhof (zu + dem)." },
+            { at: "r1", k: "pick", q: "Gibt es hier in der Nähe ___ Bancomat?", o: ["einen", "ein", "einem"], a: 0, why: "es gibt takes the accusative: **einen** Bancomat." },
+            { at: "r2", k: "pick", q: "*Straight on* is…", o: ["geradeaus", "gegenüber", "rechts"], a: 0, why: "Straight on is **geradeaus**." },
+            { at: "r2", k: "pick", q: "*Round the corner*:", o: ["um die Ecke", "an die Ecke", "über die Ecke"], a: 0, why: "Round the corner is **um die Ecke**." },
+            { at: "r3", k: "pick", q: "Die Bank ist neben ___ Post.", o: ["der", "die", "dem"], a: 0, why: "Where it is takes the dative: neben **der** Post." },
+            { at: "r3", k: "pick", q: "Die Haltestelle ist vor ___ Kino.", o: ["dem", "das", "den"], a: 0, why: "Where it is takes the dative: vor **dem** Kino." },
+            { at: "r4", k: "pick", q: "Ist es weit? — Nein, nur fünf Minuten ___.", o: ["zu Fuß", "mit Fuß", "auf Fuß"], a: 0, why: "On foot is **zu Fuß**." },
+            { at: "lines", k: "pick", q: "In the dialogue, which tram goes to the Kunsthaus?", o: ["Die Nummer drei.", "Die Nummer vier.", "Kein Tram."], a: 0, why: "Herr Weber says: **Die Nummer drei.** The Kunsthaus is the fourth stop." },
+            { at: "trap", k: "pick", q: "I'm going to the pharmacy: Ich gehe ___ Apotheke.", o: ["zur", "neben der", "bei der"], a: 0, why: "Where you're going: **zur** Apotheke." },
+          ] },
+        { id: "cx.way2", title: "Directions as commands; wo or wohin?", qn: 3,
+          struct: [["Gehen Sie", "verb"], ["über die Brücke", "mid"], ["und dann links!", "end"]],
+          why: "Directions usually come as commands. With Sie the verb comes first and Sie after it; with du, it's the du form without du and -st. A direction answers wohin? (in die Altstadt, über die Brücke) and a place answers wo? (in der Altstadt).",
+          rid: ["way.cmd", "way.cmddu", "way.wowohin"],
+          rules: [
+            "To someone you call Sie, start with the verb and put **Sie** after it: **Gehen Sie** geradeaus! **Nehmen Sie** den Bus! A separable verb sends its prefix to the end: **Steigen Sie** am Paradeplatz **um**!",
+            "To a friend, take the du form and drop **du** and **-st**: du gehst → **Geh**!, du nimmst → **Nimm**! (ä goes back to a: **Fahr**!) To two or more, the ihr form: **Geht** links! **sein**: **Sei** · **Seid** · **Seien Sie**.",
+            "After **in, an, auf, über, vor, hinter, neben**, a direction takes the accusative and a place the dative: **in die** Altstadt (wohin) — **in der** Altstadt (wo), **an den** See — **am** See. zu and nach always take the dative.",
+          ],
+          lines: [
+            ["Jan", "Hallo Mia, ich bin am Bahnhof. Wie komme ich zu dir?", "Hi Mia, I'm at the station. How do I get to your place?"],
+            ["Mia", "Nimm den Bus Nummer 2, Richtung Spital.", "Take the number 2 bus, towards the hospital."],
+            ["Jan", "Wo ist die Haltestelle?", "Where's the stop?"],
+            ["Mia", "Direkt vor dem Bahnhof, rechts.", "Right in front of the station, on the right."],
+            ["Jan", "Okay. Und wo steige ich aus?", "OK. And where do I get off?"],
+            ["Mia", "Steig an der dritten Haltestelle aus, beim Kino.", "Get off at the third stop, by the cinema."],
+            ["Jan", "Und dann?", "And then?"],
+            ["Mia", "Geh über die Straße und dann in die Gartenstraße. Ich wohne in der Nummer 12.", "Cross the street and then turn into Gartenstraße. I live at number 12."],
+            ["Jan", "In welchem Stock?", "On which floor?"],
+            ["Mia", "Im dritten. Läute bei Keller!", "On the third. Ring the bell that says Keller!"],
+            ["Jan", "Super, bis gleich!", "Great, see you soon!"],
+          ],
+          ex: [
+            ["**Gehen Sie** über die Brücke und dann **links**!", "Go over the bridge and then left!"],
+            ["**Nimm** das Tram und **steig** beim Zoo **aus**!", "Take the tram and get off at the zoo!"],
+            ["Kinder, **wartet** an der Ecke!", "Children, wait at the corner!"],
+            ["Wir gehen **in die** Altstadt. — Das Café ist **in der** Altstadt.", "We're going to the old town. — The café is in the old town."],
+          ],
+          trap: "A du command drops the -st and the du: **Nimm** den Bus! (not ~~Nimmst den Bus!~~, not ~~Nehm~~). If the du form has ä, the command goes back to a: du fährst → **Fahr** geradeaus! (not ~~Fähr~~).",
+          quiz: [
+            { at: "r1", k: "pick", q: "To a stranger: ___ geradeaus!", o: ["Gehen Sie", "Sie gehen", "Geh"], a: 0, why: "With Sie, the verb comes first: **Gehen Sie** geradeaus!" },
+            { at: "r1", k: "pick", q: "Get off at the station: ___ Sie am Bahnhof aus!", o: ["Steigen", "Steig", "Steigt"], a: 0, why: "With Sie: **Steigen** Sie … aus!" },
+            { at: "r2", k: "pick", q: "To a friend: ___ den Bus Nummer 7!", o: ["Nimm", "Nehm", "Nimmst"], a: 0, why: "nehmen → du nimmst → **Nimm**!" },
+            { at: "r2", k: "pick", q: "To two friends: ___ hier links!", o: ["Geht", "Geh", "Gehen"], a: 0, why: "To two or more friends, the ihr form: **Geht**!" },
+            { at: "r3", k: "pick", q: "Wir fahren an ___ See.", o: ["den", "dem", "der"], a: 0, why: "Where to? → the accusative: an **den** See." },
+            { at: "r3", k: "pick", q: "Das Hotel ist in ___ Altstadt.", o: ["der", "die", "den"], a: 0, why: "Where? → the dative: in **der** Altstadt." },
+            { at: "lines", k: "pick", q: "In the dialogue, where does Mia live?", o: ["In der Gartenstraße, Nummer 12.", "Beim Spital.", "Am Bahnhof."], a: 0, why: "Mia says: Ich wohne **in der Nummer 12** — in the Gartenstraße." },
+            { at: "trap", k: "pick", q: "To a friend: ___ geradeaus!", o: ["Fahr", "Fähr", "Fährst"], a: 0, why: "du fährst, but the command is **Fahr**! — without the umlaut." },
+          ] },
+      ],
+      diag: [
+        { t: "seq", seq: ["^zu$", "^dem$"], rule: "way.ask", msg: "Here «{typed}» becomes **zum**." },
+        { t: "seq", seq: ["^zu$", "^der$"], rule: "way.ask", msg: "Here «{typed}» becomes **zur**." },
+        { t: "seq", seq: ["^in$", "^das$"], rule: "way.wowohin", msg: "Here «{typed}» becomes **ins**." },
+        { t: "seq", seq: ["^in$", "^dem$"], rule: "way.wowohin", msg: "Here «{typed}» becomes **im**." },
+        { t: "swap", from: "^(mit|auf)$", to: "^zu$", rule: "way.far", msg: "On foot is **zu Fuß**." },
+        { t: "swap", from: "^(nach|bei|beim)$", to: "^(zum|zur)$", rule: "way.ask", msg: "Going to a place in town takes zu: **{right}**." },
+        { t: "swap", from: "^(nimmst|nehm|nehme|nehmst)$", to: "^nimm$", rule: "way.cmddu", hard: true, msg: "To a friend: **nimm**, with i and no -st." },
+        { t: "swap", from: "^(gibst|geb|gebe)$", to: "^gib$", rule: "way.cmddu", hard: true, msg: "To a friend: **gib**, with i and no -st." },
+        { t: "swap", from: "^(gehst|fahrst|steigst|wartest|schaust)$", to: "^(geh|gehe|fahr|fahre|steig|steige|warte|schau|schaue)$", rule: "way.cmddu", hard: true, msg: "A du command has no -st: **{right}**!" },
+        { t: "swap", from: "^(geh|nimm|steig|fahr|warte|gib)$", to: "^(geht|nehmt|steigt|fahrt|wartet|gebt)$", rule: "way.cmddu", hard: true, msg: "To two or more friends, the ihr form: **{right}**!" },
+        { t: "swap", from: "^(seid|sei|sind)$", to: "^seien$", rule: "way.cmd", hard: true, msg: "sein with Sie: **Seien Sie** …!" },
+        { t: "swap", from: "^(sei|seien|seid)$", to: "^(seid|sei)$", rule: "way.cmddu", hard: true, msg: "sein: **Sei** (du) · **Seid** (ihr) · **Seien Sie**." },
+        { t: "missing", tok: "^sie$", rule: "way.cmd", msg: "With Sie, the command keeps **Sie** right after the verb: Gehen **Sie** …!" },
+        { t: "swap", from: "^(den|die|das)$", to: "^(dem|der)$", rule: "", msg: "Where something is (wo?) takes the dative: **{right}**." },
+        { t: "swap", from: "^(dem|der)$", to: "^(den|die|das)$", rule: "", msg: "After in, an, über …, where to (wohin?) takes the accusative: **{right}**." },
+      ],
+      drills: [
+        // ── our own: what do they say? ──
+        { id: "dway.r", t: "respond", title: "What fits?", how: "Pick the reply that fits.", items: [
+          { q: "Entschuldigung, wo ist hier die Post?", o: ["Gleich dort drüben, links.", "Um halb neun.", "Mit Karte, bitte."], a: ["Gleich dort drüben, links."], r: ["way.ask"] },
+          { q: "Ist es weit bis zum Bahnhof?", o: ["Nein, nur fünf Minuten zu Fuß.", "Ja, die zweite Straße.", "Nein, am Montag."], a: ["Nein, nur fünf Minuten zu Fuß."], r: ["way.far"] },
+          { q: "Gehen Sie bis zur Ampel und dann rechts.", o: ["Also bis zur Ampel, dann rechts. Danke!", "Also geradeaus bis zum See. Danke!", "Gleichfalls!"], a: ["Also bis zur Ampel, dann rechts. Danke!"], r: ["way.dir"] },
+          { q: "Wo muss ich aussteigen?", o: ["Beim Kunsthaus, das ist die vierte Haltestelle.", "Nehmen Sie das Tram.", "In zehn Minuten."], a: ["Beim Kunsthaus, das ist die vierte Haltestelle."], r: ["way.far"] },
+          { q: "Fährt dieser Bus zum Spital?", o: ["Nein, nehmen Sie die Nummer 5.", "Nein, er ist neben dem Spital.", "Ja, zu Fuß."], a: ["Nein, nehmen Sie die Nummer 5."], r: ["way.far"] },
+          { q: "Gibt es hier in der Nähe einen Supermarkt?", o: ["Ja, um die Ecke ist eine Migros.", "Ja, ich gehe gern einkaufen.", "Nein, ich habe keinen Hunger."], a: ["Ja, um die Ecke ist eine Migros."], r: ["way.ask"] },
+          { q: "Wo ist das Hotel Rose?", o: ["In der Altstadt, neben der Kirche.", "Es ist in die Altstadt, neben die Kirche.", "Es ist zur Altstadt."], a: ["In der Altstadt, neben der Kirche."], r: ["way.wowohin", "way.place"] },
+          { q: "Wohin gehst du?", o: ["In die Stadt, einkaufen.", "In der Stadt.", "Bei der Stadt."], a: ["In die Stadt, einkaufen."], r: ["way.wowohin"] },
+          { q: "Vielen Dank für die Hilfe!", o: ["Gern geschehen!", "Gute Reise!", "Zum Bahnhof!"], a: ["Gern geschehen!"], r: ["way.ask"] },
+        ] },
+        // ── our own: the small words ──
+        { id: "dway.t", t: "type", title: "zum, zur, vor dem …", how: "Write the missing word.", items: [
+          { q: "Wie komme ich ___ Bahnhof?", a: ["zum"], r: ["way.ask"] },
+          { q: "Entschuldigung, wie komme ich ___ Post?", a: ["zur"], r: ["way.ask"] },
+          { q: "Gehen Sie geradeaus bis ___ Ampel.", a: ["zur"], r: ["way.dir"] },
+          { q: "Das Kino ist gleich ___ die Ecke.", a: ["um"], r: ["way.dir"] },
+          { q: "Nehmen Sie die zweite Straße ___. (right)", a: ["rechts"], r: ["way.dir"] },
+          { q: "Die Apotheke ist neben ___ Bank.", a: ["der"], r: ["way.place"] },
+          { q: "Ich warte vor ___ Bahnhof.", a: ["dem"], r: ["way.place"] },
+          { q: "Ist es weit? — Nein, nur zehn Minuten zu ___.", a: ["Fuß"], r: ["way.far"] },
+          { q: "Steigen Sie an der nächsten Haltestelle ___. (get off)", a: ["aus"], r: ["way.far"] },
+          { q: "___ Sie geradeaus! (gehen)", a: ["Gehen"], r: ["way.cmd"] },
+          { q: "___ den Bus Nummer 4! (nehmen, to a friend)", a: ["Nimm"], r: ["way.cmddu"] },
+          { q: "Geh über ___ Brücke!", a: ["die"], r: ["way.wowohin"] },
+          { q: "Das Hotel ist in ___ Altstadt.", a: ["der"], r: ["way.wowohin"] },
+          { q: "Wir gehen heute in ___ Altstadt.", a: ["die"], r: ["way.wowohin"] },
+        ] },
+        // ── Übung 30•13: a short conversation in order ──
+        { id: "d30.13", ex: "30.13", t: "order", title: "On the street", how: "Put the lines in order.", items: [
+          { q: "At the station.", a: ["Entschuldigung, wo ist hier ein Bancomat?", "Gleich dort drüben, neben dem Kiosk.", "Vielen Dank!", "Gern geschehen."], r: ["way.ask", "way.place"] },
+          { q: "Lost.", a: ["Ich glaube, wir sind hier falsch.", "Warum?", "Hier ist der See, aber wir wollen in die Altstadt.", "Dann fragen wir die Frau dort."], r: ["way.wowohin"] },
+          { q: "Far away?", a: ["Ist das Museum weit von hier?", "Ja, zu Fuß etwa eine halbe Stunde.", "Gibt es einen Bus?", "Ja, die Nummer 10."], r: ["way.far"] },
+          { q: "On the phone.", a: ["Wo bist du jetzt?", "Am Bahnhof, beim Ausgang.", "Gut, warte dort, ich hole dich ab.", "Super, danke!"], r: ["way.cmddu", "way.place"] },
+          { q: "Late.", a: ["Wann bist du bei uns?", "Gegen acht.", "Erst um acht?", "Ja, ich arbeite bis sieben."], r: ["way.far"] },
+          { q: "The wrong tram.", a: ["Fährt dieses Tram zum Zoo?", "Nein, Sie müssen die Nummer 6 nehmen.", "Wo hält die Nummer 6?", "Dort drüben, vor der Bank."], r: ["way.far", "way.place"] },
+          { q: "A tourist.", a: ["Entschuldigung, sprechen Sie Englisch?", "Ein bisschen. Kann ich Ihnen helfen?", "Ja, wo ist der Bahnhof?", "Gehen Sie einfach geradeaus."], r: ["way.ask", "way.cmd"] },
+          { q: "Parking.", a: ["Wo kann ich hier parkieren?", "Im Parkhaus beim Bahnhof.", "Ist das weit?", "Nein, nur zwei Minuten."], r: ["way.ask", "way.far"] },
+          { q: "Rain.", a: ["Gehen wir zu Fuß?", "Es regnet doch!", "Dann nehmen wir den Bus.", "Gute Idee."], r: ["way.far"] },
+        ] },
+        // ── Übung 30•12: a command for du, ihr or Sie ──
+        { id: "d30.12", ex: "30.12", t: "transform", low: true, title: "Make it a command", how: "Make it a command for the person in brackets.", items: [
+          { q: "(Sie) Sie gehen geradeaus.", a: ["Gehen Sie geradeaus!"], r: ["way.cmd"] },
+          { q: "(du) Du nimmst den Bus.", a: ["Nimm den Bus!"], r: ["way.cmddu"] },
+          { q: "(ihr) Ihr wartet an der Ecke.", a: ["Wartet an der Ecke!"], r: ["way.cmddu"] },
+          { q: "(Sie) Sie steigen am Bahnhof aus.", a: ["Steigen Sie am Bahnhof aus!"], r: ["way.cmd"] },
+          { q: "(du) Du fährst bis zur Kreuzung.", a: ["Fahr bis zur Kreuzung!", "Fahre bis zur Kreuzung!"], r: ["way.cmddu"] },
+          { q: "(Sie) Sie nehmen die erste Straße links.", a: ["Nehmen Sie die erste Straße links!"], r: ["way.cmd"] },
+          { q: "(ihr) Ihr geht über die Brücke.", a: ["Geht über die Brücke!"], r: ["way.cmddu"] },
+          { q: "(du) Du schaust auf die Karte.", a: ["Schau auf die Karte!", "Schaue auf die Karte!"], r: ["way.cmddu"] },
+          { q: "(Sie) Sie sind pünktlich.", a: ["Seien Sie pünktlich!"], r: ["way.cmd"] },
+          { q: "(du) Du steigst beim Zoo um.", a: ["Steig beim Zoo um!", "Steige beim Zoo um!"], r: ["way.cmddu"] },
+          { q: "(ihr) Ihr seid leise.", a: ["Seid leise!"], r: ["way.cmddu"] },
+          { q: "(du) Du gibst mir deine Adresse.", a: ["Gib mir deine Adresse!"], r: ["way.cmddu"] },
+        ] },
+        // ── Übung 30•14: the same line with another word ──
+        { id: "d30.14", ex: "30.14", t: "transform", title: "Another place", how: "Put the words in brackets in place of the highlighted ones. Change what they need.", items: [
+          { q: "Die Post ist neben dem Bahnhof. (die Kirche)", hl: "dem Bahnhof", a: ["Die Post ist neben der Kirche."], r: ["way.place"] },
+          { q: "Gehen Sie bis zur Ampel. (die Kreuzung)", hl: "Ampel", a: ["Gehen Sie bis zur Kreuzung."], r: ["way.dir"] },
+          { q: "Wie komme ich zum Bahnhof? (die Post)", hl: "zum Bahnhof", a: ["Wie komme ich zur Post?"], r: ["way.ask"] },
+          { q: "Die Haltestelle ist vor der Bank. (das Hotel)", hl: "der Bank", a: ["Die Haltestelle ist vor dem Hotel."], r: ["way.place"] },
+          { q: "Gibt es hier eine Apotheke? (ein Bancomat)", hl: "eine Apotheke", a: ["Gibt es hier einen Bancomat?", "Gibt es hier einen Bancomaten?"], r: ["way.ask"] },
+          { q: "Nehmen Sie den Bus. (das Tram)", hl: "den Bus", a: ["Nehmen Sie das Tram."], r: ["way.far"] },
+          { q: "Steigen Sie beim Zoo aus. (der Bahnhof)", hl: "Zoo", a: ["Steigen Sie beim Bahnhof aus.", "Steigen Sie am Bahnhof aus."], r: ["way.far"] },
+          { q: "Das Hotel ist gegenüber von der Schule. (das Kino)", hl: "der Schule", a: ["Das Hotel ist gegenüber vom Kino.", "Das Hotel ist gegenüber von dem Kino.", "Das Hotel ist gegenüber dem Kino."], r: ["way.place"] },
+          { q: "Geh über die Brücke! (der Platz)", hl: "die Brücke", a: ["Geh über den Platz!", "Gehe über den Platz!"], r: ["way.wowohin"] },
+          { q: "Ich gehe in die Stadt. (das Museum)", hl: "die Stadt", a: ["Ich gehe ins Museum."], r: ["way.wowohin"] },
+          { q: "Wir warten vor dem Kino. (die Apotheke)", hl: "dem Kino", a: ["Wir warten vor der Apotheke."], r: ["way.place"] },
+        ] },
+        // ── Production: say it ──
+        { id: "dp.way", t: "translate", end: true, title: "Say it in German", how: "Translate. Directions to someone you call Sie, unless the brackets say otherwise.", items: [
+          { q: "Excuse me, how do I get to the station?", a: ["Entschuldigung, wie komme ich zum Bahnhof?", "Entschuldigen Sie, wie komme ich zum Bahnhof?"], r: ["way.ask"] },
+          { q: "Is there a pharmacy near here?", a: ["Gibt es hier in der Nähe eine Apotheke?", "Gibt es eine Apotheke in der Nähe?", "Gibt es hier eine Apotheke?", "Ist hier in der Nähe eine Apotheke?", "Gibt es in der Nähe eine Apotheke?", "Gibt es hier eine Apotheke in der Nähe?", "Ist hier eine Apotheke in der Nähe?"], r: ["way.ask"] },
+          { q: "Straight on as far as the traffic lights, then left.", a: ["Geradeaus bis zur Ampel, dann links.", "Bis zur Ampel geradeaus, dann links.", "Gehen Sie geradeaus bis zur Ampel, dann links.", "Gehen Sie geradeaus bis zur Ampel und dann links.", "Geradeaus bis zur Ampel und dann links."], r: ["way.dir"] },
+          { q: "The bank is next to the post office.", a: ["Die Bank ist neben der Post."], r: ["way.place"] },
+          { q: "It's only ten minutes on foot.", a: ["Es sind nur zehn Minuten zu Fuß.", "Es ist nur zehn Minuten zu Fuß.", "Nur zehn Minuten zu Fuß.", "Das sind nur zehn Minuten zu Fuß.", "Zu Fuß sind es nur zehn Minuten."], r: ["way.far"] },
+          { q: "Take the second street on the left.", a: ["Nehmen Sie die zweite Straße links."], r: ["way.cmd", "way.dir"] },
+          { q: "Get off at the zoo.", a: ["Steigen Sie beim Zoo aus.", "Steigen Sie am Zoo aus."], r: ["way.cmd"] },
+          { q: "Take the bus! (du)", a: ["Nimm den Bus!"], r: ["way.cmddu"] },
+          { q: "Wait at the corner, children!", a: ["Wartet an der Ecke, Kinder!", "Kinder, wartet an der Ecke!"], r: ["way.cmddu"] },
+          { q: "We're going into the old town.", a: ["Wir gehen in die Altstadt.", "Wir fahren in die Altstadt."], r: ["way.wowohin"] },
+          { q: "The café is in the old town.", a: ["Das Café ist in der Altstadt."], r: ["way.wowohin"] },
+        ] },
+        // ── Production: your own lines ──
+        { id: "dw.way", t: "write", end: true, title: "Your own lines", how: "Write what you would say. Saved for Claude to correct.", items: [
+          { q: "Ask a passer-by for a pharmacy, and whether it's far.", model: ["Entschuldigung, gibt es hier in der Nähe eine Apotheke? Ist es weit?"], r: ["way.ask", "way.far"] },
+          { q: "Ask a stranger which bus goes to the hospital, and where you get off.", model: ["Entschuldigung, welcher Bus fährt zum Spital? Und wo muss ich aussteigen?"], r: ["way.ask", "way.far"] },
+          { q: "Say where your favourite café is, with two place phrases (wo?).", model: ["Mein Lieblingscafé ist in der Altstadt, neben der Kirche."], r: ["way.place"] },
+          { q: "Say how far your work is, and how you get there.", model: ["Meine Arbeit ist nicht weit weg. Ich fahre zehn Minuten mit dem Velo oder nehme das Tram."], r: ["way.far"] },
+          { q: "A tourist asks you the way to the station. Give directions in two or three steps (Sie).", model: ["Gehen Sie hier geradeaus bis zur Ampel. Dann gehen Sie links und über die Brücke. Der Bahnhof ist gleich rechts."], r: ["way.cmd", "way.dir"] },
+          { q: "Text a friend how to get from the station to your flat (du).", model: ["Nimm den Bus Nummer 5 und steig beim Spital aus. Geh dann um die Ecke, ich wohne in der Nummer 8."], r: ["way.cmddu"] },
+          { q: "Tell two friends where to meet you and how to get there (ihr).", model: ["Kommt um acht ins Café Rio. Nehmt das Tram bis zum Bellevue und geht dann zwei Minuten zu Fuß."], r: ["way.cmddu", "way.wowohin"] },
+          { q: "Say where you're going this afternoon (wohin?) and where that place is (wo?).", model: ["Heute Nachmittag gehe ich in die Bibliothek. Sie ist im Stadthaus, neben der Post."], r: ["way.wowohin"] },
+        ] },
+      ],
+    },
+  },
+});
+
+// Chapter 30, "Commands": all three here. (30•1–30•11 — the greetings and
+// introductions of "In der Hauptstraße" — are in s3-greet.js.)
+cxCover({ "30.12": "d30.12", "30.13": "d30.13", "30.14": "d30.14" });
+
+cxJournal([
+  { id: "w.wayhome", th: "home", lv: "A2", de: "Der Weg zu mir", t: "A friend visits you for the first time. Write how to get from the station to your home: the bus or tram, where to get off, then left, right or straight on — and what is next to your house.", help: ["Nimm den Bus Nummer …", "Steig beim … aus.", "Geh dann …", "Mein Haus ist neben …"], sec: "s3.way" },
+]);

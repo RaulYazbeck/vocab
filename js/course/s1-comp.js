@@ -261,18 +261,8 @@ cxCover({
   "20.3": { st: "planned", sec: "s2.genprep" }, "20.7": { st: "planned", sec: "s2.genprep" },
 });
 // Chapter 31 was uploaded for its comparatives (31•14, s1-adj.js); its
-// dialogues and their exercises are the conversation units' (Session 8,
-// which uploads it again) and the subjunctive review is Konjunktiv II's
-// (Session 7).
-cxCover({
-  "31.1": { st: "planned", sec: "s3.bus" },
-  "31.2": { st: "planned", sec: "s3.school" }, "31.3": { st: "planned", sec: "s3.school" },
-  "31.4": { st: "planned", sec: "s3.school" }, "31.5": { st: "planned", sec: "s3.school" },
-  "31.6": { st: "planned", sec: "s3.shop" }, "31.7": { st: "planned", sec: "s3.shop" }, "31.8": { st: "planned", sec: "s3.shop" },
-  "31.10": { st: "planned", sec: "s3.shop" }, "31.11": { st: "planned", sec: "s3.shop" }, "31.12": { st: "planned", sec: "s3.shop" },
-  "31.9": { st: "planned", sec: "s2.k2" },
-  "31.13": { st: "planned", sec: "s3.travel" },
-});
+// dialogues and their exercises are the conversation units' — built in
+// Session 8 (s3-bus.js, s3-school.js, s3-shop.js, s3-travel.js).
 // A writing prompt for once comparison is done.
 cxJournal([
   { id: "w.compare", th: "swiss", lv: "A2", de: "Hier und dort", t: "Compare life in your home country with life in Switzerland: prices, weather, transport, people — and what you like best here.", help: ["In der Schweiz ist … teurer als …", "… ist nicht so … wie …", "Hier fahre ich lieber …", "Am besten gefällt mir …"], sec: "s1.comp" },

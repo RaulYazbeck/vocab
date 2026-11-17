@@ -640,6 +640,123 @@ if (neg && neg.built) {
   });
 }
 
+// ── the conversation units (Session 8): a dialogue on every sheet, the typical mistakes ──
+{
+  const units = CX.sections.filter(s => s.kind === "scenario");
+  // (what a dialogue line says on a tap: grammar-ui.js gsLineSay — the German without markup)
+  const lineSay = x => String(x || "").replace(/\*+|\{\{|\}\}|\(\(|\)\)|\[\[|\]\]|~~/g, "").replace(/\s+/g, " ").trim();
+  ok(units.length === 6 && units.every(s => s.built), `the six conversation units are built (${units.filter(s => s.built).length})`);
+  units.forEach(s => {
+    ok(s.stage === 3 && s.sheets.length >= 1, `${s.id}: its own part (💬), with sheets`);
+    s.sheets.forEach(id => {
+      const sh = CX.sheets[id];
+      // a dialogue: [speaker, German line, English], 8+ lines, two speakers or more
+      ok(Array.isArray(sh.lines) && sh.lines.length >= 8 && !sh.table, `${id}: a dialogue of 8+ lines (and no table in its place)`);
+      (sh.lines || []).forEach((l, i) => ok(l.length === 3 && l.every(x => typeof x === "string" && x.trim()) && C.cxGermanish(lineSay(l[1])) && !C.cxEnglish(lineSay(l[1])) && !/___|→|[()[\]{}<>=\/*]/.test(lineSay(l[1])), `${id} line ${i + 1}: speaker, German, English («${l[1]}»)`));
+      ok(new Set((sh.lines || []).map(l => l[0])).size >= 2, `${id}: two speakers or more`);
+      ok(sh.quiz.some(q => q.at === "lines"), `${id}: a quiz question on its dialogue`);
+    });
+    // every set of a unit ends the section with production; each kind the plan names is there
+    const kinds = new Set(s.sets.map(id => CX.sets[id].t));
+    ok(["order", "respond", "type", "write"].every(k => kinds.has(k)) || (["order", "type", "write"].every(k => kinds.has(k)) && kinds.has("answer")), `${s.id}: the conversation in order, a reply, the missing word and a writing set (${[...kinds]})`);
+    ok(!!(CX.journal || []).find(p => p.sec === s.id), `${s.id}: a writing prompt opens with it`);
+  });
+  const cases = [
+    // greetings and introductions
+    ["d30.1", "Ist das dein Sohn?", "Ist das dein Sohn?", "greet.dusie", "Ihr"],
+    ["d30.1", "Wie geht's dir?", "Wie geht es dir?", "greet.dusie", "Ihnen"],
+    ["d30.4", "Grüßen Sie Ihren Mann von mir!", "Grüß Ihren Mann von mir!", "greet.dusie", "deinen"],
+    ["d30.4", "Nehmen Sie Platz!", "Nehm Platz!", "greet.dusie", "nimm"],
+    ["d30.7", "Ist das dein Auto?", "Ist das dein Auto?", "greet.dusie", "euer"],
+    ["d30.11", "Ask your two guests whether they're hungry (ihr).", "Hast ihr Hunger?", "greet.dusie", "habt"],
+    ["d30.6", "(mein Schwager) Kennst du ___?", "mein Schwager", "greet.intro", "meinen"],
+    ["d30.3", "«Woher kommen Sie?» (from Portugal)", "Ich komme von Portugal.", "greet.from", "aus"],
+    ["d30.3", "«Was machen Sie beruflich?» (an IT specialist: Informatiker)", "Ich bin ein Informatiker.", "greet.from", "no"],
+    ["dp.greet", "I've been living in Zug for two years.", "Ich wohne für zwei Jahre in Zug.", "greet.from", "seit"],
+    ["d30.10", "Kennst du den Mann von deiner Nichte?", "Kennst du den Mann von deine Nichte?", "greet.family", "deiner"],
+    // asking the way
+    ["d30.12", "(du) Du nimmst den Bus.", "Nimmst den Bus!", "way.cmddu", "nimm"],
+    ["d30.12", "(Sie) Sie gehen geradeaus.", "Gehen geradeaus!", "way.cmd", "Sie"],
+    ["d30.12", "(ihr) Ihr wartet an der Ecke.", "Warte an der Ecke!", "way.cmddu", "wartet"],
+    ["d30.12", "(Sie) Sie sind pünktlich.", "Seid pünktlich!", "way.cmd", "Seien"],
+    ["d30.14", "Die Post ist neben dem Bahnhof. (die Kirche)", "Die Post ist neben die Kirche.", "way.place", "dative"],
+    ["d30.14", "Ich gehe in die Stadt. (das Museum)", "Ich gehe in das Museum.", "way.wowohin", "ins"],
+    ["dway.t", "Wie komme ich ___ Bahnhof?", "zu dem", "way.ask", "zum"],
+    ["dp.way", "Es sind nur zehn Minuten zu Fuß.", "Es ist nur zehn Minuten mit dem Fuß.", "way.far", "zu Fuß"],
+    ["dp.way", "We're going into the old town.", "Wir gehen in der Altstadt.", "way.wowohin", "accusative"],
+    // the bus stop
+    ["dbus.t", "Ich warte ___ den Bus.", "für", "bus.wait", "auf"],
+    ["dbus.t", "Wir warten ___ zwanzig Minuten. (and still are)", "für", "bus.wait", "seit"],
+    ["dbus.t", "___ du die Frau dort? (kennen)", "Weißt", "bus.know", "kennen"],
+    ["dbus.t", "Nein, das ___ ich nicht. (wissen)", "kenne", "bus.know", "wissen"],
+    ["dbus.c", "Wo muss ich aussteigen?", "Wo muss ich steigen aus?", "bus.change", "whole"],
+    ["dbus.c", "Der Bus fährt um acht Uhr ab.", "Der Bus abfährt um acht Uhr.", "bus.when", "prefix"],
+    ["dbus.c", "Meine Nachbarin ist Lehrerin.", "Meine Nachbarin ist eine Lehrerin.", "bus.who", "ein"],
+    // shopping
+    ["d31.8", "(ein roter Rock) Warum hast du ___ gekauft?", "einen rote Rock", "shop.size", "roten"],
+    ["d31.8", "(ich) Das gestreifte Hemd steht ___ nicht.", "mich", "shop.try", "dative"],
+    ["dp.shop", "A kilo of tomatoes, please.", "Ein Kilo von Tomaten, bitte.", "shop.amount", "of"],
+    ["d31.11", "Ich kaufe zwei Kilo Kartoffeln.", "Ich kaufe zwei Kilos Kartoffeln.", "shop.amount", "singular"],
+    ["dp.shop", "How much are the shoes?", "Was kostet die Schuhe?", "shop.price", "kosten"],
+    ["dshop.p", "Der Rock? ___ nehme ich.", "Der", "shop.take", "den"],
+    // school and study
+    ["d31.5", "Heute Abend ___ ich für den Test. (studieren or lernen)", "studiere", "school.stud", "lernen"],
+    ["d31.5", "Mein Bruder ___ Medizin in Zürich. (studieren or lernen)", "lernt", "school.stud", "studieren"],
+    ["d31.3", "Lea fällt in der Prüfung durch.", "Lea hat in der Prüfung durchgefallen.", "school.past", "sein"],
+    ["d31.3", "Ich verstehe die Aufgabe nicht.", "Ich habe die Aufgabe nicht verstehen.", "school.past", "verstanden"],
+    ["dschool.p", "Mein Sohn ist acht. Er ist ___.", "Student", "school.who", "Schüler"],
+    // travel
+    ["dtravel.t", "Sie fahren ___ Türkei.", "nach die", "travel.where", "in die"],
+    ["dtravel.t", "Im August fahren wir ___ Meer.", "am", "travel.where", "ans"],
+    ["dtravel.t", "Ich ___ gern ein Einzelzimmer. (haben, polite: I'd like)", "habe", "travel.book", "hätte"],
+    ["dtravel.t", "___ wir ankamen, war das Hotel schon zu.", "Wenn", "travel.tell", "als"],
+    ["dp.travel", "I'd like a return ticket to Olten, please.", "Ich würde gern ein Billett nach Olten, hin und zurück, haben.", "travel.book", "hätte"],
+    ["dp.travel", "When we arrived, it was raining.", "Als wir ankamen, es regnete.", "travel.tell", "verb"],
+  ];
+  cases.forEach(([set, key, typed, rule, word]) => {
+    const s = CX.sets[set], it = s && s.items.find(x => x.q === key || (x.a || [])[0] === key), r = it && C.cxCheck(it, typed, C.cxSection(s.sec));
+    ok(r && !r.ok && r.rule === rule && String(r.msg || "").toLowerCase().includes(word.toLowerCase()), `diagnosis: "${typed}" → ${rule}, «${word}» (got ${r ? r.rule + ": " + r.msg : "no such item in " + set})`);
+  });
+  // what these detectors find is the grammar — never "almost, check the spelling"
+  [["d30.11", "Ask your two guests whether they're hungry (ihr).", "Hast ihr Hunger?"], ["d31.5", "Heute Abend ___ ich für den Test. (studieren or lernen)", "studiere"], ["d31.11", "Ich kaufe zwei Kilo Kartoffeln.", "Ich kaufe zwei Kilos Kartoffeln."], ["dbus.t", "Nein, das ___ ich nicht. (wissen)", "kenne"], ["d31.8", "(ein roter Rock) Warum hast du ___ gekauft?", "einen rote Rock"]].forEach(([set, key, typed]) => {
+    const s = CX.sets[set], it = s.items.find(x => x.q === key || (x.a || [])[0] === key), r = it && C.cxCheck(it, typed, C.cxSection(s.sec));
+    ok(r && !r.ok && !r.near, `"${typed}": the grammar — a mistake, not almost`);
+  });
+  // after a miss with no message of its own, the card shows the rule's first sentence (course-ui.js
+  // cxFirstSentence): it must state the rule — not a phrase list, not cut at an example's question
+  {
+    const ui = fs.readFileSync(path.join(ROOT, "js/course-ui.js"), "utf8").match(/function cxFirstSentence[\s\S]*?\n}/)[0];
+    const first = new Function(ui + "; return cxFirstSentence;")();
+    Object.values(CX.sheets).forEach(sh => sh.rules.forEach((r, i) => {
+      const f = first(r).replace(/\*\*/g, "").trim(), tail = f.split(":").pop().trim();
+      ok(f.length >= 18 && !(/\?$/.test(tail) && tail.split(/\s+/).length <= 2), `${sh.id} ${sh.rid[i]}: its first sentence states the rule («${f.slice(0, 70)}»)`);
+    }));
+  }
+  // a conversation's missing line is a whole line: never just the words around a gap
+  {
+    const it = CX.sets["d30.5"].items.find(x => (x.a || [])[0] === "Sie heißt Nora."), sec = C.cxSection("s3.greet");
+    ok(it && !C.cxCheck(it, "Sie Nora", sec).ok && !C.cxCheck(it, "heißt Sie Nora", sec).ok && C.cxCheck(it, "Sie heißt Nora.", sec).ok && C.cxCheck(it, "Nora.", sec).ok, "a missing line («…» — ___ — «…»): «Sie heißt Nora.» or «Nora.» — not «Sie Nora»");
+    const lineSets = new Set(); Object.values(CX.sets).forEach(set => (set.items || []).forEach(x => { if (typeof x.q === "string" && C.cxLineGap(x.q)) lineSets.add(set.id); }));
+    ok([...lineSets].every(id => CX.byId[CX.sets[id].sec].stage === 3), `…a rule only the conversation units' items meet (${[...lineSets]})`);
+  }
+  // …and once answered it says the line you gave — never the other speaker's lines run together
+  {
+    const set = CX.sets["d30.5"], it = set.items.find(x => (x.a || [])[0] === "Meinen Cousin.");
+    ok(C.cxSayText(it, set) === "Meinen Cousin." && C.cxSayAll(it, set).every(t => !/Bahnhof ab\?/.test(t)), `a missing line says the answer: «${C.cxSayText(it, set)}»`);
+  }
+  // gern and gerne are one word: either is right wherever an answer has one (every lesson)
+  [["dp.travel", "I'd like to go to Japan one day.", "Ich würde gerne einmal nach Japan fahren."], ["dresp.t", "Danke schön! — ___! (you're welcome)", "Gerne geschehen"], ["dresp.t", "Danke schön! — ___! (you're welcome)", "Gern"]].forEach(([set, key, typed]) => {
+    const s = CX.sets[set], it = s.items.find(x => x.q === key || (x.a || [])[0] === key), r = it && C.cxCheck(it, typed, C.cxSection(s.sec));
+    ok(r && r.ok, `gern / gerne: "${typed}" is right`);
+  });
+  ok(C.cxGerne("Ich würde gern fahren.") === "Ich würde gerne fahren." && C.cxGerne("Gerne!") === "Gern!" && C.cxGerne("Ich lerne gerade.") === "", "gern ↔ gerne, whole words only");
+  // right German the unit doesn't teach is still right
+  [["dp.travel", "Could you help me, please?", "Können Sie mir bitte helfen?"], ["d31.6", "«Der Pulli oder das Hemd?» (you take the jumper)", "Der Pulli."], ["dway.t", "Ist es weit? — Nein, nur zehn Minuten zu ___.", "Fuss"]].forEach(([set, key, typed]) => {
+    const s = CX.sets[set], it = s.items.find(x => x.q === key || (x.a || [])[0] === key), r = it && C.cxCheck(it, typed, C.cxSection(s.sec));
+    ok(r && r.ok, `"${typed}" is right`);
+  });
+}
+
 // ── what the course says (course-de.js cxSayAll / cxQuizSayText) ──
 // Said once a question is answered and recorded by the voice pack
 // (tools/audio/runtime.mjs): only whole, clean German — no gap, no cue in

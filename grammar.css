@@ -74,6 +74,15 @@
 .gs-line b { font-size:12.5px; color:hsl(var(--th) 85% 72%); letter-spacing:0.3px; }
 .gs-line span { font-size:14.5px; line-height:1.5; }
 .gs-line span b { font-size:inherit; color:var(--accent-hi); }
+/* a conversation (course scenario): speaker · the line (tap to hear) · its English */
+.gs-dialogue { gap:6px; }
+.gs-dialogue .gs-line { padding:7px 11px; margin-right:22px; }
+.gs-dialogue .gs-line-b { margin-right:0; margin-left:22px; background:hsla(var(--th), 60%, 50%, 0.07); }
+.gs-dialogue .gs-line span[data-tap-say] { cursor:pointer; }
+/* each speaker their own name colour (a third voice stands apart) */
+.gs-dialogue .gs-who1 b { color:var(--teal-hi); }
+.gs-dialogue .gs-who2 b { color:var(--accent-hi); }
+.gs-line-en { font-size:12.5px; color:var(--text-2); font-style:normal; }
 .gs-mine { margin-top:12px; display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
 .gs-mine > span { width:100%; font-size:11.5px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; color:var(--text-3); }
 .gs-chip { position:relative; font:inherit; font-size:13px; padding:4px 9px; border-radius:14px; background:var(--teal-dim); color:var(--teal-hi); border:1px solid rgba(0,201,177,0.3); cursor:pointer; }

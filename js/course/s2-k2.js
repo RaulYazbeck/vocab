@@ -180,7 +180,6 @@ cxCover({
   "26.2": { st: "generated", set: "d26.2" }, "26.3": { st: "generated", set: "d26.2" }, "27.3": { st: "generated", set: "d26.2" },
   "26.15": "d26.15", "26.16": "d26.16", "26.17": "d26.17", "26.18": "d26.18", "26.19": "d26.19",
   "26.22": "d26.22", "26.23": "d26.23", "26.24": "d26.24", "27.9": "d27.9",
-  // 31•9 stands under "Subjunctive review" but answers questions about a dialogue at a fitness club
-  // before going shopping — no subjunctive: it goes with the shopping conversation (Session 8).
-  "31.9": { st: "planned", sec: "s3.shop" },
+  // (31•9 stands under "Subjunctive review" but answers questions about a dialogue before going
+  // shopping — no subjunctive: it is the shopping conversation's, s3-shop.js, Session 8)
 });

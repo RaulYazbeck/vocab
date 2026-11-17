@@ -156,6 +156,8 @@ const found = await page.evaluate(() => {
       add(t, t.split(" ").length <= 3 && !/[.!?]$/.test(t) ? "w" : "s", "_course:" + set.sec, "", "course"))));
     Object.values(CX.sheets).forEach(sh => {
       (sh.ex || []).forEach(([t]) => add(gsSayText(t), "s", "_course:" + sh.sec, "", "course-sheets"));
+      // a conversation's lines (a scenario sheet: [speaker, German, English]) play on a tap
+      (sh.lines || []).forEach(l => { if (l.length > 2 && typeof gsLineSay === "function") add(gsLineSay(l[1]), "s", "_course:" + sh.sec, "", "course-sheets"); });
       tables(sh); quiz(sh);
     });
   }

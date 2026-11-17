@@ -1057,6 +1057,99 @@ Stage 3: greetings and the way and shopping and the bus stop are A2 — no
 Präteritum of strong verbs, no Konjunktiv II, no relative clauses; travel may use
 *hätte gern / würde gern*).
 
+**Built (16 Nov 2026):** the six conversation units, in `js/course/s3-*.js`, each placed right after the lesson
+its dialogue needs and written with only the grammar taught by then — greetings and introductions (`s3-greet.js`, 2
+sheets: meeting someone new — Grüezi, ich heiße …, aus / seit / bei, no ein with a job, du · ihr · Sie and every word
+that goes with it, asking back · introducing people and family — Darf ich Ihnen meinen Mann vorstellen?, der Schwager,
+die Stieftochter, whose with von + dative, Ich muss los, Grüß … von mir!) · asking the way (`s3-way.js`, 2: wie komme
+ich zum / zur …?, geradeaus, bis zur Ampel, neben der Post, zu Fuß, aussteigen · the Sie, du and ihr commands, Seien
+Sie!, wohin? + accusative and wo? + dative) · the bus stop (`s3-bus.js`, 2: Wann fährt … ab?, alle zehn Minuten,
+warten auf, seit, Verspätung, umsteigen, ein Billett, das Halbtax · who's that — Er ist Student, sie ist Griechin,
+kennen a person and wissen a fact, small talk) · shopping and prices (`s3-shop.js`, 2: Ich suche …, Danke, ich schaue
+nur, anprobieren, passen / stehen / gefallen + dative, eine Nummer größer, die rote Jacke, Den nehme ich · CHF 4.50 =
+vier Franken fünfzig, 200 Gramm Käse with no *of*, zwei Kilo, zwei Meter lang, Bar oder mit Karte?) · school and
+study (`s3-school.js`, 2: Primarschule, Lehre, Gymnasium, Matura, Uni, Schüler / Lehrling / Student, the Perfekt of
+school, Swiss grades where 6 is best · studieren or lernen, the classroom lines, Fächer, einen Test schreiben) ·
+travel (`s3-travel.js`, 2: ich würde gern …, Wie wäre es mit …?, wir könnten …, nach Rom but in die Türkei and ans
+Meer, billiger als, lieber · Ich hätte gern ein Billett / ein Zimmer, Könnten Sie …?, Der Zug ist ausgefallen, the
+trip told with war, hatte and als). **12 sheets, 42 rules, 51 drill sets (528 items of our own, Swiss-life
+sentences), 12 dialogues (130 lines)**, each unit ending with its production drills (build · answer · translate ·
+write your own), one writing prompt each (w.newhere · w.wayhome · w.commute · w.buyclothes · w.mytraining ·
+w.tripplan). Two sheets each, as estimated: the pace on my profile is unchanged. Every exercise of chapters 30 and 31
+has its drill — 28 of 28 mirrored (27 new; 31•14 was the adjective endings' since Session 5); `DONE` = 8.
+**Changes to the map:** chapter 30's 30•1–30•11 stand under "In der Hauptstraße", which the plan had given to asking the
+way, but they practise greetings, du / ihr / Sie, introductions and relatives — they went to the greetings unit with
+that heading; asking the way keeps "Commands" (30•12–30•14). Where the book practises what the learner hasn't met at
+the unit's place, the mirror keeps its frame with what they have: whose with von + dative instead of the genitive
+(30•9 · 30•10, die Frau von meinem Bruder), no n-nouns (Herrn Keller → Frau Keller), the book's «Hier werden … eröffnet»
+(passive) and «Ich beeile mich, … zu gehen» as es gibt and a plain sentence (31•8), 31•3's modals in the Präteritum
+people say (musste, konnte — the modal's Perfekt, B1, is accepted too), prices in francs and Rappen (31•10), no
+relative clause in the bus stop's dialogue (the book's opens with one). **Screens:** a sheet's `lines` now take a
+third part — speaker, German line, English: the dialogue shows each line's English under it and the German plays on a
+tap (`gsLineSay`), and the voice pack records it (`tools/audio/runtime.mjs`); two-part lines (the verb sheets') are
+unchanged. **The checker:** a conversation's missing line («…» — ___ — «…») is a whole line, not a gap in a sentence —
+the gap logic had accepted «Sie Nora» for «Sie heißt Nora.» (words of the other speaker's line around the gap); now
+those items take their lines as written (`cxLineGap`; only the conversation units have such items, the validator checks
+it). **Diagnosis:** 44 typical mistakes of the units are checks in the validator (*von Portugal*, *Ich bin ein
+Informatiker*, *für zwei Jahre*, *dein* to Sie, *Hast ihr*, *Nehm Platz*, *Gehen geradeaus*, *Seid pünktlich* to Sie,
+*neben die Kirche*, *in das Museum*, *mit dem Fuß*, *warten für*, *Weißt du die Frau*, *Wo muss ich steigen aus?*, *Der Bus
+abfährt*, *steht mich*, *ein Kilo von Tomaten*, *zwei Kilos*, *Was kostet die Schuhe?*, *Ich studiere für den Test*, *hat
+… durchgefallen*, *nach die Türkei*, *am Meer* for where to, *Ich würde gern … haben*, *Als wir ankamen, es regnete*…);
+fuzzed with 19,352 wrong variants — none accepted, none "almost". **My progress:** nothing reset. My real backup (16
+Nov) in the real app on the code before and after: every key, all 5,328 word records, the eight lessons and thirteen
+verb sheets come back unchanged after a load and save; today's plan is the same on both (a warm-up; the next lesson
+Numbers, time, dates); the pace green — 58 lessons, 111 sheets left, all done by 6 Jul 2027 — the same on both. The
+units come in wherever I am when they're reached: greetings right after the dative prepositions (≈ Jan), the way after
+wo? or wohin?, the bus stop after verb + preposition, shopping after the adjective endings, school after the Stage 1
+checkpoint (a *Should*: it gives way when behind), travel after Konjunktiv II; they stay their own part (💬), outside
+the stages' checkpoints. Tests: a Session 8 block in `t-unit` (the order, what waits for what, the checkpoints not
+waiting for them and not asking their rules, each sheet's day on the sheets read with production last — six days of the
+rotation, three checked items or more to review every rule, a dialogue on every sheet, the writing prompts); the
+two-sheet test and `t-course`'s "coming section" moved to a Session 9 lesson (s4.k1); `t-course` shows every unit's
+dialogue on a phone (each line said on a tap, with its English, nothing sticking out), lists chapters 30 and 31's
+Übungen and runs every new drill set through the real runner. All green: the validator (+ the book check: 12,184 of our
+sentences against chapters 30–31), `t-unit` (867), `t-course`, `t-ux`, `t-edge`, `t-fixes` ×3, `t-stage1`, `sim.mjs`,
+`--arrive --grow 1.3`, `--matrix` (54/54) and `sim-app` (45 and 150 days).
+
+**Review (17 Nov 2026), my request:** every addition checked again. (1) **German proofread by three independent
+readers** (greetings + the way · the bus stop + shopping · school + travel): about 165 findings, fixed — two rules that
+taught something false (*der Rock → er* for "I'll take it": it is **ihn** / **den**; "wohin? takes the accusative"
+said of every preposition: only of the two-way ones — zum Bahnhof is wohin? too), a quiz that made Sofia Austrian (she's
+Greek in the dialogue), five distractors that were also right (*Wie ist es mit …?*, *Das nehme ich*, *eine gute Note
+gegeben*, *In der Stadt, einkaufen*, *Ich würde gern … haben* — now "possible but clumsy", hätte still taught), a
+gap that took only *würde* where *möchte* is as right, and about 120 common right answers that weren't accepted (*Ich
+habe Elektriker gelernt*, *bei der Prüfung durchgefallen*, *Wir schreiben am Montag einen Test*, *retour*, *Ich lebe
+seit …*, *Guten Tag* beside Grüezi, *Entschuldigen Sie*, *einen Bancomaten*, *Kilogramm*, *gell?*, *sind … gewesen*, the
+main clause first, the double infinitive where the Präteritum is asked); clearer English (the du command: the du
+form without du and -st; *kostet* with a singular noun; what *Kilo, Gramm, Liter* do and *Flaschen* don't), dialogue
+lines made natural (*Hat sie Verspätung?* for die Nummer 7, *Ich schaue mir die Preise an*, *Das ist ja ungenügend!*).
+(2) **Bugs found and fixed:** a conversation's missing line said, once answered, the other speaker's two lines run
+together instead of the answer — and they had been recorded; now it says the line you gave (`cxSayFill` + `cxLineGap`).
+**gern and gerne** were different words to the checker in every lesson (*Ich würde gerne …*, *Gerne geschehen* were
+marked wrong): now either is right wherever an answer has one (`cxGerne`, all lessons). The questions about a
+dialogue (31•1, 31•6, 31•9, 31•13) needed the sheet in mind — fine on its day, unanswerable weeks later in a review or a
+mixed day: each is now a line said to you with the cue of what you answer («Welche Größe haben Sie?» (L)), the same
+everywhere; the writing items that referred back to a dialogue now give its lines. (3) **Screens:** the dialogue step
+was labelled "List" — now "Conversation"; it reads as a chat (the second speaker on the right, a third in its own colour);
+a lesson that waits says for which lesson ("After Dative prepositions", every part) instead of "After the lessons it
+builds on"; rules cut back (at most 225 characters). (4) **The checker fuzzed** again: 25,753 wrong variants — none
+accepted, none "almost". **Logs:** a sheet passed puts its own rules in review, a miss is logged under its rule as
+what I wrote → the right answer, a drill's writing is saved with its prompt and word count for Claude — checked in
+the real app. Voice: 396 changed sentences recorded (12,391 characters). All green again (listed in the review's
+reply).
+
+**Second look (17 Nov 2026), my request — every success and every fail:** all 51 drill sets of the units run in the real
+app on a phone, one item right and one wrong (102 cards): each has its verdict, the answer, a reason and on a miss the
+rule's link, Next in view, nothing sticking out; the writing cards save and show a model; "almost", an empty Check, the
+quiz's right and wrong, a drill's result looked at. Fixed: (1) a miss with no message of its own shows the rule's first
+sentence — eight of the units' rules opened with a phrase list or a question, one was cut at its own «wohin?» («With
+in, an, …: wohin?»): each now opens with its rule; five sets' items were tagged with a rule whose sentence didn't fit
+them (Hungry? Thirsty? showed the Sie rule) — rules and tags fixed; the validator now checks every rule of the course
+opens with a sentence that states it; older ones cut after an example's question («…for things too: Der Zug?») keep
+the answer that follows. (2) The quiz's link back to a dialogue said «See it in the sheet — the list»: now «— the
+conversation». (3) A quiz missed whose answer is the whole sentence showed it twice: now the answer itself is the one
+to tap. My real backup: identical on the pushed code and this one, the pace green, all done by 6 Jul 2027.
+
 ### Session 9 — polish
 
 **Upload:** chapters 12, 21, 25, 26, 27. *(from the course map: `node tools/course/session.mjs 9`)*
@@ -1128,6 +1221,8 @@ screen · coverage report at 100 % (every blueprint exercise *mirrored*,
 - **🐣 Easy or 🏅 Rank up (13 Nov 2026):** every bonus round (Today's offer, Drill's surprise round, a game's first intro) has a two-way switch: 🏅 Rank up — at your rank, it earns stars and can rank the game up — or 🐣 Easy — the lowest rank, practice only, no stars. The choice is remembered (`S.games.bonusEasy`, synced) and can be changed on any offer. A minion fight has no switch.
 - **Explanations and feedback rewritten (13 Nov 2026), my request:** every sheet's why, rules and trap, every quiz why, every feedback message, rule title and instruction of the course (Stages 0–2, 35 packs) and of the verb track's sheets, rewritten in plain English — full sentences, the rule first, then one or two examples, no symbol chains — with a native check of all the German (each change listed in the session's notes). The first sentence of each rule states it on its own: after a miss with no message of its own, the card shows that sentence (the link still opens the whole sheet). Word order: when the right words come in another order, the card names the one word out of place and where it goes («hat» goes at the very end) — added to a lesson's own order message too. Tiles: the word in first place shows its capital (in the bank it waits small — a capital there would say which word starts); a phrase that isn't a sentence stays small. Done: 35 packs and all 38 verb sheets (≈ 2,000 texts). The native check fixed about 30 German points — distractors that were also right (*euere*, *etwas zu trinken*, three *ohne / anstatt / um … zu* items, *Sie* for das Mädchen in speech), spelling (*wiedergefunden*, *kaputtgemacht*), idiom (*ich bin zu spät*, *Waschküche*, *der Film kam ins Kino*, *vom Koch zubereitet*), a negation that changed the meaning, a rule that said -ß always adds an e (am größten), French comparisons in the verb sheets — and added common right answers (*parkieren*, *Grüezi*, *dem See entlang*, *Möchten Sie noch mehr?*, *nachdem … geendet hat* in a table). Five rule openings that leaned on the sentence before were made to stand alone. 36 changed sentences recorded (65,773 / 65,773 texts). Left as judgement calls: *Ich bin gesessen* (Swiss sein with sitzen) is accepted in the drills but not taught on the sheet; a few correct-but-stiff sentences (listed in the session).
 - **Session 7 (13 Nov 2026):** an exercise whose heading is another lesson's goes where its practice is taught, also into a lesson already built (27•4 · 27•5 → the indirect questions); one that only answers questions about a dialogue goes to the conversation unit of that dialogue's topic (31•9 → shopping), whatever its heading says. A form the book still writes but nobody says (the future passive, führe, hülfe) is left out or asked as the form people use; the one-word Konjunktiv II is asked only where it's common. The verb log keeps the engine's tenses: a Konjunktiv II form counts as the Konjunktiv II whichever way it is written, a passive form is checked but not logged.
+- **Session 8 (16 Nov 2026):** an exercise goes to the unit whose talk it practises, whatever heading the book gives it (30•1–30•11, "In der Hauptstraße" → greetings, not the way). A conversation unit's dialogue is a sheet's `lines` with each line's English, and the German plays on a tap. A missing line of a conversation is answered with whole lines, never as a gap in a sentence. Prices are Swiss — francs and Rappen, said in words (vier Franken fünfzig); times in a dialogue are written in words too (the voice reads them as said).
+- **Session 8 review (17 Nov 2026):** a question about a dialogue is asked as a line said to you with a cue of what you answer — never one that needs the sheet in mind (it comes back weeks later in reviews and mixed days). gern and gerne are the same word for the checker, everywhere. A lesson that waits names the lesson it waits for.
 - **Verb + preposition in Stage 1 (2 Nov 2026):** *warten auf, sich freuen auf, denken an* are everyday spoken A2 — the lesson (now `s1.verbprep`, A2) comes right after the reflexive pronouns (≈ late Feb) instead of mid-April in Stage 2; still built in Session 6, the wo- / da- compounds stay in Stage 2 right after it.
 - **💎 Spot checks and the session count (15 Nov 2026), my report:** (1) a Today session read x/61 for a Long 60 (16/15, 31/30 too): the spot check came on top of a full session. It now takes a review's place — the count is the length. (2) The Stage 0 test-out came before its lesson with no word of what it was ("tested on what I haven't learnt"): it stays, Stage 0 only, and each question now says *Do you know it already? 7 of 8 right and you skip this lesson — otherwise its sheet comes next.* (3) Which 💎 word: weighted, not a lottery — the chance it has faded since I last got it right, 1 − e^(−t/span), span 270 days (a ⭐ word holds ~90 % after 30 days, my measured 89.5 %) × its ease ÷ its misses on the way up (×1 never … ×4 from six): a word missed 4+ times comes ~3× as often as one never missed, never-missed words keep ~28 % of the picks. (4) A hard block: never within 30 days of its lock-in (or a 💎 check-in or repair), nor 14 days of its last spot check (or any right answer of it, a game included), never a word already owed a typed check (⚠️ flagged, relearning, in repair), and an "≈ Almost" never lowers a word's odds; none when no word qualifies — nothing forced. A spot word is never asked twice in a session (as a quest word or the word of the day — then the word of the day takes its place). (5) **3 a day** (was 2), still one a session at most. Both numbers from a day-by-day model of my pace to 15 Aug, seeded from the backup (the 💎 pool grows ≈ 400 → 2,850): up to the 3rd a day, a weighted spot check finds a forgotten word at least as often as a ⭐ review (~10 %), from the 4th it drops below; a 30-day block gives the same result on the finish date with fewer checks, each finding more (13.8 % vs 12.0 %). The model: one more check a day keeps ≈ 10 more 💎 words on the finish date — no knee, so the count is set by what a check finds, not by coverage.
 - **Session 2 audit (21 Oct 2026):** every new sheet and item proofread (15 fixes: a rule that put *die Mutter* among the masculine plurals, a few stiff sentences, missing natural answers in translations). The verb lessons' own sentences now feed the learning log's verbs (before, only generated items did). *(22 Oct: umlauts are never typed, as agreed — a missing one is never a mistake, in the drills or the log; the course's drills now ask the verb track's small 1 / 2 choice when the plain spelling is another real form: fahrt → fährt or fahrt?)* 📚 a chapter's Übungen render their *italics*; on a verb lesson page 🧩 Practise sits right under the sheets. The logs test's fake cloud gained `batch` (its one failure was the test, not the app). Known and left as agreed: the quest test's late-deficit stress day can end one ledger form short (extra practice asks for exactly what a quest lacks).
@@ -1141,6 +1236,19 @@ screen · coverage report at 100 % (every blueprint exercise *mirrored*,
 ## Voice: what's left
 
 *(kept up to date by the voice sessions; the pipeline is in `tools/audio/README.md`)*
+
+**17 Nov 2026 — Session 8's review recorded.** The changed sentences and the missing lines' answers (they had said the
+other speaker's lines): **396 clips, 12,391 characters, 0 refused**; 157 no longer said. The German pack has **69,514 /
+69,514 texts**. **Characters this month (November 2026): 809,486** — under the 950,000 limit and the 900,000 guard.
+
+**16 Nov 2026 — Session 8's conversation units recorded.** Everything the six units say once a question is answered
+(every drill item's whole right sentence for each accepted answer, the conversations' lines in order, the writing
+models, the sheets' examples and quiz sentences) and, new, every line of their dialogues, which plays on a tap on the
+sheet: **1,182 clips, 39,862 characters, 0 refused** (Google Chirp 3 HD "Aoede") — as guessed (≈40k). The German pack
+has **69,275 / 69,275 texts** (`status.mjs --strict` passes; the pack, games, flag, say and runtime tests pass); the
+update is 10 of 95 shards, ≈68 MB for a phone that has the old pack — offered with the banner, on Wi-Fi. **Characters
+this month (November 2026): 797,095** — under the 950,000 limit set for this month and `run_all.py`'s own 900,000 guard.
+What will be missing next: Session 9's lessons (the post-B1 bonus, the monthly mock) — record after they're built.
 
 **13 Nov 2026 — Session 7's lessons recorded.** Everything the Stage 2B lessons and the three verb lessons' book
 exercises say once a question is answered (every drill item's whole right sentence for each accepted answer, the
