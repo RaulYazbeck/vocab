@@ -671,7 +671,7 @@ if (neg && neg.built) {
     ["d30.11", "Ask your two guests whether they're hungry (ihr).", "Hast ihr Hunger?", "greet.dusie", "habt"],
     ["d30.6", "(mein Schwager) Kennst du ___?", "mein Schwager", "greet.intro", "meinen"],
     ["d30.3", "«Woher kommen Sie?» (from Portugal)", "Ich komme von Portugal.", "greet.from", "aus"],
-    ["d30.3", "«Was machen Sie beruflich?» (computer scientist)", "Ich bin ein Informatiker.", "greet.from", "no"],
+    ["d30.3", "«Was machen Sie beruflich?» (an IT specialist: Informatiker)", "Ich bin ein Informatiker.", "greet.from", "no"],
     ["dp.greet", "I've been living in Zug for two years.", "Ich wohne für zwei Jahre in Zug.", "greet.from", "seit"],
     ["d30.10", "Kennst du den Mann von deiner Nichte?", "Kennst du den Mann von deine Nichte?", "greet.family", "deiner"],
     // asking the way
@@ -708,9 +708,9 @@ if (neg && neg.built) {
     // travel
     ["dtravel.t", "Sie fahren ___ Türkei.", "nach die", "travel.where", "in die"],
     ["dtravel.t", "Im August fahren wir ___ Meer.", "am", "travel.where", "ans"],
-    ["dtravel.t", "Ich ___ gern ein Einzelzimmer. (polite: I'd like)", "habe", "travel.book", "hätte"],
+    ["dtravel.t", "Ich ___ gern ein Einzelzimmer. (haben, polite: I'd like)", "habe", "travel.book", "hätte"],
     ["dtravel.t", "___ wir ankamen, war das Hotel schon zu.", "Wenn", "travel.tell", "als"],
-    ["dp.travel", "I'd like a return ticket to Zug, please.", "Ich würde gern ein Billett nach Zug, hin und zurück, haben.", "travel.book", "hätte"],
+    ["dp.travel", "I'd like a return ticket to Olten, please.", "Ich würde gern ein Billett nach Olten, hin und zurück, haben.", "travel.book", "hätte"],
     ["dp.travel", "When we arrived, it was raining.", "Als wir ankamen, es regnete.", "travel.tell", "verb"],
   ];
   cases.forEach(([set, key, typed, rule, word]) => {
@@ -729,6 +729,17 @@ if (neg && neg.built) {
     const lineSets = new Set(); Object.values(CX.sets).forEach(set => (set.items || []).forEach(x => { if (typeof x.q === "string" && C.cxLineGap(x.q)) lineSets.add(set.id); }));
     ok([...lineSets].every(id => CX.byId[CX.sets[id].sec].stage === 3), `…a rule only the conversation units' items meet (${[...lineSets]})`);
   }
+  // …and once answered it says the line you gave — never the other speaker's lines run together
+  {
+    const set = CX.sets["d30.5"], it = set.items.find(x => (x.a || [])[0] === "Meinen Cousin.");
+    ok(C.cxSayText(it, set) === "Meinen Cousin." && C.cxSayAll(it, set).every(t => !/Bahnhof ab\?/.test(t)), `a missing line says the answer: «${C.cxSayText(it, set)}»`);
+  }
+  // gern and gerne are one word: either is right wherever an answer has one (every lesson)
+  [["dp.travel", "I'd like to go to Japan one day.", "Ich würde gerne einmal nach Japan fahren."], ["dresp.t", "Danke schön! — ___! (you're welcome)", "Gerne geschehen"], ["dresp.t", "Danke schön! — ___! (you're welcome)", "Gern"]].forEach(([set, key, typed]) => {
+    const s = CX.sets[set], it = s.items.find(x => x.q === key || (x.a || [])[0] === key), r = it && C.cxCheck(it, typed, C.cxSection(s.sec));
+    ok(r && r.ok, `gern / gerne: "${typed}" is right`);
+  });
+  ok(C.cxGerne("Ich würde gern fahren.") === "Ich würde gerne fahren." && C.cxGerne("Gerne!") === "Gern!" && C.cxGerne("Ich lerne gerade.") === "", "gern ↔ gerne, whole words only");
   // right German the unit doesn't teach is still right
   [["dp.travel", "Could you help me, please?", "Können Sie mir bitte helfen?"], ["d31.6", "«Der Pulli oder das Hemd?» (you take the jumper)", "Der Pulli."], ["dway.t", "Ist es weit? — Nein, nur zehn Minuten zu ___.", "Fuss"]].forEach(([set, key, typed]) => {
     const s = CX.sets[set], it = s.items.find(x => x.q === key || (x.a || [])[0] === key), r = it && C.cxCheck(it, typed, C.cxSection(s.sec));

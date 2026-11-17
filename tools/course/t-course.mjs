@@ -284,11 +284,14 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
       for (let k = 0; k < 8 && !document.querySelector("#main-screen .gs-dialogue"); k++) { const n = document.querySelector("#main-screen .gs-next:not([disabled])"); if (!n) break; n.click(); }
       const L = [...document.querySelectorAll("#main-screen .gs-dialogue .gs-line")];
       return { n: L.length, want: cxSheet(id).lines.length, said: L.filter(l => l.querySelector("span[data-tap-say]")).length, en: L.filter(l => (l.querySelector(".gs-line-en") || {}).textContent).length,
+        chat: L.some(l => l.classList.contains("gs-line-b")) && L.some(l => !l.classList.contains("gs-line-b")), step: (document.querySelector("#main-screen .gs-step-label, #main-screen .gs-sec-h") || {}).textContent || "",
         first: L[0] ? [L[0].querySelector("b").textContent, L[0].querySelector("span").getAttribute("data-tap-say")] : null };
     }, id);
-    await page.evaluate(([id, d]) => ok(d.n === d.want && d.n >= 8 && d.said === d.n && d.en === d.n && d.first[1] === cxSheet(id).lines[0][1].replace(/\*+/g, ""), `${id}: its dialogue — ${d.n} lines, each said on a tap, each with its English (${JSON.stringify(d)})`), [id, d]);
+    await page.evaluate(([id, d]) => ok(d.n === d.want && d.n >= 8 && d.said === d.n && d.en === d.n && d.first[1] === cxSheet(id).lines[0][1].replace(/\*+/g, "") && d.chat && /conversation/i.test(d.step), `${id}: its dialogue (a chat: the speakers on both sides; the step says Conversation) — ${d.n} lines, each said on a tap, each with its English (${JSON.stringify(d)})`), [id, d]);
     await noOverflow(`the dialogue of ${id}`);
   }
+  // a lesson that waits says what for: the lesson it builds on that comes last in the course
+  await page.evaluate(() => { const g = cxSection("s3.greet"); if (!cxSecDone("s1.datprep")) ok(cxWaitsFor(g) === "After Dative prepositions", `a waiting unit names its lesson: «${cxWaitsFor(g)}»`); ok(!/the lessons it builds on/.test(document.getElementById("main-screen").innerText), "…never the vague «after the lessons it builds on»"); });
   // (Session 4 on) a sheet's table fits the phone whole — no sideways scrolling to find a column
   if (tag === "phone") await page.evaluate(() => {
     const wide = [], seen = [];

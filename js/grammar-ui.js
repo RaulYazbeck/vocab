@@ -81,9 +81,11 @@ function gsTableHtml(sh) {
   // A conversation (a course scenario's dialogue): [speaker, German line, English] —
   // the line plays on a tap (German app; the voice pack records it: gsLineSay,
   // tools/audio/runtime.mjs), its English under it. Two-part lines stay as they were.
+  // (a conversation reads like a chat: the first speaker on the left, the other on the right)
+  const who = [...new Set((sh.lines || []).map(l => l[0]))];
   if (sh.lines) return `<div class="gs-lines${sh.lines.some(l => l.length > 2) ? " gs-dialogue" : ""}">${sh.lines.map(([l, x, en]) => {
     const say = en !== undefined && typeof sayTapAttrs === "function" ? sayTapAttrs(gsLineSay(x)) : "";
-    return `<div class="gs-line"><b>${gsMd(l)}</b><span${say}>${gsMd(x)}</span>${en ? `<i class="gs-line-en">${gsMd(en)}</i>` : ""}</div>`;
+    return `<div class="gs-line${en !== undefined ? ` gs-who${who.indexOf(l) % 3}${who.indexOf(l) % 2 ? " gs-line-b" : ""}` : ""}"><b>${gsMd(l)}</b><span${say}>${gsMd(x)}</span>${en ? `<i class="gs-line-en">${gsMd(en)}</i>` : ""}</div>`;
   }).join("")}</div>`;
   return "";
 }
@@ -125,7 +127,7 @@ function gsSteps(sh, hl = null) {
   steps.push({ id: "struct", label: vxT("Structure"), html: `${gsStructHtml(sh)}<p class="gs-why${on("struct")}">🧠 ${gsMd(sh.why)}</p>${gsBuildsHtml(sh)}` });
   if (sh.rules && sh.rules.length) steps.push({ id: "rules", label: vxT("Rules"), html: `<ol class="gs-rules">${sh.rules.map((r, i) => `<li class="${on("rules", hl && hl.li === i + 1)}">${gsMd(r)}</li>`).join("")}</ol>` });
   const tbl = gsTableHtml(sh), mine = gsMineHtml(sh);
-  if (tbl || mine) steps.push({ id: "table", label: sh.table ? vxT("Table") : vxT("List"), html: `<div class="${on("table")}">${tbl}</div>${mine}` });
+  if (tbl || mine) steps.push({ id: "table", label: sh.table ? vxT("Table") : (sh.lines || []).some(l => l.length > 2) ? "Conversation" : vxT("List"), html: `<div class="${on("table")}">${tbl}</div>${mine}` });
   steps.push({ id: "ex", label: vxT("Examples"), html: `${gsExamplesHtml(sh)}<div class="gs-trap${on("ex", hl && hl.trap)}"><b>${vxT("⚠️ The trap")}</b><span>${gsMd(sh.trap)}</span></div>` });
   return steps;
 }

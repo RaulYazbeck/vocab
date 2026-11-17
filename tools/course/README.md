@@ -156,8 +156,11 @@ a later session that uploads its chapter.
      it), key phrases as rules, drill sets of kinds `order` (the conversation), `respond` or `answer`,
      `type`, and a `write` set; a writing prompt that opens with it. A conversation's missing line —
      `«…» — ___ — «…» (cue)` — is answered by whole lines: the gap logic (the gap's words alone, or
-     with the sentence around them) doesn't apply to it (`cxLineGap`). The validator's Session 8 block
-     checks all of it.
+     with the sentence around them) doesn't apply to it (`cxLineGap`), and once answered it says the
+     line given. Every item must stand on its own: it comes back in reviews and mixed days weeks
+     after its sheet, so a question about a dialogue is asked as a line said to you with a cue
+     («Welche Größe haben Sie?» (L)), never «Welche Größe hat er?». The validator's Session 8 block
+     checks all of it. (gern and gerne are one word for the checker: list either.)
    - Writing prompts tied to the section (optional): `cxJournal([{ id: "w.<name>", th, lv, de,
      t, help, sec: "<section id>" }])` — they open once the section is done. Free writing,
      never graded: saved to `S.writing` (kept forever, one cloud doc a year) and listed in the learning log for correction.

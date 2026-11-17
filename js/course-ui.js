@@ -911,9 +911,19 @@ function cxSecStatus(s) {
   if (s.checkpoint) return st.st >= 3 ? { k: "done", txt: `Passed · ${st.cp}%` } : cxCheckpointReady(s) ? { k: "now", txt: `Ready · ${Math.round(s.checkpoint.pass * 100)}% moves you on${st.cp ? ` · best ${st.cp}%` : ""}` } : { k: "later", txt: "After this part's lessons" };
   if (st.st >= 3) return { k: "done", txt: st.to >= 0 && !(st.sh > 0) ? "Done · tested out 🎓" : "Done" };
   if (st.st === 2) return { k: "now", txt: "Sheet passed · its drill next" };
-  if (cxNextSections(1)[0] !== s) return { k: "now", txt: cxLessonReady(s) ? "Ready" : "After the lessons it builds on" };
+  if (cxNextSections(1)[0] !== s) return { k: "now", txt: cxLessonReady(s) ? "Ready" : cxWaitsFor(s) };
   const on = cxNextLessonDay();
   return { k: "now", txt: on <= studyToday() ? "Next · comes in Today" : `Next · in Today on ${fmtShortDate(on)}` };
+}
+// What a lesson still waits for, in words: the lesson it builds on that comes
+// last in the course (the one that decides when it opens) — "After Dative
+// prepositions" says more than "after the lessons it builds on", and in the
+// 💬 part, whose units sit among the other parts' lessons, it says when.
+function cxWaitsFor(s) {
+  const wait = (s.after || []).map(cxSection).filter(x => x && !cxSecDone(x.id));
+  if (!wait.length) return "After the lessons before it";
+  const last = wait.reduce((a, b) => (CX.sections.indexOf(b) > CX.sections.indexOf(a) ? b : a));
+  return `After ${last.title}`;
 }
 const CX_SEC_SIGN = { done: "✓", verb: "📐" };
 // Going back: to the Course, a part, a lesson.

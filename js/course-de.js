@@ -352,10 +352,17 @@ function cxOrders(item) {
 // that fill it (ei) — or the whole word (zeit): both are right.
 const CX_GAP = /([A-Za-zÄÖÜäöüß]*)___([A-Za-zÄÖÜäöüß]*)/;
 function cxAnswers(item) {
-  const a = (item.a || []).map(String), m = typeof item.q === "string" ? CX_GAP.exec(item.q) : null;
+  const a0 = (item.a || []).map(String), m = typeof item.q === "string" ? CX_GAP.exec(item.q) : null;
+  // gern and gerne are the same word: wherever an answer has one, the other is right too
+  const a = item.k === "order" ? a0 : [...a0, ...a0.map(cxGerne).filter(x => x && !a0.includes(x))];
   if (!m || !(m[1] || m[2]) || item.k === "order") return a;
   const full = a.map(x => m[1] + x + m[2]).filter(x => !a.includes(x));
   return [...a, ...full];
+}
+// gern ↔ gerne (Gern geschehen · Gerne!) → the other spelling, or "" when there's none.
+function cxGerne(s) {
+  const t = String(s).replace(/\b([Gg])ern(e?)\b/g, (w, g, e) => g + (e ? "ern" : "erne"));
+  return t !== String(s) ? t : "";
 }
 // A conversation's missing line — «Wohin gehst du?» — ___ — «Holst du …?» —
 // is no gap in a sentence: its answers are whole lines, checked as they are
@@ -444,6 +451,8 @@ function cxSayFill(q, ans) {
   ans = cxSayClean(ans);
   if (!ans) return "";
   if (typeof q !== "string" || !q.includes("___")) return ans;
+  // A conversation's missing line («…» — ___ — «…»): the line you gave, not the other speaker's
+  if (cxLineGap(q)) return ans;
   let t = cxSayClean(q);
   if (t.split("___").length !== 2) return cxSaySentence(ans) ? ans : "";
   // "Ich habe einen Termin. → Ich habe ___ Termin." : the part with the gap.
