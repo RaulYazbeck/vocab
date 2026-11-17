@@ -225,7 +225,7 @@ function setTimerSubMode(s) { timerSubMode = s; renderStartBar(); }
 
 // ── STATS SCREEN ──────────────────────────────
 function agoLabel(ts) {
-  const days = daysBetween(new Date(ts - ANKI.ROLLOVER_HOUR * 3600e3).toLocaleDateString('en-CA'), todayISO());
+  const days = daysBetween(usageDateOf(ts), todayISO());
   return days <= 0 ? "today" : days === 1 ? "yesterday" : `${days}d ago`;
 }
 function renderStatsScreen() {

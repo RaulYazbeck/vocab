@@ -53,8 +53,15 @@ function usageAllDays() {
   return Object.keys(all).sort().map(d => [d, all[d]]);
 }
 // The study day (same rollover as the rest of the app) a timestamp falls on.
+// By the clock — except around the day in progress, which may be held
+// ahead of the clock or have begun in another time zone (config.js, THE
+// STUDY DAY): from its start on it is that day, and just before its start
+// the day before it.
 function usageDateOf(t) {
-  return new Date(t - ANKI.ROLLOVER_HOUR * 3600 * 1000).toLocaleDateString("en-CA");
+  const c = clockDayOf(t), dc = typeof S !== "undefined" && S ? S.dayClock : null;
+  if (!dc || typeof t !== "number" || typeof dc.start !== "number" || !ISO_DAY_RE.test(dc.day || "") || t > Date.now()) return c;
+  if (t >= dc.start) return c <= dc.day ? dc.day : c;
+  return c >= dc.day ? addDays(dc.day, -1) : c;
 }
 function _usageLog() {
   if (_usageBuf) return _usageBuf;
@@ -91,6 +98,10 @@ function _inc(obj, k, i, n = 1) {
   obj[k][i] = (obj[k][i] || 0) + n;
 }
 
+// Events that are study (not just looking around): the day has begun
+// (config.js, THE STUDY DAY — dayNoteStudy).
+const USAGE_STUDY_EVENTS = new Set(["answer", "session_start", "game_start", "hint", "extra_new", "extra_undo", "skip_level",
+  "vx_ans", "vx_cell", "vx_intro", "vx_review", "vx_sheet", "vx_drill_start", "cx_part", "cx_drill", "cx_write", "cx_sheet", "cx_checkpoint", "cx_testout"]);
 // type: short event name. data: small flat object.
 function logEvent(type, data = {}) {
   try {
@@ -102,6 +113,7 @@ function logEvent(type, data = {}) {
       if (type.endsWith("_start")) _usageActAt[actKey] = _usageActMs;
       else { if (data.act == null && _usageActAt[actKey] != null) data.act = _usageActMs - _usageActAt[actKey]; delete _usageActAt[actKey]; }
     }
+    if (USAGE_STUDY_EVENTS.has(type)) dayNoteStudy();
     const log = _usageLog();
     log.push({ t: now, e: type, ...data });
     if (log.length > USAGE_LOG_MAX) log.splice(0, log.length - USAGE_LOG_MAX);

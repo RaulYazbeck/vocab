@@ -99,10 +99,21 @@ function questEnsureToday() {
   questRestoreDays();
   const Q = S.quests, today = todayISO();
   if (Q.day === today && Q.list.length) { questSwapUnusedAnki(); questSwapForSpeak(); questSwapRetired(); questMarkKept(); return false; }
-  // Quests made before the switch to the 4 AM day (00:00–04:00 that one
-  // night) belong to the day that's about to start — keep them.
-  if (Q.day > today && Q.list.length) return false;
-  if (Q.day && Q.day !== today) questCloseDay(Q.day, today);
+  if (Q.day > today) {
+    // The quests are on a later day than the clock (a time-zone change —
+    // config.js, THE STUDY DAY). A day studied on is the day in progress:
+    // the study day is set to it (a sync can bring one in from a device
+    // that still has its old clock record) and kept.
+    const m = Q.m || {};
+    if (daysBetween(today, Q.day) <= DAY_HOLD_MAX && Q.list.length
+      && (m.ok > 0 || m.game > 0 || Q.dayDone || Q.list.some(q => q && q.done))) {
+      S.dayClock = { day: Q.day, start: clockDayStart(0) };
+      if (todayISO() === Q.day) return questEnsureToday();
+    }
+    // Nothing done on it: it hasn't begun — today's quests come fresh,
+    // and freezes spent on days that aren't over yet come back.
+    questBackTo(today);
+  } else if (Q.day) questCloseDay(Q.day, today);
   Q.day = today;
   Q.m = freshQuestCounters();
   Q.dayDone = false;
@@ -128,12 +139,31 @@ function questCloseDay(prevDay, today) {
   if (questStreak(prevDay) > 0) {
     for (let d = prevDay; d < today; d = addDays(d, 1)) {
       if (counted(d)) continue;
-      if (Q.freezes > 0) { Q.freezes--; Q.frozen.push(d); logEvent("freeze_used", { d }); }
+      if (Q.freezes > 0) {
+        Q.freezes--; Q.frozen.push(d); logEvent("freeze_used", { d });
+        if (Array.isArray(Q.refunded)) Q.refunded = Q.refunded.filter(x => x !== d); // spent for good now: a later turn back may give it back again
+      }
       else break;
     }
   }
   if (Q.frozen.length > 60) Q.frozen = Q.frozen.slice(-60);
   if (Q.kept.length > 60) Q.kept = Q.kept.slice(-60);
+}
+// The clock turned back to `today` (a time-zone change — config.js, THE
+// STUDY DAY): a 🧊 freeze spent on a day that isn't over yet — today, or
+// a later day — comes back. Once per day (refunded): a copy of the old
+// frozen list a sync brings back is left alone, never paid twice.
+function questBackTo(today) {
+  const Q = S.quests;
+  if (!Q || !Array.isArray(Q.frozen)) return 0;
+  if (!Array.isArray(Q.refunded)) Q.refunded = [];
+  const back = Q.frozen.filter(d => d >= today && !Q.refunded.includes(d));
+  if (!back.length) return 0;
+  Q.frozen = Q.frozen.filter(d => !back.includes(d));
+  Q.freezes = Math.min(FREEZE_CAP, (Q.freezes || 0) + back.length);
+  Q.refunded = [...Q.refunded, ...back].sort().slice(-30);
+  back.forEach(d => logEvent("freeze_refund", { d }));
+  return back.length;
 }
 // A day short of all four quests still keeps the streak, without a
 // freeze, once 40% of the daily goal is reached or a Long session is
@@ -146,7 +176,7 @@ function questMarkKept() {
   const longDone = (Q.m.sessions || []).some(s => s.len === "long" && !s.ab);
   if (!longDone && goalProgress() < Math.ceil(getDailyGoal() * KEEP_GOAL_SHARE)) return;
   Q.kept.push(today);
-  logEvent("day_kept", { long: longDone });
+  logEvent("day_kept", { long: longDone, d: today });
 }
 // THE streak: consecutive counted days — all quests done, kept or
 // frozen — ending today or `from` (today still counts once it's done).
@@ -178,10 +208,14 @@ function questRestoreDays() {
   const counted = new Set([...Q.qdays, ...Q.kept, ...Q.frozen]);
   let n = 0;
   const add = (list, d) => { if (d >= from && d < today && !counted.has(d)) { list.push(d); counted.add(d); n++; } };
+  // (a freeze given back — the clock turned back to its day, questBackTo —
+  // cancels the one spent before it)
+  const frozenLog = new Map();
   if (typeof _usageLog === "function") _usageLog().forEach(e => {
-    if (e.e === "day_kept") add(Q.kept, usageDateOf(e.t));
-    else if (e.e === "freeze_used" && typeof e.d === "string") add(Q.frozen, e.d);
+    if (e.e === "day_kept") add(Q.kept, typeof e.d === "string" ? e.d : usageDateOf(e.t));
+    else if ((e.e === "freeze_used" || e.e === "freeze_refund") && typeof e.d === "string") frozenLog.set(e.d, e.e === "freeze_used");
   });
+  frozenLog.forEach((used, d) => { if (used) add(Q.frozen, d); });
   if (typeof usageAllDays === "function") usageAllDays().forEach(([d, v]) => {
     if (!v || counted.has(d)) return;
     if (v.q && v.q[3] > 0) { add(Q.qdays, d); return; }
@@ -933,6 +967,7 @@ function questEvent(type, d = {}) {
   if (!S.quests || !S.quests.m) return;
   if (S.quests.day !== todayISO()) { questEnsureToday(); }
   const m = S.quests.m;
+  dayNoteStudy();
   switch (type) {
     case "answer": questOnAnswer(m, d); break;
     case "srs": {

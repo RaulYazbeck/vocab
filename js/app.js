@@ -185,6 +185,26 @@ renderHome();
 startUsageClock();
 logEvent("app_open", { standalone: IS_STANDALONE, w: window.innerWidth });
 
+// ── THE STUDY DAY, WITH THE APP LEFT OPEN ─────
+// The day can change while the app sits open or in the background: at
+// 4 AM, or when the device's time zone changes (travel — config.js, THE
+// STUDY DAY). Checked whenever the app comes back into view; the header
+// and the home screen are redrawn for the new day (a session or a game
+// in progress is left alone — its next answer rolls the day itself).
+let _dayDrawn = todayISO();
+function dayChanged() {
+  const today = todayISO();
+  if (today === _dayDrawn) return;
+  _dayDrawn = today;
+  questEnsureToday();
+  saveLocalOnly();
+  renderExpBar();
+  if (currentScreenName() === "home" && !sheetOpen()) renderHome();
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden) dayChanged(); });
+window.addEventListener("focus", dayChanged);
+setInterval(() => { if (!document.hidden) dayChanged(); }, 60000);
+
 // ── SERVICE WORKER ────────────────────────────
 // Caches the app shell for instant opens and full offline use.
 // Registered after load so it never competes with first-paint fetches.

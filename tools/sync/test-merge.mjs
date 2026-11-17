@@ -127,4 +127,27 @@ ok(m.path.sessionLen === "long" && m.quests.tokens === 1, "nothing new in the cl
   ok(d.plan.snap.c === 300 && d.plan.rev === 50, "usage plan snapshot kept", J(d.plan));
 }
 
+// The study day when travelling (config.js, THE STUDY DAY): a day with
+// anything done on it — even only wrong answers (dayClock.act) — is a begun day;
+// the study day's clock goes with the quests' day.
+{
+  const wed = (act, okN = 0) => ({ savedAt: 3000, quests: quests("2026-11-25", okN),
+    path: path("2026-11-25"), dayClock: { day: "2026-11-25", start: 100, act }, words: {} });
+  const tue = () => ({ savedAt: 2000, quests: quests("2026-11-24", 3), path: path("2026-11-24"), dayClock: { day: "2026-11-24", start: 50 }, words: {} });
+  let m = merge(wed(2), tue(), { localWins: true });
+  ok(m.quests.day === "2026-11-25" && m.path.day === "2026-11-25" && m.dayClock.day === "2026-11-25", "only wrong answers on the later day: it's begun, kept (quests, path, clock)", J([m.quests.day, m.path.day, m.dayClock]));
+  m = merge(tue(), wed(2), { localWins: false });
+  ok(m.quests.day === "2026-11-25" && m.dayClock.day === "2026-11-25", "…from either side", J(m.dayClock));
+  m = merge(wed(0), tue(), { localWins: true });
+  ok(m.quests.day === "2026-11-24" && m.path.day === "2026-11-24" && m.dayClock.day === "2026-11-24" && m.dayClock.start === 50, "nothing done on the later day: the earlier day and its clock", J([m.quests.day, m.dayClock]));
+  m = merge(tue(), wed(0), { localWins: true });
+  ok(m.quests.day === "2026-11-24" && m.dayClock.day === "2026-11-24", "…from either side", J(m.dayClock));
+  const old = tue(); delete old.dayClock;
+  m = merge(old, wed(0), { localWins: true });
+  ok(m.quests.day === "2026-11-24" && m.dayClock.day === "2026-11-25", "a side without a clock (older app): the other's kept, the app sets it right", J(m.dayClock));
+  const same = wed(0), same2 = wed(9); same.quests.m.ok = 4; same2.quests.m.ok = 2;
+  m = merge(same, same2, { localWins: false });
+  ok(m.quests.m.ok === 4, "the same day: still the one with more done (act doesn't change that)", J(m.quests.m));
+}
+
 console.log(`merge: ${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);

@@ -123,7 +123,8 @@ const SYNC_HIST_PIECES = 20;
 // The sync rules' version, stamped on every save (_p). A device that finds
 // a newer one in the cloud is running old code: it reloads (or, mid-
 // session, stops writing) instead of merging by rules that lose data.
-const SYNC_PROTOCOL = 2;
+// 3: the study day's clock and "anything done today" (config.js, THE STUDY DAY).
+const SYNC_PROTOCOL = 3;
 let syncOutdated = false;
 let syncRec = { dev: "", uid: null, lastAt: 0, know: {}, base: null, hist: [], pend: [] };
 
