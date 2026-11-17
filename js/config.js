@@ -260,7 +260,8 @@ function dayStartOk(t, now = Date.now()) {
 // The pieces of state that belong to one day — each with how to read its
 // day, and the fields to put back when a day is taken back. Kept at each
 // rollover (dayRollForward), before any of them has turned the page:
-// they only learn of the new day from ankiToday.
+// they only learn of the new day from ankiToday. New state that resets
+// with the day belongs here (and, if it syncs by day, in sync-merge.js).
 const DAY_PIECES = [
   ["quests", q => q.day, ["day", "list", "m", "dayDone", "flash", "weekend", "dbl", "missedYesterday", "prevOk", "history", "week", "saga"]],
   ["path", p => [p.day || "", (p.plan && p.plan.day) || ""].sort().pop(), ["day", "introducedToday", "extraToday", "extraBtn", "extraUndo", "extraAt", "spotToday", "plan", "autoPaused", "autoPausedOn"]],

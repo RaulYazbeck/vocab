@@ -203,6 +203,7 @@ function dayChanged() {
 }
 document.addEventListener("visibilitychange", () => { if (!document.hidden) dayChanged(); });
 window.addEventListener("focus", dayChanged);
+window.addEventListener("pageshow", dayChanged); // iOS: a page restored from the back-forward cache
 setInterval(() => { if (!document.hidden) dayChanged(); }, 60000);
 
 // ── SERVICE WORKER ────────────────────────────

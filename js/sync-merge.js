@@ -343,8 +343,11 @@ function mergeStates(local, cloud, opts = {}) {
     out.quests = Q;
     // The study day's clock (config.js, THE STUDY DAY) goes with the day
     // its quests are on.
-    const dc = (useLocal ? local : cloud).dayClock || (useLocal ? cloud : local).dayClock;
-    if (syncIsObj(dc)) out.dayClock = syncClone(dc); else delete out.dayClock;
+    const dcA = (useLocal ? local : cloud).dayClock, dcB = (useLocal ? cloud : local).dayClock;
+    const dc = syncIsObj(dcA) ? syncClone(dcA) : syncIsObj(dcB) ? syncClone(dcB) : null;
+    // (the same day on both: whatever either did on it counts)
+    if (dc && syncIsObj(dcA) && syncIsObj(dcB) && dcA.day === dcB.day) dc.act = Math.max(syncNum(dcA.act), syncNum(dcB.act));
+    if (dc) out.dayClock = dc; else delete out.dayClock;
   }
   if (syncIsObj(local.path) && syncIsObj(cloud.path)) {
     const pathTouched = st => syncPathProgress(st) > 0 || (syncIsObj(st.quests) && st.quests.day === syncPathDay(st.path) && syncQuestTouched(st));

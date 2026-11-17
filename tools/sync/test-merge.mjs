@@ -148,6 +148,7 @@ ok(m.path.sessionLen === "long" && m.quests.tokens === 1, "nothing new in the cl
   const same = wed(0), same2 = wed(9); same.quests.m.ok = 4; same2.quests.m.ok = 2;
   m = merge(same, same2, { localWins: false });
   ok(m.quests.m.ok === 4, "the same day: still the one with more done (act doesn't change that)", J(m.quests.m));
+  ok(m.dayClock.day === "2026-11-25" && m.dayClock.act === 9, "…and what either device did on it counts", J(m.dayClock));
 }
 
 console.log(`merge: ${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);

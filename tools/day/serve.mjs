@@ -10,7 +10,7 @@ const TYPES = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/ja
 export function serveRepo(port = 8765) {
   const server = http.createServer((req, res) => {
     const p = path.join(root, decodeURIComponent(new URL(req.url, "http://x").pathname));
-    if (!p.startsWith(root)) { res.writeHead(403); res.end(); return; }
+    if (p !== root && !p.startsWith(root + path.sep)) { res.writeHead(403); res.end(); return; }
     fs.readFile(p, (err, buf) => {
       if (err) { res.writeHead(404); res.end(); return; }
       res.writeHead(200, { "Content-Type": TYPES[path.extname(p)] || "application/octet-stream" });
