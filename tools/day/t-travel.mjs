@@ -211,6 +211,67 @@ const scenarios = {
     await d.close();
   },
 
+  // ── Review dates (js/srs.js, REVIEW DATES AFTER A TIME-ZONE CHANGE):
+  // reviews set for 4 AM Zurich are, in Mexico, for 4 AM Mexico time on the
+  // same day — not due at 9 PM the evening before, and not a backlog the
+  // next morning (which made the plan spread them over a week: a smaller
+  // target while the sessions kept going). And back home the same way.
+  async reviews() {
+    const d = await device({ tz: "Europe/Zurich", at: Z("2026-11-24T08:00:00Z"), setup: STREAK });
+    // (in the page: each word's review day by this clock, and whether it sits on 4 AM here —
+    // or, today's, on the moment today began: a day begun in Zurich began at 4 AM Zurich)
+    const DATES = () => {
+      const out = {}, off = [], s0 = studyDayStart(0), today = todayISO();
+      Object.entries(S.words).forEach(([k, ws]) => {
+        if (typeof ws.dueAt !== "number" || ws.dueAt % 9e5) return;
+        if (ws.dueAt === s0) { out[k] = today; return; }
+        const t = new Date(ws.dueAt);
+        if (t.getHours() !== 4 || t.getMinutes() !== 0) off.push(k);
+        out[k] = clockDayOf(ws.dueAt);
+      });
+      return { out, off };
+    };
+    // A relearning step (a few minutes from an answer) is a moment, not a day's start.
+    await d.ev(() => { const k = Object.keys(S.words).find(k => S.words[k].st === 2 && !k.startsWith("vx")); S.words[k].lrn = 1; S.words[k].dueAt = Date.now() + 600123; window._lrnKey = k; saveLocalOnly(); });
+    const lrn0 = await d.ev(() => S.words[window._lrnKey].dueAt);
+    const zh = await d.ev(DATES);
+    ok(!zh.off.length && Object.keys(zh.out).length > 300, "in Zurich every review date is 4 AM Zurich", zh.off.slice(0, 3));
+    const wedKeys = Object.keys(zh.out).filter(k => zh.out[k] === "2026-11-25");
+    const lateKeys = Object.keys(zh.out).filter(k => zh.out[k] < "2026-11-25");
+    ok(wedKeys.length > 5, "some words are due on Wednesday", wedKeys.length);
+    // Landing at 11 PM Tuesday in Mexico City (= 6 AM Wednesday in Zurich)
+    await d.setTime(Z("2026-11-25T05:00:00Z")); await d.setTz("America/Mexico_City"); await d.wake(); await d.page.waitForTimeout(50);
+    const mx = await d.ev(DATES);
+    const tue = await d.ev(() => ({ today: todayISO(), sc: (invalidatePathScan(), pathScan(true)) }));
+    ok(tue.today === "2026-11-24", "landed: still Tuesday", tue.today);
+    ok(!mx.off.length, "every review date moved to 4 AM Mexico time (today's: to when today began)", mx.off.slice(0, 3));
+    ok(Object.keys(zh.out).every(k => mx.out[k] === zh.out[k]), "…on the same day as before", Object.keys(zh.out).filter(k => mx.out[k] !== zh.out[k]).slice(0, 3).map(k => [k, zh.out[k], mx.out[k]]));
+    const wedDue = await d.ev(keys => keys.filter(k => S.words[k].dueAt <= Date.now()).length, wedKeys);
+    ok(wedDue === 0, "Wednesday's words are not due on Tuesday evening", wedDue);
+    ok((await d.ev(() => S.words[window._lrnKey].dueAt)) === lrn0, "a relearning step keeps its moment");
+    // Wednesday 8 AM in Mexico: today's plan sees Wednesday's words as today's, not as a backlog
+    await d.setTime(Z("2026-11-25T14:00:00Z")); await d.wake(); await d.page.waitForTimeout(50);
+    const wed = await d.ev(keys => {
+      const sc = (invalidatePathScan(), pathScan(true)), start = studyDayStart(0);
+      return { today: todayISO(), overdue: sc.overdue, wedDue: keys.filter(k => isDue(S.words[k])).length,
+        wedLate: keys.filter(k => S.words[k].dueAt < start).length, plan: S.path.plan && S.path.plan.day };
+    }, wedKeys);
+    const lateNow = await d.ev(keys => keys.filter(k => { const ws = S.words[k]; return ws.st && !(ws.rp || ws.fl || ws.lrn) && ws.dueAt < studyDayStart(0); }).length, lateKeys);
+    ok(wed.today === "2026-11-25", "8 AM Wednesday in Mexico: Wednesday", wed.today);
+    ok(wed.wedDue === wedKeys.length && wed.wedLate === 0, "Wednesday's words are due today, none of them late", wed);
+    ok(wed.overdue <= lateNow, "the backlog is only what was late already in Zurich", [wed.overdue, lateNow]);
+    // Home again: Friday 9 AM in Zurich — back to 4 AM Zurich, still the same days
+    await d.setTime(Z("2026-11-27T08:00:00Z")); await d.setTz("Europe/Zurich"); await d.wake(); await d.page.waitForTimeout(50);
+    const home = await d.ev(DATES);
+    ok(!home.off.length, "home: every review date at 4 AM Zurich again", home.off.slice(0, 3));
+    ok(Object.keys(mx.out).filter(k => home.out[k]).every(k => home.out[k] === mx.out[k] || home.out[k] > "2026-11-25"), "…on the same days (or rescheduled since)");
+    await d.reload();
+    const again = await d.ev(DATES);
+    ok(!again.off.length && JSON.stringify(again.out) === JSON.stringify(home.out), "a reload changes nothing");
+    ok(!d.errors.length, "reviews: no errors", d.errors);
+    await d.close();
+  },
+
   // ── Only wrong answers on the new day still count as having begun it.
   async wrongonly() {
     const d = await device({ tz: "Europe/Zurich", at: Z("2026-11-24T08:00:00Z"), setup: STREAK });

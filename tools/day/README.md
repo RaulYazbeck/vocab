@@ -27,6 +27,13 @@ Each one serves the repo itself, so there's no server to start.
 - `untouched` — the same with nothing done on Tuesday before the flight
 - `plane` — studied on the plane: Wednesday is kept after landing and runs until
   4 AM Thursday Mexico time; a word answered then is due on a later day
+- `reviews` — review dates (`js/srs.js`, REVIEW DATES AFTER A TIME-ZONE
+  CHANGE): reviews set for 4 AM Zurich are, after landing in Mexico, for 4 AM
+  Mexico time on the same day — Wednesday's words aren't due on Tuesday
+  evening, and on Wednesday morning they are today's, not a backlog (the plan
+  spread such a "backlog" over a week: a smaller target while the sessions kept
+  serving the words); a relearning step keeps its moment; back home they are
+  on 4 AM Zurich again, same days
 - `wrongonly` — a single wrong answer, or a word answered anywhere, is enough
   to keep the day
 - `tokyo` — flying east: the next day starts, nothing is skipped or repeated,
