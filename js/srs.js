@@ -55,6 +55,42 @@ function isDue(ws, now = Date.now()) {
   if (ws.lrn || ws.rp || ws.fl) return true;
   return !!ws.dueAt && ws.dueAt <= now;
 }
+// ── REVIEW DATES AFTER A TIME-ZONE CHANGE ─────
+// A review is set for the start of a study day (studyDayStart: 4 AM on
+// the clock) and kept as a moment. After a move to another time zone
+// that moment is no longer the start of the day: 4 AM in Zurich is 9 PM
+// the evening before in Mexico City. Left as it was, tomorrow's words
+// came due tonight, and the next morning the plan counted them as a
+// backlog from a missed day and spread them over a week (a smaller
+// target for the day, while the sessions kept serving them).
+// So a review date that sits on a day's start somewhere (a whole quarter
+// hour: every time zone's 4 AM does) but not on one here moves to the
+// start of the same day here — the nearest 4 AM on this clock, so a
+// change of up to 12 hours either way keeps the date. Today's goes to the
+// moment today began (studyDayStart(0): a day begun in another time zone,
+// or held ahead of the clock — config.js, THE STUDY DAY). At home every
+// review date already sits on a 4 AM here: nothing moves. Runs at every
+// load and sync (migrate) and when the clock's time zone changes (app.js).
+// Other moments (relearning steps: a few minutes from an answer) stay.
+const DUE_ALIGN_MS = 15 * 60000;
+function dueRealign(now = Date.now()) {
+  if (typeof S === "undefined" || !S || !S.words) return 0;
+  const today = todayISO(), start0 = studyDayStart(0, now);
+  let n = 0;
+  for (const ws of Object.values(S.words)) {
+    const t = ws && ws.dueAt;
+    if (typeof t !== "number" || !isFinite(t) || t % DUE_ALIGN_MS !== 0) continue;
+    const at = clockDayStart(0, t + 12 * 3600e3 - 1); // the 4 AM here nearest to t (a tie: the earlier)
+    const day = clockDayOf(at);
+    const to = day === today ? start0 : day > today ? studyDayStart(daysBetween(today, day), now) : at;
+    if (to !== t) { ws.dueAt = to; n++; }
+  }
+  if (n) {
+    if (typeof invalidatePathScan === "function") invalidatePathScan();
+    if (typeof logEvent === "function") logEvent("due_realign", { n, tz: new Date(now).getTimezoneOffset() });
+  }
+  return n;
+}
 // Interval (days) for reaching `st`: scaled by the word's ease, halved
 // while re-climbing to the peak.
 function stageIntervalDays(ws, st) {

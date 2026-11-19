@@ -128,6 +128,9 @@ function migrate() {
   if (typeof migrateVerb === "function") migrateVerb(); // the verb track (both apps)
   if (typeof migrateCourse === "function") migrateCourse(); // the course (German only)
   if (typeof migrateUsage === "function") migrateUsage();
+  // Review dates set in another time zone (or by a device in one) move to
+  // the start of their day here (srs.js, REVIEW DATES AFTER A TIME-ZONE CHANGE).
+  if (typeof dueRealign === "function") dueRealign();
   // Re-apply user word-text overrides after every state load — migrate()
   // runs both at startup and after a cloud sync replaces S.
   if (typeof applyWordEdits === "function") applyWordEdits();

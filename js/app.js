@@ -191,10 +191,20 @@ logEvent("app_open", { standalone: IS_STANDALONE, w: window.innerWidth });
 // STUDY DAY). Checked whenever the app comes back into view; the header
 // and the home screen are redrawn for the new day (a session or a game
 // in progress is left alone — its next answer rolls the day itself).
-let _dayDrawn = todayISO();
+// A new time zone also moves the review dates to the start of their day
+// here (srs.js, REVIEW DATES AFTER A TIME-ZONE CHANGE).
+let _dayDrawn = todayISO(), _tzDrawn = new Date().getTimezoneOffset();
 function dayChanged() {
-  const today = todayISO();
-  if (today === _dayDrawn) return;
+  const today = todayISO(), tz = new Date().getTimezoneOffset();
+  if (today === _dayDrawn && tz === _tzDrawn) return;
+  const moved = dueRealign();
+  _tzDrawn = tz;
+  if (today === _dayDrawn) {
+    if (!moved) return;
+    saveLocalOnly();
+    if (currentScreenName() === "home" && !sheetOpen()) renderHome();
+    return;
+  }
   _dayDrawn = today;
   questEnsureToday();
   saveLocalOnly();
