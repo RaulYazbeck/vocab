@@ -18,6 +18,7 @@ function rainFitsText(f) {
 function rainFits(w) { return rainFitsText(gameForm(w)); }
 function rainWords(pool) { return dedupeWords(pool.filter(rainFits)); }
 // Shrink the text until the longest word fits the lane (never mid-word).
+// el: the drop's text span (the drop itself lets its tip and trail out).
 function fitDropText(el) {
   let size = parseFloat(getComputedStyle(el).fontSize) || 13;
   while (el.scrollWidth > el.clientWidth + 1 && size > 9) { size -= 0.5; el.style.fontSize = size + "px"; }
@@ -50,8 +51,9 @@ registerGame({
 
     ctx.stage.innerHTML = `
       <div class="r-field" id="r-field">
+        <div class="r-sky" aria-hidden="true"></div>
         <div class="r-lane"></div><div class="r-lane"></div><div class="r-lane"></div>
-        <div class="r-ground"></div>
+        <div class="r-ground" aria-hidden="true"></div>
       </div>
       <div class="r-prompt" id="r-prompt"></div>`;
     const field = document.getElementById("r-field");
@@ -63,6 +65,23 @@ registerGame({
     fit();
     gListen(window, "resize", fit);
     const fieldH = () => field.clientHeight;
+    // A splash where a drop was caught (or hit the ground): one ring, gone
+    // in half a second — the only thing made per answer.
+    const splash = (el, ground) => {
+      if (REDUCED_MOTION || !el) return;
+      const fr = field.getBoundingClientRect(), r = el.getBoundingClientRect();
+      const s = document.createElement("div");
+      s.className = "r-splash" + (ground ? " ground" : "");
+      s.style.left = (r.left - fr.left + r.width / 2) + "px";
+      s.style.top = (ground ? field.clientHeight - 8 : r.top - fr.top + r.height / 2) + "px";
+      field.appendChild(s);
+      gTimeout(() => s.remove(), 600);
+    };
+    // Every speed-up: a flash of lightning across the sky.
+    const thunder = () => {
+      if (REDUCED_MOTION) return;
+      field.classList.remove("flash"); void field.offsetWidth; field.classList.add("flash");
+    };
     const speed = () => (fieldH() / rp.fall) * Math.min(2.6, 1 + rp.ramp * Math.floor(correct / 5)) * ctx.speedScale * slow; // px / s
 
     const end = () => {
@@ -91,11 +110,14 @@ registerGame({
       drops = [target, ...others].map((w, i) => {
         const el = document.createElement("button");
         el.className = "r-drop" + (reversed ? " rev" : "");
-        el.textContent = text(w);
+        const span = document.createElement("span");
+        span.className = "r-drop-text";
+        span.textContent = text(w);
+        el.appendChild(span);
         el.dataset.lane = lanes[i];
         el.style.left = `calc(${lanes[i] * 33.333}% + 3px)`;
         field.appendChild(el);
-        fitDropText(el);
+        fitDropText(span);
         const d = { w, el, lane: lanes[i], y: -12 - offsets[i] * 28 - Math.random() * 18, ok: i === 0 };
         el.style.transform = `translateY(${d.y}px)`;
         return d;
@@ -116,6 +138,7 @@ registerGame({
       const right = drops.find(d => d.ok);
       if (right) right.el.classList.add("right");
       if (drop && !drop.ok) drop.el.classList.add("wrong");
+      if (!drop && right) splash(right.el, true);
       drops.filter(d => d !== right && d !== drop).forEach(d => d.el.classList.add("fade"));
       shakeEl(field); playMiss(); haptic(cost < 1 ? "miss" : "heavy");
       ctx.say(`${why} — it was ${gameForm(target)}${cost < 1 ? " (new word: half a heart)" : ""}`);
@@ -136,11 +159,12 @@ registerGame({
       ctx.hit(target);
       ctx.setScore(score); ctx.setCombo(combo);
       drop.el.classList.add("burst");
+      splash(drop.el);
       floatScore(drop.el, "+" + pts, ctx.isGolden(target) ? "gold" : "");
       drops.filter(d => d !== drop).forEach(d => d.el.classList.add("fade"));
       if (combo >= 5) playCombo(combo); else playPop();
       haptic("select");
-      if (correct % 5 === 0) ctx.say("Faster!"); else ctx.say("Correct!");
+      if (correct % 5 === 0) { ctx.say("Faster!"); thunder(); } else ctx.say("Correct!");
       gTimeout(wave, 260);
     };
 

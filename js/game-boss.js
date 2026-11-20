@@ -307,10 +307,10 @@ registerGame({
 
     ctx.stage.innerHTML = `
       <div class="bb-arena" id="bb-arena">
-        <div class="bb-boss" id="bb-boss">${boss.icon}</div>
+        <div class="bb-stage"><div class="bb-boss" id="bb-boss">${boss.icon}</div><div class="bb-shadow" aria-hidden="true"></div><div class="bb-slash" id="bb-slash" aria-hidden="true"></div></div>
         <div class="bb-name">${mode === "deck" ? "👑 " : ""}${escapeHtml(boss.name)}${mode === "world" ? " · 🌋 world boss" : mode === "deck" || mode === "minion" ? ` · ${escapeHtml(getDeck(ctx.opts.deck).name)}` : ""}</div>
         ${mode === "deck" ? `<div class="bb-rule">${bring ? `The whole deck — ❤️ ×${bring} brought, one per mistake` : "The whole deck — one mistake and it escapes"}</div>` : mode === "minion" ? `<div class="bb-rule">${MINION_WORDS} words · 3 lives</div>` : ""}
-        <div class="bb-hp"><div class="bb-hp-fill" id="bb-hp"></div></div>
+        <div class="bb-hp"><div class="bb-hp-trail" id="bb-hp-trail"></div><div class="bb-hp-fill" id="bb-hp"></div></div>
         <div class="bb-hp-label" id="bb-hp-label"></div>
       </div>
       <div class="word-display bb-prompt">
@@ -334,6 +334,8 @@ registerGame({
 
     const updateHp = () => {
       document.getElementById("bb-hp").style.width = (hp / maxHp * 100) + "%";
+      // A pale trail shows the damage just dealt, then drains after it.
+      document.getElementById("bb-hp-trail").style.width = (hp / maxHp * 100) + "%";
       document.getElementById("bb-hp-label").textContent = `HP ${hp}/${maxHp}`;
       if (mode === "deck") ctx.setLives(hearts - 1, maxHearts - 1); // spare hearts only
       else ctx.setLives(hearts, maxHearts);
@@ -442,6 +444,8 @@ registerGame({
         input.classList.add("correct");
         fb.innerHTML = `<span class="bb-ok">⚔️ Hit! <strong>${colorArticleHtml(w[WORD_KEY])}</strong></span>`;
         bossEl.classList.remove("hit"); void bossEl.offsetWidth; bossEl.classList.add("hit");
+        const slash = document.getElementById("bb-slash");
+        if (slash && !REDUCED_MOTION) { slash.classList.remove("on"); void slash.offsetWidth; slash.classList.add("on"); }
         floatScore(bossEl, "−1 HP", "dmg");
         playBossHit(); haptic("select");
         ctx.setCombo(combo); ctx.setScore(correct * 10);

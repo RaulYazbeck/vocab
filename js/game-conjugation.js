@@ -214,9 +214,17 @@ registerGame({
     // French cards carry their tense ("Présent", "Imparfait"): a tense reel too.
     const frTenses = IS_FRENCH_APP ? [...new Set(eligible.map(w => conjItem(w).tense))] : [];
     const tenseReel = unlimited || frTenses.length > 0;
+    // The verb lab's colour code (Verb Thread, Timeline Drop, the sheets'
+    // tables): who in teal, each tense in its own hue. A tense with no
+    // hue there (Imperativ, Subjonctif…) stays neutral.
+    const tenseHue = name => {
+      const t = typeof VL_TENSES !== "undefined" ? VL_TENSES.find(x => normKey(x.name) === normKey(name)) : null;
+      return t ? t.hue : null;
+    };
+    const tenseSpan = name => { const h = tenseHue(name); return `<span class="cj-tn"${h == null ? "" : ` style="--th:${h}"`}>${escapeHtml(name)}</span>`; };
     // A quiet line names the tenses in play.
-    const chips = () => unlimited ? `<div class="cj-level">${escapeHtml(tenses().map(t => TENSE_BY_ID[t].name).join(" · "))}</div>`
-      : frTenses.length ? `<div class="cj-level">${escapeHtml(frTenses.join(" · "))}</div>` : "";
+    const chips = () => unlimited ? `<div class="cj-level">${tenses().map(t => tenseSpan(TENSE_BY_ID[t].name)).join(" · ")}</div>`
+      : frTenses.length ? `<div class="cj-level">${frTenses.map(tenseSpan).join(" · ")}</div>` : "";
     ctx.stage.innerHTML = `
       ${chips()}
       <div class="cj-machine ${tenseReel ? "three" : ""}" id="cj-machine">
@@ -248,6 +256,21 @@ registerGame({
     const reelVerbs = [...reelPool.map(x => cleanVerb(x.verb)), ...mine.slice(0, 60).map(v => v.inf)];
     const reelProns = IS_FRENCH_APP ? ["je", "tu", "il", "elle", "nous", "vous", "ils"] : ["ich", "du", "er/sie/es", "wir", "ihr", "sie/Sie"];
     const reelTenses = unlimited ? TENSES.map(t => t.name) : frTenses.length > 1 ? frTenses : ["Présent", "Imparfait", "Passé composé", "Futur"];
+    // The tense reel wears its tense's colour (it flickers through them while it spins).
+    const setTense = name => {
+      if (!tenseEl) return;
+      tenseEl.textContent = name;
+      const h = tenseHue(name), reel = tenseEl.parentNode;
+      if (h == null) { reel.style.removeProperty("--th"); reel.classList.remove("hued"); }
+      else { reel.style.setProperty("--th", h); reel.classList.add("hued"); }
+    };
+    // A long verb shrinks to fit its reel rather than break mid-word (gratulieren).
+    const fitReel = el => {
+      if (!el) return;
+      el.style.fontSize = "";
+      let size = parseFloat(getComputedStyle(el).fontSize) || 19;
+      while (el.scrollWidth > el.clientWidth + 1 && size > 12) { size -= 1; el.style.fontSize = size + "px"; }
+    };
 
     // One spin → cur = { kind: "card", w, it } | { kind: "gen", v, tense, person, cell, extra }
     const nextSpin = () => {
@@ -310,6 +333,7 @@ registerGame({
       document.getElementById("cj-format").innerHTML = fmt.html;
       input.placeholder = fmt.placeholder;
       const machine = document.getElementById("cj-machine");
+      machine.classList.remove("win");
       machine.classList.add("spinning");
       ctx.busy = true;
       let n = 0;
@@ -317,11 +341,12 @@ registerGame({
         if (ctx.finished) return;
         verbEl.textContent = reelVerbs[Math.floor(Math.random() * reelVerbs.length)] || "";
         pronEl.textContent = reelProns[Math.floor(Math.random() * reelProns.length)];
-        if (tenseEl) tenseEl.textContent = reelTenses[Math.floor(Math.random() * reelTenses.length)];
+        setTense(reelTenses[Math.floor(Math.random() * reelTenses.length)]);
         if (++n < (REDUCED_MOTION ? 1 : 7)) gTimeout(tick, 60);
         else {
           verbEl.textContent = verbTxt; pronEl.textContent = pronTxt;
-          if (tenseEl) tenseEl.textContent = tenseTxt;
+          setTense(tenseTxt);
+          fitReel(verbEl); fitReel(pronEl);
           machine.classList.remove("spinning");
           if (gameSfxOn()) playNotes([{ freq: 660, at: 0, dur: 0.06 }, { freq: 880, at: 0.06, dur: 0.1 }], 0.12);
           ctx.busy = false;
@@ -478,6 +503,7 @@ registerGame({
         const pts = ctx.award(gen ? null : cur.w, (helped ? 8 : 15) + Math.min(combo - 1, 5) * 2);
         score += pts;
         input.classList.add("correct");
+        const mach = document.getElementById("cj-machine"); if (mach) mach.classList.add("win");
         const lowerSie = gen && cur.tense === "im" && cur.person === "Sie" && /\ssie\b/.test(" " + String(val).trim().replace(/!+$/, ""));
         fb.innerHTML = `<span class="bb-ok">✓ <span${sayTapAttrs(conjSayText(cur))}>${shownOf(cur)}</span></span>${lowerSie ? `<div class="cj-format-note">write Sie with a capital S — it's the polite “you”</div>` : ""}`;
         floatScore(input, "+" + pts, !gen && ctx.isGolden(cur.w) ? "gold" : "");
