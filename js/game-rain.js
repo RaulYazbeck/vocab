@@ -51,7 +51,7 @@ registerGame({
 
     ctx.stage.innerHTML = `
       <div class="r-field" id="r-field">
-        <div class="r-sky" aria-hidden="true"></div>
+        <div class="r-sky" aria-hidden="true"><div class="r-rain"></div></div>
         <div class="r-lane"></div><div class="r-lane"></div><div class="r-lane"></div>
         <div class="r-ground" aria-hidden="true"></div>
       </div>

@@ -743,6 +743,10 @@ function gDrag(root, opts) {
       const g = st.el.cloneNode(true);
       g.classList.add("g-ghost");
       g.removeAttribute("id");
+      // It lives on <body>, outside the game screen: it carries the game's
+      // id so the game's own look (bricks, letter tiles) goes with it.
+      const scr = document.getElementById("game-screen");
+      if (scr && scr.dataset.game) g.dataset.game = scr.dataset.game;
       g.style.width = r.width + "px"; g.style.height = r.height + "px";
       st.offX = st.x0 - r.left; st.offY = st.y0 - r.top;
       document.body.appendChild(g);

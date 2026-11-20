@@ -54,7 +54,7 @@ registerGame({
       if (!q) return;
       speak(gameForm(q.w));
       const b = document.getElementById("l-play"), wrap = b && b.parentNode;
-      if (!wrap || REDUCED_MOTION) return;
+      if (!wrap || REDUCED_MOTION || !ttsOn()) return; // no rings for a word that isn't said
       wrap.classList.remove("talking"); void wrap.offsetWidth; wrap.classList.add("talking");
       if (ringT) gClearTimeout(ringT);
       ringT = gTimeout(() => { ringT = 0; wrap.classList.remove("talking"); }, 1500);

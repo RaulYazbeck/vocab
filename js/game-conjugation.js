@@ -533,6 +533,7 @@ registerGame({
               retry.length = rtN;
             } else ctx.hit(c.w, helped ? "recognition" : "recall");
             input.classList.remove("wrong"); input.classList.add("correct");
+            const mach = document.getElementById("cj-machine"); if (mach) mach.classList.add("win");
             ctx.setCombo(combo);
           };
         } else ctx.typoPend = null;

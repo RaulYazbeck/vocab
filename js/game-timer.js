@@ -88,7 +88,7 @@ registerGame({
       // One pip per word: done ones filled, this one lit, the rest to go.
       const left = queue.length - qi, all = correct + left;
       leftEl.innerHTML = all <= 30
-        ? `<span class="tm-pips" aria-label="${left} left">${"<i class=\"on\"></i>".repeat(correct)}<i class="cur"></i>${"<i></i>".repeat(left - 1)}</span><span class="tm-left-n">${left} left</span>`
+        ? `<span class="tm-pips" aria-hidden="true">${"<i class=\"on\"></i>".repeat(correct)}<i class="cur"></i>${"<i></i>".repeat(left - 1)}</span><span class="tm-left-n">${left} left</span>`
         : `${left} left`;
       input.value = ""; input.className = "german-input";
       ctx.busy = false;

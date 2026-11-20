@@ -57,7 +57,7 @@ registerGame({
       const slots = n => `<span class="tr-dots" aria-hidden="true">${"<i></i>".repeat(n)}</span>`;
       if (!shown) { hintEl.innerHTML = rp.hint ? slots(Math.min(t.length, 16)) : ""; return; }
       const given = [...t.slice(0, shown)].map(c => c === " " ? `<i class="sp"></i>` : `<i>${escapeHtml(c)}</i>`).join("");
-      hintEl.innerHTML = `<span class="tr-letters" aria-label="${escapeHtml(t.slice(0, shown))}">${given}</span>${slots(Math.max(0, Math.min(t.length, 16) - shown))}`;
+      hintEl.innerHTML = `<span class="tr-letters">${given}</span>${slots(Math.max(0, Math.min(t.length, 16) - shown))}`;
     };
     const next = () => {
       if (ctx.finished) return;
