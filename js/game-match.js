@@ -113,7 +113,9 @@ registerGame({
       if (a.dataset.side === t.dataset.side) return false;
       if (a.dataset.k === t.dataset.k) {
         const w = byKey.get(t.dataset.k);
-        [a, t].forEach(x => { x.classList.remove("peek", "hidden-face", "sel"); x.classList.add("done"); x.disabled = true; });
+        // Each pair keeps its own colour, so the board shows what went with what.
+        const hue = (pairs * 67 + 150) % 360;
+        [a, t].forEach(x => { x.classList.remove("peek", "hidden-face", "sel"); x.classList.add("done"); x.disabled = true; x.style.setProperty("--ph", hue); });
         pairs++; combo++; maxCombo = Math.max(maxCombo, combo);
         const got = ctx.award(w, 100);
         pts += got;

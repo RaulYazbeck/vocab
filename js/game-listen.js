@@ -48,7 +48,17 @@ registerGame({
     let r = 0, score = 0, combo = 0, maxCombo = 0, correct = 0, wrong = 0, replays = 0, noReplay = 0, typedOk = 0, q = null;
     const langName = IS_FRENCH_APP ? "French" : "German";
 
-    const say = () => { if (q) speak(gameForm(q.w)); };
+    // The play button sends out sound rings while the word is said.
+    let ringT = 0;
+    const say = () => {
+      if (!q) return;
+      speak(gameForm(q.w));
+      const b = document.getElementById("l-play"), wrap = b && b.parentNode;
+      if (!wrap || REDUCED_MOTION || !ttsOn()) return; // no rings for a word that isn't said
+      wrap.classList.remove("talking"); void wrap.offsetWidth; wrap.classList.add("talking");
+      if (ringT) gClearTimeout(ringT);
+      ringT = gTimeout(() => { ringT = 0; wrap.classList.remove("talking"); }, 1500);
+    };
     ctx.listenReplay = say;
     const replay = () => {
       if (!q || ctx.busy) return;

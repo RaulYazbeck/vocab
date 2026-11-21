@@ -85,7 +85,11 @@ registerGame({
       ctx.teach("");
       promptEl.innerHTML = escapeHtml(gamePrompt(cur)) + ctx.tag(cur);
       document.getElementById("tm-label").textContent = cur.hint ? askHintText(cur) : "Type it";
-      leftEl.textContent = `${queue.length - qi} left`;
+      // One pip per word: done ones filled, this one lit, the rest to go.
+      const left = queue.length - qi, all = correct + left;
+      leftEl.innerHTML = all <= 30
+        ? `<span class="tm-pips" aria-hidden="true">${"<i class=\"on\"></i>".repeat(correct)}<i class="cur"></i>${"<i></i>".repeat(left - 1)}</span><span class="tm-left-n">${left} left</span>`
+        : `${left} left`;
       input.value = ""; input.className = "german-input";
       ctx.busy = false;
       try { input.focus({ preventScroll: true }); } catch (e) {}

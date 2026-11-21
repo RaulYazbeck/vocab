@@ -62,7 +62,8 @@ if (!IS_FRENCH_APP) registerGame({
       const np = nounParts(w);
       const nounLine = bare ? `<strong>${escapeHtml(np.noun)}</strong>` : colorArticleHtml(np.full);
       ctx.stage.innerHTML = `
-        <div class="cz-card g-enter">
+        <div class="cz-card g-enter" id="cs-card">
+          <div class="cs-compass" aria-hidden="true"><i class="cs-needle"></i><b class="n">N</b><b class="a">A</b><b class="d">D</b><b class="g">G</b></div>
           <div class="g-q-label">${typed ? "Type the missing article" : "Which form fits?"}${ctx.tag(w)}</div>
           <div class="cz-sentence" id="cs-sentence">${ci.html}</div>
           <div class="cs-noun">${nounLine} <span>= ${escapeHtml(gamePrompt(w))}</span></div>
@@ -77,6 +78,9 @@ if (!IS_FRENCH_APP) registerGame({
       const t = tally[c] || (tally[c] = [0, 0]); if (ok) t[0]++; t[1]++;
       recordGrammar(c, ok);
       if (!ok && typeof learnNoteMiss === "function") learnNoteMiss(q.w, { src: "game:cases", type: "case", given: picked && picked.text != null ? picked.text : picked, other: c });
+      // The compass swings to the case the sentence needed: N · A · D · G.
+      const card = document.getElementById("cs-card");
+      if (card) { card.dataset.case = c; card.classList.add(ok ? "ok" : "bad"); }
       const sEl = document.getElementById("cs-sentence");
       if (sEl) { sEl.innerHTML = q.ci.reveal; sEl.classList.add(ok ? "ok" : "bad"); if (sayTapOn()) { sEl.dataset.tapSay = q.ci.ex.de; sEl.title = "Tap to hear"; } }
       speak(q.ci.ex.de);

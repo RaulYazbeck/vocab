@@ -743,6 +743,10 @@ function gDrag(root, opts) {
       const g = st.el.cloneNode(true);
       g.classList.add("g-ghost");
       g.removeAttribute("id");
+      // It lives on <body>, outside the game screen: it carries the game's
+      // id so the game's own look (bricks, letter tiles) goes with it.
+      const scr = document.getElementById("game-screen");
+      if (scr && scr.dataset.game) g.dataset.game = scr.dataset.game;
       g.style.width = r.width + "px"; g.style.height = r.height + "px";
       st.offX = st.x0 - r.left; st.offY = st.y0 - r.top;
       document.body.appendChild(g);
@@ -1153,6 +1157,8 @@ function makeCtx(def, pool, size, opts) {
       const m = comboMult(n);
       e.textContent = n >= 2 ? `🔥${n}${m > 1 ? ` ×${m}` : ""}` : "";
       e.classList.toggle("hot", m > 1);
+      // The streak's heat (×1–×4) for a game's own look (games.css: data-heat).
+      const scr = $("game-screen"); if (scr) scr.dataset.heat = m;
     },
     setBar(frac, cls = "") {
       const e = $("g-bar-fill"); if (!e) return;
@@ -1347,6 +1353,8 @@ function pauseGame(auto) {
   if (!ctx.def.timed || ctx.def.noPause || !ctx.started || ctx.paused || ctx.finished) return;
   ctx.paused = true;
   ctx.clock.pause();
+  // Ambient effects (rain, lights…) stand still while paused (games.css).
+  const scr = document.getElementById("game-screen"); if (scr) scr.classList.add("g-paused");
   if (ctx.onPause) ctx.onPause();
   const o = overlay(`<div class="g-card">
       <div class="g-card-icon">⏸</div>
@@ -1363,6 +1371,7 @@ function resumeGame() {
   if (!ctx.paused) { overlay(""); return; }
   overlay("");
   ctx.paused = false;
+  const scr = document.getElementById("game-screen"); if (scr) scr.classList.remove("g-paused");
   if (!ctx.clockHeld) ctx.clock.start();
   if (ctx.onResume) ctx.onResume();
 }
