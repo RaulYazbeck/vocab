@@ -533,6 +533,12 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   const zug = { a: ["Ich nehme den Zug um sieben Uhr."] };
   ok(C.cxOrders(zug).includes("Um sieben Uhr nehme ich den Zug.") && !C.cxOrders(zug).some(o => /Uhr$/.test(o.replace(/\.$/, "")) && /^Um sieben nehme/.test(o)), "«um sieben Uhr» moves as one: Um sieben Uhr nehme ich den Zug.", J(C.cxOrders(zug)));
   ok(C.cxCheck(zug, "Um sieben Uhr nehme ich den Zug").ok && !C.cxCheck(zug, "Um sieben nehme ich den Zug Uhr").ok, "…and the broken order isn't accepted");
+  // es gibt: the place in front, after es gibt, or at the end — all right
+  const zoo = { a: ["In der Stadt gibt es einen Zoo."] };
+  ok(["Es gibt einen Zoo in der Stadt", "es gibt in der Stadt einen Zoo", "In der Stadt gibt es einen Zoo"].every(t => C.cxCheck(zoo, t).ok) && !C.cxCheck(zoo, "Es gibt einen Zoo der in Stadt").ok && !C.cxCheck(zoo, "Es gibt ein Zoo in der Stadt").ok, "es gibt: «Es gibt einen Zoo in der Stadt» is right too", J(C.cxOrders(zoo)));
+  const caf = { a: ["Ja, es gibt Frühstück von sieben bis zehn Uhr."] };
+  ok(C.cxCheck(caf, "Ja, von sieben bis zehn Uhr gibt es Frühstück").ok, "es gibt: a place or time at the end can go in front", J(C.cxOrders(caf)));
+  ok(!C.cxOrders({ a: ["Ein billigeres Hotel gibt es hier nicht."] }).length && !C.cxOrders({ a: ["Wo gibt es hier einen Supermarkt?"] }).length, "es gibt: a fronted object or a question word never moves");
   // a verb rule on a miss: the sheet's own point
   const rv = C.cxRuleView("gs:pr4.r2");
   ok(rv && rv.sheet === "pr4" && /sprechen/.test(rv.text) && !C.cxRuleView("gs:nope.r1"), "a miss in the verb drills names the verb sheet's rule");

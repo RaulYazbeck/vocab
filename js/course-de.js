@@ -283,7 +283,7 @@ function cxMinus(a, b) { const B = cxBag(b), out = []; a.forEach(t => { const k 
 // checker builds the other order by that rule, so "Heute habe ich keine
 // Zeit" and "Ich habe heute keine Zeit" are both right without listing
 // both. Only pronoun subjects and time phrases move (nothing it could get
-// wrong); never in a nicht … sondern sentence (the place of nicht is
+// wrong) — and with es gibt / es gab, a place too (cxGibtOrders); never in a nicht … sondern sentence (the place of nicht is
 // the point there).
 const CX_PRON_SUBJ = /^(ich|du|er|sie|es|wir|ihr|man)$/;
 const CX_PRON_OBJ = /^(mich|dich|ihn|sie|es|uns|euch|ihnen|mir|dir|ihm|sich)$/;
@@ -295,6 +295,53 @@ function cxTimeLen(w, i) {
   // (um acht Uhr: the Uhr moves with it)
   if (CX_TIME2A.test(a) && CX_TIME2B.test(b)) return /^uhr$/i.test(w[i + 2] || "") ? 3 : 2;
   return CX_TIME1.test(a) ? 1 : 0;
+}
+// es gibt / es gab with a place or a time: «In der Stadt gibt es einen Zoo»,
+// «Es gibt einen Zoo in der Stadt» and «Es gibt in der Stadt einen Zoo» are
+// all right. From one, the other two. What moves: a phrase that starts with
+// a preposition (in der Stadt, zum Mittagessen, zwischen der Bank und der
+// Post), a place or time word (hier, da, dort, heute…) or a time phrase
+// (diese Woche). Never a fronted object («Ein billigeres Hotel gibt es hier
+// nicht»), a question word, sonst / so (their meaning hangs on the place).
+const CX_GIBT_PREP = /^(in|im|ins|an|am|ans|auf|aufs|bei|beim|zum|zur|aus|vom|von|nach|mit|für|unter|über|vor|hinter|neben|zwischen|seit|ab|während|außerhalb|innerhalb|überall|gegenüber)$/;
+const CX_GIBT_ADV = /^(hier|da|dort|drüben|draußen|drinnen|oben|unten|überall|heute|morgen|gestern|jetzt|bald|später|manchmal|oft|immer|früher|damals)$/;
+// The words before the verb are one place or time phrase → true.
+function cxGibtPlace(p) {
+  if (!p.length || p.some(x => /[,;:]$/.test(x))) return false;
+  const a = p[0].toLowerCase();
+  if (p.length === 1) return CX_GIBT_ADV.test(a);
+  if (cxTimeLen(p, 0) === p.length) return true;
+  // (uns gegenüber: the preposition after its pronoun)
+  if (p.length === 2 && /^gegenüber$/i.test(p[1]) && CX_PRON_OBJ.test(a)) return true;
+  return CX_GIBT_PREP.test(a) && a !== "überall" && a !== "gegenüber";
+}
+// w: a main clause's words (no end mark) → the other orders, as word lists.
+function cxGibtOrders(w) {
+  const out = [], small = s => s.charAt(0).toLowerCase() + s.slice(1);
+  const vi = w.findIndex((x, i) => i > 0 && /^(gibt|gab)$/i.test(x) && /^es$/i.test(w[i + 1] || ""));
+  // Place + gibt es + rest → Es gibt place rest · Es gibt rest place
+  if (vi > 0) {
+    const place = w.slice(0, vi), rest = w.slice(vi + 2);
+    if (rest.length && cxGibtPlace(place) && !CX_PRON_OBJ.test(rest[0].toLowerCase())) {
+      const p = [small(place[0]), ...place.slice(1)];
+      out.push(["es", w[vi], ...p, ...rest], ["es", w[vi], ...rest, ...p]);
+    }
+    return out;
+  }
+  // Es gibt … place … → Place gibt es … (and the place in the other spot)
+  if (!/^es$/i.test(w[0] || "") || !/^(gibt|gab)$/i.test(w[1] || "")) return out;
+  const verb = w[1], R = w.slice(2);
+  if (R.length < 2) return out;
+  const front = (place, rest) => { if (rest.length && !CX_PRON_OBJ.test(rest[0].toLowerCase())) out.push([small(place[0]), ...place.slice(1), verb, "es", ...rest]); };
+  // right after es gibt: es gibt hier / es gibt in der Stadt einen Zoo
+  const n0 = CX_GIBT_ADV.test(R[0].toLowerCase()) ? 1 : cxTimeLen(R, 0);
+  if (n0) { const place = R.slice(0, n0), rest = R.slice(n0); front(place, rest); out.push(["es", verb, ...rest, ...place]); return out; }
+  // at the end: a place word, or the last phrase that starts with a preposition
+  const last = R.length - 1;
+  let at = CX_GIBT_ADV.test(R[last].toLowerCase()) ? last : -1;
+  if (at < 0) for (let i = 1; i < R.length - 1; i++) if (CX_GIBT_PREP.test(R[i].toLowerCase()) && cxGibtPlace(R.slice(i))) { at = i; break; }
+  if (at > 0) { const place = R.slice(at), rest = R.slice(0, at); front(place, rest); out.push(["es", verb, ...place, ...rest]); }
+  return out;
 }
 const _cxOrders = new WeakMap();
 function cxOrders(item) {
@@ -336,8 +383,10 @@ function cxOrders(item) {
       let k = 0; while (k < rest.length && CX_PRON_OBJ.test(rest[k].toLowerCase())) k++;
       out.push(join([subj, verb, ...rest.slice(0, k), ...chunk, ...rest.slice(k)]));
     }
+    // (c) es gibt / es gab: the place or time can go anywhere around it (see cxGibtOrders)
+    if (!/[.!?]\s/.test(head)) cxGibtOrders(w).forEach(v => out.push(join(v)));
   });
-  const res = out.filter(v => !cxAnswers(item).some(a => cxStrict(a) === cxStrict(v)));
+  const res = [...new Set(out)].filter(v => !cxAnswers(item).some(a => cxStrict(a) === cxStrict(v)));
   _cxOrders.set(item, res);
   return res;
 }
