@@ -342,7 +342,8 @@ if (PARTS.includes("runs") && !ONLY.length) {
   console.log("── runs");
   await setup(1, true);
   for (const [label, fn] of [["🎯 Daily Challenge", "startDailyChallenge"], ["🕹️ Arcade Mix", "startArcadeMix"]]) {
-    await page.evaluate(() => { window._reset(); S.games.daily = {}; openGamesHub(); });
+    // A new day for the Daily Challenge (as dailyState() starts one): today not yet done.
+    await page.evaluate(() => { window._reset(); const d = S.games.daily; d.date = ""; d.completedDates = (d.completedDates || []).filter(x => x !== todayISO()); openGamesHub(); });
     await page.waitForTimeout(200);
     const b = page.locator(`button[onclick='${fn}()']`);
     if (!(await b.count()) || await b.isDisabled()) { report(true, `${label}: not offered`); continue; }
