@@ -1042,7 +1042,10 @@ function showStartCard(ctx, onGo) {
     if (!o) return;
     o.querySelectorAll(".g-rank").forEach(b => b.onclick = () => { ctx.rank = +b.dataset.r; updateHudRun(ctx); render(); });
     bindTwistLine(ctx, render);
-    if (bonusChoice) bonusModeBind("g-bmode-splash", () => { bonusModeApply(ctx); updateHudRun(ctx); render(); });
+    // (No 🐣 Easy / 🏅 Rank-up switch here: that is a bonus round's, and a
+    // bonus round never shows this card. A stray call here, from 13 Nov, used
+    // a name this function doesn't have — the card threw before Start was
+    // wired, so no game with a rank above 🥉 or a twist could be started.)
     armOverlayButton(o.querySelector("#g-go"), () => { overlay(""); startWithTwistLog(ctx, onGo); });
   };
   render();

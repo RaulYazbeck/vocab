@@ -48,6 +48,11 @@ In the real app (Chromium via playwright-core from `../audio/tests`; run
                             # typed forms graded like Today (pronoun, umlaut), the lesson shows the whole form  (APP=fr)
     node t-gamesweep.mjs    # every Today bonus game with verb items in its pool, played by random taps and typed
                             # answers, phone + desktop: no errors, nothing cut off, no verb without its person  (APP=fr)
+    node t-gamematrix.mjs   # every minigame × every difficulty, played to its results: from the games menu and the
+                            # real rank card (intros seen), every rank 🥉→💎, every twist, every game as a Today bonus
+                            # (Easy / Rank up), Daily Challenge and Arcade Mix round by round, a perfect round ranking
+                            # up, the menu's tiles and ▶ Play for today — no errors, stalls, NaN, cut text; each rank's
+                            # handling (memory mode, decoys, no hints, sudden death…)  (APP=fr, W=1280 H=900, PART=, ONLY=)
     node t-umlaut.mjs       # the umlaut choice (untimed): fahrt / fährt → 1 or 2 in Today, sheet quizzes and untimed
                             # games; Enter spam never picks or skips; a right pick is right; timed games forgive
     node t-plural.mjs       # a plural missed in Plural Hunt is repaired as its plural (der Tisch → die ___)
