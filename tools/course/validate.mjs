@@ -757,6 +757,67 @@ if (neg && neg.built) {
   });
 }
 
+// ── the checker on typical mistakes (Session 9: the post-B1 bonus) ──
+// each: [set, the item's question or first answer, what was typed, the rule it should name, words its message must hold]
+{
+  const cases = [
+    // Konjunktiv I and reported speech
+    ["d26.9", "«Ich arbeite gern im Team.»", "Er sagt, er arbeitet gern im Team.", "kj.form", "arbeite"],
+    ["d26.9", "«Ich bin erst seit Mai hier.»", "Er sagt, er ist erst seit Mai hier.", "kj.sein", "sei"],
+    ["d26.9", "«Ich fahre jeden Tag mit dem Velo.»", "Er sagt, er fährt jeden Tag mit dem Velo.", "kj.form", "fahre"],
+    ["d26.9", "«Ich arbeite gern im Team.»", "Er sagt, dass er arbeite gern im Team.", "kj.form", "end"],
+    ["d26.5", "«Der Bus kam zwei Minuten später.»", "Der Zeuge sagte, der Bus kam zwei Minuten später.", "kj.past", "no Präteritum"],
+    ["dkj.ask", "Die Lehrerin fragte: «Hat Tim seine Hausaufgaben gemacht?»", "Die Lehrerin fragte, dass Tim seine Hausaufgaben gemacht habe.", "kj.ask", "ob"],
+    ["dkj.ask", "Die Ärztin sagte: «Bleiben Sie zwei Tage im Bett!»", "Die Ärztin sagte, ich soll zwei Tage im Bett bleiben.", "kj.ask", "solle"],
+    ["dkj.fut", "Lea schreibt: «Ich werde dich am Bahnhof abholen.»", "Lea schreibt, sie wird mich am Bahnhof abholen.", "kj.fut", "werde"],
+    ["d26.1", "Die Kinder sagen, sie ___ müde. (sein)", "sind", "kj.sein", "seien"],
+    ["d26.1", "Sie meint, ihr Sohn ___ schon gut Deutsch. (können)", "kann", "kj.form", "könne"],
+    ["d26.1", "Sie meint, ihr Sohn ___ schon gut Deutsch. (können)", "könnte", "kj.use", "spoken"],
+    // Konjunktiv II · past
+    ["d26.20", "Er kommt gern mit.", "Er hätte gern mitgekommen.", "gs:k2p1.r1", "wäre"],
+    ["d26.20", "Wir nehmen den früheren Zug.", "Wir wären den früheren Zug genommen.", "gs:k2p1.r1", "hätten"],
+    ["d26.20", "Wir nehmen den früheren Zug.", "Wir haben den früheren Zug genommen.", "gs:k2p1.r1", "really happened"],
+    ["d26.21", "Ich müsste mehr Wasser trinken.", "Ich hätte mehr Wasser trinken gemusst.", "gs:k2p2.trap", "müssen"],
+    ["dk2p.sub", "Ich bin nicht gekommen. Ich hätte arbeiten müssen. (weil)", "Ich bin nicht gekommen, weil ich arbeiten müssen hätte.", "gs:k2p2.r3", "before"],
+    // Futur II
+    ["d21.1", "Anna und Ben werden auf den Gipfel gestiegen ___.", "haben", "fut2.form", "sein"],
+    ["d21.1", "Du ___ bestimmt viele Fotos gemacht haben.", "wird", "fut2.form", "wirst"],
+    ["d21.5", "Wir fahren vier Stunden lang.", "Wir werden vier Stunden lang gefahren haben.", "fut2.form", "sein"],
+    ["d21.5", "Der Lehrling kauft ein Sandwich.", "Der Lehrling wird ein Sandwich gekauft.", "fut2.form", "haben"],
+    ["dfut2.sub", "Ich glaube. Er wird den Termin vergessen haben. (dass)", "Ich glaube, dass er wird den Termin vergessen haben.", "fut2.order", "end"],
+    // sein … zu, -bar
+    ["d25.15", "Kann man den Text gut verstehen?", "Ja, er ist gut verstehen.", "pvx.zu", "zu"],
+    ["d25.15", "Kann man den Text gut verstehen?", "Ja, er wird gut zu verstehen.", "pvx.zu", "sein"],
+    ["dpvx.must", "Man muss das Formular bis Freitag abgeben.", "Das Formular ist bis Freitag zu abgeben.", "pvx.must", "inside"],
+    ["dpvx.bar", "Man kann das Wasser trinken. Es ist ___.", "trink", "pvx.bar", "trinkbar"],
+    // prefixes both ways
+    ["dpfx.pf", "Hast du den Vertrag schon ___? (übersetzen)", "übergesetzt", "pfx.insep", "übersetzt"],
+    ["dpfx.pf", "Wir sind im Mai ___. (umziehen)", "umzogen", "pfx.sep", "umgezogen"],
+    // extended modifiers
+    ["dext.build", "Die Frau, die im Café sitzt, ist meine Lehrerin.", "Die sitzende im Café Frau ist meine Lehrerin.", "ext.build", "participle last"],
+    ["dext.build", "Die Bücher, die zurückgegeben wurden, liegen auf dem Tisch.", "Die zurückgebenden Bücher liegen auf dem Tisch.", "ext.which", "zurückgegebenen"],
+    ["dext.which", "das ___ Wasser (kochen — it's boiling now)", "gekochte", "ext.which", "kochende"],
+    ["dext.which", "die ___ Tür (schließen — someone has closed it)", "schließende", "ext.which", "geschlossene"],
+  ];
+  cases.forEach(([set, key, typed, rule, word]) => {
+    const s = CX.sets[set], it = s && s.items.find(x => x.q === key || (x.a || [])[0] === key), r = it && C.cxCheck(it, typed, C.cxSection(s.sec));
+    ok(r && !r.ok && r.rule === rule && String(r.msg || "").toLowerCase().includes(word.toLowerCase()), `diagnosis: "${typed}" → ${rule}, «${word}» (got ${r ? r.rule + ": " + r.msg : "no such item in " + set})`);
+  });
+  // what these detectors find is the grammar — never "almost, check the spelling"
+  [["d26.1", "Die Kinder sagen, sie ___ müde. (sein)", "sind"], ["d26.20", "Er kommt gern mit.", "Er hätte gern mitgekommen."], ["d21.1", "Du ___ bestimmt viele Fotos gemacht haben.", "wird"], ["dpfx.pf", "Wir sind im Mai ___. (umziehen)", "umzogen"], ["dext.which", "das ___ Wasser (kochen — it's boiling now)", "gekochte"]].forEach(([set, key, typed]) => {
+    const s = CX.sets[set], it = s.items.find(x => x.q === key || (x.a || [])[0] === key), r = it && C.cxCheck(it, typed, C.cxSection(s.sec));
+    ok(r && !r.ok && !r.near, `"${typed}": the grammar — a mistake, not almost`);
+  });
+  // the bonus: every lesson built, after everything else, never paced to the date
+  const bonus = CX.sections.filter(s => s.prio === "C");
+  ok(bonus.length === 6 && bonus.every(s => s.stage === 4 && s.ses === 9 && (s.built || s.verb)), `the six post-B1 lessons are built (${bonus.filter(s => s.built || s.verb).map(s => s.id)})`);
+  // every exercise of the book has its status: mirrored, generated or skipped with a reason — none planned, none left
+  {
+    const all = Object.values(blueprint).flatMap(c => c.exercises), st = all.map(e => C.cxCovOf(e.id).st);
+    ok(all.length === 445 && st.every(x => ["mirrored", "generated", "skipped"].includes(x)), `coverage 100 %: ${st.filter(x => x !== "planned" && x !== "none").length} of ${all.length} exercises covered`);
+  }
+}
+
 // ── what the course says (course-de.js cxSayAll / cxQuizSayText) ──
 // Said once a question is answered and recorded by the voice pack
 // (tools/audio/runtime.mjs): only whole, clean German — no gap, no cue in

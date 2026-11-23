@@ -453,7 +453,7 @@ order moves on. If nothing built is ready, the break simply continues
   lit, then "Coming up" (the graph, a short legend).
 - **✍️ Writing:** a level (A1 · A2 · B1), a theme (13, one line per level,
   or 🎲) and one Write button; my texts below, kept forever, copied for Claude.
-- **🎓 Exam** (Session 9): fide countdown, monthly mock, readiness hint.
+- **🎓 Exam** (Session 9, built): fide countdown, monthly mock with its deadline (on Today while it's due), readiness hint, the mocks so far.
 - **Plan settings:** the finish date (exists) sets the grammar pace.
 
 ---
@@ -1157,6 +1157,61 @@ to tap. My real backup: identical on the pushed code and this one, the pace gree
 screen · coverage report at 100 % (every blueprint exercise *mirrored*,
 *generated* or *skipped*) · the parked post-B1 list · fixes from testing.
 
+**Built (23 Nov 2026):** chapters 12, 21, 25, 26, 27 (and 29 for its "Extended modifiers", a heading with no exercise
+of its own) — the six post-B1 lessons, in `js/course/s4-*.js`: **Konjunktiv I and reported speech** (`s4-k1.js`, 2
+sheets: er sei, er habe, er komme — the written form of reported speech, the Konjunktiv II where the Konjunktiv I looks
+like the present (sie hätten) · the past with habe / sei + Partizip II, werde + infinitive, ob and the W-word, commands
+with solle, and the set phrases everyone says — Gott sei Dank, es sei denn, wie dem auch sei) · **Konjunktiv II · past**
+(`s4-k2p.js`, its book exercises: hätte / wäre + Partizip II, hätte … machen sollen, hätte before two infinitives) ·
+**Futur II** (`s4-fu2.js`: the guess about the past — er wird den Bus verpasst haben —, done by then, werden last in a
+side clause) · **sein … zu and -bar** (`s4-pvx.js`: ist leicht zu lösen, ist bis Freitag abzugeben, lösbar /
+unbezahlbar, and the three ways to say *it can be done*) · **prefixes both ways** (`s4-prefix.js`: the stress decides —
+úmziehen / übersétzen, ge- or not, úmfahren / umfáhren) · **extended participle modifiers** (`s4-ext.js`: die im Garten
+spielenden Kinder — built, read back into a relative clause, -end or the Partizip II, die zu bezahlende Rechnung).
+**6 sheets, 24 rules, 50 drill sets (483 items of our own)**, each lesson ending with its production drills (build ·
+translate · answer · write your own), a writing prompt for the Konjunktiv I (w.news). They open once everything else is
+done and are spread to the finish date itself (a bonus — the pace of the Must and Should lessons doesn't move: each
+lesson has the sheets its estimate had). **Coverage: 445 of 445 exercises (100 %)** — 399 mirrored, 45 generated, 1
+skipped with its reason (24•7); `node tools/course/coverage.mjs --write` writes `tools/course/COVERAGE.md`, and the
+validator now fails on any exercise without a status. `DONE` = 9. Changes to the map: none needed — every exercise of
+chapters 12, 21, 25, 26 and 27 that was planned went to the lesson the map gave it. Where the book is off, ours follows
+the language: *widerrufen* is inseparable (the book lists it as separable), *wiedergeben* as "give back" is old-fashioned
+(wiedersehen instead), the modals' past in reported speech is left out (the book's rule there is not what people write).
+The verb engine guesses um- / durch- from a table (umarmen would split, durchfallen wouldn't): the prefix lesson is
+written by hand, not generated.
+
+**🎓 Exam and the monthly mock** (☰ › 🎓 Exam, the Course's row, and on Today while it's due — "a little next to the
+Today", my wish): the fide countdown (days to the finish date, the goals: speaking B1, writing A1–A2, the time gone since
+the first lesson), **this month's mock with its deadline**, where I stand (one verdict — on course · nearly there ·
+behind — and the one thing that helps most, from the lesson clock, the rules learned, the words' own status, the
+conversation units and the last mock), my mocks as a column a month (80 % marked), and what the test asks. The mock: 20
+questions across every lesson done — six production, one rule each, easiest first, typed (no tiles), no sheet to peek at;
+every answer counts for its rule like a review, a miss goes back to it. It opens on the 1st (never sooner than two weeks
+after the last; the very first the day three lessons are done, unless fewer than three days of the month are left) and
+is **due a week later**; past the deadline it's still there, marked late, until the month ends; then missed. The
+month's first attempt is kept (synced — the earlier attempt wins on two devices); after it a practice mock can be run any
+time. Its result: the score, a bar per stage, production apart, the minutes, the weakest part, the questions missed with
+their rules. The learning log carries every month's mock for Claude.
+**Tests:** a Session 9 block in `t-unit` (the bonus waits for everything else; the Konjunktiv I's days keep to the sheets
+read; the mock's whole calendar — opens, due tomorrow, late, missed, the 1st, two weeks after a late one, too late in
+the month; its plan: 20 questions, never the same item, never writing, 6 production, easiest first, one rule each, only
+lessons done; the result kept once a month; readiness green · amber · red · no date; the sync); `t-course` runs the Exam
+screen and a whole mock on a phone and a desktop (nothing sticking out) and lists chapters 12, 21, 25, 26 and 27's Übungen;
+the validator has the post-B1 typical mistakes (31 cases) and checks coverage is 100 %. Older tests that borrowed the
+last unbuilt lesson (s4.k1) now use a test-only lesson of their own.
+**The bonus never takes a place from the exam's course:** with the real lessons in the simulation, their rules' reviews
+came up in the last weeks among the B1 rules'. Now a bonus rule, due or to fix, only takes the room the course's rules
+leave (`cxRuleBonus` in `cxDueRules` and the day's review block). **All green:** the validator (106,697 checks; with the
+book check, our 13,461 sentences against chapters 12, 21, 25–27 and 29), `t-unit` (924), `t-course`, `t-ux`, `t-edge`,
+`t-fixes` ×3, `t-stage1`, `sim.mjs`, `--arrive --grow 1.3`, `sim-app` (45 and 150 days), the verb track's `t-screens`,
+`t-buttons`, `t-ui`, and the voice tests — **but `--matrix` 53/54**: "half the days skipped", seed 1, ends with 9 B1
+rules (of 335) not yet Known on the finish date. It is the parked shortcoming of 2 Nov (low attendance — every other
+day): over seeds 1–6 the code before this session leaves 0, 1, 0, 3, 5, 5 rules short, this one 9, 1, 2, 0, 5, 0 — the
+same spread; seed 1 crosses the 98 % line. The test was not loosened. (Not at every-day attendance: those pass.)
+**My progress:** checked on the test profile (every word record, verb sheet and the course state load unchanged, the
+French app untouched); no new backup was given this session. Nothing is reset: the mock adds one key, S.course.mock, the
+day it first shows.
+
 ### Definition of done (every session)
 
 - Every built section has its sheet(s), rules, mirrored drills and at least
@@ -1230,7 +1285,33 @@ screen · coverage report at 100 % (every blueprint exercise *mirrored*,
 - **Minigame looks — bug hunt (20 Nov 2026), my request:** (1) dragging in Match Pairs and Der · Die · Das put the floating copy far from the finger (a game's position:relative beat the ghost's position:fixed) — the ghost's position now always wins; (2) a dragged brick / letter tile lost its look (the ghost lives on <body>, outside the game) — it now carries the game's id; (3) Builder's and Scramble's "wave" played all at once (a shorthand reset the delays); (4) Type Rush's slot styles leaked onto the Timer's pips; its streak glow hid the input's green / red ring; (5) the TRUE / FALSE stamps were in the text a screen reader reads; (6) the breathing gap and the Listen button's new look also reached Today's own cards — games only now; (7) the gap's revealed word could leave its full stop alone on the next line; (8) the case compass could sit on the long "type the missing article" label at 320 px; (9) the boss's shadow stayed after it was defeated; (10) a rain drop's tip and trail widened its tap area; (11) sound rings with reading aloud off. Measured: Word Rain old vs new, 5 s of play in Chromium — 60 fps both, worst frame 17 ms both, no layouts; with reduced motion nothing loops in any game.
 - **Games menu: Start did nothing (21 Nov 2026), my report:** since 13 Nov (c25f113) the rank card — shown once a game has a rank above 🥉 or a twist was rolled — threw before its Start button was wired (a stray `bonusChoice`, a name only the bonus splash has), so no such game could be started from the menu. Fixed; a scan of every script of both apps for undefined names found no other. The tests had missed it because their profile had every game at 🥉 and no intro seen — `t-gamematrix.mjs` now goes through the menu and the real rank card as a returning player, every game × every rank, twist, bonus mode and run, played to its results.
 
+- **Session 9 (23 Nov 2026):** the post-B1 lessons are taught mostly to read and to write: the Konjunktiv I is the written
+  form of reported speech — in speech the indicative or the Konjunktiv II (taught on its first sheet) —, the drills ask
+  it in writing frames (the news, a letter, the minutes), and accept the Konjunktiv II where the Konjunktiv I looks like
+  the present (sie hätten) and the indicative where people really write it (ob ich ein Haustier habe). A lesson whose
+  verbs the engine can't check (prefixes both ways) is written by hand. **The monthly mock** — my wish: "once a month
+  with a deadline, a little next to the Today": it opens on the 1st, is due a week later, shows on the Today card until
+  it's done, marked late after the deadline, missed when the month ends; the first attempt of the month is kept. Its 20
+  questions span every lesson done, six of them production; the Exam screen gives one verdict and one hint, never more
+  than the numbers say.
+
 ## 15. Parked — for later
+
+### Post-B1: what the course leaves for after the exam (Session 9)
+
+Everything the book teaches is in the course; these parts of it stay *to read*, or wait for after 15 Aug 2027:
+
+- **The Konjunktiv I beyond er / sie / es** — taught to read and to write reports; its rare forms (du kommest, ihr
+  habet) are shown once, never drilled. **Modals' past in reported speech** (sie habe nicht kommen dürfen) — left out.
+- **Extended modifiers in speech** — taught to read and to write; nobody says them. Long chains (three details before
+  the participle) are newspaper German: read, not drilled.
+- **The future passive and the Futur II passive** (es wird gebaut worden sein) — not taught: nobody says them.
+- **The one-word Konjunktiv II nobody says** (führe, hülfe, stürbe) — asked as würde + infinitive (Session 7).
+- **24•7, a zu-part with a Perfekt or a modal** (gemacht zu haben) — skipped with its reason (Session 5).
+- **Swiss German, dictation, listening, speaking evaluation** — out of scope (§2): the native sessions carry the oral.
+- **After the exam (B2):** the Konjunktiv I in full, the participle clauses (In Bern angekommen, rief er an), the
+  nominal style of official letters (zur Kenntnisnahme), the passive with modals in the Perfekt (hat … werden müssen) —
+  a new course, if wanted, would start from here.
 
 - **A 💎 check-in before the exam (noted 15 Nov 2026, not now).** A 💎 word's check-ins come 4 months and a year after its lock-in — so a word locked after mid-April 2027 gets none before 15 Aug, and most 💎 words will be locked by then (≈ 2,850 on the finish date). Spot checks can't cover that: modelled on my pace, even 20 a day only take the 💎 words I'd miss on the day from ≈ 13 % to ≈ 8 %. The lever is one check-in timed a few weeks before the finish date for every 💎 word not answered right lately, spread over those weeks (the weighting of the spot checks can order them). To decide together before building — how many weeks, how many a day, and how it fits the plan's daily count.
 
@@ -1239,6 +1320,15 @@ screen · coverage report at 100 % (every blueprint exercise *mirrored*,
 ## Voice: what's left
 
 *(kept up to date by the voice sessions; the pipeline is in `tools/audio/README.md`)*
+
+**23 Nov 2026 — Session 9's post-B1 lessons recorded.** Everything the six bonus lessons say once a question is answered
+(every drill item's whole right sentence for each accepted answer, the sentences you transform, the writing models, the
+sheets' examples and quiz sentences): **982 clips, 45,700 characters, 0 refused**. The mock and the Exam screen say
+nothing new (the mock asks the lessons' own items). The German pack has **70,490 / 70,490 texts** (`status.mjs --strict`
+passes; the pack, games, flag, say and runtime tests pass). **Characters this month (November 2026): 855,625** — run
+with the hard stop at **940,000** (my limit for this session). The pack notes the sentence shards have grown (~6.9 MB,
+target 2): a re-split (`--buckets-s 52`) would change every shard once — left for a quiet day, it costs a full download.
+What will be missing next: nothing the app says today.
 
 **17 Nov 2026 — Session 8's review recorded.** The changed sentences and the missing lines' answers (they had said the
 other speaker's lines): **396 clips, 12,391 characters, 0 refused**; 157 no longer said. The German pack has **69,514 /

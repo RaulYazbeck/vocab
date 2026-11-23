@@ -28,7 +28,7 @@ function cxModeFor(e) {
   if (k !== "transform" && k !== "compose") return "typed";
   // a word to put into a given sentence: placed, never the sentence written again
   if (k === "transform" && cxPlace(e.item, set)) return "place";
-  if (e.testout) return "typed";
+  if (e.testout || e.mock) return "typed";
   if (e.review) { const ws = cxRuleWS(e.rule); return ws && ws.st >= 3 ? "typed" : "tiles"; }
   const ds = S.course.ds[set.id];
   return ds && ds[0] >= 2 ? "typed" : "tiles";
@@ -36,7 +36,7 @@ function cxModeFor(e) {
 function cxRun(host, list, opts = {}) {
   if (!host) return;
   const entries = list.filter(Boolean).map(e => ({ ...e, first: true, picked: [], mode: cxModeFor(e) }));
-  _cx = { host, list: entries, i: 0, n: entries.length, firstRight: 0, answered: false, done: false, missed: [], opts, moves: [] };
+  _cx = { host, list: entries, i: 0, n: entries.length, firstRight: 0, answered: false, done: false, missed: [], opts, moves: [], t0: Date.now() };
   if (!entries.length) { _cx.done = true; }
   cxRender();
 }
@@ -61,20 +61,20 @@ function cxQHtml(item) {
     .replace(/\(([^()<>]{1,40})\)/g, (s, x) => `<span class="cx-paren">${x}</span>`);
   return h;
 }
-const CX_PART_LABEL = { testout: "Test-out", checkpoint: "Checkpoint", drill: "Drill", review: "Review", warm: "Warm-up · yesterday's slips", write: "Writing", practice: "Practice", contrast: "Contrast day · mixed" };
+const CX_PART_LABEL = { mock: "A1 → B1, mixed", testout: "Test-out", checkpoint: "Checkpoint", drill: "Drill", review: "Review", warm: "Warm-up · yesterday's slips", write: "Writing", practice: "Practice", contrast: "Contrast day · mixed" };
 function cxRender() {
   const r = _cx;
   if (!r) return;
   const o = r.opts;
   // (the part's name only on its result: during the questions the pill
   // and the instruction say enough)
-  const head = `<div class="gs-head"><span class="gs-unit"><span class="gs-sign">📖</span>${escapeHtml(o.title || "Course")} · ${escapeHtml(CX_PART_LABEL[o.kind] || "")}</span>
+  const head = `<div class="gs-head"><span class="gs-unit"><span class="gs-sign">${o.kind === "mock" ? "🎓" : "📖"}</span>${escapeHtml(o.title || "Course")} · ${escapeHtml(CX_PART_LABEL[o.kind] || "")}</span>
     ${o.sub && r.done ? `<h2 class="gs-title">${escapeHtml(o.sub)}</h2>` : ""}</div>`;
   if (r.list[r.i] && !r.list[r.i].shownAt) r.list[r.i].shownAt = Date.now();
   if (r.done) { r.host.innerHTML = `<div class="gs-viewer cx-run" style="${o.sec ? cxSecStyle(o.sec) : cxStyle(0)}" id="cx-run">${head}${cxResultHtml()}</div>`; cxBindResult(); return; }
   const cur = r.list[r.i], set = cxSet(cur.set), item = cur.item, k = cxItemKind(set, item);
   // (the book's exercise number only outside Today — in a session it's noise)
-  const src = o.mode !== "path" && set.ex ? "Übung " + set.ex : "";
+  const src = o.mode !== "path" && o.kind !== "mock" && set.ex ? "Übung " + set.ex : "";
   // A test-out (Stage 0 only) says what it is: it comes before the lesson.
   const toSec = o.kind === "testout" && o.sec ? cxSection(o.sec) : null;
   const toMiss = toSec && toSec.testout && toSec.testout.miss !== undefined ? toSec.testout.miss : CX_TESTOUT.miss;
@@ -602,6 +602,7 @@ function cxSettle() {
   if (o.kind === "testout") r.result.passed = cxTestoutResult(o.sec, r.firstRight, r.n);
   if (o.kind === "checkpoint") r.result.passed = cxCheckpointResult(o.sec, r.firstRight, r.n);
   if (o.kind === "drill") cxDrillDone(o.sec, r.firstRight, r.n);
+  if (o.kind === "mock") r.result.mock = cxMockResult(r.list, { practice: !!o.practice, min: Math.max(1, Math.round((Date.now() - r.t0) / 60000)) });
   if (typeof logEvent === "function") logEvent("cx_part", { k: o.kind, sec: o.sec || "", right: r.firstRight, n: r.n, where: o.mode });
   if (r.result.passed && typeof confettiBurst === "function") confettiBurst(30);
 }
@@ -630,6 +631,7 @@ function cxResultHtml() {
       : some ? "Done for today. Tomorrow: this section's next sheet."
       : "Good practice. The sheet comes back tomorrow — pass its quiz and the section is done.";
   }
+  else if (o.kind === "mock" && res.mock) return cxMockResultHtml(r);
   else if (o.kind === "review" || o.kind === "warm") {
     const up = r.moves.filter(m => (m.events || []).includes("up")).length, miss = r.list.filter(e => e.first && e.ok === false).length;
     note = `${up ? `${up} rule${up > 1 ? "s" : ""} up a step. ` : ""}${miss ? `${miss} slip${miss > 1 ? "s" : ""} — back to their rule, they return soon.` : ""}`;
@@ -1010,6 +1012,7 @@ function renderCourse() {
     <div class="screen-top"><div class="screen-label">📖 Course</div>${backBtnHtml()}</div>
     ${next ? `<button class="gr-next" onclick="renderCourseSection('${next.id}')" style="${cxStyle(next.stage)}"><span class="gr-next-k">📖 Your next lesson — ${nextOn <= studyToday() ? "comes in Today" : `in Today on ${escapeHtml(fmtShortDate(nextOn))}, or open it now`}</span><span class="gr-next-t">${escapeHtml(cxStage(next.stage).sign)} · ${escapeHtml(next.title)}</span></button>` : ""}
     ${cxPlannerHtml()}
+    ${cxExamRowHtml()}
     <div class="gr-unote cx-stat">${doneN} of ${CX.sections.length} lessons done${inRev ? ` · ${inRev} rules in your reviews, ${learned} learned${fix.length + due.length ? `, ${fix.length + due.length} due` : ""}` : ""}</div>
     <div class="cx-links four">
       <button class="cx-chip" onclick="renderDrills()">🧩 Practise</button>
@@ -1286,6 +1289,166 @@ function cxChapterExercisesHtml(ch) {
     ${rows.length > 1 ? `<button class="gr-mastery cx-chmix" style="${cxStyle(0)}" onclick="renderCourseDrill(null, null, 'chapter')"><span class="gr-m-ico">🔀</span><span class="gr-m-t"><b>Mix them</b><small>12 questions from all ${rows.length}</small></span><span class="set-chev">›</span></button>` : ""}
     <div class="gr-sheets">${rows.map(({ set, nums }) => { const d = (S.course.ds || {})[set.id] || [], pct = d[1] ? Math.round(d[0] / d[1] * 100) : null;
       return `<button class="gr-sheet cx-ex" style="${cxSecStyle(set.sec)}" onclick="renderCourseDrill('${set.sec}', '${set.id}')"><span class="gr-sn">🧩</span><span class="gr-stt">${escapeHtml(nums.join(" · "))} · ${escapeHtml(set.title)}<small>${gsMd(set.how || "")}</small></span>${pct !== null ? `<span class="gr-sc">${pct}%</span>` : `<span class="set-chev">›</span>`}</button>`; }).join("")}</div>`;
+}
+
+// ── 🎓 THE EXAM ───────────────────────────────
+// ☰ › 🎓 Exam (PLAN.md §10): the fide countdown, this month's mock with its
+// deadline, where I stand (readiness), my mocks so far, and what the test
+// asks. The mock also sits on the Today card while it's due — a small line
+// under the lesson, its deadline on it — until it's done.
+// (the Exam's own colour: gold, a medal's)
+const CX_EXAM_STYLE = "--th:46";
+// ☰: the Exam row's line — the mock when it's due (in the accent), else the days to go.
+function cxExamMenuSub() {
+  const s = cxMockState(), R = cxReadiness();
+  if (["open", "soon", "late"].includes(s.st)) return `<span class="accent">${escapeHtml(cxMonthName(s.m))} mock ${escapeHtml(s.st === "late" ? "late" : s.left <= 1 ? cxMockWhen(s) : "due " + cxDayName(s.by))}</span>`;
+  return R && R.days !== null ? `fide · ${Math.max(0, R.days)} days` : "fide · set a date";
+}
+// A day as the mock says it: "Sun 29 Nov".
+function cxDayName(d) { const t = new Date(d + "T12:00"); return isNaN(t) ? d : t.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" }); }
+// When the month's mock is due, in words.
+function cxMockWhen(s) {
+  if (s.st === "late") return `${-s.left} day${s.left === -1 ? "" : "s"} late — still worth it before the month ends`;
+  if (s.left === 0) return "due today";
+  if (s.left === 1) return "due tomorrow";
+  return `due ${cxDayName(s.by)} · ${s.left} days left`;
+}
+// Today: the month's mock while it's due — a small line under the lesson.
+function cxMockTodayHtml() {
+  if (typeof cxOn !== "function" || !cxOn()) return "";
+  const s = cxMockTouch();
+  if (!s) return "";
+  return `<button class="tc-vx tc-mock ${s.st}" style="${CX_EXAM_STYLE}" onclick="showScreen('exam')">🎓 <b>${escapeHtml(cxMonthName(s.m))} mock</b> — <span class="tc-mock-due">${escapeHtml(cxMockWhen(s))}</span></button>`;
+}
+// 📖 Course: one row to the Exam — the days to go and the mock.
+function cxExamRowHtml() {
+  const R = cxReadiness(), s = cxMockState();
+  if (!R) return "";
+  const days = R.days !== null ? `${Math.max(0, R.days)} days to go` : "Set your exam date";
+  const mock = ["open", "soon", "late"].includes(s.st) ? `${cxMonthName(s.m)} mock ${s.st === "late" ? "— late" : s.left <= 1 ? cxMockWhen(s) : "due " + cxDayName(s.by)}` : s.st === "done" ? `${cxMonthName(s.m)} mock ${cxMockPct(s.res)}%` : s.st === "wait" ? `next mock ${cxDayName(s.next)}` : "mocks after 3 lessons";
+  return `<button class="gr-mastery cx-exam-row ${["soon", "late"].includes(s.st) ? "hot" : ""}" style="${CX_EXAM_STYLE}" onclick="window._cxExamFromCourse=true;renderExam()"><span class="gr-m-ico">🎓</span><span class="gr-m-t"><b>Exam · ${escapeHtml(days)}</b><small>${escapeHtml(mock)}</small></span><span class="set-chev">›</span></button>`;
+}
+// The parts of a mock, as bars: one per stage asked.
+function cxMockBarsHtml(res) {
+  return Object.entries((res && res.st) || {}).sort((a, b) => a[0] - b[0]).map(([k, v]) => {
+    const st = cxStage(+k) || {}, p = v[1] ? Math.round(v[0] / v[1] * 100) : 0;
+    return `<div class="ex-bar" style="${cxStyle(+k)}"><span class="ex-bar-k">${escapeHtml(st.sign || "")}</span><span class="ex-bar-n">${escapeHtml(st.name || "")}</span><span class="ex-bar-t"><i style="width:${Math.max(p, 3)}%"></i></span><span class="ex-bar-v">${v[0]}/${v[1]}</span></div>`;
+  }).join("");
+}
+// A mock's result card (the runner's last screen).
+function cxMockResultHtml(r) {
+  const m = r.result.mock, pct = cxMockPct(m) || 0;
+  const icon = pct >= 80 ? "🏅" : pct >= 60 ? "📈" : "📖";
+  const word = pct >= 80 ? "Exam-ready on what you've learned" : pct >= 60 ? "Nearly there" : "Work to do — and now you know where";
+  const weak = cxMockWeakest(m), ws = weak && cxStage(weak.stage);
+  const note = m.practice ? "A practice mock — not kept. Every answer still counts for its rule."
+    : `Your ${escapeHtml(cxMonthName(m.d.slice(0, 7)))} mock${m.late ? ", a few days late" : ""} — kept on your 🎓 Exam page.${weak && ws ? ` The weakest part: <b>${escapeHtml(ws.sign)} · ${escapeHtml(ws.name)}</b>.` : ""} The rules you missed come first in your reviews.`;
+  const prod = m.pr && m.pr[1] ? `<div class="ex-res-line">✍️ Building and translating: <b>${m.pr[0]}/${m.pr[1]}</b>${m.min ? ` · ⏱ ${m.min} min` : ""}</div>` : m.min ? `<div class="ex-res-line">⏱ ${m.min} min</div>` : "";
+  const missed = r.missed.length ? `<div class="gs-missed"><b>To look at again</b>${r.missed.map(x => { const ru = cxRuleView((x.res && x.res.rule) || (x.item.r || [])[0]);
+    return `<button class="gs-miss" ${ru ? `onclick="gsPeek('${ru.sheet}')"` : ""}><span>${cxQHtml(x.item.q ? x.item : { q: (x.item.w || []).join(" / ") })}</span><small>${ru ? escapeHtml(ru.title) + " ›" : ""}</small></button>`; }).join("")}</div>` : "";
+  return `<div class="gs-result ex-result ${pct >= 80 ? "ok" : pct >= 60 ? "mid" : "bad"}" style="${CX_EXAM_STYLE}"><div class="gs-result-icon">${icon}</div>
+    <div class="ex-res-pct">${pct}<small>%</small></div><div class="gs-result-title">${escapeHtml(word)}</div><div class="ex-res-line">${m.r} of ${m.n} right first time</div>
+    <div class="ex-bars">${cxMockBarsHtml(m)}</div>${prod}
+    <div class="gs-result-note">${note}</div>${missed}
+    <div class="gs-result-act"><button class="g-big-btn" id="cx-done" onclick="cxFinish()">Done ✓</button></div></div>`;
+}
+// Run a mock: this month's (kept), or a practice one (not kept).
+function renderMock(practice = false) {
+  if (typeof cxOn !== "function" || !cxOn()) return;
+  const s = cxMockTouch();
+  if (!practice && !s) return renderExam();
+  const list = cxMockPlan();
+  if (!list.length) return renderExam();
+  showGameScreen();
+  cxClose();
+  document.getElementById("main-screen").innerHTML = `<div class="screen grammar gs-screen ex-run" style="${CX_EXAM_STYLE}">
+    <div class="screen-top"><div class="screen-label">🎓 ${practice ? "Practice mock" : "Monthly mock"}</div><button class="back-btn" onclick="cxMockLeave()">← Exam</button></div>
+    <div id="cx-host"></div></div>`;
+  cxRun(document.getElementById("cx-host"), list, { mode: "menu", kind: "mock", practice, title: practice ? "Practice mock" : `${cxMonthName((s || cxMockState()).m)} mock`, sub: "", again: "", onDone: () => { cxClose(); renderExam(); } });
+  scrollPageTop();
+  if (typeof logScreen === "function") logScreen("mock");
+}
+// Leaving a mock half-way: asked first — what's answered counts for its rules, the mock stays open.
+function cxMockLeave() {
+  const r = _cx;
+  if (!r || r.done || !r.list.some(e => e.ok !== undefined)) { cxClose(); renderExam(); return; }
+  appConfirm({ title: "Leave the mock?", body: r.opts.practice ? "This practice mock won't be finished." : "The answers so far count for your reviews, but the mock isn't kept — it stays open until you do it in one go.", ok: "Leave", cancel: "Keep going" })
+    .then(yes => { if (yes) { cxClose(); renderExam(); } });
+}
+// The mocks so far: a column per month (missed ones hollow), the last twelve.
+function cxExamHistHtml(rows) {
+  if (!rows.length) return `<div class="gr-unote ex-empty">Your scores will show here, one column a month, from your first mock.</div>`;
+  return `<div class="ex-hist" role="img" aria-label="${escapeHtml(rows.map(h => `${cxMonthName(h.m)} ${h.missed ? "missed" : cxMockPct(h) + "%"}`).join(", "))}">${rows.slice(-12).map(h => {
+    const p = h.missed ? 0 : cxMockPct(h), cls = h.missed ? "missed" : p >= 80 ? "ok" : p >= 60 ? "mid" : "low";
+    return `<div class="ex-col ${cls}"><span class="ex-col-v">${h.missed ? "–" : p + "%"}</span><span class="ex-col-bar"><i style="height:${h.missed ? 100 : Math.max(p, 4)}%"></i></span><span class="ex-col-m">${escapeHtml(cxMonthName(h.m, false))}${h.late ? `<b title="taken after its deadline">·</b>` : ""}</span></div>`; }).join("")}
+</div><div class="ex-hist-key"><span class="ex-key-line"></span> 80% — the mark to aim for</div>`;
+}
+// A readiness meter: icon, what, a bar, the numbers.
+function cxExamMeter(ico, label, n, of, sub, tone = "") {
+  const p = of ? Math.min(100, Math.round(n / of * 100)) : 0;
+  return `<div class="ex-meter ${tone}"><span class="ex-m-ico">${ico}</span><span class="ex-m-l">${escapeHtml(label)}<small>${sub}</small></span><span class="ex-m-v">${n.toLocaleString()}<small>/${of.toLocaleString()}</small></span><span class="ex-m-bar"><i style="width:${Math.max(p, n ? 2 : 0)}%"></i></span></div>`;
+}
+function renderExam() {
+  if (typeof cxOn !== "function" || !cxOn()) return;
+  showGameScreen();
+  if (typeof gsClose === "function") gsClose();
+  cxClose();
+  migrateCourse();
+  const today = studyToday(), R = cxReadiness(today), s = cxMockTouch(today) || cxMockState(today);
+  const back = window._cxExamFromCourse ? cxBackHtml("window._cxExamFromCourse=false;renderCourse()", "Course") : backBtnHtml();
+  // the countdown: days to the finish date, the time gone since the course began
+  const since = (S.course && S.course.since) || today, total = R.deadline ? Math.max(1, daysBetween(since, R.deadline)) : 1;
+  const gone = R.deadline ? Math.min(100, Math.max(0, Math.round(daysBetween(since, today) / total * 100))) : 0;
+  const hero = R.deadline ? `<div class="ex-hero">
+      <div class="ex-hero-l"><span class="ex-days">${Math.max(0, R.days).toLocaleString()}</span><span class="ex-days-k">day${R.days === 1 ? "" : "s"} to your fide test</span></div>
+      <div class="ex-hero-r"><b>${escapeHtml(cxDayName(R.deadline))} ${escapeHtml(R.deadline.slice(0, 4))}</b><span class="ex-goal">🗣️ Speaking <b>B1</b></span><span class="ex-goal">✍️ Writing <b>A1–A2</b></span></div>
+      <div class="ex-hero-bar" title="${gone}% of the way from your first lesson"><i style="width:${Math.max(gone, 1)}%"></i></div>
+    </div>`
+    : `<button class="ex-hero ex-hero-none" onclick="closeSettings();openSettingsPage('plan')"><span>🗓️</span><span><b>Set your exam date</b><small>⚙️ Study plan › finish date — the countdown and the pace follow it</small></span><span class="set-chev">›</span></button>`;
+  // the month's mock
+  const due = ["open", "soon", "late"].includes(s.st);
+  const pill = { open: ["Open", "open"], soon: [s.left === 0 ? "Due today" : "Due tomorrow", "soon"], late: ["Late", "late"], done: ["Done ✓", "done"], wait: ["Coming", "wait"], off: ["Not yet", "wait"] }[s.st] || ["", ""];
+  const mName = cxMonthName(s.m || today.slice(0, 7));
+  let mockBody = "";
+  if (due) mockBody = `<p class="ex-mock-txt">${CX_MOCK.n} questions from everything you've learned, A1 to B1 — about 15 minutes, in one go. No sheet to peek at: what you miss goes back into your reviews.</p>
+      <div class="ex-due ${s.st}">⏳ ${escapeHtml(s.st === "late" ? cxMockWhen(s) : s.left <= 1 ? cxMockWhen(s).replace(/^due/, "Due") : `Due ${cxDayName(s.by)} — ${s.left} days left`)}</div>
+      <button class="g-big-btn ex-go" onclick="renderMock(false)">Start the ${escapeHtml(mName)} mock ▶</button>`;
+  else if (s.st === "done") mockBody = `<div class="ex-done"><span class="ex-done-pct">${cxMockPct(s.res)}<small>%</small></span><span class="ex-done-t"><b>${s.res.r}/${s.res.n} right first time</b><small>${escapeHtml(cxDayName(s.res.d))}${s.res.late ? " · a few days late" : ""}${s.res.min ? ` · ${s.res.min} min` : ""}</small></span></div>
+      <div class="ex-bars">${cxMockBarsHtml(s.res)}</div>
+      <div class="ex-next">Next mock opens <b>${escapeHtml(cxDayName(s.next))}</b>, due a week later.</div>
+      <button class="g-sec-btn ex-practice" onclick="renderMock(true)">🔁 A practice mock — not kept</button>`;
+  else if (s.st === "wait") mockBody = `<p class="ex-mock-txt">Opens <b>${escapeHtml(cxDayName(s.next))}</b>, then you have a week. It will show up on your Today card.</p>${cxMockReady() ? `<button class="g-sec-btn ex-practice" onclick="renderMock(true)">🔁 A practice mock — not kept</button>` : ""}`;
+  else mockBody = `<p class="ex-mock-txt">Your first mock opens once three lessons are done — <b>${s.lessons || 0}/${CX_MOCK.minSecs}</b> so far. Then one each month, with a week to do it.</p>`;
+  const mock = `<div class="ex-card ex-mock ${s.st}"><div class="ex-card-h"><span>🗓️ ${escapeHtml(mName)} mock</span><span class="ex-pill ${pill[1]}">${escapeHtml(pill[0])}</span></div>${mockBody}</div>`;
+  // where I stand
+  const dot = { green: "🟢", amber: "🟠", red: "🔴", start: "🌱", none: "⚪" }[R.level] || "⚪";
+  const W = R.words, mp = R.mock.pct, trend = mp !== null && R.mock.prev !== null ? (mp > R.mock.prev ? ` <span class="ex-up">▲ ${mp - R.mock.prev}</span>` : mp < R.mock.prev ? ` <span class="ex-down">▼ ${R.mock.prev - mp}</span>` : " =") : "";
+  const ready = `<div class="ex-card ex-ready ${R.level}"><div class="ex-verdict"><span class="ex-v-dot">${dot}</span><span><b>${escapeHtml(R.title)}</b><small>${escapeHtml(R.hint)}</small></span></div>
+      <div class="ex-meters">
+        ${cxExamMeter("📖", "Lessons", R.lessons.done, R.lessons.total, R.planner === "green" ? "on pace" : R.planner === "amber" ? "tight" : R.planner === "red" ? "behind" : "", R.planner)}
+        ${cxExamMeter("📏", "Rules learned", R.rules.learned, R.rules.total, `${R.rules.started} in your reviews`)}
+        ${W ? cxExamMeter("🌱", "Words known", W.known, W.total, W.ok ? "on pace" : `at this pace ${fmtShortDate(W.eta)}`, W.ok ? "green" : "red") : ""}
+        ${cxExamMeter("💬", "Conversation units", R.talk.done, R.talk.total, "the oral test's scenes")}
+      </div>
+      <div class="ex-last">🎓 Last mock: ${mp !== null ? `<b>${mp}%</b>${trend}` : "<b>none yet</b>"}${R.mock.missed ? ` · <span class="ex-down">${R.mock.missed} missed</span>` : ""}</div></div>`;
+  const hist = cxMockHistory(today);
+  document.getElementById("main-screen").innerHTML = `<div class="screen grammar course exam" style="${CX_EXAM_STYLE}">
+    <div class="screen-top"><div class="screen-label">🎓 Exam</div>${back}</div>
+    ${hero}
+    ${mock}
+    <div class="gr-h">Where you stand</div>
+    ${ready}
+    <div class="gr-h">Your mocks</div>
+    <div class="ex-card ex-hist-card">${cxExamHistHtml(hist)}</div>
+    <details class="gr-how ex-about"><summary>ℹ️ What the fide test asks</summary>
+      <p><b>Speaking and understanding</b> — your goal: <b>B1</b>. Talking about yourself and your life here, everyday scenes in Switzerland (the doctor, the Gemeinde, a neighbour, the shop, work), describing a picture, a short role play, and understanding what you hear.</p>
+      <p><b>Reading and writing</b> — your goal: <b>A1–A2</b>. Short everyday texts, a form, and a short message or email.</p>
+      <p><b>In the app:</b> 💬 the conversation units for the scenes, ✍️ Writing for the messages, and a mock every month to see where you stand. <b>Outside it:</b> speaking with a native, about three hours a week — that's what the oral test rewards most.</p>
+      <p><b>The mock:</b> it opens on the 1st and is due a week later; it shows on your Today card until it's done. If you miss the deadline, do it anyway before the month ends — it's marked late. Only your first try each month is kept.</p>
+    </details>
+  </div>`;
+  scrollPageTop();
+  if (typeof logScreen === "function") logScreen("exam");
 }
 
 // ── SETTINGS: the grammar plan ────────────────

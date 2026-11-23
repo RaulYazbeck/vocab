@@ -489,6 +489,16 @@ function mergeStates(local, cloud, opts = {}) {
     ["last", "cd"].forEach(k => { const v = [lc[k], cc[k]].filter(x => typeof x === "string").sort().pop(); if (v) K[k] = v; });
     // The days the course had nothing new: both sides' (the last 28).
     if (Array.isArray(lc.idle) || Array.isArray(cc.idle)) K.idle = [...new Set([...(Array.isArray(lc.idle) ? lc.idle : []), ...(Array.isArray(cc.idle) ? cc.idle : [])])].filter(d => typeof d === "string").sort().slice(-28);
+    // The monthly mocks (🎓 Exam): every month either side has — its result as
+    // first taken (the earlier attempt counts), the day it opened (the earlier).
+    if (syncIsObj(lc.mock) || syncIsObj(cc.mock)) {
+      const hist = {}, open = {};
+      [lc.mock, cc.mock].filter(syncIsObj).forEach(src => {
+        if (syncIsObj(src.hist)) Object.entries(src.hist).forEach(([m, h]) => { if (syncIsObj(h) && typeof h.d === "string" && (!hist[m] || h.d < hist[m].d)) hist[m] = syncClone(h); });
+        if (syncIsObj(src.open)) Object.entries(src.open).forEach(([m, d]) => { if (typeof d === "string" && (!open[m] || d < open[m])) open[m] = d; });
+      });
+      K.mock = { open, hist };
+    }
     const ld = String(lc.day || ""), cd = String(cc.day || "");
     if (ld === cd) ["dd", "dq"].forEach(k => { K[k] = syncDeepMax(syncIsObj(lc[k]) ? lc[k] : {}, syncIsObj(cc[k]) ? cc[k] : {}); });
     else { const src = ld > cd ? lc : cc; K.day = src.day || ""; ["dd", "dq"].forEach(k => { K[k] = syncIsObj(src[k]) ? syncClone(src[k]) : {}; }); }

@@ -18,7 +18,7 @@ function startSession() {
 // from: the ☰ page the screen was opened from (its Back returns there).
 function showScreen(name, from) {
   if (from !== undefined) _screenFrom = from;
-  window._cxFrom = false; window._cxSec = null; window._cxChap = null; window._cxUnitFrom = null; window._cxOpenPart = null; // the course sets them again
+  window._cxFrom = false; window._cxSec = null; window._cxChap = null; window._cxUnitFrom = null; window._cxOpenPart = null; window._cxExamFromCourse = false; // the course sets them again
   // Leaving a Today session through the header or Settings ends it
   // properly (answers are already saved) instead of orphaning it.
   if (typeof pathSession !== "undefined" && pathSession) endPathSession(true);
@@ -39,6 +39,7 @@ function showScreen(name, from) {
   else if (name === "course") { if (typeof renderCourse === "function") renderCourse(); else if (typeof renderGrammar === "function") renderGrammar(); }
   else if (name === "drills" && typeof renderDrills === "function") renderDrills();
   else if (name === "writing" && typeof renderJournal === "function") renderJournal();
+  else if (name === "exam") { if (typeof renderExam === "function" && typeof cxOn === "function" && cxOn()) renderExam(); else backToMenu(); }
 }
 // The header title: back to Today from anywhere. A Today session with
 // answers, or a game in play, asks first; on Today it scrolls to the top.

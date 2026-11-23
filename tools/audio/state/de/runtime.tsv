@@ -10611,6 +10611,940 @@ s	_course:s3.way	Wohin gehst du?
 s	_course:s3.way	Zu Fuß etwa fünfzehn Minuten. Oder Sie nehmen das Tram.
 s	_course:s3.way	Zu Fuß sind es nur zehn Minuten.
 s	_course:s3.way	Zum Kunsthaus? Gehen Sie hier geradeaus bis zur Ampel.
+s	_course:s4.ext	Auf dem Foto sieht man die am See spielenden Kinder und einen lesenden Mann auf einer Bank.
+s	_course:s4.ext	Bitte beachten Sie die bis Ende Monat zu bezahlende Rechnung.
+s	_course:s4.ext	Das Auto, das falsch parkiert ist, bekommt eine Busse.
+s	_course:s4.ext	Das Brot, das gestern gekauft worden ist, ist schon hart.
+s	_course:s4.ext	Das Brot, das gestern gekauft wurde, ist schon hart.
+s	_course:s4.ext	Das Brot, das ich gestern gekauft habe, ist schon hart.
+s	_course:s4.ext	Das Brot, das wir gestern gekauft haben, ist schon hart.
+s	_course:s4.ext	Das Haus, das vor hundert Jahren gebaut wurde, wird renoviert.
+s	_course:s4.ext	Das Schiff, das um acht Uhr abfährt, ist voll.
+s	_course:s4.ext	Das falsch parkierte Auto bekommt eine Busse.
+s	_course:s4.ext	Das gestern gekaufte Brot ist schon hart.
+s	_course:s4.ext	Das um acht Uhr abfahrende Schiff ist voll.
+s	_course:s4.ext	Das vor hundert Jahren gebaute Haus wird renoviert.
+s	_course:s4.ext	Der Brief, der gestern angekommen ist, ist von der Steuerverwaltung.
+s	_course:s4.ext	Der Hund, der laut bellt, gehört dem Nachbarn.
+s	_course:s4.ext	Der Mann, der seinen Schlüssel sucht, ist nervös.
+s	_course:s4.ext	Der Wecker, der seit einer Stunde klingelt, nervt.
+s	_course:s4.ext	Der Zug, der aus Genf kommt, hat Verspätung.
+s	_course:s4.ext	Der aus Genf kommende Zug hat Verspätung.
+s	_course:s4.ext	Der gestern angekommene Brief ist von der Steuerverwaltung.
+s	_course:s4.ext	Der laut bellende Hund gehört dem Nachbarn.
+s	_course:s4.ext	Der online bestellte Mixer war viel zu groß. Das nie benutzte Gerät steht jetzt im Keller.
+s	_course:s4.ext	Der seinen Schlüssel suchende Mann ist nervös.
+s	_course:s4.ext	Der seit einer Stunde klingelnde Wecker nervt.
+s	_course:s4.ext	Die Bücher, die zurückgegeben wurden, liegen auf dem Tisch.
+s	_course:s4.ext	Die Frau, die im Café sitzt, ist meine Lehrerin.
+s	_course:s4.ext	Die Gäste, die schon angekommen sind, trinken Kaffee.
+s	_course:s4.ext	Die Kinder, die auf dem Spielplatz spielen, lachen.
+s	_course:s4.ext	Die Leute, die am Bahnhof warten, sind nervös.
+s	_course:s4.ext	Die Preise, die stark gestiegen sind, ärgern alle.
+s	_course:s4.ext	Die Straße, die die Gemeinde geplant hat, wird teuer.
+s	_course:s4.ext	Die Straße, die die Gemeinde plant, wird teuer.
+s	_course:s4.ext	Die Straße, die von der Gemeinde geplant wird, wird teuer.
+s	_course:s4.ext	Die Straße, die von der Gemeinde geplant wurde, wird teuer.
+s	_course:s4.ext	Die Versicherung, die im Preis enthalten ist, ist gut.
+s	_course:s4.ext	Die am Bahnhof wartenden Leute sind nervös.
+s	_course:s4.ext	Die auf dem Spielplatz spielenden Kinder lachen.
+s	_course:s4.ext	Die bis Ende Monat zu bezahlenden Nebenkosten sind auf dem beiliegenden Einzahlungsschein aufgeführt.
+s	_course:s4.ext	Die geschmückten Straßen waren voller tanzender Menschen. Die bis spät in die Nacht gespielte Musik hörte man bis zum See.
+s	_course:s4.ext	Die heute noch zu erledigenden Aufgaben sind: die Steuererklärung, ein Anruf bei der Bank und der Einkauf für morgen.
+s	_course:s4.ext	Die im Café sitzende Frau ist meine Lehrerin.
+s	_course:s4.ext	Die im Preis enthaltene Versicherung ist gut.
+s	_course:s4.ext	Die im Preis enthaltenen Leistungen finden Sie unten.
+s	_course:s4.ext	Die schon angekommenen Gäste trinken Kaffee.
+s	_course:s4.ext	Die seit Monaten geplante Velostraße wird im Frühling eröffnet. Die von der Gemeinde geschätzten Kosten liegen bei zwei Millionen Franken.
+s	_course:s4.ext	Die seit Montag gesperrte Brücke ist wieder offen.
+s	_course:s4.ext	Die stark gestiegenen Preise ärgern alle.
+s	_course:s4.ext	Die von der Gemeinde geplante Straße wird teuer.
+s	_course:s4.ext	Die zurückgegebenen Bücher liegen auf dem Tisch.
+s	_course:s4.ext	Gesucht: zuverlässige, gut Deutsch sprechende Verkäuferin für unser seit 1950 bestehendes Geschäft in der Altstadt.
+s	_course:s4.ext	Ich lese den Brief, den meine Tochter geschrieben hat.
+s	_course:s4.ext	Ich lese den Brief, der von meiner Tochter geschrieben worden ist.
+s	_course:s4.ext	Ich lese den Brief, der von meiner Tochter geschrieben wurde.
+s	_course:s4.ext	Ich lese den von meiner Tochter geschriebenen Brief.
+s	_course:s4.ext	Um sieben Uhr stehen die auf den Bus wartenden Leute an der Haltestelle. Der pünktlich ankommende Bus ist immer voll.
+s	_course:s4.ext	Wir helfen der Nachbarin, die allein lebt.
+s	_course:s4.ext	Wir helfen der allein lebenden Nachbarin.
+s	_course:s4.ext	Wir helfen der alleinlebenden Nachbarin.
+s	_course:s4.ext	Wir sprechen mit dem Mann, der im Rollstuhl sitzt.
+s	_course:s4.ext	Wir sprechen mit dem im Rollstuhl sitzenden Mann.
+s	_course:s4.ext	Wir suchen eine gut Deutsch sprechende Verkäuferin.
+s	_course:s4.ext	das 1920 gebaute Haus
+s	_course:s4.ext	das Formular, das man ausfüllen muss
+s	_course:s4.ext	das nicht zu unterschätzende Problem
+s	_course:s4.ext	das schon abgeholte Paket
+s	_course:s4.ext	der Termin, den man nicht verschieben kann
+s	_course:s4.ext	der Zug, der aus Zürich ankommt
+s	_course:s4.ext	der aus Basel kommende Zug
+s	_course:s4.ext	der aus Zürich ankommende Zug
+s	_course:s4.ext	der gestern gezeigte Film
+s	_course:s4.ext	der laut telefonierende Mann
+s	_course:s4.ext	der nicht zu verschiebende Termin
+s	_course:s4.ext	der vor einer Woche geschickte Brief
+s	_course:s4.ext	die Arbeiten, die man noch erledigen muss
+s	_course:s4.ext	die Brücke, die seit Montag geschlossen ist
+s	_course:s4.ext	die Brücke, die seit Montag gesperrt ist
+s	_course:s4.ext	die Bücher, die man bis Montag lesen muss
+s	_course:s4.ext	die Fragen, die man beantworten muss
+s	_course:s4.ext	die Gäste, die schon gegangen sind
+s	_course:s4.ext	die Kinder, die im Garten spielen
+s	_course:s4.ext	die Medikamente, die man täglich nehmen muss
+s	_course:s4.ext	die Pakete, die man abholen muss
+s	_course:s4.ext	die Rechnung, die bezahlt werden muss
+s	_course:s4.ext	die Rechnung, die man bezahlen muss
+s	_course:s4.ext	die Wohnung, die letztes Jahr renoviert wurde
+s	_course:s4.ext	die bald ankommenden Gäste
+s	_course:s4.ext	die bereits gegangenen Gäste
+s	_course:s4.ext	die bis Freitag zu bezahlende Rechnung
+s	_course:s4.ext	die bis Montag zu lesenden Bücher
+s	_course:s4.ext	die gestern ausgeschriebene Stelle
+s	_course:s4.ext	die im Garten singenden Vögel
+s	_course:s4.ext	die im Garten spielenden Kinder
+s	_course:s4.ext	die im Wald spielenden Kinder
+s	_course:s4.ext	die im letzten Jahr renovierte Wohnung
+s	_course:s4.ext	die letztes Jahr renovierte Wohnung
+s	_course:s4.ext	die noch zu erledigenden Arbeiten
+s	_course:s4.ext	die schon abgereisten Gäste
+s	_course:s4.ext	die schon gegangenen Gäste
+s	_course:s4.ext	die seit Montag geschlossene Brücke
+s	_course:s4.ext	die seit Montag gesperrte Brücke
+s	_course:s4.ext	die spät angekommenen Gäste
+s	_course:s4.ext	die täglich zu nehmenden Medikamente
+s	_course:s4.ext	die zu beantwortenden Fragen
+s	_course:s4.ext	die zu bezahlende Rechnung
+s	_course:s4.ext	die zu zahlende Rechnung
+s	_course:s4.ext	ein Fehler, den man vermeiden muss
+s	_course:s4.ext	ein Problem, das man nicht unterschätzen darf
+s	_course:s4.ext	ein nicht zu unterschätzendes Problem
+s	_course:s4.ext	ein viel diskutiertes Thema
+s	_course:s4.ext	ein zu vermeidender Fehler
+s	_course:s4.ext	eine gut erklärende Lehrerin
+s	_course:s4.ext	mit dem frisch gemahlenen Kaffee
+w	_course:s4.ext	das auszufüllende Formular
+w	_course:s4.ext	das kochende Wasser
+w	_course:s4.ext	die abzuholenden Pakete
+w	_course:s4.ext	ein weinendes Kind
+s	_course:s4.fu2	Alle werden uns vermisst haben.
+s	_course:s4.fu2	Am Abend werdet ihr Karten gespielt haben.
+s	_course:s4.fu2	Am Samstag werden sie lange geschlafen haben.
+s	_course:s4.fu2	Anna und Ben werden auf den Gipfel gestiegen sein.
+s	_course:s4.fu2	Bis Ende Jahr werden wir das Auto abbezahlt haben.
+s	_course:s4.fu2	Bis Ende Monat haben wir 200 Franken gespart.
+s	_course:s4.fu2	Bis Ende Monat werden wir 200 Franken gespart haben.
+s	_course:s4.fu2	Bis Ende des Monats werden wir 200 Franken gespart haben.
+s	_course:s4.fu2	Bis Freitag werde ich den Bericht geschrieben haben. Ich werde auch die Steuererklärung abgeschickt haben.
+s	_course:s4.fu2	Bis Juni habe ich den Kurs abgeschlossen.
+s	_course:s4.fu2	Bis Juni habe ich den Kurs beendet.
+s	_course:s4.fu2	Bis Juni werde ich den Kurs abgeschlossen haben.
+s	_course:s4.fu2	Bis Juni werde ich den Kurs beendet haben.
+s	_course:s4.fu2	Bis zur Prüfung werde ich alle Lektionen gemacht haben. Ich werde viel mit meiner Nachbarin gesprochen haben.
+s	_course:s4.fu2	Das Fest gefällt allen.
+s	_course:s4.fu2	Das Fest wird allen gefallen haben.
+s	_course:s4.fu2	Das Wochenende wird allen gefallen haben.
+s	_course:s4.fu2	Der Hund wird auf uns gewartet haben.
+s	_course:s4.fu2	Der Käse wird allen gut geschmeckt haben.
+s	_course:s4.fu2	Der Lehrling kauft ein Sandwich.
+s	_course:s4.fu2	Der Lehrling wird ein Sandwich gekauft haben.
+s	_course:s4.fu2	Der Zug ist wohl schon abgefahren.
+s	_course:s4.fu2	Der Zug wird bereits abgefahren sein.
+s	_course:s4.fu2	Der Zug wird schon abgefahren sein.
+s	_course:s4.fu2	Die Gäste essen zum ersten Mal Raclette.
+s	_course:s4.fu2	Die Gäste kommen zu spät an.
+s	_course:s4.fu2	Die Gäste werden müde angekommen sein.
+s	_course:s4.fu2	Die Gäste werden zu spät angekommen sein.
+s	_course:s4.fu2	Die Gäste werden zum ersten Mal Raclette gegessen haben.
+s	_course:s4.fu2	Die Jungs spielen Unihockey.
+s	_course:s4.fu2	Die Jungs werden Unihockey gespielt haben.
+s	_course:s4.fu2	Die Katze wird sich unter dem Bett versteckt haben.
+s	_course:s4.fu2	Die Kinder haben im See geschwommen.
+s	_course:s4.fu2	Die Kinder werden den Kuchen gegessen haben. Oder der Hund wird auf den Tisch gesprungen sein!
+s	_course:s4.fu2	Die Kinder werden im Schnee gespielt haben.
+s	_course:s4.fu2	Die Kinder werden im See geschwommen haben.
+s	_course:s4.fu2	Die Kinder werden im See geschwommen sein.
+s	_course:s4.fu2	Die Nachbarn werden den Briefkasten geleert haben.
+s	_course:s4.fu2	Die Nachbarn werden den Lärm sicher gehört haben.
+s	_course:s4.fu2	Die Touristen reisen wohl nach Lugano.
+s	_course:s4.fu2	Die Touristen werden wohl nach Lugano gereist sein.
+s	_course:s4.fu2	Die Wanderer haben großen Durst.
+s	_course:s4.fu2	Die Wanderer werden großen Durst gehabt haben.
+s	_course:s4.fu2	Du isst die ganze Torte.
+s	_course:s4.fu2	Du wirst bestimmt viele Fotos gemacht haben.
+s	_course:s4.fu2	Du wirst die ganze Torte gegessen haben.
+s	_course:s4.fu2	Er wird den Bus verpasst haben. Vielleicht wird er noch im Büro gewesen sein. Oder er wird unsere neue Adresse vergessen haben.
+s	_course:s4.fu2	Er wird es bestimmt gehört haben.
+s	_course:s4.fu2	Er wird es sicher gehört haben.
+s	_course:s4.fu2	Es ist möglich, dass sie den Brief nicht bekommen haben wird.
+s	_course:s4.fu2	Es ist möglich. Sie wird den Brief nicht bekommen haben.
+s	_course:s4.fu2	Ich arbeite für Frau Gerber.
+s	_course:s4.fu2	Ich frage mich, wo sie gewesen sein wird.
+s	_course:s4.fu2	Ich frage mich. Wo wird sie gewesen sein?
+s	_course:s4.fu2	Ich glaube, dass er den Termin vergessen haben wird.
+s	_course:s4.fu2	Ich glaube, dass er sich verlaufen haben wird.
+s	_course:s4.fu2	Ich glaube, er hat sich verlaufen.
+s	_course:s4.fu2	Ich glaube, er wird sich verlaufen haben.
+s	_course:s4.fu2	Ich glaube. Er wird den Termin vergessen haben.
+s	_course:s4.fu2	Ich vermute, dass die Kinder schon gegessen haben werden.
+s	_course:s4.fu2	Ich vermute. Die Kinder werden schon gegessen haben.
+s	_course:s4.fu2	Ich werde früh ins Bett gegangen sein.
+s	_course:s4.fu2	Ich werde für Frau Gerber gearbeitet haben.
+s	_course:s4.fu2	In fünf Jahren werde ich den C-Ausweis bekommen haben. Ich werde eine größere Wohnung gefunden haben, und ich werde jeden Kanton besucht haben.
+s	_course:s4.fu2	Mach dir keine Sorgen, denn er wird den Weg gefunden haben.
+s	_course:s4.fu2	Mach dir keine Sorgen. Er wird den Weg gefunden haben.
+s	_course:s4.fu2	Mara macht eine Lehre als Köchin.
+s	_course:s4.fu2	Mara wird eine Lehre als Köchin gemacht haben.
+s	_course:s4.fu2	Mein Bruder wird jeden Abend ferngesehen haben.
+s	_course:s4.fu2	Meine Eltern werden sich über die Postkarte gefreut haben.
+s	_course:s4.fu2	Meine Mutter wird mit Tante Rosa telefoniert haben.
+s	_course:s4.fu2	Meine Schwester wird die Pflanzen gegossen haben.
+s	_course:s4.fu2	Meine Tante wird die Rechnung gezahlt haben.
+s	_course:s4.fu2	Meine Tante zahlt die Rechnung.
+s	_course:s4.fu2	Meine Tante zahlte die Rechnung.
+s	_course:s4.fu2	Oma wird sich gut ausgeruht haben.
+s	_course:s4.fu2	Papa wird Rösti zum Frühstück gemacht haben.
+s	_course:s4.fu2	Papa wird zur Arbeit gegangen sein.
+s	_course:s4.fu2	Sie hat eine warme Jacke angezogen.
+s	_course:s4.fu2	Sie hat es wohl vergessen.
+s	_course:s4.fu2	Sie ist sicher, dass der Zug schon abgefahren sein wird.
+s	_course:s4.fu2	Sie ist sicher. Der Zug wird schon abgefahren sein.
+s	_course:s4.fu2	Sie macht die Fensterläden zu.
+s	_course:s4.fu2	Sie machte die Fensterläden zu.
+s	_course:s4.fu2	Sie werden in die Ferien gefahren sein. Vielleicht werden sie ihre Familie in Italien besucht haben.
+s	_course:s4.fu2	Sie werden müde gewesen sein.
+s	_course:s4.fu2	Sie werden uns wohl vermisst haben.
+s	_course:s4.fu2	Sie werden wohl Sushi gegessen haben.
+s	_course:s4.fu2	Sie werden wohl den Fuji gesehen haben.
+s	_course:s4.fu2	Sie werden wohl durch Kyoto spaziert sein.
+s	_course:s4.fu2	Sie werden wohl ein paar Wörter Japanisch gelernt haben.
+s	_course:s4.fu2	Sie werden wohl im Hotel geschlafen haben.
+s	_course:s4.fu2	Sie werden wohl mit dem Schnellzug gefahren sein.
+s	_course:s4.fu2	Sie werden wohl spät angekommen sein.
+s	_course:s4.fu2	Sie werden wohl viele Tempel besucht haben.
+s	_course:s4.fu2	Sie werden wohl zu viel eingekauft haben.
+s	_course:s4.fu2	Sie wird an der Uni studiert haben.
+s	_course:s4.fu2	Sie wird den Führerausweis gemacht haben.
+s	_course:s4.fu2	Sie wird die Fensterläden zugemacht haben.
+s	_course:s4.fu2	Sie wird die Matura gemacht haben.
+s	_course:s4.fu2	Sie wird eine eigene Wohnung gefunden haben.
+s	_course:s4.fu2	Sie wird einen Beruf gelernt haben.
+s	_course:s4.fu2	Sie wird es sicher vergessen haben.
+s	_course:s4.fu2	Sie wird es vergessen haben.
+s	_course:s4.fu2	Sie wird es wohl vergessen haben.
+s	_course:s4.fu2	Sie wird in eine andere Stadt umgezogen sein.
+s	_course:s4.fu2	Sie wird meine Mail nicht gesehen haben. Sie wird wohl den ganzen Tag in Sitzungen gewesen sein.
+s	_course:s4.fu2	Sie wird nach Australien gereist sein.
+s	_course:s4.fu2	Sie wird sich verliebt haben.
+s	_course:s4.fu2	Sie wird viel erlebt haben.
+s	_course:s4.fu2	Sie wird vielleicht geheiratet haben.
+s	_course:s4.fu2	Sie zieht eine warme Jacke an.
+s	_course:s4.fu2	Tim antwortet nicht — er wird schon eingeschlafen sein.
+s	_course:s4.fu2	Viele Familien wandern am Wochenende.
+s	_course:s4.fu2	Viele Familien waren am Wochenende gewandert.
+s	_course:s4.fu2	Viele Leute werden im Park gegrillt haben. Sie werden bis spät in der Nacht gefeiert und den Abfall liegen gelassen haben.
+s	_course:s4.fu2	Weißt du, wann er angekommen sein wird?
+s	_course:s4.fu2	Weißt du? Wann wird er angekommen sein?
+s	_course:s4.fu2	Wenn du ankommst, werde ich schon gegessen haben.
+s	_course:s4.fu2	Wenn du heimkommst, werde ich gekocht haben.
+s	_course:s4.fu2	Wenn du nach Hause kommst, habe ich gekocht.
+s	_course:s4.fu2	Wenn du nach Hause kommst, werde ich gekocht haben.
+s	_course:s4.fu2	Wir fahren vier Stunden lang.
+s	_course:s4.fu2	Wir hatten oft mit den Nachbarn geredet.
+s	_course:s4.fu2	Wir hoffen, dass ihr gut angekommen sein werdet.
+s	_course:s4.fu2	Wir hoffen. Ihr werdet gut angekommen sein.
+s	_course:s4.fu2	Wir nehmen an, dass die Firma alles verkauft haben wird.
+s	_course:s4.fu2	Wir nehmen an. Die Firma wird alles verkauft haben.
+s	_course:s4.fu2	Wir reden oft mit den Nachbarn.
+s	_course:s4.fu2	Wir schlafen mehr als zehn Stunden.
+s	_course:s4.fu2	Wir werden mehr als zehn Stunden geschlafen haben.
+s	_course:s4.fu2	Wir werden oft mit den Nachbarn reden.
+s	_course:s4.fu2	Wir werden vier Stunden lang gefahren sein.
+s	_course:s4.k1	Am Wochenende war ich im Museum.
+s	_course:s4.k1	Das Auto hat nicht gebremst.
+s	_course:s4.k1	Das Essen ist hier billiger als in Zürich.
+s	_course:s4.k1	Das schöne Wetter bleibt bis Sonntag.
+s	_course:s4.k1	Der Arzt meinte, das Bein sei nicht gebrochen.
+s	_course:s4.k1	Der Arzt meinte, dass das Bein nicht gebrochen sei.
+s	_course:s4.k1	Der Arzt meinte, ich solle mehr trinken.
+s	_course:s4.k1	Der Arzt sagte, dass ich mich ausruhen solle.
+s	_course:s4.k1	Der Arzt sagte, dass ich mich erholen solle.
+s	_course:s4.k1	Der Arzt sagte, ich solle mich ausruhen.
+s	_course:s4.k1	Der Arzt sagte, ich solle mich erholen.
+s	_course:s4.k1	Der Bahnhof wird bis 2028 umgebaut.
+s	_course:s4.k1	Der Bus kam zwei Minuten später.
+s	_course:s4.k1	Der Bürgermeister sagte, dass sie ein neues Altersheim gebaut hätten.
+s	_course:s4.k1	Der Bürgermeister sagte, sie hätten ein neues Altersheim gebaut.
+s	_course:s4.k1	Der Bürgermeister sagte: Wir haben ein neues Altersheim gebaut.
+s	_course:s4.k1	Der Chef sagt, er wolle das Projekt bis Juni abschließen.
+s	_course:s4.k1	Der Hauswart sagte, dass die Heizung kaputt sei.
+s	_course:s4.k1	Der Hauswart sagte, die Heizung sei kaputt.
+s	_course:s4.k1	Der Hauswart sagte: Die Heizung ist kaputt.
+s	_course:s4.k1	Der Hund hatte die ganze Nacht gebellt.
+s	_course:s4.k1	Der Kontrolleur fragte, wo ich eingestiegen sei.
+s	_course:s4.k1	Der Kontrolleur fragte: Wo sind Sie eingestiegen?
+s	_course:s4.k1	Der Minister sagte, dass er zufrieden sei.
+s	_course:s4.k1	Der Minister sagte, er sei zufrieden.
+s	_course:s4.k1	Der Minister verspricht, dass die Steuern nicht steigen würden.
+s	_course:s4.k1	Der Minister verspricht, die Steuern würden nicht steigen.
+s	_course:s4.k1	Der Minister verspricht: Die Steuern werden nicht steigen.
+s	_course:s4.k1	Der Nachbar fragte, ob ich seine Katze füttern könne.
+s	_course:s4.k1	Der Nachbar fragte, ob ich seine Katze füttern könnte.
+s	_course:s4.k1	Der Nachbar fragte: Können Sie meine Katze füttern?
+s	_course:s4.k1	Der Polizist sagte, dass ich ihm meinen Ausweis zeigen solle.
+s	_course:s4.k1	Der Polizist sagte, ich solle ihm meinen Ausweis zeigen.
+s	_course:s4.k1	Der Polizist sagte: Zeigen Sie mir Ihren Ausweis!
+s	_course:s4.k1	Der Präsident der Firma tritt zurück.
+s	_course:s4.k1	Der Sprecher sagte, dass der Zug Verspätung habe.
+s	_course:s4.k1	Der Sprecher sagte, der Zug habe Verspätung.
+s	_course:s4.k1	Der Trainer sagte, dass die Mannschaft immer besser werde.
+s	_course:s4.k1	Der Trainer sagte, dass wir genug Wasser trinken sollen.
+s	_course:s4.k1	Der Trainer sagte, dass wir genug Wasser trinken sollten.
+s	_course:s4.k1	Der Trainer sagte, die Mannschaft werde immer besser.
+s	_course:s4.k1	Der Trainer sagte, wir sollen genug Wasser trinken.
+s	_course:s4.k1	Der Trainer sagte, wir sollten genug Wasser trinken.
+s	_course:s4.k1	Der Trainer sagte: Die Mannschaft wird immer besser.
+s	_course:s4.k1	Der Trainer sagte: Trinkt genug Wasser!
+s	_course:s4.k1	Der Vermieter schreibt, die Fenster würden im Mai ersetzt. Die Arbeiten dauerten etwa zwei Tage. Wir sollten an diesen Tagen zu Hause sein.
+s	_course:s4.k1	Der Vermieter schrieb, dass die Wohnung im März renoviert werde.
+s	_course:s4.k1	Der Vermieter schrieb, die Wohnung werde im März renoviert.
+s	_course:s4.k1	Der Vermieter schrieb: Die Wohnung wird im März renoviert.
+s	_course:s4.k1	Der Wetterdienst meldet, dass es morgen schneien werde.
+s	_course:s4.k1	Der Wetterdienst meldet, es werde morgen schneien.
+s	_course:s4.k1	Der Wetterdienst meldet, morgen werde es schneien.
+s	_course:s4.k1	Der Wetterdienst meldet: Morgen wird es schneien.
+s	_course:s4.k1	Der Zeuge sagte, das Auto habe nicht gebremst.
+s	_course:s4.k1	Der Zeuge sagte, dass das Auto nicht gebremst habe.
+s	_course:s4.k1	Der Zeuge sagte, dass der Bus zwei Minuten später gekommen sei.
+s	_course:s4.k1	Der Zeuge sagte, dass die Ampel kaputt gewesen sei.
+s	_course:s4.k1	Der Zeuge sagte, dass die Polizei nach fünf Minuten da gewesen sei.
+s	_course:s4.k1	Der Zeuge sagte, dass ein Mann ein Foto gemacht habe.
+s	_course:s4.k1	Der Zeuge sagte, dass ein Velofahrer bei Rot über die Kreuzung gefahren sei.
+s	_course:s4.k1	Der Zeuge sagte, dass eine Frau sofort zum Telefon gelaufen sei.
+s	_course:s4.k1	Der Zeuge sagte, dass er alles genau gesehen habe.
+s	_course:s4.k1	Der Zeuge sagte, dass er an der Haltestelle gestanden habe.
+s	_course:s4.k1	Der Zeuge sagte, dass er an der Haltestelle gestanden sei.
+s	_course:s4.k1	Der Zeuge sagte, dass niemand verletzt worden sei.
+s	_course:s4.k1	Der Zeuge sagte, der Bus sei zwei Minuten später gekommen.
+s	_course:s4.k1	Der Zeuge sagte, die Ampel sei kaputt gewesen.
+s	_course:s4.k1	Der Zeuge sagte, die Polizei sei nach fünf Minuten da gewesen.
+s	_course:s4.k1	Der Zeuge sagte, ein Mann habe ein Foto gemacht.
+s	_course:s4.k1	Der Zeuge sagte, ein Velofahrer sei bei Rot über die Kreuzung gefahren.
+s	_course:s4.k1	Der Zeuge sagte, eine Frau sei sofort zum Telefon gelaufen.
+s	_course:s4.k1	Der Zeuge sagte, er habe alles genau gesehen.
+s	_course:s4.k1	Der Zeuge sagte, er habe an der Haltestelle gestanden.
+s	_course:s4.k1	Der Zeuge sagte, er habe nichts gesehen.
+s	_course:s4.k1	Der Zeuge sagte, er sei an der Haltestelle gestanden.
+s	_course:s4.k1	Der Zeuge sagte, niemand sei verletzt worden.
+s	_course:s4.k1	Der alte Bäcker schloss seinen Laden.
+s	_course:s4.k1	Die Ampel war kaputt.
+s	_course:s4.k1	Die Bank teilt mit, es gebe keine Probleme.
+s	_course:s4.k1	Die Chefin sagt, dass die Sitzung nicht lange dauern werde.
+s	_course:s4.k1	Die Chefin sagt, die Sitzung werde nicht lange dauern.
+s	_course:s4.k1	Die Chefin sagt: Die Sitzung wird nicht lange dauern.
+s	_course:s4.k1	Die Familie Rossi zog letztes Jahr nach Lugano.
+s	_course:s4.k1	Die Firma erklärt, dass sie fünfzig neue Stellen schaffen werde.
+s	_course:s4.k1	Die Firma erklärt, sie werde fünfzig neue Stellen schaffen.
+s	_course:s4.k1	Die Firma erklärt: Wir werden fünfzig neue Stellen schaffen.
+s	_course:s4.k1	Die Firma teilt mit, der Chef sei in den Ferien.
+s	_course:s4.k1	Die Gemeinde hat kein Geld für ein neues Hallenbad.
+s	_course:s4.k1	Die Gäste sagten, dass sie keinen Hunger hätten.
+s	_course:s4.k1	Die Gäste sagten, sie hätten keinen Hunger.
+s	_course:s4.k1	Die Journalistin fragt, ob die Passstraße wieder offen sei.
+s	_course:s4.k1	Die Journalistin fragt, ob man die Tickets auch online kaufen könne.
+s	_course:s4.k1	Die Journalistin fragt, wann der erste Zug wieder fahre.
+s	_course:s4.k1	Die Kantine ist richtig gut.
+s	_course:s4.k1	Die Kinder sagen, sie seien müde.
+s	_course:s4.k1	Die Kinder spielten den ganzen Tag draußen.
+s	_course:s4.k1	Die Kinder versprechen, dass sie pünktlich sein würden.
+s	_course:s4.k1	Die Kinder versprechen, sie würden pünktlich sein.
+s	_course:s4.k1	Die Kinder versprechen: Wir werden pünktlich sein.
+s	_course:s4.k1	Die Lehrerin fragte, ob Tim seine Hausaufgaben gemacht habe.
+s	_course:s4.k1	Die Lehrerin fragte: Hat Tim seine Hausaufgaben gemacht?
+s	_course:s4.k1	Die Lehrerin sagte, dass der Ausflug leider ausfallen müsse.
+s	_course:s4.k1	Die Lehrerin sagte, der Ausflug müsse leider ausfallen.
+s	_course:s4.k1	Die Lehrerin sagte: Der Ausflug muss leider ausfallen.
+s	_course:s4.k1	Die Mieten in Zürich steigen weiter.
+s	_course:s4.k1	Die Nachbarin erzählte, dass der Hund die ganze Nacht gebellt habe.
+s	_course:s4.k1	Die Nachbarin erzählte, dass der alte Bäcker seinen Laden geschlossen habe.
+s	_course:s4.k1	Die Nachbarin erzählte, dass die Familie Rossi letztes Jahr nach Lugano gezogen sei.
+s	_course:s4.k1	Die Nachbarin erzählte, dass die Kinder den ganzen Tag draußen gespielt hätten.
+s	_course:s4.k1	Die Nachbarin erzählte, dass es früher hier einen Bahnhof gegeben habe.
+s	_course:s4.k1	Die Nachbarin erzählte, dass ihr Mann den Schlüssel vergessen habe.
+s	_course:s4.k1	Die Nachbarin erzählte, dass ihr Sohn zwei Jahre in Kanada gelebt habe.
+s	_course:s4.k1	Die Nachbarin erzählte, dass sie das Paket schon abgeholt habe.
+s	_course:s4.k1	Die Nachbarin erzählte, dass sie einen Brief von der Gemeinde bekommen hätten.
+s	_course:s4.k1	Die Nachbarin erzählte, dass sie noch nie im Ausland gewesen sei.
+s	_course:s4.k1	Die Nachbarin erzählte, der Hund habe die ganze Nacht gebellt.
+s	_course:s4.k1	Die Nachbarin erzählte, der alte Bäcker habe seinen Laden geschlossen.
+s	_course:s4.k1	Die Nachbarin erzählte, die Familie Rossi sei letztes Jahr nach Lugano gezogen.
+s	_course:s4.k1	Die Nachbarin erzählte, die Kinder hätten den ganzen Tag draußen gespielt.
+s	_course:s4.k1	Die Nachbarin erzählte, es habe früher hier einen Bahnhof gegeben.
+s	_course:s4.k1	Die Nachbarin erzählte, früher habe es hier einen Bahnhof gegeben.
+s	_course:s4.k1	Die Nachbarin erzählte, ihr Mann habe den Schlüssel vergessen.
+s	_course:s4.k1	Die Nachbarin erzählte, ihr Sohn habe zwei Jahre in Kanada gelebt.
+s	_course:s4.k1	Die Nachbarin erzählte, sie habe das Paket schon abgeholt.
+s	_course:s4.k1	Die Nachbarin erzählte, sie hätten einen Brief von der Gemeinde bekommen.
+s	_course:s4.k1	Die Nachbarin erzählte, sie sei noch nie im Ausland gewesen.
+s	_course:s4.k1	Die Nachbarn sagen, sie hätten am Samstag keine Zeit.
+s	_course:s4.k1	Die Politikerin versprach, sie werde die Steuern senken. Außerdem werde sie mehr Geld für die Schulen ausgeben. Ob das stimmt, werden wir sehen.
+s	_course:s4.k1	Die Polizei berichtet, dass niemand verletzt worden sei.
+s	_course:s4.k1	Die Polizei berichtet, niemand sei verletzt worden.
+s	_course:s4.k1	Die Polizei meldet, dass niemand verletzt worden sei.
+s	_course:s4.k1	Die Polizei meldet, niemand sei verletzt worden.
+s	_course:s4.k1	Die Polizei meldete, dass der Fahrer zu schnell gefahren sei.
+s	_course:s4.k1	Die Polizei meldete, der Fahrer sei zu schnell gefahren.
+s	_course:s4.k1	Die Polizei teilte mit, dass der Dieb gestern verhaftet worden sei.
+s	_course:s4.k1	Die Polizei teilte mit, der Dieb sei gestern verhaftet worden.
+s	_course:s4.k1	Die Polizei teilte mit: Der Dieb ist gestern verhaftet worden.
+s	_course:s4.k1	Die Polizei war nach fünf Minuten da.
+s	_course:s4.k1	Die SBB teilt mit, dass der Zug später abfahren werde.
+s	_course:s4.k1	Die SBB teilt mit, der Zug werde später abfahren.
+s	_course:s4.k1	Die SBB teilt mit: Der Zug wird später abfahren.
+s	_course:s4.k1	Die SBB teilte mit, der Zug werde um zehn Uhr fahren.
+s	_course:s4.k1	Die Schule braucht mehr Lehrerinnen und Lehrer.
+s	_course:s4.k1	Die Vermieterin fragte, ob ich ein Haustier habe.
+s	_course:s4.k1	Die Vermieterin fragte, ob ich ein Haustier hätte.
+s	_course:s4.k1	Die Vermieterin fragte: Haben Sie ein Haustier?
+s	_course:s4.k1	Die Zeitung schreibt, das schöne Wetter bleibe bis Sonntag.
+s	_course:s4.k1	Die Zeitung schreibt, dass das schöne Wetter bis Sonntag bleibe.
+s	_course:s4.k1	Die Zeitung schreibt, dass der Bahnhof bis 2028 umgebaut werde.
+s	_course:s4.k1	Die Zeitung schreibt, dass der Präsident der Firma zurücktrete.
+s	_course:s4.k1	Die Zeitung schreibt, dass die Brücke 1890 gebaut worden sei.
+s	_course:s4.k1	Die Zeitung schreibt, dass die Brücke im Jahr 1890 gebaut worden sei.
+s	_course:s4.k1	Die Zeitung schreibt, dass die Gemeinde kein Geld für ein neues Hallenbad habe.
+s	_course:s4.k1	Die Zeitung schreibt, dass die Mieten in Zürich weiter steigen würden.
+s	_course:s4.k1	Die Zeitung schreibt, dass die Mieten in Zürich weiter stiegen.
+s	_course:s4.k1	Die Zeitung schreibt, dass die Schule mehr Lehrerinnen und Lehrer brauche.
+s	_course:s4.k1	Die Zeitung schreibt, dass niemand die Ursache des Unfalls kenne.
+s	_course:s4.k1	Die Zeitung schreibt, der Bahnhof werde bis 2028 umgebaut.
+s	_course:s4.k1	Die Zeitung schreibt, der Präsident der Firma trete zurück.
+s	_course:s4.k1	Die Zeitung schreibt, die Brücke sei 1890 gebaut worden.
+s	_course:s4.k1	Die Zeitung schreibt, die Brücke sei im Jahr 1890 gebaut worden.
+s	_course:s4.k1	Die Zeitung schreibt, die Gemeinde baue ein neues Schulhaus. Es werde im Herbst eröffnet. Der Gemeindepräsident sagte, das Projekt sei teuer, aber wichtig.
+s	_course:s4.k1	Die Zeitung schreibt, die Gemeinde habe kein Geld für ein neues Hallenbad.
+s	_course:s4.k1	Die Zeitung schreibt, die Mieten in Zürich stiegen weiter.
+s	_course:s4.k1	Die Zeitung schreibt, die Mieten in Zürich würden weiter steigen.
+s	_course:s4.k1	Die Zeitung schreibt, die Schule brauche mehr Lehrerinnen und Lehrer.
+s	_course:s4.k1	Die Zeitung schreibt, niemand kenne die Ursache des Unfalls.
+s	_course:s4.k1	Die Zeitung schrieb, dass der Präsident zurücktreten werde.
+s	_course:s4.k1	Die Zeitung schrieb, der Präsident werde zurücktreten.
+s	_course:s4.k1	Die Ärztin sagte, das Kind habe Fieber gehabt.
+s	_course:s4.k1	Die Ärztin sagte, dass das Kind Fieber gehabt habe.
+s	_course:s4.k1	Die Ärztin sagte, dass ich mich ausruhen solle.
+s	_course:s4.k1	Die Ärztin sagte, dass ich zwei Tage im Bett bleiben solle.
+s	_course:s4.k1	Die Ärztin sagte, ich solle mehr Wasser trinken. Ich solle auch jeden Tag spazieren gehen. Und sie meinte, ich würde zu viel arbeiten.
+s	_course:s4.k1	Die Ärztin sagte, ich solle mich ausruhen.
+s	_course:s4.k1	Die Ärztin sagte, ich solle zwei Tage im Bett bleiben.
+s	_course:s4.k1	Die Ärztin sagte: Bleiben Sie zwei Tage im Bett!
+s	_course:s4.k1	Die Ärztin sagte: Das Kind hat Fieber gehabt.
+s	_course:s4.k1	Du hast ein schönes Büro.
+s	_course:s4.k1	Ein Mann hat ein Foto gemacht.
+s	_course:s4.k1	Ein Tourist fragte, warum der Zug so voll sei.
+s	_course:s4.k1	Ein Tourist fragte: Warum ist der Zug so voll?
+s	_course:s4.k1	Ein Velofahrer fuhr bei Rot über die Kreuzung.
+s	_course:s4.k1	Eine Frau war sofort zum Telefon gelaufen.
+s	_course:s4.k1	Er glaubt, ich sei sein Chef.
+s	_course:s4.k1	Er sagt, dass die Kantine richtig gut sei.
+s	_course:s4.k1	Er sagt, dass er aus dem Wallis komme.
+s	_course:s4.k1	Er sagt, dass er erst seit Mai hier sei.
+s	_course:s4.k1	Er sagt, dass er gern im Team arbeite.
+s	_course:s4.k1	Er sagt, dass er immer den Zug um sieben nehme.
+s	_course:s4.k1	Er sagt, dass er jeden Tag mit dem Velo fahre.
+s	_course:s4.k1	Er sagt, dass er mir am Freitag helfen könne.
+s	_course:s4.k1	Er sagt, dass er noch nicht wisse, wo der Drucker stehe.
+s	_course:s4.k1	Er sagt, dass er noch nicht wisse, wo der Drucker steht.
+s	_course:s4.k1	Er sagt, dass er zwei kleine Kinder habe.
+s	_course:s4.k1	Er sagt, dass ich ein schönes Büro habe.
+s	_course:s4.k1	Er sagt, dass ich ein schönes Büro hätte.
+s	_course:s4.k1	Er sagt, die Kantine sei richtig gut.
+s	_course:s4.k1	Er sagt, er arbeite gern im Team.
+s	_course:s4.k1	Er sagt, er fahre jeden Tag mit dem Velo.
+s	_course:s4.k1	Er sagt, er habe zwei kleine Kinder.
+s	_course:s4.k1	Er sagt, er komme aus dem Wallis.
+s	_course:s4.k1	Er sagt, er könne mir am Freitag helfen.
+s	_course:s4.k1	Er sagt, er müsse heute länger arbeiten.
+s	_course:s4.k1	Er sagt, er nehme immer den Zug um sieben.
+s	_course:s4.k1	Er sagt, er sei erst seit Mai hier.
+s	_course:s4.k1	Er sagt, er wisse noch nicht, wo der Drucker stehe.
+s	_course:s4.k1	Er sagt, er wisse noch nicht, wo der Drucker steht.
+s	_course:s4.k1	Er sagt, ich habe ein schönes Büro.
+s	_course:s4.k1	Er sagt, ich hätte ein schönes Büro.
+s	_course:s4.k1	Er schrieb, dass er im Juni komme.
+s	_course:s4.k1	Er schrieb, dass er im Juni kommen werde.
+s	_course:s4.k1	Er schrieb, er komme im Juni.
+s	_course:s4.k1	Er schrieb, er werde im Juni kommen.
+s	_course:s4.k1	Es lebe die Freiheit!
+s	_course:s4.k1	Frau Huber erzählte, dass ihr Sohn zu viel Geld ausgebe.
+s	_course:s4.k1	Frau Huber erzählte, ihr Sohn gebe zu viel Geld aus.
+s	_course:s4.k1	Frau Huber sagte, das Budget sei zu klein. Herr Kunz meinte, man könne im nächsten Jahr mehr investieren. Alle waren einverstanden, dass man im März wieder darüber spreche.
+s	_course:s4.k1	Früher gab es hier einen Bahnhof.
+s	_course:s4.k1	Gott segne euch!
+s	_course:s4.k1	Gott sei Dank ist Freitag!
+s	_course:s4.k1	Gott sei Dank ist der Winter bald vorbei. Am Sonntag gehen wir an den See, es sei denn, es regnet. Wie dem auch sei, ich freue mich auf den Frühling.
+s	_course:s4.k1	Gott sei Dank ist es Freitag!
+s	_course:s4.k1	Gott sei Dank, der Zug fährt wieder!
+s	_course:s4.k1	Gott sei Dank, es ist Freitag!
+s	_course:s4.k1	Herr Frei erklärte, dass er nächstes Jahr in Pension gehe.
+s	_course:s4.k1	Herr Frei erklärte, er gehe nächstes Jahr in Pension.
+s	_course:s4.k1	Herr Frei erklärte: Ich gehe nächstes Jahr in Pension.
+s	_course:s4.k1	Hoch lebe das Brautpaar!
+s	_course:s4.k1	Ich arbeite gern im Team.
+s	_course:s4.k1	Ich backe jeden Sonntag einen Zopf.
+s	_course:s4.k1	Ich bin erst seit Mai hier.
+s	_course:s4.k1	Ich bin gut in Berlin angekommen.
+s	_course:s4.k1	Ich bin schon zweimal Marathon gelaufen.
+s	_course:s4.k1	Ich fahre jeden Tag mit dem Velo.
+s	_course:s4.k1	Ich fahre überall mit der U-Bahn.
+s	_course:s4.k1	Ich habe alles genau gesehen.
+s	_course:s4.k1	Ich habe die Wohnung selbst renoviert.
+s	_course:s4.k1	Ich habe drei Jahre in New York gewohnt.
+s	_course:s4.k1	Ich habe ein Zimmer in Kreuzberg gefunden.
+s	_course:s4.k1	Ich habe letztes Jahr im Lotto gewonnen.
+s	_course:s4.k1	Ich habe schon viele Leute kennengelernt.
+s	_course:s4.k1	Ich habe zwei kleine Kinder.
+s	_course:s4.k1	Ich hatte das Paket schon abgeholt.
+s	_course:s4.k1	Ich helfe dir gern, es sei denn, ich muss arbeiten.
+s	_course:s4.k1	Ich kann dir am Freitag helfen.
+s	_course:s4.k1	Ich komme an Weihnachten nach Hause.
+s	_course:s4.k1	Ich komme aus dem Wallis.
+s	_course:s4.k1	Ich nehme immer den Zug um sieben.
+s	_course:s4.k1	Ich stand an der Haltestelle.
+s	_course:s4.k1	Ich vermisse euch sehr.
+s	_course:s4.k1	Ich war früher Pilotin.
+s	_course:s4.k1	Ich war noch nie im Ausland.
+s	_course:s4.k1	Ich weiß noch nicht, wo der Drucker steht.
+s	_course:s4.k1	Im Bericht steht, die Brücke müsse saniert werden.
+s	_course:s4.k1	Im Brief steht, Herr Meier habe das Formular noch nicht.
+s	_course:s4.k1	Ist die Passstraße wieder offen?
+s	_course:s4.k1	Kann man die Tickets auch online kaufen?
+s	_course:s4.k1	Koste es, was es wolle: ich will diese Wohnung!
+s	_course:s4.k1	Laut Lea wisse niemand die Antwort.
+s	_course:s4.k1	Laut Wetterbericht sei der Sommer zu trocken.
+s	_course:s4.k1	Lea schreibt, dass sie mich am Bahnhof abholen werde.
+s	_course:s4.k1	Lea schreibt, sie komme erst am Montag zurück.
+s	_course:s4.k1	Lea schreibt, sie werde mich am Bahnhof abholen.
+s	_course:s4.k1	Lea schreibt: Ich werde dich am Bahnhof abholen.
+s	_course:s4.k1	Lukas schrieb, dass er gut in Kanada angekommen sei.
+s	_course:s4.k1	Lukas schrieb, er sei gut in Kanada angekommen.
+s	_course:s4.k1	Lukas schrieb: Ich bin gut in Kanada angekommen.
+s	_course:s4.k1	Man nehme 500 Gramm Mehl und zwei Eier.
+s	_course:s4.k1	Marco erzählte, er sei zwei Wochen in Portugal gewesen. Das Wetter sei fantastisch gewesen, und er habe jeden Tag frischen Fisch gegessen.
+s	_course:s4.k1	Mein Bruder schreibt, dass er im Juli heiraten werde.
+s	_course:s4.k1	Mein Bruder schreibt, er werde im Juli heiraten.
+s	_course:s4.k1	Mein Bruder schreibt: Ich werde im Juli heiraten.
+s	_course:s4.k1	Mein Chef fragte, wann der Techniker komme.
+s	_course:s4.k1	Mein Chef fragte: Wann kommt der Techniker?
+s	_course:s4.k1	Mein Mann kocht jeden Abend.
+s	_course:s4.k1	Mein Mann vergaß den Schlüssel.
+s	_course:s4.k1	Mein Nachbar meint, er gebe zu viel Geld aus.
+s	_course:s4.k1	Mein Sohn ist der beste Schüler der Klasse.
+s	_course:s4.k1	Mein Sohn lebte zwei Jahre in Kanada.
+s	_course:s4.k1	Meine Chefin fragte, ob ich am Samstag arbeiten könne.
+s	_course:s4.k1	Meine Chefin sagte, dass ich den Bericht bis Freitag schicken solle.
+s	_course:s4.k1	Meine Chefin sagte, ich solle den Bericht bis Freitag schicken.
+s	_course:s4.k1	Meine Eltern sagen, dass sie uns im Mai besuchen würden.
+s	_course:s4.k1	Meine Eltern sagen, sie würden uns im Mai besuchen.
+s	_course:s4.k1	Meine Eltern sagen: Wir werden euch im Mai besuchen.
+s	_course:s4.k1	Meine Mitbewohnerin kommt aus Polen.
+s	_course:s4.k1	Meine Mutter schrieb, dass ich sie am Sonntag anrufen solle.
+s	_course:s4.k1	Meine Mutter schrieb, ich solle sie am Sonntag anrufen.
+s	_course:s4.k1	Meine Mutter schrieb: Ruf mich am Sonntag an!
+s	_course:s4.k1	Meine Nachbarn sagen, dass sie keine Zeit hätten.
+s	_course:s4.k1	Meine Nachbarn sagen, sie hätten keine Zeit.
+s	_course:s4.k1	Meine Schwester erzählte, dass sie eine neue Stelle gefunden habe.
+s	_course:s4.k1	Meine Schwester erzählte, sie habe eine neue Stelle gefunden.
+s	_course:s4.k1	Meine Schwester erzählte: Ich habe eine neue Stelle gefunden.
+s	_course:s4.k1	Meine neue Kollegin wollte wissen, ob ich schon lange in der Schweiz sei und wo meine Familie wohne. Dann fragte sie, ob ich am Freitag Zeit für einen Apéro hätte.
+s	_course:s4.k1	Möge das neue Jahr dir viel Glück bringen!
+s	_course:s4.k1	Niemand kennt die Ursache des Unfalls.
+s	_course:s4.k1	Niemand wurde verletzt.
+s	_course:s4.k1	Professor Weber fragte, ob jemand die Aufgabe lösen könne.
+s	_course:s4.k1	Sie fragte, ob das Geschäft am Sonntag geöffnet sei.
+s	_course:s4.k1	Sie fragte, ob das Geschäft am Sonntag offen sei.
+s	_course:s4.k1	Sie fragte, ob der Laden am Sonntag geöffnet sei.
+s	_course:s4.k1	Sie fragte, ob der Laden am Sonntag offen sei.
+s	_course:s4.k1	Sie meint, ihr Sohn könne schon gut Deutsch.
+s	_course:s4.k1	Sie sagte, dass ihr Mann jeden Abend koche.
+s	_course:s4.k1	Sie sagte, dass ihr Sohn der beste Schüler der Klasse sei.
+s	_course:s4.k1	Sie sagte, dass ihre Tochter vier Sprachen spreche.
+s	_course:s4.k1	Sie sagte, dass sie die Wohnung selbst renoviert habe.
+s	_course:s4.k1	Sie sagte, dass sie drei Jahre in New York gewohnt habe.
+s	_course:s4.k1	Sie sagte, dass sie ein Ferienhaus im Tessin hätten.
+s	_course:s4.k1	Sie sagte, dass sie früher Pilotin gewesen sei.
+s	_course:s4.k1	Sie sagte, dass sie jeden Sonntag einen Zopf backe.
+s	_course:s4.k1	Sie sagte, dass sie letztes Jahr im Lotto gewonnen habe.
+s	_course:s4.k1	Sie sagte, dass sie schon zweimal Marathon gelaufen sei.
+s	_course:s4.k1	Sie sagte, ihr Mann koche jeden Abend.
+s	_course:s4.k1	Sie sagte, ihr Sohn sei der beste Schüler der Klasse.
+s	_course:s4.k1	Sie sagte, ihre Tochter spreche vier Sprachen.
+s	_course:s4.k1	Sie sagte, sie backe jeden Sonntag einen Zopf.
+s	_course:s4.k1	Sie sagte, sie habe die Wohnung selbst renoviert.
+s	_course:s4.k1	Sie sagte, sie habe drei Jahre in New York gewohnt.
+s	_course:s4.k1	Sie sagte, sie habe letztes Jahr im Lotto gewonnen.
+s	_course:s4.k1	Sie sagte, sie hätten ein Ferienhaus im Tessin.
+s	_course:s4.k1	Sie sagte, sie sei früher Pilotin gewesen.
+s	_course:s4.k1	Sie sagte, sie sei schon zweimal Marathon gelaufen.
+s	_course:s4.k1	Sie schreibt, am Wochenende sei sie im Museum gewesen.
+s	_course:s4.k1	Sie schreibt, das Essen sei dort billiger als in Zürich.
+s	_course:s4.k1	Sie schreibt, das Essen sei hier billiger als in Zürich.
+s	_course:s4.k1	Sie schreibt, dass das Essen dort billiger als in Zürich sei.
+s	_course:s4.k1	Sie schreibt, dass das Essen hier billiger als in Zürich sei.
+s	_course:s4.k1	Sie schreibt, dass die Stadt riesig sei.
+s	_course:s4.k1	Sie schreibt, dass ihre Mitbewohnerin aus Polen komme.
+s	_course:s4.k1	Sie schreibt, dass sie am Wochenende im Museum gewesen sei.
+s	_course:s4.k1	Sie schreibt, dass sie an Weihnachten nach Hause komme.
+s	_course:s4.k1	Sie schreibt, dass sie ein Zimmer in Kreuzberg gefunden habe.
+s	_course:s4.k1	Sie schreibt, dass sie gut in Berlin angekommen sei.
+s	_course:s4.k1	Sie schreibt, dass sie schon viele Leute kennengelernt habe.
+s	_course:s4.k1	Sie schreibt, dass sie uns sehr vermisse.
+s	_course:s4.k1	Sie schreibt, dass sie überall mit der U-Bahn fahre.
+s	_course:s4.k1	Sie schreibt, die Stadt sei riesig.
+s	_course:s4.k1	Sie schreibt, ihre Mitbewohnerin komme aus Polen.
+s	_course:s4.k1	Sie schreibt, sie fahre überall mit der U-Bahn.
+s	_course:s4.k1	Sie schreibt, sie habe ein Zimmer in Kreuzberg gefunden.
+s	_course:s4.k1	Sie schreibt, sie habe schon viele Leute kennengelernt.
+s	_course:s4.k1	Sie schreibt, sie komme an Weihnachten nach Hause.
+s	_course:s4.k1	Sie schreibt, sie laufe jeden Morgen am See.
+s	_course:s4.k1	Sie schreibt, sie sei am Wochenende im Museum gewesen.
+s	_course:s4.k1	Sie schreibt, sie sei gut in Berlin angekommen.
+s	_course:s4.k1	Sie schreibt, sie vermisse uns sehr.
+s	_course:s4.k1	Sie teilte mit, das Museum sei zerstört worden.
+s	_course:s4.k1	Sie teilte mit, dass das Museum zerstört worden sei.
+s	_course:s4.k1	Unsere Tochter spricht vier Sprachen.
+s	_course:s4.k1	Wann fährt der erste Zug wieder?
+s	_course:s4.k1	Wie dem auch sei, wir fahren morgen.
+s	_course:s4.k1	Wir bekamen einen Brief von der Gemeinde.
+s	_course:s4.k1	Wir gehen wandern, es sei denn es regnet.
+s	_course:s4.k1	Wir gehen wandern, es sei denn, es regnet.
+s	_course:s4.k1	Wir haben ein Ferienhaus im Tessin.
+s	_course:s4.k1	Wir werden wandern gehen, es sei denn, es regnet.
+s	_course:s4.k2p	Am Samstag hätte ich arbeiten müssen.
+s	_course:s4.k2p	Das hätte er nicht sagen sollen.
+s	_course:s4.k2p	Das hätte meinen Chef geärgert.
+s	_course:s4.k2p	Das hättest du mir sagen können!
+s	_course:s4.k2p	Das ist eine tolle Überraschung.
+s	_course:s4.k2p	Das wäre eine tolle Überraschung gewesen.
+s	_course:s4.k2p	Das wäre nett gewesen.
+s	_course:s4.k2p	Das wäre schön gewesen.
+s	_course:s4.k2p	Das wäre wirklich nicht nötig gewesen.
+s	_course:s4.k2p	Das ärgert meinen Chef.
+s	_course:s4.k2p	Der Chef ist sauer, weil wir den Kunden hätten informieren sollen.
+s	_course:s4.k2p	Der Chef ist sauer. Wir hätten den Kunden informieren sollen.
+s	_course:s4.k2p	Die Ferien hätten länger sein sollen.
+s	_course:s4.k2p	Die Ferien sollten länger sein.
+s	_course:s4.k2p	Die Kinder haben viel Spaß.
+s	_course:s4.k2p	Die Kinder hätten viel Spaß gehabt.
+s	_course:s4.k2p	Die Party war super! Du hättest vielleicht etwas mehr Essen kaufen können, und die Musik hätte etwas leiser sein dürfen.
+s	_course:s4.k2p	Du hättest die günstigere Wohnung gekauft.
+s	_course:s4.k2p	Du hättest es mir sagen können!
+s	_course:s4.k2p	Du hättest früher losfahren sollen.
+s	_course:s4.k2p	Du hättest mich anrufen sollen.
+s	_course:s4.k2p	Du hättest mir das sagen können!
+s	_course:s4.k2p	Du kaufst die günstigere Wohnung.
+s	_course:s4.k2p	Du solltest früher losfahren.
+s	_course:s4.k2p	Entschuldige, ich hätte an deinen Geburtstag denken müssen! Ich hätte dich wenigstens anrufen können.
+s	_course:s4.k2p	Er dürfte länger bleiben.
+s	_course:s4.k2p	Er geht zu Fuß nach Hause.
+s	_course:s4.k2p	Er gibt zu, dass er mehr hätte trainieren müssen.
+s	_course:s4.k2p	Er gibt zu. Er hätte mehr trainieren müssen.
+s	_course:s4.k2p	Er hätte das nicht sagen sollen.
+s	_course:s4.k2p	Er hätte länger bleiben dürfen.
+s	_course:s4.k2p	Er wäre beinahe vom Velo gefallen.
+s	_course:s4.k2p	Er wäre gern mitgekommen.
+s	_course:s4.k2p	Er wäre zu Fuß nach Hause gegangen.
+s	_course:s4.k2p	Hätte er Zeit gehabt, hätte er länger bleiben können.
+s	_course:s4.k2p	Hätte es nicht geregnet, wären wir an den See gefahren.
+s	_course:s4.k2p	Hätte es nicht geregnet, wären wir an den See gegangen.
+s	_course:s4.k2p	Hätte ich das gewusst, hätte ich dir geholfen.
+s	_course:s4.k2p	Hätte ich mehr gelernt, hätte ich die Prüfung bestanden.
+s	_course:s4.k2p	Hättest du nicht mitkommen wollen?
+s	_course:s4.k2p	Ich bin nicht gekommen, weil ich hätte arbeiten müssen.
+s	_course:s4.k2p	Ich bin nicht gekommen. Ich hätte arbeiten müssen.
+s	_course:s4.k2p	Ich glaube, dass du das hättest wissen müssen.
+s	_course:s4.k2p	Ich glaube. Du hättest das wissen müssen.
+s	_course:s4.k2p	Ich hätte Sie anrufen sollen.
+s	_course:s4.k2p	Ich hätte am Samstag arbeiten müssen.
+s	_course:s4.k2p	Ich hätte das nicht gewusst.
+s	_course:s4.k2p	Ich hätte dich anrufen sollen.
+s	_course:s4.k2p	Ich hätte dich sofort angerufen.
+s	_course:s4.k2p	Ich hätte dir gern geholfen, aber ich war krank.
+s	_course:s4.k2p	Ich hätte dir helfen können.
+s	_course:s4.k2p	Ich hätte früher mit Deutsch anfangen sollen. Und ich hätte am Anfang mehr mit meinen Nachbarn sprechen sollen.
+s	_course:s4.k2p	Ich hätte gern Architektur studiert. Ich wäre auch gern ein Jahr ins Ausland gegangen.
+s	_course:s4.k2p	Ich hätte gern länger geschlafen.
+s	_course:s4.k2p	Ich hätte mehr Wasser trinken müssen.
+s	_course:s4.k2p	Ich hätte sofort ein Halbtax gekauft. Und ich hätte mich früher bei der Gemeinde angemeldet.
+s	_course:s4.k2p	Ich müsste mehr Wasser trinken.
+s	_course:s4.k2p	Ich rufe dich sofort an.
+s	_course:s4.k2p	Ich weiß, dass ich früher hätte fragen sollen.
+s	_course:s4.k2p	Ich weiß. Ich hätte früher fragen sollen.
+s	_course:s4.k2p	Ihr fahrt mit dem Velo.
+s	_course:s4.k2p	Ihr hättet nicht so früh aufstehen müssen.
+s	_course:s4.k2p	Ihr müsstet nicht so früh aufstehen.
+s	_course:s4.k2p	Ihr wäret mit dem Velo gefahren.
+s	_course:s4.k2p	Ihr wärt mit dem Velo gefahren.
+s	_course:s4.k2p	Lea ist enttäuscht, weil sie die Stelle hätte bekommen können.
+s	_course:s4.k2p	Lea ist enttäuscht. Sie hätte die Stelle bekommen können.
+s	_course:s4.k2p	Letzte Woche hätte ich fast meinen Termin beim Zahnarzt vergessen. Zum Glück hat die Praxis am Morgen angerufen.
+s	_course:s4.k2p	Lukas besteht die Prüfung.
+s	_course:s4.k2p	Lukas hätte die Prüfung bestanden.
+s	_course:s4.k2p	Man hätte vorher reservieren sollen.
+s	_course:s4.k2p	Man sollte vorher reservieren.
+s	_course:s4.k2p	Mein Vater meint, dass ich Arzt hätte werden sollen.
+s	_course:s4.k2p	Mein Vater meint. Ich hätte Arzt werden sollen.
+s	_course:s4.k2p	Ohne dich hätte ich das nie geschafft.
+s	_course:s4.k2p	Sie bleibt noch eine Woche.
+s	_course:s4.k2p	Sie hätte beinahe den Bus verpasst.
+s	_course:s4.k2p	Sie hätte den Bus beinahe verpasst.
+s	_course:s4.k2p	Sie hätte den Bus fast verpasst.
+s	_course:s4.k2p	Sie hätte den ganzen Film sehen wollen.
+s	_course:s4.k2p	Sie hätte fast den Bus verpasst.
+s	_course:s4.k2p	Sie hätte fast ihren Pass vergessen.
+s	_course:s4.k2p	Sie wollte den ganzen Film sehen.
+s	_course:s4.k2p	Sie wäre noch eine Woche geblieben.
+s	_course:s4.k2p	Sie wären gern länger geblieben.
+s	_course:s4.k2p	Sie wären gerne länger geblieben.
+s	_course:s4.k2p	Sie ärgert sich, weil sie das Angebot hätte annehmen können.
+s	_course:s4.k2p	Sie ärgert sich. Sie hätte das Angebot annehmen können.
+s	_course:s4.k2p	Wenn Sara nicht krank gewesen wäre, wäre sie mitgekommen.
+s	_course:s4.k2p	Wenn das Restaurant offen gewesen wäre, hätten wir dort gegessen.
+s	_course:s4.k2p	Wenn das Wetter schön gewesen wäre, wären wir an den See gefahren.
+s	_course:s4.k2p	Wenn der Bus pünktlich gewesen wäre, wäre ich nicht zu spät gekommen.
+s	_course:s4.k2p	Wenn du mich gefragt hättest, hätte ich dir geholfen.
+s	_course:s4.k2p	Wenn er Zeit gehabt hätte, hätte er länger bleiben können.
+s	_course:s4.k2p	Wenn es geregnet hätte, wären wir zu Hause geblieben.
+s	_course:s4.k2p	Wenn es nicht geregnet hätte, wären wir an den See gefahren.
+s	_course:s4.k2p	Wenn es nicht geregnet hätte, wären wir an den See gegangen.
+s	_course:s4.k2p	Wenn ich das gewusst hätte, hätte ich Ihnen geholfen.
+s	_course:s4.k2p	Wenn ich das gewusst hätte, hätte ich dir geholfen.
+s	_course:s4.k2p	Wenn ich das gewusst hätte, hätte ich nichts gesagt.
+s	_course:s4.k2p	Wenn ich den Wecker gehört hätte, hätte ich den Zug nicht verpasst. Dann wäre ich pünktlich bei der Arbeit gewesen.
+s	_course:s4.k2p	Wenn ich mehr Zeit gehabt hätte, hätte ich den Garten gepflegt.
+s	_course:s4.k2p	Wenn ich mehr Zeit gehabt hätte, hätte ich ein Instrument gelernt.
+s	_course:s4.k2p	Wenn ich mehr Zeit gehabt hätte, hätte ich jeden Tag frisch gekocht.
+s	_course:s4.k2p	Wenn ich mehr Zeit gehabt hätte, hätte ich mehr Bücher gelesen.
+s	_course:s4.k2p	Wenn ich mehr Zeit gehabt hätte, hätte ich mehr Sport gemacht.
+s	_course:s4.k2p	Wenn ich mehr Zeit gehabt hätte, hätte ich meine Großeltern öfter besucht.
+s	_course:s4.k2p	Wenn ich mehr Zeit gehabt hätte, hätte ich öfter meine Großeltern besucht.
+s	_course:s4.k2p	Wenn ich mehr Zeit gehabt hätte, wäre ich früher ins Bett gegangen.
+s	_course:s4.k2p	Wenn ich mehr Zeit gehabt hätte, wäre ich länger in den Bergen geblieben.
+s	_course:s4.k2p	Wenn ich mehr Zeit gehabt hätte, wäre ich mit dir ins Kino gekommen.
+s	_course:s4.k2p	Wenn ich mehr Zeit gehabt hätte, wäre ich nach Neuseeland gereist.
+s	_course:s4.k2p	Wenn ich mehr gelernt hätte, hätte ich die Prüfung bestanden.
+s	_course:s4.k2p	Wenn unser Torwart nicht verletzt gewesen wäre, hätten wir das Spiel gewonnen.
+s	_course:s4.k2p	Wenn wir den Wecker gehört hätten, hätten wir den Zug nicht verpasst.
+s	_course:s4.k2p	Wir hätten beinahe den letzten Bus verpasst.
+s	_course:s4.k2p	Wir hätten den früheren Zug genommen.
+s	_course:s4.k2p	Wir hätten im Garten essen können.
+s	_course:s4.k2p	Wir könnten im Garten essen.
+s	_course:s4.k2p	Wir nehmen den früheren Zug.
+s	_course:s4.k2p	Wir sind traurig, weil wir länger hätten bleiben wollen.
+s	_course:s4.k2p	Wir sind traurig. Wir hätten länger bleiben wollen.
+s	_course:s4.k2p	Wir wären gekommen, aber der Zug fiel aus.
+s	_course:s4.k2p	Wir wären gekommen, aber der Zug ist ausgefallen.
+s	_course:s4.k2p	Wir wären nach Lissabon geflogen. Wir hätten die Altstadt besichtigt und jeden Abend Fisch gegessen.
+s	_course:s4.k2p	Wolltest du nicht mitkommen?
+s	_course:s4.k2p	Wäre das Wetter schön gewesen, wären wir an den See gefahren.
+s	_course:s4.k2p	Wäre der Bus pünktlich gewesen, wäre ich nicht zu spät gekommen.
+s	_course:s4.k2p	Wäre unser Torwart nicht verletzt gewesen, hätten wir das Spiel gewonnen.
+s	_course:s4.k2p	Wäret ihr gern noch geblieben?
+s	_course:s4.k2p	Wärt ihr gern noch geblieben?
+s	_course:s4.k2p	früher ins Bett gehen
+s	_course:s4.k2p	jeden Tag frisch kochen
+s	_course:s4.k2p	länger in den Bergen bleiben
+s	_course:s4.k2p	mit dir ins Kino kommen
+s	_course:s4.k2p	öfter meine Großeltern besuchen
+w	_course:s4.k2p	den Garten pflegen
+w	_course:s4.k2p	ein Instrument lernen
+w	_course:s4.k2p	mehr Bücher lesen
+w	_course:s4.k2p	mehr Sport machen
+w	_course:s4.k2p	nach Neuseeland reisen
+s	_course:s4.prefix	Am Genfersee habe ich den schönsten Sonnenuntergang gesehen. Die Sonne ging hinter den Bergen unter, und alles war rot.
+s	_course:s4.prefix	Bei der ersten Fahrprüfung bin ich durchgefallen. Ich habe sie einen Monat später wiederholt und bestanden.
+s	_course:s4.prefix	Bitte unterbrechen Sie mich nicht!
+s	_course:s4.prefix	Darf ich kurz unterbrechen?
+s	_course:s4.prefix	Der Fährmann setzt uns über.
+s	_course:s4.prefix	Der Zoll hat unser Auto durchsucht.
+s	_course:s4.prefix	Die Lehrerin hat den Satz wiederholt.
+s	_course:s4.prefix	Die Sonne ist schon untergegangen.
+s	_course:s4.prefix	Die Sonne ist untergegangen.
+s	_course:s4.prefix	Du steigst in Olten um.
+s	_course:s4.prefix	Ein Auto fuhr das Schild um.
+s	_course:s4.prefix	Ein Auto hat das Schild umgefahren.
+s	_course:s4.prefix	Er durchquert den Wald zu Fuß.
+s	_course:s4.prefix	Er geht gut mit Kindern um.
+s	_course:s4.prefix	Er hat einen Velofahrer umgefahren.
+s	_course:s4.prefix	Er hat mir nie widersprochen.
+s	_course:s4.prefix	Er ist zweimal durchgefallen.
+s	_course:s4.prefix	Er tankt an der Tankstelle voll.
+s	_course:s4.prefix	Er umschreibt das Wort.
+s	_course:s4.prefix	Er widerspricht seinem Chef nie.
+s	_course:s4.prefix	Er widerspricht seinem Chef.
+s	_course:s4.prefix	Er widerspricht seiner Chefin.
+s	_course:s4.prefix	Habt ihr im Hotel übernachtet?
+s	_course:s4.prefix	Hast du den Vertrag schon übersetzt?
+s	_course:s4.prefix	Ich bin in Zürich umgestiegen.
+s	_course:s4.prefix	Ich durchschaue dich.
+s	_course:s4.prefix	Ich gehe mit Stress besser um, wenn ich jeden Tag spazieren gehe. Am Abend lese ich und schalte das Handy aus.
+s	_course:s4.prefix	Ich habe den Brief übersetzt.
+s	_course:s4.prefix	Ich habe für meine Nachbarin einen Brief von der Versicherung übersetzt. Sie war sehr froh.
+s	_course:s4.prefix	Ich habe mein Konto überzogen.
+s	_course:s4.prefix	Ich komme bei Freunden unter.
+s	_course:s4.prefix	Ich schreibe den Brief um.
+s	_course:s4.prefix	Ich steige in Olten um.
+s	_course:s4.prefix	Ich umarme meine Freundin zum Abschied.
+s	_course:s4.prefix	Ich übernachte im Hotel am See.
+s	_course:s4.prefix	Ich übertreibe immer ein bisschen.
+s	_course:s4.prefix	Ihr steigt in Bern um.
+s	_course:s4.prefix	Im nächsten Monat ziehen wir nach Luzern um.
+s	_course:s4.prefix	In der Sitzung hat mich ein Kollege dreimal unterbrochen. Er widerspricht immer, auch wenn er keine bessere Idee hat.
+s	_course:s4.prefix	Kannst du das bitte wiederholen?
+s	_course:s4.prefix	Kannst du den Satz bitte wiederholen?
+s	_course:s4.prefix	Könntest du das bitte wiederholen?
+s	_course:s4.prefix	Lea übernachtet bei ihrer Tante.
+s	_course:s4.prefix	Leider ist er bei der Prüfung durchgefallen.
+s	_course:s4.prefix	Letzten Sommer haben wir in einer SAC-Hütte übernachtet. Am Morgen sind wir um fünf Uhr aufgestanden.
+s	_course:s4.prefix	Man unterbricht die Lehrerin nicht.
+s	_course:s4.prefix	Nach Lugano bin ich in Arth-Goldau umgestiegen. Der Anschluss war knapp, aber ich habe den Zug erwischt.
+s	_course:s4.prefix	Niemand unterbricht den Redner.
+s	_course:s4.prefix	Nächsten Monat ziehen wir nach Luzern um.
+s	_course:s4.prefix	Sie hat ihre Mutter lange umarmt.
+s	_course:s4.prefix	Sie hat ihren Sohn umarmt.
+s	_course:s4.prefix	Sie ist bei der Fahrprüfung durchgefallen.
+s	_course:s4.prefix	Sie ist durch die Fahrprüfung gefallen.
+s	_course:s4.prefix	Sie umarmte ihren Sohn.
+s	_course:s4.prefix	Sie umgeht die Frage.
+s	_course:s4.prefix	Unterbrich mich nicht!
+s	_course:s4.prefix	Vor zwei Jahren sind wir nach Winterthur umgezogen. Wir haben alles selbst gepackt, aber die Möbel hat eine Firma transportiert.
+s	_course:s4.prefix	Wir bauen das alte Haus um.
+s	_course:s4.prefix	Wir fallen bei der Prüfung nicht durch.
+s	_course:s4.prefix	Wir haben die Innenstadt umfahren.
+s	_course:s4.prefix	Wir haben ihn mitten in der Rede unterbrochen.
+s	_course:s4.prefix	Wir sehen uns nächste Woche wieder.
+s	_course:s4.prefix	Wir sind im Mai umgezogen.
+s	_course:s4.prefix	Wir wiederholen die Lektion.
+s	_course:s4.prefix	Wir ziehen im März nach Bern um.
+s	_course:s4.prefix	Wir ziehen im nächsten Monat nach Luzern um.
+s	_course:s4.prefix	Wir ziehen nächsten Monat nach Luzern um.
+s	_course:s4.prefix	Wo steigen wir um?
+s	_course:s4.prefix	Zieh eine Jacke über!
+s	_course:s4.prefix	Übernachtet ihr im Zelt?
+s	_course:s4.pvx	Das Dorf ist nur zu Fuß erreichbar.
+s	_course:s4.pvx	Das Dorf ist nur zu Fuß zu erreichen.
+s	_course:s4.pvx	Das Dorf kann nur zu Fuß erreicht werden.
+s	_course:s4.pvx	Das Dorf lässt sich nur zu Fuß erreichen.
+s	_course:s4.pvx	Das Formular ist bis Freitag abzugeben.
+s	_course:s4.pvx	Das Formular ist bis Freitag zurückzuschicken.
+s	_course:s4.pvx	Das Formular ist zu unterschreiben.
+s	_course:s4.pvx	Das Haus ist nicht mehr zu retten.
+s	_course:s4.pvx	Das Haus kann nicht mehr gerettet werden.
+s	_course:s4.pvx	Das Problem ist leicht lösbar.
+s	_course:s4.pvx	Das Problem ist leicht zu lösen.
+s	_course:s4.pvx	Das Velo ist zu reparieren.
+s	_course:s4.pvx	Das Velo lässt sich reparieren.
+s	_course:s4.pvx	Das Wetter in der Schweiz ist nicht zu ändern. Ich habe immer einen Schirm dabei.
+s	_course:s4.pvx	Das Ziel ist in einer Stunde zu erreichen.
+s	_course:s4.pvx	Das Ziel kann in einer Stunde erreicht werden.
+s	_course:s4.pvx	Das ist machbar!
+s	_course:s4.pvx	Das ist nicht zu ändern.
+s	_course:s4.pvx	Das ist zu machen!
+s	_course:s4.pvx	Das kann nicht geändert werden.
+s	_course:s4.pvx	Das lässt sich machen!
+s	_course:s4.pvx	Der Ausweis ist am Eingang zu zeigen.
+s	_course:s4.pvx	Der Film war gut zu verstehen, aber die Musik war manchmal kaum zu ertragen.
+s	_course:s4.pvx	Der Kehricht ist am Dienstag bereitzustellen.
+s	_course:s4.pvx	Der Lärm ist nicht mehr zu ertragen.
+s	_course:s4.pvx	Der Lärm lässt sich nicht mehr ertragen.
+s	_course:s4.pvx	Der Schlüssel ist beim Hauswart abzuholen.
+s	_course:s4.pvx	Der See ist vom Bahnhof in fünf Minuten zu erreichen. Die Altstadt ist gut zu Fuß zu besichtigen, und die Burg ist von überall sichtbar.
+s	_course:s4.pvx	Der Text ist leicht zu übersetzen.
+s	_course:s4.pvx	Der Text kann leicht übersetzt werden.
+s	_course:s4.pvx	Die Aufgabe ist in zehn Minuten zu schaffen.
+s	_course:s4.pvx	Die Fehler lassen sich leicht finden.
+s	_course:s4.pvx	Die Fehler sind leicht zu finden.
+s	_course:s4.pvx	Die Kiste ist nicht zu öffnen.
+s	_course:s4.pvx	Die Kiste lässt sich nicht öffnen.
+s	_course:s4.pvx	Die Medikamente sind kühl zu lagern.
+s	_course:s4.pvx	Die Rechnung ist bis Freitag zu bezahlen.
+s	_course:s4.pvx	Die Rechnung ist innerhalb von 30 Tagen zu bezahlen.
+s	_course:s4.pvx	Die Rechnung muss bis Freitag bezahlt werden.
+s	_course:s4.pvx	Die Schrift ist kaum zu lesen.
+s	_course:s4.pvx	Die Schrift kann kaum gelesen werden.
+s	_course:s4.pvx	Die Schuhe sind im Flur auszuziehen.
+s	_course:s4.pvx	Die Tickets sind online zu kaufen.
+s	_course:s4.pvx	Die Waschküche ist nach dem Waschen zu reinigen.
+s	_course:s4.pvx	Die Waschküche ist nach dem Waschen zu reinigen. Die Wäsche ist am gleichen Tag abzuhängen. Am Sonntag ist die Waschmaschine nicht zu benutzen.
+s	_course:s4.pvx	Die Wohnungen in Genf sind fast unbezahlbar.
+s	_course:s4.pvx	Die Wohnungen in Zürich sind fast unbezahlbar.
+s	_course:s4.pvx	Die Zwiebeln sind klein zu schneiden. Die Kartoffeln sind zwanzig Minuten zu kochen. Zum Schluss ist alles mit Käse zu bestreuen.
+s	_course:s4.pvx	Hunde sind an der Leine zu führen.
+s	_course:s4.pvx	Ich möchte nächsten Sommer mit dem Velo bis nach Genf fahren. Mit etwas Training ist das machbar.
+s	_course:s4.pvx	Ist das Wasser hier trinkbar?
+s	_course:s4.pvx	Ist das Wasser trinkbar?
+s	_course:s4.pvx	Ja, das Museum ist mit dem Bus zu erreichen.
+s	_course:s4.pvx	Ja, das alte Haus ist noch zu verkaufen.
+s	_course:s4.pvx	Ja, der Bahnhof ist leicht zu finden.
+s	_course:s4.pvx	Ja, der Fleck ist noch zu entfernen.
+s	_course:s4.pvx	Ja, der Gipfel ist in drei Stunden zu erreichen.
+s	_course:s4.pvx	Ja, der Text ist gut zu verstehen.
+s	_course:s4.pvx	Ja, die Kosten sind genau zu berechnen.
+s	_course:s4.pvx	Ja, die Tür ist leise zu schließen.
+s	_course:s4.pvx	Ja, die Waschmaschine ist noch zu reparieren.
+s	_course:s4.pvx	Ja, diese Sprache ist schnell zu lernen.
+s	_course:s4.pvx	Ja, er ist gut zu verstehen.
+s	_course:s4.pvx	Ja, er ist in drei Stunden zu erreichen.
+s	_course:s4.pvx	Ja, er ist leicht zu finden.
+s	_course:s4.pvx	Ja, er ist noch zu entfernen.
+s	_course:s4.pvx	Ja, es ist mit dem Bus zu erreichen.
+s	_course:s4.pvx	Ja, es ist noch zu verkaufen.
+s	_course:s4.pvx	Ja, sie ist leise zu schließen.
+s	_course:s4.pvx	Ja, sie ist noch zu reparieren.
+s	_course:s4.pvx	Ja, sie ist schnell zu lernen.
+s	_course:s4.pvx	Ja, sie sind genau zu berechnen.
+s	_course:s4.pvx	Kann man das Museum mit dem Bus erreichen?
+s	_course:s4.pvx	Kann man das alte Haus noch verkaufen?
+s	_course:s4.pvx	Kann man den Bahnhof leicht finden?
+s	_course:s4.pvx	Kann man den Fleck noch entfernen?
+s	_course:s4.pvx	Kann man den Gipfel in drei Stunden erreichen?
+s	_course:s4.pvx	Kann man den Text gut verstehen?
+s	_course:s4.pvx	Kann man die Kosten genau berechnen?
+s	_course:s4.pvx	Kann man die Tür leise schließen?
+s	_course:s4.pvx	Kann man die Waschmaschine noch reparieren?
+s	_course:s4.pvx	Kann man diese Sprache schnell lernen?
+s	_course:s4.pvx	Liebes Team, die Berichte sind bis Freitag abzugeben. Die Spesen sind bis Ende Monat einzureichen. Danke!
+s	_course:s4.pvx	Man kann das Gerät überall benutzen. Es ist überall benutzbar.
+s	_course:s4.pvx	Man kann das Gerät überall benutzen. Es ist überall nutzbar.
+s	_course:s4.pvx	Man kann das Hotel online buchen. Es ist online buchbar.
+s	_course:s4.pvx	Man kann das Problem nicht lösen. Es ist nicht lösbar.
+s	_course:s4.pvx	Man kann das Problem nicht lösen. Es ist unlösbar.
+s	_course:s4.pvx	Man kann das Wasser trinken. Es ist trinkbar.
+s	_course:s4.pvx	Man kann den Fehler nicht vermeiden. Er ist nicht vermeidbar.
+s	_course:s4.pvx	Man kann den Fehler nicht vermeiden. Er ist unvermeidbar.
+s	_course:s4.pvx	Man kann den Plan umsetzen. Er ist machbar.
+s	_course:s4.pvx	Man kann den Plan umsetzen. Er ist umsetzbar.
+s	_course:s4.pvx	Man kann den Unterschied kaum sehen. Er ist kaum sichtbar.
+s	_course:s4.pvx	Man kann die Decke waschen. Sie ist waschbar.
+s	_course:s4.pvx	Man kann die Pilze essen. Sie sind essbar.
+s	_course:s4.pvx	Man kann die Wohnung nicht bezahlen. Sie ist nicht bezahlbar.
+s	_course:s4.pvx	Man kann die Wohnung nicht bezahlen. Sie ist unbezahlbar.
+s	_course:s4.pvx	Man muss Hunde an der Leine führen.
+s	_course:s4.pvx	Man muss das Formular bis Freitag abgeben.
+s	_course:s4.pvx	Man muss den Ausweis am Eingang zeigen.
+s	_course:s4.pvx	Man muss den Kehricht am Dienstag bereitstellen.
+s	_course:s4.pvx	Man muss den Schlüssel beim Hauswart abholen.
+s	_course:s4.pvx	Man muss die Medikamente kühl lagern.
+s	_course:s4.pvx	Man muss die Rechnung innerhalb von 30 Tagen bezahlen.
+s	_course:s4.pvx	Man muss die Schuhe im Flur ausziehen.
+s	_course:s4.pvx	Man muss die Waschküche nach dem Waschen reinigen.
+s	_course:s4.pvx	Man muss Änderungen sofort melden.
+s	_course:s4.pvx	Seine Handschrift ist schwer zu lesen.
+s	_course:s4.pvx	Seine Handschrift lässt sich schwer lesen.
+s	_course:s4.pvx	Seine Schrift ist schwer zu lesen.
+s	_course:s4.pvx	Seine Schrift lässt sich schwer lesen.
+s	_course:s4.pvx	Unser Kühlschrank ist kaputt. Der Techniker sagt, er ist nicht mehr zu reparieren. Ein neuer ist leider teuer.
+s	_course:s4.pvx	Wohnungen in Genf sind fast unbezahlbar.
+s	_course:s4.pvx	Änderungen sind sofort zu melden.
 s	_idioms	Am Sonntag ist in der Stadt tote Hose.
 s	_idioms	Am Wochenende schlafe ich bis in die Puppen.
 s	_idioms	Bei Schnee schwimmen gehen? Du hast doch einen Vogel!
@@ -10977,6 +11911,12 @@ s	_sheet:cx.dv1	Schmeckt dir der Kaffee?
 s	_sheet:cx.dv1	Wem gehört das Velo? Meinem Bruder.
 s	_sheet:cx.dv1	Wir danken Ihnen für alles.
 s	_sheet:cx.dv1	Wir danken Ihnen.
+s	_sheet:cx.ext	das seit langem geplante Fest
+s	_sheet:cx.ext	das vor dem Haus parkierte Auto.
+s	_sheet:cx.ext	der gebackene Kuchen
+s	_sheet:cx.ext	die im See schwimmenden Kinder
+s	_sheet:cx.ext	die noch zu beantwortenden Briefe
+s	_sheet:cx.ext	die telefonierende Frau
 s	_sheet:cx.front1	Am Samstagabend gehen wir ins Kino.
 s	_sheet:cx.front1	Es regnet. Deshalb nehme ich den Bus.
 s	_sheet:cx.front1	Ich bin müde, trotzdem komme ich mit.
@@ -10988,6 +11928,15 @@ s	_sheet:cx.front2	Ich fahre morgen mit dem Velo zur Arbeit.
 s	_sheet:cx.front2	Nach Bern fahre ich morgen mit dem Zug.
 s	_sheet:cx.front2	Wir essen heute Abend mit Freunden zu Hause.
 s	_sheet:cx.front2	Wir wollen am Sonntag zu Hause bleiben.
+s	_sheet:cx.fut2	Bis Freitag habe ich es gelesen.
+s	_sheet:cx.fut2	Bis Montag werde ich es fertig gemacht haben.
+s	_sheet:cx.fut2	Er wird den Bus verpasst haben.
+s	_sheet:cx.fut2	Er wird viel geschlafen haben.
+s	_sheet:cx.fut2	Ich glaube, dass er es vergessen haben wird.
+s	_sheet:cx.fut2	Ich glaube, dass sie schon gegangen sein wird.
+s	_sheet:cx.fut2	Sie wird das Paket schon abgeholt haben.
+s	_sheet:cx.fut2	er wird gegangen sein
+s	_sheet:cx.fut2	wir werden gekommen sein
 s	_sheet:cx.gen1	Das Mädchen heißt Lea.
 s	_sheet:cx.gen1	Der Vater kocht heute.
 s	_sheet:cx.gen1	das Bahnhofcafé
@@ -11049,6 +11998,26 @@ s	_sheet:cx.iq2	Mama sagt, du sollst sie anrufen.
 s	_sheet:cx.iq2	Weißt du, ob der Bus schon weg ist?
 s	_sheet:cx.iq2	Weißt du, ob der Laden offen ist?
 s	_sheet:cx.iq2	Weißt du, ob er kommt?
+s	_sheet:cx.kj1	Der Sprecher sagt, der Zug habe Verspätung.
+s	_sheet:cx.kj1	Die Kinder sagen, sie hätten Hunger.
+s	_sheet:cx.kj1	Die Ärztin sagt, die Kinder seien gesund.
+s	_sheet:cx.kj1	Laut Bericht sei das Wasser sauber.
+s	_sheet:cx.kj1	Mia sagt, sie ist krank.
+s	_sheet:cx.kj1	Sie sagen, sie hätten keine Zeit.
+s	_sheet:cx.kj1	Sie schreibt, sie komme morgen.
+s	_sheet:cx.kj1	er fahre
+s	_sheet:cx.kj1	er nehme
+s	_sheet:cx.kj1	er wisse
+s	_sheet:cx.kj2	Der Polizist sagte, ich solle langsamer fahren.
+s	_sheet:cx.kj2	Er fragte, ob ich Hunger hätte.
+s	_sheet:cx.kj2	Er sagte, er habe den Bus verpasst.
+s	_sheet:cx.kj2	Er sagte, er werde anrufen.
+s	_sheet:cx.kj2	Gott sei Dank!
+s	_sheet:cx.kj2	Sie sagte, er sei spät gekommen.
+s	_sheet:cx.kj2	Sie sagte, ich solle hier warten.
+s	_sheet:cx.kj2	Sie sagte, sie sei in Bern gewesen.
+s	_sheet:cx.kj2	Sie sagte, sie sei nach Hause gegangen.
+s	_sheet:cx.kj2	Sie sagten, sie würden später kommen.
 s	_sheet:cx.lass1	Er lässt sein Auto waschen.
 s	_sheet:cx.lass1	Ich lasse das Auto reparieren.
 s	_sheet:cx.lass1	Ich lasse mein Velo reparieren.
@@ -11140,6 +12109,13 @@ s	_sheet:cx.part	Du weißt ja, dass ich kein Auto habe.
 s	_sheet:cx.part	Ich habe es dir doch gesagt!
 s	_sheet:cx.part	Kannst du mal kurz warten?
 s	_sheet:cx.part	Surprised: Du bist ja schon da!
+s	_sheet:cx.pfx	Der Lehrer hat die Frage zweimal wiederholt.
+s	_sheet:cx.pfx	Er hat das Schild umgefahren.
+s	_sheet:cx.pfx	Hast du den Brief schon übersetzt?
+s	_sheet:cx.pfx	Ich widerspreche dir nicht.
+s	_sheet:cx.pfx	Ich übersetze den Text ins Englische.
+s	_sheet:cx.pfx	Wir haben den Stau umfahren.
+s	_sheet:cx.pfx	Wir sind letztes Jahr nach Basel umgezogen.
 s	_sheet:cx.pl1	die Lehrerinnen
 s	_sheet:cx.pl2	drei Stunden
 s	_sheet:cx.pl2	zwei Kinder
@@ -11186,8 +12162,14 @@ s	_sheet:cx.pron2	Was möchten Sie, Herr Graf?
 s	_sheet:cx.pta	Das Buch ist spannend.
 s	_sheet:cx.pta	Das ist ein spannendes Buch.
 s	_sheet:cx.pta	das frisch gebackene Brot.
-s	_sheet:cx.pta	das kochende Wasser
 s	_sheet:cx.pta	die spielenden Kinder
+s	_sheet:cx.pvx	Das Formular ist bis Montag zurückzuschicken.
+s	_sheet:cx.pvx	Das ist leicht zu machen.
+s	_sheet:cx.pvx	Der Ausweis ist vorzuzeigen.
+s	_sheet:cx.pvx	Die Straße ist leicht zu finden.
+s	_sheet:cx.pvx	Man kann das Wasser trinken. Das Wasser ist trinkbar.
+s	_sheet:cx.pvx	Man kann die Jacke waschen. Sie ist waschbar.
+s	_sheet:cx.pvx	Sein Akzent ist schwer zu verstehen.
 s	_sheet:cx.refl1	Beeil dich!
 s	_sheet:cx.refl1	Darf ich mich vorstellen? Ich bin Tom.
 s	_sheet:cx.refl1	Du siehst dich.

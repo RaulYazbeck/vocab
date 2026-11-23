@@ -550,3 +550,126 @@
 /* a sentence to type: the box grows with it, the text in the app's own type */
 .german-input.cx-long { height:auto; min-height:50px; padding:13px 16px; line-height:1.4; resize:none; overflow:hidden; display:block;
   font-family:'DM Sans',sans-serif; font-size:17px; text-align:left; }
+
+/* ── 🎓 Exam: the countdown, the month's mock, where you stand, the mocks ── */
+.exam .gr-h { margin-top:20px; }
+/* the countdown */
+.ex-hero { display:grid; grid-template-columns:auto 1fr; align-items:end; gap:6px 16px; padding:16px 16px 14px; margin-bottom:12px; border-radius:var(--r);
+  border:1.5px solid hsl(var(--th) 80% 60% / 0.5); background:radial-gradient(120% 140% at 0% 0%, hsl(var(--th) 85% 52% / 0.26), hsl(var(--th) 70% 40% / 0.06) 70%); }
+.ex-hero-l { display:flex; flex-direction:column; min-width:0; }
+.ex-days { font-size:52px; font-weight:900; line-height:0.95; letter-spacing:-1.5px; color:hsl(var(--th) 92% 70%); font-variant-numeric:tabular-nums; }
+.ex-days-k { font-size:13px; font-weight:700; color:var(--text-2); margin-top:4px; }
+.ex-hero-r { display:flex; flex-direction:column; align-items:flex-end; gap:5px; text-align:right; min-width:0; }
+.ex-hero-r > b { font-size:14px; font-weight:800; color:var(--text); white-space:nowrap; }
+.ex-goal { font-size:12px; font-weight:600; color:var(--text-2); padding:3px 9px; border-radius:12px; background:rgba(255,255,255,0.06); white-space:nowrap; }
+.ex-goal b { color:hsl(var(--th) 90% 72%); }
+.ex-hero-bar { grid-column:1 / -1; height:5px; border-radius:3px; background:rgba(255,255,255,0.08); overflow:hidden; margin-top:6px; }
+.ex-hero-bar i { display:block; height:100%; border-radius:3px; background:linear-gradient(90deg, hsl(var(--th) 80% 50%), hsl(var(--th) 95% 68%)); }
+.ex-hero-none { display:flex; align-items:center; gap:12px; width:100%; text-align:left; color:var(--text); font:inherit; cursor:pointer; }
+.ex-hero-none > span:first-child { font-size:26px; }
+.ex-hero-none > span:nth-child(2) { flex:1; display:flex; flex-direction:column; gap:2px; }
+.ex-hero-none small { font-size:12.5px; color:var(--text-2); }
+/* a card */
+.ex-card { padding:14px; border-radius:var(--r-sm); border:1px solid var(--border); background:rgba(255,255,255,0.04); }
+.ex-card-h { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:15.5px; font-weight:800; margin-bottom:8px; }
+.ex-pill { font-size:11.5px; font-weight:800; padding:4px 10px; border-radius:20px; white-space:nowrap; background:rgba(255,255,255,0.07); color:var(--text-2); }
+.ex-pill.open { color:hsl(var(--th) 92% 72%); background:hsl(var(--th) 80% 50% / 0.18); }
+.ex-pill.soon { color:#0B0E16; background:hsl(var(--th) 92% 62%); }
+.ex-pill.late { color:var(--error); background:var(--error-dim); }
+.ex-pill.done { color:var(--success); background:var(--success-dim); }
+/* the month's mock */
+.ex-mock.open, .ex-mock.soon { border-color:hsl(var(--th) 80% 60% / 0.45); }
+.ex-mock.late { border-color:rgba(255,99,99,0.45); }
+.ex-mock-txt { font-size:14px; line-height:1.5; color:var(--text-2); margin:0 0 10px; }
+.ex-mock-txt b { color:var(--text); }
+.ex-due { font-size:13.5px; font-weight:700; margin:0 0 12px; color:hsl(var(--th) 90% 72%); }
+.ex-due.soon { color:hsl(var(--th) 95% 70%); }
+.ex-due.late { color:var(--error); }
+.ex-go { width:100%; }
+.ex-practice { width:100%; margin-top:12px; }
+.ex-done { display:flex; align-items:center; gap:14px; margin:2px 0 10px; }
+.ex-done-pct { font-size:40px; font-weight:900; line-height:1; color:hsl(var(--th) 92% 70%); font-variant-numeric:tabular-nums; }
+.ex-done-pct small, .ex-res-pct small { font-size:0.45em; font-weight:800; margin-left:2px; color:var(--text-2); }
+.ex-done-t { display:flex; flex-direction:column; gap:2px; min-width:0; }
+.ex-done-t b { font-size:14.5px; }
+.ex-done-t small { font-size:12.5px; color:var(--text-2); }
+.ex-next { font-size:13.5px; color:var(--text-2); margin-top:10px; line-height:1.45; }
+.ex-next b { color:var(--text); }
+/* a mock's parts: a bar per stage */
+.ex-bars { display:flex; flex-direction:column; gap:6px; width:100%; }
+.ex-bar { display:grid; grid-template-columns:34px minmax(0, 1fr) minmax(60px, 34%) 40px; align-items:center; gap:8px; font-size:13px; }
+.ex-bar-k { font-size:11.5px; font-weight:900; text-align:center; padding:3px 0; border-radius:8px; color:hsl(var(--th) 88% 72%); background:hsl(var(--th) 70% 50% / 0.16); }
+.ex-bar-n { color:var(--text-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:left; }
+.ex-bar-t { height:8px; border-radius:4px; background:rgba(255,255,255,0.08); overflow:hidden; }
+.ex-bar-t i { display:block; height:100%; border-radius:4px; background:hsl(var(--th) 80% 60%); }
+.ex-bar-v { font-weight:800; text-align:right; font-variant-numeric:tabular-nums; }
+/* where you stand */
+.ex-ready.green { border-color:rgba(0,216,150,0.4); }
+.ex-ready.amber { border-color:rgba(245,166,35,0.5); }
+.ex-ready.red { border-color:rgba(255,99,99,0.5); }
+.ex-verdict { display:flex; gap:10px; align-items:flex-start; margin-bottom:12px; }
+.ex-v-dot { font-size:18px; line-height:1.3; }
+.ex-verdict > span:last-child { display:flex; flex-direction:column; gap:3px; min-width:0; }
+.ex-verdict b { font-size:16px; font-weight:800; }
+.ex-verdict small { font-size:13.5px; line-height:1.5; color:var(--text-2); }
+.ex-meters { display:flex; flex-direction:column; gap:10px; }
+.ex-meter { display:grid; grid-template-columns:26px minmax(0, 1fr) auto; grid-template-rows:auto auto; gap:4px 8px; align-items:center; }
+.ex-m-ico { grid-row:1 / span 2; font-size:18px; text-align:center; }
+.ex-m-l { font-size:14px; font-weight:700; display:flex; flex-wrap:wrap; align-items:baseline; gap:0 8px; min-width:0; }
+.ex-m-l small { font-size:12px; font-weight:500; color:var(--text-3); }
+.ex-m-v { font-size:14px; font-weight:800; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.ex-m-v small { font-weight:600; color:var(--text-3); }
+.ex-m-bar { grid-column:2 / span 2; height:6px; border-radius:3px; background:rgba(255,255,255,0.08); overflow:hidden; }
+.ex-m-bar i { display:block; height:100%; border-radius:3px; background:linear-gradient(90deg, var(--teal), var(--success)); }
+.ex-meter.amber .ex-m-bar i { background:linear-gradient(90deg, #E8912A, var(--accent)); }
+.ex-meter.red .ex-m-bar i { background:linear-gradient(90deg, #E25555, var(--error)); }
+.ex-meter.red .ex-m-l small { color:var(--error); }
+.ex-last { margin-top:12px; padding-top:10px; border-top:1px solid var(--border); font-size:13.5px; color:var(--text-2); }
+.ex-last b { color:var(--text); }
+.ex-up { color:var(--success); font-weight:800; }
+.ex-down { color:var(--error); font-weight:800; }
+/* the mocks so far: a column a month, the 80 % mark across them */
+.ex-hist-card { padding:12px 12px 10px; }
+.ex-hist { display:flex; align-items:flex-end; gap:6px; overflow-x:auto; scrollbar-width:none; }
+.ex-hist::-webkit-scrollbar { display:none; }
+.ex-col { flex:1 0 32px; max-width:54px; display:flex; flex-direction:column; align-items:center; gap:4px; }
+.ex-col-v { font-size:11.5px; font-weight:800; font-variant-numeric:tabular-nums; color:var(--text); }
+.ex-col-bar { width:100%; height:96px; border-radius:7px; display:flex; align-items:flex-end; overflow:hidden;
+  background:linear-gradient(to top, transparent calc(80% - 1px), rgba(255,255,255,0.22) calc(80% - 1px), rgba(255,255,255,0.22) 80%, transparent 80%), rgba(255,255,255,0.05); }
+.ex-col-bar i { display:block; width:100%; border-radius:7px 7px 3px 3px; background:hsl(var(--th) 82% 60%); }
+.ex-col.ok .ex-col-bar i { background:var(--success); }
+.ex-col.mid .ex-col-bar i { background:var(--accent); }
+.ex-col.low .ex-col-bar i { background:var(--error); }
+.ex-col.missed .ex-col-bar i { background:transparent; border:1.5px dashed var(--border-hi); }
+.ex-col.missed .ex-col-v { color:var(--text-3); }
+.ex-col-m { font-size:11.5px; color:var(--text-3); white-space:nowrap; }
+.ex-col-m b { color:var(--error); margin-left:1px; }
+.ex-hist-key { display:flex; align-items:center; gap:8px; font-size:11.5px; color:var(--text-3); margin-top:8px; }
+.ex-key-line { width:18px; height:2px; background:rgba(255,255,255,0.3); border-radius:1px; }
+.ex-empty { margin:0; }
+.ex-about { margin-top:16px; }
+/* the result of a mock */
+.ex-result { gap:6px; }
+.ex-res-pct { font-size:54px; font-weight:900; line-height:1; color:hsl(var(--th) 92% 70%); font-variant-numeric:tabular-nums; }
+.ex-result.bad .ex-res-pct { color:var(--error); }
+.ex-result .ex-bars { margin:8px 0 2px; max-width:420px; }
+.ex-res-line { font-size:13.5px; color:var(--text-2); }
+.ex-res-line b { color:var(--text); }
+.ex-result .gs-result-note b { color:var(--text); }
+/* Today: the mock while it's due, and the Course's row to the Exam */
+.tc-mock { color:hsl(var(--th) 92% 74%); background:hsl(var(--th) 80% 50% / 0.12); border-color:hsl(var(--th) 80% 60% / 0.42); }
+.tc-mock.soon { border-color:hsl(var(--th) 92% 62% / 0.8); box-shadow:0 0 0 1px hsl(var(--th) 92% 62% / 0.25) inset; }
+.tc-mock.late { color:#FF9A9A; background:var(--error-dim); border-color:rgba(255,99,99,0.45); }
+.tc-mock-due { white-space:nowrap; }
+.cx-exam-row { margin:0 0 14px; border-color:hsl(var(--th) 80% 60% / 0.35); background:hsl(var(--th) 80% 50% / 0.07); }
+.cx-exam-row.hot { border-color:hsl(var(--th) 90% 62% / 0.7); }
+.cx-exam-row small { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+@media (max-width:360px) { .ex-days { font-size:44px; } .ex-bar { grid-template-columns:30px minmax(0, 1fr) 56px 36px; } }
+.cx-exam-row .gr-m-t { min-width:0; }
+.ex-result .gs-result-note { color:var(--text-2); max-width:460px; line-height:1.5; }
+.ex-result .gs-result-title { font-size:19px; }
+@media (max-width:380px) {
+  .ex-hero { grid-template-columns:1fr; align-items:start; }
+  .ex-hero-r { flex-direction:row; flex-wrap:wrap; align-items:center; justify-content:flex-start; text-align:left; gap:6px; }
+  .ex-hero-r > b { width:100%; }
+}
