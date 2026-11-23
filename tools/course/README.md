@@ -40,7 +40,29 @@ the 📖 Course / 🧩 Practise / 📚 By chapter / ✍️ Writing screens) and 
                                grammar its dialogue needs — greetings and introductions (s3-greet) · asking
                                the way (s3-way) · at the bus stop (s3-bus) · shopping and prices (s3-shop) ·
                                school and study (s3-school) · travel (s3-travel)
+    js/course/s4-*.js          After B1 · bonus (Session 9 — they open once everything else is done, spread to the
+                               finish date): Konjunktiv I and reported speech ×2 (s4-k1) · Konjunktiv II past's book
+                               exercises (s4-k2p) · Futur II (s4-fu2) · sein … zu and -bar (s4-pvx) · prefixes both ways
+                               (s4-prefix) · extended participle modifiers (s4-ext)
     js/course/writing.js       the writing themes (cxJournalThemes) and prompts (cxJournal)
+
+Every lesson of plan.js is built since Session 9, and every one of the book's 445
+exercises is covered (mirrored, generated or skipped with a reason):
+
+    node coverage.mjs [--write] [--strict]   # the report, chapter by chapter (--write: COVERAGE.md)
+
+## 🎓 The Exam and the monthly mock (Session 9)
+
+☰ › 🎓 Exam (`renderExam`, course-ui.js): the fide countdown to the finish date, the month's
+mock, where I stand (`cxReadiness`: the lesson clock, the rules learned, the words' own
+status, the conversation units, the last mock — one verdict and one hint), the mocks so
+far (a column a month) and what the test asks. The mock (`CX_MOCK`, course-de.js): 20
+questions across every lesson done — six of them production, one rule each, easiest
+first, typed (no tiles), no sheet to peek at; every answer counts for its rule. A month's
+mock opens on the 1st (two weeks after the last at the soonest; the very first, the day
+three lessons are done) and is due a week later; it shows on the Today card until it's
+done, late after its deadline, missed once the month ends. The first attempt of the month
+is kept in `S.course.mock` (synced: the earlier attempt wins), later ones are practice.
 
 German app only (`de/index.html` loads them; the French app never does).
 

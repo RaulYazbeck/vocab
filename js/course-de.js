@@ -205,6 +205,8 @@ function cxIntroduceRules(secId, stage = 1, rules = null) {
 // the lesson's drill practises it today; from tomorrow, if it's still in
 // its learning step, it's one to fix (as words met today — path.js).
 function cxRuleFresh(ws, today = studyToday()) { return !!ws.lrn && !ws.rp && !ws.fl && !ws.wrong && ws.metOn === today; }
+// A rule of the post-B1 bonus (a "Could" lesson's).
+function cxRuleBonus(r) { const s = CX.byId[(CX.rules[r] || {}).sec]; return !!s && s.prio === "C"; }
 function cxDueRules(now = Date.now()) {
   const fix = [], due = [], today = studyToday();
   Object.keys(CX.rules).forEach(r => {
@@ -218,8 +220,13 @@ function cxDueRules(now = Date.now()) {
   // lowest stage first, which left the higher ones unasked for weeks behind
   // a pile) and the slips (the longest unasked): more than a day holds take
   // turns, never the same first ones in the course's order every day.
-  due.sort((a, b) => cxRuleWS(a).dueAt - cxRuleWS(b).dueAt);
-  fix.sort((a, b) => last(a) - last(b));
+  // The post-B1 bonus ("Could", PLAN.md §5) never takes a place from the
+  // course for the exam: its rules come after the others' in both lists —
+  // whenever there's room, they're asked like any (Session 9: at every
+  // other day, the bonus's new rules had kept B1 rules from Known).
+  const bonus = r => (cxRuleBonus(r) ? 1 : 0);
+  due.sort((a, b) => bonus(a) - bonus(b) || cxRuleWS(a).dueAt - cxRuleWS(b).dueAt);
+  fix.sort((a, b) => bonus(a) - bonus(b) || last(a) - last(b));
   return { fix, due };
 }
 
@@ -1507,8 +1514,12 @@ function cxTodayParts(scan) {
   const revN = Math.min(Math.max(B.review, Math.min(CX_REVIEW[1], Math.ceil(pile / 3))), Math.max(CX_REVIEW[0], CX_DAY_Q - asked));
   // (slips first — but more slips than room never shut out the rules due:
   // they keep a third of the reviews)
-  const slips = dd.warm ? fix : fix.slice(CX_WARM_MAX), dueN = Math.min(due.length, Math.max(revN - slips.length, Math.floor(revN / 3)));
-  const rev = [...slips.slice(0, revN - dueN), ...due.slice(0, dueN)];
+  // (the post-B1 bonus's rules only take the room the course's leave: its
+  // slips never shrink the share of the rules due — cxRuleBonus)
+  const slipsAll = dd.warm ? fix : fix.slice(CX_WARM_MAX), slips = slipsAll.filter(r => !cxRuleBonus(r)), dueC = due.filter(r => !cxRuleBonus(r));
+  const dueN = Math.min(dueC.length, Math.max(revN - slips.length, Math.floor(revN / 3)));
+  let rev = [...slips.slice(0, revN - dueN), ...dueC.slice(0, dueN)];
+  if (rev.length < revN) rev = rev.concat([...slipsAll.filter(cxRuleBonus), ...due.filter(cxRuleBonus)].slice(0, revN - rev.length));
   // A contrast day: the due reviews and a few mixed items on top.
   if (contrast && !dd.contrast) parts.push({ part: "review", rules: rev, contrast: true });
   else if (rev.length && !dd.review) parts.push({ part: "review", rules: rev });
@@ -1894,6 +1905,214 @@ function cxCovCounts(exercises) {
 // The skeleton's sections that draw on a chapter.
 function cxSectionsOfChapter(ch) { return CX.sections.filter(s => (s.book || []).some(b => b[0] === ch)); }
 
+// ── 🎓 THE MONTHLY MOCK (PLAN.md §10, Session 9) ─
+// Once a month, a mixed checkpoint across everything learned so far — every
+// stage done, A1 to B1 (and the conversation units, the bonus once they're
+// done): CX_MOCK.n questions, one rule each, typed where it can, a few of
+// them production (build · translate · answer), easiest first. No hints of
+// a lesson's sheet; every answer counts for its rule as in a review, a miss
+// goes back to it. Its result is kept per month — the first attempt counts;
+// after it a practice mock can be run any time (not kept).
+//   The deadline: a month's mock opens on the 1st — never sooner than two
+// weeks after the last one was taken — and is due a week later (CX_MOCK.
+// window days, never past the month's end). The very first opens the day
+// three lessons are done (none when fewer than CX_MOCK.minLeft days of the
+// month are left: then on the 1st). Past its deadline it can still be done
+// until the month ends (late); a month without one is missed.
+//   S.course.mock (synced — sync-merge.js): { open: { "YYYY-MM": day opened },
+//   hist: { "YYYY-MM": { d, r, n, by, late?, st: { stage: [right, asked] },
+//   pr: [right, asked] (production), miss: [rules], min } } }
+const CX_MOCK = { n: 20, prod: 6, window: 7, gap: 14, minSecs: 3, minLeft: 3 };
+function cxMonthEnd(m) { const y = +m.slice(0, 4), mo = +m.slice(5, 7); return `${m}-${String(new Date(Date.UTC(y, mo, 0)).getUTCDate()).padStart(2, "0")}`; }
+function cxMonthAfter(m) { const y = +m.slice(0, 4), mo = +m.slice(5, 7); return mo === 12 ? `${y + 1}-01` : `${y}-${String(mo + 1).padStart(2, "0")}`; }
+function cxMonthName(m, long = true) { return new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 15).toLocaleDateString("en-GB", { month: long ? "long" : "short" }); }
+function cxMockStore() {
+  migrateCourse();
+  const C = S.course;
+  if (!C.mock || typeof C.mock !== "object" || Array.isArray(C.mock)) C.mock = {};
+  ["open", "hist"].forEach(k => { if (!C.mock[k] || typeof C.mock[k] !== "object" || Array.isArray(C.mock[k])) C.mock[k] = {}; });
+  return C.mock;
+}
+// Enough to make a mock of: three lessons done (their rules, their drills).
+function cxMockReady() { return cxOn() && cxMixSections().filter(s => s.prio !== "C").length >= CX_MOCK.minSecs; }
+// The month's mock as it stands today — nothing saved (cxMockTouch keeps
+// the day it opened). st: off (not enough learned yet) · wait (opens on
+// `next`) · open · soon (due today or tomorrow) · late (past `by`, the month
+// not over) · done (taken this month: `res`, the next one opens on `next`).
+function cxMockState(today = studyToday()) {
+  if (!cxOn()) return { st: "off", m: today.slice(0, 7), lessons: 0 };
+  const M = (S.course && S.course.mock) || {}, open = M.open || {}, hist = M.hist || {};
+  const m = today.slice(0, 7), end = cxMonthEnd(m);
+  const taken = Object.values(hist).map(h => h && h.d).filter(d => typeof d === "string").sort(), last = taken[taken.length - 1] || "";
+  const after = d => { const first = cxMonthAfter(d.slice(0, 7)) + "-01", gap = addDays(d, CX_MOCK.gap); return gap > first ? gap : first; };
+  if (hist[m]) return { st: "done", m, res: hist[m], next: after(hist[m].d) };
+  if (!cxMockReady()) return { st: "off", m, lessons: cxMixSections().filter(s => s.prio !== "C").length };
+  let o = typeof open[m] === "string" ? open[m] : "";
+  if (!o) {
+    const before = taken.length > 0 || Object.keys(open).length > 0;
+    // a learner who has had mocks: the 1st (two weeks after the last at the soonest) — the very first: today
+    o = before ? [m + "-01", last ? addDays(last, CX_MOCK.gap) : ""].sort().pop() : today;
+    if (o > today) return { st: "wait", m, next: o };
+    if (!before && daysBetween(o, end) + 1 < CX_MOCK.minLeft) return { st: "wait", m, next: cxMonthAfter(m) + "-01" };
+  }
+  const by = [addDays(o, CX_MOCK.window - 1), end].sort()[0], left = daysBetween(today, by);
+  return { st: left < 0 ? "late" : left <= 1 ? "soon" : "open", m, open: o, by, left };
+}
+// The mock is due (open, due soon or late): it shows on Today until it's done.
+function cxMockDue(today = studyToday()) { const s = cxMockState(today); return ["open", "soon", "late"].includes(s.st) ? s : null; }
+// Keep the day the month's mock opened (its deadline counts from it).
+function cxMockTouch(today = studyToday()) {
+  const s = cxMockDue(today);
+  if (!s) return s;
+  const M = cxMockStore();
+  if (M.open[s.m] !== s.open) { M.open[s.m] = s.open; saveState(); }
+  return s;
+}
+// The months whose mock was missed (opened, never taken), oldest first.
+function cxMockMissed(today = studyToday()) {
+  const M = (S.course && S.course.mock) || {}, m = today.slice(0, 7);
+  return Object.keys(M.open || {}).filter(k => k < m && !(M.hist || {})[k]).sort();
+}
+// What a mock can ask: every item of the lessons done (and of the verb
+// lessons done whose book exercises have their drills), but your own writing
+// — and not the post-B1 bonus: the fide asks A1 to B1.
+function cxMockPool() {
+  const out = [];
+  cxMixSections().filter(s => s.prio !== "C").forEach(s => s.sets.map(cxSet).filter(set => set && !set.gen).forEach(set => (set.items || []).forEach((item, i) => {
+    const k = cxItemKind(set, item);
+    if (k === "write" || k === "open") return;
+    out.push({ set: set.id, i, item, sec: s.id, stage: s.stage, rule: (item.r || [])[0] || "", k });
+  })));
+  return out;
+}
+// A mock: n questions, one rule each, spread over the stages done by their
+// share of the rules — the production ones first (CX_MOCK.prod), then typed
+// ones where there are; then in order of difficulty (pick → type → build →
+// produce), shuffled within each step.
+function cxMockPlan(n = CX_MOCK.n) {
+  const pool = shuffle(cxMockPool());
+  if (!pool.length) return [];
+  const out = [], used = new Set(), rules = new Set(), key = e => e.set + "#" + e.i;
+  const take = e => { used.add(key(e)); if (e.rule) rules.add(e.rule); out.push({ ...e, mock: true }); };
+  const free = e => !used.has(key(e)) && !rules.has(e.rule);
+  const stages = [...new Set(pool.map(e => e.stage))].sort((a, b) => a - b);
+  // (each stage's share: its rules among all the rules a mock can ask)
+  const share = {}; stages.forEach(st => { share[st] = new Set(pool.filter(e => e.stage === st).map(e => e.rule)).size; });
+  const all = stages.reduce((a, st) => a + share[st], 0) || 1;
+  // (the conversation units — the oral test's scenes — never fewer than 3 once they're done)
+  const quota = {}; stages.forEach(st => { quota[st] = Math.max(st === 3 ? 3 : 1, Math.round(n * share[st] / all)); });
+  const have = st => out.filter(e => e.stage === st).length;
+  // 1. production, round and round the stages
+  for (let pass = 0; pass < CX_MOCK.prod && out.filter(e => CX_PRODUCTION.has(e.k)).length < Math.min(CX_MOCK.prod, n); pass++)
+    for (const st of stages) {
+      if (out.filter(e => CX_PRODUCTION.has(e.k)).length >= Math.min(CX_MOCK.prod, n)) break;
+      const e = pool.find(x => x.stage === st && CX_PRODUCTION.has(x.k) && free(x));
+      if (e) take(e);
+    }
+  // 2. each stage up to its share, typed where it can (the conversation units first: their 3 are kept)
+  [...stages].sort((a, b) => (b === 3) - (a === 3) || a - b).forEach(st => {
+    // (production has had its share: here the typed ones first — type, transform, order — then any)
+    const mine = pool.filter(x => x.stage === st), typed = mine.filter(x => !CX_PRODUCTION.has(x.k) && (CX_LADDER[x.k] || 0) >= 1), other = mine.filter(x => !CX_PRODUCTION.has(x.k));
+    for (const list of [typed, other, mine]) for (const e of list) { if (have(st) >= quota[st] || out.length >= n) break; if (free(e)) take(e); }
+  });
+  // 3. short (few stages, few rules): anything not asked yet, a new rule first
+  for (const e of pool) { if (out.length >= n) break; if (free(e)) take(e); }
+  for (const e of pool) { if (out.length >= n) break; if (!used.has(key(e))) take(e); }
+  const lv = e => CX_LADDER[e.k] || 0;
+  return out.slice(0, n).map(e => [e, Math.random()]).sort((a, b) => lv(a[0]) - lv(b[0]) || a[1] - b[1]).map(x => x[0]);
+}
+// A mock is over: the month's result (its first attempt) — or, for a
+// practice mock, nothing kept. entries: the runner's (each { stage, k, ok,
+// first, res }). → the result.
+function cxMockResult(entries, opts = {}) {
+  const today = studyToday();
+  // (the month it was started in: a mock begun on the 31st and finished after midnight is still that month's)
+  let st = cxMockState(today);
+  if (opts.m && opts.m !== st.m) { const M0 = (S.course && S.course.mock) || {}; st = !(M0.hist || {})[opts.m] && (M0.open || {})[opts.m] ? { st: "late", m: opts.m, open: M0.open[opts.m], by: opts.by || today } : { st: "done", m: opts.m }; }
+  const first = (entries || []).filter(e => e.first);
+  const right = first.filter(e => e.ok).length;
+  const by = {};
+  first.forEach(e => { const k = String(e.stage); by[k] = by[k] || [0, 0]; by[k][1]++; if (e.ok) by[k][0]++; });
+  const prod = first.filter(e => CX_PRODUCTION.has(e.k));
+  const miss = [...new Set(first.filter(e => !e.ok).map(e => (e.res && e.res.rule) || e.rule).filter(Boolean))].slice(0, 20);
+  const rec = { d: today, r: right, n: first.length, by: st.by || today, st: by, pr: [prod.filter(e => e.ok).length, prod.length], miss };
+  if (st.st === "late") rec.late = 1;
+  if (opts.min) rec.min = opts.min;
+  const practice = !!opts.practice || !["open", "soon", "late"].includes(st.st);
+  if (typeof logEvent === "function") logEvent("cx_mock", { right, n: first.length, practice, late: !!rec.late, m: st.m || "" });
+  if (practice) return { ...rec, practice: true };
+  const M = cxMockStore();
+  if (!M.hist[st.m]) { M.hist[st.m] = rec; if (!M.open[st.m]) M.open[st.m] = st.open || today; }
+  saveState();
+  return rec;
+}
+// The weakest part of a mock: the stage with the lowest share right (two
+// questions or more), or null.
+function cxMockWeakest(res) {
+  const rows = Object.entries((res && res.st) || {}).filter(([, v]) => v[1] >= 2).map(([k, v]) => ({ stage: +k, r: v[0], n: v[1], p: v[0] / v[1] }));
+  if (!rows.length) return null;
+  rows.sort((a, b) => a.p - b.p || b.n - a.n);
+  return rows[0].p < 1 ? rows[0] : null;
+}
+function cxMockPct(res) { return res && res.n ? Math.round(res.r / res.n * 100) : null; }
+// The mocks taken, oldest first: [{ m, ...result }], the missed months among them (missed: true).
+function cxMockHistory(today = studyToday()) {
+  const M = (S.course && S.course.mock) || {};
+  const rows = Object.entries(M.hist || {}).map(([m, h]) => ({ m, ...h }));
+  cxMockMissed(today).forEach(m => rows.push({ m, missed: true }));
+  return rows.sort((a, b) => (a.m < b.m ? -1 : a.m > b.m ? 1 : 0));
+}
+
+// ── 🎓 READINESS (the Exam screen's hint) ────
+// Where I stand for the fide test on the finish date: the course's pace
+// (the lesson clock), the rules learned, the words (the word planner's own
+// status), the conversation units, and the last mock. One verdict — green
+// on course · amber keep an eye on it · red behind — and the one thing that
+// would help most, in plain words. Never more than the numbers say.
+function cxReadiness(today = studyToday()) {
+  if (!cxOn()) return null;
+  migrateCourse();
+  const P = cxPlanner(today);
+  const paced = CX.sections.filter(s => s.prio !== "C");
+  const lessons = { done: paced.filter(s => cxSecDone(s.id)).length, total: paced.length };
+  const ruleIds = Object.keys(CX.rules).filter(r => { const s = cxSection(CX.rules[r].sec); return s && s.prio !== "C"; });
+  const rules = { learned: ruleIds.filter(cxRuleLearned).length, started: ruleIds.filter(r => (cxRuleWS(r) || {}).st).length, total: ruleIds.length };
+  let words = null;
+  try {
+    if (typeof pathScan === "function") {
+      const scan = pathScan(), ds = typeof pathDeadlineStatus === "function" ? pathDeadlineStatus(scan, today) : { ok: true, eta: "" };
+      words = { known: scan.known, total: scan.total, met: scan.met, ok: ds.ok !== false, eta: ds.eta || "" };
+    }
+  } catch (e) {}
+  const talkSecs = CX.sections.filter(s => s.kind === "scenario"), talk = { done: talkSecs.filter(s => cxSecDone(s.id)).length, total: talkSecs.length };
+  const hist = cxMockHistory(today).filter(h => !h.missed), last = hist[hist.length - 1] || null, prev = hist[hist.length - 2] || null;
+  const mock = { last, pct: cxMockPct(last), prev: cxMockPct(prev), count: hist.length, weak: cxMockWeakest(last), missed: cxMockMissed(today).length };
+  const deadline = typeof pathDeadlineOn === "function" && pathDeadlineOn() ? S.path.deadline : "";
+  const days = deadline ? daysBetween(today, deadline) : null;
+  // The verdict, and the one thing to say.
+  const red = [], amber = [];
+  if (P.status === "red") red.push("lessons");
+  else if (P.status === "amber") amber.push("lessons");
+  if (words && !words.ok) red.push("words");
+  if (mock.pct !== null) { if (mock.pct < 60) red.push("mock"); else if (mock.pct < 80) amber.push("mock"); }
+  if (mock.missed && !red.length) amber.push("missed");
+  const level = !deadline ? "none" : red.length ? "red" : amber.length ? "amber" : lessons.done + (mock.count ? 1 : 0) === 0 ? "start" : "green";
+  const weakName = mock.weak ? [(cxStage(mock.weak.stage) || {}).sign, (cxStage(mock.weak.stage) || {}).name].filter(Boolean).join(" · ") : "";
+  const fd = d => (typeof fmtShortDate === "function" ? fmtShortDate(d) : d);
+  const date = deadline ? fd(deadline) : "";
+  let title = "", hint = "";
+  if (level === "none") { title = "No exam date yet"; hint = "Set your finish date in ⚙️ Study plan: the countdown, the pace and the mocks all follow it."; }
+  else if (level === "start") { title = "Just starting"; hint = `Your first mock opens once three lessons are done. Until then, the daily hour does the work — for ${date}.`; }
+  else if (level === "green") { title = `On course for ${date}`; hint = mock.pct !== null ? `Your last mock: ${mock.pct}%. Keep the daily hour and your weekly conversations — that is what the oral test rewards.` : "Lessons and words are on pace. Keep the daily hour and your weekly conversations — that is what the oral test rewards."; }
+  else if (red.includes("words")) { title = "The words are behind"; hint = `At the fastest pace, your words would be Known by ${fd(words.eta)} — after ${date}. Short sessions every day help more than long ones now.`; }
+  else if (red.includes("lessons")) { title = "The lessons are behind"; hint = `Some days bring a second sheet now, so the course still ends before ${date}. Coming every day keeps it there.`; }
+  else if (red.includes("mock")) { title = "Your last mock was hard"; hint = `${mock.pct}%${weakName ? ` — the weakest part: ${weakName}` : ""}. The rules you missed come first in your reviews; the next mock will show the difference.`; }
+  else if (amber.includes("mock")) { title = "Nearly there"; hint = `Your last mock: ${mock.pct}%${weakName ? ` — the weakest part: ${weakName}` : ""}. Its missed rules come first in your reviews. 80% is the mark to aim for.`; }
+  else if (amber.includes("lessons")) { title = "Tight but on course"; hint = `The lessons come back to back to finish before ${date}. Studying every day keeps the date.`; }
+  else { title = "A mock was missed"; hint = "A month went by without its mock. The next one shows where you stand — do it before its deadline."; }
+  return { level, title, hint, deadline, days, lessons, rules, words, talk, mock, planner: P.status };
+}
+
 // ── THE WRITING JOURNAL ───────────────────────
 // Free writing on a situation, at least N words; saved as it is (never
 // graded here — "always done"), for a tutor to correct from the learning
@@ -2011,6 +2230,9 @@ function cxLearnLines() {
   if (rules.length) out.push(`Rules in my reviews: ` + rules.map(o => `${o.r.title} ${tierOfStage(o.ws.st).icon}${o.ws.rp ? "🩹" : o.ws.fl || o.ws.lrn ? "⚠️" : ""} ${o.ws.correct || 0}✓/${o.ws.wrong || 0}✗`).join(" · "));
   const weak = rules.filter(o => (o.ws.wrong || 0) >= 2 && (o.ws.wrong || 0) * 2 >= (o.ws.correct || 0));
   if (weak.length) out.push(`Grammar rules I slip on — please practise them with me: ${weak.map(o => `${o.r.title} (“${o.r.text.replace(/\*\*|~~/g, "").slice(0, 80)}”)`).join(" · ")}`);
+  // 🎓 the monthly mocks: each month's score, its weakest part, the rules it missed
+  const mocks = cxMockHistory();
+  if (mocks.length) out.push(`Monthly mocks (🎓 Exam): ` + mocks.map(h => h.missed ? `${h.m} missed` : `${h.m} ${cxMockPct(h)}% (${h.r}/${h.n}${h.pr && h.pr[1] ? `, production ${h.pr[0]}/${h.pr[1]}` : ""}${h.late ? ", late" : ""}${(h.miss || []).length ? `; missed: ${h.miss.map(r => (cxRule(r) || cxRuleView(r) || { title: r }).title).join(", ")}` : ""})`).join(" · "));
   out.push(...cxJournalLines());
   const miss = rules.filter(o => (o.ws.mh || []).length);
   if (miss.length) {
@@ -2029,6 +2251,7 @@ function cxReportLines() {
   Object.keys(CX.rules).forEach(r => { const ws = cxRuleWS(r); if (ws && ws.st) { const t = tierOfStage(ws.st).icon; tiers[t] = (tiers[t] || 0) + 1; } });
   const sets = Object.values(S.course.ds || {}).reduce((a, d) => [a[0] + (d[0] || 0), a[1] + (d[1] || 0)], [0, 0]);
   return [`Course: ${done.length} section(s) done${done.length ? " (" + done.join(", ") + ")" : ""} · rules ${learned} learned / ${started} started / ${Object.keys(CX.rules).length}${started ? " (" + Object.entries(tiers).map(([t, n]) => t + n).join(" ") + ")" : ""}`,
+    (() => { const m = cxMockState(), R = cxReadiness(); return `Monthly mock: ${m.st}${m.by ? ` (due ${m.by}${m.st === "late" ? ", late" : ""})` : m.next ? ` (next ${m.next})` : ""}${m.res ? ` · this month ${cxMockPct(m.res)}%` : ""} · readiness ${R ? R.level : "—"}${R && R.days !== null ? ` · ${R.days} days to the exam` : ""}`; })(),
     `Course drills: ${sets[0]}/${sets[1]} right · today ${T.parts} part(s), ${T.due} rule(s) due${T.fix ? ` (${T.fix} to fix)` : ""} · ${P.cl} course sheets ahead (${P.left} with the verb track's), planner ${P.status}${P.target ? ` (all passed by ${P.target}, the last at this pace ${P.eta})` : ""} · lesson clock: ${(cxClockLesson() || {}).id || "waiting for new lessons"}${cxCurrentLesson() ? " under way" : ""}, breaks ≈ ${P.G.toFixed(1)} day(s) (this one ${cxBreak()}), next sheet ${cxNextLessonDay()}${P.pace !== null ? ` · my pace over 4 weeks: ${P.pace.toFixed(2)} sheets a day` : ""}`];
 }
 // My writing not corrected yet, oldest first, for the tutor to correct.
@@ -2060,7 +2283,7 @@ function cxLearnJson() {
   if (!cxOn() || !S.course) return null;
   const rules = {};
   Object.keys(CX.rules).forEach(r => { const ws = cxRuleWS(r); if (ws && ws.st) rules[r] = [ws.st, ws.correct || 0, ws.wrong || 0, (ws.mh || []).map(h => [h[0], h[3], h[4]])]; });
-  return { sec: S.course.sec, rules, sets: S.course.ds, since: S.course.since || null, writing: cxJournalList().map(e => e.c ? [e.d, e.p, e.w, e.c] : [e.d, e.p, e.w, e.t]) };
+  return { sec: S.course.sec, rules, sets: S.course.ds, since: S.course.since || null, mock: (S.course.mock && S.course.mock.hist) || {}, writing: cxJournalList().map(e => e.c ? [e.d, e.p, e.w, e.c] : [e.d, e.p, e.w, e.t]) };
 }
 
 if (typeof module !== "undefined") module.exports = { CX, cxCheck, cxDefine, cxPack, cxCover };

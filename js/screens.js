@@ -711,6 +711,7 @@ function settingsMenuHtml() {
       ${menuRowHtml("🗺️", "Journey", `${scan.known.toLocaleString()} / ${scan.total.toLocaleString()} known`, "menuGo('journey')")}
       ${typeof cxOn === "function" && cxOn() ? menuRowHtml("📖", "Course", (() => { const d = cxDueRules(), n = d.fix.length + d.due.length; return n ? `Grammar · <span class="accent">${n} rule${n > 1 ? "s" : ""} due</span>` : `Grammar · ${CX.sections.filter(s => cxSecStatus(s).k === "done").length} / ${CX.sections.length} lessons`; })(), "menuGo('course')")
         : typeof vxAvailable === "function" && vxAvailable() ? menuRowHtml("📐", "Grammar", vxOn() ? `${VX_UNITS.filter(u => vxUnitOpen(u.id)).length} / ${VX_UNITS.length} tenses` : "", "menuGo('grammar')") : ""}
+      ${typeof cxOn === "function" && cxOn() && typeof cxExamMenuSub === "function" ? menuRowHtml("🎓", "Exam", cxExamMenuSub(), "menuGo('exam')") : ""}
       ${menuRowHtml("⚔️", "Bosses", `${beaten} / ${decks} beaten`, "menuGo('bosses')")}
       ${menuRowHtml("🎨", "Collection", chests ? `<span class="accent">🎁 ${chests} to open</span>` : "", "menuGo('collection')")}
       ${menuRowHtml("📊", "Stats", "", "menuGo('stats')")}
@@ -961,6 +962,7 @@ function renderHome() {
       ${note}
       ${typeof vxTodayHtml === "function" ? vxTodayHtml() : ""}
       ${typeof cxTodayHtml === "function" ? cxTodayHtml() : ""}
+      ${typeof cxMockTodayHtml === "function" ? cxMockTodayHtml() : ""}
       <div class="tc-len" role="radiogroup" aria-label="Session length">
         ${Object.entries(PATH.SESSION_LENGTHS).map(([k, n]) => `<button class="tc-len-btn ${k === len ? "on" : ""}" role="radio" aria-checked="${k === len}" onclick="setSessionLen('${k}')">${k[0].toUpperCase() + k.slice(1)} <small>${n}</small></button>`).join("")}
       </div>

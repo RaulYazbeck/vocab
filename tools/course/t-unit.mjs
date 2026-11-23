@@ -196,13 +196,15 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
 {
   const C2 = loadCourse({ extra: `
     (function () {
+      // (every lesson of the course is built since Session 9: a test-only one, last in the course)
+      cxDefine({ sections: [{ id: "s4.tzu", ses: 9, stage: 4, level: "B2", prio: "M", n: 2, title: "A test lesson of two sheets" }] });
       const pilot = CX.byId["s0.neg"];
       const mk = (id, rid) => ({ id, title: id, qn: 3, struct: [["a", "who"], ["b", "verb"]], why: "x", rid, rules: rid.map(r => r), ex: [["a", "a"], ["b", "b"], ["c", "c"]], trap: "t",
         quiz: [{ at: "r1", k: "pick", q: "x", o: ["a", "b"], a: 0, why: "w" }] });
       const rid = ["zu.a1", "zu.a2", "zu.b1", "zu.b2"];
       const sets = pilot.sets.map(id => CX.sets[id]).filter(s => !s.gen).map((s, i) => ({ ...s, id: "d.t.zu." + i, ex: undefined,
         items: s.items.map((it, j) => ({ ...it, r: [rid[(i + j) % 4]] })) }));
-      cxPack({ id: "t-zu", sections: { "s4.k1": { rules: Object.fromEntries(rid.map(r => [r, r])), sheets: [mk("cx.t.zu1", rid.slice(0, 2)), mk("cx.t.zu2", rid.slice(2))], drills: sets } } });
+      cxPack({ id: "t-zu", sections: { "s4.tzu": { rules: Object.fromEntries(rid.map(r => [r, r])), sheets: [mk("cx.t.zu1", rid.slice(0, 2)), mk("cx.t.zu2", rid.slice(2))], drills: sets } } });
       cxPack({ id: "t-recap", sections: { "s0.recap": { checkpoint: { n: 12 } } } });
     })();` });
   const fresh2 = () => {
@@ -215,30 +217,30 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
     C2.migrateCourse();
   };
   fresh2();
-  // a two-sheet lesson not built yet (s4.k1, Konjunktiv I — Session 9's; s1.zu was used here
-  // until Session 5, s2.conj3 until Session 6, s2.cond until Session 7, s3.travel until Session 8):
-  // only the section's own rules matter here (every other lesson done, the verb lessons too)
-  C2.S.course.sec = Object.fromEntries(C2.CX.sections.filter(s => s.id !== "s4.k1" && s.stage < 4).map(s => [s.id, { st: 3 }]));
+  // a two-sheet lesson (a test-only one since Session 9 built the last lessons; s1.zu was used here
+  // until Session 5, s2.conj3 until Session 6, s2.cond until Session 7, s3.travel until Session 8,
+  // s4.k1 until Session 9): only the section's own rules matter here (every other lesson done, the verb lessons too)
+  C2.S.course.sec = Object.fromEntries(C2.CX.sections.filter(s => s.id !== "s4.tzu").map(s => [s.id, { st: 3 }]));
   C2.CX.sections.forEach(s => (s.verb || []).forEach(v => { C2.S.verb.sh[v] = 100; }));
-  ok(C2.cxNextSections(1)[0].id === "s4.k1", "the several-sheet section is next");
+  ok(C2.cxNextSections(1)[0].id === "s4.tzu", "the several-sheet section is next");
   ok(J(C2.cxTodayParts().filter(p => p.part !== "write").map(p => p.part + ":" + (p.sheet || ""))) === J(["sheet:cx.t.zu1", "drill:"]), "day 1: its first sheet, then a drill", J(C2.cxTodayParts()));
   C2.cxSheetResult("cx.t.zu1", 1, true, "path");
   ok(["zu.a1", "zu.a2"].every(r => C2.S.words["cx_" + r]) && !C2.S.words["cx_zu.b1"], "sheet 1 passed: its own rules go into review, not sheet 2's");
-  let list = C2.cxPartList({ part: "drill", sec: "s4.k1" });
+  let list = C2.cxPartList({ part: "drill", sec: "s4.tzu" });
   ok(list.length >= 6 && list.every(e => e.item.r.every(r => ["zu.a1", "zu.a2"].includes(r))), `day 1's drill keeps to sheet 1's rules (${list.length} items)`);
-  C2.cxDrillDone("s4.k1", 10, 12); C2.cxPartDone({ part: "drill", sec: "s4.k1" });
-  ok(!C2.cxSecDone("s4.k1"), "not done after day 1");
+  C2.cxDrillDone("s4.tzu", 10, 12); C2.cxPartDone({ part: "drill", sec: "s4.tzu" });
+  ok(!C2.cxSecDone("s4.tzu"), "not done after day 1");
   C2.S.course.day = "2000-01-01";
   C2.__today = "2026-10-19";
-  ok(J(C2.cxTodayParts().filter(p => p.sec === "s4.k1").map(p => p.part + ":" + (p.sheet || ""))) === J(["sheet:cx.t.zu2", "drill:"]), "the next day: its second sheet at once (a lesson's sheets on consecutive days)", J(C2.cxTodayParts()));
+  ok(J(C2.cxTodayParts().filter(p => p.sec === "s4.tzu").map(p => p.part + ":" + (p.sheet || ""))) === J(["sheet:cx.t.zu2", "drill:"]), "the next day: its second sheet at once (a lesson's sheets on consecutive days)", J(C2.cxTodayParts()));
   C2.__today = "2026-10-18";
   C2.S.course.day = "2000-01-01"; C2.S.course.last = "2000-01-01"; C2.S.course.seen = Array.from({ length: 10 }, (_, i) => C2.addDays("2026-10-08", i));
-  ok(J(C2.cxTodayParts().filter(p => p.sec === "s4.k1").map(p => p.part + ":" + (p.sheet || ""))) === J(["sheet:cx.t.zu2", "drill:"]), "its day: the second sheet, then the drill");
+  ok(J(C2.cxTodayParts().filter(p => p.sec === "s4.tzu").map(p => p.part + ":" + (p.sheet || ""))) === J(["sheet:cx.t.zu2", "drill:"]), "its day: the second sheet, then the drill");
   C2.cxSheetResult("cx.t.zu2", 1, true, "path");
-  list = C2.cxPartList({ part: "drill", sec: "s4.k1" });
+  list = C2.cxPartList({ part: "drill", sec: "s4.tzu" });
   ok(list.some(e => e.item.r.some(r => ["zu.b1", "zu.b2"].includes(r))), "day 2's drill: the whole section");
-  C2.cxDrillDone("s4.k1", 12, 14);
-  ok(C2.cxSecDone("s4.k1"), "both sheets and the drill: the section is done");
+  C2.cxDrillDone("s4.tzu", 12, 14);
+  ok(C2.cxSecDone("s4.tzu"), "both sheets and the drill: the section is done");
   // s0.recap: the stage's checkpoint
   fresh2();
   ok(!C2.cxCheckpointReady(C2.CX.byId["s0.recap"]) && !C2.cxTodayParts().some(p => p.part === "checkpoint"), "the checkpoint waits while stage 0 has sections to do (coming ones too)");
@@ -421,7 +423,7 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   const j = C.cxLearnJson();
   ok(j && j.rules[r] && j.rules[r][3].length === 1 && j.sec, "and its JSON carries the rules and sections", J(j && j.rules[r]));
   const rep = C.cxReportLines();
-  ok(rep.length === 2 && /rule\(s\) due/.test(rep[1]) && /lesson clock: .*breaks ≈ [\d.]+ day/.test(rep[1]), "the usage report: sections, rules by tier, today and the planner", J(rep));
+  ok(rep.length === 3 && /rule\(s\) due/.test(rep[2]) && /lesson clock: .*breaks ≈ [\d.]+ day/.test(rep[2]) && /^Monthly mock: /.test(rep[1]), "the usage report: sections, rules by tier, the monthly mock, today and the planner", J(rep));
 }
 
 // ── the writing journal ──
@@ -1172,6 +1174,139 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   ["w.newhere", "w.wayhome", "w.commute", "w.buyclothes", "w.mytraining", "w.tripplan"].forEach((id, i) => ok(!!C.cxJournalPrompt(id) && C.cxJournalPrompt(id).sec === ["s3.greet", "s3.way", "s3.bus", "s3.shop", "s3.school", "s3.travel"][i], `writing prompt ${id} opens with ${C.cxJournalPrompt(id) && C.cxJournalPrompt(id).sec}`));
   // school and study is a Should: when behind and not begun, it gives way to the Must lessons (§5)
   ok(C.cxSection("s3.school").prio === "S" && ["s3.greet", "s3.way", "s3.bus", "s3.shop", "s3.travel"].every(id => C.cxSection(id).prio === "M"), "school and study is Should, the other five Must");
+}
+// ── Session 9: the post-B1 bonus built · the monthly mock and its deadline · readiness ──
+{
+  const S9 = ["s4.k1", "s4.ext", "s4.fu2", "s4.pvx", "s4.prefix"];
+  ok(S9.every(id => C.cxLearnable(C.cxSection(id))), "the five bonus lessons are built (and the Konjunktiv II past's drills)");
+  ok(J(S9.map(id => C.cxSection(id).sheets.length)) === J(S9.map(id => C.cxSection(id).n)), "each has the sheets estimated — the pace doesn't move", J(S9.map(id => C.cxSection(id).sheets.length)));
+  ok(C.cxSection("s4.k2p").sets.length >= 6, "Konjunktiv II · past: its book exercises' drills, production last");
+  // the bonus waits for everything else
+  fresh(); C.vxOn = () => true;
+  ok(S9.every(id => !C.cxLessonReady(C.cxSection(id))), "nothing done: no bonus lesson is ready");
+  C.CX.sections.filter(s => s.prio !== "C").forEach(s => { if (s.verb) s.verb.forEach(v => { C.S.verb.sh[v] = 100; }); else C.S.course.sec[s.id] = { st: 3, at: "2026-10-01" }; });
+  ok(C.cxBonusOpen() && S9.every(id => C.cxLessonReady(C.cxSection(id))), "everything else done: the bonus opens");
+  ok(C.cxClock().bonus === true, "…and the clock spreads it to the finish date itself");
+  // the Konjunktiv I lesson: each day's drill keeps to the sheets read, production last
+  C.cxSection("s4.k1").sheets.forEach((sh, k) => {
+    fresh();
+    const allow = new Set(C.cxSection("s4.k1").sheets.slice(0, k + 1).flatMap(x => C.cxSheet(x).rid));
+    for (let d = 0; d < 6; d++) {
+      const plan = C.cxDrillPlan("s4.k1", 14, allow), last = plan[plan.length - 1];
+      ok(plan.length >= 8 && plan.every(e => e.item.r.every(r => allow.has(r))) && ["compose", "translate", "write", "answer"].includes(C.cxItemKind(C.cxSet(last.set), last.item)),
+        `s4.k1 after sheet ${k + 1} (day ${d + 1}): ${plan.length} items on the sheets read, production last`);
+      plan.forEach(e => { const ds = C.S.course.ds[e.set] || (C.S.course.ds[e.set] = [0, 0, 0]); ds[1]++; });
+    }
+  });
+  ok(!!C.cxJournalPrompt("w.news") && C.cxJournalPrompt("w.news").sec === "s4.k1", "a writing prompt opens with the Konjunktiv I");
+
+  // ── the monthly mock ──
+  C.fmtShortDate = d => d; C.logEvent = () => {};
+  const doneN = n => { C.CX.sections.filter(s => s.built && s.sheets.length && !s.checkpoint).slice(0, n).forEach(s => { C.S.course.sec[s.id] = { st: 3, at: "2026-10-01" }; }); };
+  fresh(); C.__today = "2026-11-23";
+  doneN(2);
+  ok(C.cxMockState().st === "off" && C.cxMockState().lessons === 2 && !C.cxMockDue(), "two lessons done: no mock yet");
+  doneN(3);
+  let s = C.cxMockState();
+  ok(s.st === "open" && s.open === "2026-11-23" && s.by === "2026-11-29" && s.left === 6, "three done: the very first opens that day, due a week later", J(s));
+  C.cxMockTouch();
+  ok(C.S.course.mock.open["2026-11"] === "2026-11-23", "…the day it opened is kept (its deadline counts from it)");
+  C.__today = "2026-11-28"; ok(C.cxMockState().st === "soon" && C.cxMockState().left === 1, "the day before: due tomorrow");
+  C.__today = "2026-11-30"; s = C.cxMockState();
+  ok(s.st === "late" && s.left === -1 && !!C.cxMockDue(), "past its deadline: late, but still due until the month ends");
+  C.__today = "2026-12-01"; s = C.cxMockState();
+  ok(s.st === "open" && s.open === "2026-12-01" && s.by === "2026-12-07", "a new month: November's is missed, December's opens on the 1st", J(s));
+  ok(J(C.cxMockMissed()) === J(["2026-11"]) && C.cxMockHistory().some(h => h.m === "2026-11" && h.missed), "…November shows as missed");
+  // a mock run: the plan
+  doneN(7);
+  const plan = C.cxMockPlan();
+  ok(plan.length === C.CX_MOCK.n, `a mock asks ${C.CX_MOCK.n} questions (${plan.length})`);
+  ok(new Set(plan.map(e => e.set + "#" + e.i)).size === plan.length, "…never the same item twice");
+  ok(plan.every(e => !["write", "open"].includes(e.k)), "…never your own writing (it can't be marked)");
+  const prodN = plan.filter(e => C.CX_PRODUCTION.has(e.k)).length;
+  ok(prodN === C.CX_MOCK.prod, `…${prodN} of them production (build, translate, answer)`);
+  ok(plan.every((e, i) => !i || (C.CX_LADDER[plan[i - 1].k] || 0) <= (C.CX_LADDER[e.k] || 0)), "…easiest first: pick → type → build → produce");
+  ok(new Set(plan.map(e => e.rule)).size >= 16, `…one rule each where it can (${new Set(plan.map(e => e.rule)).size} rules)`);
+  ok(plan.every(e => C.cxSecDone(e.sec)), "…only from the lessons done");
+  // the result: kept once a month, the first try
+  const entries = plan.map((e, i) => ({ ...e, first: true, ok: i % 5 !== 0, res: { rule: e.rule } }));
+  let rec = C.cxMockResult(entries, { min: 14 });
+  ok(rec.r === 16 && rec.n === 20 && C.cxMockPct(rec) === 80 && rec.min === 14 && !rec.late && rec.miss.length === 4, "the result: 16/20 = 80 %, its time, the four rules missed", J(rec));
+  ok(C.cxMockState().st === "done" && C.S.course.mock.hist["2026-12"].r === 16, "…kept as December's mock");
+  rec = C.cxMockResult(entries.map(e => ({ ...e, ok: true })), {});
+  ok(rec.practice && C.S.course.mock.hist["2026-12"].r === 16, "a second try that month is practice: the first one stays");
+  ok(C.cxMockState().next === "2027-01-01", "the next opens on the 1st (two weeks after this one at the soonest)", C.cxMockState().next);
+  C.__today = "2027-01-01";
+  ok(C.cxMockState().st === "open" && C.cxMockState().by === "2027-01-07", "January's: open on the 1st, due the 7th");
+  // taken late in the month: the next one waits two weeks
+  fresh(); C.__today = "2026-11-23"; doneN(7);
+  C.S.course.mock = { open: { "2026-11": "2026-11-23" }, hist: { "2026-11": { d: "2026-11-27", r: 15, n: 20, st: { 0: [15, 20] } } } };
+  C.__today = "2026-12-01"; s = C.cxMockState();
+  ok(s.st === "wait" && s.next === "2026-12-11", "taken on 27 Nov: December's opens two weeks later, on the 11th", J(s));
+  C.__today = "2026-12-11"; s = C.cxMockState();
+  ok(s.st === "open" && s.by === "2026-12-17", "…and is due a week after that", J(s));
+  // the very first, too late in the month: it waits for the 1st
+  fresh(); C.__today = "2026-11-29"; doneN(7);
+  s = C.cxMockState();
+  ok(s.st === "wait" && s.next === "2026-12-01", "ready on the 29th: the first mock waits for the 1st (no two-day deadline)", J(s));
+  // the weakest part, and readiness
+  ok(C.cxMockWeakest({ st: { 0: [8, 8], 1: [5, 8], 2: [1, 1] } }).stage === 1, "the weakest part: the lowest share right, two questions or more");
+  ok(C.cxMockWeakest({ st: { 0: [8, 8] } }) === null, "…none when everything was right");
+  fresh(); C.__today = "2026-11-23"; doneN(7);
+  C.pathDeadlineStatus = () => ({ ok: true, eta: "2027-08-15" }); C.pathScan = () => ({ known: 800, total: 4106, met: 1200, due: 60 });
+  // (the lesson clock's own status is tested above: here it's pinned, to test what readiness makes of it)
+  const planner0 = C.cxPlanner, pin = st => { C.cxPlanner = (...a) => ({ ...planner0(...a), status: st }); };
+  pin("green");
+  let R = C.cxReadiness();
+  ok(R.days === 265 && R.lessons.done === 7 && R.words.known === 800 && R.talk.total === 6, "readiness: the days to go, the lessons, the words, the conversation units", J({ d: R.days, l: R.lessons }));
+  ok(R.level === "green", `on pace, no mock yet: green (${R.level}: ${R.title})`);
+  C.S.course.mock = { open: { "2026-11": "2026-11-23" }, hist: { "2026-11": { d: "2026-11-24", r: 13, n: 20, st: { 0: [9, 10], 1: [4, 10] } } } };
+  R = C.cxReadiness();
+  ok(R.level === "amber" && /65%/.test(R.hint) && /Building sentences/.test(R.hint), "a mock of 65 %: amber, its weakest part named", R.hint);
+  C.S.course.mock.hist["2026-11"].r = 9;
+  ok(C.cxReadiness().level === "red", "under 60 %: red");
+  C.pathDeadlineStatus = () => ({ ok: false, eta: "2027-10-01" });
+  C.S.course.mock = {};
+  R = C.cxReadiness();
+  ok(R.level === "red" && /words/i.test(R.title) && /2027-10-01/.test(R.hint), "the words behind: red, and when they'd be done", R.hint);
+  C.S.mock = undefined; C.pathDeadlineStatus = () => ({ ok: true, eta: "2027-08-15" }); pin("red");
+  ok(C.cxReadiness().level === "red" && /lessons/i.test(C.cxReadiness().title), "the lessons behind: red");
+  pin("amber");
+  ok(C.cxReadiness().level === "amber", "the lessons tight: amber");
+  C.cxPlanner = planner0;
+  C.S.path.deadline = "";
+  ok(C.cxReadiness().level === "none", "no finish date: it asks for one");
+  // (review round) a mock begun on the last evening and finished after midnight is that month's
+  fresh(); C.__today = "2026-11-30"; doneN(7);
+  C.S.course.mock = { open: { "2026-11": "2026-11-23" }, hist: {} };
+  const late = C.cxMockState();
+  ok(late.st === "late" && late.m === "2026-11", "30 Nov, November's still open (late)");
+  C.__today = "2026-12-01";
+  const ent = C.cxMockPlan().map((e, i) => ({ ...e, first: true, ok: i % 2 === 0 }));
+  rec = C.cxMockResult(ent, { m: "2026-11", by: late.by });
+  ok(!rec.practice && C.S.course.mock.hist["2026-11"] && !C.S.course.mock.hist["2026-12"] && C.S.course.mock.hist["2026-11"].late === 1, "…finished on 1 Dec: kept as November's (late), December's still to do", J(C.S.course.mock.hist));
+  ok(C.cxMockState().st === "wait" || C.cxMockState().st === "open", "…and December's comes as usual");
+  rec = C.cxMockResult(ent, { practice: true });
+  ok(rec.practice && Object.keys(C.S.course.mock.hist).length === 1, "a practice mock is never kept");
+  // the mock asks A1 to B1 (the fide's), never the post-B1 bonus; the conversation units 3 at least
+  fresh(); C.__today = "2026-11-23";
+  C.CX.sections.forEach(s => { if (!s.verb) C.S.course.sec[s.id] = { st: 3 }; else s.verb.forEach(v => { C.S.verb.sh[v] = 100; }); });
+  let noBonus = true, talk = 99;
+  for (let k = 0; k < 20; k++) { const p = C.cxMockPlan(); if (p.some(e => e.stage === 4)) noBonus = false; talk = Math.min(talk, p.filter(e => e.stage === 3).length); }
+  ok(noBonus, "everything done: no mock question from the bonus lessons (the fide asks A1–B1)");
+  ok(talk >= 3, `…and at least 3 from the conversation units each time (${talk})`);
+  // sync: two devices, one mock each month
+  {
+    const src = fs.readFileSync(new URL("../../js/sync-merge.js", import.meta.url), "utf8");
+    const ctx = {}; vm.createContext(ctx); vm.runInContext(src + "\n;this.mergeStates = mergeStates;", ctx);
+    const a = { savedAt: 1, words: {}, course: { sec: {}, mock: { open: { "2026-11": "2026-11-23" }, hist: { "2026-11": { d: "2026-11-25", r: 15, n: 20 } } } } };
+    const b = { savedAt: 2, words: {}, course: { sec: {}, mock: { open: { "2026-11": "2026-11-24", "2026-12": "2026-12-01" }, hist: { "2026-11": { d: "2026-11-24", r: 12, n: 20 }, "2026-12": { d: "2026-12-03", r: 18, n: 20 } } } } };
+    const m = ctx.mergeStates(a, b, { localWins: true });
+    ok(m.course.mock.hist["2026-11"].d === "2026-11-24" && m.course.mock.hist["2026-11"].r === 12, "sync: a month's mock as first taken (the earlier attempt)", J(m.course.mock.hist));
+    ok(m.course.mock.hist["2026-12"] && m.course.mock.open["2026-11"] === "2026-11-23" && m.course.mock.open["2026-12"] === "2026-12-01", "…every month either side has; the earlier opening day", J(m.course.mock.open));
+    const m2 = ctx.mergeStates({ savedAt: 1, words: {}, course: { sec: {} } }, b, {});
+    ok(m2.course.mock.hist["2026-12"].r === 18, "…a device that never saw a mock keeps the other's");
+  }
 }
 // ── Exercise comfort (13 Nov 2026): more typed than asked · a word placed ──
 {

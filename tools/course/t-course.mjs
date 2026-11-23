@@ -275,8 +275,24 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
   };
   await page.evaluate(() => renderCourse()); await noOverflow("Course");
   await page.evaluate(() => renderCourseSection("s0.neg")); await noOverflow("section");
-  // (a lesson not built yet: a post-B1 lesson, Session 9's — s2.cond until Session 7, s3.travel until Session 8)
-  await page.evaluate(() => renderCourseSection("s4.k1")); await noOverflow("a coming section");
+  // (a lesson not built yet — since Session 9 every lesson is built: one is unbuilt for the look; s2.cond until
+  // Session 7, s3.travel until Session 8, s4.k1 until Session 9)
+  await page.evaluate(() => { cxSection("s4.ext").built = false; renderCourseSection("s4.ext"); }); await noOverflow("a coming section");
+  await page.evaluate(() => { cxSection("s4.ext").built = true; });
+  // (Session 9) 🎓 Exam: before any mock, with the mock due, after it — and a mock's question and result
+  await page.evaluate(() => { migrateCourse(); S.course.mock = {}; renderExam(); }); await noOverflow("Exam, nothing learned yet");
+  await page.evaluate(() => { CX.sections.filter(s => s.built && s.sheets.length && s.stage <= 2).slice(0, 8).forEach(s => { cxSecSet(s.id, { st: 3 }); cxIntroduceRules(s.id, 2); }); renderExam(); });
+  await noOverflow("Exam, the mock due");
+  await page.evaluate(() => ok(/Start the \w+ mock/.test(document.getElementById("main-screen").innerText) && !!document.querySelector(".ex-hero .ex-days"), "Exam: the countdown and the month's mock to start"));
+  await page.evaluate(() => renderMock(false)); await noOverflow("a mock's question");
+  await page.evaluate(() => { let n = 0; while (_cx && !_cx.done && n++ < 60) { const r = _cx, cur = r.list[r.i], set = cxSet(cur.set), k = cxItemKind(set, cur.item);
+      if (k === "pick" || k === "respond") cxPick((cur.item.o || set.o).indexOf(cur.item.a[0])); else if (cur.mode === "place") { cur.at = cxPlace(cur.item, set).slots[0]; cxCheckCur(); } else { document.getElementById("cx-input").value = cur.item.a[0]; cxCheckCur(); }
+      cxNext(); } });
+  await noOverflow("a mock's result");
+  await page.evaluate(() => ok(/100/.test(document.querySelector(".ex-res-pct").textContent) && cxMockState().st === "done", "a mock answered right: 100 %, the month's mock done"));
+  await page.evaluate(() => { cxFinish(); }); await noOverflow("Exam, the mock done");
+  await page.evaluate(() => ok(!!document.querySelector(".ex-col") && /practice mock/i.test(document.getElementById("main-screen").innerText), "Exam: the month's column, a practice mock offered"));
+  await page.evaluate(() => { S.course.mock = {}; CX.sections.forEach(s => { if (S.course.sec[s.id]) delete S.course.sec[s.id]; }); Object.keys(S.words).filter(k => /^cx_/.test(k)).forEach(k => delete S.words[k]); });
   // (Session 8) a conversation unit's sheet: its dialogue, each line with its English, the German said on a tap
   for (const id of ["cx.greet1", "cx.way2", "cx.bus1", "cx.shop1", "cx.school2", "cx.travel2"]) {
     const d = await page.evaluate(id => {
@@ -384,8 +400,11 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
     renderCourseSection("s0.verbs"); document.querySelector(".gr-mastery[onclick*=renderGrammarUnit]").click();
     ok(/Lesson/.test(document.querySelector(".screen-top .back-btn").textContent), "its tense in the verb track: back goes to the lesson");
     document.querySelector(".gr-sheet").click(); ok(!/Lesson/.test(document.querySelector(".screen-top .back-btn").textContent), "a sheet opened from the tense goes back to the tense");
-    renderCourse();
+    // (since Session 9 every lesson is built: one is unbuilt here to see the quiet row)
+    cxSection("s4.ext").built = false; renderCourse();
     ok(document.querySelectorAll(".cx-sec.coming").length > 0 && !document.querySelector("button.cx-sec.coming") && /🏁/.test(document.getElementById("main-screen").innerText), "a part: lessons not built yet are quiet rows (nothing to open), the checkpoint flagged");
+    cxSection("s4.ext").built = true; renderCourse();
+    ok(!document.querySelector(".cx-sec.coming"), "every lesson built: no «Coming soon» row left");
     { const keep = { ...S.verb.sh }; S.verb.sh.pr6 = 90; renderCourse();
       const a2 = [...document.querySelectorAll(".gr-unit")][1].innerText; S.verb.sh = keep;
       ok(/1\/\d+ done/.test(a2) && !/🔒/.test(a2), `a part with a lesson done in the verb track says so, not locked (${a2.replace(/\n/g, " ")})`); }
@@ -427,13 +446,16 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
     // Session 6's chapters
     ok(exOf("c22") === "22.1,22.2,22.4,22.5,22.6,22.7,22.8,22.10,22.12,22.13,22.14,22.15,22.20", `chapter 22: every Übung has its drill — 22.3 · 22.9 with 22.12, 22.11 with 22.7, 22.16 with 22.10, 22.17–22.19 with 22.14 (${exOf("c22")})`);
     ok(["22.3", "22.9", "22.11", "22.16", "22.17", "22.18", "22.19"].every(x => new RegExp("\\b" + x.replace(".", "\\.") + "\\b").test(document.getElementById("main-screen").innerText)), "…the ones drilled together are named on their set");
-    ok(exOf("c26") === "26.2,26.6,26.7,26.8,26.11,26.12,26.15,26.16,26.17,26.18,26.19,26.22,26.23,26.24,26.25,26.26,26.27,26.29,26.30", `chapter 26: the Konjunktiv II and if-sentences added (the Konjunktiv I and the past one are post-B1) (${exOf("c26")})`);
+    ok(exOf("c26") === Array.from({ length: 30 }, (_, i) => "26." + (i + 1)).filter(x => x !== "26.3").join(","), `chapter 26: every Übung since Session 9 — 26.3 with 26.2 (${exOf("c26")})`);
     ok(exOf("c29") === "29.1,29.2,29.3,29.4,29.5,29.6,29.7,29.8,29.9,29.10,29.11,29.12,29.13,29.14,29.15,29.16,29.17,29.18,29.19,29.20,29.21", `chapter 29: all twenty-one (Session 7: participles 29.11–29.17, zwar 29.18 · 29.19) (${exOf("c29")})`);
     // Session 7's chapters
     ok(exOf("c16") === "16.1,16.3,16.4,16.6,16.7,16.8,16.10,16.11,16.12,16.13,16.14,16.16,16.17,16.19,16.20" && /16\.1 · 16\.2 · 16\.18/.test(document.getElementById("main-screen").innerText), `chapter 16: every Übung — the tables drilled together (16.1 · 16.2 · 16.18) (${exOf("c16")})`);
     ok(exOf("c17") === "17.1,17.3,17.4,17.5,17.6,17.7,17.8,17.9,17.10,17.11,17.12,17.13,17.14,17.15,17.16,17.17", `chapter 17: every Übung (Session 7: lassen's 17.5 · 17.6, the modals' Perfekt 17.16 · 17.17) (${exOf("c17")})`);
-    ok(exOf("c25") === "25.1,25.2,25.3,25.4,25.5,25.6,25.7,25.8,25.9,25.10,25.11,25.12,25.13,25.14,25.16,25.17,25.18,25.19,25.20,25.21,25.22,25.23,25.24,25.25", `chapter 25: all but sein … zu's 25.15 (post-B1) (${exOf("c25")})`);
-    ok(exOf("c27") === "27.3,27.5,27.6,27.7,27.8,27.9,27.11,27.12,27.13,27.15", `chapter 27: the Konjunktiv II's, wenn and als ob — 27.4 with 27.5 (${exOf("c27")})`);
+    ok(exOf("c25") === Array.from({ length: 25 }, (_, i) => "25." + (i + 1)).join(","), `chapter 25: all twenty-five since Session 9 (sein … zu's 25.15) (${exOf("c25")})`);
+    ok(exOf("c27") === Array.from({ length: 15 }, (_, i) => "27." + (i + 1)).filter(x => x !== "27.4").join(","), `chapter 27: every Übung since Session 9 — 27.4 with 27.5 (${exOf("c27")})`);
+    // Session 9's chapters
+    ok(exOf("c21") === "21.1,21.2,21.3,21.4,21.5,21.6", `chapter 21: the Futur II's six (${exOf("c21")})`);
+    ok(["12.5", "12.11"].every(x => exOf("c12").split(",").includes(x)), `chapter 12: the prefixes both ways, 12.5 and 12.11 (${exOf("c12")})`);
     renderCourseChapter("c25");
     [...document.querySelectorAll(".cx-ex")].find(b => /^25\.13 /.test(b.querySelector(".gr-stt").innerText)).click();
     ok(_cx && _cx.list.every(e => e.set === "d25.13") && /Chapter 25/.test(document.querySelector(".screen-top .back-btn").textContent), "Übung 25.13 runs on its own; back goes to chapter 25");

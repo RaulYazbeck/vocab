@@ -968,7 +968,7 @@ const GS_SHEETS = [
       {"at": "r1", "g": "aux", "t": "k2p", "p": ["ich", "du", "er", "wir", "ihr", "sie"], "v": "auxAny", "fb": ["machen", "kommen", "kaufen", "gehen", "sehen"], "lbl": " — would have", "why": "The same choice as in the Perfekt: hätte or wäre."},
       {"at": "r2", "k": "pick", "q": "Wenn ich Zeit gehabt ___, …", "o": ["hätte", "wäre"], "a": 0, "why": "haben takes haben, so: hätte."},
       {"at": "r2", "k": "pick", "q": "If I had known… : Wenn ich das ___ hätte, …", "o": ["gewusst", "wissen", "gewisst"], "a": 0, "why": "The Partizip II of wissen is gewusst."},
-      {"at": "r3", "k": "order", "q": "Build it: I would have liked to come along.", "a": ["Ich", "wäre", "gern", "mitgekommen"], "why": "wäre is the verb second, and the Partizip II goes last."},
+      {"at": "r1", "k": "order", "q": "Build it: I would have liked to come along.", "a": ["Ich", "wäre", "gern", "mitgekommen"], "why": "wäre is the verb second, and the Partizip II goes last."},
       {"at": "r3", "k": "pick", "q": "I was nearly late: Ich ___ fast zu spät gekommen.", "o": ["wäre", "würde", "hätte"], "a": 0, "why": "Something almost happened: wäre + Partizip II."},
       {"at": "trap", "k": "pick", "q": "I would have come.", "o": ["Ich wäre gekommen.", "Ich hätte gekommen.", "Ich würde gekommen."], "a": 0, "why": "kommen takes sein, so: wäre gekommen."},
       {"at": "r2", "k": "pick", "q": "Wenn du angerufen ___, wäre ich gekommen.", "o": ["hättest", "wärst"], "a": 0, "why": "anrufen takes haben, so: hättest."},
@@ -982,7 +982,7 @@ const GS_SHEETS = [
     why: "With a modal, the unreal past ends in two infinitives. This is how German says *should have* and *could have*.",
     rules: [
       "Use **hätte** + the infinitive + the modal infinitive: Ich **hätte** mehr **lernen sollen** (*I should have studied more*).",
-      "It works the same with können, müssen and dürfen: Du **hättest** mich **anrufen können** (*you could have called me*).",
+      "It works the same with können, müssen, dürfen and wollen: Du **hättest** mich **anrufen können** (*you could have called me*).",
       "In a side sentence with weil or dass, hätte comes **before** the two infinitives: …, dass ich **hätte kommen müssen**.",
     ],
     ex: [["Ich [[hätte]] mehr [[lernen sollen]].", "I should have studied more."], ["Du [[hättest]] mich [[anrufen können]].", "You could have called me."]],
@@ -998,7 +998,7 @@ const GS_SHEETS = [
       {"at": "r2", "k": "pick", "q": "We could have won.", "o": ["Wir hätten gewinnen können.", "Wir hätten gewonnen können."], "a": 0, "why": "Two infinitives: gewinnen können."},
       {"at": "r3", "k": "pick", "q": "Which is right?", "o": ["…, dass er hätte warten müssen.", "…, dass er warten müssen hätte."], "a": 0, "why": "In a side sentence, hätte comes before the two infinitives."},
       {"at": "r3", "k": "order", "q": "Finish it: …, because I would have had to work.", "a": ["weil", "ich", "hätte", "arbeiten", "müssen"], "why": "In a side sentence, hätte comes before the two infinitives."},
-      {"at": "trap", "k": "pick", "q": "We should have known it.", "o": ["Wir hätten es wissen müssen.", "Wir hätten es gewusst müssen."], "a": 0, "why": "No Partizip II here: wissen müssen."},
+      {"at": "trap", "k": "pick", "q": "We should have known that.", "o": ["Wir hätten es wissen müssen.", "Wir hätten es gewusst müssen."], "a": 0, "why": "No Partizip II here: wissen müssen."},
       {"at": "trap", "k": "pick", "q": "Ich hätte das nicht sagen ___.", "o": ["sollen", "gesollt"], "a": 0, "why": "The modal stays an infinitive: sollen."},
     ] },
 ];
