@@ -1276,6 +1276,25 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   C.cxPlanner = planner0;
   C.S.path.deadline = "";
   ok(C.cxReadiness().level === "none", "no finish date: it asks for one");
+  // (review round) a mock begun on the last evening and finished after midnight is that month's
+  fresh(); C.__today = "2026-11-30"; doneN(7);
+  C.S.course.mock = { open: { "2026-11": "2026-11-23" }, hist: {} };
+  const late = C.cxMockState();
+  ok(late.st === "late" && late.m === "2026-11", "30 Nov, November's still open (late)");
+  C.__today = "2026-12-01";
+  const ent = C.cxMockPlan().map((e, i) => ({ ...e, first: true, ok: i % 2 === 0 }));
+  rec = C.cxMockResult(ent, { m: "2026-11", by: late.by });
+  ok(!rec.practice && C.S.course.mock.hist["2026-11"] && !C.S.course.mock.hist["2026-12"] && C.S.course.mock.hist["2026-11"].late === 1, "…finished on 1 Dec: kept as November's (late), December's still to do", J(C.S.course.mock.hist));
+  ok(C.cxMockState().st === "wait" || C.cxMockState().st === "open", "…and December's comes as usual");
+  rec = C.cxMockResult(ent, { practice: true });
+  ok(rec.practice && Object.keys(C.S.course.mock.hist).length === 1, "a practice mock is never kept");
+  // the mock asks A1 to B1 (the fide's), never the post-B1 bonus; the conversation units 3 at least
+  fresh(); C.__today = "2026-11-23";
+  C.CX.sections.forEach(s => { if (!s.verb) C.S.course.sec[s.id] = { st: 3 }; else s.verb.forEach(v => { C.S.verb.sh[v] = 100; }); });
+  let noBonus = true, talk = 99;
+  for (let k = 0; k < 20; k++) { const p = C.cxMockPlan(); if (p.some(e => e.stage === 4)) noBonus = false; talk = Math.min(talk, p.filter(e => e.stage === 3).length); }
+  ok(noBonus, "everything done: no mock question from the bonus lessons (the fide asks A1–B1)");
+  ok(talk >= 3, `…and at least 3 from the conversation units each time (${talk})`);
   // sync: two devices, one mock each month
   {
     const src = fs.readFileSync(new URL("../../js/sync-merge.js", import.meta.url), "utf8");

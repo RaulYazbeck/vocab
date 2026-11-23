@@ -1212,6 +1212,24 @@ same spread; seed 1 crosses the 98 % line. The test was not loosened. (Not at ev
 French app untouched); no new backup was given this session. Nothing is reset: the mock adds one key, S.course.mock, the
 day it first shows.
 
+**Review (23 Nov 2026), my request — every addition checked again.** (1) **German proofread by three independent
+readers** (the Konjunktiv I · the Konjunktiv II past and the Futur II · sein … zu, the prefixes, the extended modifiers):
+no wrong form in the drills; fixed — two rules that said something false (*sein* is not "the one verb with a Konjunktiv
+I": it's the one whose Konjunktiv I differs from the present everywhere; *kaum* means hardly, not can't), "a question
+keeps ob" (ob is added), two answers whose Konjunktiv II reads as the past (*stiegen*, *dauerten* → würde), *laut* +
+Konjunktiv I left out (style guides prefer the indicative there), Bürgermeister → Gemeindepräsident, a witness story
+that contradicted itself, *bis spät in die Nacht*, an example that contradicted itself, two gaps whose «Sie» could be
+*they*, instructions that said "the verb at the end" where both orders are right, and about 45 common right answers that
+weren't accepted (*wahrscheinlich*, *zügeln*, relative clauses where the drill promised them, Sie / euch …). Three small
+fixes on the verb track's k2p sheets (a quiz on the wrong point, wollen in the modal list, "known that"). Rules trimmed to
+the course's 225 characters. (2) **Bugs found and fixed:** a mock begun on the 31st and finished after midnight would
+have counted for the new month — it keeps the month it was started in; the log called a late second try "kept"; the
+usage log didn't count the mock at all (now 🗓️ mock right/asked per day); "Set your exam date" opened nothing while the
+menu was closed; on the Exam screen the month's score showed three times (now once). (3) **The mock is the fide's:** it
+no longer asks the post-B1 bonus, and the conversation units — the oral test's scenes — get 3 questions at least once
+they're done (by their share of the rules they had 2). A late mock says until when it's still open. Voice: 85 changed
+sentences recorded (4,089 characters, 0 refused); 70,536 / 70,536 texts.
+
 ### Definition of done (every session)
 
 - Every built section has its sheet(s), rules, mirrored drills and at least
@@ -1328,6 +1346,7 @@ nothing new (the mock asks the lessons' own items). The German pack has **70,490
 passes; the pack, games, flag, say and runtime tests pass). **Characters this month (November 2026): 855,625** — run
 with the hard stop at **940,000** (my limit for this session). The pack notes the sentence shards have grown (~6.9 MB,
 target 2): a re-split (`--buckets-s 52`) would change every shard once — left for a quiet day, it costs a full download.
+*(Review, same day: 85 changed sentences, 4,089 characters, 0 refused — November now 859,747; 70,536 / 70,536 texts.)*
 What will be missing next: nothing the app says today.
 
 **17 Nov 2026 — Session 8's review recorded.** The changed sentences and the missing lines' answers (they had said the

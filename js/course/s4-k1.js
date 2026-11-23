@@ -27,9 +27,9 @@ cxPack({
         "kj.use": "Reported speech in writing — the news, reports, letters",
         "kj.swap": "Looks like the present? The Konjunktiv II (sie hätten)",
         "kj.past": "The past: habe / sei + Partizip II",
-        "kj.fut": "Later: werde + infinitive (wir, sie: würden)",
+        "kj.fut": "Later: werde + infinitive (ich, wir, sie: würde)",
         "kj.ask": "Questions with ob or a W-word · commands with solle",
-        "kj.fixed": "Set phrases: Gott sei Dank, es sei denn, Man nehme …",
+        "kj.fixed": "Set phrases: Gott sei Dank, es sei denn, wie dem auch sei",
       },
       sheets: [
         { id: "cx.kj1", title: "Er sagt, er sei krank", qn: 3,
@@ -37,10 +37,10 @@ cxPack({
           why: "The **Konjunktiv I** is the form of **reported speech** in written German: the news, reports, minutes, official letters. It passes on what someone said without saying it is true. You need it mainly to **read** — in conversation people use the normal forms.",
           rid: ["kj.form", "kj.sein", "kj.use", "kj.swap"],
           rules: [
-            "The **Konjunktiv I** is the stem of the infinitive + the endings **-e, -est, -e, -en, -et, -en**: er **komme**, er **habe**, er **könne**, er **wisse**. There is no vowel change: er **fahre**, er **nehme**. You will meet it mostly with **er, sie** and **es**, where it differs from the present: er hat → er **habe**.",
-            "**sein** is the one verb with a Konjunktiv I in every person: ich **sei**, du **seist**, er **sei**, wir **seien**, ihr **seiet**, sie **seien**. It is the form you will see most often: Der Minister sagte, er **sei** zufrieden.",
-            "Use the Konjunktiv I to **report** what someone said or wrote, mostly **in writing** — the news, reports, letters: Die Polizei teilt mit, der Fahrer **sei** verletzt. When you speak, use the normal present (sie sagt, er **ist** krank) or the Konjunktiv II (er **wäre** krank).",
-            "When the Konjunktiv I looks just like the present — ich **habe**, wir **kommen**, sie **haben** — use the **Konjunktiv II** instead: Sie sagen, sie **hätten** keine Zeit. · Er meint, wir **kämen** zu spät. (würde + the infinitive works too: wir **würden** zu spät **kommen**.)",
+            "The **Konjunktiv I** is the infinitive's stem + **-e, -est, -e, -en, -et, -en**, with no vowel change: er **komme**, er **habe**, er **könne**, er **fahre**. You meet it mostly with **er, sie, es**, where it differs from the present: er hat → er **habe**.",
+            "**sein** is the only verb whose Konjunktiv I differs from the present in every person: ich **sei**, du **seist**, er **sei**, wir **seien**, ihr **seiet**, sie **seien**. It's the form you'll see most.",
+            "Use the Konjunktiv I to **report** what someone said, mostly **in writing** — the news, reports, letters: Die Polizei teilt mit, der Fahrer **sei** verletzt. In speech, use the present (er **ist** krank) or the Konjunktiv II (er **wäre** krank).",
+            "When the Konjunktiv I looks like the present — ich **habe**, wir **kommen**, sie **haben** — use the **Konjunktiv II**: Sie sagen, sie **hätten** keine Zeit. If that looks like the Präteritum too (sie spielten), use **würde**: sie **würden** spielen.",
           ],
           table: { head: ["present", "Konjunktiv I"], rows: [
             ["er ist", "er **sei**"],
@@ -57,29 +57,29 @@ cxPack({
             ["Lea schreibt, sie **komme** erst am Montag zurück.", "Lea writes that she won't be back until Monday."],
             ["Die Nachbarn sagen, sie **hätten** am Samstag keine Zeit.", "The neighbours say they have no time on Saturday."],
           ],
-          trap: "Don't use the Konjunktiv I in conversation — it sounds like the news. At the counter say: Sie sagt, sie **ist** krank (or sie **wäre** krank). And the vowel never changes: er **fahre**, er **nehme** — not ~~er fähre~~, ~~er nimme~~.",
+          trap: "Don't use the Konjunktiv I for reported speech in conversation — it sounds like the news. Talking to a friend, say: Sie sagt, sie **ist** krank (or sie **wäre** krank). And the vowel never changes: er **fahre**, er **nehme** — not ~~er fähre~~, ~~er nimme~~.",
           quiz: [
             { at: "r1", k: "pick", q: "In the news: Der Sprecher sagt, der Zug ___ Verspätung.", o: ["habe", "hat", "hätte"], a: 0, why: "Written reported speech: the Konjunktiv I, **habe** — the stem + e." },
-            { at: "r1", k: "type", cx: true, q: "Sie schreibt, sie ___ morgen. (kommen)", a: ["komme"], r: ["kj.form"], why: "The stem + e: **komme**." },
+            { at: "r1", k: "type", cx: true, q: "In a report: Sie schreibt, sie ___ morgen. (kommen)", a: ["komme"], r: ["kj.form"], why: "The stem + e: **komme**." },
             { at: "r1", k: "pick", q: "er fährt → Konjunktiv I:", o: ["er fahre", "er fähre", "er führe"], a: 0, why: "No vowel change: the stem **fahr** + e." },
             { at: "r2", k: "pick", q: "In a report: Die Ärztin sagt, die Kinder ___ gesund.", o: ["seien", "sind", "sein"], a: 0, why: "sein, plural: **seien**." },
-            { at: "r2", k: "type", cx: true, q: "Laut Bericht ___ das Wasser sauber. (sein)", a: ["sei"], r: ["kj.sein"], why: "sein, er / sie / es: **sei**." },
+            { at: "r2", k: "type", cx: true, q: "Im Bericht steht, das Wasser ___ sauber. (sein)", a: ["sei"], r: ["kj.sein"], why: "sein, er / sie / es: **sei**." },
             { at: "r3", k: "pick", q: "Telling a friend what Mia said, you say:", o: ["Mia sagt, sie ist krank.", "Mia sagt, sie sei krank."], a: 0, why: "In conversation, the normal present (or wäre). The Konjunktiv I is for writing." },
             { at: "r3", k: "pick", q: "Where do you meet the Konjunktiv I most?", o: ["in the news and in reports", "at the bakery", "in commands"], a: 0, why: "It is the written form of reported speech." },
             { at: "r4", k: "pick", q: "In a report: Sie sagen, sie ___ keine Zeit.", o: ["hätten", "haben", "habe"], a: 0, why: "sie haben looks like the present: the Konjunktiv II, **hätten**." },
-            { at: "r4", k: "type", cx: true, q: "Die Kinder sagen, sie ___ Hunger. (haben)", a: ["hätten"], r: ["kj.swap"], why: "sie haben would be the present: **hätten**." },
+            { at: "r4", k: "type", cx: true, q: "In a report: Die Kinder sagen, sie ___ Hunger. (haben)", a: ["hätten"], r: ["kj.swap"], why: "sie haben would be the present: **hätten**." },
             { at: "table", k: "pick", q: "er weiß → Konjunktiv I:", o: ["er wisse", "er weiße", "er weiß"], a: 0, why: "The stem **wiss** + e: **wisse**." },
             { at: "trap", k: "pick", q: "nehmen, er → Konjunktiv I:", o: ["er nehme", "er nimme", "er nimmt"], a: 0, why: "No vowel change: **nehme**." },
           ] },
         { id: "cx.kj2", title: "Sie sagte, sie habe ihn gesehen", qn: 3,
           struct: [["Sie sagte,", "who"], ["sie", "who"], ["habe", "aux"], ["ihn", "thing"], ["gesehen", "p2"]],
-          why: "Reported speech has only three times: **now** (er sei), **before** (er sei gewesen, er habe gemacht) and **later** (er werde kommen). Questions keep **ob** or their W-word; commands become **sollen**.",
+          why: "Reported speech has only three times: **now** (er sei), **before** (er sei gewesen, er habe gemacht) and **later** (er werde kommen). A yes/no question takes **ob**, a W-question keeps its W-word; commands become **sollen**.",
           rid: ["kj.past", "kj.fut", "kj.ask", "kj.fixed"],
           rules: [
             "Anything **in the past** — Präteritum, Perfekt or Plusquamperfekt — becomes **habe** or **sei** + the Partizip II: «Ich war krank.» → Er sagte, er **sei** krank **gewesen**. · «Wir kauften ein Haus.» → Sie sagten, sie **hätten** ein Haus **gekauft**.",
-            "The **future** becomes **werde** + the infinitive: «Ich werde anrufen.» → Sie sagte, sie **werde anrufen**. With wir and sie (they), werden looks like the present, so use **würden**: Sie sagten, sie **würden** später **kommen**.",
-            "A reported **question** keeps **ob** or its W-word, with the verb at the end: Er fragte, **ob** ich Zeit **hätte**. · Sie wollte wissen, **wo** der Bahnhof **sei**. A reported **command** takes **sollen**: «Warten Sie!» → Er sagte, ich **solle** warten.",
-            "A few **set phrases** use the Konjunktiv I, and everyone says them: **Gott sei Dank!** · **Es lebe** die Freiheit! · Wir kommen, **es sei denn**, es regnet. · **Wie dem auch sei** … · in recipes: **Man nehme** zwei Eier.",
+            "The **future** becomes **werde** + the infinitive: «Ich werde anrufen.» → Sie sagte, sie **werde anrufen**. With ich, wir and sie (they) it looks like the present, so use **würde(n)**: Sie sagten, sie **würden** später **kommen**.",
+            "A reported yes/no **question** takes **ob**; a W-question keeps its W-word. The verb goes to the end: Er fragte, **ob** ich Zeit **hätte**. A reported **command** takes **sollen**: «Warten Sie!» → Er sagte, ich **solle** warten.",
+            "A few **set phrases** use the Konjunktiv I, and you'll still hear or read them: **Gott sei Dank!** · **Es lebe** die Freiheit! · Wir kommen, **es sei denn**, es regnet. · **Wie dem auch sei** … · in recipes: **Man nehme** zwei Eier.",
           ],
           table: { head: ["they said", "reported"], rows: [
             ["«Ich bin müde.»", "er **sei** müde"],
@@ -112,7 +112,7 @@ cxPack({
       ],
       diag: [
         { t: "swap", from: "^dass$", to: "^ob$", rule: "kj.ask", hard: true, msg: "A reported yes/no question takes **ob**, never dass." },
-        { t: "swap", from: "^(soll|sollst|sollen|muss)$", to: "^(solle|sollten)$", rule: "kj.ask", msg: "A reported command takes the Konjunktiv I of sollen: **{right}**." },
+        { t: "swap", from: "^(soll|sollst|sollen|muss)$", to: "^(solle|sollten)$", rule: "kj.ask", msg: "A reported command takes sollen in the Konjunktiv: **{right}**." },
         { t: "swap", from: "^(war|warst|waren|wart|kam|ging|fuhr|lief|machte|kaufte|sagte|gab|sah|las|schrieb|zog|stand|wurde)$", to: "^(sei|seien|habe|hatten|seist)$", rule: "kj.past", hard: true, msg: "Reported speech has no Präteritum: **{right}** + the Partizip II (er sei gekommen, er habe gesagt)." },
         { t: "swap", from: "^(wird|wirst|werdet)$", to: "^(werde|wurden)$", rule: "kj.fut", hard: true, msg: "Later, reported: **{right}** + the infinitive." },
         { t: "swap", from: "^(haben|kommen|gehen|konnen|mussen|wollen|werden|wissen|geben|steigen|spielen|sollen)$", to: "^(hatten|kamen|gingen|konnten|mussten|wollten|wurden|wussten|gaben|stiegen|spielten|sollten)$", rule: "kj.swap", hard: true, msg: "With wir and sie (they) the Konjunktiv I looks like the present: use the Konjunktiv II, **{right}**." },
@@ -128,13 +128,13 @@ cxPack({
           { q: "Sie schreibt, sie ___ jeden Morgen am See. (laufen)", a: ["laufe"], r: ["kj.form"] },
           { q: "Der Chef sagt, er ___ das Projekt bis Juni abschließen. (wollen)", a: ["wolle"], r: ["kj.form"] },
           { q: "Mein Nachbar meint, er ___ zu viel Geld aus. (ausgeben)", a: ["gebe"], r: ["kj.form"] },
-          { q: "Laut Lea ___ niemand die Antwort. (wissen)", a: ["wisse"], r: ["kj.form"] },
+          { q: "Lea sagt, niemand ___ die Antwort. (wissen)", a: ["wisse"], r: ["kj.form"] },
           { q: "Die Bank teilt mit, es ___ keine Probleme. (geben)", a: ["gebe"], r: ["kj.form"] },
           { q: "Sie meint, ihr Sohn ___ schon gut Deutsch. (können)", a: ["könne"], r: ["kj.form"] },
           { q: "Im Brief steht, Herr Meier ___ das Formular noch nicht. (haben)", a: ["habe"], r: ["kj.form"] },
           { q: "Er glaubt, ich ___ sein Chef. (sein)", a: ["sei"], r: ["kj.sein"] },
           { q: "Die Kinder sagen, sie ___ müde. (sein)", a: ["seien"], r: ["kj.sein"] },
-          { q: "Laut Wetterbericht ___ der Sommer zu trocken. (sein)", a: ["sei"], r: ["kj.sein"] },
+          { q: "Der Wetterbericht meldet, der Sommer ___ zu trocken. (sein)", a: ["sei"], r: ["kj.sein"] },
         ] },
         // ── Übung 26•9: he says … ──
         { id: "d26.9", ex: "26.9", t: "transform", title: "What he says", how: "Report what Jonas, your new colleague, says. Start with «Er sagt,» — the verb stays second (or with dass, at the end). ich → er · du → ich.", items: [
@@ -150,20 +150,20 @@ cxPack({
           { q: "«Ich weiß noch nicht, wo der Drucker steht.»", a: ["Er sagt, er wisse noch nicht, wo der Drucker steht.", "Er sagt, er wisse noch nicht, wo der Drucker stehe.", "Er sagt, dass er noch nicht wisse, wo der Drucker steht.", "Er sagt, dass er noch nicht wisse, wo der Drucker stehe."], r: ["kj.form"] },
         ] },
         // ── Übung 26•4: as the news reports it ──
-        { id: "d26.4", ex: "26.4", t: "transform", title: "As the news reports it", how: "Report it as the news would: «Die Zeitung schreibt, dass …» — the Konjunktiv I, the verb at the end. A question: «Die Journalistin fragt, ob …» or with its W-word.", items: [
+        { id: "d26.4", ex: "26.4", t: "transform", title: "As the news reports it", how: "Report it as the news would: «Die Zeitung schreibt, …» — the Konjunktiv I, the verb second (or with dass, at the end). A question: «Die Journalistin fragt, ob …» or with its W-word.", items: [
           { q: "«Der Bahnhof wird bis 2028 umgebaut.»", a: cxKjBoth("Die Zeitung schreibt,", "der Bahnhof werde bis 2028 umgebaut", "der Bahnhof bis 2028 umgebaut werde"), r: ["kj.use"] },
           { q: "«Die Gemeinde hat kein Geld für ein neues Hallenbad.»", a: cxKjBoth("Die Zeitung schreibt,", "die Gemeinde habe kein Geld für ein neues Hallenbad", "die Gemeinde kein Geld für ein neues Hallenbad habe"), r: ["kj.use"] },
           { q: "«Der Präsident der Firma tritt zurück.»", a: cxKjBoth("Die Zeitung schreibt,", "der Präsident der Firma trete zurück", "der Präsident der Firma zurücktrete"), r: ["kj.form"] },
           { q: "«Das schöne Wetter bleibt bis Sonntag.»", a: cxKjBoth("Die Zeitung schreibt,", "das schöne Wetter bleibe bis Sonntag", "das schöne Wetter bis Sonntag bleibe"), r: ["kj.use"] },
           { q: "«Niemand kennt die Ursache des Unfalls.»", a: cxKjBoth("Die Zeitung schreibt,", "niemand kenne die Ursache des Unfalls", "niemand die Ursache des Unfalls kenne"), r: ["kj.form"] },
-          { q: "«Die Mieten in Zürich steigen weiter.»", a: [...cxKjBoth("Die Zeitung schreibt,", "die Mieten in Zürich würden weiter steigen", "die Mieten in Zürich weiter steigen würden"), ...cxKjBoth("Die Zeitung schreibt,", "die Mieten in Zürich stiegen weiter", "die Mieten in Zürich weiter stiegen")], r: ["kj.swap"] },
+          { q: "«Die Mieten in Zürich steigen weiter.»", a: cxKjBoth("Die Zeitung schreibt,", "die Mieten in Zürich würden weiter steigen", "die Mieten in Zürich weiter steigen würden"), r: ["kj.swap"], note: "stiegen would read as the past: **würden** … steigen." },
           { q: "«Die Schule braucht mehr Lehrerinnen und Lehrer.»", a: cxKjBoth("Die Zeitung schreibt,", "die Schule brauche mehr Lehrerinnen und Lehrer", "die Schule mehr Lehrerinnen und Lehrer brauche"), r: ["kj.use"] },
           { q: "«Ist die Passstraße wieder offen?»", a: ["Die Journalistin fragt, ob die Passstraße wieder offen sei."], r: ["kj.use"] },
           { q: "«Kann man die Tickets auch online kaufen?»", a: ["Die Journalistin fragt, ob man die Tickets auch online kaufen könne."], r: ["kj.form"] },
           { q: "«Wann fährt der erste Zug wieder?»", a: ["Die Journalistin fragt, wann der erste Zug wieder fahre."], r: ["kj.form"] },
         ] },
         // ── Übung 27•1: now, before, later — reported ──
-        { id: "d27.1", ex: "27.1", t: "transform", title: "Reported: now and before", how: "Report it with dass, in writing: now → sei / habe / komme · before → sei / habe + Partizip II. The verb goes to the end.", items: [
+        { id: "d27.1", ex: "27.1", t: "transform", title: "Reported: now and before", how: "Report it in writing (with or without dass): now → sei / habe / komme · before → sei / habe + the Partizip II.", items: [
           { q: "Der Hauswart sagte: «Die Heizung ist kaputt.»", a: cxKjBoth("Der Hauswart sagte,", "die Heizung sei kaputt", "die Heizung kaputt sei"), r: ["kj.sein"] },
           { q: "Die Ärztin sagte: «Das Kind hat Fieber gehabt.»", a: cxKjBoth("Die Ärztin sagte,", "das Kind habe Fieber gehabt", "das Kind Fieber gehabt habe"), r: ["kj.past"] },
           { q: "Die Polizei teilte mit: «Der Dieb ist gestern verhaftet worden.»", a: cxKjBoth("Die Polizei teilte mit,", "der Dieb sei gestern verhaftet worden", "der Dieb gestern verhaftet worden sei"), r: ["kj.past"] },
@@ -173,7 +173,7 @@ cxPack({
           { q: "Die Lehrerin sagte: «Der Ausflug muss leider ausfallen.»", a: cxKjBoth("Die Lehrerin sagte,", "der Ausflug müsse leider ausfallen", "der Ausflug leider ausfallen müsse"), r: ["kj.form"] },
           { q: "Lukas schrieb: «Ich bin gut in Kanada angekommen.»", a: cxKjBoth("Lukas schrieb,", "er sei gut in Kanada angekommen", "er gut in Kanada angekommen sei"), r: ["kj.past"] },
           { q: "Herr Frei erklärte: «Ich gehe nächstes Jahr in Pension.»", a: cxKjBoth("Herr Frei erklärte,", "er gehe nächstes Jahr in Pension", "er nächstes Jahr in Pension gehe"), r: ["kj.form"] },
-          { q: "Der Bürgermeister sagte: «Wir haben ein neues Altersheim gebaut.»", a: cxKjBoth("Der Bürgermeister sagte,", "sie hätten ein neues Altersheim gebaut", "sie ein neues Altersheim gebaut hätten"), r: ["kj.swap"] },
+          { q: "Der Gemeindepräsident sagte: «Wir haben ein neues Altersheim gebaut.»", a: cxKjBoth("Der Gemeindepräsident sagte,", "sie hätten ein neues Altersheim gebaut", "sie ein neues Altersheim gebaut hätten"), r: ["kj.swap"] },
         ] },
         // ── Übung 26•5: it happened — habe or sei ──
         { id: "d26.5", ex: "26.5", t: "transform", title: "It happened: habe or sei", how: "Report what the witness said: «Der Zeuge sagte, dass …». Präteritum, Perfekt or Plusquamperfekt — all become habe or sei + the Partizip II. ich → er.", items: [
@@ -186,7 +186,7 @@ cxPack({
           { q: "«Ein Mann hat ein Foto gemacht.»", a: cxKjBoth("Der Zeuge sagte,", "ein Mann habe ein Foto gemacht", "ein Mann ein Foto gemacht habe"), r: ["kj.past"] },
           { q: "«Die Polizei war nach fünf Minuten da.»", a: cxKjBoth("Der Zeuge sagte,", "die Polizei sei nach fünf Minuten da gewesen", "die Polizei nach fünf Minuten da gewesen sei"), r: ["kj.past"] },
           { q: "«Ich habe alles genau gesehen.»", a: cxKjBoth("Der Zeuge sagte,", "er habe alles genau gesehen", "er alles genau gesehen habe"), r: ["kj.past"] },
-          { q: "«Die Ampel war kaputt.»", a: cxKjBoth("Der Zeuge sagte,", "die Ampel sei kaputt gewesen", "die Ampel kaputt gewesen sei"), r: ["kj.past"] },
+          { q: "«Die Straße war nass.»", a: cxKjBoth("Der Zeuge sagte,", "die Straße sei nass gewesen", "die Straße nass gewesen sei"), r: ["kj.past"] },
         ] },
         // ── Übung 27•2: what the neighbour told us ──
         { id: "d27.2", ex: "27.2", t: "transform", title: "What the neighbour told us", how: "Report it: «Die Nachbarin erzählte, …» — habe or sei + the Partizip II. Where haben looks like the present (sie haben), use hätten.", items: [
@@ -196,7 +196,7 @@ cxPack({
           { q: "«Ich war noch nie im Ausland.»", a: cxKjBoth("Die Nachbarin erzählte,", "sie sei noch nie im Ausland gewesen", "sie noch nie im Ausland gewesen sei"), r: ["kj.past"] },
           { q: "«Wir bekamen einen Brief von der Gemeinde.»", a: cxKjBoth("Die Nachbarin erzählte,", "sie hätten einen Brief von der Gemeinde bekommen", "sie einen Brief von der Gemeinde bekommen hätten"), r: ["kj.swap"] },
           { q: "«Der alte Bäcker schloss seinen Laden.»", a: cxKjBoth("Die Nachbarin erzählte,", "der alte Bäcker habe seinen Laden geschlossen", "der alte Bäcker seinen Laden geschlossen habe"), r: ["kj.past"] },
-          { q: "«Früher gab es hier einen Bahnhof.»", a: [...cxKjBoth("Die Nachbarin erzählte,", "früher habe es hier einen Bahnhof gegeben", "es früher hier einen Bahnhof gegeben habe"), "Die Nachbarin erzählte, es habe früher hier einen Bahnhof gegeben."], r: ["kj.past"] },
+          { q: "«Früher gab es hier einen Bahnhof.»", a: [...cxKjBoth("Die Nachbarin erzählte,", "früher habe es hier einen Bahnhof gegeben", "es früher hier einen Bahnhof gegeben habe"), "Die Nachbarin erzählte, es habe früher hier einen Bahnhof gegeben.", "Die Nachbarin erzählte, es habe hier früher einen Bahnhof gegeben.", "Die Nachbarin erzählte, dass es hier früher einen Bahnhof gegeben habe."], r: ["kj.past"] },
           { q: "«Mein Mann vergaß den Schlüssel.»", a: cxKjBoth("Die Nachbarin erzählte,", "ihr Mann habe den Schlüssel vergessen", "ihr Mann den Schlüssel vergessen habe"), r: ["kj.past"] },
           { q: "«Die Kinder spielten den ganzen Tag draußen.»", a: cxKjBoth("Die Nachbarin erzählte,", "die Kinder hätten den ganzen Tag draußen gespielt", "die Kinder den ganzen Tag draußen gespielt hätten"), r: ["kj.swap"] },
           { q: "«Ich hatte das Paket schon abgeholt.»", a: cxKjBoth("Die Nachbarin erzählte,", "sie habe das Paket schon abgeholt", "sie das Paket schon abgeholt habe"), r: ["kj.past"] },
@@ -228,7 +228,7 @@ cxPack({
           { q: "«Ich komme an Weihnachten nach Hause.»", a: cxKjBoth("Sie schreibt,", "sie komme an Weihnachten nach Hause", "sie an Weihnachten nach Hause komme"), r: ["kj.form"] },
         ] },
         // ── ours: later — werde + infinitive ──
-        { id: "dkj.fut", t: "transform", title: "Later: werde + infinitive", how: "Report it: the future becomes werde + the infinitive. With wir and sie (they), werden looks like the present: würden.", items: [
+        { id: "dkj.fut", t: "transform", title: "Later: werde + infinitive", how: "Report it: the future becomes werde + the infinitive. With ich, wir and sie (they) it looks like the present: würde(n).", items: [
           { q: "Der Wetterdienst meldet: «Morgen wird es schneien.»", a: [...cxKjBoth("Der Wetterdienst meldet,", "morgen werde es schneien", "es morgen schneien werde"), "Der Wetterdienst meldet, es werde morgen schneien."], r: ["kj.fut"] },
           { q: "Die SBB teilt mit: «Der Zug wird später abfahren.»", a: cxKjBoth("Die SBB teilt mit,", "der Zug werde später abfahren", "der Zug später abfahren werde"), r: ["kj.fut"] },
           { q: "Mein Bruder schreibt: «Ich werde im Juli heiraten.»", a: cxKjBoth("Mein Bruder schreibt,", "er werde im Juli heiraten", "er im Juli heiraten werde"), r: ["kj.fut"] },
@@ -240,7 +240,7 @@ cxPack({
           { q: "Meine Eltern sagen: «Wir werden euch im Mai besuchen.»", a: cxKjBoth("Meine Eltern sagen,", "sie würden uns im Mai besuchen", "sie uns im Mai besuchen würden"), r: ["kj.fut"] },
         ] },
         // ── ours: questions and commands, reported ──
-        { id: "dkj.ask", t: "transform", title: "Questions and commands", how: "Report it: a yes/no question with ob, a W-question with its W-word, a command with solle — the verb at the end. Sie → ich.", items: [
+        { id: "dkj.ask", t: "transform", title: "Questions and commands", how: "Report it: a yes/no question with ob, a W-question with its W-word (the verb at the end), a command with solle. Sie / du → ich · ihr → wir.", items: [
           { q: "Die Vermieterin fragte: «Haben Sie ein Haustier?»", a: ["Die Vermieterin fragte, ob ich ein Haustier hätte.", "Die Vermieterin fragte, ob ich ein Haustier habe."], r: ["kj.ask"] },
           { q: "Der Kontrolleur fragte: «Wo sind Sie eingestiegen?»", a: ["Der Kontrolleur fragte, wo ich eingestiegen sei."], r: ["kj.ask"] },
           { q: "Die Lehrerin fragte: «Hat Tim seine Hausaufgaben gemacht?»", a: ["Die Lehrerin fragte, ob Tim seine Hausaufgaben gemacht habe."], r: ["kj.ask"] },
@@ -253,7 +253,7 @@ cxPack({
           { q: "Der Trainer sagte: «Trinkt genug Wasser!»", a: [...cxKjBoth("Der Trainer sagte,", "wir sollten genug Wasser trinken", "wir genug Wasser trinken sollten"), ...cxKjBoth("Der Trainer sagte,", "wir sollen genug Wasser trinken", "wir genug Wasser trinken sollen")], r: ["kj.ask"] },
         ] },
         // ── Übung 26•13: the set phrases ──
-        { id: "d26.13", ex: "26.13", t: "type", title: "Set phrases", how: "These old wishes are still everyday German. Write the missing word — the Konjunktiv I.", items: [
+        { id: "d26.13", ex: "26.13", t: "type", title: "Set phrases", how: "These old set phrases are still used today. Write the missing word — the Konjunktiv I.", items: [
           { q: "Gott ___ Dank, der Zug fährt wieder! (sein)", a: ["sei"], r: ["kj.fixed"] },
           { q: "Es ___ die Freiheit! (leben)", a: ["lebe"], r: ["kj.fixed"] },
           { q: "Hoch ___ das Brautpaar! (leben)", a: ["lebe"], r: ["kj.fixed"] },
@@ -268,7 +268,7 @@ cxPack({
         // ── Production: Übung 27•10 — your own reports ──
         { id: "d27.10", ex: "27.10", t: "compose", end: true, title: "Build the report", how: "Build the reported sentence: the opening, then the Konjunktiv I. (before) — it happened · (later) — it will happen.", items: [
           { w: ["die Zeitung schrieb", "der Präsident", "zurücktreten", "(later)"], a: cxKjBoth("Die Zeitung schrieb,", "der Präsident werde zurücktreten", "der Präsident zurücktreten werde"), r: ["kj.fut"] },
-          { w: ["Professor Weber fragte", "ob", "jemand", "die Aufgabe", "lösen können"], a: ["Professor Weber fragte, ob jemand die Aufgabe lösen könne."], r: ["kj.ask"] },
+          { w: ["Professor Weber fragte", "ob", "jemand", "die Aufgabe", "lösen können"], a: ["Professor Weber fragte, ob jemand die Aufgabe lösen könne.", "Professor Weber fragte, ob jemand die Aufgabe lösen könnte."], r: ["kj.ask"] },
           { w: ["sie teilte mit", "das Museum", "zerstört werden", "(before)"], a: cxKjBoth("Sie teilte mit,", "das Museum sei zerstört worden", "das Museum zerstört worden sei"), r: ["kj.past"] },
           { w: ["Frau Huber erzählte", "ihr Sohn", "zu viel Geld", "ausgeben"], a: cxKjBoth("Frau Huber erzählte,", "ihr Sohn gebe zu viel Geld aus", "ihr Sohn zu viel Geld ausgebe"), r: ["kj.form"] },
           { w: ["der Sprecher sagte", "der Zug", "Verspätung", "haben"], a: cxKjBoth("Der Sprecher sagte,", "der Zug habe Verspätung", "der Zug Verspätung habe"), r: ["kj.form"] },
@@ -279,21 +279,21 @@ cxPack({
         ] },
         { id: "dp.kj", t: "translate", end: true, title: "Write it like the news", how: "Translate into written German — reported speech in the Konjunktiv I.", items: [
           { q: "The minister said he was satisfied.", a: cxKjBoth("Der Minister sagte,", "er sei zufrieden", "er zufrieden sei"), r: ["kj.sein"] },
-          { q: "The police report that nobody was injured.", a: [...cxKjBoth("Die Polizei meldet,", "niemand sei verletzt worden", "niemand verletzt worden sei"), ...cxKjBoth("Die Polizei berichtet,", "niemand sei verletzt worden", "niemand verletzt worden sei")], r: ["kj.past"] },
+          { q: "The police report that nobody was injured.", a: [...cxKjBoth("Die Polizei meldet,", "niemand sei verletzt worden", "niemand verletzt worden sei"), ...cxKjBoth("Die Polizei berichtet,", "niemand sei verletzt worden", "niemand verletzt worden sei"), ...cxKjBoth("Die Polizei teilt mit,", "niemand sei verletzt worden", "niemand verletzt worden sei")], r: ["kj.past"] },
           { q: "She asked whether the shop was open on Sunday.", a: ["Sie fragte, ob der Laden am Sonntag offen sei.", "Sie fragte, ob das Geschäft am Sonntag offen sei.", "Sie fragte, ob der Laden am Sonntag geöffnet sei.", "Sie fragte, ob das Geschäft am Sonntag geöffnet sei."], r: ["kj.ask"] },
           { q: "He wrote that he would come in June.", a: [...cxKjBoth("Er schrieb,", "er werde im Juni kommen", "er im Juni kommen werde"), ...cxKjBoth("Er schrieb,", "er komme im Juni", "er im Juni komme")], r: ["kj.fut"] },
-          { q: "The doctor said I should rest.", a: [...cxKjBoth("Der Arzt sagte,", "ich solle mich ausruhen", "ich mich ausruhen solle"), ...cxKjBoth("Die Ärztin sagte,", "ich solle mich ausruhen", "ich mich ausruhen solle"), ...cxKjBoth("Der Arzt sagte,", "ich solle mich erholen", "ich mich erholen solle")], r: ["kj.ask"] },
+          { q: "The doctor said I should rest.", a: [...cxKjBoth("Der Arzt sagte,", "ich solle mich ausruhen", "ich mich ausruhen solle"), ...cxKjBoth("Die Ärztin sagte,", "ich solle mich ausruhen", "ich mich ausruhen solle"), ...cxKjBoth("Der Arzt sagte,", "ich solle mich erholen", "ich mich erholen solle"), ...cxKjBoth("Die Ärztin sagte,", "ich solle mich erholen", "ich mich erholen solle")], r: ["kj.ask"] },
           { q: "My neighbours say they have no time.", a: cxKjBoth("Meine Nachbarn sagen,", "sie hätten keine Zeit", "sie keine Zeit hätten"), r: ["kj.swap"] },
           { q: "The newspaper writes that the bridge was built in 1890.", a: [...cxKjBoth("Die Zeitung schreibt,", "die Brücke sei 1890 gebaut worden", "die Brücke 1890 gebaut worden sei"), ...cxKjBoth("Die Zeitung schreibt,", "die Brücke sei im Jahr 1890 gebaut worden", "die Brücke im Jahr 1890 gebaut worden sei")], r: ["kj.past"] },
-          { q: "Thank God it's Friday!", a: ["Gott sei Dank ist Freitag!", "Gott sei Dank ist es Freitag!", "Gott sei Dank, es ist Freitag!"], r: ["kj.fixed"] },
+          { q: "Thank God it's Friday!", a: ["Gott sei Dank ist Freitag!", "Gott sei Dank ist es Freitag!", "Gott sei Dank, es ist Freitag!", "Gott sei Dank ist heute Freitag!"], r: ["kj.fixed"] },
           { q: "We'll go hiking, unless it rains.", a: ["Wir gehen wandern, es sei denn, es regnet.", "Wir gehen wandern, es sei denn es regnet.", "Wir werden wandern gehen, es sei denn, es regnet."], r: ["kj.fixed"] },
         ] },
         { id: "dw.kj", t: "write", end: true, title: "Write your own", how: "Write in your own words — in writing, reported speech takes the Konjunktiv I. Saved for Claude to correct.", items: [
           { q: "Report a piece of news you read this week, as a newspaper would. (Die Zeitung schreibt, …)", model: ["Die Zeitung schreibt, die Gemeinde baue ein neues Schulhaus. Es werde im Herbst eröffnet. Der Gemeindepräsident sagte, das Projekt sei teuer, aber wichtig."], r: ["kj.use"] },
-          { q: "Your doctor gave you three pieces of advice. Report them. (Sie sagte, ich solle …)", model: ["Die Ärztin sagte, ich solle mehr Wasser trinken. Ich solle auch jeden Tag spazieren gehen. Und sie meinte, ich würde zu viel arbeiten."], r: ["kj.ask"] },
+          { q: "Your doctor gave you three pieces of advice. Report them. (Sie sagte, ich solle …)", model: ["Die Ärztin sagte, ich solle mehr Wasser trinken. Ich solle auch jeden Tag spazieren gehen. Außerdem solle ich weniger arbeiten."], r: ["kj.ask"] },
           { q: "A friend told you about a holiday. Write what they said. (Er erzählte, er sei … / habe …)", model: ["Marco erzählte, er sei zwei Wochen in Portugal gewesen. Das Wetter sei fantastisch gewesen, und er habe jeden Tag frischen Fisch gegessen."], r: ["kj.past"] },
-          { q: "Your landlord sent a letter about repairs. Report what it says.", model: ["Der Vermieter schreibt, die Fenster würden im Mai ersetzt. Die Arbeiten dauerten etwa zwei Tage. Wir sollten an diesen Tagen zu Hause sein."], r: ["kj.swap"] },
-          { q: "Write the minutes of a short meeting: who said what.", model: ["Frau Huber sagte, das Budget sei zu klein. Herr Kunz meinte, man könne im nächsten Jahr mehr investieren. Alle waren einverstanden, dass man im März wieder darüber spreche."], r: ["kj.use"] },
+          { q: "Your landlord sent a letter about repairs. Report what it says.", model: ["Der Vermieter schreibt, die Fenster würden im Mai ersetzt. Die Arbeiten würden etwa zwei Tage dauern. Wir sollten an diesen Tagen zu Hause sein."], r: ["kj.swap"] },
+          { q: "Write the minutes of a short meeting: who said what.", model: ["Frau Huber sagte, das Budget sei zu klein. Herr Kunz meinte, man könne im nächsten Jahr mehr investieren. Alle waren einverstanden, im März wieder darüber zu sprechen."], r: ["kj.use"] },
           { q: "On your first day, a colleague asked you three questions. Report them. (Sie fragte, ob … / wo …)", model: ["Meine neue Kollegin wollte wissen, ob ich schon lange in der Schweiz sei und wo meine Familie wohne. Dann fragte sie, ob ich am Freitag Zeit für einen Apéro hätte."], r: ["kj.ask"] },
           { q: "Use the set phrases: Gott sei Dank, es sei denn, wie dem auch sei — one sentence each.", model: ["Gott sei Dank ist der Winter bald vorbei. Am Sonntag gehen wir an den See, es sei denn, es regnet. Wie dem auch sei, ich freue mich auf den Frühling."], r: ["kj.fixed"] },
           { q: "Sum up what a politician promised. (Er versprach, er werde …)", model: ["Die Politikerin versprach, sie werde die Steuern senken. Außerdem werde sie mehr Geld für die Schulen ausgeben. Ob das stimmt, werden wir sehen."], r: ["kj.fut"] },
@@ -311,5 +311,5 @@ cxCover({
 
 // The writing prompt that opens with the lesson.
 cxJournal([
-  { id: "w.news", th: "opinion", lv: "B1", de: "Die Nachricht der Woche", t: "Retell a piece of news from this week as a newspaper would: what happened, who said what about it, and what will happen next — reported speech in the Konjunktiv I.", help: ["Die Zeitung schreibt, …", "Laut … sei …", "Der Sprecher sagte, man werde …", "Es heißt, …"], sec: "s4.k1" },
+  { id: "w.news", th: "opinion", lv: "B1", de: "Die Nachricht der Woche", t: "Retell a piece of news from this week as a newspaper would: what happened, who said what about it, and what will happen next — reported speech in the Konjunktiv I.", help: ["Die Zeitung schreibt, …", "Die Polizei teilt mit, …", "Der Sprecher sagte, man werde …", "Es heißt, …"], sec: "s4.k1" },
 ]);

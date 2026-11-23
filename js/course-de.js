@@ -1934,7 +1934,7 @@ function cxMockStore() {
   return C.mock;
 }
 // Enough to make a mock of: three lessons done (their rules, their drills).
-function cxMockReady() { return cxOn() && cxMixSections().length >= CX_MOCK.minSecs; }
+function cxMockReady() { return cxOn() && cxMixSections().filter(s => s.prio !== "C").length >= CX_MOCK.minSecs; }
 // The month's mock as it stands today — nothing saved (cxMockTouch keeps
 // the day it opened). st: off (not enough learned yet) · wait (opens on
 // `next`) · open · soon (due today or tomorrow) · late (past `by`, the month
@@ -1946,7 +1946,7 @@ function cxMockState(today = studyToday()) {
   const taken = Object.values(hist).map(h => h && h.d).filter(d => typeof d === "string").sort(), last = taken[taken.length - 1] || "";
   const after = d => { const first = cxMonthAfter(d.slice(0, 7)) + "-01", gap = addDays(d, CX_MOCK.gap); return gap > first ? gap : first; };
   if (hist[m]) return { st: "done", m, res: hist[m], next: after(hist[m].d) };
-  if (!cxMockReady()) return { st: "off", m, lessons: cxMixSections().length };
+  if (!cxMockReady()) return { st: "off", m, lessons: cxMixSections().filter(s => s.prio !== "C").length };
   let o = typeof open[m] === "string" ? open[m] : "";
   if (!o) {
     const before = taken.length > 0 || Object.keys(open).length > 0;
@@ -1974,10 +1974,11 @@ function cxMockMissed(today = studyToday()) {
   return Object.keys(M.open || {}).filter(k => k < m && !(M.hist || {})[k]).sort();
 }
 // What a mock can ask: every item of the lessons done (and of the verb
-// lessons done whose book exercises have their drills), but your own writing.
+// lessons done whose book exercises have their drills), but your own writing
+// — and not the post-B1 bonus: the fide asks A1 to B1.
 function cxMockPool() {
   const out = [];
-  cxMixSections().forEach(s => s.sets.map(cxSet).filter(set => set && !set.gen).forEach(set => (set.items || []).forEach((item, i) => {
+  cxMixSections().filter(s => s.prio !== "C").forEach(s => s.sets.map(cxSet).filter(set => set && !set.gen).forEach(set => (set.items || []).forEach((item, i) => {
     const k = cxItemKind(set, item);
     if (k === "write" || k === "open") return;
     out.push({ set: set.id, i, item, sec: s.id, stage: s.stage, rule: (item.r || [])[0] || "", k });
@@ -1998,7 +1999,8 @@ function cxMockPlan(n = CX_MOCK.n) {
   // (each stage's share: its rules among all the rules a mock can ask)
   const share = {}; stages.forEach(st => { share[st] = new Set(pool.filter(e => e.stage === st).map(e => e.rule)).size; });
   const all = stages.reduce((a, st) => a + share[st], 0) || 1;
-  const quota = {}; stages.forEach(st => { quota[st] = Math.max(1, Math.round(n * share[st] / all)); });
+  // (the conversation units — the oral test's scenes — never fewer than 3 once they're done)
+  const quota = {}; stages.forEach(st => { quota[st] = Math.max(st === 3 ? 3 : 1, Math.round(n * share[st] / all)); });
   const have = st => out.filter(e => e.stage === st).length;
   // 1. production, round and round the stages
   for (let pass = 0; pass < CX_MOCK.prod && out.filter(e => CX_PRODUCTION.has(e.k)).length < Math.min(CX_MOCK.prod, n); pass++)
@@ -2007,8 +2009,8 @@ function cxMockPlan(n = CX_MOCK.n) {
       const e = pool.find(x => x.stage === st && CX_PRODUCTION.has(x.k) && free(x));
       if (e) take(e);
     }
-  // 2. each stage up to its share, typed where it can
-  stages.forEach(st => {
+  // 2. each stage up to its share, typed where it can (the conversation units first: their 3 are kept)
+  [...stages].sort((a, b) => (b === 3) - (a === 3) || a - b).forEach(st => {
     // (production has had its share: here the typed ones first — type, transform, order — then any)
     const mine = pool.filter(x => x.stage === st), typed = mine.filter(x => !CX_PRODUCTION.has(x.k) && (CX_LADDER[x.k] || 0) >= 1), other = mine.filter(x => !CX_PRODUCTION.has(x.k));
     for (const list of [typed, other, mine]) for (const e of list) { if (have(st) >= quota[st] || out.length >= n) break; if (free(e)) take(e); }
@@ -2023,7 +2025,10 @@ function cxMockPlan(n = CX_MOCK.n) {
 // practice mock, nothing kept. entries: the runner's (each { stage, k, ok,
 // first, res }). → the result.
 function cxMockResult(entries, opts = {}) {
-  const today = studyToday(), st = cxMockState(today);
+  const today = studyToday();
+  // (the month it was started in: a mock begun on the 31st and finished after midnight is still that month's)
+  let st = cxMockState(today);
+  if (opts.m && opts.m !== st.m) { const M0 = (S.course && S.course.mock) || {}; st = !(M0.hist || {})[opts.m] && (M0.open || {})[opts.m] ? { st: "late", m: opts.m, open: M0.open[opts.m], by: opts.by || today } : { st: "done", m: opts.m }; }
   const first = (entries || []).filter(e => e.first);
   const right = first.filter(e => e.ok).length;
   const by = {};
@@ -2033,8 +2038,9 @@ function cxMockResult(entries, opts = {}) {
   const rec = { d: today, r: right, n: first.length, by: st.by || today, st: by, pr: [prod.filter(e => e.ok).length, prod.length], miss };
   if (st.st === "late") rec.late = 1;
   if (opts.min) rec.min = opts.min;
-  if (typeof logEvent === "function") logEvent("cx_mock", { right, n: first.length, practice: !!opts.practice, late: !!rec.late });
-  if (opts.practice || !["open", "soon", "late"].includes(st.st)) return { ...rec, practice: true };
+  const practice = !!opts.practice || !["open", "soon", "late"].includes(st.st);
+  if (typeof logEvent === "function") logEvent("cx_mock", { right, n: first.length, practice, late: !!rec.late, m: st.m || "" });
+  if (practice) return { ...rec, practice: true };
   const M = cxMockStore();
   if (!M.hist[st.m]) { M.hist[st.m] = rec; if (!M.open[st.m]) M.open[st.m] = st.open || today; }
   saveState();

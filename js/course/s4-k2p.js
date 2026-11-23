@@ -25,7 +25,7 @@ cxPack({
         // ── Übung 26•20: would have ──
         { id: "d26.20", ex: "26.20", t: "transform", title: "Would have: hätte or wäre", how: "Say it in the unreal past: hätte or wäre + the Partizip II. (Das ist schön. → Das wäre schön gewesen.)", items: [
           { q: "Das ist eine tolle Überraschung.", a: ["Das wäre eine tolle Überraschung gewesen."], r: ["gs:k2p1.r1"], vf: [["sein", "k2p", "er"]] },
-          { q: "Er kommt gern mit.", a: ["Er wäre gern mitgekommen."], r: ["gs:k2p1.r1"], vf: [["mitkommen", "k2p", "er"]] },
+          { q: "Er kommt gern mit.", a: ["Er wäre gern mitgekommen.", "Er wäre gerne mitgekommen."], r: ["gs:k2p1.r1"], vf: [["mitkommen", "k2p", "er"]] },
           { q: "Wir nehmen den früheren Zug.", a: ["Wir hätten den früheren Zug genommen."], r: ["gs:k2p1.r1"], vf: [["nehmen", "k2p", "wir"]] },
           { q: "Ich weiß das nicht.", a: ["Ich hätte das nicht gewusst."], r: ["gs:k2p1.r1"], vf: [["wissen", "k2p", "ich"]] },
           { q: "Die Kinder haben viel Spaß.", a: ["Die Kinder hätten viel Spaß gehabt."], r: ["gs:k2p1.r1"], vf: [["haben", "k2p", "sie"]] },
@@ -38,18 +38,18 @@ cxPack({
           { q: "Er geht zu Fuß nach Hause.", a: ["Er wäre zu Fuß nach Hause gegangen."], r: ["gs:k2p1.r1"], vf: [["gehen", "k2p", "er"]] },
         ].map(it => ({ ...it, diag: CX_K2P_ORDER })) },
         // ── Übung 26•21: should have, could have ──
-        { id: "d26.21", ex: "26.21", t: "transform", title: "Should have, could have", how: "Say it in the past: hätte + the infinitive + the modal's infinitive, last. (Ich müsste lernen. → Ich hätte lernen müssen.)", items: [
+        { id: "d26.21", ex: "26.21", t: "transform", title: "Should have, could have", how: "Say it in the unreal past: hätte + the infinitive + the modal's infinitive, last. (Ich müsste lernen. → Ich hätte lernen müssen.)", items: [
           { q: "Ich müsste mehr Wasser trinken.", a: ["Ich hätte mehr Wasser trinken müssen."], r: ["gs:k2p2.r1"] },
           { q: "Du solltest früher losfahren.", a: ["Du hättest früher losfahren sollen."], r: ["gs:k2p2.r1"] },
           { q: "Wir könnten im Garten essen.", a: ["Wir hätten im Garten essen können."], r: ["gs:k2p2.r2"] },
           { q: "Sie wollte den ganzen Film sehen.", a: ["Sie hätte den ganzen Film sehen wollen."], r: ["gs:k2p2.r2"] },
-          { q: "Er dürfte länger bleiben.", a: ["Er hätte länger bleiben dürfen."], r: ["gs:k2p2.r2"] },
+          { q: "Er dürfte gern länger bleiben.", a: ["Er hätte gern länger bleiben dürfen.", "Er hätte gerne länger bleiben dürfen."], r: ["gs:k2p2.r2"] },
           { q: "Ihr müsstet nicht so früh aufstehen.", a: ["Ihr hättet nicht so früh aufstehen müssen."], r: ["gs:k2p2.r2"] },
           { q: "Die Ferien sollten länger sein.", a: ["Die Ferien hätten länger sein sollen."], r: ["gs:k2p2.r1"] },
           { q: "Ich könnte dir helfen.", a: ["Ich hätte dir helfen können."], r: ["gs:k2p2.r2"] },
           { q: "Man sollte vorher reservieren.", a: ["Man hätte vorher reservieren sollen."], r: ["gs:k2p2.r1"] },
           { q: "Wolltest du nicht mitkommen?", a: ["Hättest du nicht mitkommen wollen?"], r: ["gs:k2p2.r2"] },
-        ].map(it => ({ ...it, diag: [{ t: "order", rule: "gs:k2p2.r1", msg: "hätte is the verb second; the two infinitives go to the very end, the modal last: Ich **hätte** mehr **lernen sollen**." }] })) },
+        ].map(it => ({ ...it, diag: [{ t: "order", rule: "gs:k2p2.r1", msg: "hätte takes the verb's place; the two infinitives go to the very end, the modal last: Ich **hätte** mehr **lernen sollen**." }] })) },
         // ── Übung 26•28: if I'd had more time … ──
         { id: "d26.28", ex: "26.28", t: "transform", title: "If I'd had more time …", how: "Finish «Wenn ich mehr Zeit gehabt hätte, …» with the cue: hätte or wäre comes first, the Partizip II last.", items: [
           { q: "mehr Sport machen", a: ["Wenn ich mehr Zeit gehabt hätte, hätte ich mehr Sport gemacht."], r: ["gs:k2p1.r2"], vf: [["machen", "k2p", "ich"]] },
@@ -72,7 +72,7 @@ cxPack({
           { q: "Ohne dich ___ ich das nie geschafft.", a: ["hätte"], r: ["gs:k2p1.r1"] },
           { q: "___ ihr gern noch geblieben?", a: ["Wärt", "Wäret"], r: ["gs:k2p1.r1"] },
           { q: "Das ___ wirklich nicht nötig gewesen.", a: ["wäre"], r: ["gs:k2p1.r1"] },
-          { q: "Sie ___ fast ihren Pass vergessen.", a: ["hätte"], r: ["gs:k2p1.r3"] },
+          { q: "Mia ___ fast ihren Pass vergessen.", a: ["hätte"], r: ["gs:k2p1.r3"] },
           { q: "Wenn es geregnet ___, wären wir zu Hause geblieben.", a: ["hätte"], r: ["gs:k2p1.r2"] },
           { q: "Ich ___ dir gern geholfen, aber ich war krank.", a: ["hätte"], r: ["gs:k2p1.r1"] },
           { q: "Wir ___ beinahe den letzten Bus verpasst.", a: ["hätten"], r: ["gs:k2p1.r3"] },
@@ -92,7 +92,7 @@ cxPack({
         ] },
         // ── ours: in a side clause ──
         { id: "dk2p.sub", t: "transform", title: "…, weil ich hätte arbeiten müssen", how: "Join the two sentences with the word in brackets. With two infinitives, hätte comes before them: …, weil ich hätte arbeiten müssen.", items: [
-          { q: "Ich bin nicht gekommen. Ich hätte arbeiten müssen. (weil)", a: ["Ich bin nicht gekommen, weil ich hätte arbeiten müssen."], r: ["gs:k2p2.r3"] },
+          { q: "Ich habe die Stelle nicht angenommen. Ich hätte am Wochenende arbeiten müssen. (weil)", a: ["Ich habe die Stelle nicht angenommen, weil ich am Wochenende hätte arbeiten müssen."], r: ["gs:k2p2.r3"] },
           { q: "Ich weiß. Ich hätte früher fragen sollen. (dass)", a: ["Ich weiß, dass ich früher hätte fragen sollen."], r: ["gs:k2p2.r3"] },
           { q: "Sie ärgert sich. Sie hätte das Angebot annehmen können. (weil)", a: ["Sie ärgert sich, weil sie das Angebot hätte annehmen können."], r: ["gs:k2p2.r3"] },
           { q: "Er gibt zu. Er hätte mehr trainieren müssen. (dass)", a: ["Er gibt zu, dass er mehr hätte trainieren müssen."], r: ["gs:k2p2.r3"] },
@@ -104,10 +104,10 @@ cxPack({
         ].map(it => ({ ...it, diag: [{ t: "order", rule: "gs:k2p2.r3", msg: "In a side clause with two infinitives, **hätte** comes before them: …, weil ich **hätte arbeiten müssen**." }] })) },
         // ── Production ──
         { id: "dp.k2p", t: "translate", end: true, title: "Say it in German", how: "Translate with hätte or wäre — and two infinitives with a modal.", items: [
-          { q: "I should have called you.", a: ["Ich hätte dich anrufen sollen.", "Ich hätte Sie anrufen sollen."], r: ["gs:k2p2.r1"] },
-          { q: "We would have come, but the train was cancelled.", a: ["Wir wären gekommen, aber der Zug ist ausgefallen.", "Wir wären gekommen, aber der Zug fiel aus."], r: ["gs:k2p1.r1"] },
-          { q: "If I had known that, I would have helped you.", a: ["Wenn ich das gewusst hätte, hätte ich dir geholfen.", "Hätte ich das gewusst, hätte ich dir geholfen.", "Wenn ich das gewusst hätte, hätte ich Ihnen geholfen."], r: ["gs:k2p1.r2"] },
-          { q: "You could have told me!", a: ["Du hättest es mir sagen können!", "Das hättest du mir sagen können!", "Du hättest mir das sagen können!"], r: ["gs:k2p2.r2"] },
+          { q: "I should have called you.", a: ["Ich hätte dich anrufen sollen.", "Ich hätte Sie anrufen sollen.", "Ich hätte euch anrufen sollen."], r: ["gs:k2p2.r1"] },
+          { q: "We would have come, but the train was cancelled.", a: ["Wir wären gekommen, aber der Zug ist ausgefallen.", "Wir wären gekommen, aber der Zug fiel aus.", "Wir wären gekommen, aber der Zug wurde gestrichen."], r: ["gs:k2p1.r1"] },
+          { q: "If I had known that, I would have helped you.", a: ["Wenn ich das gewusst hätte, hätte ich dir geholfen.", "Hätte ich das gewusst, hätte ich dir geholfen.", "Wenn ich das gewusst hätte, hätte ich Ihnen geholfen.", "Hätte ich das gewusst, hätte ich Ihnen geholfen.", "Wenn ich das gewusst hätte, hätte ich euch geholfen.", "Hätte ich das gewusst, hätte ich euch geholfen."], r: ["gs:k2p1.r2"] },
+          { q: "You could have told me!", a: ["Du hättest es mir sagen können!", "Das hättest du mir sagen können!", "Du hättest mir das sagen können!", "Sie hätten es mir sagen können!"], r: ["gs:k2p2.r2"] },
           { q: "She almost missed the bus.", a: ["Sie hätte fast den Bus verpasst.", "Sie hätte den Bus fast verpasst.", "Sie hätte beinahe den Bus verpasst.", "Sie hätte den Bus beinahe verpasst."], r: ["gs:k2p1.r3"] },
           { q: "That would have been nice.", a: ["Das wäre schön gewesen.", "Das wäre nett gewesen."], r: ["gs:k2p1.r1"] },
           { q: "They would have liked to stay longer.", a: ["Sie wären gern länger geblieben.", "Sie wären gerne länger geblieben."], r: ["gs:k2p1.r1"] },
@@ -118,7 +118,7 @@ cxPack({
         { id: "dw.k2p", t: "write", end: true, title: "Write your own", how: "Write in your own words. Saved for Claude to correct.", items: [
           { q: "Something you regret: what should you have done differently? (Ich hätte … sollen.)", model: ["Ich hätte früher mit Deutsch anfangen sollen. Und ich hätte am Anfang mehr mit meinen Nachbarn sprechen sollen."], r: ["gs:k2p2.r1"] },
           { q: "A day that went wrong: what would have happened if …? (Wenn …, hätte …)", model: ["Wenn ich den Wecker gehört hätte, hätte ich den Zug nicht verpasst. Dann wäre ich pünktlich bei der Arbeit gewesen."], r: ["gs:k2p1.r2"] },
-          { q: "You almost missed something important. Tell it. (Ich hätte fast …)", model: ["Letzte Woche hätte ich fast meinen Termin beim Zahnarzt vergessen. Zum Glück hat die Praxis am Morgen angerufen."], r: ["gs:k2p1.r3"] },
+          { q: "You almost missed something important. Tell the story. (Ich hätte fast …)", model: ["Letzte Woche hätte ich fast meinen Termin beim Zahnarzt vergessen. Zum Glück hat die Praxis am Morgen angerufen."], r: ["gs:k2p1.r3"] },
           { q: "Give a friend gentle feedback on a party they organised. (Du hättest … können.)", model: ["Die Party war super! Du hättest vielleicht etwas mehr Essen kaufen können, und die Musik hätte etwas leiser sein dürfen."], r: ["gs:k2p2.r2"] },
           { q: "With a second chance, what would you have studied or learned?", model: ["Ich hätte gern Architektur studiert. Ich wäre auch gern ein Jahr ins Ausland gegangen."], r: ["gs:k2p1.r1"] },
           { q: "Your first weeks in Switzerland: what would you have done differently?", model: ["Ich hätte sofort ein Halbtax gekauft. Und ich hätte mich früher bei der Gemeinde angemeldet."], r: ["gs:k2p1.r1"] },

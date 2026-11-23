@@ -673,3 +673,4 @@
   .ex-hero-r { flex-direction:row; flex-wrap:wrap; align-items:center; justify-content:flex-start; text-align:left; gap:6px; }
   .ex-hero-r > b { width:100%; }
 }
+.ex-go, .ex-practice { display:block; max-width:440px; margin-left:auto; margin-right:auto; }

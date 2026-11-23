@@ -25,10 +25,10 @@ cxPack({
           why: "German has short ways to say *can be done* or *must be done* without the passive: **sein + zu + infinitive** (Das ist leicht **zu lösen**) and the adjectives in **-bar** (lös**bar**). Forms, letters and signs are full of them.",
           rid: ["pvx.zu", "pvx.must", "pvx.bar", "pvx.three"],
           rules: [
-            "**sein + zu + the infinitive** says that something **can be done**: Das Problem **ist** leicht **zu lösen**. (= Man kann es leicht lösen.) With nicht or kaum it can't: Die Schrift **ist** kaum **zu lesen**.",
-            "In rules, letters and forms the same pattern says that something **must be done**: Die Rechnung **ist** bis Ende Monat **zu bezahlen**. · Der Ausweis **ist** an der Kasse **vorzuzeigen**. With a separable verb, zu goes inside: vor**zu**zeigen.",
+            "**sein + zu + the infinitive** says that something **can be done**: Das Problem **ist** leicht **zu lösen**. (= Man kann es leicht lösen.) With nicht it can't, with kaum it hardly can: Die Schrift **ist** kaum **zu lesen**.",
+            "In rules, letters and forms, **sein + zu + the infinitive** says that something **must be done**: Die Rechnung **ist** bis Ende Monat **zu bezahlen**. With a separable verb, zu goes inside: Der Ausweis ist **vorzuzeigen**.",
             "An adjective in **-bar** says *can be done* in one word: lösen → **lösbar**, trinken → **trinkbar**, machen → **machbar**. Its opposite takes **un-**: **unlösbar**, **unbezahlbar**.",
-            "So *it can be done* has three forms: Das **ist** leicht **zu reparieren** · Das **lässt sich** leicht **reparieren** · Das **kann** leicht **repariert werden**. They mean the same; the first two are shorter.",
+            "*It can be done* has three forms: Das **ist** leicht **zu reparieren** · Das **lässt sich** leicht **reparieren** · Das **kann** leicht **repariert werden**. They mean the same; the first two are shorter.",
           ],
           table: { head: ["can be done", "-bar"], rows: [
             ["ist zu lösen", "**lösbar**"],
@@ -44,14 +44,14 @@ cxPack({
             ["Ist das Wasser hier **trinkbar**?", "Is the water here drinkable?"],
             ["Die Wohnungen in Zürich sind fast **unbezahlbar**.", "The flats in Zurich are almost unaffordable."],
           ],
-          trap: "This zu + infinitive goes with **sein**, never with werden: Das **ist** zu machen — not ~~Das wird zu machen~~. And the thing is the subject: **Die Tür** ist nicht zu öffnen — the person who opens it isn't there at all.",
+          trap: "This zu + infinitive goes with **sein**, never with werden: Das **ist** zu machen — not ~~Das wird zu machen~~. And the thing is the subject: **Die Tür** ist nicht zu öffnen — the person who opens it isn't mentioned at all.",
           quiz: [
             { at: "r1", k: "pick", q: "The road is easy to find: Die Straße ist leicht ___.", o: ["zu finden", "finden", "gefunden"], a: 0, why: "sein + **zu** + the infinitive: it can be found." },
             { at: "r1", k: "type", cx: true, q: "Sein Akzent ist schwer ___ verstehen.", a: ["zu"], r: ["pvx.zu"], why: "sein + **zu** + the infinitive." },
             { at: "r2", k: "pick", q: "On a form: Das Formular ___ bis Montag zurückzuschicken.", o: ["ist", "wird", "hat"], a: 0, why: "It must be done: **ist** … zurückzuschicken." },
             { at: "r2", k: "pick", q: "The ID must be shown: Der Ausweis ist ___.", o: ["vorzuzeigen", "zu vorzeigen", "vorgezeigt"], a: 0, why: "A separable verb takes zu inside: **vorzuzeigen**." },
             { at: "r3", k: "pick", q: "Man kann das Wasser trinken. Das Wasser ist ___.", o: ["trinkbar", "getrunken", "trinkend"], a: 0, why: "*can be drunk*: **trinkbar**." },
-            { at: "r3", k: "type", cx: true, q: "Man kann das Problem nicht lösen. Es ist ___.", a: ["unlösbar", "nicht lösbar"], r: ["pvx.bar"], why: "*can't be solved*: **unlösbar**." },
+            { at: "r3", k: "type", cx: true, q: "Man kann das Problem nicht lösen. Es ist ___. (-bar)", a: ["unlösbar", "nicht lösbar"], r: ["pvx.bar"], why: "*can't be solved*: **unlösbar**." },
             { at: "r4", k: "pick", q: "Which does NOT mean *the bike can be repaired*?", o: ["Das Velo wird repariert.", "Das Velo ist zu reparieren.", "Das Velo lässt sich reparieren."], a: 0, why: "**wird repariert** says it is being repaired." },
             { at: "r4", k: "order", q: "Build it: The door can't be opened.", a: ["Die Tür", "lässt sich", "nicht", "öffnen."], why: "sich lassen + the infinitive at the end." },
             { at: "table", k: "pick", q: "Man kann die Jacke waschen. Sie ist ___.", o: ["waschbar", "waschlich", "gewaschen"], a: 0, why: "waschen → **waschbar**." },
@@ -68,9 +68,9 @@ cxPack({
         // ── Übung 25•15: yes, it's easy ──
         { id: "d25.15", ex: "25.15", t: "answer", title: "Yes, it can be done", how: "Answer yes with sein + zu + the infinitive: Kann man …? → Ja, es ist … zu …", items: [
           { q: "Kann man den Bahnhof leicht finden?", a: ["Ja, er ist leicht zu finden.", "Ja, der Bahnhof ist leicht zu finden."], r: ["pvx.zu"] },
-          { q: "Kann man die Tür leise schließen?", a: ["Ja, sie ist leise zu schließen.", "Ja, die Tür ist leise zu schließen."], r: ["pvx.zu"] },
+          { q: "Kann man die Tür leicht öffnen?", a: ["Ja, sie ist leicht zu öffnen.", "Ja, die Tür ist leicht zu öffnen."], r: ["pvx.zu"] },
           { q: "Kann man diese Sprache schnell lernen?", a: ["Ja, sie ist schnell zu lernen.", "Ja, diese Sprache ist schnell zu lernen."], r: ["pvx.zu"] },
-          { q: "Kann man das alte Haus noch verkaufen?", a: ["Ja, es ist noch zu verkaufen.", "Ja, das alte Haus ist noch zu verkaufen."], r: ["pvx.zu"] },
+          { q: "Kann man das alte Haus noch bewohnen?", a: ["Ja, es ist noch zu bewohnen.", "Ja, das alte Haus ist noch zu bewohnen."], r: ["pvx.zu"] },
           { q: "Kann man den Text gut verstehen?", a: ["Ja, er ist gut zu verstehen.", "Ja, der Text ist gut zu verstehen."], r: ["pvx.zu"] },
           { q: "Kann man den Gipfel in drei Stunden erreichen?", a: ["Ja, er ist in drei Stunden zu erreichen.", "Ja, der Gipfel ist in drei Stunden zu erreichen."], r: ["pvx.zu"] },
           { q: "Kann man die Waschmaschine noch reparieren?", a: ["Ja, sie ist noch zu reparieren.", "Ja, die Waschmaschine ist noch zu reparieren."], r: ["pvx.zu"] },
@@ -102,11 +102,11 @@ cxPack({
           { q: "Man kann das Hotel online buchen. Es ist online ___.", a: ["buchbar"], r: ["pvx.bar"] },
           { q: "Man kann den Unterschied kaum sehen. Er ist kaum ___.", a: ["sichtbar"], r: ["pvx.bar"], note: "sehen → **sichtbar** (from die Sicht)." },
           { q: "Man kann das Gerät überall benutzen. Es ist überall ___.", a: ["benutzbar", "nutzbar"], r: ["pvx.bar"] },
-          { q: "Man kann den Fehler nicht vermeiden. Er ist ___.", a: ["unvermeidbar", "nicht vermeidbar"], r: ["pvx.bar"] },
+          { q: "Man kann den Fehler nicht vermeiden. Er ist ___.", a: ["unvermeidbar", "nicht vermeidbar", "unvermeidlich"], r: ["pvx.bar"], note: "**unvermeidlich** is right too — and more common — but it isn't a -bar word." },
         ] },
         // ── ours: three ways ──
         { id: "dpvx.three", t: "transform", title: "Three ways, one meaning", how: "Say it with sein + zu instead: … ist / sind … zu + the infinitive.", items: [
-          { q: "Das Velo lässt sich reparieren.", a: ["Das Velo ist zu reparieren."], r: ["pvx.three"] },
+          { q: "Das Velo lässt sich noch reparieren.", a: ["Das Velo ist noch zu reparieren."], r: ["pvx.three"] },
           { q: "Der Text kann leicht übersetzt werden.", a: ["Der Text ist leicht zu übersetzen."], r: ["pvx.three"] },
           { q: "Die Kiste lässt sich nicht öffnen.", a: ["Die Kiste ist nicht zu öffnen."], r: ["pvx.three"] },
           { q: "Das Ziel kann in einer Stunde erreicht werden.", a: ["Das Ziel ist in einer Stunde zu erreichen."], r: ["pvx.three"] },
@@ -118,15 +118,15 @@ cxPack({
         ] },
         // ── Production ──
         { id: "dp.pvx", t: "translate", end: true, title: "Say it in German", how: "Translate with sein + zu, sich lassen or -bar.", items: [
-          { q: "The problem is easy to solve.", a: ["Das Problem ist leicht zu lösen.", "Das Problem lässt sich leicht lösen.", "Das Problem ist leicht lösbar."], r: ["pvx.zu"] },
+          { q: "The problem is easy to solve.", a: ["Das Problem ist leicht zu lösen.", "Das Problem lässt sich leicht lösen.", "Das Problem ist leicht lösbar.", "Das Problem ist einfach zu lösen.", "Das Problem lässt sich einfach lösen.", "Das Problem kann leicht gelöst werden."], r: ["pvx.zu"] },
           { q: "The bill must be paid by Friday.", a: ["Die Rechnung ist bis Freitag zu bezahlen.", "Die Rechnung muss bis Freitag bezahlt werden."], r: ["pvx.must"] },
           { q: "Is the water drinkable?", a: ["Ist das Wasser trinkbar?"], r: ["pvx.bar"] },
-          { q: "His handwriting is hard to read.", a: ["Seine Schrift ist schwer zu lesen.", "Seine Handschrift ist schwer zu lesen.", "Seine Schrift lässt sich schwer lesen.", "Seine Handschrift lässt sich schwer lesen."], r: ["pvx.zu"] },
+          { q: "His handwriting is hard to read.", a: ["Seine Schrift ist schwer zu lesen.", "Seine Handschrift ist schwer zu lesen.", "Seine Schrift lässt sich schwer lesen.", "Seine Handschrift lässt sich schwer lesen.", "Seine Schrift ist schwer lesbar.", "Seine Handschrift ist schwer lesbar."], r: ["pvx.zu"] },
           { q: "That can't be changed.", a: ["Das ist nicht zu ändern.", "Das lässt sich nicht ändern.", "Das kann nicht geändert werden."], r: ["pvx.three"] },
           { q: "The village can only be reached on foot.", a: ["Das Dorf ist nur zu Fuß zu erreichen.", "Das Dorf ist nur zu Fuß erreichbar.", "Das Dorf kann nur zu Fuß erreicht werden.", "Das Dorf lässt sich nur zu Fuß erreichen."], r: ["pvx.zu"] },
           { q: "Flats in Geneva are almost unaffordable.", a: ["Wohnungen in Genf sind fast unbezahlbar.", "Die Wohnungen in Genf sind fast unbezahlbar."], r: ["pvx.bar"] },
           { q: "The form must be signed.", a: ["Das Formular ist zu unterschreiben.", "Das Formular muss unterschrieben werden."], r: ["pvx.must"] },
-          { q: "That's doable!", a: ["Das ist machbar!", "Das ist zu machen!", "Das lässt sich machen!"], r: ["pvx.bar"] },
+          { q: "That's doable!", a: ["Das ist machbar!", "Das ist zu machen!", "Das lässt sich machen!", "Das ist zu schaffen!"], r: ["pvx.bar"] },
         ] },
         { id: "dw.pvx", t: "write", end: true, title: "Write your own", how: "Write in your own words. Saved for Claude to correct.", items: [
           { q: "Write three rules for your building's laundry room. (… ist … zu …)", model: ["Die Waschküche ist nach dem Waschen zu reinigen. Die Wäsche ist am gleichen Tag abzuhängen. Am Sonntag ist die Waschmaschine nicht zu benutzen."], r: ["pvx.must"] },

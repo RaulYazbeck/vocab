@@ -10612,7 +10612,7 @@ s	_course:s3.way	Zu Fuß etwa fünfzehn Minuten. Oder Sie nehmen das Tram.
 s	_course:s3.way	Zu Fuß sind es nur zehn Minuten.
 s	_course:s3.way	Zum Kunsthaus? Gehen Sie hier geradeaus bis zur Ampel.
 s	_course:s4.ext	Auf dem Foto sieht man die am See spielenden Kinder und einen lesenden Mann auf einer Bank.
-s	_course:s4.ext	Bitte beachten Sie die bis Ende Monat zu bezahlende Rechnung.
+s	_course:s4.ext	Beiliegend finden Sie die bis Ende Monat zu bezahlende Rechnung.
 s	_course:s4.ext	Das Auto, das falsch parkiert ist, bekommt eine Busse.
 s	_course:s4.ext	Das Brot, das gestern gekauft worden ist, ist schon hart.
 s	_course:s4.ext	Das Brot, das gestern gekauft wurde, ist schon hart.
@@ -10656,7 +10656,7 @@ s	_course:s4.ext	Die im Preis enthaltene Versicherung ist gut.
 s	_course:s4.ext	Die im Preis enthaltenen Leistungen finden Sie unten.
 s	_course:s4.ext	Die schon angekommenen Gäste trinken Kaffee.
 s	_course:s4.ext	Die seit Monaten geplante Velostraße wird im Frühling eröffnet. Die von der Gemeinde geschätzten Kosten liegen bei zwei Millionen Franken.
-s	_course:s4.ext	Die seit Montag gesperrte Brücke ist wieder offen.
+s	_course:s4.ext	Die seit Montag gesperrte Brücke wird morgen wieder geöffnet.
 s	_course:s4.ext	Die stark gestiegenen Preise ärgern alle.
 s	_course:s4.ext	Die von der Gemeinde geplante Straße wird teuer.
 s	_course:s4.ext	Die zurückgegebenen Bücher liegen auf dem Tisch.
@@ -10678,8 +10678,10 @@ s	_course:s4.ext	das nicht zu unterschätzende Problem
 s	_course:s4.ext	das schon abgeholte Paket
 s	_course:s4.ext	der Termin, den man nicht verschieben kann
 s	_course:s4.ext	der Zug, der aus Zürich ankommt
+s	_course:s4.ext	der Zug, der aus Zürich kommt
 s	_course:s4.ext	der aus Basel kommende Zug
 s	_course:s4.ext	der aus Zürich ankommende Zug
+s	_course:s4.ext	der aus Zürich kommende Zug
 s	_course:s4.ext	der gestern gezeigte Film
 s	_course:s4.ext	der laut telefonierende Mann
 s	_course:s4.ext	der nicht zu verschiebende Termin
@@ -10689,12 +10691,18 @@ s	_course:s4.ext	die Brücke, die seit Montag geschlossen ist
 s	_course:s4.ext	die Brücke, die seit Montag gesperrt ist
 s	_course:s4.ext	die Bücher, die man bis Montag lesen muss
 s	_course:s4.ext	die Fragen, die man beantworten muss
+s	_course:s4.ext	die Gäste, die bereits gegangen sind
+s	_course:s4.ext	die Gäste, die schon abgereist sind
 s	_course:s4.ext	die Gäste, die schon gegangen sind
 s	_course:s4.ext	die Kinder, die im Garten spielen
 s	_course:s4.ext	die Medikamente, die man täglich nehmen muss
 s	_course:s4.ext	die Pakete, die man abholen muss
 s	_course:s4.ext	die Rechnung, die bezahlt werden muss
 s	_course:s4.ext	die Rechnung, die man bezahlen muss
+s	_course:s4.ext	die Rechnung, die zu bezahlen ist
+s	_course:s4.ext	die Rechnung, die zu zahlen ist
+s	_course:s4.ext	die Wohnung, die im letzten Jahr renoviert wurde
+s	_course:s4.ext	die Wohnung, die letztes Jahr renoviert worden ist
 s	_course:s4.ext	die Wohnung, die letztes Jahr renoviert wurde
 s	_course:s4.ext	die bald ankommenden Gäste
 s	_course:s4.ext	die bereits gegangenen Gäste
@@ -10718,7 +10726,11 @@ s	_course:s4.ext	die zu bezahlende Rechnung
 s	_course:s4.ext	die zu zahlende Rechnung
 s	_course:s4.ext	ein Fehler, den man vermeiden muss
 s	_course:s4.ext	ein Problem, das man nicht unterschätzen darf
+s	_course:s4.ext	ein Problem, das nicht zu unterschätzen ist
+s	_course:s4.ext	ein Thema, das viel diskutiert wird
+s	_course:s4.ext	ein Thema, über das viel diskutiert wird
 s	_course:s4.ext	ein nicht zu unterschätzendes Problem
+s	_course:s4.ext	ein oft diskutiertes Thema
 s	_course:s4.ext	ein viel diskutiertes Thema
 s	_course:s4.ext	ein zu vermeidender Fehler
 s	_course:s4.ext	eine gut erklärende Lehrerin
@@ -10773,22 +10785,26 @@ s	_course:s4.fu2	Die Wanderer werden großen Durst gehabt haben.
 s	_course:s4.fu2	Du isst die ganze Torte.
 s	_course:s4.fu2	Du wirst bestimmt viele Fotos gemacht haben.
 s	_course:s4.fu2	Du wirst die ganze Torte gegessen haben.
-s	_course:s4.fu2	Er wird den Bus verpasst haben. Vielleicht wird er noch im Büro gewesen sein. Oder er wird unsere neue Adresse vergessen haben.
+s	_course:s4.fu2	Er hat es bestimmt gehört.
+s	_course:s4.fu2	Er hat es sicher gehört.
+s	_course:s4.fu2	Er wird den Bus verpasst haben. Vielleicht wird er länger im Büro geblieben sein. Oder er wird unsere neue Adresse vergessen haben.
 s	_course:s4.fu2	Er wird es bestimmt gehört haben.
 s	_course:s4.fu2	Er wird es sicher gehört haben.
-s	_course:s4.fu2	Es ist möglich, dass sie den Brief nicht bekommen haben wird.
-s	_course:s4.fu2	Es ist möglich. Sie wird den Brief nicht bekommen haben.
 s	_course:s4.fu2	Ich arbeite für Frau Gerber.
+s	_course:s4.fu2	Ich denke, dass ihr gut angekommen sein werdet.
+s	_course:s4.fu2	Ich denke. Ihr werdet gut angekommen sein.
 s	_course:s4.fu2	Ich frage mich, wo sie gewesen sein wird.
 s	_course:s4.fu2	Ich frage mich. Wo wird sie gewesen sein?
+s	_course:s4.fu2	Ich fürchte, dass sie den Brief nicht bekommen haben wird.
+s	_course:s4.fu2	Ich fürchte. Sie wird den Brief nicht bekommen haben.
 s	_course:s4.fu2	Ich glaube, dass er den Termin vergessen haben wird.
 s	_course:s4.fu2	Ich glaube, dass er sich verlaufen haben wird.
 s	_course:s4.fu2	Ich glaube, er hat sich verlaufen.
+s	_course:s4.fu2	Ich glaube, er wird sich verirrt haben.
 s	_course:s4.fu2	Ich glaube, er wird sich verlaufen haben.
 s	_course:s4.fu2	Ich glaube. Er wird den Termin vergessen haben.
 s	_course:s4.fu2	Ich vermute, dass die Kinder schon gegessen haben werden.
 s	_course:s4.fu2	Ich vermute. Die Kinder werden schon gegessen haben.
-s	_course:s4.fu2	Ich werde früh ins Bett gegangen sein.
 s	_course:s4.fu2	Ich werde für Frau Gerber gearbeitet haben.
 s	_course:s4.fu2	In fünf Jahren werde ich den C-Ausweis bekommen haben. Ich werde eine größere Wohnung gefunden haben, und ich werde jeden Kanton besucht haben.
 s	_course:s4.fu2	Mach dir keine Sorgen, denn er wird den Weg gefunden haben.
@@ -10803,14 +10819,18 @@ s	_course:s4.fu2	Meine Tante wird die Rechnung gezahlt haben.
 s	_course:s4.fu2	Meine Tante zahlt die Rechnung.
 s	_course:s4.fu2	Meine Tante zahlte die Rechnung.
 s	_course:s4.fu2	Oma wird sich gut ausgeruht haben.
+s	_course:s4.fu2	Opa wird früh ins Bett gegangen sein.
 s	_course:s4.fu2	Papa wird Rösti zum Frühstück gemacht haben.
 s	_course:s4.fu2	Papa wird zur Arbeit gegangen sein.
 s	_course:s4.fu2	Sie hat eine warme Jacke angezogen.
+s	_course:s4.fu2	Sie hat es wahrscheinlich vergessen.
 s	_course:s4.fu2	Sie hat es wohl vergessen.
 s	_course:s4.fu2	Sie ist sicher, dass der Zug schon abgefahren sein wird.
 s	_course:s4.fu2	Sie ist sicher. Der Zug wird schon abgefahren sein.
 s	_course:s4.fu2	Sie macht die Fensterläden zu.
 s	_course:s4.fu2	Sie machte die Fensterläden zu.
+s	_course:s4.fu2	Sie waren wohl müde.
+s	_course:s4.fu2	Sie werden den Fuji wohl gesehen haben.
 s	_course:s4.fu2	Sie werden in die Ferien gefahren sein. Vielleicht werden sie ihre Familie in Italien besucht haben.
 s	_course:s4.fu2	Sie werden müde gewesen sein.
 s	_course:s4.fu2	Sie werden uns wohl vermisst haben.
@@ -10820,6 +10840,7 @@ s	_course:s4.fu2	Sie werden wohl durch Kyoto spaziert sein.
 s	_course:s4.fu2	Sie werden wohl ein paar Wörter Japanisch gelernt haben.
 s	_course:s4.fu2	Sie werden wohl im Hotel geschlafen haben.
 s	_course:s4.fu2	Sie werden wohl mit dem Schnellzug gefahren sein.
+s	_course:s4.fu2	Sie werden wohl müde gewesen sein.
 s	_course:s4.fu2	Sie werden wohl spät angekommen sein.
 s	_course:s4.fu2	Sie werden wohl viele Tempel besucht haben.
 s	_course:s4.fu2	Sie werden wohl zu viel eingekauft haben.
@@ -10829,8 +10850,10 @@ s	_course:s4.fu2	Sie wird die Fensterläden zugemacht haben.
 s	_course:s4.fu2	Sie wird die Matura gemacht haben.
 s	_course:s4.fu2	Sie wird eine eigene Wohnung gefunden haben.
 s	_course:s4.fu2	Sie wird einen Beruf gelernt haben.
+s	_course:s4.fu2	Sie wird es bestimmt vergessen haben.
 s	_course:s4.fu2	Sie wird es sicher vergessen haben.
 s	_course:s4.fu2	Sie wird es vergessen haben.
+s	_course:s4.fu2	Sie wird es wahrscheinlich vergessen haben.
 s	_course:s4.fu2	Sie wird es wohl vergessen haben.
 s	_course:s4.fu2	Sie wird in eine andere Stadt umgezogen sein.
 s	_course:s4.fu2	Sie wird meine Mail nicht gesehen haben. Sie wird wohl den ganzen Tag in Sitzungen gewesen sein.
@@ -10842,7 +10865,8 @@ s	_course:s4.fu2	Sie zieht eine warme Jacke an.
 s	_course:s4.fu2	Tim antwortet nicht — er wird schon eingeschlafen sein.
 s	_course:s4.fu2	Viele Familien wandern am Wochenende.
 s	_course:s4.fu2	Viele Familien waren am Wochenende gewandert.
-s	_course:s4.fu2	Viele Leute werden im Park gegrillt haben. Sie werden bis spät in der Nacht gefeiert und den Abfall liegen gelassen haben.
+s	_course:s4.fu2	Viele Leute werden im Park gegrillt haben. Sie werden bis spät in die Nacht gefeiert und den Abfall liegen gelassen haben.
+s	_course:s4.fu2	Vielleicht wird sie geheiratet haben.
 s	_course:s4.fu2	Weißt du, wann er angekommen sein wird?
 s	_course:s4.fu2	Weißt du? Wann wird er angekommen sein?
 s	_course:s4.fu2	Wenn du ankommst, werde ich schon gegessen haben.
@@ -10851,8 +10875,6 @@ s	_course:s4.fu2	Wenn du nach Hause kommst, habe ich gekocht.
 s	_course:s4.fu2	Wenn du nach Hause kommst, werde ich gekocht haben.
 s	_course:s4.fu2	Wir fahren vier Stunden lang.
 s	_course:s4.fu2	Wir hatten oft mit den Nachbarn geredet.
-s	_course:s4.fu2	Wir hoffen, dass ihr gut angekommen sein werdet.
-s	_course:s4.fu2	Wir hoffen. Ihr werdet gut angekommen sein.
 s	_course:s4.fu2	Wir nehmen an, dass die Firma alles verkauft haben wird.
 s	_course:s4.fu2	Wir nehmen an. Die Firma wird alles verkauft haben.
 s	_course:s4.fu2	Wir reden oft mit den Nachbarn.
@@ -10873,10 +10895,10 @@ s	_course:s4.k1	Der Arzt sagte, ich solle mich ausruhen.
 s	_course:s4.k1	Der Arzt sagte, ich solle mich erholen.
 s	_course:s4.k1	Der Bahnhof wird bis 2028 umgebaut.
 s	_course:s4.k1	Der Bus kam zwei Minuten später.
-s	_course:s4.k1	Der Bürgermeister sagte, dass sie ein neues Altersheim gebaut hätten.
-s	_course:s4.k1	Der Bürgermeister sagte, sie hätten ein neues Altersheim gebaut.
-s	_course:s4.k1	Der Bürgermeister sagte: Wir haben ein neues Altersheim gebaut.
 s	_course:s4.k1	Der Chef sagt, er wolle das Projekt bis Juni abschließen.
+s	_course:s4.k1	Der Gemeindepräsident sagte, dass sie ein neues Altersheim gebaut hätten.
+s	_course:s4.k1	Der Gemeindepräsident sagte, sie hätten ein neues Altersheim gebaut.
+s	_course:s4.k1	Der Gemeindepräsident sagte: Wir haben ein neues Altersheim gebaut.
 s	_course:s4.k1	Der Hauswart sagte, dass die Heizung kaputt sei.
 s	_course:s4.k1	Der Hauswart sagte, die Heizung sei kaputt.
 s	_course:s4.k1	Der Hauswart sagte: Die Heizung ist kaputt.
@@ -10905,10 +10927,11 @@ s	_course:s4.k1	Der Trainer sagte, wir sollen genug Wasser trinken.
 s	_course:s4.k1	Der Trainer sagte, wir sollten genug Wasser trinken.
 s	_course:s4.k1	Der Trainer sagte: Die Mannschaft wird immer besser.
 s	_course:s4.k1	Der Trainer sagte: Trinkt genug Wasser!
-s	_course:s4.k1	Der Vermieter schreibt, die Fenster würden im Mai ersetzt. Die Arbeiten dauerten etwa zwei Tage. Wir sollten an diesen Tagen zu Hause sein.
+s	_course:s4.k1	Der Vermieter schreibt, die Fenster würden im Mai ersetzt. Die Arbeiten würden etwa zwei Tage dauern. Wir sollten an diesen Tagen zu Hause sein.
 s	_course:s4.k1	Der Vermieter schrieb, dass die Wohnung im März renoviert werde.
 s	_course:s4.k1	Der Vermieter schrieb, die Wohnung werde im März renoviert.
 s	_course:s4.k1	Der Vermieter schrieb: Die Wohnung wird im März renoviert.
+s	_course:s4.k1	Der Wetterbericht meldet, der Sommer sei zu trocken.
 s	_course:s4.k1	Der Wetterdienst meldet, dass es morgen schneien werde.
 s	_course:s4.k1	Der Wetterdienst meldet, es werde morgen schneien.
 s	_course:s4.k1	Der Wetterdienst meldet, morgen werde es schneien.
@@ -10916,8 +10939,8 @@ s	_course:s4.k1	Der Wetterdienst meldet: Morgen wird es schneien.
 s	_course:s4.k1	Der Zeuge sagte, das Auto habe nicht gebremst.
 s	_course:s4.k1	Der Zeuge sagte, dass das Auto nicht gebremst habe.
 s	_course:s4.k1	Der Zeuge sagte, dass der Bus zwei Minuten später gekommen sei.
-s	_course:s4.k1	Der Zeuge sagte, dass die Ampel kaputt gewesen sei.
 s	_course:s4.k1	Der Zeuge sagte, dass die Polizei nach fünf Minuten da gewesen sei.
+s	_course:s4.k1	Der Zeuge sagte, dass die Straße nass gewesen sei.
 s	_course:s4.k1	Der Zeuge sagte, dass ein Mann ein Foto gemacht habe.
 s	_course:s4.k1	Der Zeuge sagte, dass ein Velofahrer bei Rot über die Kreuzung gefahren sei.
 s	_course:s4.k1	Der Zeuge sagte, dass eine Frau sofort zum Telefon gelaufen sei.
@@ -10926,8 +10949,8 @@ s	_course:s4.k1	Der Zeuge sagte, dass er an der Haltestelle gestanden habe.
 s	_course:s4.k1	Der Zeuge sagte, dass er an der Haltestelle gestanden sei.
 s	_course:s4.k1	Der Zeuge sagte, dass niemand verletzt worden sei.
 s	_course:s4.k1	Der Zeuge sagte, der Bus sei zwei Minuten später gekommen.
-s	_course:s4.k1	Der Zeuge sagte, die Ampel sei kaputt gewesen.
 s	_course:s4.k1	Der Zeuge sagte, die Polizei sei nach fünf Minuten da gewesen.
+s	_course:s4.k1	Der Zeuge sagte, die Straße sei nass gewesen.
 s	_course:s4.k1	Der Zeuge sagte, ein Mann habe ein Foto gemacht.
 s	_course:s4.k1	Der Zeuge sagte, ein Velofahrer sei bei Rot über die Kreuzung gefahren.
 s	_course:s4.k1	Der Zeuge sagte, eine Frau sei sofort zum Telefon gelaufen.
@@ -10937,7 +10960,6 @@ s	_course:s4.k1	Der Zeuge sagte, er habe nichts gesehen.
 s	_course:s4.k1	Der Zeuge sagte, er sei an der Haltestelle gestanden.
 s	_course:s4.k1	Der Zeuge sagte, niemand sei verletzt worden.
 s	_course:s4.k1	Der alte Bäcker schloss seinen Laden.
-s	_course:s4.k1	Die Ampel war kaputt.
 s	_course:s4.k1	Die Bank teilt mit, es gebe keine Probleme.
 s	_course:s4.k1	Die Chefin sagt, dass die Sitzung nicht lange dauern werde.
 s	_course:s4.k1	Die Chefin sagt, die Sitzung werde nicht lange dauern.
@@ -10970,6 +10992,7 @@ s	_course:s4.k1	Die Nachbarin erzählte, dass der alte Bäcker seinen Laden gesc
 s	_course:s4.k1	Die Nachbarin erzählte, dass die Familie Rossi letztes Jahr nach Lugano gezogen sei.
 s	_course:s4.k1	Die Nachbarin erzählte, dass die Kinder den ganzen Tag draußen gespielt hätten.
 s	_course:s4.k1	Die Nachbarin erzählte, dass es früher hier einen Bahnhof gegeben habe.
+s	_course:s4.k1	Die Nachbarin erzählte, dass es hier früher einen Bahnhof gegeben habe.
 s	_course:s4.k1	Die Nachbarin erzählte, dass ihr Mann den Schlüssel vergessen habe.
 s	_course:s4.k1	Die Nachbarin erzählte, dass ihr Sohn zwei Jahre in Kanada gelebt habe.
 s	_course:s4.k1	Die Nachbarin erzählte, dass sie das Paket schon abgeholt habe.
@@ -10980,6 +11003,7 @@ s	_course:s4.k1	Die Nachbarin erzählte, der alte Bäcker habe seinen Laden gesc
 s	_course:s4.k1	Die Nachbarin erzählte, die Familie Rossi sei letztes Jahr nach Lugano gezogen.
 s	_course:s4.k1	Die Nachbarin erzählte, die Kinder hätten den ganzen Tag draußen gespielt.
 s	_course:s4.k1	Die Nachbarin erzählte, es habe früher hier einen Bahnhof gegeben.
+s	_course:s4.k1	Die Nachbarin erzählte, es habe hier früher einen Bahnhof gegeben.
 s	_course:s4.k1	Die Nachbarin erzählte, früher habe es hier einen Bahnhof gegeben.
 s	_course:s4.k1	Die Nachbarin erzählte, ihr Mann habe den Schlüssel vergessen.
 s	_course:s4.k1	Die Nachbarin erzählte, ihr Sohn habe zwei Jahre in Kanada gelebt.
@@ -10994,6 +11018,8 @@ s	_course:s4.k1	Die Polizei meldet, dass niemand verletzt worden sei.
 s	_course:s4.k1	Die Polizei meldet, niemand sei verletzt worden.
 s	_course:s4.k1	Die Polizei meldete, dass der Fahrer zu schnell gefahren sei.
 s	_course:s4.k1	Die Polizei meldete, der Fahrer sei zu schnell gefahren.
+s	_course:s4.k1	Die Polizei teilt mit, dass niemand verletzt worden sei.
+s	_course:s4.k1	Die Polizei teilt mit, niemand sei verletzt worden.
 s	_course:s4.k1	Die Polizei teilte mit, dass der Dieb gestern verhaftet worden sei.
 s	_course:s4.k1	Die Polizei teilte mit, der Dieb sei gestern verhaftet worden.
 s	_course:s4.k1	Die Polizei teilte mit: Der Dieb ist gestern verhaftet worden.
@@ -11003,6 +11029,7 @@ s	_course:s4.k1	Die SBB teilt mit, der Zug werde später abfahren.
 s	_course:s4.k1	Die SBB teilt mit: Der Zug wird später abfahren.
 s	_course:s4.k1	Die SBB teilte mit, der Zug werde um zehn Uhr fahren.
 s	_course:s4.k1	Die Schule braucht mehr Lehrerinnen und Lehrer.
+s	_course:s4.k1	Die Straße war nass.
 s	_course:s4.k1	Die Vermieterin fragte, ob ich ein Haustier habe.
 s	_course:s4.k1	Die Vermieterin fragte, ob ich ein Haustier hätte.
 s	_course:s4.k1	Die Vermieterin fragte: Haben Sie ein Haustier?
@@ -11014,7 +11041,6 @@ s	_course:s4.k1	Die Zeitung schreibt, dass die Brücke 1890 gebaut worden sei.
 s	_course:s4.k1	Die Zeitung schreibt, dass die Brücke im Jahr 1890 gebaut worden sei.
 s	_course:s4.k1	Die Zeitung schreibt, dass die Gemeinde kein Geld für ein neues Hallenbad habe.
 s	_course:s4.k1	Die Zeitung schreibt, dass die Mieten in Zürich weiter steigen würden.
-s	_course:s4.k1	Die Zeitung schreibt, dass die Mieten in Zürich weiter stiegen.
 s	_course:s4.k1	Die Zeitung schreibt, dass die Schule mehr Lehrerinnen und Lehrer brauche.
 s	_course:s4.k1	Die Zeitung schreibt, dass niemand die Ursache des Unfalls kenne.
 s	_course:s4.k1	Die Zeitung schreibt, der Bahnhof werde bis 2028 umgebaut.
@@ -11023,7 +11049,6 @@ s	_course:s4.k1	Die Zeitung schreibt, die Brücke sei 1890 gebaut worden.
 s	_course:s4.k1	Die Zeitung schreibt, die Brücke sei im Jahr 1890 gebaut worden.
 s	_course:s4.k1	Die Zeitung schreibt, die Gemeinde baue ein neues Schulhaus. Es werde im Herbst eröffnet. Der Gemeindepräsident sagte, das Projekt sei teuer, aber wichtig.
 s	_course:s4.k1	Die Zeitung schreibt, die Gemeinde habe kein Geld für ein neues Hallenbad.
-s	_course:s4.k1	Die Zeitung schreibt, die Mieten in Zürich stiegen weiter.
 s	_course:s4.k1	Die Zeitung schreibt, die Mieten in Zürich würden weiter steigen.
 s	_course:s4.k1	Die Zeitung schreibt, die Schule brauche mehr Lehrerinnen und Lehrer.
 s	_course:s4.k1	Die Zeitung schreibt, niemand kenne die Ursache des Unfalls.
@@ -11032,9 +11057,11 @@ s	_course:s4.k1	Die Zeitung schrieb, der Präsident werde zurücktreten.
 s	_course:s4.k1	Die Ärztin sagte, das Kind habe Fieber gehabt.
 s	_course:s4.k1	Die Ärztin sagte, dass das Kind Fieber gehabt habe.
 s	_course:s4.k1	Die Ärztin sagte, dass ich mich ausruhen solle.
+s	_course:s4.k1	Die Ärztin sagte, dass ich mich erholen solle.
 s	_course:s4.k1	Die Ärztin sagte, dass ich zwei Tage im Bett bleiben solle.
-s	_course:s4.k1	Die Ärztin sagte, ich solle mehr Wasser trinken. Ich solle auch jeden Tag spazieren gehen. Und sie meinte, ich würde zu viel arbeiten.
+s	_course:s4.k1	Die Ärztin sagte, ich solle mehr Wasser trinken. Ich solle auch jeden Tag spazieren gehen. Außerdem solle ich weniger arbeiten.
 s	_course:s4.k1	Die Ärztin sagte, ich solle mich ausruhen.
+s	_course:s4.k1	Die Ärztin sagte, ich solle mich erholen.
 s	_course:s4.k1	Die Ärztin sagte, ich solle zwei Tage im Bett bleiben.
 s	_course:s4.k1	Die Ärztin sagte: Bleiben Sie zwei Tage im Bett!
 s	_course:s4.k1	Die Ärztin sagte: Das Kind hat Fieber gehabt.
@@ -11077,12 +11104,13 @@ s	_course:s4.k1	Er schrieb, er werde im Juni kommen.
 s	_course:s4.k1	Es lebe die Freiheit!
 s	_course:s4.k1	Frau Huber erzählte, dass ihr Sohn zu viel Geld ausgebe.
 s	_course:s4.k1	Frau Huber erzählte, ihr Sohn gebe zu viel Geld aus.
-s	_course:s4.k1	Frau Huber sagte, das Budget sei zu klein. Herr Kunz meinte, man könne im nächsten Jahr mehr investieren. Alle waren einverstanden, dass man im März wieder darüber spreche.
+s	_course:s4.k1	Frau Huber sagte, das Budget sei zu klein. Herr Kunz meinte, man könne im nächsten Jahr mehr investieren. Alle waren einverstanden, im März wieder darüber zu sprechen.
 s	_course:s4.k1	Früher gab es hier einen Bahnhof.
 s	_course:s4.k1	Gott segne euch!
 s	_course:s4.k1	Gott sei Dank ist Freitag!
 s	_course:s4.k1	Gott sei Dank ist der Winter bald vorbei. Am Sonntag gehen wir an den See, es sei denn, es regnet. Wie dem auch sei, ich freue mich auf den Frühling.
 s	_course:s4.k1	Gott sei Dank ist es Freitag!
+s	_course:s4.k1	Gott sei Dank ist heute Freitag!
 s	_course:s4.k1	Gott sei Dank, der Zug fährt wieder!
 s	_course:s4.k1	Gott sei Dank, es ist Freitag!
 s	_course:s4.k1	Herr Frei erklärte, dass er nächstes Jahr in Pension gehe.
@@ -11119,8 +11147,7 @@ s	_course:s4.k1	Im Brief steht, Herr Meier habe das Formular noch nicht.
 s	_course:s4.k1	Ist die Passstraße wieder offen?
 s	_course:s4.k1	Kann man die Tickets auch online kaufen?
 s	_course:s4.k1	Koste es, was es wolle: ich will diese Wohnung!
-s	_course:s4.k1	Laut Lea wisse niemand die Antwort.
-s	_course:s4.k1	Laut Wetterbericht sei der Sommer zu trocken.
+s	_course:s4.k1	Lea sagt, niemand wisse die Antwort.
 s	_course:s4.k1	Lea schreibt, dass sie mich am Bahnhof abholen werde.
 s	_course:s4.k1	Lea schreibt, sie komme erst am Montag zurück.
 s	_course:s4.k1	Lea schreibt, sie werde mich am Bahnhof abholen.
@@ -11160,6 +11187,7 @@ s	_course:s4.k1	Möge das neue Jahr dir viel Glück bringen!
 s	_course:s4.k1	Niemand kennt die Ursache des Unfalls.
 s	_course:s4.k1	Niemand wurde verletzt.
 s	_course:s4.k1	Professor Weber fragte, ob jemand die Aufgabe lösen könne.
+s	_course:s4.k1	Professor Weber fragte, ob jemand die Aufgabe lösen könnte.
 s	_course:s4.k1	Sie fragte, ob das Geschäft am Sonntag geöffnet sei.
 s	_course:s4.k1	Sie fragte, ob das Geschäft am Sonntag offen sei.
 s	_course:s4.k1	Sie fragte, ob der Laden am Sonntag geöffnet sei.
@@ -11244,25 +11272,29 @@ s	_course:s4.k2p	Du hättest mir das sagen können!
 s	_course:s4.k2p	Du kaufst die günstigere Wohnung.
 s	_course:s4.k2p	Du solltest früher losfahren.
 s	_course:s4.k2p	Entschuldige, ich hätte an deinen Geburtstag denken müssen! Ich hätte dich wenigstens anrufen können.
-s	_course:s4.k2p	Er dürfte länger bleiben.
+s	_course:s4.k2p	Er dürfte gern länger bleiben.
 s	_course:s4.k2p	Er geht zu Fuß nach Hause.
 s	_course:s4.k2p	Er gibt zu, dass er mehr hätte trainieren müssen.
 s	_course:s4.k2p	Er gibt zu. Er hätte mehr trainieren müssen.
 s	_course:s4.k2p	Er hätte das nicht sagen sollen.
-s	_course:s4.k2p	Er hätte länger bleiben dürfen.
+s	_course:s4.k2p	Er hätte gern länger bleiben dürfen.
+s	_course:s4.k2p	Er hätte gerne länger bleiben dürfen.
 s	_course:s4.k2p	Er wäre beinahe vom Velo gefallen.
 s	_course:s4.k2p	Er wäre gern mitgekommen.
+s	_course:s4.k2p	Er wäre gerne mitgekommen.
 s	_course:s4.k2p	Er wäre zu Fuß nach Hause gegangen.
 s	_course:s4.k2p	Hätte er Zeit gehabt, hätte er länger bleiben können.
 s	_course:s4.k2p	Hätte es nicht geregnet, wären wir an den See gefahren.
 s	_course:s4.k2p	Hätte es nicht geregnet, wären wir an den See gegangen.
+s	_course:s4.k2p	Hätte ich das gewusst, hätte ich Ihnen geholfen.
 s	_course:s4.k2p	Hätte ich das gewusst, hätte ich dir geholfen.
+s	_course:s4.k2p	Hätte ich das gewusst, hätte ich euch geholfen.
 s	_course:s4.k2p	Hätte ich mehr gelernt, hätte ich die Prüfung bestanden.
 s	_course:s4.k2p	Hättest du nicht mitkommen wollen?
-s	_course:s4.k2p	Ich bin nicht gekommen, weil ich hätte arbeiten müssen.
-s	_course:s4.k2p	Ich bin nicht gekommen. Ich hätte arbeiten müssen.
 s	_course:s4.k2p	Ich glaube, dass du das hättest wissen müssen.
 s	_course:s4.k2p	Ich glaube. Du hättest das wissen müssen.
+s	_course:s4.k2p	Ich habe die Stelle nicht angenommen, weil ich am Wochenende hätte arbeiten müssen.
+s	_course:s4.k2p	Ich habe die Stelle nicht angenommen. Ich hätte am Wochenende arbeiten müssen.
 s	_course:s4.k2p	Ich hätte Sie anrufen sollen.
 s	_course:s4.k2p	Ich hätte am Samstag arbeiten müssen.
 s	_course:s4.k2p	Ich hätte das nicht gewusst.
@@ -11270,6 +11302,7 @@ s	_course:s4.k2p	Ich hätte dich anrufen sollen.
 s	_course:s4.k2p	Ich hätte dich sofort angerufen.
 s	_course:s4.k2p	Ich hätte dir gern geholfen, aber ich war krank.
 s	_course:s4.k2p	Ich hätte dir helfen können.
+s	_course:s4.k2p	Ich hätte euch anrufen sollen.
 s	_course:s4.k2p	Ich hätte früher mit Deutsch anfangen sollen. Und ich hätte am Anfang mehr mit meinen Nachbarn sprechen sollen.
 s	_course:s4.k2p	Ich hätte gern Architektur studiert. Ich wäre auch gern ein Jahr ins Ausland gegangen.
 s	_course:s4.k2p	Ich hätte gern länger geschlafen.
@@ -11293,6 +11326,7 @@ s	_course:s4.k2p	Man hätte vorher reservieren sollen.
 s	_course:s4.k2p	Man sollte vorher reservieren.
 s	_course:s4.k2p	Mein Vater meint, dass ich Arzt hätte werden sollen.
 s	_course:s4.k2p	Mein Vater meint. Ich hätte Arzt werden sollen.
+s	_course:s4.k2p	Mia hätte fast ihren Pass vergessen.
 s	_course:s4.k2p	Ohne dich hätte ich das nie geschafft.
 s	_course:s4.k2p	Sie bleibt noch eine Woche.
 s	_course:s4.k2p	Sie hätte beinahe den Bus verpasst.
@@ -11300,7 +11334,7 @@ s	_course:s4.k2p	Sie hätte den Bus beinahe verpasst.
 s	_course:s4.k2p	Sie hätte den Bus fast verpasst.
 s	_course:s4.k2p	Sie hätte den ganzen Film sehen wollen.
 s	_course:s4.k2p	Sie hätte fast den Bus verpasst.
-s	_course:s4.k2p	Sie hätte fast ihren Pass vergessen.
+s	_course:s4.k2p	Sie hätten es mir sagen können!
 s	_course:s4.k2p	Sie wollte den ganzen Film sehen.
 s	_course:s4.k2p	Sie wäre noch eine Woche geblieben.
 s	_course:s4.k2p	Sie wären gern länger geblieben.
@@ -11318,6 +11352,7 @@ s	_course:s4.k2p	Wenn es nicht geregnet hätte, wären wir an den See gefahren.
 s	_course:s4.k2p	Wenn es nicht geregnet hätte, wären wir an den See gegangen.
 s	_course:s4.k2p	Wenn ich das gewusst hätte, hätte ich Ihnen geholfen.
 s	_course:s4.k2p	Wenn ich das gewusst hätte, hätte ich dir geholfen.
+s	_course:s4.k2p	Wenn ich das gewusst hätte, hätte ich euch geholfen.
 s	_course:s4.k2p	Wenn ich das gewusst hätte, hätte ich nichts gesagt.
 s	_course:s4.k2p	Wenn ich den Wecker gehört hätte, hätte ich den Zug nicht verpasst. Dann wäre ich pünktlich bei der Arbeit gewesen.
 s	_course:s4.k2p	Wenn ich mehr Zeit gehabt hätte, hätte ich den Garten gepflegt.
@@ -11343,6 +11378,7 @@ s	_course:s4.k2p	Wir sind traurig, weil wir länger hätten bleiben wollen.
 s	_course:s4.k2p	Wir sind traurig. Wir hätten länger bleiben wollen.
 s	_course:s4.k2p	Wir wären gekommen, aber der Zug fiel aus.
 s	_course:s4.k2p	Wir wären gekommen, aber der Zug ist ausgefallen.
+s	_course:s4.k2p	Wir wären gekommen, aber der Zug wurde gestrichen.
 s	_course:s4.k2p	Wir wären nach Lissabon geflogen. Wir hätten die Altstadt besichtigt und jeden Abend Fisch gegessen.
 s	_course:s4.k2p	Wolltest du nicht mitkommen?
 s	_course:s4.k2p	Wäre das Wetter schön gewesen, wären wir an den See gefahren.
@@ -11361,6 +11397,7 @@ w	_course:s4.k2p	mehr Bücher lesen
 w	_course:s4.k2p	mehr Sport machen
 w	_course:s4.k2p	nach Neuseeland reisen
 s	_course:s4.prefix	Am Genfersee habe ich den schönsten Sonnenuntergang gesehen. Die Sonne ging hinter den Bergen unter, und alles war rot.
+s	_course:s4.prefix	Auf dem Weg nach Lugano bin ich in Arth-Goldau umgestiegen. Der Anschluss war knapp, aber ich habe den Zug erwischt.
 s	_course:s4.prefix	Bei der ersten Fahrprüfung bin ich durchgefallen. Ich habe sie einen Monat später wiederholt und bestanden.
 s	_course:s4.prefix	Bitte unterbrechen Sie mich nicht!
 s	_course:s4.prefix	Darf ich kurz unterbrechen?
@@ -11406,9 +11443,10 @@ s	_course:s4.prefix	Lea übernachtet bei ihrer Tante.
 s	_course:s4.prefix	Leider ist er bei der Prüfung durchgefallen.
 s	_course:s4.prefix	Letzten Sommer haben wir in einer SAC-Hütte übernachtet. Am Morgen sind wir um fünf Uhr aufgestanden.
 s	_course:s4.prefix	Man unterbricht die Lehrerin nicht.
-s	_course:s4.prefix	Nach Lugano bin ich in Arth-Goldau umgestiegen. Der Anschluss war knapp, aber ich habe den Zug erwischt.
 s	_course:s4.prefix	Niemand unterbricht den Redner.
 s	_course:s4.prefix	Nächsten Monat ziehen wir nach Luzern um.
+s	_course:s4.prefix	Nächsten Monat zügeln wir nach Luzern.
+s	_course:s4.prefix	Sie fiel bei der Fahrprüfung durch.
 s	_course:s4.prefix	Sie hat ihre Mutter lange umarmt.
 s	_course:s4.prefix	Sie hat ihren Sohn umarmt.
 s	_course:s4.prefix	Sie ist bei der Fahrprüfung durchgefallen.
@@ -11427,8 +11465,9 @@ s	_course:s4.prefix	Wir wiederholen die Lektion.
 s	_course:s4.prefix	Wir ziehen im März nach Bern um.
 s	_course:s4.prefix	Wir ziehen im nächsten Monat nach Luzern um.
 s	_course:s4.prefix	Wir ziehen nächsten Monat nach Luzern um.
+s	_course:s4.prefix	Wir zügeln nächsten Monat nach Luzern.
 s	_course:s4.prefix	Wo steigen wir um?
-s	_course:s4.prefix	Zieh eine Jacke über!
+s	_course:s4.prefix	Zieh dir eine Jacke über!
 s	_course:s4.prefix	Übernachtet ihr im Zelt?
 s	_course:s4.pvx	Das Dorf ist nur zu Fuß erreichbar.
 s	_course:s4.pvx	Das Dorf ist nur zu Fuß zu erreichen.
@@ -11439,16 +11478,20 @@ s	_course:s4.pvx	Das Formular ist bis Freitag zurückzuschicken.
 s	_course:s4.pvx	Das Formular ist zu unterschreiben.
 s	_course:s4.pvx	Das Haus ist nicht mehr zu retten.
 s	_course:s4.pvx	Das Haus kann nicht mehr gerettet werden.
+s	_course:s4.pvx	Das Problem ist einfach zu lösen.
 s	_course:s4.pvx	Das Problem ist leicht lösbar.
 s	_course:s4.pvx	Das Problem ist leicht zu lösen.
-s	_course:s4.pvx	Das Velo ist zu reparieren.
-s	_course:s4.pvx	Das Velo lässt sich reparieren.
+s	_course:s4.pvx	Das Problem kann leicht gelöst werden.
+s	_course:s4.pvx	Das Problem lässt sich einfach lösen.
+s	_course:s4.pvx	Das Velo ist noch zu reparieren.
+s	_course:s4.pvx	Das Velo lässt sich noch reparieren.
 s	_course:s4.pvx	Das Wetter in der Schweiz ist nicht zu ändern. Ich habe immer einen Schirm dabei.
 s	_course:s4.pvx	Das Ziel ist in einer Stunde zu erreichen.
 s	_course:s4.pvx	Das Ziel kann in einer Stunde erreicht werden.
 s	_course:s4.pvx	Das ist machbar!
 s	_course:s4.pvx	Das ist nicht zu ändern.
 s	_course:s4.pvx	Das ist zu machen!
+s	_course:s4.pvx	Das ist zu schaffen!
 s	_course:s4.pvx	Das kann nicht geändert werden.
 s	_course:s4.pvx	Das lässt sich machen!
 s	_course:s4.pvx	Der Ausweis ist am Eingang zu zeigen.
@@ -11483,13 +11526,13 @@ s	_course:s4.pvx	Ich möchte nächsten Sommer mit dem Velo bis nach Genf fahren.
 s	_course:s4.pvx	Ist das Wasser hier trinkbar?
 s	_course:s4.pvx	Ist das Wasser trinkbar?
 s	_course:s4.pvx	Ja, das Museum ist mit dem Bus zu erreichen.
-s	_course:s4.pvx	Ja, das alte Haus ist noch zu verkaufen.
+s	_course:s4.pvx	Ja, das alte Haus ist noch zu bewohnen.
 s	_course:s4.pvx	Ja, der Bahnhof ist leicht zu finden.
 s	_course:s4.pvx	Ja, der Fleck ist noch zu entfernen.
 s	_course:s4.pvx	Ja, der Gipfel ist in drei Stunden zu erreichen.
 s	_course:s4.pvx	Ja, der Text ist gut zu verstehen.
 s	_course:s4.pvx	Ja, die Kosten sind genau zu berechnen.
-s	_course:s4.pvx	Ja, die Tür ist leise zu schließen.
+s	_course:s4.pvx	Ja, die Tür ist leicht zu öffnen.
 s	_course:s4.pvx	Ja, die Waschmaschine ist noch zu reparieren.
 s	_course:s4.pvx	Ja, diese Sprache ist schnell zu lernen.
 s	_course:s4.pvx	Ja, er ist gut zu verstehen.
@@ -11497,19 +11540,19 @@ s	_course:s4.pvx	Ja, er ist in drei Stunden zu erreichen.
 s	_course:s4.pvx	Ja, er ist leicht zu finden.
 s	_course:s4.pvx	Ja, er ist noch zu entfernen.
 s	_course:s4.pvx	Ja, es ist mit dem Bus zu erreichen.
-s	_course:s4.pvx	Ja, es ist noch zu verkaufen.
-s	_course:s4.pvx	Ja, sie ist leise zu schließen.
+s	_course:s4.pvx	Ja, es ist noch zu bewohnen.
+s	_course:s4.pvx	Ja, sie ist leicht zu öffnen.
 s	_course:s4.pvx	Ja, sie ist noch zu reparieren.
 s	_course:s4.pvx	Ja, sie ist schnell zu lernen.
 s	_course:s4.pvx	Ja, sie sind genau zu berechnen.
 s	_course:s4.pvx	Kann man das Museum mit dem Bus erreichen?
-s	_course:s4.pvx	Kann man das alte Haus noch verkaufen?
+s	_course:s4.pvx	Kann man das alte Haus noch bewohnen?
 s	_course:s4.pvx	Kann man den Bahnhof leicht finden?
 s	_course:s4.pvx	Kann man den Fleck noch entfernen?
 s	_course:s4.pvx	Kann man den Gipfel in drei Stunden erreichen?
 s	_course:s4.pvx	Kann man den Text gut verstehen?
 s	_course:s4.pvx	Kann man die Kosten genau berechnen?
-s	_course:s4.pvx	Kann man die Tür leise schließen?
+s	_course:s4.pvx	Kann man die Tür leicht öffnen?
 s	_course:s4.pvx	Kann man die Waschmaschine noch reparieren?
 s	_course:s4.pvx	Kann man diese Sprache schnell lernen?
 s	_course:s4.pvx	Liebes Team, die Berichte sind bis Freitag abzugeben. Die Spesen sind bis Ende Monat einzureichen. Danke!
@@ -11521,6 +11564,7 @@ s	_course:s4.pvx	Man kann das Problem nicht lösen. Es ist unlösbar.
 s	_course:s4.pvx	Man kann das Wasser trinken. Es ist trinkbar.
 s	_course:s4.pvx	Man kann den Fehler nicht vermeiden. Er ist nicht vermeidbar.
 s	_course:s4.pvx	Man kann den Fehler nicht vermeiden. Er ist unvermeidbar.
+s	_course:s4.pvx	Man kann den Fehler nicht vermeiden. Er ist unvermeidlich.
 s	_course:s4.pvx	Man kann den Plan umsetzen. Er ist machbar.
 s	_course:s4.pvx	Man kann den Plan umsetzen. Er ist umsetzbar.
 s	_course:s4.pvx	Man kann den Unterschied kaum sehen. Er ist kaum sichtbar.
@@ -11538,8 +11582,10 @@ s	_course:s4.pvx	Man muss die Rechnung innerhalb von 30 Tagen bezahlen.
 s	_course:s4.pvx	Man muss die Schuhe im Flur ausziehen.
 s	_course:s4.pvx	Man muss die Waschküche nach dem Waschen reinigen.
 s	_course:s4.pvx	Man muss Änderungen sofort melden.
+s	_course:s4.pvx	Seine Handschrift ist schwer lesbar.
 s	_course:s4.pvx	Seine Handschrift ist schwer zu lesen.
 s	_course:s4.pvx	Seine Handschrift lässt sich schwer lesen.
+s	_course:s4.pvx	Seine Schrift ist schwer lesbar.
 s	_course:s4.pvx	Seine Schrift ist schwer zu lesen.
 s	_course:s4.pvx	Seine Schrift lässt sich schwer lesen.
 s	_course:s4.pvx	Unser Kühlschrank ist kaputt. Der Techniker sagt, er ist nicht mehr zu reparieren. Ein neuer ist leider teuer.
@@ -11934,7 +11980,7 @@ s	_sheet:cx.fut2	Er wird den Bus verpasst haben.
 s	_sheet:cx.fut2	Er wird viel geschlafen haben.
 s	_sheet:cx.fut2	Ich glaube, dass er es vergessen haben wird.
 s	_sheet:cx.fut2	Ich glaube, dass sie schon gegangen sein wird.
-s	_sheet:cx.fut2	Sie wird das Paket schon abgeholt haben.
+s	_sheet:cx.fut2	Lea wird das Paket schon abgeholt haben.
 s	_sheet:cx.fut2	er wird gegangen sein
 s	_sheet:cx.fut2	wir werden gekommen sein
 s	_sheet:cx.gen1	Das Mädchen heißt Lea.
@@ -12001,7 +12047,7 @@ s	_sheet:cx.iq2	Weißt du, ob er kommt?
 s	_sheet:cx.kj1	Der Sprecher sagt, der Zug habe Verspätung.
 s	_sheet:cx.kj1	Die Kinder sagen, sie hätten Hunger.
 s	_sheet:cx.kj1	Die Ärztin sagt, die Kinder seien gesund.
-s	_sheet:cx.kj1	Laut Bericht sei das Wasser sauber.
+s	_sheet:cx.kj1	Im Bericht steht, das Wasser sei sauber.
 s	_sheet:cx.kj1	Mia sagt, sie ist krank.
 s	_sheet:cx.kj1	Sie sagen, sie hätten keine Zeit.
 s	_sheet:cx.kj1	Sie schreibt, sie komme morgen.

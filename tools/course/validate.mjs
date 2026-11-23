@@ -778,7 +778,7 @@ if (neg && neg.built) {
     ["d26.20", "Wir nehmen den früheren Zug.", "Wir wären den früheren Zug genommen.", "gs:k2p1.r1", "hätten"],
     ["d26.20", "Wir nehmen den früheren Zug.", "Wir haben den früheren Zug genommen.", "gs:k2p1.r1", "really happened"],
     ["d26.21", "Ich müsste mehr Wasser trinken.", "Ich hätte mehr Wasser trinken gemusst.", "gs:k2p2.trap", "müssen"],
-    ["dk2p.sub", "Ich bin nicht gekommen. Ich hätte arbeiten müssen. (weil)", "Ich bin nicht gekommen, weil ich arbeiten müssen hätte.", "gs:k2p2.r3", "before"],
+    ["dk2p.sub", "Ich habe die Stelle nicht angenommen. Ich hätte am Wochenende arbeiten müssen. (weil)", "Ich habe die Stelle nicht angenommen, weil ich am Wochenende arbeiten müssen hätte.", "gs:k2p2.r3", "before"],
     // Futur II
     ["d21.1", "Anna und Ben werden auf den Gipfel gestiegen ___.", "haben", "fut2.form", "sein"],
     ["d21.1", "Du ___ bestimmt viele Fotos gemacht haben.", "wird", "fut2.form", "wirst"],
