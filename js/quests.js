@@ -25,6 +25,10 @@ const QUEST_SLOT_INFO = {
   D: { name: "Wildcard", share: 0.15, xp: 60 },
 };
 const QUEST_NO_REPEAT_DAYS = 5;
+// The "Day complete" moment still to show: the day it was earned on, in
+// memory only — never saved or synced, so it can't outlive its day,
+// follow a reload or reach another device (dayCompletePending).
+let questDayCompleteDay = "";
 // Chest items you can hold at most (⚡ boosts have no cap: they're used
 // up by themselves). One past its cap turns into XP — the other items'
 // odds never change.
@@ -45,6 +49,10 @@ function migrateQuests() {
   const Q = S.quests;
   if (typeof Q.day !== "string") Q.day = "";
   if (!Array.isArray(Q.list)) Q.list = [];
+  // The "Day complete" moment once lived here and was saved (and synced)
+  // with the quests: a day finished but never "continued" carried it into
+  // the next day. It lives in memory now (questDayCompleteDay).
+  delete Q._showDayComplete;
   if (!Array.isArray(Q.history)) Q.history = [];
   if (!Q.m || typeof Q.m !== "object") Q.m = freshQuestCounters();
   if (!Array.isArray(Q.qdays)) Q.qdays = [];
@@ -956,7 +964,7 @@ function questDayComplete() {
   if (daysThisWeek >= 5 && !Q.week.weeklyChest) { Q.week.weeklyChest = true; questQueueChest("weekly", "epic"); }
   checkAchievements({ type: "day_complete" });
   saveState();
-  Q._showDayComplete = true;
+  questDayCompleteDay = today;
 }
 
 // ── EVENTS FROM THE REST OF THE APP ───────────
@@ -1878,29 +1886,36 @@ function startQuestTimer(n) {
   startTimer();
 }
 
-// "Day complete" moment — shown once, after the fourth quest.
-function questAfterActivity() {
+// "Day complete" moment — shown once, after the fourth quest (the day is
+// in questDayCompleteDay, at the top of this file).
+// Still owed, and still true: today's four quests all done.
+function dayCompletePending() {
   const Q = S.quests;
+  const ok = !!questDayCompleteDay && !!Q && Q.dayDone && Q.day === questDayCompleteDay
+    && questDayCompleteDay === todayISO() && questAllDone();
+  if (!ok) questDayCompleteDay = "";
+  return ok;
+}
+function questAfterActivity() {
   // Chests never pop up on their own mid-flow — they wait on the Today
   // card (and the Day complete screen) until you choose to open them.
-  if (Q && Q._showDayComplete) { Q._showDayComplete = false; setTimeout(renderDayComplete, 600); return true; }
+  if (dayCompletePending()) { questDayCompleteDay = ""; setTimeout(renderDayComplete, 600); return true; }
   return false;
 }
 function gameInPlaySafe() { return typeof gameInPlay === "function" && gameInPlay(); }
 // End screens (session summary, game results) keep their content and
 // offer the Day complete moment as their main button instead of being
 // replaced by it.
-function dayCompletePending() { return !!(S.quests && S.quests._showDayComplete); }
 function dayCompleteCtaHtml() {
   return dayCompletePending() ? `<button class="g-big-btn day-cta" onclick="openDayComplete()">🏁 All 4 quests done — continue</button>` : "";
 }
 function openDayComplete() {
-  S.quests._showDayComplete = false;
+  questDayCompleteDay = "";
   if (typeof quitAllGames === "function") quitAllGames();
   renderDayComplete(true);
 }
 function renderDayComplete(force = false) {
-  if (!force && (gameInPlaySafe() || (typeof pathSession !== "undefined" && pathSession) || document.getElementById("game-screen"))) { S.quests._showDayComplete = true; return; }
+  if (!force && (gameInPlaySafe() || (typeof pathSession !== "undefined" && pathSession) || document.getElementById("game-screen"))) { questDayCompleteDay = S.quests.day; dayCompletePending(); return; }
   const Q = S.quests;
   const st = questStreak();
   showGameScreen();
@@ -1939,7 +1954,7 @@ function renderCollection() {
       <span class="p-chip" title="Covers a missed day automatically">🧊 ${Q.freezes}/${FREEZE_CAP} freezes</span>
       <span class="p-chip" title="Tap 🎲 on a quest to swap it — each reroll uses a token">🎟️ ${Q.tokens}/${TOKEN_CAP} rerolls</span>
       <span class="p-chip" title="Each one gives ×1.5 XP to your next Today session, automatically">⚡ ${Q.boosts} boost${Q.boosts === 1 ? "" : "s"}</span>
-      <span class="p-chip" title="After a miss in a Today session, tap “🛡️ Shield it” to keep the word's stage">🛡️ ${Q.shields}/${SHIELD_CAP} shields</span>
+      <span class="p-chip" title="When a miss in a Today session would drop a word a stage, tap “🛡️ Shield it” to keep it">🛡️ ${Q.shields}/${SHIELD_CAP} shields</span>
       <span class="p-chip" title="Games → Bosses: summon a minion whenever you like">🗝️ ${Q.keys} key${Q.keys === 1 ? "" : "s"}</span>
       <span class="p-chip" title="Bring them to a 👑 deck boss: one mistake each (1 per 20 words of the deck). Losing the fight spends them.">❤️ ${Q.hearts}/${heartCap()} hearts</span>
       <span class="p-chip">📦 ${Q.chest.opened} chests opened</span>

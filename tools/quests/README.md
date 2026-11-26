@@ -26,3 +26,15 @@ The rule: a quest is finished by your effort — the daily plus a little extra �
                               # ranks up), never a personal best, never for a minion; the quests see them · the 🎲
                               # reroll: any quest of the slot, some arrive done and pay at once, never one that
                               # can't be done, a token only for a drawn quest
+
+## Day complete and the shield
+
+    node t-daycomplete-shield.mjs   # APP=fr · FS=1 reads the repo from disk (no server needed)
+
+- **🏁 Day complete**: "All 4 quests done — continue" only while today's four quests are all done. The
+  moment lives in memory, stamped with its day — never saved or synced — so a day finished but not
+  "continued" can't bring it back on the next day's first session summary; a saved flag from older
+  versions is dropped at load.
+- **🛡️ Shield it**: only offered when the miss drops the word a stage — not on a Known word's first slip
+  (🩹 repair, the badge is kept), a word already dropped a step today, a stage-1 word, with no shield
+  left, or in Grandma mode.

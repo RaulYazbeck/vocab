@@ -731,9 +731,12 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     res = applyWrong(ws, { w, keepFx: !!it.plural });
     // A plural missed again: its repair asks it, and it is watched after.
     if (it.plural) { ws.fx = "pl"; pluralMissed(ws); }
-    // 🛡️ A memory shield (chest item) can take back a stage loss or a
-    // repair — you pick the word: the button sits on this feedback.
-    if ((res.demoted || res.events.includes("repair")) && S.quests && S.quests.shields > 0 && !grandmaOn())
+    // 🛡️ A memory shield (chest item) can take back a stage loss — you
+    // pick the word: the button sits on this feedback. Only offered when
+    // this miss really costs the word a stage: not on a 🩹 repair (the
+    // badge is kept), a word already down a step today, or one on the
+    // first stage (nothing below it).
+    if (res.demoted && S.quests && S.quests.shields > 0 && !grandmaOn())
       s.shield = { key: wordKey(w), ws: before, move: moveBefore };
     s.stats.wrong++;
     if (it.t === "spot") S.path.spotToday = (S.path.spotToday || 0) + 1;
@@ -757,7 +760,7 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     : evs.includes("known") ? `<span class="p-chip ok">🌳 Known!</span>`
     : evs.includes("repaired") ? `<span class="p-chip ok">🩹 Repaired</span>`
     : evs.includes("unflagged") ? `<span class="p-chip ok">⚠️ Flag cleared — back on track</span>`
-    : evs.includes("repair") ? `<span class="p-chip warn">🩹 Badge kept — repair it next time</span>${pathShieldBtnHtml()}`
+    : evs.includes("repair") ? `<span class="p-chip warn">🩹 Badge kept — repair it next time</span>`
     : evs.includes("dropped") ? `<span class="p-chip warn">↓ ${tierOfStage(res.to).icon} back to ${tierOfStage(res.to).name}</span>${pathShieldBtnHtml()}`
     : res && res.promoted ? `<span class="p-chip ok">↑ ${tierOfStage(res.to).icon} ${tierOfStage(res.to).name}</span>`
     : evs.includes("confirm") ? `<span class="p-chip">✓ Good — one more check before it moves up</span>`
