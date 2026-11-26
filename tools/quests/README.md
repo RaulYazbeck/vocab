@@ -29,7 +29,7 @@ The rule: a quest is finished by your effort — the daily plus a little extra �
 
 ## Day complete and the shield
 
-    node t-daycomplete-shield.mjs   # APP=fr · FS=1 reads the repo from disk (no server needed)
+    node t-daycomplete-shield.mjs   # APP=fr (or: node ../day/run-suite.mjs ../quests/t-daycomplete-shield.mjs)
 
 - **🏁 Day complete**: "All 4 quests done — continue" only while today's four quests are all done. The
   moment lives in memory, stamped with its day — never saved or synced — so a day finished but not

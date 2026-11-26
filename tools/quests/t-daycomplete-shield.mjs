@@ -8,7 +8,7 @@
 //     on a 🩹 repair (the badge is kept), not on a word already dropped a
 //     step today, not on the first stage, not without a shield.
 //   node t-daycomplete-shield.mjs   (APP=fr; serve the repo root on :8765,
-//                                    or FS=1 to read it from disk)
+//                                    or: node ../day/run-suite.mjs ../quests/t-daycomplete-shield.mjs)
 import { openApp } from "../verb-track/browser.mjs";
 const APP = process.env.APP || "de";
 const { browser, page, errors } = await openApp({ width: 390, height: 844, app: APP });

@@ -29,7 +29,7 @@ function chrome() {
 export async function openApp({ width = 390, height = 844, profile = true, extra = null, state = process.env.REAL_STATE || "", app = "de", umlautAuto = true, vxOff = false, course = process.env.COURSE === "1" } = {}) {
   const browser = await chromium.launch({ executablePath: chrome(), args: ["--no-sandbox"] });
   // TZID: the learner's time zone (a real profile's days roll over at its 4 AM)
-  const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 2, ...(process.env.FS === "1" ? { serviceWorkers: "block" } : {}), ...(process.env.TZID ? { timezoneId: process.env.TZID } : {}) });
+  const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 2, ...(process.env.TZID ? { timezoneId: process.env.TZID } : {}) });
   const page = await ctx.newPage();
   if (vxOff) await page.addInitScript(() => { window.VX_TEST_OFF = true; });
   if (!course) await page.addInitScript(() => { window.CX_TEST_OFF = true; });
@@ -37,14 +37,6 @@ export async function openApp({ width = 390, height = 844, profile = true, extra
   page.on("pageerror", e => errors.push(String(e.stack || e)));
   page.on("console", m => { if (m.type() === "error" && !/firebase|gstatic|Failed to load resource|net::ERR/i.test(m.text())) errors.push(m.text()); });
   await page.route(/gstatic\.com|googleapis\.com|firebaseio|google\.com/, r => r.abort());
-  // FS=1: no server needed — BASE is answered from the repo on disk.
-  if (process.env.FS === "1") await ctx.route(u => u.href.startsWith(BASE + "/"), r => {
-    const rel = decodeURIComponent(new URL(r.request().url()).pathname).replace(/^\/+/, "");
-    const file = path.join(here, "../..", rel);
-    if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) return r.fulfill({ status: 404, body: "" });
-    const type = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".json": "application/json", ".svg": "image/svg+xml", ".png": "image/png", ".webmanifest": "application/manifest+json" }[path.extname(file)] || "application/octet-stream";
-    return r.fulfill({ status: 200, contentType: type, body: fs.readFileSync(file) });
-  });
   await page.goto(BASE + `/${app}/index.html`);
   await page.waitForFunction(() => typeof S !== "undefined" && typeof ALL_GROUPS !== "undefined");
   if (state) {
