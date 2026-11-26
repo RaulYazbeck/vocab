@@ -1910,6 +1910,9 @@ function dayCompleteCtaHtml() {
   return dayCompletePending() ? `<button class="g-big-btn day-cta" onclick="openDayComplete()">🏁 All 4 quests done — continue</button>` : "";
 }
 function openDayComplete() {
+  // A button left on screen (the 4 AM rollover, a quest reopened by a
+  // sync) that is no longer true: back to Today instead.
+  if (!dayCompletePending()) { backToMenu(); return; }
   questDayCompleteDay = "";
   if (typeof quitAllGames === "function") quitAllGames();
   renderDayComplete(true);

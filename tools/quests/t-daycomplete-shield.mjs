@@ -93,6 +93,21 @@ const C = await page.evaluate(quiet => {
   ok(dayCompletePending(), "all four done now: button");
   backToMenu();
   ok(!dayCompletePending(), "back to the menu: the moment is shown once, then gone");
+  // a button left on screen past the 4 AM rollover: tapping it goes to Today
+  Q.list.forEach(q => { q.done = false; }); Q.dayDone = false;
+  Q.list.forEach(q => { q.done = true; q.prog = q.target; }); questRecompute();
+  ok(dayCompletePending(), "earned again (for the stale-button check)");
+  Q.day = addDays(todayISO(), -1); questEnsureToday();
+  let shown = false; const real = window.renderDayComplete;
+  window.renderDayComplete = (...a) => { shown = true; return real(...a); };
+  openDayComplete();
+  window.renderDayComplete = real;
+  ok(!shown && !/Day complete/.test(document.getElementById("main-screen").innerHTML || ""), "a stale 🏁 button tapped after the rollover: no Day complete screen");
+  // an old flag brought in by a sync from an older version: ignored, dropped
+  Q._showDayComplete = true;
+  ok(!dayCompletePending() && !dayCompleteCtaHtml(), "a synced old flag: no button");
+  questEnsureToday();
+  ok(!("_showDayComplete" in Q), "a synced old flag: dropped");
   return r;
 }, quiet.toString());
 out.push(...C);
