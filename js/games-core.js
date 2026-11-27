@@ -1906,7 +1906,8 @@ function toggleSurpriseRounds() {
 // deckIds: from the start bar (session-only pool), or undefined to use
 // the saved pool preference.
 function openGamesHub(deckIds) {
-  if (typeof pathSession !== "undefined" && pathSession) endPathSession(true);
+  // A Today session with answers asks first (mode-path.js pathLeaveThen).
+  if (typeof pathSession !== "undefined" && pathSession && typeof pathLeaveThen === "function") { pathLeaveThen(() => openGamesHub(deckIds), "games"); return; }
   quitAllGames();
   closePoolPicker();
   clearGameCaches();

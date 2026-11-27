@@ -51,6 +51,22 @@ seeded randomness) is byte-for-byte the same as before this change:
     OUT=/tmp/new.json node t-home-ab.mjs     # TZ_ID=America/Mexico_City …
     # then the same on the previous version → OUT=/tmp/old.json, and cmp
 
+Two more browser tests (served by `run-suite.mjs`, below):
+
+    node run-suite.mjs t-report.mjs   # the usage report's game times and quest counts
+    node run-suite.mjs t-leave.mjs    # leaving a Today session: asked, Keep going by default
+
+- `t-report` — game times: a game left open before the 10-minute cap counts
+  10 min; days before times were logged don't thin the averages (no "active"
+  time above the whole game's); new games count themselves. Quests: a day's
+  quests drawn again count once; a reroll's, the weekend's and a swapped-in
+  quest count as offered; on older days no quest is done more often than
+  offered
+- `t-leave` — a ☰ screen, the games menu or a quest's ▶ Go mid-session asks
+  before leaving (they ended the session without a word); Enter = Keep going;
+  an Esc that closes the accent picker isn't a Leave; the usage log and
+  report say how each session was left
+
 The older browser suites expect the repo served on :8765; `run-suite.mjs` serves
 it and runs them in turn:
 

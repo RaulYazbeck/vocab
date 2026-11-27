@@ -478,7 +478,10 @@ function frGenderNoteHtml(word) {
 
 // In-app confirmation sheet (instead of the browser's confirm()).
 // Resolves true/false. Esc / tapping outside = cancel.
-function appConfirm({ title, body = "", ok = "OK", cancel = "Cancel", danger = false }) {
+// focus: the button Enter presses — "cancel" where OK would end
+// something (a Today session, a game): an Enter meant for an answer then
+// keeps you where you were.
+function appConfirm({ title, body = "", ok = "OK", cancel = "Cancel", danger = false, focus = "ok" }) {
   return new Promise(resolve => {
     const old = document.getElementById("app-confirm"); if (old) old.remove();
     const m = document.createElement("div");
@@ -497,6 +500,6 @@ function appConfirm({ title, body = "", ok = "OK", cancel = "Cancel", danger = f
     document.body.appendChild(m);
     m.querySelector("#ac-no").onclick = () => done(false);
     m.querySelector("#ac-yes").onclick = () => done(true);
-    setTimeout(() => m.querySelector("#ac-yes").focus(), 50);
+    setTimeout(() => m.querySelector(focus === "cancel" ? "#ac-no" : "#ac-yes").focus(), 50);
   });
 }

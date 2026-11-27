@@ -302,6 +302,34 @@ function syncWritingUnion(a, b) {
 //                 no map at all, keep the higher count
 //   opts.localWins true when local's whole-object fields (quests, path,
 //                 settings…) should be kept rather than cloud's
+// A day's plan numbers in the usage history (usage-log.js, the "plan"
+// event; mk: when that plan was made) are one plan's: when two copies made
+// different plans for the day, one is kept whole — not the higher of each
+// number, which kept the backlog a copy that hadn't synced yet saw (a
+// phone back from the background: 673 "overdue" on a morning with none).
+// Kept: one made from a synced copy (no pre), then the plan in force
+// today, then the later one. The brake's reading (brk) goes with it.
+function syncPickDayPlans(days, ld, cd, inForce) {
+  Object.keys(days).forEach(day => {
+    const A = ld[day] || {}, B = cd[day] || {}, a = A.plan, b = B.plan;
+    if (!syncIsObj(a) || !syncIsObj(b) || !a.mk || !b.mk) return;
+    const out = days[day];
+    if (a.mk === b.mk) {
+      // the same plan: marked as unsynced only while both copies say so
+      if (!(a.pre && b.pre)) delete out.plan.pre;
+      return;
+    }
+    const rank = p => [p.pre ? 0 : 1, syncIsObj(inForce) && inForce.day === day && inForce.at === p.mk ? 1 : 0, p.mk];
+    const ra = rank(a), rb = rank(b);
+    const i = ra.findIndex((x, k) => x !== rb[k]);
+    const pick = i >= 0 && rb[i] > ra[i] ? b : a;
+    out.plan = syncClone(pick);
+    const brk = [A.brk, B.brk].find(k => syncIsObj(k) && k.mk === pick.mk);
+    if (brk) out.brk = syncClone(brk);
+    else if ([A.brk, B.brk].some(k => syncIsObj(k) && k.mk)) delete out.brk; // (another plan's reading)
+  });
+}
+
 function mergeStates(local, cloud, opts = {}) {
   local = syncIsObj(local) ? local : {};
   cloud = syncIsObj(cloud) ? cloud : {};
@@ -410,7 +438,9 @@ function mergeStates(local, cloud, opts = {}) {
   // the higher counts.
   if (local.usage || cloud.usage) {
     out.usage = syncClone(win.usage || {});
-    out.usage.days = syncDeepMax((local.usage || {}).days || {}, (cloud.usage || {}).days || {});
+    const ld = (local.usage || {}).days || {}, cd = (cloud.usage || {}).days || {};
+    out.usage.days = syncDeepMax(ld, cd);
+    syncPickDayPlans(out.usage.days, ld, cd, syncIsObj(out.path) ? out.path.plan : null);
   }
   if (local.usageArchive || cloud.usageArchive) {
     const ua = {};

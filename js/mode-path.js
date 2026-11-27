@@ -14,6 +14,8 @@ let pathSession = null;
 let _pathKeyBound = false;
 
 function startPathSession(lenKey, opts = {}) {
+  // (one still open is ended, not left behind uncounted)
+  if (pathSession) endPathSession(true);
   if (typeof quitAllGames === "function") quitAllGames();
   _screenFrom = null;
   lenKey = PATH.SESSION_LENGTHS[lenKey] ? lenKey : (S.path.sessionLen || "regular");
@@ -115,7 +117,8 @@ function bindPathKeys() {
     if (!it) return;
     // Any open sheet (word editor, confirm, chest…) owns the keyboard.
     if (document.querySelector(".modal-overlay") || document.getElementById("settings-panel").style.display === "block") return;
-    if (e.key === "Escape") { e.preventDefault(); pathQuit(); return; }
+    // (an Escape that closes the accent picker — ä ö ü — while typing is the picker's)
+    if (e.key === "Escape") { if (e.isComposing || e.keyCode === 229) return; e.preventDefault(); pathQuit(); return; }
     // A 📖 lesson: the sheet viewer has its own keys (grammar-ui.js).
     if (it.t === "sheet") { if (typeof gsKey === "function") gsKey(e); return; }
     // A 📖 course card: its sheet viewer or its drill runner (course-ui.js).
@@ -1141,24 +1144,57 @@ function resumePathAfterBonus() {
 }
 
 // ── LEAVING / SUMMARY ─────────────────────────
+// A session with something done in it: leaving it asks first.
+function pathHasWork(s = pathSession) { return !!s && (s.stats.answered > 0 || s.met.length > 0); }
+// The question, wherever you leave from (✕, the title, Esc, a ☰ screen,
+// the games menu). "Keep going" is the default: an Enter meant for an
+// answer must not end the session.
+function pathConfirmLeave() {
+  return appConfirm({ title: "Leave the session?", body: "Everything you've answered so far is saved.", ok: "Leave", cancel: "Keep going", focus: "cancel" });
+}
+// Back to the answer box after "Keep going".
+function pathRefocus() {
+  const i = document.getElementById("p-input"), t = document.getElementById("p-typed");
+  if (i && t && t.style.display !== "none") i.focus({ preventScroll: true });
+}
+// Leaving for another screen (app.js showScreen, games-core.js
+// openGamesHub): asks first when the session has something in it, like
+// the ✕ — they used to end it without a word (a look at the Journey
+// mid-session ended it). go() runs once it's left; how: for the usage log.
+function pathLeaveThen(go, how) {
+  const s = pathSession;
+  if (!s) { go(); return; }
+  if (!pathHasWork(s)) { endPathSession(true, "empty"); go(); return; }
+  const ctx = typeof activeGame !== "undefined" && activeGame && activeGame.ctx;
+  const held = ctx && !ctx.paused && typeof pauseGame === "function" && (pauseGame(), ctx.paused);
+  pathConfirmLeave().then(yes => {
+    if (pathSession !== s) return;
+    if (yes) { endPathSession(true, how); go(); return; }
+    if (held && activeGame && activeGame.ctx === ctx && ctx.paused) resumeGame();
+    else pathRefocus();
+  });
+}
 // Resolves true when the session was left.
 function pathQuit() {
   const s = pathSession;
   if (!s) { backToMenu(); return Promise.resolve(true); }
-  if (s.stats.answered === 0 && !s.met.length) { endPathSession(true); backToMenu(); return Promise.resolve(true); }
-  return appConfirm({ title: "Leave the session?", body: "Everything you've answered so far is saved.", ok: "Leave", cancel: "Keep going" })
+  if (!pathHasWork(s)) { endPathSession(true, "empty"); backToMenu(); return Promise.resolve(true); }
+  return pathConfirmLeave()
     .then(yes => {
-      if (yes && pathSession === s) { if (typeof quitAllGames === "function") quitAllGames(); renderPathSummary(true); }
-      else if (!yes) { const i = document.getElementById("p-input"); if (i && document.getElementById("p-typed").style.display !== "none") i.focus({ preventScroll: true }); }
+      if (yes && pathSession === s) { if (typeof quitAllGames === "function") quitAllGames(); renderPathSummary(true, "quit"); }
+      else if (!yes) pathRefocus();
       return yes;
     });
 }
-function endPathSession(abandoned) {
+// how (left before the end): "quit" (✕ / the title / Esc, asked), "nav" (a
+// ☰ screen, asked), "games" (the games menu, asked), "back" (back to
+// Today some other way), "empty" (nothing answered yet).
+function endPathSession(abandoned, how) {
   const s = pathSession;
   if (!s) return;
   stopPathVoice();
   const moves = s.moves ? [...s.moves.values()] : [];
-  logEvent("session_end", { kind: "path", abandoned, n: s.stats.answered, ok: s.stats.correct, ms: Date.now() - s.startedAt, at: s.i,
+  logEvent("session_end", { kind: "path", abandoned, ...(abandoned ? { how: how || (pathHasWork(s) ? "back" : "empty") } : {}), n: s.stats.answered, ok: s.stats.correct, ms: Date.now() - s.startedAt, at: s.i,
     sd: typeof usageDateOf === "function" ? usageDateOf(s.startedAt) : undefined, met: (s.met || []).filter(w => !w.vx).length, vxNew: (s.met || []).filter(w => w.vx).length, vxCells: s.vxCells || 0, up: moves.filter(m => m.to > m.from).length, down: moves.filter(m => m.to < m.from).length });
   questEvent("session_end", { kind: "path", len: s.lenKey, abandoned, stats: s.stats, ms: Date.now() - s.startedAt,
     ok5: s.ok5, up: s.upCount || 0, wotdHit: !!s.wotdHit });
@@ -1179,7 +1215,7 @@ function endPathSession(abandoned) {
   invalidatePathScan();
   if (typeof flushDeferredCelebrations === "function") flushDeferredCelebrations();
 }
-function renderPathSummary(abandoned) {
+function renderPathSummary(abandoned, how) {
   const s = pathSession;
   if (!s) return;
   const moves = [...s.moves.values()];
@@ -1205,7 +1241,7 @@ function renderPathSummary(abandoned) {
   const cleanSlate = !abandoned && s.repairN > 0 && s.repairFixed === s.repairN;
   const flawless = !abandoned && stats.answered >= 10 && stats.wrong === 0;
   if (cleanSlate || flawless) addExp(10);
-  endPathSession(abandoned);
+  endPathSession(abandoned, how);
   const xp = Math.max(0, S.exp - s.startExp - (s.badgeXp || 0));
   if (!abandoned && s.stats.answered >= 5) { if (acc >= 90) confettiBurst(40); playAchievement(); }
   const upRow = m => `<div class="p-move">

@@ -1312,6 +1312,26 @@ sentences recorded (4,089 characters, 0 refused); 70,536 / 70,536 texts.
   it's done, marked late after the deadline, missed when the month ends; the first attempt of the month is kept. Its 20
   questions span every lesson done, six of them production; the Exam screen gives one verdict and one hint, never more
   than the numbers say.
+- **The usage report of 27 Nov 2026 — four bugs, my report:**
+  (1) *Phantom morning backlogs* (686/673 "overdue" on 19 Nov, 175 on 27 Nov, the brake slowing new words): a phone left
+  open in the background comes back on a new day and draws today's plan before its sync is in. The "made before the
+  sync" mark only went on before the first sync of a page, so that plan stayed — whole when something was answered
+  before the sync landed (17 Nov: target 270, "591 left for later"), and in the usage log always (the morning numbers
+  and the brake's reading are kept from the first plan, and the merge took the higher of each number). Now a plan made
+  while the copy isn't known fresh (sync.js `syncCopyFresh`: no sync yet, one running, or just back from the
+  background) is made again once the sync brings anything in; each plan has its `at`, and the usage log's morning
+  numbers and brake reading follow the plan in force, across devices too (sync-merge.js `syncPickDayPlans`).
+  (2) *Game times*: days logged before the 10-minute cap (Thread: 26 min) are capped in the report, and averages only
+  count games from the days times were logged (an "active" time above the whole game's showed the old mix-up); games
+  now count themselves (gx [7]/[8]). (3) *Quests done more often than offered*: a reroll's or swap's new quest, the
+  weekend quest and the app's own swaps weren't counted as offered, and a day's quests drawn again (on a sync)
+  counted again (a_plan offered 86 times in 61 days); now offered once a day per quest, every way a quest comes, and
+  older days are read so. (4) *Sessions "abandoned" mid-work* (6 on 20 Nov, next to 8 ☰ screens opened; 6 on 21 Nov):
+  a ☰ screen, the games menu or a quest's ▶ Go ended a Today session without a word — now they ask first, like the ✕;
+  the question's default is Keep going (Esc then an Enter meant for an answer used to leave); an Esc that closes the
+  accent picker isn't a Leave; and each session left records how (`how`, shown in the report), so the next report
+  says what ended them. 21 Nov's can't be told apart after the fact — no screen opens that day, so most were left
+  through the question; the bonus games were all fine on that day's build (t-gamematrix bonus, 34/34).
 
 ## 15. Parked — for later
 

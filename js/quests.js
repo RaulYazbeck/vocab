@@ -736,7 +736,9 @@ function questPlanChanged() {
       const pick = weightedPick(questCandidates("A", ctx, used, fams).filter(x => !x.t.audio), rng);
       t = pick ? pick.t : byId("a_typed");
     }
+    const was = Q.list[i].tpl;
     Q.list[i] = makeQuest(t, ctx, rng, "A");
+    logEvent("quest_auto", { why: "plan", from: [was], to: [t.id] });
     questRecompute(true);
     saveState();
     return true;
@@ -751,6 +753,7 @@ function questSwapUnusedAnki() {
   const Q = S.quests;
   if (!Q || !Q.list.length || (typeof ankiInUse === "function" && ankiInUse())) return;
   let changed = false;
+  const from = [], to = [];
   Q.list.forEach((q, i) => {
     const isAnki = ANKI_TPLS.includes(q.tpl) || (q.hidden && ANKI_TPLS.includes(q.hidden.tpl));
     if (!isAnki || q.done) return;
@@ -760,9 +763,10 @@ function questSwapUnusedAnki() {
     const fams = new Set(Q.list.filter((x, k) => k !== i).map(x => (byId(x.tpl) || {}).fam));
     const pick = weightedPick(questCandidates(q.slot, ctx, used, fams).filter(x => !x.t.audio && x.t.id !== "d_mystery"), rng);
     Q.list[i] = makeQuest(pick ? pick.t : byId(q.slot === "C" ? "c_games" : "a_typed"), ctx, rng, q.slot);
+    from.push(q.tpl); to.push(Q.list[i].tpl);
     changed = true;
   });
-  if (changed) { logEvent("quest_swap", { why: "anki_unused" }); questRecompute(true); saveLocalOnly(); }
+  if (changed) { logEvent("quest_auto", { why: "anki_unused", from, to }); questRecompute(true); saveLocalOnly(); }
 }
 // Open quests that can't be done any more are swapped for free: a
 // retired or removed template (an old save's Quick Five), or a spelling quest (accents, Scramble,
@@ -772,6 +776,7 @@ function questSwapWhere(bad, why, local = false) {
   const Q = S.quests;
   if (!Q || !Q.list.length) return;
   let changed = false;
+  const from = [], to = [];
   Q.list.forEach((q, i) => {
     if (q.done || !(bad(q.tpl, q) || (q.hidden && bad(q.hidden.tpl, q.hidden)))) return;
     const ctx = questContext();
@@ -780,10 +785,12 @@ function questSwapWhere(bad, why, local = false) {
     const fams = new Set(Q.list.filter((x, k) => k !== i).map(x => (byId(x.tpl) || {}).fam));
     const pick = weightedPick(questCandidates(q.slot, ctx, used, fams).filter(x => !x.t.audio && x.t.id !== "d_mystery"), rng);
     Q.list[i] = makeQuest(pick ? pick.t : byId(q.slot === "C" ? "c_games" : "a_typed"), ctx, rng, q.slot);
+    from.push(q.tpl); to.push(Q.list[i].tpl);
     changed = true;
   });
-  if (Q.weekend && !Q.weekend.done && bad(Q.weekend.tpl, Q.weekend)) { Q.weekend = null; changed = true; }
-  if (changed) { logEvent("quest_swap", { why }); questRecompute(true); if (local) saveLocalOnly(); else saveState(); }
+  if (Q.weekend && !Q.weekend.done && bad(Q.weekend.tpl, Q.weekend)) { from.push(Q.weekend.tpl); Q.weekend = null; changed = true; }
+  // (not a swap you chose: the usage report counts its new quests as offered, not as swaps)
+  if (changed) { logEvent("quest_auto", { why, from, to }); questRecompute(true); if (local) saveLocalOnly(); else saveState(); }
 }
 function questSwapForSpeak() {
   if (!speakOn()) return;
@@ -1851,6 +1858,10 @@ function questGoTpl(id) {
 }
 function runQuestAction(a) {
   a = a || "path";
+  // From inside a Today session: it's left first (asked if anything is in
+  // it) — the games menu's follow-up taps below, a new session, a boss
+  // would otherwise run with the session still open behind them.
+  if (typeof pathSession !== "undefined" && pathSession && typeof pathLeaveThen === "function") { pathLeaveThen(() => runQuestAction(a), "nav"); return; }
   logEvent("quest_go", { a });
   const [k, x, y] = a.split(":");
   const len = S.path.sessionLen || "regular";

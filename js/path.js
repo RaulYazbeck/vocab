@@ -281,7 +281,7 @@ function pathNewQuota(scan = pathScan()) {
     else if (base > 0) reason = "slowed";
   }
   const held = plan && reason !== "paused" ? full - base : 0;
-  if (plan && typeof usageNoteBrake === "function") usageNoteBrake(reason, scan.overdue);
+  if (plan && typeof usageNoteBrake === "function") usageNoteBrake(reason, scan.overdue, plan.at);
   // (extraUndo: "+5"s taken back — counted apart so a sync never brings them back)
   // A "+5" counts from the words already met when it was first pressed
   // (extraAt): the brake's pace floor drops a little as words are met, and
@@ -526,28 +526,39 @@ function pathEnsurePlan(scan) {
       try { cx = cxPlanNumbers(scan); } finally { P.plan = was; }
     }
   }
-  const plan = { v: 5, day: today, deadline: P.deadline, pace, reviews, leave, kw, kv, ...(vx ? { vx } : {}), ...(cx ? { cx } : {}) };
+  // at: when this day's plan was made (kept through a finish-date change):
+  // the usage log keeps the morning numbers of the plan in force by it.
+  const at = prev && prev.at ? prev.at : Date.now();
+  const plan = { v: 5, day: today, deadline: P.deadline, at, pace, reviews, leave, kw, kv, ...(vx ? { vx } : {}), ...(cx ? { cx } : {}) };
   plan.target = plan.goal = planTargetOf(plan);
   const target = plan.target;
   P.plan = plan;
-  // Made before this device synced (sync.js): see pathAfterSync.
-  if (typeof cloudLoadedOnce !== "undefined" && !cloudLoadedOnce) P.plan.pre = 1;
+  // Made from a copy not known to hold the cloud's progress (sync.js,
+  // syncCopyFresh: before the first sync, while one runs, or just back
+  // from the background): see pathAfterSync.
+  if (typeof syncCopyFresh === "function" ? !syncCopyFresh() : typeof cloudLoadedOnce !== "undefined" && !cloudLoadedOnce) P.plan.pre = 1;
   planSyncQuest(P.plan);
   const pc = pathPaceCheck(today);
-  logEvent("plan", { pace, reviews, target, leave, kw, kv, due: scan.due, od: scan.overdue, ...(vx ? { vx } : {}), snap: pathSnapshot(scan), pc: pc.level + (pc.why.length ? ":" + pc.why.join("/") : "") });
+  logEvent("plan", { at, ...(prev ? { same: 1 } : {}), ...(P.plan.pre ? { pre: 1 } : {}), pace, reviews, target, leave, kw, kv, due: scan.due, od: scan.overdue, ...(vx ? { vx } : {}), snap: pathSnapshot(scan), pc: pc.level + (pc.why.length ? ":" + pc.why.join("/") : "") });
   return P.plan;
 }
-// A plan made before this device's first sync of the session (opened
-// offline, or used while it was still syncing) only saw this copy's
-// progress: days studied on another device looked like a backlog. Once
-// a sync brings another device's progress in, it is made again — reviews
-// already done today still count (pathReviewedToday). A sync with nothing
-// new leaves it as it is.
+// A plan made before this copy was known to hold the cloud's progress
+// (opened offline, used while it was still syncing, or drawn the moment
+// the app came back from the background on a new day — the commonest:
+// a phone left open overnight) only saw this copy's progress: days
+// studied on another device looked like a backlog. Once a sync brings
+// another device's progress in, it is made again — reviews already done
+// today still count (pathReviewedToday). A sync with nothing new leaves
+// it as it is. (A plan the merge took from the other device has no mark:
+// that one was made there, from that copy.)
 function pathAfterSync(merged) {
   const p = S.path && S.path.plan;
   if (!p || !p.pre) return;
   if (merged && p.day === studyToday()) { S.path.plan = null; invalidatePathScan(); pathEnsurePlan(); }
-  if (S.path.plan) delete S.path.plan.pre;
+  if (S.path.plan) {
+    delete S.path.plan.pre;
+    if (typeof usagePlanSynced === "function") usagePlanSynced(S.path.plan);
+  }
 }
 // Reviews already done today: words that were due and got answered and
 // rescheduled today (not today's new words, not ones still being fixed).
