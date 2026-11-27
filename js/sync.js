@@ -394,7 +394,7 @@ function syncLocalDirty() { return !syncRec.base || (S.savedAt || 0) !== syncRec
 
 // Cloud docs → one state (sync-only fields dropped).
 function syncCloudState(snapshot) {
-  let meta = null, learn = null;
+  let meta = null, learn = null, voiceLog = null;
   const words = {}, usageArchive = {}, deckSeen = {}, writing = {};
   snapshot.forEach(doc => {
     const data = syncDecodeArrays(doc.data()); // back to lists of lists
@@ -404,6 +404,7 @@ function syncCloudState(snapshot) {
       deckSeen[doc.id.slice((STORAGE_KEY + "_words_").length)] = syncDocSeen(data);
     }
     else if (doc.id === STORAGE_KEY + "_learn") learn = data.learn || null;
+    else if (doc.id === STORAGE_KEY + "_voice") voiceLog = data.vl && typeof data.vl === "object" ? data.vl : null;
     else if (doc.id.startsWith(STORAGE_KEY + "_usage_")) usageArchive[doc.id.slice((STORAGE_KEY + "_usage_").length)] = data.days || {};
     else if (doc.id.startsWith(STORAGE_KEY + "_writing_")) writing[doc.id.slice((STORAGE_KEY + "_writing_").length)] = Array.isArray(data.wr) ? data.wr : [];
   });
@@ -411,6 +412,7 @@ function syncCloudState(snapshot) {
   const { _evidence, _dev, _seen, _at, _sv, _p, ...rest } = meta;
   const state = { ...rest, words, usageArchive };
   if (learn) state.learn = learn;
+  if (voiceLog) state.voiceLog = voiceLog;
   if (Object.keys(writing).length) state.writing = writing;
   return { meta, state, deckSeen };
 }
@@ -448,7 +450,7 @@ function buildSyncDocs(state = S) {
   Object.keys(state.resets || {}).forEach(deckId => { if (!wordsByDeck[deckId]) wordsByDeck[deckId] = {}; });
   // (_dev/_seen/_at/_sv: save stamps an older app version may have copied
   // into its state — never content; each commit adds its own.)
-  const { words, usageArchive, learn, writing, _dev, _seen, _at, _sv, _p, _evidence, ...meta } = state;
+  const { words, usageArchive, learn, writing, voiceLog, _dev, _seen, _at, _sv, _p, _evidence, ...meta } = state;
   meta._evidence = evidenceCount(state); // answers in total, for a quick look at the meta doc
   const docs = { [STORAGE_KEY]: meta };
   Object.entries(wordsByDeck).forEach(([deckId, deckWords]) => {
@@ -457,6 +459,9 @@ function buildSyncDocs(state = S) {
   // Learning log extras (learning-log.js): their own doc, so verb
   // history can grow without crowding the meta doc.
   if (learn) docs[STORAGE_KEY + "_learn"] = { learn };
+  // The voice log (audio.js): its own doc, written only when a recording
+  // is flagged, a phrase without one is noted, or the log is copied out.
+  if (voiceLog) docs[STORAGE_KEY + "_voice"] = { vl: voiceLog };
   // The writing journal (course-de.js): every text kept, one doc a year.
   Object.entries(writing && typeof writing === "object" ? writing : {}).forEach(([year, wr]) => {
     if (Array.isArray(wr)) docs[STORAGE_KEY + "_writing_" + year] = { wr };

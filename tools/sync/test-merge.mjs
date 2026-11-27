@@ -2,7 +2,7 @@
 // (pure, no browser): node test-merge.mjs
 import fs from "node:fs"; import vm from "node:vm";
 const src = fs.readFileSync(new URL("../../js/sync-merge.js", import.meta.url), "utf8");
-const ctx = {}; vm.createContext(ctx); vm.runInContext(src + "\n;this.mergeStates = mergeStates; this.syncScalarsOf = syncScalarsOf;", ctx);
+const ctx = {}; vm.createContext(ctx); vm.runInContext(src + "\n;this.mergeStates = mergeStates; this.syncScalarsOf = syncScalarsOf; this.syncMergeVoiceLog = syncMergeVoiceLog; this.syncHash = syncHash;", ctx);
 const merge = (l, c, o = {}) => ctx.mergeStates(l, c, o);
 let pass = 0, fail = 0; const ok = (c, m, x = "") => { if (c) pass++; else { fail++; console.log("  ✗", m, x); } };
 const J = JSON.stringify;
@@ -149,6 +149,58 @@ ok(m.path.sessionLen === "long" && m.quests.tokens === 1, "nothing new in the cl
   m = merge(same, same2, { localWins: false });
   ok(m.quests.m.ok === 4, "the same day: still the one with more done (act doesn't change that)", J(m.quests.m));
   ok(m.dayClock.day === "2026-11-25" && m.dayClock.act === 9, "…and what either device did on it counts", J(m.dayClock));
+}
+
+// ── the voice log (audio.js): flags ⚑ and phrases without a recording,
+// copied out on one device → gone everywhere; new ones stay ──
+{
+  const VL = ctx.syncMergeVoiceLog, H = ctx.syncHash;
+  const fl = (t, at, n = "") => ({ t, n, at, v: "p1" }), mi = (t, at) => ({ t, at });
+  const done = (k, t, at) => ({ k, h: H(t), at });
+  const texts = l => l.map(e => e.t).join(",");
+  // the phone flagged A and noted X; the web flagged B and noted Y
+  const phone = { flags: [fl("A", 100, "accent")], misses: [mi("X", 110)], done: [] };
+  const web = { flags: [fl("B", 105)], misses: [mi("Y", 90)], done: [] };
+  let v = VL(phone, web);
+  ok(texts(v.flags) === "A,B" && texts(v.misses) === "Y,X", "both devices' entries, by time", J(v));
+  ok(J(VL(v, null)) === J(v) && J(VL(v, v)) === J(v) && J(VL(web, phone)) === J(v), "canonical: same result either way round, merging with itself or nothing changes nothing");
+  // the web (holding everything) copies the log out
+  const copied = { flags: [], misses: [], done: v.flags.map(e => done("f", e.t, e.at)).concat(v.misses.map(e => done("m", e.t, e.at))) };
+  v = VL(phone, copied);
+  ok(!v.flags.length && !v.misses.length, "copied on one device: the other's old copies of those entries are dropped", J(v));
+  ok(v.done.length === 4, "…and it learns what was copied (4 done)", J(v.done));
+  // meanwhile the phone flagged A again (new note) and noted a new Z
+  const phone2 = { flags: [fl("A", 300, "still French")], misses: [mi("X", 110), mi("Z", 310)], done: [] };
+  v = VL(phone2, copied);
+  ok(texts(v.flags) === "A" && v.flags[0].n === "still French", "a phrase flagged again after the copy comes back (its new note)", J(v.flags));
+  ok(texts(v.misses) === "Z", "a new miss stays; the copied one doesn't", J(v.misses));
+  // a stale device that never saw the copy merges in later: still gone
+  v = VL(VL(phone2, copied), { flags: [fl("A", 100, "accent"), fl("B", 105)], misses: [mi("X", 110), mi("Y", 90)], done: [] });
+  ok(texts(v.flags) === "A" && v.flags[0].at === 300 && texts(v.misses) === "Z", "a third, stale copy brings nothing back", J(v));
+  // the same phrase flagged on two devices before either synced
+  v = VL({ flags: [fl("C", 200, "cut off")], misses: [], done: [] }, { flags: [fl("C", 250, "")], misses: [], done: [] });
+  ok(v.flags.length === 1 && v.flags[0].at === 250 && v.flags[0].n === "cut off", "one flag per phrase: the later, keeping the note if the later has none", J(v.flags));
+  v = VL({ flags: [fl("C", 200, "cut off")], misses: [], done: [] }, { flags: [fl("C", 250, "wrong word")], misses: [], done: [] });
+  ok(v.flags[0].n === "wrong word", "…or the later note", J(v.flags));
+  v = VL({ flags: [], misses: [mi("X", 50)], done: [] }, { flags: [], misses: [mi("X", 40)], done: [] });
+  ok(v.misses.length === 1 && v.misses[0].at === 40, "one miss per phrase: the first noted", J(v.misses));
+  // done is per kind: copying a flag doesn't drop a miss of the same text
+  v = VL({ flags: [], misses: [mi("A", 100)], done: [] }, { flags: [], misses: [], done: [done("f", "A", 100)] });
+  ok(texts(v.misses) === "A", "done is per kind (a flag copied ≠ a miss copied)");
+  // bad entries are dropped, caps keep the newest
+  v = VL({ flags: [{ t: "" , at: 1 }, null, { n: "x" }, fl("ok", 5)], misses: ["str", mi("  ", 3)], done: [{ k: "z", h: "x", at: 1 }, { k: "f" }] }, undefined);
+  ok(texts(v.flags) === "ok" && !v.misses.length && !v.done.length, "malformed entries are dropped", J(v));
+  const many = { flags: [], misses: Array.from({ length: 450 }, (_, i) => mi("m" + i, i)), done: Array.from({ length: 1600 }, (_, i) => done("m", "d" + i, i)) };
+  v = VL(many, null);
+  ok(v.misses.length === 400 && v.misses[0].t === "m50" && v.done.length === 1500 && v.done[0].at === 100, "capped: the newest 400 misses, 1500 done", v.misses.length + " " + v.done.length);
+  // inside a whole-state merge: its own rule, never the 3-way pieces
+  const base = ctx.syncScalarsOf({ voiceLog: { flags: [], misses: [], done: [] } });
+  m = merge({ savedAt: 5, words: {}, voiceLog: phone }, { savedAt: 9, words: {}, voiceLog: web }, { base, localWins: false });
+  ok(texts(m.voiceLog.flags) === "A,B" && texts(m.voiceLog.misses) === "Y,X", "mergeStates: both sides' voice logs", J(m.voiceLog));
+  m = merge({ savedAt: 5, words: {}, voiceLog: phone }, { savedAt: 9, words: {} }, { localWins: false });
+  ok(texts(m.voiceLog.flags) === "A", "mergeStates: a side without a log (older app) loses nothing", J(m.voiceLog));
+  m = merge({ savedAt: 5, words: {} }, { savedAt: 9, words: {} }, {});
+  ok(!("voiceLog" in m), "mergeStates: no log on either side — none made up");
 }
 
 console.log(`merge: ${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);

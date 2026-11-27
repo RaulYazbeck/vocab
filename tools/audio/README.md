@@ -235,9 +235,14 @@ French app is unchanged. Tested by `tests/run.mjs say`.
 ### Fixing one clip or a pronunciation
 - **Flagging in the app:** after a recording plays, a small ⚑ shows at the
   right edge for a few seconds. Tap it, add a note if you like ("French
-  accent", "cut off"). Settings → Sound & voice → "Copy voice log" copies the
-  flagged recordings together with the phrases that had no recording, and
-  empties the log. Paste it to Claude, or save it as `log.txt`: `--redo-file
+  accent", "cut off"). Settings → Account → For developers → "Copy voice log"
+  copies the flagged recordings together with the phrases that had no
+  recording, and empties the log. The log syncs with your progress (signed
+  in): flag on the phone, copy on the laptop — one list with every device's
+  entries, and copying empties it on all of them (what was copied never comes
+  back from a device that hadn't synced yet; anything flagged or noted after
+  the copy stays). Phrases that a newer pack has recorded since are left out.
+  Paste it to Claude, or save it as `log.txt`: `--redo-file
   log.txt` re-makes the flagged ones, `extract.mjs --extra log.txt` adds the
   missing ones. The notes say what to fix (an override, a sound hint, or just a
   new take).

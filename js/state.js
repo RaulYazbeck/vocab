@@ -128,6 +128,8 @@ function migrate() {
   if (typeof migrateVerb === "function") migrateVerb(); // the verb track (both apps)
   if (typeof migrateCourse === "function") migrateCourse(); // the course (German only)
   if (typeof migrateUsage === "function") migrateUsage();
+  // The voice log (audio.js): its old per-device lists moved in, once.
+  if (typeof migrateVoiceLog === "function") migrateVoiceLog();
   // Review dates set in another time zone (or by a device in one) move to
   // the start of their day here (srs.js, REVIEW DATES AFTER A TIME-ZONE CHANGE).
   if (typeof dueRealign === "function") dueRealign();
