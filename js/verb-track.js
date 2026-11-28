@@ -1229,11 +1229,10 @@ function vxWithSentence(ex, force = false) {
   const s = pool[Math.floor(Math.random() * pool.length)];
   return { ...ex, p: s.p, form: s.form, ...(ex.kind === "pvmod" ? { modal: s.modal } : {}), q: s.q, sent: { q: s.q, de: s.de, en: s.en, key: s.key } };
 }
-// The word-like object a Today item carries (wordKey(w) = "vx_…").
-// A new item's first look and check stay plain; after that the exercise
-// may come in one of its old cards' sentences (vxWithSentence).
-function vxWord(ex, plain = false) {
-  if (!plain) ex = vxWithSentence(ex);
+// The word-like object a Today item carries (wordKey(w) = "vx_…") — the
+// exercise as given (Today's queue asks some in a sentence first:
+// path.js, vxWithSentence).
+function vxWord(ex) {
   const id = ex.item || ("cell:" + ex.cell);
   return { deckId: VX_DECK, idx: id, deckName: vxT("Verbs"), de: ex.form.ans, fr: ex.form.ans, en: vxCueText(ex), hint: "verb", vx: ex };
 }

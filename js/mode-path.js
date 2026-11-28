@@ -990,7 +990,7 @@ function pathRepair(yes) {
   // practice here: a miss still counts, a right answer moves nothing.
   list.forEach(w => {
     // A missed verb drill: the same verb and tense, another person.
-    if (pathIsDrill(w)) { const ex = vxCellExercise({ x: w.vx.x, t: w.vx.tense }); s.items.push({ t: "typed", w: ex ? vxWord(ex, true) : w, fix: true, repair: true }); return; }
+    if (pathIsDrill(w)) { const ex = vxCellExercise({ x: w.vx.x, t: w.vx.tense }); s.items.push({ t: "typed", w: ex ? vxWord(ex) : w, fix: true, repair: true }); return; }
     const ws = S.words[wordKey(w)]; s.items.push({ t: "typed", w, fix: true, repair: true, practice: !(ws.lrn || ws.rp || ws.fl), ask: pathFixAsk(w, ws) });
     // 🔀 the word I mixed it up with, right after it (practice: nothing missed there)
     (s.mixq || []).filter(x => x.after === wordKey(w)).forEach(x => s.items.push({ t: "typed", w: x.w, practice: true, mix: wordKey(w) }));

@@ -1053,7 +1053,7 @@ function buildPathQueue(lenKey, opts = {}) {
     reviews = picks.filter(p => p[0] === "w").map(([, x]) => pathItemFor(pathWord(x.d.id, x.i), x.ws, rng));
     const verbs = [];
     let avoid = "";
-    picks.filter(p => p[0] === "v").forEach(([, x]) => { const ex = vxMakeExercise(x.it, avoid); if (ex) { verbs.push({ t: "typed", w: vxWord(ex) }); avoid = ex.x.inf; } });
+    picks.filter(p => p[0] === "v").forEach(([, x]) => { const ex = vxMakeExercise(x.it, avoid); if (ex) { verbs.push({ t: "typed", w: vxWord(vxWithSentence(ex)) }); avoid = ex.x.inf; } });
     if (verbs.length) {
       const step = Math.max(1, Math.floor((reviews.length + verbs.length) / verbs.length));
       verbs.forEach((it, i) => reviews.splice(Math.min(reviews.length, i * step + 1), 0, it));
@@ -1127,8 +1127,9 @@ function buildPathQueue(lenKey, opts = {}) {
       const step = Math.max(1, Math.floor((reviews.length + vxp.items.length) / vxp.items.length));
       vxp.items.forEach((ex, i) => {
         const at = Math.min(reviews.length, i * step + 1);
-        // (a new item's intro and first check: plain; a drill's check: plain)
-        const w = vxWord(ex, !!ex.fresh || !!ex.drill);
+        // (now and then in one of its old cards' sentences — never a new
+        // item's intro and first check, never a drill's check)
+        const w = vxWord(ex.fresh || ex.drill ? ex : vxWithSentence(ex));
         reviews.splice(at, 0, { t: "typed", w, fresh: !!ex.fresh });
         if (ex.fresh) reviews.splice(Math.max(0, at - 3), 0, { t: "learn", w });
       });
@@ -1243,14 +1244,14 @@ function buildPathQueue(lenKey, opts = {}) {
     let short = budget - counted() - grammarQ;
     // Verb quests Today's quotas left short: verb forms come first.
     const vxNeed = short > 0 && typeof questPracticeNeed === "function" && typeof vxPracticeItems === "function" ? questPracticeNeed() : 0;
-    if (vxNeed > 0) vxPracticeItems(Math.min(vxNeed, short)).forEach(ex => { out.push({ t: "typed", w: vxWord(ex), practice: !!ex.practice, questFill: true }); short--; });
+    if (vxNeed > 0) vxPracticeItems(Math.min(vxNeed, short)).forEach(ex => { out.push({ t: "typed", w: vxWord(vxWithSentence(ex)), practice: !!ex.practice, questFill: true }); short--; });
     const left = pathPlanLeft();
     if (left !== null) short = Math.min(short, Math.max(0, left - counted() - grammarQ));
     if (short > 0) focusWords("stale").filter(x => !have.has(x.d.id + "_" + x.i)).slice(0, short)
       .forEach(x => { out.push({ ...focusItem(x, "stale"), practice: true }); padN++; });
   }
   // Verb items missed in a tense drill: checked at the very end.
-  vxEnd.forEach(ex => out.push({ t: "typed", w: vxWord(ex, true), drillCheck: true }));
+  vxEnd.forEach(ex => out.push({ t: "typed", w: vxWord(ex), drillCheck: true }));
   // Every word goes learn → multiple choice → typed: a 🌱 word (stage ≤ 1:
   // a fix, a word of the day, a practice pick…) never meets typing first
   // in a session. A warm-up choice goes a few items before it — no stage
