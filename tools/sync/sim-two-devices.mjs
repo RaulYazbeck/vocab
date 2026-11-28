@@ -156,12 +156,13 @@ async function setup() {
 }
 // What a plain sync gives today (the reference for the other scenarios).
 let reference = null;
-async function checkBoth(name, s, extra = () => {}) {
+async function checkBoth(name, s, extra = () => {}, onWeb = null) {
   await settle(s.phone.page);
   const ph = await snap(s.phone.page);
   await s.phone.page.close(); s.phone.page = null;
   await open(s.web, today10 + 600e3); await settle(s.web.page);
   const wb = await snap(s.web.page);
+  if (onWeb) await onWeb();
   for (const [who, x] of [["phone", ph], ["web", wb]]) {
     ok(x.streak === s.before.streak && x.streak >= 2, `${name}: ${who} keeps the streak (${x.streak})`, JSON.stringify(x.kept));
     ok(x.known >= s.before.known, `${name}: ${who} keeps every Known word (${x.known})`, `before ${s.before.known}`);
@@ -290,18 +291,26 @@ for (const sc of SCENARIOS) {
     await s.web.page.waitForTimeout(1500);
     v = await vlog(s.web.page);
     ok(/der Vater/.test(v.flags), "voice: the web's offline copy still has the old flag", JSON.stringify(v));
-    await s.web.page.evaluate(() => audioFlag("ein neues Wort", "web, offline"));
+    // …and the phrase the phone flagged after the copy, with a note of its own
+    await s.web.page.evaluate(() => { audioFlag("das Haus", "cut off"); audioFlag("ein neues Wort", "web, offline"); });
     s.web.failReads = false;
     await s.web.page.evaluate(() => resumeSync(true));
     await s.web.page.waitForFunction(() => initialLoadComplete && !loadInFlight, null, { timeout: 60000 });
     v = await vlog(s.web.page);
-    ok(v.flags === "das Haus | too fast\nein neues Wort | web, offline" && v.misses === "", "voice: after syncing, the web has only the two new flags", JSON.stringify(v));
+    const both = "das Haus | too fast / cut off\nein neues Wort | web, offline";
+    ok(v.flags === both && v.misses === "", "voice: after syncing, the web has only the new flags — the same phrase with both devices' notes", JSON.stringify(v));
     await settle(s.web.page); await s.web.page.close(); s.web.page = null;
     await open(s.phone, today10 + 400e3);
     await checkBoth(sc, s, (ph, wb) => {
       for (const [who, x] of [["phone", ph], ["web", wb]])
-        ok(x.voice.flags === "das Haus | too fast\nein neues Wort | web, offline" && x.voice.misses === "", `voice: ${who} ends with the two new flags, nothing copied comes back`, JSON.stringify(x.voice));
+        ok(x.voice.flags === both && x.voice.misses === "", `voice: ${who} ends with the new flags and every note, nothing copied comes back`, JSON.stringify(x.voice));
       ok(!/der Vater|die Straße|Ein alter Satz|Ein Satz vom Web/.test(s.cloud.gv5_de_voice), "voice: the cloud holds nothing that was copied");
+    }, async () => {
+      // the admin "force download" replaces this copy with the cloud's — but
+      // keeps a flag this device hadn't sent yet
+      const pg = s.web.page;
+      await pg.evaluate(async () => { audioFlag("nur hier", "not sent yet"); clearTimeout(syncTimeout); syncTimeout = null; forceDownloadNext = true; await loadFromCloud(); });
+      ok(/nur hier \| not sent yet/.test(await pg.evaluate(() => audioFlagText())), "voice: a force download keeps a flag not sent yet");
     });
   } else if (sc === "outdated") {
     // newer sync rules saved the cloud

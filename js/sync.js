@@ -556,7 +556,9 @@ function runCloudLoad(uid) {
       syncAdoptLanded(cloud.meta);
       const metaSeen = syncTrusted(cloud.meta) ? cloud.meta._seen : null;
       const anc = force ? null : syncIncluded(metaSeen) ? { scal: syncScalarsOf(cloud.state) } : syncAncestorFor(cloud.meta);
-      const next = force ? cloud.state : mergeStates(S, cloud.state, {
+      // (Force download replaces this copy — but not the voice log, which
+      // only ever adds up: an entry this device hadn't sent yet is kept.)
+      const next = force ? { ...cloud.state, ...(S.voiceLog || cloud.state.voiceLog ? { voiceLog: syncMergeVoiceLog(S.voiceLog, cloud.state.voiceLog) } : {}) } : mergeStates(S, cloud.state, {
         base: anc && anc.scal,
         baseWords: syncBaseWords(cloud),
         localWins: syncLocalDirty() && (S.savedAt || 0) > (cloud.state.savedAt || 0),

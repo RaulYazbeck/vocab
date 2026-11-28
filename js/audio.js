@@ -24,6 +24,8 @@ const AUDIO_PREF  = "gv_audio_" + (typeof WORD_KEY === "string" ? WORD_KEY : "x"
 // (the voice log's old, per-device home — moved into S.voiceLog, migrateVoiceLog)
 const AUDIO_MISS  = "gv_audio_miss_" + (typeof WORD_KEY === "string" ? WORD_KEY : "x");
 const AUDIO_FLAGS = "gv_audio_flags_" + (typeof WORD_KEY === "string" ? WORD_KEY : "x");
+const AUDIO_LAST  = "gv_audio_lastcopy_" + (typeof WORD_KEY === "string" ? WORD_KEY : "x"); // the last "Copy voice log", this device
+const AUDIO_LOG_WARN = 0.6;          // share of the log's size bound (sync-merge.js) that asks for a copy
 const AUDIO_MEM_SHARDS = 4;          // decoded-free: raw bytes of the last few shards
 const AUDIO_PARALLEL = 3;
 // A newer pack that needs less than this is fetched quietly at start-up (new
@@ -540,18 +542,31 @@ function _audioFallback(text, rate) {
 //     flagged with an optional note: a small ⚑ at the right edge shows for
 //     a few seconds after a recording plays.
 // Both live in S.voiceLog, so they sync like progress (its own cloud doc,
-// sync.js): flag on the phone, copy on the laptop. Copying empties the log
-// on every device — what was copied is remembered ("done"), so a device
-// that still has those entries drops them when it syncs, while anything
-// noted since, on any device, stays (sync-merge.js, syncMergeVoiceLog).
+// sync.js): flag on the phone, copy on the laptop — one list with every
+// device's entries and notes. Each flagging and noting gets its own id;
+// copying empties the log on every device by remembering the ids it held
+// ("done"), so a device that still has those entries drops them when it
+// syncs, while anything written since, on any device, stays — whatever its
+// clock says (sync-merge.js, syncMergeVoiceLog). The last copy is kept on
+// the device that made it, to copy again.
 // The lists used to be kept on each device only (AUDIO_MISS, AUDIO_FLAGS
 // in localStorage): migrateVoiceLog moves them in once.
 let _aLogAt = 0;
-// Entry times: rising on this device, so two entries never share one.
+// Entry times (for the order shown): rising on this device, after `after`.
 function _audioLogStamp(after) {
   _aLogAt = Math.max(Date.now(), _aLogAt + 1, (after || 0) + 1);
   return _aLogAt;
 }
+// Each flagging / noting: its own id — its time in base 36 (so ids sort by
+// age) + 8 random characters. What a copy held is remembered by these ids,
+// never by time, so two devices' clocks never decide what is kept.
+function _audioLogId(at) {
+  let r = "";
+  try { const a = new Uint32Array(2); crypto.getRandomValues(a); r = a[0].toString(36) + a[1].toString(36); } catch (e) {}
+  if (r.length < 8) r += Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+  return at.toString(36) + "-" + r.slice(0, 8);
+}
+const _audioNotesText = f => (Array.isArray(f.ns) ? f.ns : []).map(x => x.n).join(" / ");
 function _audioLogList(kind) {
   const l = typeof S === "object" && S && S.voiceLog;
   return l && typeof l === "object" && Array.isArray(l[kind]) ? l[kind] : [];
@@ -579,12 +594,14 @@ function migrateVoiceLog() {
     const old = { flags: [], misses: [], done: [] };
     (Array.isArray(flags) ? flags : []).forEach(f => {
       if (!f || typeof f.text !== "string" || !f.text.trim()) return;
-      const e = { t: f.text.trim(), n: typeof f.note === "string" ? f.note : "", at: typeof f.at === "number" && f.at > 0 ? f.at : _audioLogStamp() };
+      const at = typeof f.at === "number" && f.at > 0 ? f.at : _audioLogStamp();
+      const n = typeof f.note === "string" ? f.note.trim() : "", id = _audioLogId(at);
+      const e = { t: f.text.trim(), at, ids: [id], ns: n ? [{ n, id }] : [] };
       if (f.v) e.v = f.v;
       old.flags.push(e);
     });
     (Array.isArray(misses) ? misses : []).forEach(t => {
-      if (typeof t === "string" && t.trim()) old.misses.push({ t: t.trim(), at: _audioLogStamp() });
+      if (typeof t === "string" && t.trim()) { const at = _audioLogStamp(); old.misses.push({ t: t.trim(), at, ids: [_audioLogId(at)] }); }
     });
     if (old.flags.length || old.misses.length) S.voiceLog = syncMergeVoiceLog(S.voiceLog, old);
   }
@@ -610,32 +627,42 @@ function audioNoteMiss(text) {
   if (!t || t.length > 200) return;
   if (typeof usageNoteTts === "function") usageNoteTts();
   if (_audioLogList("misses").some(e => e.t === t)) return;
-  _audioLogWrite(log => { log.misses.push({ t, at: _audioLogStamp() }); });
+  const at = _audioLogStamp();
+  _audioLogWrite(log => { log.misses.push({ t, at, ids: [_audioLogId(at)] }); });
 }
 function audioMissCount() { return _audioOpenMisses().length; }
 function audioMissText() { return _audioOpenMisses().map(e => e.t).join("\n"); }
 
+// Flags a recording, or flags it again. The note box shows the notes it
+// has (every device's, " / " between them): left as it is, or left empty,
+// they stay; changed, the new text replaces them — and the old ones are
+// marked edited away, so a device that still has them doesn't bring them back.
 function audioFlag(text, note) {
   const t = String(text || "").replace(/\s+/g, " ").trim(); if (!t) return;
   const n = String(note || "").replace(/\s+/g, " ").replace(/\|/g, "/").trim().slice(0, 200);
   const v = AUDIO.manifest && AUDIO.manifest.v;
   _audioLogWrite(log => {
     const old = log.flags.find(f => f.t === t);
-    const e = { t, n: n || (old ? old.n : ""), at: _audioLogStamp(old && old.at) };
+    const at = _audioLogStamp(old && old.at), id = _audioLogId(at);
+    const e = { t, at, ids: (old ? old.ids : []).concat([id]), ns: old ? old.ns.slice() : [], ov: old && old.ov ? old.ov.slice() : [] };
     if (v) e.v = v;
+    if (n && (!old || n !== _audioNotesText(old))) {
+      e.ov = e.ov.concat(e.ns.map(x => x.id));   // the notes this device had, replaced
+      e.ns = [{ n, id }];
+    }
     log.flags = log.flags.filter(f => f !== old).concat([e]);
   });
 }
-function audioFlagNote(text) { const f = _audioLogList("flags").find(x => x.t === text); return f ? f.n || "" : null; }
+function audioFlagNote(text) { const f = _audioLogList("flags").find(x => x.t === text); return f ? _audioNotesText(f) : null; }
 function audioFlagCount() { return _audioLogList("flags").length; }
-function audioFlagText() { return _audioLogList("flags").map(f => f.t + (f.n ? " | " + f.n : "")).join("\n"); }
-// Marks these entries copied out: gone from the log here and, once synced,
-// everywhere. Anything noted after them (a later time) stays.
+function audioFlagText() { return _audioLogList("flags").map(f => { const n = _audioNotesText(f); return f.t + (n ? " | " + n : ""); }).join("\n"); }
+// Marks these entries copied out — every id they hold: gone from the log
+// here and, once synced, everywhere. Anything written after them (a new
+// id) stays.
 function _audioLogDone(flags, misses) {
   if (!flags.length && !misses.length) return;
   _audioLogWrite(log => {
-    flags.forEach(e => log.done.push({ k: "f", h: syncHash(e.t), at: e.at }));
-    misses.forEach(e => log.done.push({ k: "m", h: syncHash(e.t), at: e.at }));
+    flags.concat(misses).forEach(e => (e.ids || []).forEach(id => log.done.push(id)));
   });
 }
 function audioClearFlags() { _audioLogDone(_audioLogList("flags").slice(), []); }
@@ -688,7 +715,7 @@ function audioFlagSheet(text) {
   const done = () => { document.removeEventListener("keydown", key, true); m.remove(); };
   const save = () => {
     audioFlag(text, m.querySelector("#af-note").value); done();
-    if (typeof showCelebrateToast === "function") showCelebrateToast("⚑", "Flagged", "Copy the list on any device: Settings → Account");
+    if (typeof showCelebrateToast === "function") showCelebrateToast("⚑", "Flagged", audioLogNearlyFull() ? "The log is nearly full: copy it (Settings → Account)" : "Copy the list on any device: Settings → Account");
   };
   const key = e => {
     if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); done(); }
@@ -843,10 +870,26 @@ function audioSettingsHtml() {
     </div>`;
 }
 // For developers (Account & data): flagged recordings and missing phrases.
+// When empty: the last copy, to copy again (the clipboard got overwritten
+// before it was pasted, say) — kept on the device that copied it.
 function audioVoiceLogRowHtml() {
   if (!AUDIO.ready || !audioSupported()) return "";
   const flags = audioFlagCount(), misses = audioInstalledKinds().length ? audioMissCount() : 0;
-  return flags + misses ? setNavHtml("📝", `Copy voice log · ${flags + misses}`, [flags ? `${flags} flagged` : "", misses ? `${misses} without a recording` : ""].filter(Boolean).join(", ") + ". Paste it to Claude.", "audioCopyLog()") : "";
+  if (flags + misses) {
+    const full = audioLogNearlyFull() ? " The log is nearly full: copy it now." : "";
+    return setNavHtml("📝", `Copy voice log · ${flags + misses}`, [flags ? `${flags} flagged` : "", misses ? `${misses} without a recording` : ""].filter(Boolean).join(", ") + ". Paste it to Claude." + full, "audioCopyLog()");
+  }
+  const last = _audioLastCopy();
+  return last ? setNavHtml("📝", "Copy the last voice log again", `Copied ${new Date(last.at).toLocaleString()}.`, "audioCopyLastAgain()") : "";
+}
+function audioLogNearlyFull() { return syncVoiceLogFill(S.voiceLog) >= AUDIO_LOG_WARN; }
+function _audioLastCopy() {
+  try { const x = JSON.parse(localStorage.getItem(AUDIO_LAST) || "null"); return x && typeof x.text === "string" && x.text ? x : null; } catch (e) { return null; }
+}
+function audioCopyLastAgain() {
+  const last = _audioLastCopy(); if (!last) return;
+  const ok = () => { if (typeof showCelebrateToast === "function") showCelebrateToast("📝", "Copied again", "Paste it to Claude"); };
+  try { navigator.clipboard.writeText(last.text).then(ok, () => prompt("Copy this list:", last.text)); } catch (e) { prompt("Copy this list:", last.text); }
 }
 // ["w","s"] as a JS literal that is safe inside a double-quoted onclick.
 function _audioKindsJs(kinds) { return "[" + kinds.map(k => `'${k}'`).join(",") + "]"; }
@@ -872,6 +915,7 @@ function audioCopyLog() {
   const flags = _audioLogList("flags").slice(), misses = _audioLogList("misses").slice();
   const text = audioLogText();
   const done = () => {
+    try { localStorage.setItem(AUDIO_LAST, JSON.stringify({ text, at: Date.now() })); } catch (e) {}
     _audioLogDone(flags, misses);
     if (typeof showCelebrateToast === "function") showCelebrateToast("📝", "Copied", "Paste it to Claude");
     if (typeof renderSettingsPanel === "function") renderSettingsPanel();

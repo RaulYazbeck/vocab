@@ -77,7 +77,12 @@ console.log("   copied:\n" + clip.split("\n").map(l => "     " + l).join("\n"));
 // (flags in the order last flagged: je … desto was flagged again after der Vater)
 ok(/^Voice log \(German, pack [0-9a-f]+\):\nFlagged recordings:\nder Vater\nje … desto \| French je \/ and cut\nPhrases without a recording:\nEin Satz, den es im Paket nicht gibt, zum Testen\.$/.test(clip), "both lists in one copy");
 ok(await page.evaluate(() => audioFlagCount() + audioMissCount()) === 0, "copying empties the log");
-ok(!(await page.$$eval(".settings-item .set-label", els => els.map(e => e.textContent))).some(t => /voice log/i.test(t)), "the row disappears when the log is empty");
+const rowsAfter = (await page.$$eval(".settings-item .set-label", els => els.map(e => e.textContent))).filter(t => /voice log/i.test(t));
+ok(rowsAfter.length === 1 && rowsAfter[0] === "Copy the last voice log again", "the log empty: the row offers the last copy again", JSON.stringify(rowsAfter));
+await page.evaluate(() => navigator.clipboard.writeText("something else"));
+await page.evaluate(() => { const d = document.querySelector(".set-dev"); if (d) d.open = true; });
+await page.click("text=Copy the last voice log again"); await page.waitForTimeout(300);
+ok(await page.evaluate(() => navigator.clipboard.readText()) === clip, "…which copies exactly the same list again");
 // a phrase noted without a recording that this device's pack has (another
 // device on an older pack noted it): kept in the log, but not listed
 await page.evaluate(() => audioNoteMiss("der Vater"));
