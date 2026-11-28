@@ -91,6 +91,34 @@ const r = await page.evaluate(() => {
   many.forEach(o => mixNote(A, wordKey(o)));
   out.cap = Object.keys(S.words[kA].mix || {}).length;
   out.capLast = Object.keys(S.words[kA].mix || {}).includes(wordKey(many[4]));
+  // the pairs let go: on both words
+  out.capBoth = many.every(o => { const mine = !!(S.words[kA].mix || {})[wordKey(o)], theirs = !!(S.words[wordKey(o)].mix || {})[kA]; return mine === theirs; });
+  // a partner taken over (retired): the pair is let go on both sides
+  const keep = many[4], kk = wordKey(keep);
+  S.words[kk].rt = 1;
+  mixPartners(A);
+  out.retired = { mine: !!(S.words[kA].mix || {})[kk], theirs: !!(S.words[kk].mix || {})[kA] };
+  delete S.words[kk].rt;
+  // the sweep: a pair on one side only is let go
+  mixNote(A, wordKey(many[0]), { quiet: true }); delete S.words[wordKey(many[0])].mix;
+  out.sweep = mixSweep();
+  out.sweptOne = !(S.words[kA].mix || {})[wordKey(many[0])];
+  // ── retroactive: pairs from the mistake histories, once ──
+  out.loadFlag = S.path.mixFill === 1;
+  const fresh3 = met.filter(w => !Object.keys(S.words[wordKey(w)].mix || {}).length).slice(60, 66);
+  const [G, H, J, K] = fresh3;
+  const ago = n => addDays(studyToday(), -n);
+  S.words[wordKey(G)].mh = [[ago(10), "path:typed", "confused", H[WORD_KEY]], [ago(100), "path:typed", "confused", J[WORD_KEY]]];
+  S.words[wordKey(J)].mh = [[ago(3), "path:typed", "confused", unmet ? mixKeyWord(unmet)[WORD_KEY] : "zzzz"]];
+  S.path.mixFill = 0;
+  out.fill = mixBackfill();
+  const gm = S.words[wordKey(G)].mix || {};
+  out.fillPair = { gh: !!gm[wordKey(H)], hg: !!((S.words[wordKey(H)].mix || {})[wordKey(G)]), since: gm[wordKey(H)] && gm[wordKey(H)].s, old: !!gm[wordKey(J)], unmet: Object.keys(S.words[wordKey(J)].mix || {}).length };
+  out.fillAgain = mixBackfill();
+  // a flag lost in a sync: run again — an existing pair keeps its watch
+  gm[wordKey(H)].d = [ago(1)]; S.path.mixFill = 0;
+  mixBackfill();
+  out.keptWatch = JSON.stringify((S.words[wordKey(G)].mix || {})[wordKey(H)].d) === JSON.stringify([ago(1)]);
   // ── the logs ──
   out.report = buildUsageReport(0).split("\n").find(l => l.startsWith("Mix-up pairs")) || "";
   out.learn = typeof buildLearningLog === "function" ? /Being practised as pairs in Today now/.test(buildLearningLog()) : null;
@@ -112,7 +140,17 @@ ok(r.halfway === true, "one side right today: the pair stays open");
 ok(!r.sorted.a && !r.sorted.b && r.sorted.chip, "both right on 2 separate days: sorted, and the feedback says so", JSON.stringify(r.sorted));
 ok(r.unmet === null, "a word not met yet: no pair");
 ok(r.cap === 3 && r.capLast, `a word keeps 3 pairs at most, the newest (${r.cap})`);
-ok(/Mix-up pairs .*: \d+ new · \d+ mixed up again · \d+ sorted · open now \d+/.test(r.report), "the usage report", r.report);
+ok(r.capBoth, "…a pair let go is let go on both words");
+ok(!r.retired.mine && !r.retired.theirs, "a partner taken over by the verb track: the pair let go on both sides", JSON.stringify(r.retired));
+ok(r.sweep >= 1 && r.sweptOne, "the start-up sweep lets go a pair left on one side only (after a sync)", String(r.sweep));
+ok(r.loadFlag, "at start-up the backfill ran once (its flag set)");
+ok(r.fill === 1 && r.fillPair.gh && r.fillPair.hg, "retroactive: a 'confused' miss of the last 45 days becomes a pair, on both words", JSON.stringify(r.fillPair));
+ok(r.fillPair.since === r.fillPair.since && /^\d{4}-/.test(r.fillPair.since || ""), `…dated the day of the miss (${r.fillPair.since})`);
+ok(!r.fillPair.old && !r.fillPair.unmet, "…not one from 100 days ago, not one with a word I haven't met");
+ok(r.fillAgain === 0, "…once (a second run makes none)");
+ok(r.keptWatch, "…and a run again (a flag lost in a sync) never resets a pair's watch");
+ok(/from the misses of the 45 days before/.test(r.report), "the report says how many came from older misses", r.report);
+ok(/Mix-up pairs .*: (\d+ from the misses of the 45 days before · )?\d+ new · \d+ mixed up again · \d+ sorted · open now \d+/.test(r.report), "the usage report", r.report);
 ok(r.learn !== false, "the learning log lists the pairs being practised", String(r.learn));
 ok(!errors.length, "no page errors", errors.join("\n"));
 await browser.close();

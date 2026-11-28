@@ -1351,6 +1351,11 @@ sentences recorded (4,089 characters, 0 refused); 70,536 / 70,536 texts.
   too many: by the questions a session really holds, not the length picked — 40+ → 2, 12–39 → 1, fewer → none
   (a Long session picked for the last 10 cards brought three). (e) *Test-outs* — nothing to do: they only open the
   A1 lessons, all done.
+  *Then (28 Nov):* mix-ups also work back in time — at start-up, once, each word's mistake history (its last 6
+  misses, what I typed kept) makes pairs of the "confused" ones of the 45 days before (never one from after pairs
+  started, never resetting a pair's watch); a pair is let go on both words when a word gets its 4th or a partner
+  isn't asked any more (taken over by the verb track), and a start-up sweep lets go one left on one side by a sync.
+  Checked over 40 simulated days × 3 seeds (sim-app --mix): ~320 pairs made, ~280 sorted, both words always, logs agree.
 
 ## 15. Parked — for later
 

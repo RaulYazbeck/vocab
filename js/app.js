@@ -182,6 +182,7 @@ if (typeof audioInit === "function") audioInit();
 recordLogin();
 if (typeof noteJourneyLevels === "function") noteJourneyLevels();
 questEnsureToday();
+if (typeof mixBackfill === "function") { mixSweep(); mixBackfill(); } // (mix-up pairs: tidy; once: from older misses)
 applyCosmetics();
 renderExpBar();
 renderGroups();

@@ -764,7 +764,7 @@ function cxJournalRender() {
   const draft = cxJDraft(p.id);
   j.host.innerHTML = `<div class="gs-viewer cx-run cx-journal" style="${cxStyle(0)}" id="cx-journal">${head}
     <div class="gs-quiz">
-      <div class="gs-qpos">${min}+ words${CX_WRITE_RAMP[p.lv] && min < CX_WRITE_RAMP[p.lv][1] ? ` <span class="cx-wramp">(+5 every ${CX_WRITE_RAMP[p.lv][2]} texts)</span>` : ""} · ${cxWriteDays().includes(studyToday()) ? "another text today" : `text ${Math.min(CX_WRITE_WEEK, cxWriteWeek() + 1)} of ${CX_WRITE_WEEK} this week`} · for Claude to correct</div>
+      <div class="gs-qpos">${min}+ words · ${cxWriteDays().includes(studyToday()) ? "another text today" : `text ${Math.min(CX_WRITE_WEEK, cxWriteWeek() + 1)} of ${CX_WRITE_WEEK} this week`} · for Claude to correct</div>
       <div class="gs-qtext cx-en">${escapeHtml(p.t)}</div>
       ${(p.help || []).length ? `<div class="cx-cue cx-starters">${p.help.map((h, i) => `<button type="button" class="gs-chip" onpointerdown="event.preventDefault()" onmousedown="event.preventDefault()" onclick="cxJournalStarter(${i})" aria-label="Type: ${escapeHtml(h)}">${escapeHtml(h)}</button>`).join("")}</div>` : ""}
       <textarea class="german-input cx-text cx-jtext" id="cx-jtext" rows="6" placeholder="Schreib hier…" autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="false" lang="de">${escapeHtml(draft)}</textarea>
@@ -855,7 +855,7 @@ function cxWritePlanHtml() {
   const dots = Array.from({ length: CX_WRITE_WEEK }, (_, i) => `<span class="cx-wdot ${i < wk ? "on" : ""}"></span>`).join("");
   return `<div class="cx-wplan"><div class="cx-wplan-row"><span class="cx-wdots" aria-label="${wk} of ${CX_WRITE_WEEK} texts this week">${dots}</span>
       <span><b>${Math.min(wk, CX_WRITE_WEEK)} of ${CX_WRITE_WEEK}</b> texts this week${next ? ` · next: <b>${escapeHtml(cxDayWord(next))}</b>` : ""}</span></div>
-    <small>${all ? `${Math.max(0, left)} new topics left at ${lv} (${all} in all) — never the same one twice` : "Every topic of the plan written — the older ones come back now"} · ${cxJournalMin({ lv })}+ words at ${lv} now</small></div>`;
+    <small>${all ? `${Math.max(0, left)} new topics left at ${lv}, never repeated` : "Every topic written — the older ones come back now"} · ${cxJournalMin({ lv })}+ words now, +5 every ${(CX_WRITE_RAMP[lv] || [0, 0, 10])[2]} texts</small></div>`;
 }
 // The next day a text is due (from tomorrow if today's is written or not due), or "".
 function cxWriteNextDay() {

@@ -278,7 +278,10 @@ function _usageAggregate(type, d, now) {
     }
     case "quest_auto": (d.to || []).forEach(id => _usageQuest(day, id, 0)); break;
     // 🔀 mix-up pairs (path.js): [new, made again, sorted]
-    case "mix": { const m = _uf(day, "mixp", () => [0, 0, 0]); m[d.ev === "new" ? 0 : d.ev === "sorted" ? 2 : 1]++; break; }
+    case "mix": {
+      if (d.ev === "backfill") { day.mixFill = (day.mixFill || 0) + (d.n || 0); break; } // (pairs made from older misses, once)
+      const m = _uf(day, "mixp", () => [0, 0, 0]); m[d.ev === "new" ? 0 : d.ev === "sorted" ? 2 : 1]++; break;
+    }
     case "quest_done":
       day.q[0]++; _usageQuest(day, d.tpl, 1);
       if (d.tpl === "a_plan") day.planAt = new Date(now).getHours();
@@ -589,7 +592,8 @@ function usageRebuiltLines(days) {
         `${r} cards that were Known+ when the verb track took them over (${rz} had such a sentence — asked again in their verb exercises since 28 Nov 2026)`);
       const mp = days.reduce((a, [, v]) => a.map((x, i) => x + ((v.mixp || [])[i] || 0)), [0, 0, 0]);
       const openPairs = Object.values(S.words).reduce((n, ws) => n + (ws && ws.mix ? Object.keys(ws.mix).length : 0), 0) / 2;
-      if (mp.some(x => x) || openPairs) out.push(`Mix-up pairs (two words taken for each other, since 28 Nov 2026): ${mp[0]} new · ${mp[1]} mixed up again · ${mp[2]} sorted · open now ${Math.round(openPairs)}`);
+      const filled = days.reduce((a, [, v]) => a + (v.mixFill || 0), 0);
+      if (mp.some(x => x) || openPairs || filled) out.push(`Mix-up pairs (two words taken for each other, since 28 Nov 2026): ${filled ? `${filled} from the misses of the 45 days before · ` : ""}${mp[0]} new · ${mp[1]} mixed up again · ${mp[2]} sorted · open now ${Math.round(openPairs)}`);
       const vs = days.reduce((a, [, v]) => [a[0] + ((v.vsent || [])[0] || 0), a[1] + ((v.vsent || [])[1] || 0)], [0, 0]);
       if (vs[0]) out.push(`Verb exercises asked in an old card's sentence: ${vs[0]} (${pct(vs[1], vs[0])} right)`);
     }

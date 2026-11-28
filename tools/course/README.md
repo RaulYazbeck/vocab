@@ -250,7 +250,9 @@ a later session that uploads its chapter.
                                       # each checked as above — the lesson clock: one lesson at a time, its sheets
                                       # on study days in a row, no new lesson before its break is over
     node sim.mjs --arrive --grow 1.3  # the lessons arrive session by session, each 30 % bigger than its estimate
-    node sim-app.mjs [--days 45 --acc 0.85 --skip 0.25]
+    node sim-app.mjs [--days 45 --acc 0.85 --skip 0.25] [--mix 0.4]   # --mix: wrong word answers typed as another known
+                                      # word — mix-up pairs checked every day (both words, 3 at most, sorted, partners
+                                      # asked), the writing plan, verb cards in a sentence, bonus rounds, and the logs agree
                                       # the real app on a fake clock, the test profile, the course at full size:
                                       # every Today session played card by card — the count never grows, the
                                       # course is done each day, the plan is met when every answer is right,

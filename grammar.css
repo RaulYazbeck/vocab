@@ -525,7 +525,6 @@
 .cx-wdots { display:inline-flex; gap:5px; }
 .cx-wdot { width:10px; height:10px; border-radius:50%; border:1.5px solid hsl(var(--th) 70% 62% / 0.7); }
 .cx-wdot.on { background:hsl(var(--th) 75% 60%); }
-.cx-wramp { color:var(--text-3); font-weight:500; }
 .cx-seg { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:6px; margin:4px 0 12px; }
 .cx-seg button { padding:8px 4px; border-radius:var(--r-sm); border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--text); font:inherit; cursor:pointer; line-height:1.2; }
 .cx-seg button b { display:block; font-size:15px; }

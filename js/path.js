@@ -852,31 +852,89 @@ function mixKeyWord(k) {
   const i = String(k).lastIndexOf("_"), d = getDeck(String(k).slice(0, i));
   return d && d.words[+String(k).slice(i + 1)] ? pathWord(d.id, +String(k).slice(i + 1)) : null;
 }
-// The open partners of a word: [{ key, w }] — words still met and asked.
+// A pair let go on both words (a word's 4th pair takes its oldest's place;
+// a partner no longer asked — taken over by the verb track, reset, gone).
+function mixDrop(k, o) {
+  const a = S.words[k], b = S.words[o];
+  if (a && a.mix) { delete a.mix[o]; if (!Object.keys(a.mix).length) delete a.mix; }
+  if (b && b.mix) { delete b.mix[k]; if (!Object.keys(b.mix).length) delete b.mix; }
+}
+// The open partners of a word: [{ key, w }] — words still met and asked;
+// a pair whose other word isn't (any more) is let go.
 function mixPartners(w) {
-  const ws = w && S.words[wordKey(w)];
+  const k = w && wordKey(w), ws = k && S.words[k];
   if (!ws || !ws.mix) return [];
-  return Object.keys(ws.mix).map(k => ({ key: k, w: mixKeyWord(k), ws: S.words[k] }))
-    .filter(x => x.w && x.ws && x.ws.st && !x.ws.rt && !(typeof isAnkiDeck === "function" && isAnkiDeck(x.w.deckId)));
+  const out = [];
+  Object.keys(ws.mix).forEach(o => {
+    const x = { key: o, w: mixKeyWord(o), ws: S.words[o] };
+    if (x.w && x.ws && x.ws.st && !x.ws.rt && !(typeof isAnkiDeck === "function" && isAnkiDeck(x.w.deckId))) out.push(x);
+    else mixDrop(k, o);
+  });
+  return out;
 }
 // A typed answer that was another word I know (learning-log.js "confused"):
 // the two become a pair (again: its watch starts over). → the other word, or null.
-function mixNote(w, otherKey) {
+// opts.since: the day of the miss (the backfill); opts.quiet: no event of its own.
+function mixNote(w, otherKey, opts = {}) {
   if (!w || !otherKey || w.vx || otherKey === wordKey(w)) return null;
   const ow = mixKeyWord(otherKey), ows = S.words[otherKey], ws = S.words[wordKey(w)];
   if (!ow || !ws || !ws.st || !ows || !ows.st || ows.rt || (typeof isAnkiDeck === "function" && (isAnkiDeck(ow.deckId) || isAnkiDeck(w.deckId)))) return null;
-  const today = studyToday(), k = wordKey(w), isNew = !(ws.mix && ws.mix[otherKey]);
-  const set = (rec, other) => {
+  const today = opts.since || studyToday(), k = wordKey(w), isNew = !(ws.mix && ws.mix[otherKey]);
+  if (opts.since && !isNew) return null; // (the backfill never resets a pair's watch)
+  const set = (me, rec, other) => {
     rec.mix = rec.mix || {};
     delete rec.mix[other];
     rec.mix[other] = { s: today, d: [] };
     const ks = Object.keys(rec.mix);
-    if (ks.length > MIX_PARTNERS) ks.slice(0, ks.length - MIX_PARTNERS).forEach(x => delete rec.mix[x]);
+    // (the oldest let go — on both words)
+    if (ks.length > MIX_PARTNERS) ks.slice(0, ks.length - MIX_PARTNERS).forEach(x => mixDrop(me, x));
   };
-  set(ws, otherKey); set(ows, k);
+  set(k, ws, otherKey); set(otherKey, ows, k);
   if (typeof recordConfusion === "function") recordConfusion(w, ow); // (the games' traps too)
-  if (typeof logEvent === "function") logEvent("mix", { ev: isNew ? "new" : "again", a: k, b: otherKey });
+  if (typeof logEvent === "function" && !opts.quiet) logEvent("mix", { ev: isNew ? "new" : "again", a: k, b: otherKey });
   return ow;
+}
+// Every pair: let go where either word isn't asked any more, or only one
+// word still has it (a sync can keep one side: word records merge whole).
+// At start-up. → pairs let go.
+function mixSweep() {
+  let n = 0;
+  Object.entries(S.words).forEach(([k, ws]) => {
+    if (!ws || !ws.mix) return;
+    const w = mixKeyWord(k);
+    if (!w || !ws.st || ws.rt) { Object.keys(ws.mix).forEach(o => { mixDrop(k, o); n++; }); return; }
+    const before = Object.keys(ws.mix).length;
+    mixPartners(w).forEach(p => { if (!(p.ws.mix && p.ws.mix[k])) { mixDrop(k, p.key); } });
+    n += before - Object.keys(ws.mix || {}).length;
+  });
+  return n;
+}
+// Mix-ups from before pairs existed (28 Nov 2026): each word's mistake
+// history (learning-log.js ws.mh, its last 6 misses — what I typed kept)
+// holds the "confused" ones; those of the last MIX_BACKFILL_DAYS become
+// pairs, oldest first (a word keeps its newest), since the day of the miss.
+// Once (S.path.mixFill), at start-up — and only misses from before the day
+// pairs started being made as they happen (S.path.mixFrom): a run again
+// (a flag lost in a sync) can't bring back a pair sorted since. → pairs made.
+const MIX_BACKFILL_DAYS = 45;
+function mixBackfill() {
+  const P = S.path;
+  if (!P || P.mixFill || typeof _learnFind !== "function") return 0;
+  P.mixFill = 1;
+  if (!P.mixFrom) P.mixFrom = studyToday();
+  const from = addDays(P.mixFrom, -MIX_BACKFILL_DAYS), until = P.mixFrom, rows = [];
+  Object.entries(S.words).forEach(([k, ws]) => {
+    if (!ws || !ws.st || ws.rt || !Array.isArray(ws.mh)) return;
+    ws.mh.forEach(r => { if (Array.isArray(r) && r[2] === "confused" && r[3] && String(r[0]) >= from && String(r[0]) < until) rows.push([String(r[0]), k, r[3]]); });
+  });
+  rows.sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);
+  let n = 0;
+  rows.forEach(([day, k, given]) => {
+    const w = mixKeyWord(k), o = w && _learnFind(given, w);
+    if (o && mixNote(w, o, { since: day, quiet: true })) n++;
+  });
+  if (n && typeof logEvent === "function") logEvent("mix", { ev: "backfill", n });
+  return n;
 }
 // A word answered right: a day for each of its open pairs; a pair right on
 // MIX_WATCH days on both sides is sorted. → the partners sorted now ([w]).

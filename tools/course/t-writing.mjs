@@ -156,7 +156,7 @@ ok(t.saveOn && t.saveOffShort, "Save only once the words are there");
 ok(/Text 1 of 3 this week/.test(t.saved) && /next one comes (on )?(tomorrow|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)/i.test(t.saved), `saved: «${t.saved.slice(0, 120)}»`);
 ok(t.nextPick !== t.card.id && !t.cycleHasWritten, "a written topic never comes again, not even through ↻");
 ok(t.partAfterToday === false, "written today: no second card");
-ok(/1 of 3/.test(t.screen.plan) && t.screen.dots === 1 && /never the same one twice/.test(t.screen.plan), `☰ › Writing: «${t.screen.plan}»`);
+ok(/1 of 3/.test(t.screen.plan) && t.screen.dots === 1 && /never repeated/.test(t.screen.plan), `☰ › Writing: «${t.screen.plan}»`);
 ok(t.screen.seg[0] === "30+ words" && t.screen.seg[1] === "40+ words" && t.screen.seg[2] === "70+ words", `…the levels' words now: ${t.screen.seg.join(" · ")}`);
 const fc = t.fc.filter(([, w]) => w).map(([d]) => d);
 ok(fc.every((d, i) => !i || daysBetween(fc[i - 1], d) >= 2), `the Journey's forecast: writing days never two in a row (${fc.join(", ")})`);

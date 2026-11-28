@@ -15,15 +15,22 @@
 // usage report agree with what was done (texts, words written, course
 // answers); the word records the profile started with are all still there.
 //
-//   node sim-app.mjs [--days 45] [--acc 0.85] [--seed 3] [--skip 0.2]
+// --mix: the share of wrong word answers typed as another word I know (a
+// mix-up, path.js MIX-UPS) — checked every day: pairs on both words, 3 at
+// most a word, only between met words; partners come in sessions and
+// repair rounds; pairs get sorted; the usage log counts them as made.
+// Also every day: the writing plan (never two days running, 3 a week at
+// most), a verb card asked in a sentence grades its own form right, and
+// each session's bonus rounds follow pathBonusSlots (sessions with them).
+//   node sim-app.mjs [--days 45] [--acc 0.85] [--seed 3] [--skip 0.2] [--mix 0.4]
 //   (serve the repo root on :8765; npm install once in tools/audio/tests)
 import { openApp } from "../verb-track/browser.mjs";
 const arg = (k, d) => { const i = process.argv.indexOf("--" + k); return i > 0 ? +process.argv[i + 1] : d; };
-const DAYS = arg("days", 45), ACC = arg("acc", 0.85), SEED = arg("seed", 3), SKIP = arg("skip", 0);
+const DAYS = arg("days", 45), ACC = arg("acc", 0.85), SEED = arg("seed", 3), SKIP = arg("skip", 0), MIX = arg("mix", 0);
 
 const { browser, page, errors } = await openApp({ course: true, width: 390, height: 844 });
 page.setDefaultTimeout(0);
-const r = await page.evaluate(async ([DAYS, ACC, SEED, SKIP]) => {
+const r = await page.evaluate(async ([DAYS, ACC, SEED, SKIP, MIX]) => {
   // ── the fake clock, quiet effects, a seeded dice ──
   const real = Date.now.bind(Date), RD = Date; let off = 0;
   Date.now = () => real() + off;
@@ -101,7 +108,19 @@ const r = await page.evaluate(async ([DAYS, ACC, SEED, SKIP]) => {
     cxJournalSubmit(); stats.texts++; stats.words += cxWordCount(words);
     cxJournalDone();
   };
+  // another word I know, for a mix-up (not the one asked)
+  const metWords = () => Object.keys(S.words).filter(k => { const ws = S.words[k]; return ws && ws.st && !ws.rt && !/^(vx|cx)_/.test(k); });
+  const mixStats = { typed: 0, sentence: 0, sentenceOk: 0, partners: 0, bonusChecked: 0, bonusSeen: 0 };
+  // (the raw event log is capped: mix events counted as they're logged)
+  const mixEv = { new: 0, again: 0, sorted: 0 }, _log = logEvent;
+  window.logEvent = (type, data) => { if (type === "mix" && data && data.ev in mixEv) mixEv[data.ev]++; return _log(type, data); };
   const playWord = (it, ok) => {
+    if (it.mix) mixStats.partners++;
+    if (it.w && it.w.vx && it.w.vx.sent) { mixStats.sentence++; if (vxGrade(it.w.vx.form.ans, it.w.vx) === true) mixStats.sentenceOk++; else fail(`${studyToday()}: a verb card in a sentence doesn't take its own form: ${it.w.vx.form.ans} · ${it.w.vx.sent.q}`); }
+    if (!ok && MIX && !(it.w && it.w.vx) && ["typed", "cloze", "spot"].includes(it.t) && rnd() < MIX) {
+      const ks = metWords(), k = ks[Math.floor(rnd() * ks.length)], o = k && mixKeyWord(k);
+      if (o && wordKey(o) !== wordKey(it.w)) { mixStats.typed++; pathGradeTyped(o[WORD_KEY], false); stats.answers++; pathNext(); return; }
+    }
     if (it.w && it.w.vx) { document.getElementById("p-input").value = ok ? it.w.vx.form.ans : "zzz qqq"; pathCheckTyped(); }
     else if (it.t === "choice" || it.t === "listen") { const i = it.opts.findIndex(o => o.correct); pathAnswerChoice(ok ? i : (i + 1) % it.opts.length); }
     else { const ans = it.t === "cloze" ? it.cloze.answer : it.t === "reverse" ? gamePrompt(it.w) : it.w[WORD_KEY]; pathGradeTyped(ok ? ans : "zzz qqq", ok); }
@@ -110,9 +129,15 @@ const r = await page.evaluate(async ([DAYS, ACC, SEED, SKIP]) => {
   };
   const isQ = it => it && !["learn", "bonus", "sheet", "repairOffer", "cx"].includes(it.t);
   const playSession = (allRight) => {
-    startPathSession("regular", { noBonus: true });
+    startPathSession("regular", MIX ? {} : { noBonus: true });
     const s = pathSession;
     if (!s) return false;
+    if (MIX) {
+      const qOf = x => x.t === "cx" ? x.qn || 1 : x.t !== "learn" && x.t !== "bonus" && x.t !== "sheet" && !x.warm ? 1 : 0;
+      const q = s.items.reduce((n, x) => n + qOf(x), 0), b = s.items.filter(x => x.t === "bonus").length;
+      if (!s.focus && b !== pathBonusSlots(q).length) fail(`${studyToday()}: ${b} bonus rounds in a session of ${q} questions (want ${pathBonusSlots(q).length})`);
+      mixStats.bonusChecked++;
+    }
     stats.sessions++;
     let total = null, guard = 0, prev = "";
     while (pathSession === s && s.cur && guard++ < 900) {
@@ -123,7 +148,7 @@ const r = await page.evaluate(async ([DAYS, ACC, SEED, SKIP]) => {
         else if (+mm[2] < total) { stats.shrunk++; total = +mm[2]; } }
       prev = desc;
       if (it.t === "repairOffer") { pathRepair(true); continue; }
-      if (it.t === "bonus") { if (it.minion) pathMinion(false); else pathBonus(false); continue; }
+      if (it.t === "bonus") { if (it.minion) pathMinion(false); else { mixStats.bonusSeen++; pathBonus(false); } continue; }
       if (it.t === "learn") { pathNext(); continue; }
       if (it.t === "sheet" || it.t === "cx" && it.part === "sheet") {
         if (!_gs || _gs.mode !== "path") { fail(`${studyToday()}: a sheet card without its viewer`); pathNext(); continue; }
@@ -178,6 +203,17 @@ const r = await page.evaluate(async ([DAYS, ACC, SEED, SKIP]) => {
     if (left.length) fail(`${today}: course parts left at the end of the day: ${left.map(p => p.part).join(", ")}`);
     const texts = cxJournalList().filter(e => !/^drill:/.test(e.p)).length - texts0;
     if (texts > 1) fail(`${today}: ${texts} writing prompts in one day`);
+    // the writing plan: never two days running, 3 a week at most
+    const wd = cxWriteDays();
+    if (wd.some((d, i) => i && daysBetween(wd[i - 1], d) < 2)) fail(`${today}: two writing days in a row (${wd.slice(-4).join(", ")})`);
+    if (cxWriteWeek(today, wd) > 3) fail(`${today}: ${cxWriteWeek(today, wd)} texts this week`);
+    // mix-ups: both sides, 3 at most a word, only between met words
+    Object.entries(S.words).forEach(([k, ws]) => {
+      if (!ws || !ws.mix) return;
+      const ks = Object.keys(ws.mix);
+      if (ks.length > 3) fail(`${today}: ${k} has ${ks.length} mix-up pairs`);
+      ks.forEach(o => { const ow = S.words[o]; if (!ow || !ow.st || !ow.mix || !ow.mix[k]) fail(`${today}: mix-up ${k} → ${o} on one side only`); });
+    });
     const met = (S.quests.m.ok || 0) >= target;
     if (met) stats.metDays++;
     if (allRight) {
@@ -206,8 +242,25 @@ const r = await page.evaluate(async ([DAYS, ACC, SEED, SKIP]) => {
   if (rules !== started) fail(`${rules} rule items, ${started} rules started`);
   const done = CX.sections.filter(s => s.built && (s.sheets.length || s.checkpoint) && cxSecDone(s.id)).length;
   log.push(`sections done: ${done} · rules started ${started} · texts ${stats.texts} · gap now ${cxGap()} days · planner ${cxPlanner().status}`);
+  if (MIX) {
+    const made = mixEv.new, sorted = mixEv.sorted;
+    const open = Object.values(S.words).reduce((n, ws) => n + (ws && ws.mix ? Object.keys(ws.mix).length : 0), 0) / 2;
+    const days2 = usageAllDays(), mp = days2.reduce((a, [, v]) => a.map((x, i) => x + ((v.mixp || [])[i] || 0)), [0, 0, 0]);
+    if (mp[0] !== made || mp[2] !== sorted) fail(`usage log: mix-ups ${mp[0]} new / ${mp[2]} sorted, events ${made} / ${sorted}`);
+    if (!(U.includes(`open now ${Math.round(open)}`))) fail(`usage report: open pairs not ${Math.round(open)}`);
+    if (mixStats.typed && !made) fail("mix-ups typed but no pair made");
+    // the usage log agrees: verb cards in a sentence, bonus rounds offered; the learning log lists open pairs
+    const vs = days2.reduce((a, [, v]) => a + ((v.vsent || [])[0] || 0), 0), bo = days2.reduce((a, [, v]) => a + (v.bonus ? v.bonus[0] + v.bonus[1] : 0), 0);
+    if (vs !== mixStats.sentence) fail(`usage log: ${vs} verb answers in a sentence, asked ${mixStats.sentence}`);
+    if (!U.includes(`Verb exercises asked in an old card's sentence: ${vs} `)) fail("usage report: the sentence line doesn't say " + vs);
+    if (bo !== mixStats.bonusSeen) fail(`usage log: ${bo} bonus rounds offered, seen ${mixStats.bonusSeen}`);
+    if (open && !/Being practised as pairs in Today now: /.test(L)) fail("the learning log doesn't list the open pairs");
+    if (DAYS >= 20 && made && !sorted) fail("no mix-up pair sorted in " + DAYS + " days");
+    if (made && !mixStats.partners) fail("no partner ever asked");
+    log.push(`mix-ups: typed ${mixStats.typed} · pairs made ${made} · again ${mixEv.again} · sorted ${sorted} · open ${open} · partners asked ${mixStats.partners} · verb cards in a sentence ${mixStats.sentence} (${mixStats.sentenceOk} take their form) · sessions' bonus checked ${mixStats.bonusChecked}`);
+  }
   return { fails, log, stats, days };
-}, [DAYS, ACC, SEED, SKIP]);
+}, [DAYS, ACC, SEED, SKIP, MIX]);
 
 console.table(process.argv.includes("--all") ? r.days : r.days.filter((_, i) => i % 3 === 0 || i === r.days.length - 1));
 r.log.forEach(l => console.log(l));
