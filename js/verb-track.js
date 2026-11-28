@@ -934,7 +934,7 @@ function vxCatalog() {
 }
 // A per-verb item's sheet (French: it depends on the verb).
 function vxItemSheet(d, x) { return typeof d.sheet === "function" ? d.sheet(x) : d.sheet; }
-function vxCatalogReset() { _vxCatalog = null; _vxRetire = null; _vxQueueCache = null; _vxCells = null; _vxOpenDays = null; _vxPace = null; }
+function vxCatalogReset() { _vxCatalog = null; _vxRetire = null; _vxSent = null; _vxQueueCache = null; _vxCells = null; _vxOpenDays = null; _vxPace = null; }
 // The logical order inside a level (lower first): the shapes a learner
 // meets first, the odd ones last.
 function vxItemOrder(x, kind) {
@@ -1134,8 +1134,106 @@ function vxCueText(ex) {
   const gap = !pron ? "___" : /'$/.test(pron) ? pron + "___" : pron + " ___";
   return `${ex.x.inf} (${vxGameTense(ex)}) — ${gap}${ctx}${cmd ? (VX_FR ? " !" : "!") : ""}`;
 }
+// ── THE OLD CARDS' SENTENCES ──────────────────
+// Every card of a verb-form deck came with a sentence (gewesen: «Ich bin
+// noch nie in Berlin gewesen.»), and the cloze asked it while the card was
+// a card. Once the track takes a card over (vxRetireMap) the card is never
+// asked again — and its sentence went with it (208 Known cards' sentences
+// on 27 Nov 2026; every tense that opens takes over more: Konjunktiv II,
+// Passiv). Now a verb exercise for the same verb, tense and person takes
+// one of them now and then: the sentence, its verb form as the gap, graded
+// as the exercise (one item, one schedule — nothing counted twice).
+// Every taken-over card with a sentence is reachable this way
+// (tools/verb-track/t-sentences.mjs checks each one, so a new tense or deck
+// can't lose them again).
+const VX_SENT_SHARE = 0.5; // of the exercises that have a sentence
+let _vxSent = null;
+// inf|tense → [{ key, de, en, p }] — the taken-over cards' sentences.
+function vxSentenceBank() {
+  if (_vxSent) return _vxSent;
+  const m = new Map();
+  if (!VX_FR) vxRetireMap().forEach((c, key) => {
+    const di = key.lastIndexOf("_"), d = typeof getDeck === "function" ? getDeck(key.slice(0, di)) : null;
+    const w = d && d.words[+key.slice(di + 1)], e = w && (w.examples || []).find(x => x && x.de);
+    if (!e) return;
+    const k = c.inf + "|" + (VX_KIND_TENSE[c.t] || c.t);
+    if (!m.has(k)) m.set(k, []);
+    m.get(k).push({ key, de: e.de, en: e.en || "", p: c.p });
+  });
+  _vxSent = m;
+  return m;
+}
+// The sentence with the form's words as gaps (one or two: «Ich ___ noch nie
+// in Berlin ___.»), or null when the form isn't in it word for word (another
+// person, another tense) — a sentence is only ever asked with its own form.
+function vxSentenceGap(de, ans) {
+  const want = String(ans || "").toLowerCase().split(/\s+/).filter(Boolean);
+  if (!want.length) return null;
+  const parts = String(de).split(/([\p{L}\p{N}’'-]+)/u); // words at odd indexes
+  const hit = [];
+  let j = 0;
+  for (let i = 1; i < parts.length && j < want.length; i += 2) if (parts[i].toLowerCase() === want[j]) { hit.push(i); j++; }
+  if (j < want.length) return null;
+  // (the form's first word is the first time it's in the sentence: «Ich habe gehabt» never gaps a later «habe»)
+  const out = parts.slice();
+  hit.forEach(i => { out[i] = "\u0000"; });
+  const q = out.join("").replace(/\u0000(\s*\u0000)*/g, "___");
+  const gaps = (q.match(/___/g) || []).length;
+  return gaps >= 1 && gaps <= 2 ? q : null;
+}
+// The persons an exercise may take to fit a sentence (its own first): a
+// rule's or a ledger cell's persons; a stem-change item du or er; a
+// command, and an es-verb (es regnet), keep theirs; any other item any
+// person (a Partizip item asked for ich: «Ich habe … gewohnt»).
+function vxSentPersons(ex) {
+  let ps;
+  if (ex.rule) ps = VX_RULE[ex.rule] ? vxRulePersons(VX_RULE[ex.rule], ex.x) : [];
+  else if (ex.cell) ps = vxCellPersons(ex.x, ex.tense);
+  else {
+    const k = String(ex.item || "").split(":")[0];
+    ps = k === "sc" ? ["du", "er"] : /^im/.test(ex.kind) || vxItVerb(ex.x) ? [] : PERSONS;
+  }
+  return [ex.p, ...ps.filter(p => p !== ex.p)];
+}
+// The old cards' sentences this exercise can be asked in: [{ key, de, en,
+// p, form, q }] — for each sentence the first person (the exercise's own
+// first) whose form is in it word for word.
+function vxSentenceFits(ex) {
+  if (VX_FR || !ex || !ex.form || !ex.x) return [];
+  const list = vxSentenceBank().get(ex.x.inf + "|" + ex.tense) || [];
+  if (!list.length) return [];
+  const ps = vxSentPersons(ex), forms = {};
+  // (a Passiv with a modal: any of its modals — the sentence says which: «kann bezahlt werden»)
+  const modals = ex.kind === "pvmod" ? [ex.modal, ...Object.keys(VX_PV_MODALS).filter(m => m !== ex.modal)] : [ex.modal || ""];
+  const formOf = (p, m) => p === ex.p && m === (ex.modal || "") ? ex.form
+    : (p + "|" + m) in forms ? forms[p + "|" + m] : (forms[p + "|" + m] = vxForm(ex.x, ex.kind, p, { modal: m }) || null);
+  const out = [];
+  list.forEach(s => {
+    for (const m of modals) {
+      const p = ps.find(p => { const f = formOf(p, m); return f && vxSentenceGap(s.de, f.ans); });
+      if (p) { const f = formOf(p, m); out.push({ key: s.key, de: s.de, en: s.en, p, modal: m, form: f, q: vxSentenceGap(s.de, f.ans) }); return; }
+    }
+  });
+  return out;
+}
+// The exercise, now and then (VX_SENT_SHARE) in one of its sentences: a
+// sentence for its own person first, else one it can take the person of.
+// ex.sent = { q, de, en, key }; ex.q = the gapped sentence (vxGrade also
+// takes the whole sentence typed back, vxGapTries). force: always (tests).
+function vxWithSentence(ex, force = false) {
+  if (VX_FR || !ex || !ex.form || ex.sent || ex.q || !ex.x) return ex;
+  if (!force && Math.random() >= VX_SENT_SHARE) return ex;
+  const fits = vxSentenceFits(ex);
+  if (!fits.length) return ex;
+  const own = fits.filter(f => f.p === ex.p), pool = own.length ? own : fits;
+  const s = pool[Math.floor(Math.random() * pool.length)];
+  return { ...ex, p: s.p, form: s.form, ...(ex.kind === "pvmod" ? { modal: s.modal } : {}), q: s.q, sent: { q: s.q, de: s.de, en: s.en, key: s.key } };
+}
 // The word-like object a Today item carries (wordKey(w) = "vx_…").
-function vxWord(ex) {
+// A new item's first look and check stay plain; after that the exercise
+// may come in one of its old cards' sentences (vxWithSentence).
+function vxWord(ex, plain = false) {
+  if (!plain) ex = vxWithSentence(ex);
   const id = ex.item || ("cell:" + ex.cell);
   return { deckId: VX_DECK, idx: id, deckName: vxT("Verbs"), de: ex.form.ans, fr: ex.form.ans, en: vxCueText(ex), hint: "verb", vx: ex };
 }

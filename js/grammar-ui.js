@@ -836,7 +836,9 @@ function vxTodayHtml() {
 // The answer with its parts in colour (engine tenses), or plain.
 function vxFormHtml(ex) {
   const html = VX_FR ? vxFormHtmlFr(ex) : vxFormHtmlBase(ex);
-  return ex.form && ex.form.ctx ? `${html} <span class="vx-ctx">${escapeHtml(ex.form.ctx)}</span>` : html;
+  const out = ex.form && ex.form.ctx ? `${html} <span class="vx-ctx">${escapeHtml(ex.form.ctx)}</span>` : html;
+  // asked in a sentence: the whole sentence under the form
+  return ex.sent ? `${out}<div class="vx-sent-full">${escapeHtml(ex.sent.de)}</div>` : out;
 }
 function vxFormHtmlBase(ex) {
   // Engine tenses split into coloured parts (Verb Thread's colours).
@@ -864,7 +866,8 @@ function vxFormHtmlFr(ex) {
   return `${vxPronHtml(pron)}<b>${escapeHtml(ex.form.ans)}</b>`;
 }
 // What to say aloud for an answer.
-function vxSayText(ex) { return VX_FR ? VXF.say(ex) : ex.form.ans; }
+// (asked in a sentence: the sentence, as the cloze said it)
+function vxSayText(ex) { return VX_FR ? VXF.say(ex) : ex.sent ? ex.sent.de : ex.form.ans; }
 // The question: the tense as its title, the person and one gap, the
 // verb and its meaning. Nothing else competes with the tense: the rule
 // it practises is in the label above the card.
@@ -882,7 +885,10 @@ function vxPromptHtml(ex) {
   let line;
   // "sie" alone could be she: the plural says so (vxPronText).
   const cmd = VX_FR ? ex.kind === "ip" : ex.kind === "im" || ex.kind === "imsep" || ex.kind === "imfull";
-  if (cmd) line = `<span class="vx-pron">${escapeHtml(vxPronText(ex))}</span> ${gap}${ctx} !`;
+  // In one of its old cards' sentences (verb-track.js vxWithSentence): the
+  // sentence is the line — its subject says who — with the form as gap(s).
+  if (ex.sent) line = `<span class="vx-sent">${escapeHtml(ex.sent.q).split("___").join(`<span class="vx-gap"></span>`)}</span>`;
+  else if (cmd) line = `<span class="vx-pron">${escapeHtml(vxPronText(ex))}</span> ${gap}${ctx} !`;
   else if (VX_FR) line = `${vxPronHtml(vxPronText(ex))}${gap}${ctx}`;
   else line = `<span class="vx-pron">${escapeHtml(vxPronText(ex))}</span> ${gap}${ctx}`;
   const mod = ex.kind === "pvmod" ? ` · with <b>${escapeHtml(ex.modal)}</b>` : "";
@@ -891,7 +897,8 @@ function vxPromptHtml(ex) {
   const gloss = vxMeaningCue(ex.x);
   return `<div class="vx-q" style="${vxUnitStyle(u)}">
     <div class="vx-tt-row" id="vx-tt">${vxTenseTitleHtml(t)}</div>
-    <div class="vx-line">${line}</div>
+    <div class="vx-line${ex.sent ? " sent" : ""}">${line}</div>
+    ${ex.sent && ex.sent.en ? `<div class="vx-sent-en">${escapeHtml(ex.sent.en)}</div>` : ""}
     <div class="vx-verb">${escapeHtml(gloss)}${mod}</div>
     ${speakOn() ? `<div class="vx-fmt">🗣️ ${vxT("Say")} <b>${vxT("the full form")}</b></div>` : ""}
   </div>`;
@@ -1156,7 +1163,7 @@ function pathGradeVerb(val, ok, said = false) {
     if (input) input.classList.add("wrong");
   }
   s.stats.answered++;
-  logEvent("answer", { m: ex.cell ? "path:cell" : "path:verb", ok: ok === true, typed: !said, hint, ms: Date.now() - s.shownAt, src: typeof pathAnswerSrc === "function" ? pathAnswerSrc(it) : "" });
+  logEvent("answer", { m: ex.cell ? "path:cell" : "path:verb", ok: ok === true, typed: !said, hint, ms: Date.now() - s.shownAt, src: typeof pathAnswerSrc === "function" ? pathAnswerSrc(it) : "", ...(ex.sent ? { sent: 1 } : {}) });
   questEvent("answer", { mode: "path", ok: ok === true, typed: !said, st: from, w, it: "verb", hint, ms: Date.now() - s.shownAt, said, fix: wasFix || !!it.repair, retried: !!it.tenseRetry });
   saveState();
   // Feedback: the form in colour, the rule behind it, the whole row.

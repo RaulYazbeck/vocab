@@ -647,6 +647,12 @@ function pathSecretOk() {
   s.stats.answered--;
   if (it.t === "spot" && !u.near) S.path.spotToday = Math.max(0, (S.path.spotToday || 1) - 1);
   if (!u.wasMissed) s.missed = s.missed.filter(x => !sameWord(x, w));
+  // 🔀 a pair this answer made: the other word as it was, and no partner in the repair round
+  if (u.mix) {
+    const ows = S.words[u.mix.k];
+    if (ows) { if (u.mix.theirs) ows.mix = JSON.parse(u.mix.theirs); else delete ows.mix; }
+    s.mixq = (s.mixq || []).filter(x => !(x.after === k && wordKey(x.w) === u.mix.k));
+  }
   if (u.move) s.moves.set(k, u.move); else s.moves.delete(k);
   if (!u.near) P.secretOk.n++;
   // Only take back a mistake note this answer wrote (a mic answer writes none).
@@ -685,16 +691,20 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     wasMissed: s.missed.some(x => sameWord(x, w)) }; };
   const spoken = !!it.spoken;
   pathLogAnswer(it, ok === true, { st: from, typed: true, near: ok === "near", hint: !!it.usedHint, voice: spoken, say: !!it.said, fast: !!it.fast });
+  let missType = null, mixSorted = [];
   if (typeof learnNoteMiss === "function" && !it.said && !spoken) {
     if (ok === true) { if (!fromReverse && it.t !== "reverse" && it.t !== "cloze" && !it.plural) learnNoteSoft(w, val); }
     else if (it.t === "reverse") learnNoteMiss(w, { src: "path:reverse", type: String(val).trim() ? "meaning" : "blank", given: val });
-    else if (it.t === "cloze") learnNoteMiss(w, { src: "path:cloze", given: val, expected: it.cloze.answer, alsoOk: [w[WORD_KEY], gameForm(w)], noNoun: true,
+    else if (it.t === "cloze") missType = learnNoteMiss(w, { src: "path:cloze", given: val, expected: it.cloze.answer, alsoOk: [w[WORD_KEY], gameForm(w)], noNoun: true,
       type: ok === "near" ? "spelling" : undefined });
     else if (it.plural) learnNoteMiss(w, { src: "path:plural", given: val, type: ok === "near" ? "spelling" : "plural", expected: [it.plural] });
-    else learnNoteMiss(w, { src: "path:" + it.t, given: val, type: ok === "near" ? "spelling" : undefined });
+    else missType = learnNoteMiss(w, { src: "path:" + it.t, given: val, type: ok === "near" ? "spelling" : undefined });
   }
   // After the mistake note above, so learnUndoLast removes exactly that one.
   if (typoOk || nearOk) snap();
+  // 🔀 Another word I know typed for this one: the two become a pair
+  // (path.js MIX-UPS) — after the snapshot, so "my typo" takes it back.
+  const mixed = ok !== true && ok !== "near" && missType === "confused" && ["typed", "cloze", "spot"].includes(it.t) ? pathMixMiss(w, val) : null;
   if (ok === true) {
     // Said aloud: a Show tapped too fast to have recalled anything is a look.
     const kind = it.usedHint || (it.said && it.fast && !it.micOk) ? "recognition" : "recall";
@@ -719,6 +729,7 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
       genderCollected = collectAttr(w, "g");
     if (genderCollected) checkAchievements({ type: "collect" }); // 🎨 Gender Collector
     pathGolden(it);
+    if (typeof mixRight === "function") mixSorted = mixRight(w);
     playSuccess(); haptic("select");
     if (input) input.classList.add("correct");
   } else if (ok === "near") {
@@ -775,13 +786,20 @@ function pathGradeTyped(val, ok, note = "", fromReverse = false) {
     : it.usedHint && ok === true ? `<span class="p-chip">💡 with hint — no step up</span>`
     : it.said && it.fast && ok === true ? `<span class="p-chip">⚡ Shown straight away — counts as a look, no step up</span>` : "";
   const collectChip = genderCollected ? ` <span class="p-chip gold">🎨 Added to your Gender collection</span>` : "";
+  // 🔀 Mix-ups: the two side by side — just mixed up, a partner asked for
+  // its pair, a miss on a word with a pair open; a pair just sorted.
+  const src = it.mix ? mixKeyWord(it.mix) : null, open = ok !== true && !mixed && !src ? mixPartners(w)[0] : null;
+  const mixHtml = mixed ? `<div class="p-sub p-mix-lead">That's another word — tell them apart:</div>${mixPairHtml(w, mixed)}`
+    : src ? `<div class="p-sub p-mix-lead">The pair you mixed up:</div>${mixPairHtml(w, src)}`
+    : open ? `<div class="p-sub p-mix-lead">Don't mix it up with:</div>${mixPairHtml(w, open.w)}`
+    : mixSorted.length ? `<span class="p-chip ok">🔀 Sorted — ${mixSorted.map(o => `${escapeHtml(gameForm(o))} / ${escapeHtml(gameForm(w))}`).join(", ")}: told apart on ${MIX_WATCH} days</span>` : "";
   const head = ok === true ? `<div class="p-ok">✓ Correct! <strong${ansTap}>${colorArticleHtml(answerText)}</strong></div>`
     : ok === "near" && it.said ? `<div class="p-near">≈ Close — say it once more: <strong>${colorArticleHtml(answerText)}</strong></div><div class="p-sub">No step up, no step down — one more try at the end of this session.</div>`
     : ok === "near" ? `<div class="p-near">${nearOk ? `<span class="p-typo" onpointerdown="event.preventDefault();pathSecretTap()">≈</span>` : "≈"} Almost — check the spelling</div><div class="p-diff">${diffHtml(val, answerText)}</div>${note ? `<div class="p-sub">${note}</div>` : ""}<div class="p-sub">No step up, no step down — one more try at the end of this session.</div>`
     : `<div class="p-bad">${typoOk ? `<span class="p-typo" onpointerdown="event.preventDefault();pathSecretTap()">✗</span> Answer:` : val.trim() ? "✗ Answer:" : "Answer:"} <strong${ansTap}>${colorArticleHtml(answerText)}</strong></div>${val.trim() ? `<div class="p-diff">${diffHtml(val, answerText)}</div>` : ""}${note ? `<div class="p-sub">${note}</div>` : ""}`;
   const fb = document.getElementById("p-fb");
   if (fb) fb.innerHTML = `
-    <div class="p-fb-main">${head}${chip}${collectChip}${it.said && it.t !== "reverse" ? frGenderNoteHtml(w) : ""}${w.pl && it.t !== "cloze" && it.t !== "reverse" && !it.plural ? `<div class="p-sub">plural: ${escapeHtml(w.pl)}</div>` : ""}</div>
+    <div class="p-fb-main">${head}${chip}${collectChip}${mixHtml}${it.said && it.t !== "reverse" ? frGenderNoteHtml(w) : ""}${w.pl && it.t !== "cloze" && it.t !== "reverse" && !it.plural ? `<div class="p-sub">plural: ${escapeHtml(w.pl)}</div>` : ""}</div>
     ${it.t === "reverse" ? `<div class="p-sub">${colorArticleHtml(gameForm(w))} = ${escapeHtml(gamePrompt(w))}</div>` : ""}
     ${pathCaseNote(it)}${it.plural && typeof pluralRuleHtml === "function" && pluralRuleHtml(pluralItem(w).np.full, it.plural.replace(/^die /, "")) ? `<div class="p-sub">${pluralRuleHtml(pluralItem(w).np.full, it.plural.replace(/^die /, ""))}</div>` : ""}
     ${examplesHtml(w, "first")}`;
@@ -849,6 +867,19 @@ function pathGolden(it) {
   addExp(10);
   questEvent("golden", {});
   floatScore(document.getElementById("p-card"), "🌟 +10", "gold");
+}
+// A typed miss that was another word I know (learning-log.js "confused"):
+// the pair is noted (path.js mixNote) and the other word follows in this
+// session's repair round. "My typo" takes it all back (s.undo.mix).
+function pathMixMiss(w, val) {
+  const s = pathSession, k = typeof _learnFind === "function" ? _learnFind(val, w) : null;
+  if (!k || typeof mixNote !== "function") return null;
+  const ows = S.words[k], theirs = ows && ows.mix ? JSON.stringify(ows.mix) : null;
+  const ow = mixNote(w, k);
+  if (!ow) return null;
+  if (s && s.undo) s.undo.mix = { k, theirs };
+  if (s) { s.mixq = s.mixq || []; if (!s.mixq.some(x => sameWord(x.w, ow))) s.mixq.push({ after: wordKey(w), w: ow }); }
+  return ow;
 }
 function pathMissed(w) {
   const s = pathSession;
@@ -959,8 +990,10 @@ function pathRepair(yes) {
   // practice here: a miss still counts, a right answer moves nothing.
   list.forEach(w => {
     // A missed verb drill: the same verb and tense, another person.
-    if (pathIsDrill(w)) { const ex = vxCellExercise({ x: w.vx.x, t: w.vx.tense }); s.items.push({ t: "typed", w: ex ? vxWord(ex) : w, fix: true, repair: true }); return; }
+    if (pathIsDrill(w)) { const ex = vxCellExercise({ x: w.vx.x, t: w.vx.tense }); s.items.push({ t: "typed", w: ex ? vxWord(ex, true) : w, fix: true, repair: true }); return; }
     const ws = S.words[wordKey(w)]; s.items.push({ t: "typed", w, fix: true, repair: true, practice: !(ws.lrn || ws.rp || ws.fl), ask: pathFixAsk(w, ws) });
+    // 🔀 the word I mixed it up with, right after it (practice: nothing missed there)
+    (s.mixq || []).filter(x => x.after === wordKey(w)).forEach(x => s.items.push({ t: "typed", w: x.w, practice: true, mix: wordKey(w) }));
   });
   pathSpace(s.items, start); // never the word you just missed first
   s.i = start - 1; // pathNext steps onto the first repair item

@@ -1332,6 +1332,25 @@ sentences recorded (4,089 characters, 0 refused); 70,536 / 70,536 texts.
   accent picker isn't a Leave; and each session left records how (`how`, shown in the report), so the next report
   says what ended them. 21 Nov's can't be told apart after the fact — no screen opens that day, so most were left
   through the question; the bonus games were all fine on that day's build (t-gamematrix bonus, 34/34).
+- **The usage report of 27 Nov 2026 — what I asked for after it (28 Nov 2026):**
+  (a) *Writing* — I was worn out by the same topics every day (and had started writing anything to get through):
+  now three texts a week (Monday to Sunday), never two days in a row, a skipped day waits; 130 new topics
+  (js/course/writing-bank.js: A1 12 · A2 60 · B1 58 — 111 needed to 15 Aug 2027 at three a week, the rest a buffer),
+  never one twice, my level first; about a third practical like the fide written part (a note, an email, an ad, a
+  complaint). The words asked grow 5 at a time: A1 30 → 35 (every 6 texts), A2 40 → 65 and B1 70 → 90 (every 10) —
+  no more jumps 30 → 60 → 90. ☰ › Writing shows the week (● ○ ○), the next writing day and the topics left.
+  (b) *Mix-ups* — 167 misses were another word I know typed for the one asked, and nothing used them: now the two
+  become a pair (on both words), the feedback shows them side by side, the other word follows in the session's
+  repair round, and later sessions bring it a few cards after its word until both were right on two separate days
+  (path.js MIX-UPS); the games' traps get them too. (c) *The old verb cards' sentences* — 208 of my Known cards'
+  sentences stopped feeding the cloze when the verb track took the cards over (a side effect nobody planned, and
+  every tense that opens would take more): a verb exercise is now asked in one of them half the time (the sentence,
+  its form as the gap, graded as the exercise — never a new item's first check); t-sentences checks every
+  taken-over card's sentence can be asked, so a new tense can't lose them (97 %: the rest don't show their tense —
+  an infinitive, a passive — or only in a person the exercises never ask). (d) *Bonus rounds* — fun at first, then
+  too many: by the questions a session really holds, not the length picked — 40+ → 2, 12–39 → 1, fewer → none
+  (a Long session picked for the last 10 cards brought three). (e) *Test-outs* — nothing to do: they only open the
+  A1 lessons, all done.
 
 ## 15. Parked — for later
 
@@ -1353,32 +1372,22 @@ Everything the book teaches is in the course; these parts of it stay *to read*, 
 
 - **A 💎 check-in before the exam (noted 15 Nov 2026, not now).** A 💎 word's check-ins come 4 months and a year after its lock-in — so a word locked after mid-April 2027 gets none before 15 Aug, and most 💎 words will be locked by then (≈ 2,850 on the finish date). Spot checks can't cover that: modelled on my pace, even 20 a day only take the 💎 words I'd miss on the day from ≈ 13 % to ≈ 8 %. The lever is one check-in timed a few weeks before the finish date for every 💎 word not answered right lately, spread over those weeks (the weighting of the spot checks can order them). To decide together before building — how many weeks, how many a day, and how it fits the plan's daily count.
 
-### From the usage report of 27 Nov 2026 — ideas waiting for a decision (noted 28 Nov 2026)
+### From the usage report of 27 Nov 2026 — what's still open (updated 28 Nov 2026)
 
-The report's four bugs are fixed (decisions log, 27 Nov). What it suggested beyond them, not built yet:
+The report's bugs are fixed and its ideas 7–10 and the bonus rounds are built (decisions log, 27 and 28 Nov).
+What's left of it:
 
-- **5. Spelling slips are forgiven and never practised.** Accepted answers with a slip: 2,593 capitals, 597 umlauts
-  (config.js normalize: Mädchen = Madchen; course-de.js: "the learner never has to type an umlaut"). The written exam
-  marks noun capitals and umlauts, and K II makes them matter (hatte/hätte, wurde/würde, konnte/könnte; Bruder/Brüder).
-  Idea: the answer still counts, but the corrected word is typed once before going on — nouns' capitals and umlauts
-  that change the word first.
-- **6. No speaking at all** (spoken answers: 0). Speaking *evaluation* is out of scope (§2); a "say it, then type it"
-  step on cloze and verb items needs none.
-- **7. The daily text sits at the 30-word minimum** most days. Ideas: raise the minimum slowly (35 → 40 → 50);
-  prompts shaped like fide written tasks (a short email, a message to a landlord, a form).
-- **8. "Confused" and "meaning" misses are rising** as A2 words come in (11-23: 11 confused; 11-26: 18 meaning or
-  confused). The learning log already knows which word was taken for which: a drill of those pairs side by side.
-- **9. Test-outs fail two times in three** (3 of 9 passed, 64 % right, 16.6 s an answer). Offer one only when the
-  section's rules are already 🌳 Known or better.
-- **10. 208 verb cards stopped feeding the cloze** when the verb track took them over (their sentences unused):
-  let them keep feeding it.
-- **Smaller:** active time ≈ 30 min a day against the 60 planned (only 59 % of screen time had a touch); the report's
-  headline should be active minutes, not screen minutes. Quests that look ignored (d_retro, b_plural, d_timer50,
-  b_oldest, c_world, c_timeline, d_perfect): look again at the next report — the quest counts were wrong until 27 Nov.
-  Bonus rounds: all taken at first, mostly declined since about 20 Oct — offer them less often? Plural Hunt is the
-  weakest game (63 % right, 5 of 15 quit): plurals are a written-exam skill, maybe a Today exercise rather than a game.
-- **Watch in the next report:** the new line "Sessions left before the end, by how" — it says what ended the
-  sessions of 20–21 Nov; and whether the morning numbers (plan, brake) now look real.
+- **5. Spelling slips** (accepted with a slip: 2,593 capitals, 597 umlauts) — **my call: not to build.** I know my
+  umlauts; the forgiving stays as it is.
+- **6. Speaking** (spoken answers: 0) — **my call: not to build.** I speak in classes on the side and use the 🎙️
+  when I can.
+- **Smaller, not decided:** the report's headline should be active minutes, not screen minutes (≈ 30 active a day
+  against the 60 planned); Plural Hunt is the weakest game (63 % right, 5 of 15 quit) — plurals as a Today exercise
+  instead?
+- **Watch in the next reports:** the new line "Sessions left before the end, by how" (what ended the sessions of
+  20–21 Nov); the morning numbers (plan, brake) now the real ones; the quests that looked ignored (d_retro, b_plural,
+  d_timer50, b_oldest, c_world, c_timeline, d_perfect) — their counts were wrong until 27 Nov; bonus rounds taken
+  now that there are fewer; "Verb exercises asked in an old card's sentence"; "Mix-up pairs".
 - **Tests already failing before 27 Nov** (the same numbers on the older code): t-adopt "Today never asks an old
   verb card"; t-quests seed 3 set 5 (b_ledger stays 16/17).
 

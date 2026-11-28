@@ -564,8 +564,9 @@ qt({ id: "c_weakboss", slot: "C", fam: "boss", icon: "👾", w: 1.2, ok: c => ga
   title: () => `Beat the Weakest-words boss`, prog: m => m.weakBoss, go: "game:boss" });
 qt({ id: "c_bossclean", slot: "C", fam: "boss", icon: "🛡️", w: 1, ok: c => gameOk(c, "boss"), target: () => 1,
   title: () => `Win any boss battle without losing a heart`, prog: m => m.bossPerfect, go: "game:boss" });
-// 2, not 3: a Long session offers 3 bonus rounds (one may be a minion),
-// so a single Long session can still finish it with one miss or skip.
+// 2: a Long session offers 2 bonus rounds (path.js pathBonusSlots — one
+// may be a minion), any other session of 12+ questions one more: a miss or
+// a skip leaves the day's next session to finish it.
 qt({ id: "c_bonus", slot: "C", fam: "bonus", icon: "🎁", w: 1, ok: c => c.G >= 50 && !grandmaOn(), target: () => 2,
   title: q => `Clear ${q.target} bonus rounds inside Today sessions`, prog: m => m.bonusCleared, go: "path:long" });
 qt({ id: "c_blitz", slot: "C", fam: "score", icon: "⚡", w: 1, ok: c => gameOk(c, "blitz"), target: () => 300,

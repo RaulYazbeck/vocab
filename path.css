@@ -898,3 +898,10 @@ body.grandma button.gm-quest { min-height:76px; }
 .p-bonus-rank { font-weight:700; color:var(--text-1, var(--text)); }
 .p-bonus-st .g-star { font-size:18px; animation:none; }
 .p-bonus-how { color:var(--text-3); }
+
+/* 🔀 Mix-ups: the two words side by side (path.js mixPairHtml). */
+.p-mix-lead { margin-top:8px; }
+.p-mix { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:center; gap:4px 10px; margin:4px auto 2px; padding:7px 12px; max-width:100%;
+  border-radius:var(--r-sm, 10px); background:rgba(255,255,255,0.05); border:1px dashed rgba(255,255,255,0.18); font-size:15px; line-height:1.35; }
+.p-mix-ico { font-size:16px; }
+.p-mix-sep { color:var(--text-3); }

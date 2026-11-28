@@ -55,6 +55,8 @@ Two more browser tests (served by `run-suite.mjs`, below):
 
     node run-suite.mjs t-report.mjs   # the usage report's game times and quest counts
     node run-suite.mjs t-leave.mjs    # leaving a Today session: asked, Keep going by default
+    node run-suite.mjs t-bonus.mjs    # bonus rounds by the session's real questions (40+ → 2, 12–39 → 1, fewer → 0)
+    node run-suite.mjs t-mixup.mjs    # mix-up pairs: noted, side by side, partner in the repair round and later sessions, sorted
 
 - `t-report` — game times: a game left open before the 10-minute cap counts
   10 min; days before times were logged don't thin the averages (no "active"

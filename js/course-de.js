@@ -53,7 +53,7 @@ const CX_KINDS = ["pick", "type", "transform", "compose", "open", "translate", "
 const CX_PRODUCTION = new Set(["compose", "write", "translate", "answer", "open"]);
 
 // ── REGISTRY ──────────────────────────────────
-const CX = { stages: [], chapters: {}, sections: [], byId: {}, sheets: {}, rules: {}, sets: {}, cov: {}, packs: [], journal: [], themes: [] };
+const CX = { stages: [], chapters: {}, sections: [], byId: {}, sheets: {}, rules: {}, sets: {}, cov: {}, packs: [], journal: [], themes: [], wbank: [] };
 // (CX_TEST_OFF: the older test scripts measure Today without the course.)
 function cxOn() { return typeof WORD_KEY !== "undefined" && WORD_KEY === "de" && CX.sections.length > 0 && !(typeof window !== "undefined" && window.CX_TEST_OFF); }
 // The skeleton: { stages: [{ id, name, sub }], chapters: { c5: "title" },
@@ -108,6 +108,8 @@ function cxCover(map) { Object.assign(CX.cov, map); }
 // The writing journal's prompts (js/course/writing.js; packs may add).
 function cxJournal(list) { (list || []).forEach(p => { if (p && p.id && !CX.journal.some(q => q.id === p.id)) CX.journal.push(p); }); }
 // Its themes: { id, ico, name, de, A1, A2, B1 (a one-line task each) }.
+// The writing plan's topics (js/course/writing-bank.js), in their order.
+function cxWriteBank(list) { (list || []).forEach(p => { if (p && p.id && !CX.wbank.some(q => q.id === p.id)) CX.wbank.push(p); }); }
 function cxJournalThemes(list) { (list || []).forEach(t => { if (t && t.id && !CX.themes.some(x => x.id === t.id)) CX.themes.push(t); }); }
 function cxSheet(id) { return CX.sheets[id] || null; }
 // A section the learner can work through: a lesson (its sheets) or a
@@ -1523,12 +1525,8 @@ function cxTodayParts(scan) {
   // A contrast day: the due reviews and a few mixed items on top.
   if (contrast && !dd.contrast) parts.push({ part: "review", rules: rev, contrast: true });
   else if (rev.length && !dd.review) parts.push({ part: "review", rules: rev });
-  // Writing: on the days between new sheets, on a contrast day, on any
-  // day with room for it — and never more than 4 days apart.
-  const lessonToday = parts.some(p => p.part === "testout" || p.part === "sheet" || p.part === "drill" || p.part === "checkpoint");
-  const lastW = cxJournalList().filter(e => !/^drill:/.test(e.p)).map(e => e.d).pop();
-  const writeDue = !lastW || daysBetween(lastW, studyToday()) >= CX_WRITE_EVERY;
-  if ((B.write || contrast || !lessonToday || writeDue) && !dd.write && cxJournalPick()) parts.push({ part: "write" });
+  // Writing: three texts a week, never two days in a row (cxWriteDue).
+  if (!dd.write && cxWriteDue() && cxJournalPick()) parts.push({ part: "write" });
   return parts;
 }
 // The course's next days for the Journey's forecast (≈, if I come every
@@ -1541,8 +1539,7 @@ function cxForecastDays(n = 8) {
   migrateCourse();
   const today = studyToday(), C = S.course, dd = C.dd || {}, parts = cxTodayParts();
   const sim = cxClockSim(n, false);
-  let lastW = cxJournalList().filter(e => !/^drill:/.test(e.p)).map(e => e.d).pop() || "";
-  const prompts = !!cxJournalPick();
+  const wdays = cxWriteDays(), prompts = !!cxJournalPick();
   const out = [];
   for (let i = 0; i < n; i++) {
     const d = addDays(today, i), sd = sim.days[i] || {};
@@ -1552,9 +1549,10 @@ function cxForecastDays(n = 8) {
     const end = studyDayStart(i + 1), start = studyDayStart(i);
     const rules = i === 0 ? (({ fix, due }) => fix.length + due.length)(cxDueRules())
       : Object.keys(CX.rules).filter(r => { const ws = cxRuleWS(r); return ws && ws.st && !(ws.rp || ws.fl || ws.lrn) && ws.dueAt >= start && ws.dueAt < end; }).length;
+    // (a later day: if every writing day before it is taken)
     const write = i === 0 ? parts.some(p => p.part === "write") || !!dd.write
-      : !!prompts && (!lesson || !lastW || daysBetween(lastW, d) >= CX_WRITE_EVERY);
-    if (write) lastW = d;
+      : !!prompts && cxWriteDue(d, wdays);
+    if (write && i > 0) wdays.push(d);
     out.push({ d, lesson, sec, rules, write });
   }
   return out;
@@ -2117,8 +2115,16 @@ function cxReadiness(today = studyToday()) {
 // Free writing on a situation, at least N words; saved as it is (never
 // graded here — "always done"), for a tutor to correct from the learning
 // log. My level follows the course: the level of the next section.
-const CX_JOURNAL_MIN = { A1: 30, A2: 60, B1: 90 };
-const CX_WRITE_EVERY = 4;     // days: a writing prompt at least this often
+const CX_JOURNAL_MIN = { A1: 30, A2: 60, B1: 90 }; // (a prompt's level when the ramp has none)
+// The writing plan (28 Nov 2026, my wish — the same topics every day had
+// worn me out): three texts a week (Monday to Sunday), never two days in a
+// row; a writing day skipped simply waits for the next day. Its topics
+// never repeat (writing-bank.js, my level first: cxWritePick), and the
+// words asked grow 5 at a time with the texts of a level:
+//   [from, to, texts before each +5] — A1 30 → 35, A2 40 → 65, B1 70 → 90.
+const CX_WRITE_WEEK = 3;
+const CX_WRITE_GAP = 2;       // days at least from one text to the next
+const CX_WRITE_RAMP = { A1: [30, 35, 6], A2: [40, 65, 10], B1: [70, 90, 10] };
 const CX_JOURNAL_LEN = 2000;  // characters kept of one text
 // Every text is kept, never dropped: S.writing = { year: [entry] }, one
 // cloud doc a year (sync.js). (The first build kept them in S.learn.wr:
@@ -2148,11 +2154,52 @@ function cxLevel() {
   const lv = next && next.level;
   return lv === "B1" || lv === "B2" ? "B1" : lv === "A2" ? "A2" : "A1";
 }
-function cxJournalMin(p) { return p.min || CX_JOURNAL_MIN[p.lv] || 30; }
+// The words a text asks: the level's ramp by the plan's texts of that
+// level written so far (cxWriteDone) — a prompt's own min first.
+function cxJournalMin(p) {
+  if (p && p.min) return p.min;
+  const r = p && CX_WRITE_RAMP[p.lv];
+  if (!r) return (p && CX_JOURNAL_MIN[p.lv]) || 30;
+  return Math.min(r[1], r[0] + 5 * Math.floor(cxWriteDone(p.lv) / r[2]));
+}
+// The plan's texts written at a level (its topics: writing-bank.js).
+function cxWriteDone(lv) {
+  const ids = new Set(CX.wbank.filter(p => p.lv === lv).map(p => p.id));
+  return cxJournalList().filter(e => ids.has(e.p)).length;
+}
+// The days I wrote a text (not a drill's "write your own"), oldest first.
+function cxWriteDays() { return cxJournalList().filter(e => !/^drill:/.test(e.p)).map(e => e.d).sort(); }
+// The Monday of a day's week.
+function cxWeekStart(d) { const wd = new Date(Date.parse(String(d).slice(0, 10) + "T12:00:00Z")).getUTCDay(); return addDays(d, -((wd + 6) % 7)); }
+// Is a writing day due on day d (today by default)? Nothing written that
+// day, none the day before, fewer than three this week.
+function cxWriteDue(d = studyToday(), days = cxWriteDays()) {
+  const before = days.filter(x => x <= d);
+  if (before.includes(d)) return false;
+  const last = before[before.length - 1];
+  if (last && daysBetween(last, d) < CX_WRITE_GAP) return false;
+  return cxWriteWeek(d, days) < CX_WRITE_WEEK;
+}
+// Texts written in day d's week (up to d).
+function cxWriteWeek(d = studyToday(), days = cxWriteDays()) { const mon = cxWeekStart(d); return days.filter(x => x >= mon && x <= d).length; }
+// The plan's topics not written yet, my level first, then the levels above,
+// then below (a level's own order) — never one already written.
+function cxWritePick() {
+  if (!CX.wbank.length) return [];
+  const used = new Set(cxJournalList().map(e => e.p)), order = ["A1", "A2", "B1"], top = order.indexOf(cxLevel());
+  const lvs = [...order.slice(top), ...order.slice(0, top).reverse()];
+  return lvs.flatMap(lv => CX.wbank.filter(p => p.lv === lv && !used.has(p.id)));
+}
+// Where a plan topic stands in its level: [n, of].
+function cxWritePos(p) { const lv = CX.wbank.filter(q => q.lv === p.lv); return [lv.findIndex(q => q.id === p.id) + 1, lv.length]; }
 function cxWordCount(t) { return (String(t || "").match(/[\p{L}\p{N}]+(?:[-'’.][\p{L}\p{N}]+)*/gu) || []).length; }
 // The prompts open to me: my level and below, a section's once it's done.
 // skip: offer the next one instead ("another topic").
 function cxJournalPick(skip = 0) {
+  // The writing plan's topics first (never one written before)…
+  const plan = cxWritePick();
+  if (plan.length) return plan[skip % plan.length];
+  // …and once they're all written, the older prompts as before.
   if (!CX.journal.length) return null;
   const order = ["A1", "A2", "B1"], top = order.indexOf(cxLevel());
   const open = CX.journal.filter(p => order.indexOf(p.lv) <= top && (!p.sec || cxSecDone(p.sec)));
@@ -2190,7 +2237,7 @@ function cxJournalMark(id, on = true) {
 // A theme's own task at a level ("th.<theme>.<level>") when no prompt of
 // the theme is written for that level.
 function cxJournalPrompt(id) {
-  const p = CX.journal.find(x => x.id === id);
+  const p = CX.journal.find(x => x.id === id) || CX.wbank.find(x => x.id === id);
   if (p) return p;
   const m = /^th\.([a-z]+)\.(A1|A2|B1)$/.exec(String(id || "")), t = m && cxJournalTheme(m[1]);
   return t && t[m[2]] ? { id, lv: m[2], th: t.id, de: t.de, t: t[m[2]] } : null;
@@ -2209,6 +2256,8 @@ function cxJournalPool(th, lv) {
     return a.i - b.i;
   }).map(o => o.p.id);
   if (!ids.length && cxJournalPrompt(`th.${th || "free"}.${lv}`)) ids.push(`th.${th || "free"}.${lv}`);
+  // 🎲 Surprise me: the plan's topics of that level not written yet first
+  if (!th) { const used = new Set(Object.keys(last)); return [...CX.wbank.filter(p => p.lv === lv && !used.has(p.id)).map(p => p.id), ...ids]; }
   return ids;
 }
 // A text's short name: its prompt's title, or its drill's section.

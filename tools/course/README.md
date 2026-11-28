@@ -209,6 +209,7 @@ a later session that uploads its chapter.
                                       #   their rules, tables and traps (<dir>: pdftotext -layout of the
                                       #   chapters — never in the repo)
     node t-unit.mjs                   # sync merge, planner, the day's parts, answers, word orders
+    node t-writing.mjs                # the writing plan: 3 a week, never 2 days running, 130 topics never twice, the +5 ramp
     node t-course.mjs                 # the real app (serve the repo root on :8765 first, and
                                       # npm install once in tools/audio/tests): progress intact,
                                       # Today with the course (test-out → sheet → drill, the count),

@@ -164,6 +164,8 @@ function _usageAggregate(type, d, now) {
       }
       // src[where it came from] = [answers, right] (Today: path.js pathAnswerSrc)
       if (d.src) { const sr = _uf(day, "src", () => ({})); if (!sr[d.src]) sr[d.src] = [0, 0]; sr[d.src][0]++; if (d.ok === true) sr[d.src][1]++; }
+      // vsent = [answers, right]: verb exercises asked in an old card's sentence (verb-track.js vxWithSentence)
+      if (d.sent) { const v = _uf(day, "vsent", () => [0, 0]); v[0]++; if (d.ok === true) v[1]++; }
       if (d.voice) day.voice++;
       if (d.near) day.near++;
       if (d.hint) day.hint++;
@@ -275,6 +277,8 @@ function _usageAggregate(type, d, now) {
       break;
     }
     case "quest_auto": (d.to || []).forEach(id => _usageQuest(day, id, 0)); break;
+    // 🔀 mix-up pairs (path.js): [new, made again, sorted]
+    case "mix": { const m = _uf(day, "mixp", () => [0, 0, 0]); m[d.ev === "new" ? 0 : d.ev === "sorted" ? 2 : 1]++; break; }
     case "quest_done":
       day.q[0]++; _usageQuest(day, d.tpl, 1);
       if (d.tpl === "a_plan") day.planAt = new Date(now).getHours();
@@ -582,7 +586,12 @@ function usageRebuiltLines(days) {
         if (ws.rt) { r++; if (cz) rz++; } else { k++; if (cz) kz++; }
       })));
       out.push(`Cloze supply now: ${k} Known+ words in the word reviews, ${kz} with a sentence a cloze could use (${pct(kz, k)}); ` +
-        `${r} cards that were Known+ when the verb track took them over (${rz} had such a sentence — they no longer feed cloze)`);
+        `${r} cards that were Known+ when the verb track took them over (${rz} had such a sentence — asked again in their verb exercises since 28 Nov 2026)`);
+      const mp = days.reduce((a, [, v]) => a.map((x, i) => x + ((v.mixp || [])[i] || 0)), [0, 0, 0]);
+      const openPairs = Object.values(S.words).reduce((n, ws) => n + (ws && ws.mix ? Object.keys(ws.mix).length : 0), 0) / 2;
+      if (mp.some(x => x) || openPairs) out.push(`Mix-up pairs (two words taken for each other, since 28 Nov 2026): ${mp[0]} new · ${mp[1]} mixed up again · ${mp[2]} sorted · open now ${Math.round(openPairs)}`);
+      const vs = days.reduce((a, [, v]) => [a[0] + ((v.vsent || [])[0] || 0), a[1] + ((v.vsent || [])[1] || 0)], [0, 0]);
+      if (vs[0]) out.push(`Verb exercises asked in an old card's sentence: ${vs[0]} (${pct(vs[1], vs[0])} right)`);
     }
   } catch (e) {}
   try {
