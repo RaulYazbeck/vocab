@@ -21,6 +21,11 @@
 //   course   the web did the grammar course's pilot section and wrote a
 //            text yesterday; the phone, offline today, writes its own text,
 //            then syncs: both texts and the section on both devices
+//   voice    the voice log: the web flags a recording and notes a phrase
+//            without one; the phone (with lists from before the log
+//            synced) gets them, copies the log out, flags another; the web,
+//            offline on its old copy, flags one more, then syncs — both
+//            end with only the two new flags, nothing copied comes back
 // Every scenario also checks the web's other changes (a setting, the
 // daily goal, game data) survive the phone's old copy.
 //
@@ -34,7 +39,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(path.join(here, "../audio/tests/package.json"));
 const { chromium } = require("playwright-core");
 const BASE = process.env.BASE || "http://localhost:8765";
-const SCENARIOS = process.argv.slice(2).length ? process.argv.slice(2) : ["plain", "tap", "timeout", "offline", "repair", "outdated", "course", "resume", "resume-touched"];
+const SCENARIOS = process.argv.slice(2).length ? process.argv.slice(2) : ["plain", "tap", "timeout", "offline", "repair", "outdated", "course", "voice", "resume", "resume-touched"];
 const DAY = 864e5;
 function chrome() {
   const root = process.env.PLAYWRIGHT_BROWSERS_PATH || "/opt/pw-browsers";
@@ -109,7 +114,8 @@ const snap = p => p.evaluate(() => {
   return { exp: S.exp, totalCorrect: S.totalCorrect, streak: getDailyStreak(), kept: S.quests.kept.slice(), qday: S.quests.day, qok: S.quests.m.ok,
     known, due, plan: plan && { day: plan.day, reviews: plan.reviews, leave: plan.leave, target: plan.target }, sessionLen: S.path.sessionLen,
     other: { goal: S.dailyGoal, grandma: S.prefs.grandma, lastGame: S.games.lastGameId },
-    course: typeof cxJournalList === "function" ? { done: cxSecDone("s0.neg"), texts: cxJournalList().map(e => e.d + " " + e.t), rules: Object.keys(S.words).filter(k => /^cx_/.test(k)).length } : null };
+    course: typeof cxJournalList === "function" ? { done: cxSecDone("s0.neg"), texts: cxJournalList().map(e => e.d + " " + e.t), rules: Object.keys(S.words).filter(k => /^cx_/.test(k)).length } : null,
+    voice: { flags: audioFlagText(), misses: audioMissText() } };
 });
 // A day of study: every due word right in a Today session; the day kept.
 const study = (p, limit = 1e9) => p.evaluate(async limit => {
@@ -165,12 +171,13 @@ async function setup({ keepPhone = false } = {}) {
 }
 // What a plain sync gives today (the reference for the other scenarios).
 let reference = null;
-async function checkBoth(name, s, extra = () => {}) {
+async function checkBoth(name, s, extra = () => {}, onWeb = null) {
   await settle(s.phone.page);
   const ph = await snap(s.phone.page);
   await s.phone.page.close(); s.phone.page = null;
   await open(s.web, today10 + 600e3); await settle(s.web.page);
   const wb = await snap(s.web.page);
+  if (onWeb) await onWeb();
   for (const [who, x] of [["phone", ph], ["web", wb]]) {
     ok(x.streak === s.before.streak && x.streak >= 2, `${name}: ${who} keeps the streak (${x.streak})`, JSON.stringify(x.kept));
     ok(x.known >= s.before.known, `${name}: ${who} keeps every Known word (${x.known})`, `before ${s.before.known}`);
@@ -294,6 +301,59 @@ for (const sc of SCENARIOS) {
     });
     ok(after.plan.leave === fresh.leave && after.plan.reviews === fresh.reviews, `${sc}: the phone's plan is the one made from the real words (${after.plan.reviews} reviews, ${after.plan.leave} left; made now: ${fresh.reviews}, ${fresh.leave})`);
     await checkBoth(sc, s, (ph, wb) => ok(ph.plan.leave === wb.plan.leave && ph.plan.reviews === wb.plan.reviews, `${sc}: phone and web have the same plan (${ph.plan.reviews} reviews, ${ph.plan.leave} left; web ${wb.plan.reviews}, ${wb.plan.leave})`));
+  } else if (sc === "voice") {
+    const vlog = pg => pg.evaluate(() => ({ flags: audioFlagText(), misses: audioMissText() }));
+    await open(s.web, today10 + 60e3);
+    await s.web.page.evaluate(() => { audioFlag("der Vater", "accent"); audioNoteMiss("Ein Satz vom Web."); });
+    await settle(s.web.page); await s.web.page.close(); s.web.page = null;
+    ok(/der Vater/.test(s.cloud.gv5_de_voice || "") && !/der Vater|Ein Satz vom Web/.test(s.cloud.gv5_de), "voice: the log goes up in its own doc, not the main one");
+    // the phone still has lists from before the log synced (this device only)
+    await open(s.phone, today10 + 120e3, { seed: () => {
+      localStorage.setItem("gv_audio_flags_de", JSON.stringify([{ text: "die Straße", note: "cut off", at: Date.now() - 864e5, v: "old" }]));
+      localStorage.setItem("gv_audio_miss_de", JSON.stringify(["Ein alter Satz vom Handy."]));
+    } });
+    let v = await vlog(s.phone.page);
+    ok(v.flags === "die Straße | cut off\nder Vater | accent", "voice: the phone has its old flag and the web's", JSON.stringify(v));
+    // (the old list kept no times: its phrases count as noted when they moved in)
+    ok(v.misses === "Ein Satz vom Web.\nEin alter Satz vom Handy.", "voice: …and both phrases without a recording", JSON.stringify(v));
+    ok(await s.phone.page.evaluate(() => localStorage.getItem("gv_audio_flags_de") === null && localStorage.getItem("gv_audio_miss_de") === null), "voice: the old per-device lists moved in (removed)");
+    await settle(s.phone.page);
+    ok(/die Straße/.test(s.cloud.gv5_de_voice) && /Ein alter Satz/.test(s.cloud.gv5_de_voice), "voice: the phone's old lists reach the cloud");
+    // copy it out on the phone, then flag something new
+    await s.phone.ctx.grantPermissions(["clipboard-read", "clipboard-write"], { origin: BASE });
+    await s.phone.page.evaluate(() => audioCopyLog());
+    await s.phone.page.waitForFunction(() => audioFlagCount() + audioMissCount() === 0, null, { timeout: 5000 });
+    const clip = await s.phone.page.evaluate(() => navigator.clipboard.readText());
+    ok(/die Straße \| cut off/.test(clip) && /der Vater \| accent/.test(clip) && /Ein alter Satz/.test(clip) && /Ein Satz vom Web/.test(clip), "voice: the copy has everything from both devices", clip);
+    await s.phone.page.evaluate(() => audioFlag("das Haus", "too fast"));
+    await settle(s.phone.page); await s.phone.page.close(); s.phone.page = null;
+    // the web, offline on its old copy (still holding what was copied), flags one more
+    s.web.failReads = true;
+    await open(s.web, today10 + 300e3, { waitLoad: false, during: pg => pg.waitForFunction(() => typeof audioFlag === "function" && typeof S === "object") });
+    await s.web.page.waitForTimeout(1500);
+    v = await vlog(s.web.page);
+    ok(/der Vater/.test(v.flags), "voice: the web's offline copy still has the old flag", JSON.stringify(v));
+    // …and the phrase the phone flagged after the copy, with a note of its own
+    await s.web.page.evaluate(() => { audioFlag("das Haus", "cut off"); audioFlag("ein neues Wort", "web, offline"); });
+    s.web.failReads = false;
+    await s.web.page.evaluate(() => resumeSync(true));
+    await s.web.page.waitForFunction(() => initialLoadComplete && !loadInFlight, null, { timeout: 60000 });
+    v = await vlog(s.web.page);
+    const both = "das Haus | too fast / cut off\nein neues Wort | web, offline";
+    ok(v.flags === both && v.misses === "", "voice: after syncing, the web has only the new flags — the same phrase with both devices' notes", JSON.stringify(v));
+    await settle(s.web.page); await s.web.page.close(); s.web.page = null;
+    await open(s.phone, today10 + 400e3);
+    await checkBoth(sc, s, (ph, wb) => {
+      for (const [who, x] of [["phone", ph], ["web", wb]])
+        ok(x.voice.flags === both && x.voice.misses === "", `voice: ${who} ends with the new flags and every note, nothing copied comes back`, JSON.stringify(x.voice));
+      ok(!/der Vater|die Straße|Ein alter Satz|Ein Satz vom Web/.test(s.cloud.gv5_de_voice), "voice: the cloud holds nothing that was copied");
+    }, async () => {
+      // the admin "force download" replaces this copy with the cloud's — but
+      // keeps a flag this device hadn't sent yet
+      const pg = s.web.page;
+      await pg.evaluate(async () => { audioFlag("nur hier", "not sent yet"); clearTimeout(syncTimeout); syncTimeout = null; forceDownloadNext = true; await loadFromCloud(); });
+      ok(/nur hier \| not sent yet/.test(await pg.evaluate(() => audioFlagText())), "voice: a force download keeps a flag not sent yet");
+    });
   } else if (sc === "outdated") {
     // newer sync rules saved the cloud
     const meta = JSON.parse(s.cloud.gv5_de); meta._p = 99; s.cloud.gv5_de = JSON.stringify(meta);

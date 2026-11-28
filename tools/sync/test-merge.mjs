@@ -2,7 +2,7 @@
 // (pure, no browser): node test-merge.mjs
 import fs from "node:fs"; import vm from "node:vm";
 const src = fs.readFileSync(new URL("../../js/sync-merge.js", import.meta.url), "utf8");
-const ctx = {}; vm.createContext(ctx); vm.runInContext(src + "\n;this.mergeStates = mergeStates; this.syncScalarsOf = syncScalarsOf;", ctx);
+const ctx = {}; vm.createContext(ctx); vm.runInContext(src + "\n;this.mergeStates = mergeStates; this.syncScalarsOf = syncScalarsOf; this.syncMergeVoiceLog = syncMergeVoiceLog; this.syncHash = syncHash; this.syncVoiceLogFill = syncVoiceLogFill;", ctx);
 const merge = (l, c, o = {}) => ctx.mergeStates(l, c, o);
 let pass = 0, fail = 0; const ok = (c, m, x = "") => { if (c) pass++; else { fail++; console.log("  ✗", m, x); } };
 const J = JSON.stringify;
@@ -185,6 +185,94 @@ ok(m.path.sessionLen === "long" && m.quests.tokens === 1, "nothing new in the cl
   const oldA = day({ due: 50, od: 5 }), oldB = day({ due: 60, od: 2 });
   m = merge(st(3000, webPlan, oldA), st(2000, webPlan, oldB), { localWins: true });
   ok(m.usage.days[D].plan.due === 60 && m.usage.days[D].plan.od === 5, "usage plan: entries from before mk merge as before", J(m.usage.days[D].plan));
+}
+
+// ── the voice log (audio.js): flags ⚑ and phrases without a recording,
+// copied out on one device → gone everywhere; nothing anyone wrote lost ──
+{
+  const VL = ctx.syncMergeVoiceLog;
+  const id = (at, who = "x") => at.toString(36).padStart(9, "0") + "-" + who;
+  // a flag made by these flaggings: [at, note?] …
+  const fl = (t, ...evs) => {
+    const f = { t, at: Math.max(...evs.map(e => e[0])), v: "p1", ids: [], ns: [] };
+    evs.forEach(([at, n, who]) => { f.ids.push(id(at, who)); if (n) f.ns.push({ n, id: id(at, who) }); });
+    return f;
+  };
+  const mi = (t, at, who) => ({ t, at, ids: [id(at, who)] });
+  const copyOf = log => ({ flags: [], misses: [], done: [...log.flags, ...log.misses].flatMap(e => e.ids) });
+  const texts = l => l.map(e => e.t).join(",");
+  const notes = f => f.ns.map(x => x.n).join(" / ");
+  const E = { flags: [], misses: [], done: [] };
+  // the phone flagged A and noted X; the web flagged B and noted Y
+  const phone = { ...E, flags: [fl("A", [100, "accent"])], misses: [mi("X", 110)] };
+  const web = { ...E, flags: [fl("B", [105])], misses: [mi("Y", 90)] };
+  let v = VL(phone, web);
+  ok(texts(v.flags) === "A,B" && texts(v.misses) === "Y,X", "both devices' entries, by time", J(v));
+  ok(J(VL(v, null)) === J(v) && J(VL(v, v)) === J(v) && J(VL(web, phone)) === J(v), "canonical: same result either way round, merging with itself or nothing changes nothing");
+  // the web (holding everything) copies the log out
+  const copied = copyOf(v);
+  v = VL(phone, copied);
+  ok(!v.flags.length && !v.misses.length, "copied on one device: the other's old copies of those entries are dropped", J(v));
+  ok(v.done.length === 4, "…and it learns what was copied (4 ids)", J(v.done));
+  // meanwhile the phone flagged A again, with a new note — at a time EARLIER
+  // than the copy's entries (its clock runs behind): still kept, it's new
+  const phone2 = { ...E, flags: [{ ...fl("A", [100, "accent"], [95, "still French", "p"]), ov: [id(100)] }], misses: [mi("X", 110), mi("Z", 50, "p")] };
+  v = VL(phone2, copied);
+  ok(texts(v.flags) === "A" && notes(v.flags[0]) === "still French", "a phrase flagged again after the copy stays — whatever its device's clock says", J(v.flags));
+  ok(texts(v.misses) === "Z", "a new miss stays (even dated before the copy); the copied one doesn't", J(v.misses));
+  // a stale device that never saw the copy merges in later: still gone
+  v = VL(VL(phone2, copied), { ...E, flags: [fl("A", [100, "accent"]), fl("B", [105])], misses: [mi("X", 110), mi("Y", 90)] });
+  ok(texts(v.flags) === "A" && notes(v.flags[0]) === "still French" && texts(v.misses) === "Z", "a third, stale copy brings nothing back (not even the note edited away)", J(v));
+  // NO LOSS — the same phrase flagged on two devices before either synced
+  v = VL({ ...E, flags: [fl("C", [200, "cut off", "p"])] }, { ...E, flags: [fl("C", [250, "wrong word", "w"])] });
+  ok(v.flags.length === 1 && v.flags[0].at === 250 && notes(v.flags[0]) === "cut off / wrong word", "one flag per phrase, with both devices' notes", J(v.flags));
+  v = VL({ ...E, flags: [fl("C", [200, "cut off", "p"])] }, { ...E, flags: [fl("C", [250, "", "w"])] });
+  ok(notes(v.flags[0]) === "cut off", "…a flag without a note doesn't wipe the other's", J(v.flags));
+  // NO LOSS — a copy that didn't hold a flagging never drops it: the web
+  // copied C ("wrong word"); the phone, not synced yet, had flagged C earlier
+  const webC = { ...E, flags: [fl("C", [250, "wrong word", "w"])] };
+  v = VL({ ...E, flags: [fl("C", [200, "cut off", "p"])] }, copyOf(webC));
+  ok(texts(v.flags) === "C" && notes(v.flags[0]) === "cut off", "an older flag the copy never had stays, with its note", J(v.flags));
+  v = VL({ ...E, flags: [fl("C", [200, "", "p"])] }, copyOf(webC));
+  ok(texts(v.flags) === "C", "…even one without a note (it was flagged on its own)", J(v.flags));
+  v = VL(v, copyOf(v));
+  ok(!v.flags.length, "…and once a copy has it, it goes", J(v));
+  // a note edited away on one device stays away; one it never saw stays
+  const edited = { ...E, flags: [{ ...fl("D", [300, "cut", "w"], [400, "better: cut", "w"]), ov: [id(300, "w")] }] };
+  v = VL(edited, { ...E, flags: [fl("D", [300, "cut", "w"])] });
+  ok(notes(v.flags[0]) === "better: cut", "an edit replaces the notes it had, on every device", J(v.flags));
+  v = VL(edited, { ...E, flags: [fl("D", [300, "cut", "w"], [500, "cut", "p"])] });
+  ok(notes(v.flags[0]) === "better: cut / cut", "…but the same words written again (a new flagging) are kept", J(v.flags));
+  v = VL(edited, { ...E, flags: [fl("D", [350, "too fast", "p"])] });
+  ok(notes(v.flags[0]) === "too fast / better: cut", "…and a note the editing device never saw is kept", J(v.flags));
+  v = VL({ ...E, misses: [mi("X", 50, "p")] }, { ...E, misses: [mi("X", 40, "w")] });
+  ok(v.misses.length === 1 && v.misses[0].at === 40 && v.misses[0].ids.length === 2, "one miss per phrase: the first time noted, every noting's id", J(v.misses));
+  v = VL(v, { ...E, done: [id(40, "w")] });
+  ok(v.misses.length === 1, "…it goes only when a copy held every noting", J(v.misses));
+  // the shapes from before ids (the first synced shape) still read, the same on every device
+  const before = { flags: [{ t: "E", n: "old shape", at: 7 }], misses: [{ t: "Q", at: 3 }], done: [] };
+  v = VL(before, null);
+  ok(notes(v.flags[0]) === "old shape" && v.flags[0].ids.length === 1 && v.misses[0].ids.length === 1, "an entry from before ids gets one (and keeps its note)", J(v));
+  ok(J(VL(before, before)) === J(v) && J(VL(v, before)) === J(v), "…the same id on every device: no duplicates");
+  // bad entries are dropped
+  v = VL({ flags: [{ t: "", at: 1 }, null, { n: "x" }, fl("ok", [5])], misses: ["str", { t: "  ", at: 3 }], done: [{ k: "z" }, 7, ""] }, undefined);
+  ok(texts(v.flags) === "ok" && !v.misses.length && !v.done.length, "malformed entries are dropped", J(v));
+  // the size bound: far beyond a real log, oldest first
+  const big = { ...E, misses: Array.from({ length: 1200 }, (_, i) => mi("Ein ziemlich langer Beispielsatz, der im Paket noch keine Aufnahme hat, Nummer " + i + ".", i + 1)) };
+  v = VL(big, null);
+  ok(v.misses.length === 1200, "1,200 long phrases: all kept", v.misses.length);
+  ok(ctx.syncVoiceLogFill(v) < 0.6, `…and Settings doesn't ask for a copy yet (${Math.round(ctx.syncVoiceLogFill(v) * 100)} % full)`);
+  const huge = { ...E, misses: Array.from({ length: 4000 }, (_, i) => mi("x".repeat(90) + i, i + 1)) };
+  v = VL(huge, null);
+  ok(v.misses.length < 4000 && v.misses[0].at > 1 && v.misses[v.misses.length - 1].at === 4000 && J(v).length < 320000, `past the bound (a Firestore doc is 1 MB): the oldest go first (${v.misses.length} kept)`);
+  // inside a whole-state merge: its own rule, never the 3-way pieces
+  const base = ctx.syncScalarsOf({ voiceLog: E });
+  m = merge({ savedAt: 5, words: {}, voiceLog: phone }, { savedAt: 9, words: {}, voiceLog: web }, { base, localWins: false });
+  ok(texts(m.voiceLog.flags) === "A,B" && texts(m.voiceLog.misses) === "Y,X", "mergeStates: both sides' voice logs", J(m.voiceLog));
+  m = merge({ savedAt: 5, words: {}, voiceLog: phone }, { savedAt: 9, words: {} }, { localWins: false });
+  ok(texts(m.voiceLog.flags) === "A", "mergeStates: a side without a log (older app) loses nothing", J(m.voiceLog));
+  m = merge({ savedAt: 5, words: {} }, { savedAt: 9, words: {} }, {});
+  ok(!("voiceLog" in m), "mergeStates: no log on either side — none made up");
 }
 
 console.log(`merge: ${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);

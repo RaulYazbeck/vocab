@@ -36,6 +36,11 @@
 //     changed it (or no shared state is known): the device that saved last.
 //   • Resets — "reset deck" / "reset all" leave a timestamp; words last
 //     studied before it are dropped on both sides, so a reset sticks.
+//   • The voice log (recordings flagged ⚑, phrases without a recording —
+//     audio.js) — every entry and note of both sides, minus those already
+//     copied on either side (by id), so copying the log on one device
+//     empties it on all of them, while anything written since, anywhere,
+//     stays (see syncMergeVoiceLog).
 //
 // ─────────────────────────────────────────────
 
@@ -235,7 +240,7 @@ function syncMergeWords(lw, cw, preferLocal, cutFor, bw) {
 // top-level field, and each key of these objects on its own. The rest has
 // its own rules above.
 const SYNC_SPLIT = ["games", "path", "prefs", "quests"];
-const SYNC_NO_3WAY = new Set(["words", "usageArchive", "learn", "writing", "usage", "verb", "course", "savedAt", "resets", "resetAllAt"]);
+const SYNC_NO_3WAY = new Set(["words", "usageArchive", "learn", "writing", "voiceLog", "usage", "verb", "course", "savedAt", "resets", "resetAllAt"]);
 // Quest fields that belong to the day (see syncLocalDay).
 const SYNC_QUEST_DAY_KEYS = ["day", "list", "m", "dayDone", "flash", "weekend", "dbl", "missedYesterday", "prevOk", "history"];
 function syncPiecesOf(state) {
@@ -293,6 +298,108 @@ function syncWritingUnion(a, b) {
   });
   return Object.values(by).sort((p, q) => String(p.d).localeCompare(String(q.d)) || String(p.id).localeCompare(String(q.id)));
 }
+// The voice log (audio.js, S.voiceLog) — one shape on every device:
+//   flags   [{ t, at, v, ids, ns, ov }]  recordings flagged ⚑: text, when
+//           last flagged, pack version, the id of every time it was
+//           flagged, its notes [{ n, id }] (id: the flagging that wrote it)
+//           and the notes an edit replaced (their ids)
+//   misses  [{ t, at, ids }]  phrases the app said with the phone's voice
+//           because the pack has no recording: text, when first noted, the
+//           id of every time a device noted it
+//   done    [id]  every entry id a copy held ("Copy voice log")
+// Every flagging and every noting gets its own id where it happens (time +
+// random, audio.js) — so nothing below depends on any device's clock.
+//
+// Nothing anyone wrote is lost:
+//   • Every entry of every device is kept — one per phrase: a flag with the
+//     notes of every device (a note goes only when an edit replaced it on a
+//     device that had it — ov), a miss with the first time it was noted.
+//   • An entry leaves only once copies held ALL its ids. A device that
+//     still has an entry from before a copy drops it when it merges (its ids
+//     are done); a phrase flagged or noted again, or a note written, after
+//     the copy — anywhere, whatever that device's clock says — has a new id
+//     and stays.
+//   • The log is bounded by size (a Firestore doc holds 1 MB): past
+//     SYNC_VL_MAX_CHARS the oldest entries would go — far beyond any real
+//     log; Settings asks for a copy long before (audio.js). `done` keeps the
+//     newest SYNC_VL_DONE_MAX ids; an id it forgot can at worst list an old
+//     entry again (from a device unsynced since), never lose one.
+// Canonical: sorted, so merging a log with itself or with nothing gives it
+// back unchanged — and the same result in either order.
+const SYNC_VL_MAX_CHARS = 300000; // flags + misses as JSON (≤ ~600 KB stored)
+const SYNC_VL_DONE_MAX = 6000;
+const SYNC_VL_OV_MAX = 60;
+const syncVlStr = x => typeof x === "string" && x !== "";
+// An entry written before entries had ids: one made from what it holds
+// (the same on every device, so merges still agree).
+function syncVlIds(e, kind) {
+  const ids = Array.isArray(e.ids) ? e.ids.filter(syncVlStr) : [];
+  return ids.length ? ids : ["~" + syncHash(kind + "\n" + e.t.trim() + "\n" + syncNum(e.at))];
+}
+function syncVlNotes(e, ids) {
+  // (a note as one string `n`: the log's first synced shape)
+  const ns = Array.isArray(e.ns) ? e.ns : typeof e.n === "string" ? [{ n: e.n, id: ids[0] }] : [];
+  return ns.filter(x => syncIsObj(x) && typeof x.n === "string" && x.n.trim() !== "")
+    .map(x => ({ n: x.n.trim(), id: syncVlStr(x.id) ? x.id : "~" + syncHash("n\n" + e.t.trim() + "\n" + x.n.trim() + "\n" + syncNum(x.at)) }));
+}
+const syncVlSorted = set => [...set].sort();
+function syncMergeVoiceLog(a, b) {
+  const sides = [a, b].filter(syncIsObj);
+  const list = (o, k) => (Array.isArray(o[k]) ? o[k] : []).filter(e => syncIsObj(e) && typeof e.t === "string" && e.t.trim() !== "");
+  const done = new Set();
+  sides.forEach(o => (Array.isArray(o.done) ? o.done : []).forEach(x => { if (syncVlStr(x)) done.add(x); }));
+  const flags = new Map();
+  sides.forEach(o => list(o, "flags").forEach(e => {
+    const t = e.t.trim(), at = syncNum(e.at), ids = syncVlIds(e, "f"), ns = syncVlNotes(e, ids);
+    let f = flags.get(t);
+    if (!f) flags.set(t, f = { t, at, v: undefined, vAt: -1, ids: new Set(), ns: new Map(), ov: new Set() });
+    f.at = Math.max(f.at, at);
+    const v = e.v !== undefined && e.v !== null && e.v !== "" ? e.v : undefined;
+    if (v !== undefined && (at > f.vAt || (at === f.vAt && String(v) > String(f.v)))) { f.v = v; f.vAt = at; }
+    ids.forEach(x => f.ids.add(x));
+    ns.forEach(x => { f.ids.add(x.id); if (!f.ns.has(x.id)) f.ns.set(x.id, x.n); });
+    (Array.isArray(e.ov) ? e.ov : []).forEach(x => { if (syncVlStr(x)) f.ov.add(x); });
+  }));
+  const misses = new Map();
+  sides.forEach(o => list(o, "misses").forEach(e => {
+    const t = e.t.trim(), at = syncNum(e.at);
+    let m = misses.get(t);
+    if (!m) misses.set(t, m = { t, at, ids: new Set() });
+    m.at = Math.min(m.at, at);
+    syncVlIds(e, "m").forEach(x => m.ids.add(x));
+  }));
+  const allDone = ids => [...ids].every(x => done.has(x));
+  const out = { flags: [], misses: [], done: [] };
+  flags.forEach(f => {
+    if (allDone(f.ids)) return;
+    const o = { t: f.t, at: f.at };
+    if (f.v !== undefined) o.v = f.v;
+    o.ids = syncVlSorted(f.ids);
+    o.ns = [...f.ns.entries()].filter(([id]) => !f.ov.has(id)).sort((x, y) => (x[0] < y[0] ? -1 : x[0] > y[0] ? 1 : 0)).map(([id, n]) => ({ n, id }));
+    const ov = syncVlSorted(f.ov).slice(-SYNC_VL_OV_MAX);
+    if (ov.length) o.ov = ov;
+    out.flags.push(o);
+  });
+  misses.forEach(m => { if (!allDone(m.ids)) out.misses.push({ t: m.t, at: m.at, ids: syncVlSorted(m.ids) }); });
+  const byTime = (x, y) => x.at - y.at || (x.t < y.t ? -1 : x.t > y.t ? 1 : 0);
+  out.flags.sort(byTime); out.misses.sort(byTime);
+  // the size bound: the oldest entries first (never reached in real use)
+  let size = [...out.flags, ...out.misses].reduce((n, e) => n + JSON.stringify(e).length + 1, 0);
+  while (size > SYNC_VL_MAX_CHARS && (out.flags.length || out.misses.length)) {
+    const fromFlags = out.flags.length && (!out.misses.length || out.flags[0].at <= out.misses[0].at);
+    size -= JSON.stringify((fromFlags ? out.flags : out.misses).shift()).length + 1;
+  }
+  // (ids start with their time in base 36: the newest sort last)
+  out.done = syncVlSorted(done).slice(-SYNC_VL_DONE_MAX);
+  return out;
+}
+// How full the log is (0…1 of SYNC_VL_MAX_CHARS): Settings asks for a copy.
+function syncVoiceLogFill(log) {
+  if (!syncIsObj(log)) return 0;
+  const n = [...(Array.isArray(log.flags) ? log.flags : []), ...(Array.isArray(log.misses) ? log.misses : [])].reduce((a, e) => a + JSON.stringify(e).length + 1, 0);
+  return n / SYNC_VL_MAX_CHARS;
+}
+
 // Merge two progress states. Neither input is modified.
 //   local, cloud  full states (words included, no sync-only fields)
 //   opts.base     syncScalarsOf() of the last state both descend from,
@@ -336,10 +443,10 @@ function mergeStates(local, cloud, opts = {}) {
   const localWins = !!opts.localWins;
   const base = syncIsObj(opts.base) ? opts.base : null;
   const [win, lose] = localWins ? [local, cloud] : [cloud, local];
-  const { words: _w1, usageArchive: _u1, learn: _l1, writing: _wr1, ...winRest } = win;
+  const { words: _w1, usageArchive: _u1, learn: _l1, writing: _wr1, voiceLog: _vl1, ...winRest } = win;
   const out = syncClone(winRest);
   // A field only the other side has (a save from an older version) is kept.
-  Object.keys(lose).forEach(k => { if (!(k in out) && !["words", "usageArchive", "learn", "writing"].includes(k)) out[k] = syncClone(lose[k]); });
+  Object.keys(lose).forEach(k => { if (!(k in out) && !["words", "usageArchive", "learn", "writing", "voiceLog"].includes(k)) out[k] = syncClone(lose[k]); });
   // Pieces only one side changed since the shared state: from that side.
   const changed = syncChanges(local, cloud, base);
   Object.entries(changed).forEach(([p, who]) => syncTake(out, p, who === "l" ? local : cloud));
@@ -534,6 +641,8 @@ function mergeStates(local, cloud, opts = {}) {
     else { const src = ld > cd ? lc : cc; K.day = src.day || ""; ["dd", "dq"].forEach(k => { K[k] = syncIsObj(src[k]) ? syncClone(src[k]) : {}; }); }
     out.course = K;
   }
+  // The voice log: both sides' entries, minus what either side copied out.
+  if (syncIsObj(local.voiceLog) || syncIsObj(cloud.voiceLog)) out.voiceLog = syncMergeVoiceLog(local.voiceLog, cloud.voiceLog);
   out.savedAt = Math.max(syncNum(local.savedAt), syncNum(cloud.savedAt));
   return out;
 }
