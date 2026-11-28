@@ -518,7 +518,7 @@ for (const [w, h, tag] of [[390, 844, "phone"], [1280, 900, "desktop"]]) {
     const m = document.getElementById("main-screen");
     ok(m.querySelectorAll(".cx-seg button").length === 3 && m.querySelectorAll(".cx-theme").length >= 14 && m.querySelectorAll(".cx-jgo").length === 1, "✍️ Writing: a level, the themes, one Write button");
     cxJournalChoose("lv", "B1"); cxJournalChoose("th", "home");
-    ok(/Ein Problem in der Wohnung/.test(m.innerText) && /90\+ words/.test(m.innerText), "B1 · Home: its prompt shows before writing");
+    ok(/Ein Problem in der Wohnung/.test(m.innerText) && /70\+ words/.test(m.innerText), "B1 · Home: its prompt shows before writing (B1 starts at 70 words — the writing plan’s ramp)");
     cxJournalChoose("th", "food"); cxJournalChoose("lv", "B1");
     ok(/Essen und Trinken/.test(m.innerText), "a theme without a prompt at that level: its own task");
     document.querySelector(".cx-jgo").click();

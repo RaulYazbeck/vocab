@@ -25,6 +25,15 @@ phone's copy gets old; then the phone opens today —
   plan made from the phone's old words) is put right on open
 - `outdated` — the cloud was saved by newer sync rules than the phone
   runs: it reloads once for the new code, then writes nothing
+- `resume` — the phone isn't closed but left in the background while the
+  web studies; it comes back into view on a slow network and draws today's
+  plan before the sync is in (a "backlog" of the web's two days): once the
+  sync is in, the plan is the one made from the real words, and the usage
+  log's morning numbers and the brake's reading are the real ones (they
+  kept the stale 301 overdue — 686/673 in the 2026-11-19 report)
+- `resume-touched` — the same with 5 answers on the phone before the sync
+  is in: its day wins the merge, so its plan used to stay (37 reviews, 279
+  "left for later" instead of 72 and 0 — 2026-11-17); now it's made again
 - `course` — a grammar section and a text on the web, another text on the
   offline phone: both texts and the section on both
 - `voice` — the voice log (⚑ flags, phrases without a recording): entries

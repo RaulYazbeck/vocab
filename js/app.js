@@ -17,6 +17,9 @@ function startSession() {
 // ── SHOW SCREEN ───────────────────────────────
 // from: the ☰ page the screen was opened from (its Back returns there).
 function showScreen(name, from) {
+  // A Today session with answers asks first (mode-path.js pathLeaveThen),
+  // as the title and ✕ do.
+  if (typeof pathSession !== "undefined" && pathSession && typeof pathLeaveThen === "function") { pathLeaveThen(() => showScreen(name, from), "nav"); return; }
   if (from !== undefined) _screenFrom = from;
   window._cxFrom = false; window._cxSec = null; window._cxChap = null; window._cxUnitFrom = null; window._cxOpenPart = null; window._cxExamFromCourse = false; // the course sets them again
   // Leaving a Today session through the header or Settings ends it
@@ -53,7 +56,7 @@ function goHome() {
   const stay = () => { if (held && activeGame && activeGame.ctx === ctx && ctx.paused) resumeGame(); };
   if (typeof pathSession !== "undefined" && pathSession) { pathQuit().then(yes => { if (!yes) stay(); }); return; }
   if (ctx && ctx.started && !ctx.finished) {
-    appConfirm({ title: "Quit the game?", body: "This round won't count.", ok: "Quit", cancel: "Keep playing" })
+    appConfirm({ title: "Quit the game?", body: "This round won't count.", ok: "Quit", cancel: "Keep playing", focus: "cancel" })
       .then(yes => { if (!yes) stay(); else if (activeGame && activeGame.ctx === ctx) backToMenu(); });
     return;
   }
@@ -179,6 +182,7 @@ if (typeof audioInit === "function") audioInit();
 recordLogin();
 if (typeof noteJourneyLevels === "function") noteJourneyLevels();
 questEnsureToday();
+if (typeof mixBackfill === "function") { mixSweep(); mixBackfill(); } // (mix-up pairs: tidy; once: from older misses)
 applyCosmetics();
 renderExpBar();
 renderGroups();

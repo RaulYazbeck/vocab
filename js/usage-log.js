@@ -90,6 +90,28 @@ function usageDay(date = todayISO()) {
   }
   return d;
 }
+// A game left open counts this long at most (game times in the report).
+const USAGE_GAME_MAX_MS = 600000;
+// Game times summed over days (gx[id], the "game_end" event): the times
+// with the number of games they're over. Days logged before gx counted
+// its games ([7]/[8]) take the day's finished/quit counts from gp — only
+// days with game times, so days from before times were logged don't
+// thin the averages (that showed an "active" time above the whole
+// game's). Times are capped at 10 min a game here too: the first days'
+// times were logged before the cap (one Thread game left open 26 min).
+function usageGameTimes(days) {
+  const out = {}, cap = (ms, n) => Math.min(ms || 0, USAGE_GAME_MAX_MS * (n || 0));
+  days.forEach(([, v]) => Object.entries(v.gx || {}).forEach(([g, a]) => {
+    const gp = (v.gp || {})[g] || [];
+    const nFin = a[7] != null ? a[7] : gp[1] || 0, nQuit = a[8] != null ? a[8] : gp[2] || 0;
+    const o = out[g] || (out[g] = { ok: 0, bad: 0, fin: 0, finMs: 0, quit: 0, quitMs: 0, pre: 0, actN: 0, actMs: 0 });
+    o.ok += a[0] || 0; o.bad += a[1] || 0; o.pre += a[4] || 0;
+    o.fin += nFin; o.finMs += cap(a[2], nFin);
+    o.quit += nQuit; o.quitMs += cap(a[3], nQuit);
+    o.actN += a[6] || 0; o.actMs += cap(a[5], a[6]);
+  }));
+  return out;
+}
 // Fields added later (2026-10): filled in on first use so older days
 // simply lack them.
 function _uf(day, k, make) { if (!day[k]) day[k] = make(); return day[k]; }
@@ -142,6 +164,8 @@ function _usageAggregate(type, d, now) {
       }
       // src[where it came from] = [answers, right] (Today: path.js pathAnswerSrc)
       if (d.src) { const sr = _uf(day, "src", () => ({})); if (!sr[d.src]) sr[d.src] = [0, 0]; sr[d.src][0]++; if (d.ok === true) sr[d.src][1]++; }
+      // vsent = [answers, right]: verb exercises asked in an old card's sentence (verb-track.js vxWithSentence)
+      if (d.sent) { const v = _uf(day, "vsent", () => [0, 0]); v[0]++; if (d.ok === true) v[1]++; }
       if (d.voice) day.voice++;
       if (d.near) day.near++;
       if (d.hint) day.hint++;
@@ -202,6 +226,8 @@ function _usageAggregate(type, d, now) {
       const sx = _uf(startDay, "sx", () => ({}));
       if (!sx[k]) sx[k] = [0, 0, 0, 0, 0, 0];
       const o = d.abandoned ? 3 : 0;
+      // how sessions left before the end were left (mode-path.js endPathSession)
+      if (d.abandoned && d.how) { const ab = _uf(startDay, "abx", () => ({})); const a = ab[k] || (ab[k] = {}); a[d.how] = (a[d.how] || 0) + 1; }
       sx[k][o]++; sx[k][o + 1] += Math.round(d.ms || 0); sx[k][o + 2] += d.n || 0;
       // [6] / [7]: active ms and count of finished sessions that logged it
       if (!d.abandoned && d.act != null) { sx[k][6] = (sx[k][6] || 0) + Math.round(d.act); sx[k][7] = (sx[k][7] || 0) + 1; }
@@ -215,29 +241,53 @@ function _usageAggregate(type, d, now) {
     case "game_end": {
       const id = d.id || "?";
       _inc(startDay.gp, id, d.quit ? 2 : 1);
-      // gx[id] = [right, wrong, ms finished, ms quit, quit before playing]
+      // gx[id] = [right, wrong, ms finished, ms quit, quit before playing,
+      //   active ms, games that logged it, games finished, games quit]
+      // ([7]/[8] since 2026-11-27: before, the report takes the day's
+      // counts from gp — see usageGameTimes)
       const gx = _uf(startDay, "gx", () => ({}));
       if (!gx[id]) gx[id] = [0, 0, 0, 0, 0];
-      const gms = Math.min(Math.round(d.ms || 0), 600000); // a game left open counts 10 min at most
-      if (d.quit) { gx[id][3] += gms; if (d.pre) gx[id][4]++; }
+      const g = gx[id];
+      if (g[7] == null) {
+        // the day's games before this update: from its counts (gp, this one already in)
+        const gp = startDay.gp[id] || [];
+        g[5] = g[5] || 0; g[6] = g[6] || 0;
+        g[7] = Math.max(0, (gp[1] || 0) - (d.quit ? 0 : 1)); g[8] = Math.max(0, (gp[2] || 0) - (d.quit ? 1 : 0));
+      }
+      const gms = Math.min(Math.round(d.ms || 0), USAGE_GAME_MAX_MS); // a game left open counts 10 min at most
+      if (d.quit) { gx[id][3] += gms; if (d.pre) gx[id][4]++; g[8]++; }
       else {
+        g[7]++;
         gx[id][0] += d.ok || 0; gx[id][1] += d.bad || 0; gx[id][2] += gms;
         // [5] / [6]: active ms and count of finished games that logged it
         if (d.act != null) { gx[id][5] = (gx[id][5] || 0) + Math.min(Math.round(d.act), gms); gx[id][6] = (gx[id][6] || 0) + 1; }
       }
       break;
     }
+    // Quest templates: qt[tpl] = [offered, done, rerolled or swapped away].
+    // Offered: every quest that was put on the list — the day's draw (its
+    // weekend quest too), a 🎲 reroll's or 🔇 swap's new quest, one the app
+    // swapped in (quest_auto). The day's quests drawn again (on a sync,
+    // or when the finish date changes) don't count those offered again.
+    // (qv: days counted this way; the report reads older days by it.)
     case "quest_gen": {
       const qt = _uf(day, "qt", () => ({}));
-      (d.ids || []).forEach(id => { if (!qt[id]) qt[id] = [0, 0, 0]; qt[id][0]++; });
+      day.qv = 1;
+      [...(d.ids || []), ...(d.weekend ? [d.weekend] : [])].forEach(id => { if (!qt[id]) qt[id] = [0, 0, 0]; qt[id][0] = Math.max(qt[id][0], 1); });
       break;
+    }
+    case "quest_auto": (d.to || []).forEach(id => _usageQuest(day, id, 0)); break;
+    // 🔀 mix-up pairs (path.js): [new, made again, sorted]
+    case "mix": {
+      if (d.ev === "backfill") { day.mixFill = (day.mixFill || 0) + (d.n || 0); break; } // (pairs made from older misses, once)
+      const m = _uf(day, "mixp", () => [0, 0, 0]); m[d.ev === "new" ? 0 : d.ev === "sorted" ? 2 : 1]++; break;
     }
     case "quest_done":
       day.q[0]++; _usageQuest(day, d.tpl, 1);
       if (d.tpl === "a_plan") day.planAt = new Date(now).getHours();
       break;
-    case "quest_reroll": day.q[1]++; _usageQuest(day, d.tpl, 2); break;
-    case "quest_swap": day.q[2]++; _usageQuest(day, d.tpl, 2); break;
+    case "quest_reroll": day.q[1]++; _usageQuest(day, d.tpl, 2); _usageQuest(day, d.to, 0); break;
+    case "quest_swap": day.q[2]++; _usageQuest(day, d.tpl, 2); _usageQuest(day, d.to, 0); break;
     case "day_complete": day.q[3]++; break;
     case "event": day.ev[d.kind + (d.taken ? "+" : "")] = (day.ev[d.kind + (d.taken ? "+" : "")] || 0) + 1; break;
     case "drag": day.drag[d.how === "drag" ? 0 : 1] += d.n || 1; break;
@@ -246,10 +296,18 @@ function _usageAggregate(type, d, now) {
     case "setting": { const st = _uf(day, "set", () => ({})); st[d.k] = d.v; break; }
     // Today's plan (finish date): the morning's numbers. A finish-date
     // change mid-day updates pace/target but keeps the morning pile.
+    // A plan made anew on the same day (mk: when it was made — once a
+    // sync has brought in what another device did, path.js pathAfterSync)
+    // replaces the one before whole: the numbers are the plan in force's,
+    // not those a copy that hadn't synced yet saw. The brake's reading
+    // went with that copy too (usageNoteBrake): it starts again.
     case "plan": {
-      const p = day.plan || (day.plan = { due: d.due, od: d.od });
+      // (same: the same plan, its finish date changed — the morning pile stays)
+      if (day.plan && d.at && !d.same && day.plan.mk !== d.at) { day.plan = null; delete day.brk; }
+      const p = day.plan || (day.plan = { due: d.due, od: d.od, ...(d.at ? { mk: d.at } : {}), ...(d.pre ? { pre: 1 } : {}) });
       Object.assign(p, { pace: d.pace, rev: d.reviews, tgt: d.target, leave: d.leave, ...(d.kw ? { kw: d.kw } : {}), ...(d.kv ? { kv: d.kv } : {}) });
       if (d.vx) p.vx = d.vx;
+      if (d.at && d.at === p.mk && !d.pre) delete p.pre;
       if (d.snap && !p.snap) p.snap = d.snap; // (the morning's: pathPaceCheck)
       if (d.pc && !p.pc) p.pc = d.pc; // (the morning's pace check: ok / amber:why / red)
       break;
@@ -273,12 +331,23 @@ function _usageAggregate(type, d, now) {
     }
   }
 }
+// Today's plan was made before a sync, and the sync has now confirmed it
+// (path.js pathAfterSync): its numbers are a synced copy's after all.
+function usagePlanSynced(plan) {
+  try {
+    const d = usageDay(plan.day);
+    if (d.plan && d.plan.mk === plan.at) delete d.plan.pre;
+  } catch (e) {}
+}
 // The new-word brake as the day saw it (finish date only): its state
-// at the first check, its latest state, and the hour it lifted.
-function usageNoteBrake(reason, overdue) {
+// at the first check, its latest state, and the hour it lifted — under
+// the plan in force (mk: when that plan was made; a plan made again after
+// a sync starts the reading again, see the "plan" event).
+function usageNoteBrake(reason, overdue, mk) {
   try {
     const d = usageDay(), r = reason || "none";
-    if (!d.brk) { d.brk = { am: r, now: r, od: overdue }; return; }
+    if (d.brk && mk && d.brk.mk && d.brk.mk !== mk) delete d.brk;
+    if (!d.brk) { d.brk = { am: r, now: r, od: overdue, ...(mk ? { mk } : {}) }; return; }
     if (d.brk.now !== r) { d.brk.now = r; if (r === "none") d.brk.off = new Date().getHours(); }
   } catch (e) {}
 }
@@ -353,9 +422,10 @@ function buildUsageReport(nDays = 0) {
   const addInto = (out, obj, n) => Object.entries(obj || {}).forEach(([k, a]) => {
     if (!out[k]) out[k] = new Array(n).fill(0); a.forEach((x, i) => { if (i < n) out[k][i] += x || 0; });
   });
-  const modes = {}, games = {}, gx = {}, sessions = {}, sx = {}, latm = {}, scr = {}, ev = {};
+  const modes = {}, games = {}, sessions = {}, sx = {}, latm = {}, scr = {}, ev = {};
+  const gx = usageGameTimes(days);
   days.forEach(([, v]) => {
-    addInto(modes, v.ans, 2); addInto(games, v.gp, 3); addInto(gx, v.gx, 7);
+    addInto(modes, v.ans, 2); addInto(games, v.gp, 3);
     addInto(sessions, v.ses, 3); addInto(sx, v.sx, 8); addInto(latm, v.latm, 2);
     Object.entries(v.scr || {}).forEach(([k, n]) => scr[k] = (scr[k] || 0) + n);
     Object.entries(v.ev || {}).forEach(([k, n]) => ev[k] = (ev[k] || 0) + n);
@@ -374,18 +444,36 @@ function buildUsageReport(nDays = 0) {
   const totalAns = Object.values(modes).reduce((a, m) => a + m[0], 0);
 
   // Quest templates: daily counts where recorded; for days before those
-  // existed, from this device's raw log.
+  // existed, from this device's raw log (counted the way the "quest_*"
+  // events are now). Days counted before qv (2026-11-27) counted a day's
+  // quests drawn again as offered again, and a quest that came by a
+  // reroll, as the weekend quest or swapped in by the app not at all
+  // (done more often than offered): such a day counts a quest offered
+  // once if it was drawn or done that day.
   const qStats = {};
   const qDays = new Set();
-  days.forEach(([d, v]) => { if (v.qt) { qDays.add(d); addInto(qStats, v.qt, 3); } });
+  const addQ = (qt, old) => Object.entries(qt || {}).forEach(([k, a]) => {
+    const s = qStats[k] || (qStats[k] = [0, 0, 0]);
+    s[0] += old ? Math.max(Math.min(a[0] || 0, 1), Math.min(a[1] || 0, 1)) : a[0] || 0;
+    s[1] += a[1] || 0; s[2] += a[2] || 0;
+  });
+  days.forEach(([d, v]) => { if (v.qt) { qDays.add(d); addQ(v.qt, !v.qv); } });
   const from = days.length ? days[0][0] : today;
+  const rawQ = {};
   _usageLog().forEach(e => {
-    if (!["quest_gen", "quest_done", "quest_reroll", "quest_swap"].includes(e.e)) return;
+    if (!["quest_gen", "quest_done", "quest_reroll", "quest_swap", "quest_auto"].includes(e.e)) return;
     const d = usageDateOf(e.t);
     if (d < from || qDays.has(d)) return;
-    if (e.e === "quest_gen") (e.ids || []).forEach(id => { (qStats[id] = qStats[id] || [0, 0, 0])[0]++; });
-    else { const s = (qStats[e.tpl] = qStats[e.tpl] || [0, 0, 0]); s[e.e === "quest_done" ? 1 : 2]++; }
+    const qt = rawQ[d] || (rawQ[d] = {}), at = id => qt[id] || (qt[id] = [0, 0, 0]);
+    if (e.e === "quest_gen") [...(e.ids || []), ...(e.weekend ? [e.weekend] : [])].forEach(id => { at(id)[0] = Math.max(at(id)[0], 1); });
+    else if (e.e === "quest_done") { if (e.tpl) at(e.tpl)[1]++; }
+    else {
+      // (a swap with a why was the app's, before quest_auto: not one you made)
+      if (e.e !== "quest_auto" && !e.why && e.tpl) at(e.tpl)[2]++;
+      [].concat(e.to || []).forEach(id => at(id)[0]++);
+    }
   });
+  Object.values(rawQ).forEach(qt => addQ(qt, false));
   const tiers = typeof pathScan === "function" ? { ...pathScan(true).tiers } : {};
 
   const pct = (a, b) => b ? Math.round(a / b * 100) + "%" : "—";
@@ -404,11 +492,15 @@ function buildUsageReport(nDays = 0) {
   const sxl = Object.entries(sx).filter(([, a]) => a[0] || a[3]);
   if (sxl.length) lines.push(`Session detail (finished: avg length from start to end${sxl.some(([, a]) => a[7]) ? " (avg active time, from the sessions that logged it)" : ""}, answers · abandoned: avg length, answers before leaving): ` +
     sxl.map(([k, a]) => `${k} ${mins(a[1], a[0])}${a[7] ? ` (active ${mins(a[6], a[7])})` : ""}, ${a[0] ? Math.round(a[2] / a[0]) : "—"} · ${mins(a[4], a[3])}, ${a[3] ? Math.round(a[5] / a[3]) : "—"}`).join(" | "));
+  // How sessions left before the end were left (recorded since 2026-11-27).
+  const abx = {}, abFrom = (days.find(([, v]) => v.abx) || [])[0];
+  days.forEach(([, v]) => Object.entries(v.abx || {}).forEach(([k, o]) => Object.entries(o).forEach(([h, n]) => { const a = abx[k] || (abx[k] = {}); a[h] = (a[h] || 0) + n; })));
+  const HOW = { quit: "✕ / title / Esc (asked)", nav: "a ☰ screen (asked)", games: "the games menu (asked)", back: "back to Today another way", empty: "nothing answered yet" };
+  if (abFrom) lines.push(`Sessions left before the end, by how (since ${abFrom}): ` + Object.entries(abx).map(([k, o]) => `${k}: ` + Object.entries(o).sort((a, b) => b[1] - a[1]).map(([h, n]) => `${HOW[h] || h} ${n}`).join(" · ")).join(" | "));
   lines.push(`Games (started/finished/quit): ` + (Object.entries(games).map(([g, a]) => `${g} ${a[0]}/${a[1]}/${a[2]}`).join(" · ") || "none"));
-  const gxl = Object.entries(gx).filter(([, a]) => a.some(x => x));
-  if (gxl.length) lines.push(`Game detail (ok% · avg finished${gxl.some(([, a]) => a[6]) ? " (avg active, from the games that logged it)" : ""} · avg time before quitting · quit before playing; a game left open counts 10 min at most): ` +
-    gxl.map(([g, a]) => { const fin = (games[g] || [])[1] || 0, q = (games[g] || [])[2] || 0;
-      return `${g} ${pct(a[0], a[0] + a[1])} · ${secs(a[2], fin)}${a[6] ? ` (active ${secs(a[5], a[6])})` : ""} · ${secs(a[3], q)} · ${a[4]}`; }).join(" | "));
+  const gxl = Object.entries(gx).filter(([, o]) => o.fin || o.quit || o.ok || o.bad);
+  if (gxl.length) lines.push(`Game detail (ok% · avg finished${gxl.some(([, o]) => o.actN) ? " (avg active, from the games that logged it)" : ""} · avg time before quitting · quit before playing; a game left open counts 10 min at most; times only from the days they were logged): ` +
+    gxl.map(([g, o]) => `${g} ${pct(o.ok, o.ok + o.bad)} · ${secs(o.finMs, o.fin)}${o.actN ? ` (active ${secs(o.actMs, o.actN)})` : ""} · ${secs(o.quitMs, o.quit)} · ${o.pre}`).join(" | "));
   const mk = {}, sf = {};
   days.forEach(([, v]) => { Object.entries(v.mk || {}).forEach(([k, n]) => mk[k] = (mk[k] || 0) + n); Object.entries(v.sf || {}).forEach(([k, n]) => sf[k] = (sf[k] || 0) + n); });
   if (Object.keys(mk).length) lines.push(`Mistakes by type: ` + Object.entries(mk).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(" · "));
@@ -439,7 +531,7 @@ function buildUsageReport(nDays = 0) {
   }
   lines.push(`Quests: done ${sum(v => v.q[0])} · rerolled ${sum(v => v.q[1])} · swapped 🔇 ${sum(v => v.q[2])} · full days ${sum(v => v.q[3])}`);
   const qs = Object.entries(qStats).sort((a, b) => b[1][0] - a[1][0]);
-  if (qs.length) lines.push(`Quest templates (offered/done/rerolled+swapped): ` + qs.map(([k, a]) => `${k} ${a[0]}/${a[1]}/${a[2]}`).join(" · "));
+  if (qs.length) lines.push(`Quest templates (offered/done/rerolled+swapped; offered once a day however often the day's quests were drawn): ` + qs.map(([k, a]) => `${k} ${a[0]}/${a[1]}/${a[2]}`).join(" · "));
   lines.push(`Random events: ` + (Object.entries(ev).map(([k, n]) => `${k} ${n}`).join(" · ") || "none"));
   lines.push(...usageChestLines(days, activeDays.length));
   lines.push(`Bonus rounds offered/taken: ${sum(v => v.bonus[0] + v.bonus[1])}/${sum(v => v.bonus[1])} · twists declined/taken: ${sum(v => v.twist[0])}/${sum(v => v.twist[1])} · drag vs tap: ${sum(v => v.drag[0])}/${sum(v => v.drag[1])}`);
@@ -497,7 +589,13 @@ function usageRebuiltLines(days) {
         if (ws.rt) { r++; if (cz) rz++; } else { k++; if (cz) kz++; }
       })));
       out.push(`Cloze supply now: ${k} Known+ words in the word reviews, ${kz} with a sentence a cloze could use (${pct(kz, k)}); ` +
-        `${r} cards that were Known+ when the verb track took them over (${rz} had such a sentence — they no longer feed cloze)`);
+        `${r} cards that were Known+ when the verb track took them over (${rz} had such a sentence — asked again in their verb exercises since 28 Nov 2026)`);
+      const mp = days.reduce((a, [, v]) => a.map((x, i) => x + ((v.mixp || [])[i] || 0)), [0, 0, 0]);
+      const openPairs = Object.values(S.words).reduce((n, ws) => n + (ws && ws.mix ? Object.keys(ws.mix).length : 0), 0) / 2;
+      const filled = days.reduce((a, [, v]) => a + (v.mixFill || 0), 0);
+      if (mp.some(x => x) || openPairs || filled) out.push(`Mix-up pairs (two words taken for each other, since 28 Nov 2026): ${filled ? `${filled} from the misses of the 45 days before · ` : ""}${mp[0]} new · ${mp[1]} mixed up again · ${mp[2]} sorted · open now ${Math.round(openPairs)}`);
+      const vs = days.reduce((a, [, v]) => [a[0] + ((v.vsent || [])[0] || 0), a[1] + ((v.vsent || [])[1] || 0)], [0, 0]);
+      if (vs[0]) out.push(`Verb exercises asked in an old card's sentence: ${vs[0]} (${pct(vs[1], vs[0])} right)`);
     }
   } catch (e) {}
   try {

@@ -1312,6 +1312,50 @@ sentences recorded (4,089 characters, 0 refused); 70,536 / 70,536 texts.
   it's done, marked late after the deadline, missed when the month ends; the first attempt of the month is kept. Its 20
   questions span every lesson done, six of them production; the Exam screen gives one verdict and one hint, never more
   than the numbers say.
+- **The usage report of 27 Nov 2026 — four bugs, my report:**
+  (1) *Phantom morning backlogs* (686/673 "overdue" on 19 Nov, 175 on 27 Nov, the brake slowing new words): a phone left
+  open in the background comes back on a new day and draws today's plan before its sync is in. The "made before the
+  sync" mark only went on before the first sync of a page, so that plan stayed — whole when something was answered
+  before the sync landed (17 Nov: target 270, "591 left for later"), and in the usage log always (the morning numbers
+  and the brake's reading are kept from the first plan, and the merge took the higher of each number). Now a plan made
+  while the copy isn't known fresh (sync.js `syncCopyFresh`: no sync yet, one running, or just back from the
+  background) is made again once the sync brings anything in; each plan has its `at`, and the usage log's morning
+  numbers and brake reading follow the plan in force, across devices too (sync-merge.js `syncPickDayPlans`).
+  (2) *Game times*: days logged before the 10-minute cap (Thread: 26 min) are capped in the report, and averages only
+  count games from the days times were logged (an "active" time above the whole game's showed the old mix-up); games
+  now count themselves (gx [7]/[8]). (3) *Quests done more often than offered*: a reroll's or swap's new quest, the
+  weekend quest and the app's own swaps weren't counted as offered, and a day's quests drawn again (on a sync)
+  counted again (a_plan offered 86 times in 61 days); now offered once a day per quest, every way a quest comes, and
+  older days are read so. (4) *Sessions "abandoned" mid-work* (6 on 20 Nov, next to 8 ☰ screens opened; 6 on 21 Nov):
+  a ☰ screen, the games menu or a quest's ▶ Go ended a Today session without a word — now they ask first, like the ✕;
+  the question's default is Keep going (Esc then an Enter meant for an answer used to leave); an Esc that closes the
+  accent picker isn't a Leave; and each session left records how (`how`, shown in the report), so the next report
+  says what ended them. 21 Nov's can't be told apart after the fact — no screen opens that day, so most were left
+  through the question; the bonus games were all fine on that day's build (t-gamematrix bonus, 34/34).
+- **The usage report of 27 Nov 2026 — what I asked for after it (28 Nov 2026):**
+  (a) *Writing* — I was worn out by the same topics every day (and had started writing anything to get through):
+  now three texts a week (Monday to Sunday), never two days in a row, a skipped day waits; 130 new topics
+  (js/course/writing-bank.js: A1 12 · A2 60 · B1 58 — 111 needed to 15 Aug 2027 at three a week, the rest a buffer),
+  never one twice, my level first; about a third practical like the fide written part (a note, an email, an ad, a
+  complaint). The words asked grow 5 at a time: A1 30 → 35 (every 6 texts), A2 40 → 65 and B1 70 → 90 (every 10) —
+  no more jumps 30 → 60 → 90. ☰ › Writing shows the week (● ○ ○), the next writing day and the topics left.
+  (b) *Mix-ups* — 167 misses were another word I know typed for the one asked, and nothing used them: now the two
+  become a pair (on both words), the feedback shows them side by side, the other word follows in the session's
+  repair round, and later sessions bring it a few cards after its word until both were right on two separate days
+  (path.js MIX-UPS); the games' traps get them too. (c) *The old verb cards' sentences* — 208 of my Known cards'
+  sentences stopped feeding the cloze when the verb track took the cards over (a side effect nobody planned, and
+  every tense that opens would take more): a verb exercise is now asked in one of them half the time (the sentence,
+  its form as the gap, graded as the exercise — never a new item's first check); t-sentences checks every
+  taken-over card's sentence can be asked, so a new tense can't lose them (97 %: the rest don't show their tense —
+  an infinitive, a passive — or only in a person the exercises never ask). (d) *Bonus rounds* — fun at first, then
+  too many: by the questions a session really holds, not the length picked — 40+ → 2, 12–39 → 1, fewer → none
+  (a Long session picked for the last 10 cards brought three). (e) *Test-outs* — nothing to do: they only open the
+  A1 lessons, all done.
+  *Then (28 Nov):* mix-ups also work back in time — at start-up, once, each word's mistake history (its last 6
+  misses, what I typed kept) makes pairs of the "confused" ones of the 45 days before (never one from after pairs
+  started, never resetting a pair's watch); a pair is let go on both words when a word gets its 4th or a partner
+  isn't asked any more (taken over by the verb track), and a start-up sweep lets go one left on one side by a sync.
+  Checked over 40 simulated days × 3 seeds (sim-app --mix): ~320 pairs made, ~280 sorted, both words always, logs agree.
 
 ## 15. Parked — for later
 
@@ -1332,6 +1376,25 @@ Everything the book teaches is in the course; these parts of it stay *to read*, 
   a new course, if wanted, would start from here.
 
 - **A 💎 check-in before the exam (noted 15 Nov 2026, not now).** A 💎 word's check-ins come 4 months and a year after its lock-in — so a word locked after mid-April 2027 gets none before 15 Aug, and most 💎 words will be locked by then (≈ 2,850 on the finish date). Spot checks can't cover that: modelled on my pace, even 20 a day only take the 💎 words I'd miss on the day from ≈ 13 % to ≈ 8 %. The lever is one check-in timed a few weeks before the finish date for every 💎 word not answered right lately, spread over those weeks (the weighting of the spot checks can order them). To decide together before building — how many weeks, how many a day, and how it fits the plan's daily count.
+
+### From the usage report of 27 Nov 2026 — what's still open (updated 28 Nov 2026)
+
+The report's bugs are fixed and its ideas 7–10 and the bonus rounds are built (decisions log, 27 and 28 Nov).
+What's left of it:
+
+- **5. Spelling slips** (accepted with a slip: 2,593 capitals, 597 umlauts) — **my call: not to build.** I know my
+  umlauts; the forgiving stays as it is.
+- **6. Speaking** (spoken answers: 0) — **my call: not to build.** I speak in classes on the side and use the 🎙️
+  when I can.
+- **Smaller, not decided:** the report's headline should be active minutes, not screen minutes (≈ 30 active a day
+  against the 60 planned); Plural Hunt is the weakest game (63 % right, 5 of 15 quit) — plurals as a Today exercise
+  instead?
+- **Watch in the next reports:** the new line "Sessions left before the end, by how" (what ended the sessions of
+  20–21 Nov); the morning numbers (plan, brake) now the real ones; the quests that looked ignored (d_retro, b_plural,
+  d_timer50, b_oldest, c_world, c_timeline, d_perfect) — their counts were wrong until 27 Nov; bonus rounds taken
+  now that there are fewer; "Verb exercises asked in an old card's sentence"; "Mix-up pairs".
+- **Tests already failing before 27 Nov** (the same numbers on the older code): t-adopt "Today never asks an old
+  verb card"; t-quests seed 3 set 5 (b_ledger stays 16/17).
 
 ---
 

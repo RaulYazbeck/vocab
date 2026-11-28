@@ -420,7 +420,10 @@ function buildLearningReport() {
   const conf = (S.games && S.games.confuse) || {};
   const cl = Object.entries(conf).map(([k, list]) => { const a = _learnWord(k); const bs = (list || []).map(_learnWord).filter(Boolean); return a && bs.length ? `${form(a)} ↔ ${bs.map(form).join(", ")}` : ""; }).filter(Boolean);
   words.forEach(x => hist(x.ws, ["confused", "recognition", "listening"]).forEach(h => { const o = _learnFind(h[3], x.w); const b = o && _learnWord(o); if (b) cl.push(`${form(x.w)} ↔ ${form(b)}`); }));
-  if (cl.length) { L(``, `## WORDS I MIX UP`); L([...new Set(cl)].join(" · ")); }
+  // (the pairs Today is watching now — path.js MIX-UPS)
+  const watching = [];
+  Object.entries(S.words).forEach(([k, ws]) => { if (ws && ws.mix && typeof mixKeyWord === "function") Object.keys(ws.mix).forEach(o => { if (k < o) { const a = mixKeyWord(k), b = mixKeyWord(o); if (a && b) watching.push(`${form(a)} ↔ ${form(b)}`); } }); });
+  if (cl.length || watching.length) { L(``, `## WORDS I MIX UP`); if (cl.length) L([...new Set(cl)].join(" · ")); if (watching.length) L(`Being practised as pairs in Today now: ` + watching.join(" · ")); }
 
   // New words
   L(``, `## NEW WORDS — last 14 days (by the day I met them)`);

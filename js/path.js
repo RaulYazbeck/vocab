@@ -281,7 +281,7 @@ function pathNewQuota(scan = pathScan()) {
     else if (base > 0) reason = "slowed";
   }
   const held = plan && reason !== "paused" ? full - base : 0;
-  if (plan && typeof usageNoteBrake === "function") usageNoteBrake(reason, scan.overdue);
+  if (plan && typeof usageNoteBrake === "function") usageNoteBrake(reason, scan.overdue, plan.at);
   // (extraUndo: "+5"s taken back — counted apart so a sync never brings them back)
   // A "+5" counts from the words already met when it was first pressed
   // (extraAt): the brake's pace floor drops a little as words are met, and
@@ -526,28 +526,39 @@ function pathEnsurePlan(scan) {
       try { cx = cxPlanNumbers(scan); } finally { P.plan = was; }
     }
   }
-  const plan = { v: 5, day: today, deadline: P.deadline, pace, reviews, leave, kw, kv, ...(vx ? { vx } : {}), ...(cx ? { cx } : {}) };
+  // at: when this day's plan was made (kept through a finish-date change):
+  // the usage log keeps the morning numbers of the plan in force by it.
+  const at = prev && prev.at ? prev.at : Date.now();
+  const plan = { v: 5, day: today, deadline: P.deadline, at, pace, reviews, leave, kw, kv, ...(vx ? { vx } : {}), ...(cx ? { cx } : {}) };
   plan.target = plan.goal = planTargetOf(plan);
   const target = plan.target;
   P.plan = plan;
-  // Made before this device synced (sync.js): see pathAfterSync.
-  if (typeof cloudLoadedOnce !== "undefined" && !cloudLoadedOnce) P.plan.pre = 1;
+  // Made from a copy not known to hold the cloud's progress (sync.js,
+  // syncCopyFresh: before the first sync, while one runs, or just back
+  // from the background): see pathAfterSync.
+  if (typeof syncCopyFresh === "function" ? !syncCopyFresh() : typeof cloudLoadedOnce !== "undefined" && !cloudLoadedOnce) P.plan.pre = 1;
   planSyncQuest(P.plan);
   const pc = pathPaceCheck(today);
-  logEvent("plan", { pace, reviews, target, leave, kw, kv, due: scan.due, od: scan.overdue, ...(vx ? { vx } : {}), snap: pathSnapshot(scan), pc: pc.level + (pc.why.length ? ":" + pc.why.join("/") : "") });
+  logEvent("plan", { at, ...(prev ? { same: 1 } : {}), ...(P.plan.pre ? { pre: 1 } : {}), pace, reviews, target, leave, kw, kv, due: scan.due, od: scan.overdue, ...(vx ? { vx } : {}), snap: pathSnapshot(scan), pc: pc.level + (pc.why.length ? ":" + pc.why.join("/") : "") });
   return P.plan;
 }
-// A plan made before this device's first sync of the session (opened
-// offline, or used while it was still syncing) only saw this copy's
-// progress: days studied on another device looked like a backlog. Once
-// a sync brings another device's progress in, it is made again — reviews
-// already done today still count (pathReviewedToday). A sync with nothing
-// new leaves it as it is.
+// A plan made before this copy was known to hold the cloud's progress
+// (opened offline, used while it was still syncing, or drawn the moment
+// the app came back from the background on a new day — the commonest:
+// a phone left open overnight) only saw this copy's progress: days
+// studied on another device looked like a backlog. Once a sync brings
+// another device's progress in, it is made again — reviews already done
+// today still count (pathReviewedToday). A sync with nothing new leaves
+// it as it is. (A plan the merge took from the other device has no mark:
+// that one was made there, from that copy.)
 function pathAfterSync(merged) {
   const p = S.path && S.path.plan;
   if (!p || !p.pre) return;
   if (merged && p.day === studyToday()) { S.path.plan = null; invalidatePathScan(); pathEnsurePlan(); }
-  if (S.path.plan) delete S.path.plan.pre;
+  if (S.path.plan) {
+    delete S.path.plan.pre;
+    if (typeof usagePlanSynced === "function") usagePlanSynced(S.path.plan);
+  }
 }
 // Reviews already done today: words that were due and got answered and
 // rescheduled today (not today's new words, not ones still being fixed).
@@ -825,6 +836,159 @@ const FOCUS_LABELS = { dues: "Due today", deck: "Deck focus", level: "Level focu
 // Start is the one button: besides today's due and new words it leans
 // towards your open quests — words for focus quests (the hard ones, a
 // deck, verbs…) and, as the bonus round, the game a quest asks for.
+// ── MIX-UPS ───────────────────────────────────
+// Two words I keep taking for each other (28 Nov 2026, my wish): typing
+// one when the other is asked (mieten for vermieten — the learning log's
+// "confused") makes them a pair, kept on both words (ws.mix = { other:
+// { s: since, d: [days answered right since] } }). While a pair is open,
+// the other word follows in the same session's repair round, and in later
+// sessions a word of the pair brings its partner a few cards later; the
+// feedback shows both side by side. A pair is sorted once both were
+// answered right on MIX_WATCH separate days — the plural watch's rule.
+const MIX_WATCH = 2;
+const MIX_PER_SESSION = 4; // partners a session brings in at most
+const MIX_PARTNERS = 3;    // open pairs a word keeps (the newest)
+function mixKeyWord(k) {
+  const i = String(k).lastIndexOf("_"), d = getDeck(String(k).slice(0, i));
+  return d && d.words[+String(k).slice(i + 1)] ? pathWord(d.id, +String(k).slice(i + 1)) : null;
+}
+// A pair let go on both words (a word's 4th pair takes its oldest's place;
+// a partner no longer asked — taken over by the verb track, reset, gone).
+function mixDrop(k, o) {
+  const a = S.words[k], b = S.words[o];
+  if (a && a.mix) { delete a.mix[o]; if (!Object.keys(a.mix).length) delete a.mix; }
+  if (b && b.mix) { delete b.mix[k]; if (!Object.keys(b.mix).length) delete b.mix; }
+}
+// The open partners of a word: [{ key, w }] — words still met and asked;
+// a pair whose other word isn't (any more) is let go.
+function mixPartners(w) {
+  const k = w && wordKey(w), ws = k && S.words[k];
+  if (!ws || !ws.mix) return [];
+  const out = [];
+  Object.keys(ws.mix).forEach(o => {
+    const x = { key: o, w: mixKeyWord(o), ws: S.words[o] };
+    if (x.w && x.ws && x.ws.st && !x.ws.rt && !(typeof isAnkiDeck === "function" && isAnkiDeck(x.w.deckId))) out.push(x);
+    else mixDrop(k, o);
+  });
+  return out;
+}
+// A typed answer that was another word I know (learning-log.js "confused"):
+// the two become a pair (again: its watch starts over). → the other word, or null.
+// opts.since: the day of the miss (the backfill); opts.quiet: no event of its own.
+function mixNote(w, otherKey, opts = {}) {
+  if (!w || !otherKey || w.vx || otherKey === wordKey(w)) return null;
+  const ow = mixKeyWord(otherKey), ows = S.words[otherKey], ws = S.words[wordKey(w)];
+  if (!ow || !ws || !ws.st || !ows || !ows.st || ows.rt || (typeof isAnkiDeck === "function" && (isAnkiDeck(ow.deckId) || isAnkiDeck(w.deckId)))) return null;
+  const today = opts.since || studyToday(), k = wordKey(w), isNew = !(ws.mix && ws.mix[otherKey]);
+  if (opts.since && !isNew) return null; // (the backfill never resets a pair's watch)
+  const set = (me, rec, other) => {
+    rec.mix = rec.mix || {};
+    delete rec.mix[other];
+    rec.mix[other] = { s: today, d: [] };
+    const ks = Object.keys(rec.mix);
+    // (the oldest let go — on both words)
+    if (ks.length > MIX_PARTNERS) ks.slice(0, ks.length - MIX_PARTNERS).forEach(x => mixDrop(me, x));
+  };
+  set(k, ws, otherKey); set(otherKey, ows, k);
+  if (typeof recordConfusion === "function") recordConfusion(w, ow); // (the games' traps too)
+  if (typeof logEvent === "function" && !opts.quiet) logEvent("mix", { ev: isNew ? "new" : "again", a: k, b: otherKey });
+  return ow;
+}
+// Every pair: let go where either word isn't asked any more, or only one
+// word still has it (a sync can keep one side: word records merge whole).
+// At start-up. → pairs let go.
+function mixSweep() {
+  let n = 0;
+  Object.entries(S.words).forEach(([k, ws]) => {
+    if (!ws || !ws.mix) return;
+    const w = mixKeyWord(k);
+    if (!w || !ws.st || ws.rt) { Object.keys(ws.mix).forEach(o => { mixDrop(k, o); n++; }); return; }
+    const before = Object.keys(ws.mix).length;
+    mixPartners(w).forEach(p => { if (!(p.ws.mix && p.ws.mix[k])) { mixDrop(k, p.key); } });
+    n += before - Object.keys(ws.mix || {}).length;
+  });
+  return n;
+}
+// Mix-ups from before pairs existed (28 Nov 2026): each word's mistake
+// history (learning-log.js ws.mh, its last 6 misses — what I typed kept)
+// holds the "confused" ones; those of the last MIX_BACKFILL_DAYS become
+// pairs, oldest first (a word keeps its newest), since the day of the miss.
+// Once (S.path.mixFill), at start-up — and only misses from before the day
+// pairs started being made as they happen (S.path.mixFrom): a run again
+// (a flag lost in a sync) can't bring back a pair sorted since. → pairs made.
+const MIX_BACKFILL_DAYS = 45;
+function mixBackfill() {
+  const P = S.path;
+  if (!P || P.mixFill || typeof _learnFind !== "function") return 0;
+  P.mixFill = 1;
+  if (!P.mixFrom) P.mixFrom = studyToday();
+  const from = addDays(P.mixFrom, -MIX_BACKFILL_DAYS), until = P.mixFrom, rows = [];
+  Object.entries(S.words).forEach(([k, ws]) => {
+    if (!ws || !ws.st || ws.rt || !Array.isArray(ws.mh)) return;
+    ws.mh.forEach(r => { if (Array.isArray(r) && r[2] === "confused" && r[3] && String(r[0]) >= from && String(r[0]) < until) rows.push([String(r[0]), k, r[3]]); });
+  });
+  rows.sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);
+  let n = 0;
+  rows.forEach(([day, k, given]) => {
+    const w = mixKeyWord(k), o = w && _learnFind(given, w);
+    if (o && mixNote(w, o, { since: day, quiet: true })) n++;
+  });
+  if (n && typeof logEvent === "function") logEvent("mix", { ev: "backfill", n });
+  return n;
+}
+// A word answered right: a day for each of its open pairs; a pair right on
+// MIX_WATCH days on both sides is sorted. → the partners sorted now ([w]).
+function mixRight(w) {
+  const k = w && wordKey(w), ws = k && S.words[k];
+  if (!ws || !ws.mix) return [];
+  const today = studyToday(), sorted = [];
+  Object.keys(ws.mix).forEach(o => {
+    const me = ws.mix[o];
+    if (!me.d.includes(today)) { me.d.push(today); if (me.d.length > 6) me.d.splice(0, me.d.length - 6); }
+    const ows = S.words[o], them = ows && ows.mix && ows.mix[k];
+    if (!them) { delete ws.mix[o]; return; } // (the other side gone: nothing to watch)
+    const both = me.d.filter(d => them.d.includes(d));
+    if (both.length >= MIX_WATCH) {
+      delete ws.mix[o]; delete ows.mix[k];
+      if (!Object.keys(ows.mix).length) delete ows.mix;
+      const ow = mixKeyWord(o); if (ow) sorted.push(ow);
+      if (typeof logEvent === "function") logEvent("mix", { ev: "sorted", a: k, b: o });
+    }
+  });
+  if (ws.mix && !Object.keys(ws.mix).length) delete ws.mix;
+  return sorted;
+}
+// A session's partners: after each word of an open pair, its partner a few
+// cards later — once a session, never one already in it, MIX_PER_SESSION
+// at most.
+function mixInsertPartners(out) {
+  const have = new Set(out.filter(x => x.w && !x.w.vx).map(x => wordKey(x.w)));
+  let n = 0;
+  for (let i = 0; i < out.length && n < MIX_PER_SESSION; i++) {
+    const it = out[i];
+    if (!it.w || it.w.vx || it.t === "learn" || it.t === "bonus" || it.mix) continue;
+    for (const p of mixPartners(it.w)) {
+      if (n >= MIX_PER_SESSION || have.has(p.key)) continue;
+      have.add(p.key); n++;
+      out.splice(Math.min(out.length, i + 4), 0, { t: "typed", w: p.w, extra: true, mix: wordKey(it.w) });
+    }
+  }
+  return n;
+}
+// The two side by side: "mieten = to rent · vermieten = to let".
+function mixPairHtml(a, b) {
+  const one = w => `<b>${colorArticleHtml(gameForm(w))}</b> = ${escapeHtml(gamePrompt(w))}`;
+  return `<div class="p-mix"><span class="p-mix-ico">🔀</span><span>${one(a)}</span><span class="p-mix-sep">·</span><span>${one(b)}</span></div>`;
+}
+// Bonus rounds in a session, by its questions (2026-11-28, my wish: they
+// were fun at first, three a Long session was too many — and a Long
+// session picked for the last 10 cards of the day still brought three):
+// 40 or more → 2 (the middle, near the end) · 12–39 → 1 (near the end) ·
+// fewer → none. → where they go, as shares of the questions.
+const PATH_BONUS = { two: 40, one: 12 };
+function pathBonusSlots(questions) {
+  return questions >= PATH_BONUS.two ? [0.5, 0.9] : questions >= PATH_BONUS.one ? [0.85] : [];
+}
 const PATH_BONUS_IDS = ["gender", "match", "blitz", "rain", "truefalse", "typerush",
   "plural", "scramble", "cloze", "builder", "listen", "conj", "cases", "thread", "timeline", "timer"];
 // Bonus games open up as your vocabulary grows (words met): recognition
@@ -947,7 +1111,7 @@ function buildPathQueue(lenKey, opts = {}) {
     reviews = picks.filter(p => p[0] === "w").map(([, x]) => pathItemFor(pathWord(x.d.id, x.i), x.ws, rng));
     const verbs = [];
     let avoid = "";
-    picks.filter(p => p[0] === "v").forEach(([, x]) => { const ex = vxMakeExercise(x.it, avoid); if (ex) { verbs.push({ t: "typed", w: vxWord(ex) }); avoid = ex.x.inf; } });
+    picks.filter(p => p[0] === "v").forEach(([, x]) => { const ex = vxMakeExercise(x.it, avoid); if (ex) { verbs.push({ t: "typed", w: vxWord(vxWithSentence(ex)) }); avoid = ex.x.inf; } });
     if (verbs.length) {
       const step = Math.max(1, Math.floor((reviews.length + verbs.length) / verbs.length));
       verbs.forEach((it, i) => reviews.splice(Math.min(reviews.length, i * step + 1), 0, it));
@@ -1021,7 +1185,9 @@ function buildPathQueue(lenKey, opts = {}) {
       const step = Math.max(1, Math.floor((reviews.length + vxp.items.length) / vxp.items.length));
       vxp.items.forEach((ex, i) => {
         const at = Math.min(reviews.length, i * step + 1);
-        const w = vxWord(ex);
+        // (now and then in one of its old cards' sentences — never a new
+        // item's intro and first check, never a drill's check)
+        const w = vxWord(ex.fresh || ex.drill ? ex : vxWithSentence(ex));
         reviews.splice(at, 0, { t: "typed", w, fresh: !!ex.fresh });
         if (ex.fresh) reviews.splice(Math.max(0, at - 3), 0, { t: "learn", w });
       });
@@ -1136,7 +1302,7 @@ function buildPathQueue(lenKey, opts = {}) {
     let short = budget - counted() - grammarQ;
     // Verb quests Today's quotas left short: verb forms come first.
     const vxNeed = short > 0 && typeof questPracticeNeed === "function" && typeof vxPracticeItems === "function" ? questPracticeNeed() : 0;
-    if (vxNeed > 0) vxPracticeItems(Math.min(vxNeed, short)).forEach(ex => { out.push({ t: "typed", w: vxWord(ex), practice: !!ex.practice, questFill: true }); short--; });
+    if (vxNeed > 0) vxPracticeItems(Math.min(vxNeed, short)).forEach(ex => { out.push({ t: "typed", w: vxWord(vxWithSentence(ex)), practice: !!ex.practice, questFill: true }); short--; });
     const left = pathPlanLeft();
     if (left !== null) short = Math.min(short, Math.max(0, left - counted() - grammarQ));
     if (short > 0) focusWords("stale").filter(x => !have.has(x.d.id + "_" + x.i)).slice(0, short)
@@ -1167,23 +1333,28 @@ function buildPathQueue(lenKey, opts = {}) {
     choiced.add(k);
     i++;
   }
-  // Bonus-round offers: a few, spread evenly, the last one near the end
-  // as a reward — Quick 1, Regular 2, Long 3 (never in Grandma mode).
-  // ⚔️ A minion (≈10% of Regular/Long sessions, once a day) takes the
+  // 🔀 Mix-ups still open: their partners come along (mixInsertPartners).
+  if (!focus && !opts.extra && !grandmaOn()) mixInsertPartners(out);
+  // Bonus-round offers, by the questions the session really holds — not
+  // the length picked (a Long session with 10 cards left is a 10-card
+  // session): see pathBonusSlots (never in Grandma mode or a focus).
+  // ⚔️ A minion (≈10% of sessions with a bonus, once a day) takes the
   // slot nearest the middle.
-  if (budget >= 15 && !opts.noBonus && !focus && !grandmaOn()) {
-    let slots = budget >= 60 ? [0.3, 0.62, 0.92] : budget >= 30 ? [0.45, 0.9] : [0.6];
+  // (a course card counts its questions: a grammar drill is 15 of them)
+  const qOf = x => x.t === "cx" ? x.qn || 1 : x.t !== "learn" && x.t !== "bonus" && x.t !== "sheet" && !x.warm ? 1 : 0;
+  const total = out.reduce((n, x) => n + qOf(x), 0);
+  const slots = !opts.noBonus && !focus && !grandmaOn() ? pathBonusSlots(total) : [];
+  if (slots.length) {
     let minion = null;
-    if (budget >= 30 && typeof minionDeckPick === "function" && S.games && S.games.minionDay !== todayISO()
-        && Math.random() < MINION_CHANCE && out.filter(x => x.t !== "learn").length >= 10) minion = minionDeckPick();
+    if (typeof minionDeckPick === "function" && S.games && S.games.minionDay !== todayISO()
+        && Math.random() < MINION_CHANCE) minion = minionDeckPick();
     const mid = minion ? slots.reduce((a, b) => Math.abs(b - 0.55) < Math.abs(a - 0.55) ? b : a) : -1;
-    const isQ = x => x.t !== "learn" && x.t !== "bonus" && x.t !== "sheet" && x.t !== "cx" && !x.warm;
-    const total = out.filter(isQ).length;
     const marks = slots.map(f => ({ at: Math.max(1, Math.round(total * f)), item: f === mid ? { t: "bonus", minion } : { t: "bonus" } }));
     let n = 0;
     for (let i = 0; i < out.length && marks.length; i++) {
-      if (!isQ(out[i])) continue;
-      n++;
+      const w = qOf(out[i]);
+      if (!w) continue;
+      n += w;
       if (n >= marks[0].at && i < out.length - 1) { out.splice(i + 1, 0, marks.shift().item); i++; }
     }
   }

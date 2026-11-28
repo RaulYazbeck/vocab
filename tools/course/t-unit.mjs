@@ -436,7 +436,12 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   ok(C.cxJournalPick(1).id !== p1.id, "another topic: a different prompt");
   ok(!C.CX.journal.filter(p => p.sec === "s0.neg").some(p => p.id === C.cxJournalPick(0).id), "nicht/kein prompts wait for their section");
   C.S.course.sec["s0.neg"] = { st: 3, at: "2026-10-18" };
-  ok(C.cxJournalPick(0).sec === "s0.neg", `the section done: its prompt comes first (${C.cxJournalPick(0).id})`);
+  // the writing plan's topics come first (writing-bank.js — 28 Nov 2026); the
+  // older prompts' rules (a section's prompt first) once they're all written
+  ok(/^wb\./.test(C.cxJournalPick(0).id), `the writing plan's topics first (${C.cxJournalPick(0).id})`);
+  const bank = C.CX.wbank.splice(0);
+  ok(C.cxJournalPick(0).sec === "s0.neg", `every plan topic written: the section done, its prompt comes first (${C.cxJournalPick(0).id})`);
+  C.CX.wbank.push(...bank);
   ok(C.cxJournalSave("w.flat", "   ") === null, "nothing written: nothing saved");
   const e = C.cxJournalSave(C.cxJournalPick(0).id, "Meine Wohnung hat drei Zimmer. Wir haben keinen Balkon.");
   ok(e && e.w === 9 && C.S.writing["2026"].length === 1 && e.d === "2026-10-18" && !C.S.learn.wr, "saved with its day and word count, under its year", J(e));
@@ -465,9 +470,12 @@ ok(B.review === 30, `no new sheet today: its minutes go to reviews (${B.review},
   fresh(); C.S.learn = {}; C.__due = 400; C.S.course.last = "2026-10-01";
   C.S.writing = { "2026": [{ id: "w1", d: "2026-10-15", p: "w.me", t: "x", w: 1 }] };
   const heavy = () => C.cxTodayParts().some(p => p.part === "write");
-  ok(!heavy(), "a heavy lesson day, a text 3 days ago: no writing today");
+  // three a week, never two days in a row — whatever the lesson (28 Nov 2026)
+  ok(heavy(), "a heavy lesson day, a text 3 days ago: writing all the same (three a week)");
+  C.S.writing["2026"][0].d = C.addDays(C.studyToday(), -1);
+  ok(!heavy(), "a text yesterday: no writing today (never two days in a row)");
   C.S.writing["2026"][0].d = "2026-10-14";
-  ok(heavy(), "4 days since the last text: writing comes anyway");
+  ok(heavy(), "4 days since the last text: writing comes");
   C.S.course.dd.write = 1;
   ok(!C.cxTodayParts().some(p => p.part === "write"), "written today: no second one");
   C.__due = 60;

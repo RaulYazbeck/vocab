@@ -53,6 +53,8 @@ In the real app (Chromium via playwright-core from `../audio/tests`; run
                             # (Easy / Rank up), Daily Challenge and Arcade Mix round by round, a perfect round ranking
                             # up, the menu's tiles and ▶ Play for today — no errors, stalls, NaN, cut text; each rank's
                             # handling (memory mode, decoys, no hints, sudden death…)  (APP=fr, W=1280 H=900, PART=, ONLY=)
+    node t-sentences.mjs    # the old verb cards' sentences: every taken-over card's sentence can be asked by its verb's
+                            # exercise (any tense opening later included), the gap is the form, graded and shown right
     node t-umlaut.mjs       # the umlaut choice (untimed): fahrt / fährt → 1 or 2 in Today, sheet quizzes and untimed
                             # games; Enter spam never picks or skips; a right pick is right; timed games forgive
     node t-plural.mjs       # a plural missed in Plural Hunt is repaired as its plural (der Tisch → die ___)

@@ -352,6 +352,13 @@
 .vx-ctx { color:var(--text-2); font-weight:500; }
 .vx-uml { font-weight:500; color:var(--text-2); font-size:0.9em; }
 .vx-gap.wide { min-width:120px; }
+/* A verb asked in one of its old cards' sentences: the sentence is the line. */
+.vx-line.sent { font-size:21px; font-weight:700; }
+.vx-sent { display:inline; text-align:center; }
+.vx-sent .vx-gap { width:64px; margin:0 4px; vertical-align:baseline; transform:none; }
+.vx-sent-en { font-size:13.5px; color:var(--text-3); text-align:center; margin-top:-2px; }
+.vx-sent-full { font-size:15px; font-weight:500; color:var(--text-2); margin-top:4px; }
+@media (max-width:420px) { .vx-line.sent { font-size:19px; } }
 
 /* The umlaut choice (1 / 2) — untimed, when only an umlaut was off */
 .vx-uml-ask { margin:12px 0 4px; text-align:center; }
@@ -511,6 +518,13 @@
 .cx-see { display:inline-block; margin-top:4px; font-size:13px; }
 .cx-rlist { margin:0 0 6px; padding-left:20px; font-size:14.5px; line-height:1.7; color:var(--text); }
 /* ✍️ Writing: a level, a theme, one Write button */
+/* ✍️ The writing plan: this week's texts as dots, the next day, topics left. */
+.cx-wplan { display:flex; flex-direction:column; gap:3px; padding:9px 12px; margin:2px 0 10px; border-radius:var(--r-sm); background:hsl(var(--th) 70% 50% / 0.08); border:1px solid hsl(var(--th) 70% 60% / 0.25); }
+.cx-wplan-row { display:flex; align-items:center; gap:10px; font-size:14px; flex-wrap:wrap; }
+.cx-wplan small { font-size:12px; color:var(--text-3); line-height:1.35; }
+.cx-wdots { display:inline-flex; gap:5px; }
+.cx-wdot { width:10px; height:10px; border-radius:50%; border:1.5px solid hsl(var(--th) 70% 62% / 0.7); }
+.cx-wdot.on { background:hsl(var(--th) 75% 60%); }
 .cx-seg { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:6px; margin:4px 0 12px; }
 .cx-seg button { padding:8px 4px; border-radius:var(--r-sm); border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--text); font:inherit; cursor:pointer; line-height:1.2; }
 .cx-seg button b { display:block; font-size:15px; }

@@ -151,6 +151,42 @@ ok(m.path.sessionLen === "long" && m.quests.tokens === 1, "nothing new in the cl
   ok(m.dayClock.day === "2026-11-25" && m.dayClock.act === 9, "…and what either device did on it counts", J(m.dayClock));
 }
 
+// A day's plan in the usage history is one plan's (syncPickDayPlans):
+// a phone back from the background drew a plan from its old copy (673
+// "overdue") while the web's plan of the morning saw 13.
+{
+  const D = "2026-11-19";
+  const day = (plan, brk) => ({ min: 10, q: [0, 0, 0, 0], plan, ...(brk ? { brk } : {}) });
+  const st = (savedAt, p, u, okN = 5) => ({ savedAt, quests: quests(D, okN), path: path(D, { plan: p }), usage: { days: { [D]: u } }, words: {} });
+  const webPlan = { v: 5, day: D, at: 1000, reviews: 40, leave: 0, target: 100 };
+  const phonePlan = { v: 5, day: D, at: 2000, reviews: 40, leave: 600, target: 270, pre: 1 };
+  const webU = day({ due: 26, od: 13, mk: 1000, rev: 40, tgt: 100 }, { am: "none", now: "none", od: 13, mk: 1000 });
+  const phoneU = day({ due: 686, od: 673, mk: 2000, pre: 1, rev: 176, tgt: 270 }, { am: "slowed", now: "slowed", od: 673, mk: 2000 });
+  // the phone's copy hadn't synced: the web's plan is the one kept
+  let m = merge(st(3000, phonePlan, phoneU), st(2000, webPlan, webU), { localWins: true });
+  let u = m.usage.days[D];
+  ok(u.plan.od === 13 && u.plan.due === 26 && u.plan.tgt === 100 && u.plan.mk === 1000, "usage plan: the synced copy's plan, whole (not the higher of each number)", J(u.plan));
+  ok(u.brk && u.brk.od === 13 && u.brk.am === "none", "usage brake: the reading that goes with that plan", J(u.brk));
+  m = merge(st(2000, webPlan, webU), st(3000, phonePlan, phoneU), { localWins: false });
+  ok(m.usage.days[D].plan.od === 13, "…merged the other way round too", J(m.usage.days[D].plan));
+  // neither unsynced: the plan in force today, else the later one
+  const p2 = { ...phonePlan }; delete p2.pre;
+  const u2 = day({ ...phoneU.plan }); delete u2.plan.pre;
+  m = merge(st(3000, p2, u2, 9), st(2000, webPlan, webU), { localWins: true });
+  ok(m.path.plan.at === 2000 && m.usage.days[D].plan.mk === 2000, "usage plan: the plan in force", J([m.path.plan.at, m.usage.days[D].plan]));
+  ok(!m.usage.days[D].brk, "usage brake: another plan's reading is dropped", J(m.usage.days[D].brk));
+  m = merge({ ...st(3000, null, u2), path: path("2026-11-20") }, st(2000, null, webU), { localWins: true });
+  ok(m.usage.days[D].plan.mk === 2000, "usage plan: a past day — the later plan", J(m.usage.days[D].plan));
+  // the same plan on both: unsynced only while both say so
+  const same = day({ ...webU.plan, pre: 1, due: 30 });
+  m = merge(st(3000, webPlan, same), st(2000, webPlan, webU), { localWins: true });
+  ok(!m.usage.days[D].plan.pre && m.usage.days[D].plan.due === 30, "usage plan: the same plan on both — numbers merged as before, the unsynced mark only if both have it", J(m.usage.days[D].plan));
+  // older entries without mk: as before (the higher of each)
+  const oldA = day({ due: 50, od: 5 }), oldB = day({ due: 60, od: 2 });
+  m = merge(st(3000, webPlan, oldA), st(2000, webPlan, oldB), { localWins: true });
+  ok(m.usage.days[D].plan.due === 60 && m.usage.days[D].plan.od === 5, "usage plan: entries from before mk merge as before", J(m.usage.days[D].plan));
+}
+
 // ── the voice log (audio.js): flags ⚑ and phrases without a recording,
 // copied out on one device → gone everywhere; nothing anyone wrote lost ──
 {

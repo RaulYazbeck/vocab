@@ -96,6 +96,8 @@ let commitPendingSince = 0;    // first save of the current debounce burst
 let commitUrgent = false;      // next commit skips the pre-check (page closing)
 let forceDownloadNext = false; // admin: next load replaces local with the cloud
 let lastCloudCheckAt = 0;      // meta last confirmed to hold nothing new
+let syncShownAt = 0;           // the app last came back into view
+let syncHiddenAt = 0;          // the app last went out of view
 
 // What this device knows about the cloud, kept in localStorage per account:
 //   dev   this device's id (stamped on its saves as _dev)
@@ -474,6 +476,20 @@ function buildSyncDocs(state = S) {
   return docs;
 }
 
+// Is this copy known to hold the cloud's progress right now? Not before
+// the first load, nor while a load runs, nor once the app has come back
+// into view until the cloud has been checked again: a phone left in the
+// background holds whatever it had when it went away, and comes back on a
+// new day with the other device's days still to merge (path.js, today's
+// plan: made from such a copy, it is made again once the sync is in).
+// (Going hidden counts too: another visibility handler may run before
+// this file's, which is the one that notes the return.)
+function syncCopyFresh() {
+  if (!cloudLoadedOnce || loadInFlight) return false;
+  if (syncHiddenAt > syncShownAt) return false;
+  return lastCloudCheckAt >= syncShownAt;
+}
+
 // ── LOAD FROM CLOUD ───────────────────────────
 // Meta-first: most syncs cost a single document read. The full
 // collection is only fetched when we might actually accept cloud data.
@@ -552,7 +568,7 @@ function runCloudLoad(uid) {
       if (stale()) return;
       const cloud = syncCloudState(snapshot);
       if (cloud.meta && (cloud.meta._p || 0) > SYNC_PROTOCOL) { syncOnOutdated(); return; }
-      if (!cloud.meta) { loaded(); syncedDocCache = {}; if (S.savedAt) commitAfterLoad = true; setStatus("☁️ Synced", 3000); return; }
+      if (!cloud.meta) { loaded(); if (typeof pathAfterSync === "function") pathAfterSync(false); syncedDocCache = {}; if (S.savedAt) commitAfterLoad = true; setStatus("☁️ Synced", 3000); return; }
       syncAdoptLanded(cloud.meta);
       const metaSeen = syncTrusted(cloud.meta) ? cloud.meta._seen : null;
       const anc = force ? null : syncIncluded(metaSeen) ? { scal: syncScalarsOf(cloud.state) } : syncAncestorFor(cloud.meta);
@@ -955,9 +971,11 @@ window.addEventListener("pagehide", flushPendingSave);
 
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") {
+    syncHiddenAt = Date.now();
     flushPendingSave();
-  } else if (navigator.onLine) {
-    resumeSync(false);
+  } else {
+    syncShownAt = Math.max(Date.now(), syncHiddenAt);
+    if (navigator.onLine) resumeSync(false);
   }
 });
 

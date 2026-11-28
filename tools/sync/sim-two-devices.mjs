@@ -11,6 +11,13 @@
 //            plan made from the phone's old words): put right on open
 //   outdated the cloud was saved by newer sync rules than the phone runs:
 //            it reloads once, then writes nothing
+//   resume   the phone was synced, then left open in the background (not
+//            closed) while the web studied; it comes back into view on a
+//            slow network: the home screen draws today's plan before the
+//            sync is in — once it is, the plan is made again from the real
+//            words, and the usage log keeps the real morning numbers
+//   resume-touched  the same, with 5 answers on the phone before the
+//            sync is in (its day then wins the merge, plan and all)
 //   course   the web did the grammar course's pilot section and wrote a
 //            text yesterday; the phone, offline today, writes its own text,
 //            then syncs: both texts and the section on both devices
@@ -32,7 +39,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(path.join(here, "../audio/tests/package.json"));
 const { chromium } = require("playwright-core");
 const BASE = process.env.BASE || "http://localhost:8765";
-const SCENARIOS = process.argv.slice(2).length ? process.argv.slice(2) : ["plain", "tap", "timeout", "offline", "repair", "outdated", "course", "voice"];
+const SCENARIOS = process.argv.slice(2).length ? process.argv.slice(2) : ["plain", "tap", "timeout", "offline", "repair", "outdated", "course", "voice", "resume", "resume-touched"];
 const DAY = 864e5;
 function chrome() {
   const root = process.env.PLAYWRIGHT_BROWSERS_PATH || "/opt/pw-browsers";
@@ -131,9 +138,16 @@ const tapLong = async pg => {
   await pg.evaluate(() => setSessionLen("long"));
 };
 
+// The page in view or not (a phone app sent to the background and back).
+const setHidden = (p, h) => p.evaluate(h => {
+  Object.defineProperty(document, "visibilityState", { configurable: true, get: () => h ? "hidden" : "visible" });
+  Object.defineProperty(document, "hidden", { configurable: true, get: () => h });
+  document.dispatchEvent(new Event("visibilitychange"));
+}, h);
 // Day −2: web + phone in sync. Days −2 and −1: the web studies. Returns
 // the web's state before the phone opens and the two devices.
-async function setup() {
+// keepPhone: the phone isn't closed but sent to the background.
+async function setup({ keepPhone = false } = {}) {
   const cloud = {};
   const web = await device(cloud, "web"), phone = await device(cloud, "phone");
   const T0 = today10 - 2 * DAY;
@@ -142,7 +156,8 @@ async function setup() {
   await settle(web.page);
   await open(phone, T0 + 3600e3, { seed: () => localStorage.setItem(AUDIO_PREF, JSON.stringify({ asked: true, want: [] })) });
   await settle(phone.page);
-  await phone.page.close(); phone.page = null;
+  if (keepPhone) await setHidden(phone.page, true);
+  else { await phone.page.close(); phone.page = null; }
   for (const d of [2, 1]) {
     await open(web, today10 - d * DAY + 7200e3);
     await study(web.page);
@@ -177,7 +192,7 @@ async function checkBoth(name, s, extra = () => {}, onWeb = null) {
 
 for (const sc of SCENARIOS) {
   console.log(`\n== ${sc}`);
-  const s = await setup();
+  const s = await setup({ keepPhone: sc.startsWith("resume") });
   if (sc === "plain") {
     await open(s.phone, today10);
     reference = await checkBoth(sc, s);
@@ -259,6 +274,33 @@ for (const sc of SCENARIOS) {
       ok(docs.length >= 1 && n === 2, `course: the cloud holds both texts in the writing doc(s) (${docs.join(", ")})`);
       ok(!/Zürich|Tram/.test(s.cloud.gv5_de), "course: no text in the main doc");
     });
+  } else if (sc.startsWith("resume")) {
+    const pg = s.phone.page, touched = sc === "resume-touched";
+    await pg.clock.setSystemTime(today10);
+    s.phone.delay = 3000; // every cloud call takes 3 s
+    await setHidden(pg, false);
+    await pg.waitForTimeout(300);
+    if (touched) ok(await study(pg, 5) === 5 && await pg.evaluate(() => !!loadInFlight), "resume-touched: 5 answers on the phone while it syncs");
+    const early = await pg.evaluate(() => ({ inFlight: !!loadInFlight, plan: S.path.plan && { day: S.path.plan.day, leave: S.path.plan.leave, pre: S.path.plan.pre },
+      logged: (usageDay().plan || {}).od, brk: usageDay().brk && usageDay().brk.od }));
+    ok(early.inFlight && early.plan && early.plan.day === (await pg.evaluate(() => studyToday())), `${sc}: today's plan drawn while the sync is still running`, JSON.stringify(early));
+    ok(early.plan && early.plan.leave > 0, `${sc}: (that plan saw the web's two days as a backlog: ${early.plan && early.plan.leave} left for later)`);
+    await pg.waitForFunction(() => !loadInFlight, null, { timeout: 60000 });
+    s.phone.delay = 0;
+    await settle(pg);
+    const after = await pg.evaluate(() => ({ plan: S.path.plan && { leave: S.path.plan.leave, reviews: S.path.plan.reviews, pre: S.path.plan.pre },
+      due: pathScan(true).due, od: pathScan(true).overdue, log: usageDay().plan, brk: usageDay().brk }));
+    ok(after.plan && !after.plan.pre, `${sc}: the plan isn't left marked as made before the sync`, JSON.stringify(after.plan));
+    ok(after.log && after.log.od === after.od && after.log.due === after.due, `${sc}: the usage log's morning numbers are the real ones (${after.log && after.log.due}/${after.log && after.log.od} vs ${after.due}/${after.od})`, JSON.stringify(after.log));
+    ok(!after.brk || after.brk.od === after.od, `${sc}: the brake's morning reading is the real one`, JSON.stringify(after.brk));
+    // the plan as it would be made now, from the merged words
+    const fresh = await pg.evaluate(() => {
+      const keep = S.path.plan; S.path.plan = null; invalidatePathScan();
+      const f = pathEnsurePlan(); S.path.plan = keep; invalidatePathScan();
+      return { reviews: f.reviews, leave: f.leave };
+    });
+    ok(after.plan.leave === fresh.leave && after.plan.reviews === fresh.reviews, `${sc}: the phone's plan is the one made from the real words (${after.plan.reviews} reviews, ${after.plan.leave} left; made now: ${fresh.reviews}, ${fresh.leave})`);
+    await checkBoth(sc, s, (ph, wb) => ok(ph.plan.leave === wb.plan.leave && ph.plan.reviews === wb.plan.reviews, `${sc}: phone and web have the same plan (${ph.plan.reviews} reviews, ${ph.plan.leave} left; web ${wb.plan.reviews}, ${wb.plan.leave})`));
   } else if (sc === "voice") {
     const vlog = pg => pg.evaluate(() => ({ flags: audioFlagText(), misses: audioMissText() }));
     await open(s.web, today10 + 60e3);

@@ -748,11 +748,14 @@ function cxJournalRender() {
   const j = _cj;
   if (!j) return;
   const p = j.p, min = cxJournalMin(p);
-  const head = `<div class="gs-head"><span class="gs-unit"><span class="gs-sign">✍️</span>Writing · ${escapeHtml(p.lv)}</span><h2 class="gs-title">${escapeHtml(p.de)}</h2></div>`;
+  // A topic of the writing plan: where it stands in its level (topic 14 of 60).
+  const pos = CX.wbank.includes(p) ? cxWritePos(p) : null;
+  const head = `<div class="gs-head"><span class="gs-unit"><span class="gs-sign">✍️</span>Writing · ${escapeHtml(p.lv)}${pos ? ` · topic ${pos[0]} of ${pos[1]}` : ""}</span><h2 class="gs-title">${escapeHtml(p.de)}</h2></div>`;
   if (j.saved) {
-    const n = cxJournalList().filter(e => !e.c).length;
+    const n = cxJournalList().filter(e => !e.c).length, wk = cxWriteWeek(), next = cxWriteNextDay();
     j.host.innerHTML = `<div class="gs-viewer cx-run cx-journal" style="${cxStyle(0)}" id="cx-journal">${head}
       <div class="gs-result ok"><div class="gs-result-icon">🌟</div><div class="gs-result-title">Good job — ${j.saved.w} words!</div>
+        <div class="gs-result-note">${wk >= CX_WRITE_WEEK ? `That's ${wk} texts this week — the week's writing is done.` : `Text ${wk} of ${CX_WRITE_WEEK} this week.`}${next ? ` The next one comes ${escapeHtml(cxDayWord(next))}.` : ""}</div>
         <div class="gs-result-note">Saved for correction. It's in your learning log${n > 1 ? ` with ${n - 1} other text${n > 2 ? "s" : ""}` : ""}: copy the log into your German project in Claude and ask for corrections.</div>
         <div class="gs-result-act">${j.opts.mode === "path" ? `<button class="g-big-btn" id="cx-jdone" onclick="cxJournalDone()">Continue ▶</button>` : `<button class="g-big-btn" id="cx-jdone" onclick="cxJournalDone()">Done ✓</button>`}</div></div></div>`;
     setTimeout(() => { const b = document.getElementById("cx-jdone"); if (b && j.opts.mode !== "path") try { b.focus({ preventScroll: true }); } catch (e) {} }, 30);
@@ -761,7 +764,7 @@ function cxJournalRender() {
   const draft = cxJDraft(p.id);
   j.host.innerHTML = `<div class="gs-viewer cx-run cx-journal" style="${cxStyle(0)}" id="cx-journal">${head}
     <div class="gs-quiz">
-      <div class="gs-qpos">${min}+ words · for Claude to correct</div>
+      <div class="gs-qpos">${min}+ words · ${cxWriteDays().includes(studyToday()) ? "another text today" : `text ${Math.min(CX_WRITE_WEEK, cxWriteWeek() + 1)} of ${CX_WRITE_WEEK} this week`} · for Claude to correct</div>
       <div class="gs-qtext cx-en">${escapeHtml(p.t)}</div>
       ${(p.help || []).length ? `<div class="cx-cue cx-starters">${p.help.map((h, i) => `<button type="button" class="gs-chip" onpointerdown="event.preventDefault()" onmousedown="event.preventDefault()" onclick="cxJournalStarter(${i})" aria-label="Type: ${escapeHtml(h)}">${escapeHtml(h)}</button>`).join("")}</div>` : ""}
       <textarea class="german-input cx-text cx-jtext" id="cx-jtext" rows="6" placeholder="Schreib hier…" autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="false" lang="de">${escapeHtml(draft)}</textarea>
@@ -843,6 +846,30 @@ function cxJournalCopy() {
 }
 function cxJournalDone() { const j = _cj; _cj = null; if (j && j.opts.onDone) j.opts.onDone(); else if (j && j.opts.mode !== "path") renderJournal(); }
 
+// The writing plan, in a line or two: this week's texts, when the next one
+// comes, the topics left at my level.
+function cxWritePlanHtml() {
+  if (!CX.wbank.length) return "";
+  const wk = cxWriteWeek(), next = cxWriteNextDay(), lv = cxLevel();
+  const left = CX.wbank.filter(p => p.lv === lv).length - cxWriteDone(lv), all = cxWritePick().length;
+  const dots = Array.from({ length: CX_WRITE_WEEK }, (_, i) => `<span class="cx-wdot ${i < wk ? "on" : ""}"></span>`).join("");
+  return `<div class="cx-wplan"><div class="cx-wplan-row"><span class="cx-wdots" aria-label="${wk} of ${CX_WRITE_WEEK} texts this week">${dots}</span>
+      <span><b>${Math.min(wk, CX_WRITE_WEEK)} of ${CX_WRITE_WEEK}</b> texts this week${next ? ` · next: <b>${escapeHtml(cxDayWord(next))}</b>` : ""}</span></div>
+    <small>${all ? `${Math.max(0, left)} new topics left at ${lv}, never repeated` : "Every topic written — the older ones come back now"} · ${cxJournalMin({ lv })}+ words now, +5 every ${(CX_WRITE_RAMP[lv] || [0, 0, 10])[2]} texts</small></div>`;
+}
+// The next day a text is due (from tomorrow if today's is written or not due), or "".
+function cxWriteNextDay() {
+  const today = studyToday(), days = cxWriteDays();
+  for (let i = 0; i < 14; i++) { const d = addDays(today, i); if (cxWriteDue(d, days)) return d; }
+  return "";
+}
+// "today", "tomorrow", or the weekday.
+function cxDayWord(d) {
+  const today = studyToday(), n = daysBetween(today, d);
+  if (n <= 0) return "today";
+  if (n === 1) return "tomorrow";
+  return new Date(Date.parse(d + "T12:00:00Z")).toLocaleDateString("en-GB", { weekday: "long", timeZone: "UTC" });
+}
 // 📖 Course › ✍️ Writing: a level, a theme, Write — then my texts.
 const _cjPick = { lv: "", th: "" }; // "" = my level · any theme
 try { const lv = localStorage.getItem("cx-jlevel"); if (["A1", "A2", "B1"].includes(lv)) _cjPick.lv = lv; } catch (e) {}
@@ -870,7 +897,8 @@ function renderJournal() {
   const theme = (t, ico, name) => `<button class="cx-theme ${th === t ? "on" : ""}" onclick="cxJournalChoose('th','${t}')"><span>${ico}</span>${escapeHtml(name)}</button>`;
   document.getElementById("main-screen").innerHTML = `<div class="screen grammar course cx-wscreen">
     <div class="screen-top"><div class="screen-label">✍️ Writing</div>${cxBackHtml()}</div>
-    <div class="cx-seg">${["A1", "A2", "B1"].map(l => `<button class="${l === lv ? "on" : ""}" onclick="cxJournalChoose('lv','${l}')"><b>${l}</b><small>${CX_JOURNAL_MIN[l]}+ words</small></button>`).join("")}</div>
+    ${cxWritePlanHtml()}
+    <div class="cx-seg">${["A1", "A2", "B1"].map(l => `<button class="${l === lv ? "on" : ""}" onclick="cxJournalChoose('lv','${l}')"><b>${l}</b><small>${cxJournalMin({ lv: l })}+ words</small></button>`).join("")}</div>
     <div class="cx-themes">${theme("", "🎲", "Surprise me")}${CX.themes.map(t => theme(t.id, t.ico, t.name)).join("")}</div>
     ${p ? `<div class="cx-jnext"><b>${escapeHtml(p.de)}</b>${escapeHtml(p.t)}</div>
     <button class="g-big-btn cx-jgo" onclick="cxJournalStart()">✍️ Write</button>` : ""}
@@ -892,7 +920,7 @@ function cxTodayHtml() {
   const sec = c.lesson && cxSection(c.lesson.sec);
   // (its sheet passed — in Today or ☰ › Course — only the drill is left)
   const what = sec ? `📖 Grammar: <b>${escapeHtml(sec.title)}</b> — ${c.lesson.part === "drill" ? "its drill, " : ""}in your session`
-    : c.write ? `✍️ Writing: <b>${escapeHtml((cxJournalPick(0) || { de: "a few lines" }).de)}</b> — for Claude to correct` : "";
+    : c.write ? `✍️ Writing: <b>${escapeHtml((cxJournalPick(0) || { de: "a few lines" }).de)}</b> — text ${Math.min(CX_WRITE_WEEK, cxWriteWeek() + 1)} of ${CX_WRITE_WEEK} this week` : "";
   if (!what) return "";
   return `<button class="tc-vx lesson cx-today" style="${sec ? cxSecStyle(sec.id) : cxStyle(0)}" onclick="showScreen('course')">${what}</button>`;
 }
