@@ -15,15 +15,17 @@
 //   • Playback is one shared <audio> element, unlocked by the first tap
 //     (iOS only lets an element that a tap has started play later).
 //
-// Everything here is device-local: nothing is synced, nothing leaves
-// the device. How a pack is made: tools/audio/README.md.
+// The recordings and the download are device-local. The voice log (what
+// was flagged ⚑ and what had no recording) syncs with progress — see THE
+// VOICE LOG below. How a pack is made: tools/audio/README.md.
 
 const AUDIO_CACHE = "audio-v1-" + (typeof WORD_KEY === "string" ? WORD_KEY : "x");
 const AUDIO_PREF  = "gv_audio_" + (typeof WORD_KEY === "string" ? WORD_KEY : "x");
+// (the voice log's old, per-device home — moved into S.voiceLog, migrateVoiceLog)
 const AUDIO_MISS  = "gv_audio_miss_" + (typeof WORD_KEY === "string" ? WORD_KEY : "x");
-const AUDIO_MISS_MAX = 400;
 const AUDIO_FLAGS = "gv_audio_flags_" + (typeof WORD_KEY === "string" ? WORD_KEY : "x");
-const AUDIO_FLAG_MAX = 300;
+const AUDIO_LAST  = "gv_audio_lastcopy_" + (typeof WORD_KEY === "string" ? WORD_KEY : "x"); // the last "Copy voice log", this device
+const AUDIO_LOG_WARN = 0.6;          // share of the log's size bound (sync-merge.js) that asks for a copy
 const AUDIO_MEM_SHARDS = 4;          // decoded-free: raw bytes of the last few shards
 const AUDIO_PARALLEL = 3;
 // A newer pack that needs less than this is fetched quietly at start-up (new
@@ -529,57 +531,142 @@ function _audioFallback(text, rate) {
   if (typeof speakSystem === "function") speakSystem(text, rate);
 }
 
-// ── MISSES ────────────────────────────────────
-// Phrases the app tried to say that the pack has no recording for (a
-// verb form the games made up, say). They fall back to the system voice
-// and are remembered here so the next build of the pack can include
-// them: Settings → Sound & voice → "Copy voice log".
-let _aMiss = null;
-function _audioMisses() {
-  if (_aMiss) return _aMiss;
-  try { _aMiss = JSON.parse(localStorage.getItem(AUDIO_MISS) || "[]"); } catch (e) { _aMiss = []; }
-  if (!Array.isArray(_aMiss)) _aMiss = [];
-  return _aMiss;
+// ── THE VOICE LOG (synced) ────────────────────
+// Two lists, for the next build of the pack (Settings → Account → For
+// developers → "Copy voice log", pasted to Claude; synth.py --redo-file
+// and extract.mjs --extra read the copy as it is):
+//   • misses — phrases the app tried to say that the pack has no recording
+//     for (a verb form the games made up, say). They fall back to the
+//     system voice.
+//   • flags — recordings that sound off (accent, cut short, wrong word),
+//     flagged with an optional note: a small ⚑ at the right edge shows for
+//     a few seconds after a recording plays.
+// Both live in S.voiceLog, so they sync like progress (its own cloud doc,
+// sync.js): flag on the phone, copy on the laptop — one list with every
+// device's entries and notes. Each flagging and noting gets its own id;
+// copying empties the log on every device by remembering the ids it held
+// ("done"), so a device that still has those entries drops them when it
+// syncs, while anything written since, on any device, stays — whatever its
+// clock says (sync-merge.js, syncMergeVoiceLog). The last copy is kept on
+// the device that made it, to copy again.
+// The lists used to be kept on each device only (AUDIO_MISS, AUDIO_FLAGS
+// in localStorage): migrateVoiceLog moves them in once.
+let _aLogAt = 0;
+// Entry times (for the order shown): rising on this device, after `after`.
+function _audioLogStamp(after) {
+  _aLogAt = Math.max(Date.now(), _aLogAt + 1, (after || 0) + 1);
+  return _aLogAt;
 }
+// Each flagging / noting: its own id — its time in base 36 (so ids sort by
+// age) + 8 random characters. What a copy held is remembered by these ids,
+// never by time, so two devices' clocks never decide what is kept.
+function _audioLogId(at) {
+  let r = "";
+  try { const a = new Uint32Array(2); crypto.getRandomValues(a); r = a[0].toString(36) + a[1].toString(36); } catch (e) {}
+  if (r.length < 8) r += Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+  return at.toString(36) + "-" + r.slice(0, 8);
+}
+const _audioNotesText = f => (Array.isArray(f.ns) ? f.ns : []).map(x => x.n).join(" / ");
+function _audioLogList(kind) {
+  const l = typeof S === "object" && S && S.voiceLog;
+  return l && typeof l === "object" && Array.isArray(l[kind]) ? l[kind] : [];
+}
+// Changes the log and saves it (synced). fn gets a full copy to change;
+// what it leaves is put in canonical order (and entries already copied out
+// dropped) by the same rule a sync uses.
+function _audioLogWrite(fn) {
+  const log = syncMergeVoiceLog(S.voiceLog, null);
+  fn(log);
+  S.voiceLog = syncMergeVoiceLog(log, null);
+  if (typeof saveState === "function") saveState();
+}
+// Once per device: the lists it kept on its own before the log synced.
+// Saved on this device straight away (the old keys are removed only once
+// the state holding them is stored); the cloud gets them with the next
+// save. Also puts a log that came in from elsewhere into canonical shape.
+// Called from migrate() — at start-up and after every cloud load.
+function migrateVoiceLog() {
+  let flags = null, misses = null, had = false;
+  try { had = localStorage.getItem(AUDIO_FLAGS) !== null || localStorage.getItem(AUDIO_MISS) !== null; } catch (e) {}
+  if (had) {
+    try { flags = JSON.parse(localStorage.getItem(AUDIO_FLAGS) || "[]"); } catch (e) {}
+    try { misses = JSON.parse(localStorage.getItem(AUDIO_MISS) || "[]"); } catch (e) {}
+    const old = { flags: [], misses: [], done: [] };
+    (Array.isArray(flags) ? flags : []).forEach(f => {
+      if (!f || typeof f.text !== "string" || !f.text.trim()) return;
+      const at = typeof f.at === "number" && f.at > 0 ? f.at : _audioLogStamp();
+      const n = typeof f.note === "string" ? f.note.trim() : "", id = _audioLogId(at);
+      const e = { t: f.text.trim(), at, ids: [id], ns: n ? [{ n, id }] : [] };
+      if (f.v) e.v = f.v;
+      old.flags.push(e);
+    });
+    (Array.isArray(misses) ? misses : []).forEach(t => {
+      if (typeof t === "string" && t.trim()) { const at = _audioLogStamp(); old.misses.push({ t: t.trim(), at, ids: [_audioLogId(at)] }); }
+    });
+    if (old.flags.length || old.misses.length) S.voiceLog = syncMergeVoiceLog(S.voiceLog, old);
+  }
+  if (S.voiceLog !== undefined) {
+    const canon = syncMergeVoiceLog(S.voiceLog, null);
+    if (JSON.stringify(canon) !== JSON.stringify(S.voiceLog)) S.voiceLog = canon;
+  }
+  if (!had) return;
+  try {
+    if (typeof saveLocalOnly === "function") saveLocalOnly();
+    else localStorage.setItem(STORAGE_KEY, JSON.stringify(S));
+    localStorage.removeItem(AUDIO_FLAGS);
+    localStorage.removeItem(AUDIO_MISS);
+  } catch (e) {}
+}
+
+// A phrase is still without a recording if this device's pack doesn't
+// have it (a newer pack may have recorded what another device noted).
+function _audioStillMissing(t) { return !AUDIO.manifest || !audioFind(t); }
+function _audioOpenMisses() { return _audioLogList("misses").filter(e => _audioStillMissing(e.t)); }
 function audioNoteMiss(text) {
   const t = String(text == null ? "" : text).replace(/\s+/g, " ").trim();
   if (!t || t.length > 200) return;
   if (typeof usageNoteTts === "function") usageNoteTts();
-  const list = _audioMisses();
-  if (list.includes(t)) return;
-  list.push(t);
-  if (list.length > AUDIO_MISS_MAX) list.shift();
-  try { localStorage.setItem(AUDIO_MISS, JSON.stringify(list)); } catch (e) {}
+  if (_audioLogList("misses").some(e => e.t === t)) return;
+  const at = _audioLogStamp();
+  _audioLogWrite(log => { log.misses.push({ t, at, ids: [_audioLogId(at)] }); });
 }
-function audioMissCount() { return _audioMisses().length; }
-function audioMissText() { return _audioMisses().join("\n"); }
-function audioClearMisses() { _aMiss = []; try { localStorage.removeItem(AUDIO_MISS); } catch (e) {} }
+function audioMissCount() { return _audioOpenMisses().length; }
+function audioMissText() { return _audioOpenMisses().map(e => e.t).join("\n"); }
 
-// ── FLAGS ─────────────────────────────────────
-// A recording that sounds off (accent, cut short, wrong word) can be flagged
-// with an optional note: a small ⚑ at the right edge shows for a few seconds
-// after a recording plays. Settings → Sound & voice → "Copy voice log"
-// copies them with the phrases that had no recording (see MISSES), to paste
-// to Claude; synth.py --redo-file and extract.mjs --extra read it as it is.
-let _aFlags = null;
-function _audioFlags() {
-  if (_aFlags) return _aFlags;
-  try { _aFlags = JSON.parse(localStorage.getItem(AUDIO_FLAGS) || "[]"); } catch (e) { _aFlags = []; }
-  if (!Array.isArray(_aFlags)) _aFlags = [];
-  return _aFlags;
-}
-function _audioSaveFlags() { try { localStorage.setItem(AUDIO_FLAGS, JSON.stringify(_audioFlags())); } catch (e) {} }
+// Flags a recording, or flags it again. The note box shows the notes it
+// has (every device's, " / " between them): left as it is, or left empty,
+// they stay; changed, the new text replaces them — and the old ones are
+// marked edited away, so a device that still has them doesn't bring them back.
 function audioFlag(text, note) {
-  const t = String(text || "").trim(); if (!t) return;
-  const list = _audioFlags(), old = list.find(f => f.text === t);
+  const t = String(text || "").replace(/\s+/g, " ").trim(); if (!t) return;
   const n = String(note || "").replace(/\s+/g, " ").replace(/\|/g, "/").trim().slice(0, 200);
-  if (old) { old.note = n || old.note; old.at = Date.now(); old.v = AUDIO.manifest && AUDIO.manifest.v; }
-  else { list.push({ text: t, note: n, at: Date.now(), v: AUDIO.manifest && AUDIO.manifest.v }); if (list.length > AUDIO_FLAG_MAX) list.shift(); }
-  _audioSaveFlags();
+  const v = AUDIO.manifest && AUDIO.manifest.v;
+  _audioLogWrite(log => {
+    const old = log.flags.find(f => f.t === t);
+    const at = _audioLogStamp(old && old.at), id = _audioLogId(at);
+    const e = { t, at, ids: (old ? old.ids : []).concat([id]), ns: old ? old.ns.slice() : [], ov: old && old.ov ? old.ov.slice() : [] };
+    if (v) e.v = v;
+    if (n && (!old || n !== _audioNotesText(old))) {
+      e.ov = e.ov.concat(e.ns.map(x => x.id));   // the notes this device had, replaced
+      e.ns = [{ n, id }];
+    }
+    log.flags = log.flags.filter(f => f !== old).concat([e]);
+  });
 }
-function audioFlagCount() { return _audioFlags().length; }
-function audioFlagText() { return _audioFlags().map(f => f.text + (f.note ? " | " + f.note : "")).join("\n"); }
-function audioClearFlags() { _aFlags = []; try { localStorage.removeItem(AUDIO_FLAGS); } catch (e) {} }
+function audioFlagNote(text) { const f = _audioLogList("flags").find(x => x.t === text); return f ? _audioNotesText(f) : null; }
+function audioFlagCount() { return _audioLogList("flags").length; }
+function audioFlagText() { return _audioLogList("flags").map(f => { const n = _audioNotesText(f); return f.t + (n ? " | " + n : ""); }).join("\n"); }
+// Marks these entries copied out — every id they hold: gone from the log
+// here and, once synced, everywhere. Anything written after them (a new
+// id) stays.
+function _audioLogDone(flags, misses) {
+  if (!flags.length && !misses.length) return;
+  _audioLogWrite(log => {
+    flags.concat(misses).forEach(e => (e.ids || []).forEach(id => log.done.push(id)));
+  });
+}
+function audioClearFlags() { _audioLogDone(_audioLogList("flags").slice(), []); }
+function audioClearMisses() { _audioLogDone([], _audioLogList("misses").slice()); }
 
 let _aFlagTimer = 0;
 function _audioFlagShow() {
@@ -614,21 +701,21 @@ function audioFlagSheet(text) {
   if (!text) return;
   const b = document.getElementById("audio-flag"); if (b) b.classList.remove("on");
   const old = document.getElementById("audio-flag-sheet"); if (old) old.remove();
-  const prev = _audioFlags().find(f => f.text === text);
+  const prevNote = audioFlagNote(text);
   const m = document.createElement("div");
   m.className = "modal-overlay"; m.id = "audio-flag-sheet";
   m.innerHTML = `<div class="modal-sheet confirm-sheet" role="dialog" aria-modal="true" aria-labelledby="af-title">
       <div class="modal-title" id="af-title">Flag this recording?</div>
       <div class="af-phrase"><button class="af-play" id="af-play" aria-label="Play it again">▶</button><span>${escapeHtml(text)}</span></div>
-      <input class="af-note" id="af-note" type="text" maxlength="200" placeholder="Note (optional): accent, cut off, wrong word…" value="${escapeHtml(prev ? prev.note : "")}">
+      <input class="af-note" id="af-note" type="text" maxlength="200" placeholder="Note (optional): accent, cut off, wrong word…" value="${escapeHtml(prevNote || "")}">
       <div class="modal-actions">
         <button class="modal-btn secondary" id="af-no">Cancel</button>
-        <button class="modal-btn primary" id="af-yes">${prev ? "Update" : "Flag"}</button>
+        <button class="modal-btn primary" id="af-yes">${prevNote !== null ? "Update" : "Flag"}</button>
       </div></div>`;
   const done = () => { document.removeEventListener("keydown", key, true); m.remove(); };
   const save = () => {
     audioFlag(text, m.querySelector("#af-note").value); done();
-    if (typeof showCelebrateToast === "function") showCelebrateToast("⚑", "Flagged", "Settings → Sound & voice to copy the list");
+    if (typeof showCelebrateToast === "function") showCelebrateToast("⚑", "Flagged", audioLogNearlyFull() ? "The log is nearly full: copy it (Settings → Account)" : "Copy the list on any device: Settings → Account");
   };
   const key = e => {
     if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); done(); }
@@ -783,10 +870,26 @@ function audioSettingsHtml() {
     </div>`;
 }
 // For developers (Account & data): flagged recordings and missing phrases.
+// When empty: the last copy, to copy again (the clipboard got overwritten
+// before it was pasted, say) — kept on the device that copied it.
 function audioVoiceLogRowHtml() {
   if (!AUDIO.ready || !audioSupported()) return "";
   const flags = audioFlagCount(), misses = audioInstalledKinds().length ? audioMissCount() : 0;
-  return flags + misses ? setNavHtml("📝", `Copy voice log · ${flags + misses}`, [flags ? `${flags} flagged` : "", misses ? `${misses} without a recording` : ""].filter(Boolean).join(", ") + ". Paste it to Claude.", "audioCopyLog()") : "";
+  if (flags + misses) {
+    const full = audioLogNearlyFull() ? " The log is nearly full: copy it now." : "";
+    return setNavHtml("📝", `Copy voice log · ${flags + misses}`, [flags ? `${flags} flagged` : "", misses ? `${misses} without a recording` : ""].filter(Boolean).join(", ") + ". Paste it to Claude." + full, "audioCopyLog()");
+  }
+  const last = _audioLastCopy();
+  return last ? setNavHtml("📝", "Copy the last voice log again", `Copied ${new Date(last.at).toLocaleString()}.`, "audioCopyLastAgain()") : "";
+}
+function audioLogNearlyFull() { return syncVoiceLogFill(S.voiceLog) >= AUDIO_LOG_WARN; }
+function _audioLastCopy() {
+  try { const x = JSON.parse(localStorage.getItem(AUDIO_LAST) || "null"); return x && typeof x.text === "string" && x.text ? x : null; } catch (e) { return null; }
+}
+function audioCopyLastAgain() {
+  const last = _audioLastCopy(); if (!last) return;
+  const ok = () => { if (typeof showCelebrateToast === "function") showCelebrateToast("📝", "Copied again", "Paste it to Claude"); };
+  try { navigator.clipboard.writeText(last.text).then(ok, () => prompt("Copy this list:", last.text)); } catch (e) { prompt("Copy this list:", last.text); }
 }
 // ["w","s"] as a JS literal that is safe inside a double-quoted onclick.
 function _audioKindsJs(kinds) { return "[" + kinds.map(k => `'${k}'`).join(",") + "]"; }
@@ -804,10 +907,16 @@ function audioLogText() {
   if (audioMissCount()) out.push("Phrases without a recording:", audioMissText());
   return out.join("\n");
 }
+// Copying marks exactly what was copied as done (on every device, once
+// synced): an entry noted while the clipboard was busy stays. Phrases a
+// newer pack has recorded since they were noted are left out of the copy
+// and marked done with the rest.
 function audioCopyLog() {
+  const flags = _audioLogList("flags").slice(), misses = _audioLogList("misses").slice();
   const text = audioLogText();
   const done = () => {
-    audioClearFlags(); audioClearMisses();
+    try { localStorage.setItem(AUDIO_LAST, JSON.stringify({ text, at: Date.now() })); } catch (e) {}
+    _audioLogDone(flags, misses);
     if (typeof showCelebrateToast === "function") showCelebrateToast("📝", "Copied", "Paste it to Claude");
     if (typeof renderSettingsPanel === "function") renderSettingsPanel();
   };

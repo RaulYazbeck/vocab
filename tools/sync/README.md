@@ -3,7 +3,10 @@
 `js/sync-merge.js` (the merge rules, pure) and `js/sync.js` (when to read,
 merge and write). These scripts check them.
 
-    node test-merge.mjs        # streak days, today's quests, the path's day, piece-by-piece (3-way), old saves (no browser)
+    node test-merge.mjs        # streak days, today's quests, the path's day, piece-by-piece (3-way), old saves, the voice log (no browser)
+    node test-voice-log.mjs    # the voice log on 4 devices (the app's own code, clocks ±30 s), random flags,
+                               # notes, edits, copies and syncs: nothing written is lost, nothing copied comes back
+                               # (SEED=13 TRACE="Satz 3" node test-voice-log.mjs follows one run and one phrase)
 
 In the real app (Chromium via playwright-core from `../audio/tests`; run
 `npm install` there once, and serve the repo root: `python3 -m http.server 8765`):
@@ -22,6 +25,13 @@ phone's copy gets old; then the phone opens today —
   plan made from the phone's old words) is put right on open
 - `outdated` — the cloud was saved by newer sync rules than the phone
   runs: it reloads once for the new code, then writes nothing
+- `course` — a grammar section and a text on the web, another text on the
+  offline phone: both texts and the section on both
+- `voice` — the voice log (⚑ flags, phrases without a recording): entries
+  from both devices (and the phone's old per-device lists) on both; copied
+  out on the phone, nothing copied comes back from the web's stale offline
+  copy, the flags made after the copy stay on both — one phrase flagged on
+  both with both notes; a force download keeps a flag not sent yet
 
 Each checks, on both devices: the streak, every Known word, the XP,
 today's plan made from the real words, and that a setting, the daily goal
